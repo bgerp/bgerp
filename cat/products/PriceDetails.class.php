@@ -50,7 +50,7 @@ class cat_products_PriceDetails extends core_Manager
         $data->Order = 5;
         
         $Param = core_Request::get($data->masterData->tabTopParam, 'varchar');
-        $isPublic = ($data->masterData->rec->isPublic == 'yes') ? true : false;
+        $isPublic = ($data->masterData->rec->isPublic == 'yes');
         
         if (!(($isPublic === true && (empty($Param) || $Param == 'Prices')) || ($isPublic === false && $Param == 'Prices'))) {
             $data->hide = true;
@@ -76,10 +76,7 @@ class cat_products_PriceDetails extends core_Manager
      */
     public function renderPrices($data)
     {
-        if ($data->hide === true) {
-            
-            return;
-        }
+        if ($data->hide === true) return;
         
         $tpl = getTplFromFile('cat/tpl/PriceDetails.shtml');
         $tpl->append($this->renderPriceInfo($data->listsData), 'PriceList');
@@ -87,7 +84,7 @@ class cat_products_PriceDetails extends core_Manager
         if (isset($data->vatData)) {
             $tpl->append($this->VatGroups->renderVatGroups($data->vatData), 'VatGroups');
         }
-        
+
         return $tpl;
     }
     
@@ -159,22 +156,18 @@ class cat_products_PriceDetails extends core_Manager
         
         // Само за публичните показваме правилото за обновяване
         if ($data->masterData->rec->isPublic == 'yes') {
-            $uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}");
-            if(!is_object($uRec)){
-                $Cover = doc_Folders::getCover($data->masterData->rec->folderId);
-                if($Cover->isInstanceOf('cat_Categories')){
-                    if($uRec = price_Updates::fetch("#type = 'category' AND #objectId = {$Cover->that}")){
-                        $uRec->_fromCategory = true;
-                    }
-                }
+            if($data->masterData->rec->canStore == 'yes' && ($data->masterData->rec->canBuy == 'yes' || $data->masterData->rec->canManifacture == 'yes')){
+
+                // Ако има правило за обновяване към конкретния артикул
+                $data->updateData = clone $data;
+                cls::get('price_Updates')->prepareDetail($data->updateData);
             }
-            
-            $data->updateCostRec = $uRec;
         }
         
         if (haveRole('priceDealer,ceo')) {
             if (price_ListRules::haveRightFor('add', (object) array('productId' => $data->masterId, 'listId' => $primeCostListId))) {
                 $newCost = null;
+
                 if (isset($uRec->costValue)) {
                     $newCost = $uRec->costValue;
                 }
@@ -184,14 +177,6 @@ class cat_products_PriceDetails extends core_Manager
                 
                 if ($hideIcons === false) {
                     $btns .= "<div style='text-align:left'>" . ht::createLink('Нова себестойност', $data->addPriceUrl, false, 'title=Добавяне на нова мениджърска себестойност') . '</div>';
-                }
-                
-                if (isset($uRec)) {
-                    if (price_Updates::haveRightFor('saveprimecost', $uRec)) {
-                        if ($hideIcons === false) {
-                            $btns .= "<div style='text-align:left'>" . ht::createLink('Обновяване', array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => true), false, 'title=Обновяване на себестойността според зададеното правило'). '</div>';
-                        }
-                    }
                 }
                 
                 if (price_Lists::haveRightFor('single', $primeCostListId) && isset($primeCost)) {
@@ -266,7 +251,7 @@ class cat_products_PriceDetails extends core_Manager
             
             // Ако каталожната цена е от прототипа, показва се тази информация
             $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogCost);
-            if($catalogCostIsFromTemplate === true){
+            if($catalogCostIsFromTemplate === true && isset($catalogCost)){
                 $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
             }
 
@@ -326,19 +311,9 @@ class cat_products_PriceDetails extends core_Manager
         $fields = arr::make("price=Стойност|* <small>({$baseCurrencyCode})</small>,type=Вид,updatedOn=В сила от||Valid from,buttons=Действия / Документ");
         $primeCostTpl = $table->get($data->primeCostRows, $fields);
         $primeCostTpl->prepend(tr('|*<div>|Цени без ДДС|*:</div>'));
-        
-        // Рендираме правилото за обновяване само при нужда
-        if ($data->masterData->rec->isPublic == 'yes') {
-            $upTpl = tr('Няма зададено правило за обновяване на себестойност');
-            if(is_object($data->updateCostRec)){
-                $upTpl = price_Updates::getUpdateTpl($data->updateCostRec);
-            }
-            
-            $tpl->replace($upTpl, 'updateInfo');
-            if (price_Updates::haveRightFor('add', (object) array('type' => 'product', 'objectId' => $data->masterId))) {
-                $editUpdateBtn = ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png');
-                $tpl->replace($editUpdateBtn, 'updateBtn');
-            }
+
+        if (isset($data->updateData)) {
+            $tpl->append(cls::get('price_Updates')->renderDetail($data->updateData), 'updateInfo');
         }
         
         $tpl->append($primeCostTpl, 'primeCosts');

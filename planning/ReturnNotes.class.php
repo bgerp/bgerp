@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -64,25 +64,25 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,planning,store';
+    public $canList = 'ceo,planning,store,production';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,planning,store';
+    public $canSingle = 'ceo,planning,store,production';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,planning,store';
+    public $canEdit = 'ceo,planning,store,production';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,planning,store';
+    public $canAdd = 'ceo,planning,store,production';
     
     
     /**
@@ -140,7 +140,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,planning,store';
+    public $canPending = 'ceo,planning,store,production';
     
     
     /**

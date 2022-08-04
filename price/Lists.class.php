@@ -166,9 +166,9 @@ class price_Lists extends core_Master
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,where=#state !\\= \\\'rejected\\\',allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
         $this->FLD('discountComparedShowAbove', 'percent(min=0)', 'caption=Показване на отстъпка в документите->Ако е над,placeholder=1 %');
         $this->FLD('visiblePricesByAnyone', 'enum(no=Само потребители с права,yes=За всички)', 'caption=Видимост на цените->Избор,notNull,value=no');
-        $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне->Значещи цифри');
-        $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне->Мин. знаци');
-        $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка/Отстъпка по подразбиране->Процент');
+        $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне за избрания вид (с/без ДДС) цени (стойности 2 и 1 за цена Х.хх)->Десетични знаци', "unit= (|желан брой цифри след десетичната запетая|*)");
+        $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне за избрания вид (с/без ДДС) цени (стойности 2 и 1 за цена Х.хх)->Значещи цифри', "unit= (|но минимален брой цифри различни от|* 0)");
+        $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка / Отстъпка по подразбиране->Процент', "unit= |(със знак минус за Отстъпка)");
         
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
@@ -722,7 +722,7 @@ class price_Lists extends core_Master
         
         // Колко да е точността на закръгляне
         $precision = max($rInfo->minDecimals, round($rInfo->significantDigits - $p));
-        
+        $precision = (is_infinite($precision) || is_nan($precision)) ? 0 : $precision;
         if ($verbal === true) {
             $Double = cls::get('type_Double', array('params' => array('decimals' => $precision)));
             $price = $Double->toVerbal($price);

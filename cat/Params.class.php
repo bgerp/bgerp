@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -104,7 +104,6 @@ class cat_Params extends bgerp_ProtoParam
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setDefault('showInPublicDocuments', 'yes');
-        
         if (isset($data->form->rec->sysId)) {
             $data->form->setReadOnly('showInTasks');
         }
@@ -127,6 +126,7 @@ class cat_Params extends bgerp_ProtoParam
             6 => 'state',
             7 => 'csv_params',
             8 => 'showInTasks',
+            9 => 'group',
         );
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -152,6 +152,7 @@ class cat_Params extends bgerp_ProtoParam
         core_Lg::push($lg);
         $name = tr($rec->name) . ((!empty($rec->suffix)) ? ' (' . tr($rec->suffix) . ')': '');
         $name = preg_replace('/\s+/', '_', $name);
+        $name = str_replace('/', '_', $name);
         $name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
         core_Lg::pop();
         
@@ -221,7 +222,7 @@ class cat_Params extends bgerp_ProtoParam
     
     
     /**
-     * Форсира параметър
+     * Форсира параметър (ако има такъв го връща, ако няма създава)
      *
      * @param string      $sysId       - систем ид на параметър
      * @param string      $name        - име на параметъра
@@ -229,24 +230,46 @@ class cat_Params extends bgerp_ProtoParam
      * @param NULL|string   $options     - опции на параметъра само за типовете enum и set
      * @param NULL|string $suffix      - наставка
      * @param NULL|bool   $showInTasks - може ли да се показва в производствена операция
+     * @param NULL|bool   $groupName   - група
+     *@param NULL|bool   $params   - параметри
      *
      * @return int - ид на параметъра
      */
-    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true)
+    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true, $groupName = null, $params = null)
     {
         // Ако има параметър с това систем ид,връща се
-        $id = self::fetchIdBySysId($sysId);
-        if (!empty($id)) {
-            
-            return $id;
+        if($sysId){
+            $id = self::fetchIdBySysId($sysId);
+            if (!empty($id)) return $id;
+        } else {
+
+            // Ако няма сис ид все пак се проверява дали няма такъв параметър
+            $where = "#name = '{$name}' AND #suffix = '{$suffix}' AND ";
+            $where .= ($groupName) ? "#group = '{$groupName}'" : "#group IS NULL";
+            if($exId = static::fetchField($where)){
+
+                 return $exId;
+            }
         }
-        
-        $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix);
+
+        $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix, $groupName);
         $nRec->showInTasks = ($showInTasks) ? 'yes' : 'no';
         $nRec->showInPublicDocuments = ($showInPublicDocuments) ? 'yes' : 'no';
+        if (isset($params)) {
+            $params = arr::make($params);
+            foreach ($params as $k => $v) {
+                if (!isset($rec->{$k})) {
+                    $nRec->{$k} = $v;
+                }
+            }
+        }
 
         // Създаване на параметъра
-        return self::save($nRec);
+        core_Users::forceSystemUser();
+        $id = self::save($nRec);
+        core_Users::cancelSystemUser();
+
+        return $id;
     }
     
     
@@ -258,7 +281,7 @@ class cat_Params extends bgerp_ProtoParam
     public static function getTaskParamIds()
     {
         $query = self::getQuery();
-        $query->where("#showInTasks = 'yes'");
+        $query->where("#showInTasks = 'yes' AND #state != 'closed'");
         $res = arr::extractValuesFromArray($query->fetchAll(), 'id');
         
         return $res;

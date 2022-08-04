@@ -198,7 +198,12 @@ class webkittopdf_Converter extends core_Manager
         
         //Скрипта, който ще се изпълнява
         $exec = ($xvfb) ? "{$xvfb} {$wk}" : $wk;
-        
+
+        $timeLimit = fconv_Script::getTimeLimitScript();
+        if ($timeLimit) {
+            $exec = $timeLimit . ' ' . $exec;
+        }
+
         //Стартираме скрипта за генериране на pdf файл от html файл
         $res = shell_exec($exec);
         
@@ -218,7 +223,7 @@ class webkittopdf_Converter extends core_Manager
         
         //Изтриваме временната директория заедно с всички създадени папки
         core_Os::deleteDir($tempPath);
-        
+
         //Връщаме манипулатора на файла
         return $fh;
     }
@@ -257,7 +262,9 @@ class webkittopdf_Converter extends core_Manager
     {
         // Версиите на пакета
         $versionArr = webkittopdf_Setup::getVersionAndSubVersion();
-        
+
+        $res = '';
+
         // В зависимост от версията активира използването на JS
         if (static::checkForActivateJS($versionArr)) {
             

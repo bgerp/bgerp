@@ -31,9 +31,15 @@ class crm_Locations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_Sorting, plg_Search';
-    
-    
+    public $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_Sorting, plg_Search,plg_LastUsedKeys';
+
+
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    public $lastUsedKeys = 'features';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -121,18 +127,21 @@ class crm_Locations extends core_Master
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
         $this->FLD('title', 'varchar', 'caption=Наименование,silent');
         $this->FLD('type', 'varchar(32)', 'caption=Тип,mandatory');
-        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData,mandatory');
-        $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
-        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
-        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
-        $this->FLD('specifics', 'richtext(bucket=Notes, rows=2)', 'caption=@Особености');
-        $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=@Информация');
-        $this->FLD('mol', 'varchar(64)', 'caption=Отговорник');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
-        $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
-        $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
-        $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
-        $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
+        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Адресни данни->Държава,class=contactData,mandatory');
+        $this->FLD('place', 'varchar(64)', 'caption=Адресни данни->Град,oldFieldName=city,class=contactData');
+        $this->FLD('pCode', 'varchar(16)', 'caption=Адресни данни->П. код,class=contactData');
+        $this->FLD('address', 'varchar(255)', 'caption=Адресни данни->Адрес,class=contactData');
+        $this->FLD('features', 'keylist(mvc=trans_Features,select=name)', 'caption=Адресни данни->Особености');
+        $this->FLD('specifics', 'richtext(bucket=Notes, rows=2)', 'caption=Адресни данни->@Други');
+        $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=Адресни данни->GLN код');
+        $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Адресни данни->Координати');
+        $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Адресни данни->Снимка');
+        $this->FLD('mol', 'varchar(64)', 'caption=Контактни данни->Отговорник');
+        $this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData');
+        $this->FLD('email', 'emails', 'caption=Контактни данни->Имейли,class=contactData');
+
+        $this->FLD('workingTime', "table(columns=day|start|end,captions=Ден|От|До,validate=crm_Locations::validateWorkingTime)", "caption=Контактни данни->Работно време");
+        $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=За вътрешно (служебно) ползване - не се показва в документи->@Информация');
 
         $this->setDbUnique('gln');
         $this->setDbIndex('contragentCls,contragentId');
@@ -282,9 +291,16 @@ class crm_Locations extends core_Master
         $data->form->setDefault('countryId', $contragentRec->country);
         $data->form->setDefault('place', $contragentRec->place);
         $data->form->setDefault('pCode', $contragentRec->pCode);
-        
-        $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         $data->form->setSuggestions('type', self::getTypeSuggestions());
+
+        $workingDayOptions = arr::make('weekdays=Понеделник - Петък,weekends=Събота / Неделя,monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя', true);
+        $hourOptions = array();
+        foreach (range(1, 23) as $h){
+            $h = str_pad($h, 2, '0', STR_PAD_LEFT) . ":00";
+            $hourOptions[$h] = $h;
+        }
+        $data->form->setFieldTypeParams('workingTime', array('day_opt' => array('' => '') + $workingDayOptions, 'start_sgt' => $hourOptions, 'end_sgt' => $hourOptions));
+
     }
     
     
@@ -359,6 +375,12 @@ class crm_Locations extends core_Master
             
             if (!$rec->gpsCoords) {
                 unset($row->gpsCoords);
+            }
+
+            if(!empty($rec->workingTime)){
+                $Type = core_Type::getByName("table(columns=day|start|end,captions=Ден|От|До)");
+                $Type->params['day_opt'] = arr::make('weekdays=Понеделник - Петък,weekends=Събота / Неделя,monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя', true);
+                $row->workingTime = $Type->toVerbal($rec->workingTime);
             }
         }
         
@@ -655,19 +677,20 @@ class crm_Locations extends core_Master
         
         return $resRecs;
     }
-    
-    
+
+
     /**
-     * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
+     * Ф-я връщаща пълния адрес на локацията
      *
-     * @param int  $id
-     * @param bool $translitarate
-     *
-     * @return core_ET $tpl
+     * @param mixed $id
+     * @param bool $transliterate
+     * @param bool $showFeatures
+     * @return string
+     * @throws core_exception_Expect
      */
-    public static function getAddress($id, $translitarate = false)
+    public static function getAddress($id, $transliterate = false, $showFeatures = true)
     {
-        expect($rec = static::fetch($id));
+        expect($rec = static::fetchRec($id));
         $row = static::recToVerbal($rec);
         
         $string = '';
@@ -678,13 +701,18 @@ class crm_Locations extends core_Master
             }
         }
         
-        if ($translitarate === true) {
+        if ($transliterate === true) {
             $row->place = transliterate($row->place);
             $row->address = transliterate($row->address);
         }
         
         $string .= "{$row->pCode} {$row->place}, {$row->address}";
         $string = trim($string, ',  ');
+
+        if($showFeatures && !empty($rec->features)){
+            $features = core_Type::getByName('keylist(mvc=trans_Features,select=name)')->toVerbal($rec->features);
+            $string .= "; {$features}";
+        }
 
         if(!empty($rec->specifics)){
             $specifics = core_Type::getByName('richtext')->toVerbal($rec->specifics);
@@ -902,5 +930,67 @@ class crm_Locations extends core_Master
         }
         
         return $suggArr;
+    }
+
+
+    /**
+     * Валидира работните дни
+     */
+    public static function validateWorkingTime($tableData, $Type)
+    {
+        $res = array();
+
+        $tableData = (array) $tableData;
+        $error = $days = $errorFields = array();
+        if (empty($tableData)) return;
+
+        foreach ($tableData['day'] as $key => $day) {
+            if (array_key_exists($day, $days)) {
+                $error[] = 'Повтарящ се ден';
+                $errorFields['day'][$key] = 'Повтарящ се ден';
+            } else {
+                $days[$day] = $day;
+            }
+
+            if (empty($tableData['start'][$key]) && empty($tableData['end'][$key])) {
+                $error[] = 'Избран ден, без да е посочено време';
+                $errorFields['start'][$key] = 'Избран ден, без да е посочено време';
+                $errorFields['end'][$key] = 'Избран ден, без да е посочено време';
+            }
+
+            if (!empty($tableData['start'][$key]) && !empty($tableData['end'][$key])) {
+                if($tableData['start'][$key] >= $tableData['end'][$key]){
+                    $error[] = 'Началото трябва да е преди края';
+                    $errorFields['start'][$key] = 'Началото трябва да е преди края';
+                }
+            }
+        }
+
+        foreach (array('start', 'end') as $column){
+            foreach ($tableData[$column] as $key => $time) {
+                if(!empty($tableData[$column][$key])){
+                    if(!preg_match("/^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/", $tableData[$column][$key])) {
+                        $error[] = 'Невалиден формат за час';
+                        $errorFields[$column][$key] = 'Невалиден формат за час';
+                    }
+
+                    if(empty($tableData['day'][$key])){
+                        $error[] = 'Въведен час без да е въведен ден';
+                        $errorFields[$column][$key] = 'Въведен час без да е въведен ден';
+                    }
+                }
+            }
+        }
+
+        if (countR($error)) {
+            $error = implode('|*<li>|', $error);
+            $res['error'] = $error;
+        }
+
+        if (countR($errorFields)) {
+            $res['errorFields'] = $errorFields;
+        }
+
+        return $res;
     }
 }

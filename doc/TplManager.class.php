@@ -261,8 +261,8 @@ class doc_TplManager extends core_Master
             $form->FNC($fldName, "set({$DocClass->toggleFields})", 'caption=Полета за показване->Колони,input,columns=3,tempFld,silent');
             
             // Стойност по подразбиране
-            if (isset($form->rec->$fldName)) {
-                $default = $form->rec->$fldName;
+            if (isset($form->rec->{$fldName})) {
+                $default = $form->rec->{$fldName};
             } elseif (isset($form->rec->toggleFields) && array_key_exists($fldName, $form->rec->toggleFields)) {
                 $default = $form->rec->toggleFields[$fldName];
             } else {
@@ -659,5 +659,15 @@ class doc_TplManager extends core_Master
         }
         
         return $res;
+    }
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($rec->originId)){
+            $row->originId = static::getHyperlink($rec->originId, true);
+        }
     }
 }

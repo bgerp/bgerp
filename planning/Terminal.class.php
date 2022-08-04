@@ -26,12 +26,6 @@ class planning_Terminal extends peripheral_Terminal
      * Име на източника
      */
     protected $clsName = 'planning_Points';
-    
-    
-    /**
-     * Полета
-     */
-    protected $fieldArr = array('centerId', 'fixedAssets', 'employees');
 
     
     /**
@@ -155,7 +149,7 @@ class planning_Terminal extends peripheral_Terminal
                 $assetRec = planning_AssetResources::fetch($form->rec->asset);
                 $supportFolders = keylist::toArray($assetRec->systemFolderId);
                 if(!countR($supportFolders)){
-                    $form->setError('assetFolderId', 'Оборудването няма избрана папка за поддръжка');
+                    $form->setError('assetFolders', 'Оборудването няма избрана папка за поддръжка');
                 } else {
                     $newTask = (object)array('folderId' => key($supportFolders),
                         'driverClass' => support_TaskType::getClassId(),
@@ -248,19 +242,19 @@ class planning_Terminal extends peripheral_Terminal
      * @param mixed $id
      * @return core_ET $tpl
      */
-    private function getJobHtml($id)
+    public function getJobHtml($id)
     {
-        $rec = planning_Points::fetchRec($id);
+        //$rec = planning_Points::fetchRec($id);
         
         $tpl = new core_ET(" ");
-        if($taskId = Mode::get("currentTaskId{$rec->id}")){
-            $jobContainerId = planning_Tasks::fetchField($taskId, 'originId');
-            $jobObject = doc_Containers::getDocument($jobContainerId);
+        //if($taskId = Mode::get("currentTaskId{$rec->id}")){
+            //$jobContainerId = planning_Tasks::fetchField($taskId, 'originId');
+            $jobObject = doc_Containers::getDocument(290176);
             
             Mode::push('noBlank', true);
             $tpl = $jobObject->getInlineDocumentBody('xhtml');
             Mode::pop('noBlank', true);
-        }
+       // }
         
         return $tpl;
     }
@@ -284,7 +278,8 @@ class planning_Terminal extends peripheral_Terminal
         $data->query->where("#folderId = {$folderId} AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped' AND #state != 'draft'");
         $data->query->orderBy('id', "DESC");
         if(!empty($rec->fixedAssets)){
-            $data->query->likeKeylist('fixedAssets', $rec->fixedAssets);
+            $assets = keylist::toArray($rec->fixedAssets);
+            $data->query->in('assetId', $assets);
         }
         
         Mode::push('text', 'xhtml');
@@ -316,6 +311,7 @@ class planning_Terminal extends peripheral_Terminal
         
         setIfNot($data->listTableMvc, clone $Tasks);
         $data->listTableMvc->FLD('selectBtn', 'varchar', 'tdClass=small-field centered');
+        $data->stopListRefresh = true;
         $tpl = $Tasks->renderList($data);
         Mode::pop('text', 'xhtml');
         
@@ -348,8 +344,8 @@ class planning_Terminal extends peripheral_Terminal
             $data->masterData = (object)array('rec' => planning_Tasks::fetch($taskId));
             $Details->listItemsPerPage = false;
             $Details->prepareDetail_($data);
-            $data->groupByField = '_createdDate';
-            $data->listFields = array('_createdDate' => '@', 'typeExtended' => '@', 'serial' => '№', 'quantityExtended' => 'К-во', 'additional' => ' ');
+            $data->groupByField = '_groupedDate';
+            $data->listFields = array('_groupedDate' => '@', 'typeExtended' => '@', 'serial' => '№', 'quantityExtended' => 'К-во', 'additional' => ' ');
         }
         
         unset($data->toolbar);
@@ -434,6 +430,7 @@ class planning_Terminal extends peripheral_Terminal
         $form->FLD('weight', 'double(Min=0)', "class=w100 weightField{$mandatoryClass},placeholder=Тегло|* (|кг|*)");
         $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100,columns=3)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
         $form->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id,select2MinItems=100)', 'elementId=fixedAssetSelect,placeholder=Оборудване,class=w100');
+        $form->FLD('date', 'date', "caption=Дата");
         $form->FLD('recId', 'int', 'input=hidden,silent');
         $form->rec->taskId = $currentTaskId;
         $form->input(null, 'silent');
@@ -462,7 +459,8 @@ class planning_Terminal extends peripheral_Terminal
                 $typeOptions["{$type}|{$pId}"] = "[{$typeCaption}] {$pName}";
             }
         }
-        
+
+        $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::today(), 'd.m.Y'));
         $form->setOptions('action', $typeOptions);
         $form->setDefault('action', "production|{$taskRec->productId}");
         if(isset($form->rec->action)){
@@ -752,9 +750,10 @@ class planning_Terminal extends peripheral_Terminal
                 'employees' => Request::get('employees'),
                 'fixedAsset' => Request::get('fixedAsset'),
                 'weight' => Request::get('weight'),
+                'date' => Request::get('date'),
                 'serial' => $serial,
             );
-            
+
             // Опит за добавяне на запис в прогреса
             $Details = cls::get('planning_ProductionTaskDetails');
             $dRec = $Details::add($params['taskId'], $params);
@@ -797,19 +796,16 @@ class planning_Terminal extends peripheral_Terminal
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
-        $verbalAsset = strip_tags(core_Type::getByName('keylist(mvc=planning_AssetResources,makeLinks=hyperlink)')->toVerbal($rec->fixedAssets));
-        
+
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($rec->name, 'name');
         $tpl->replace($rec->id, 'id');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/monitor.png', '"', true) . '>', 'HEAD');
         
         $tpl->replace(planning_Centers::getTitleById($rec->centerId), 'centerId');
-        $tpl->replace($verbalAsset, 'fixedAssets');
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y'), 'date');
         $tpl->replace(strip_tags(crm_Profiles::createLink()), 'userId');
         $img = ht::createImg(array('path' => 'img/16/logout-white.png'));
-        
         $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => array('core_Users', 'login')), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Подготовка на урл-тата на табовете

@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -149,6 +149,7 @@ abstract class deals_QuotationMaster extends core_Master
         parent::prepareEditForm_($data);
         $form = $data->form;
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
+        $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
         $rec = &$data->form->rec;
 
         $folderId = $rec->folderId;
@@ -197,6 +198,10 @@ abstract class deals_QuotationMaster extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
+        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+            $form->setReadOnly('chargeVat');
+        }
 
         $form->input('deliveryTermId');
         if(isset($rec->deliveryTermId)){
@@ -273,6 +278,15 @@ abstract class deals_QuotationMaster extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
+        // Ako "Моята фирма" е без ДДС номер - без начисляване
+        if(!crm_Companies::isOwnCompanyVatRegistered()) return 'no';
+
+        // После се търси по приоритет
+        foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
+            $chargeVat = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'chargeVat', $strategy);
+            if(!empty($chargeVat)) return $chargeVat;
+        }
+
         return deals_Helper::getDefaultChargeVat($rec->folderId);
     }
 
@@ -360,26 +374,6 @@ abstract class deals_QuotationMaster extends core_Master
         $reff = $mvc->getVerbal($id, 'reff');
         if (strlen($reff) != 0) {
             $docName .= "({$reff})";
-        }
-    }
-
-
-    /**
-     *  Подготовка на филтър формата
-     */
-    protected static function on_AfterPrepareListFilter($mvc, &$data)
-    {
-        if (Request::get('Rejected', 'int')) return;
-
-        $data->listFilter->FNC('sState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Приключен)', 'caption=Състояние,autoFilter');
-        $data->listFilter->showFields .= ',sState';
-        $data->listFilter->setDefault('sState', 'active');
-        $data->listFilter->input();
-
-        if ($rec = $data->listFilter->rec) {
-            if (isset($rec->sState) && $rec->sState != 'all') {
-                $data->query->where("#state = '{$rec->sState}'");
-            }
         }
     }
 

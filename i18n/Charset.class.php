@@ -364,6 +364,32 @@ class i18n_Charset extends core_MVC
      */
     public static function detect($text, $assumedCharsets = array(), $isHtml = false)
     {
+        if(($assumedCharsets == 'UTF-8' || $assumedCharsets == '')  && preg_match('%^(?:
+          [\x09\x0A\x0D\x20-\x7E]            # ASCII
+        | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
+        | \xE0[\xA0-\xBF][\x80-\xBF]         # excluding overlongs
+        | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+        | \xED[\x80-\x9F][\x80-\xBF]         # excluding surrogates
+        | \xF0[\x90-\xBF][\x80-\xBF]{2}      # planes 1-3
+        | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+        | \xF4[\x80-\x8F][\x80-\xBF]{2}      # plane 16
+        )*$%xs', $text)) {
+ 
+            return 'UTF-8';
+        }
+
+        if (self::is7bit($text)) {
+            if($isHtml) {
+                $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+                if (!self::is7bit($text)) {
+                
+                    return 'HTML_ENTITIES';
+                } 
+            } else {
+                return 'US-ASCII';
+            }
+        }
+
         $step = 10;
         $oa = $assumedCharsets;
         $newAssumedCharsets = array();
@@ -388,14 +414,6 @@ class i18n_Charset extends core_MVC
         }
         
         $assumedCharsets = $newAssumedCharsets;
-        
-        if ($isHtml && self::is7bit($text)) {
-            $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
-            if (!self::is7bit($text)) {
-                
-                return 'HTML_ENTITIES';
-            }
-        }
         
         // Ако е даден HTML опитваме се да извлечем charset и и след това махаме HTML елементите
         if ($isHtml) {
@@ -637,7 +655,7 @@ class i18n_Charset extends core_MVC
      * @return bool|string
      */
     public static function rateScript($text, $scripts, &$debug = null)
-    {
+    { 
         $scripts = arr::make($scripts, true);
         
         $text = self::getSampleText($text);
@@ -1106,10 +1124,22 @@ class i18n_Charset extends core_MVC
      * Прави проверка, кодовата таблица да е неправилно зададена
      */
     public static function convertToUtf8($text, $fromCharsets = array(), $isHtml = false)
-    {
-        $bFrom = $fromCharsets;
+    { 
+        $bFrom = $fromCharsets;        
         
-        $fromCharset = self::detect($text, $fromCharsets, $isHtml);
+        if (preg_match('%^(?:
+      [\x09\x0A\x0D\x20-\x7E]            # ASCII
+    | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
+    | \xE0[\xA0-\xBF][\x80-\xBF]         # excluding overlongs
+    | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+    | \xED[\x80-\x9F][\x80-\xBF]         # excluding surrogates
+    | \xF0[\x90-\xBF][\x80-\xBF]{2}      # planes 1-3
+    | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+    | \xF4[\x80-\x8F][\x80-\xBF]{2}      # plane 16
+    )*$%xs', $test) || $fromCharsets != 'UTF-8') { 
+    
+            $fromCharset = self::detect($text, $fromCharsets, $isHtml);
+        }
         
         if ($fromCharset == 'HTML_ENTITIES' && $isHtml) {
             if (!$bFrom || is_array($bFrom)) {

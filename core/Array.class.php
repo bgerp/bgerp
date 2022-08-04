@@ -727,4 +727,27 @@ class core_Array
         
         return (countR($arr)) ? $res : false;
     }
+
+
+    /**
+     * Всъща масив, съдържащ всички пермутации на входният масив
+     * 
+     * @param array $items   Елементите на входния масив
+     * @param array $paerms Помощен масив за междинни резултати
+     * @param array $res    Резултатния масив с пермутациите
+     */
+    public static function getPerms($items, &$res = array(), $perms = array())
+    {
+        if (empty($items)) { 
+            $res[] = $perms;
+        } else {
+            for ($i = count($items) - 1; $i >= 0; --$i) {
+                 $newItems = $items;
+                 $newPerms = $perms;
+                 list($foo) = array_splice($newItems, $i, 1);
+                 array_unshift($newPerms, $foo);
+                 self::getPerms($newItems, $res, $newPerms);
+             }
+        }
+    }
 }

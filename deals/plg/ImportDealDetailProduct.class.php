@@ -33,7 +33,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('deals_DealImportProductIntf');
-        
+        setIfNot($mvc->allowPriceImport, true);
     }
     
     
@@ -134,7 +134,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     if ($mvc->haveRightFor('import')) {
 
                         // Обработваме и проверяваме данните
-
                         $errArr = self::checkRows($rows, $fields, $rec->folderId, $mvc);
 
                         if (!empty($errArr)) {
@@ -239,11 +238,19 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $metaArr = arr::make($mvc->metaProducts, true);
             if(!countR($metaArr)){
                 $masterRec = $mvc->Master->fetch($masterId);
-                $Document = doc_Containers::getDocument($masterRec->originId);
-                if ($Document->className == 'sales_Sales') {
-                    $metaArr = array('canSell' => 'canSell');
-                } elseif ($Document->className == 'purchase_Purchases') {
-                    $metaArr = array('canBuy' => 'canBuy');
+                if($mvc instanceof planning_DirectProductNoteDetails){
+                    $metaArr = array('canConvert' => 'canConvert');
+                } else {
+                    if(isset($masterRec->originId)){
+                        $Document = doc_Containers::getDocument($masterRec->originId);
+                        if ($Document->className == 'sales_Sales') {
+                            $metaArr = array('canSell' => 'canSell');
+                        } elseif ($Document->className == 'purchase_Purchases') {
+                            $metaArr = array('canBuy' => 'canBuy');
+                        }
+                    } elseif($mvc instanceof store_TransfersDetails){
+                        $metaArr = array('canStore' => 'canStore');
+                    }
                 }
             }
 
@@ -273,12 +280,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             $packs = cat_Products::getPacks($pRec->productId);
-            
+
             if (isset($obj->pack)) {
                 $obj->exPack = $obj->pack;
-                
-                $packId = cat_UoM::fetchBySinonim($obj->pack)->id;
-                
+                $packId = is_numeric($obj->pack) ? $obj->pack : cat_UoM::fetchBySinonim($obj->pack)->id;
+
                 if (!$packId) {
                     foreach ($packs as $pId => $pName) {
                         if (strpos($obj->pack, $pName) !== false) {
@@ -338,8 +344,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             }
             
-            if (!$obj->quantity) {
-                // $err[$i][] = $obj->code . ' |Липсващо количество|*';
+            if (!isset($obj->quantity)) {
                 $obj->quantity = 1;
             }
             
@@ -347,9 +352,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if (isset($pRec->packagingId) && $pRec->packagingId != $obj->pack) {
                     $err[$i][] = $obj->code . ' - |Подадения баркод е за друга опаковка|*!';
                 }
-                
+
                 if (!array_key_exists($obj->pack, $packs)) {
-                    $err[$i][] = $obj->code . ' - |Артикулът не поддържа подадената мярка/опаковка|* (' . implode(',', $packs) . ')!';
+                    $err[$i][] = $obj->code . ' - |Артикулът не поддържа подадената мярка/опаковка|* (' . $obj->pack . ')!';
                 }
             }
             
@@ -358,7 +363,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if ($pRec) {
                     $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
                     if (!$obj->quantity) {
-                        $err[$i][] = $obj->code . '|Грешно количество|*';
+                        if(!$mvc->hasPlugin('store_plg_RequestDetail')){
+                            $err[$i][] = $obj->code . '|Невалидно количество|*';
+                        }
                     } else {
                         $packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
                         $warning = null;
@@ -423,7 +430,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $failed++;
                 $mvc->logNotice('Грешка при импорт: ' . $e->getMessage());
                 if (haveRole('debug')) {
-                    status_Messages::newStatus('Грешка при импорт: ' . $e->getMessage());
+                    status_Messages::newStatus('Грешка при импорт: ' . $e->getMessage(), 'error');
                 }
             }
         }
@@ -517,8 +524,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         if ($form->rec->fromClipboard) {
             $isFromClipboard = true;
         }
-//
-
 
         $unit = '';
         $type = 'enum()';
@@ -535,7 +540,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $form->setDefault('enclosure', '"');
 
             $unit = ",unit=колона";
-
             $type = 'int';
         }
 
@@ -547,7 +551,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $form->FLD('packcol', $type, "caption=Съответствие в данните->Мярка/Опаковка{$unit},mandatory");
         
         $fields = array('codecol', 'quantitycol', 'packcol');
-        if (!core_Users::haveRole('partner')) {
+        if (!core_Users::haveRole('partner') && $mvc->allowPriceImport) {
             $form->FLD('pricecol', $type, "caption=Съответствие в данните->Цена{$unit}");
             $fields[] = 'pricecol';
         }
@@ -564,8 +568,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
         } else {
             list($clsId, $objId) = explode('_', $form->rec->fromClipboard);
-
-            $clsInst = cls::get($clsId);
 
             $fElemKey = key($clipboardValsArr[$clsId][$objId]->recs);
             $fElemArr = $clipboardValsArr[$clsId][$objId]->recs[$fElemKey];
@@ -584,7 +586,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         $fArr[$fName] = $fName;
                         $cMap[$fName] = $fName;
                     }
-
 
                     if (mb_stripos($form->fields['codecol']->caption, $caption) !== false) {
                         $form->setDefault('codecol', $caption);
@@ -621,9 +622,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $error = '';
         if ($mvc->haveRightFor('import', (object) array("{$mvc->masterKey}" => $masterRec->id))) {
             $data->toolbar->addBtn(
-                'Импортиране',
+                'Импортиране (CSV)',
                 array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => true),
-            "id=btnAdd-import,title=Импортиране на артикули",
+            "id=btnAdd-import,title=Импортиране на артикули от CSV",
                 "ef_icon = img/16/import.png,order=15,{$error}"
             );
         }

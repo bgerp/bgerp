@@ -58,12 +58,6 @@ defIfNot('BGERP_START_OF_WORKING_DAY', '08:00');
 
 
 /**
- * Допустим % "Недоставено" за автоматично приключване на сделка
- */
-defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
-
-
-/**
  * Колко секунди за изчака, преди да сигнализира за известия
  */
 defIfNot('BGERP_NOTIFY_ALERT', 60);
@@ -148,9 +142,9 @@ class bgerp_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'BGERP_COMPANY_LOGO' => array('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
+        'BGERP_COMPANY_LOGO' => array('fileman_FileType(bucket=pictures,focus=none)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
         
-        'BGERP_COMPANY_LOGO_EN' => array('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
+        'BGERP_COMPANY_LOGO_EN' => array('fileman_FileType(bucket=pictures,focus=none)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
         'BGERP_NON_WORKING_CRON_TIME' => array('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
         
@@ -161,9 +155,7 @@ class bgerp_Setup extends core_ProtoSetup
         'BGERP_RECENTLY_KEEP_DAYS' => array('time(suggestions=3 месеца|6 месеца|1 година,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
         
         'BGERP_START_OF_WORKING_DAY' => array('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
-        
-        'BGERP_CLOSE_UNDELIVERED_OVER' => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
-        
+
         'BGERP_ACCESS_KEYS' => array('text(rows=6)', 'caption=Клавиши за бързо избиране на бутони->Дефиниции, customizeBy=powerUser'),
         
         'BGERP_NOTIFY_ALERT' => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Критични,placeholder=Неограничено, customizeBy=powerUser'),
@@ -272,7 +264,7 @@ class bgerp_Setup extends core_ProtoSetup
 
         // Добавяме допълнителните пакети, само при първоначален Setup
         if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
-            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
+            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef,tinymce';
         } else {
             $packs = arr::make($packs, true);
             $pQuery = $Packs->getQuery();

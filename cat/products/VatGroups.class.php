@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -42,9 +42,9 @@ class cat_products_VatGroups extends core_Detail
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да добавя
      */
-    public $canAdd = 'ceo,cat';
+    public $canAdd = 'ceo,cat,priceDealer';
     
     
     /**
@@ -68,7 +68,7 @@ class cat_products_VatGroups extends core_Detail
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent,mandatory');
         $this->FLD('vatGroup', 'key(mvc=acc_VatGroups,select=title,allowEmpty)', 'caption=Група,mandatory');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила от');
+        $this->FLD('validFrom', 'date', 'caption=В сила от');
     }
     
     
@@ -78,17 +78,26 @@ class cat_products_VatGroups extends core_Detail
      * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
+        $rec = &$form->rec;
         if ($form->isSubmitted()) {
-            $now = dt::verbal2mysql();
-            
-            if (!$form->rec->validFrom) {
-                $form->rec->validFrom = $now;
-            }
-            
-            if ($form->rec->validFrom < $now) {
+            $today = dt::today();
+            $validFrom = ($rec->validFrom) ? $rec->validFrom : $today;
+            if ($validFrom < $today) {
                 $form->setError('validFrom', 'Групата не може да се сменя с минала дата');
+            } elseif($validFrom == $today){
+                $form->setWarning('validFrom', 'Ще се отрази на вече създадените документи с този и следващи вальори|*!');
+            }
+
+            if(static::fetchField("#productId = {$rec->productId} AND #validFrom = '{$rec->validFrom}'")){
+                $form->setError('validFrom', 'Има вече зададена ДДС група за тази дата');
+            }
+
+            if(!$form->gotErrors()){
+                if(empty($rec->validFrom)){
+                    $rec->validFrom = $validFrom;
+                }
             }
         }
     }
@@ -101,7 +110,7 @@ class cat_products_VatGroups extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->vatGroup = acc_VatGroups::getTitleById($rec->vatGroup);
         $row->vatPercent = acc_VatGroups::getVerbal($rec->vatGroup, 'vat');
@@ -111,37 +120,10 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Извиква се след подготовка на заявката за детайла
      */
-    public static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
+    protected static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
         $data->query->orderBy('validFrom,id', 'DESC');
-    }
-    
-    
-    /**
-     * След подготовка на записите във вербален вид
-     */
-    public static function on_AfterPrepareListRows1(core_Detail $mvc, $data)
-    {
-        if (!$data->rows) {
-            
-            return;
-        }
-        
-        $now = dt::now(true);
-        $currentGroup = null;
-        
-        foreach ($data->rows as $id => &$row) {
-            $rec = $data->recs[$id];
-            if ($rec->validFrom > $now) {
-                $row->ROW_ATTR['class'] = 'state-draft';
-            } elseif ($rec->validFrom <= $now && is_null($currentGroup)) {
-                $currentGroup = $rec->validFrom;
-                $row->ROW_ATTR['class'] = 'state-active';
-            } else {
-                $row->ROW_ATTR['class'] = 'state-closed';
-            }
-        }
     }
     
     
@@ -150,7 +132,7 @@ class cat_products_VatGroups extends core_Detail
      */
     public function prepareVatGroups($data)
     {
-        $now = dt::now(true);
+        $today = dt::today();
         $currentGroup = null;
         $data->recs = $data->rows = array();
         
@@ -169,9 +151,9 @@ class cat_products_VatGroups extends core_Detail
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
                 
-                if ($rec->validFrom > $now) {
+                if ($rec->validFrom > $today) {
                     $data->rows[$id]->ROW_ATTR['class'] = 'state-draft';
-                } elseif ($rec->validFrom <= $now && is_null($currentGroup)) {
+                } elseif (is_null($currentGroup)) {
                     $currentGroup = $rec->validFrom;
                     $data->rows[$id]->ROW_ATTR['class'] = 'state-active';
                 } else {
@@ -214,7 +196,7 @@ class cat_products_VatGroups extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'edit' || $action == 'delete') && isset($rec)) {
-            if ($rec->validFrom <= dt::now()) {
+            if ($rec->validFrom <= dt::today()) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -234,16 +216,16 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Коя е активната данъчна група към дата
      *
-     * @param int           $productId
-     * @param datetime|NULL $date
+     * @param int       - $productId
+     * @param date|NULL - $date
      *
      * @return float|FALSE $value
      */
     public static function getCurrentGroup($productId, $date = null)
     {
-        $date = (!empty($date)) ? $date : dt::now();
-        
-        // Кешираме активната данъчна група на артикула в текущия хит
+        $date = (!empty($date)) ? dt::verbal2mysql($date, false) : dt::today();
+
+        // Кеширане активната данъчна група на артикула в текущия хит
         $query = cat_products_VatGroups::getQuery();
         $query->where("#productId = {$productId}");
         $query->where("#validFrom <= '{$date}'");
@@ -262,15 +244,14 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Намира артикулите с посочена ДДС ставка към подадената дата
      *
-     * @param float     $percent - търсен процент
-     * @param datetime|NULL $date    - към коя дата
-     *
-     * @return array $products - намерените артикули
+     * @param double     $percent - търсен процент
+     * @param datetime|NULL $date - към коя дата
+     * @return array $products    - намерените артикули
      */
     public static function getByVatPercent($percent, $date = null)
     {
         $products = array();
-        $date = (!empty($date)) ? $date : dt::now();
+        $date = (!empty($date)) ? dt::verbal2mysql($date, false) : dt::today();
         $gQuery = acc_VatGroups::getQuery();
         $gQuery->where(array("#vat = '[#1#]'", $percent));
         $groups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
@@ -291,11 +272,9 @@ class cat_products_VatGroups extends core_Detail
         }
         
         $products = array_filter($products, function ($obj) use ($groups) {
-            if (in_array($obj->vatGroup, $groups)) {
-                
-                return true;
-            }
+            if (in_array($obj->vatGroup, $groups)) return true;
         });
+
         $products = arr::extractValuesFromArray($products, 'productId');
         
         // Ако дефолтното ддс за периода е колкото търсеното, се извличат и всички които нямат записи в модела

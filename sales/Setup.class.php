@@ -188,6 +188,29 @@ defIfNot('SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '432000');
 defIfNot('SALES_DEFAULT_LOCATION_FOR_INVOICE', '');
 
 
+/**
+ * Показване на ваш реф в нишката на продажбата
+ */
+defIfNot('SALES_SHOW_REFF_IN_SALE_THREAD', 'no');
+
+
+/**
+ * Дали да се изчислява дефолтен търговец в продажбата
+ */
+defIfNot('SALES_SET_DEFAULT_DEALER_ID', 'yes');
+
+
+/**
+ * Дали да се изчислява дефолтен търговец в продажбата
+ */
+defIfNot('SALES_SHOW_PRICE_IN_PRODUCT_SELECTION', 'no');
+
+
+/**
+ * Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки
+ */
+defIfNot('SALES_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
+
 
 /**
  * Продажби - инсталиране / деинсталиране
@@ -238,7 +261,11 @@ class sales_Setup extends core_ProtoSetup
         ),
         'SALE_CLOSE_OLDER_THAN' => array(
             'time(uom=days,suggestions=1 ден|2 дена|3 дена)',
-            'caption=Изчакване преди автоматично приключване на продажбата->Дни'
+            'caption=Изчакване преди автоматично приключване на продажби в BGN / EUR->Дни'
+        ),
+        'SALES_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
+            'int(Min=0)',
+            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'
         ),
         'SALE_CLOSE_OLDER_NUM' => array(
             'int',
@@ -349,6 +376,9 @@ class sales_Setup extends core_ProtoSetup
 
         'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане ("0" за изключване)->Време'),
         'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicer,optionsFunc=crm_Locations::getOwnLocations'),
+        'SALES_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към продажба->Избор'),
+        'SALES_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен търговец в продажбите->Избор'),
+        'SALES_SHOW_PRICE_IN_PRODUCT_SELECTION' => array('enum(no=Изключено,measureId=Основна мярка,basePack=Избраната за основна мярка/опаковка)', 'caption=Показване на продажната цена при избор на артикул в документи->Избор'),
     );
     
     

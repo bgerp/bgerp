@@ -17,6 +17,13 @@
                                             <!--ET_BEGIN state-->
                                             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                             <!--ET_END state-->
+                                           <!--ET_BEGIN zoneReadiness-->
+                                           <div style="padding-top:5px;">
+                                               |Зона|* [#zoneId#] <div class="block-readiness">[#zoneReadiness#]</div>
+                                           </div>
+                                           <!--ET_END zoneReadiness-->
+                                           </td>
+                                        <tr>
                                         </td>
                                          <td class="cell custom-header-bg" style='width:35%;'><b>|От склад|*</b></td>
                                     </tr>

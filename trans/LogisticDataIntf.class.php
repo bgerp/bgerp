@@ -29,30 +29,32 @@ class trans_LogisticDataIntf
      * @param mixed $rec - ид или запис на документ
      * @return array      - логистичните данни
      *
-     *		string(2)     ['fromCountry']     - международното име на английски на държавата за натоварване
-     * 		string|NULL   ['fromPCode']       - пощенски код на мястото за натоварване
-     * 		string|NULL   ['fromPlace']       - град за натоварване
-     * 		string|NULL   ['fromAddress']     - адрес за натоварване
-     *  	string|NULL   ['fromCompany']     - фирма
-     *   	string|NULL   ['fromPerson']      - лице
-     *      string|NULL   ['fromLocationId']  - лице
-     *      string|NULL   ['fromAddressInfo']   - особености
-     * 		datetime|NULL ['loadingTime']     - дата на натоварване
-     * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
-     * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
-     * 		string|NULL   ['toPlace']         - град за разтоварване
-     *  	string|NULL   ['toAddress']       - адрес за разтоварване
-     *   	string|NULL   ['toCompany']       - фирма
-     *   	string|NULL   ['toPerson']        - лице
-     *      string|NULL   ['toLocationId']    - лице
-     *      string|NULL   ['toPersonPhones']  - телефон на лицето
-     *      string|NULL   ['toAddressInfo']   - особености
-     *      string|NULL   ['instructions']    - инструкции
-     * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
-     * 		text|NULL 	  ['conditions']      - други условия
-     *		varchar|NULL  ['ourReff']         - наш реф
-     * 		double|NULL   ['totalWeight']     - общо тегло
-     * 		double|NULL   ['totalVolume']     - общ обем
+     *		string(2)     ['fromCountry']         - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']           - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']           - град за натоварване
+     * 		string|NULL   ['fromAddress']         - адрес за натоварване
+     *  	string|NULL   ['fromCompany']         - фирма
+     *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromLocationId']      - лице
+     *      string|NULL   ['fromAddressInfo']     - особености
+     *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
+     * 		datetime|NULL ['loadingTime']         - дата на натоварване
+     * 		string(2)     ['toCountry']           - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']             - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']             - град за разтоварване
+     *  	string|NULL   ['toAddress']           - адрес за разтоварване
+     *   	string|NULL   ['toCompany']           - фирма
+     *   	string|NULL   ['toPerson']            - лице
+     *      string|NULL   ['toLocationId']        - лице
+     *      string|NULL   ['toPersonPhones']      - телефон на лицето
+     *      string|NULL   ['toAddressInfo']       - особености
+     *      string|NULL   ['toAddressFeatures']   - особености на транспорта
+     *      string|NULL   ['instructions']        - инструкции
+     * 		datetime|NULL ['deliveryTime']        - дата на разтоварване
+     * 		text|NULL 	  ['conditions']          - други условия
+     *		varchar|NULL  ['ourReff']             - наш реф
+     * 		double|NULL   ['totalWeight']         - общо тегло
+     * 		double|NULL   ['totalVolume']         - общ обем
      */
     public function getLogisticData($rec)
     {

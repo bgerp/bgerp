@@ -156,26 +156,34 @@ class doc_Linked extends core_Manager
      * @param int    $id
      * @param bool   $showRejecte
      * @param float  $limit
+     * @param null|core_pager $perPage
      *
      * @return array
      */
-    public static function getRecsForType($type, $id, $showRejecte = true, $limit = 1000)
+    public static function getRecsForType($type, $id, $showRejecte = true, $limit = 100, $Pager = null)
     {
         $query = self::getQuery();
         
         if (!$showRejecte) {
             $query->where("#state != 'rejected'");
         }
-        
+
         $query->limit($limit);
-        
-        $query->setUnion(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
-        $query->setUnion(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
-        
+
         $query->orderBy('createdOn', 'DESC');
-        
+
+        if (isset($Pager)) {
+            $query->where(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
+            $query->orWhere(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
+
+            $Pager->setLimit($query);
+        } else {
+            $query->setUnion(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
+            $query->setUnion(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
+        }
+
         $recArr = $query->fetchAll();
-        
+
         return $recArr;
     }
     
@@ -188,6 +196,7 @@ class doc_Linked extends core_Manager
      * @param string $viewType
      * @param bool   $showRejecte
      * @param int    $limit
+     * @param null|int    $perPage
      *
      * @return NULL|string|core_ET|array
      */
@@ -197,8 +206,15 @@ class doc_Linked extends core_Manager
             
             return;
         }
-        
-        $recArr = self::getRecsForType($type, $val, $showRejecte, $limit);
+
+        $Pager = null;
+        $perPage = cls::get(get_called_class())->listItemsPerPage;
+        if (($viewType == 'table') && ($limit > $perPage)) {
+            $Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
+            $Pager->setPageVar('doc_Linked', $val);
+        }
+
+        $recArr = self::getRecsForType($type, $val, $showRejecte, $limit, $Pager);
         
         $rowArr = array();
         
@@ -256,6 +272,10 @@ class doc_Linked extends core_Manager
             $res = $table->get($rowArr, '_rowTools=✍,
                                           docLink=Връзка,
 	                                      comment=Коментар');
+
+            if (isset($Pager)) {
+                $res->append($Pager->getHtml());
+            }
         } elseif ($viewType == 'file') {
             $res = '';
             foreach ($rowArr as $row) {
@@ -268,7 +288,7 @@ class doc_Linked extends core_Manager
         } else {
             $res = $rowArr;
         }
-        
+
         return $res;
     }
     
@@ -324,12 +344,12 @@ class doc_Linked extends core_Manager
         }
         
         $conStr .= "<div id='linkedView'{$style}><ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;' onchange=\"getEfae().process({url: '{$renderViewUrl}'}, {rId: $('input[name=linkedRadio]:checked').val()});\">";
-        
+
         foreach ($rowArr as $id => $row) {
             $rId = 'linked_' . $id;
             
             $caption = 'capt';
-            
+
             $val = $row['docLink'];
             
             if (trim($row['comment'])) {
@@ -1590,8 +1610,8 @@ class doc_Linked extends core_Manager
                 
                 // Ако документа е оттеглен
                 $dRec = $doc->fetch();
+                $attr['class'] = 'state-' . $dRec->state;
                 if ($dRec->state == 'rejected') {
-                    $attr['class'] = 'state-rejected';
                     $attr['style'] = 'text-decoration: line-through; color: #666;';
                 }
                 $comment = $doc->getDefaultLinkedComment($comment);
@@ -1621,9 +1641,13 @@ class doc_Linked extends core_Manager
                 $comment = tr('Файл');
             }
         } else {
-            expect(false, $type);
+            wp($type);
+
+            if (haveRole('debug')) {
+                status_Messages::newStatus('Грешен тип във връзките: ' . $type, 'error');
+            }
         }
-        
+
         return $link;
     }
     

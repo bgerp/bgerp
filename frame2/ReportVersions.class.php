@@ -293,7 +293,7 @@ class frame2_ReportVersions extends core_Detail
     {
         $maxKeepHistory = frame2_Reports::fetchField($reportId, 'maxKeepHistory');
         if (!isset($maxKeepHistory)) {
-            $maxKeepHistory = frame2_Setup::get('MAX_VERSION_HISTORT_COUNT');
+            $maxKeepHistory = frame2_Setup::get('MAX_VERSION_HISTORY_COUNT');
         }
         
         return $maxKeepHistory;

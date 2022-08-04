@@ -52,15 +52,21 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,store_plg_RequestDetail,
                         plg_AlignDecimals2,deals_plg_ImportDealDetailProduct, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
-                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,acc_plg_ExpenseAllocation,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
+                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,acc_plg_ExpenseAllocation,cat_plg_CreateProductFromDocument,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
     /**
      * Да се показва ли кода като в отделна колона
      */
     public $showCodeColumn = true;
-    
-    
+
+
+    /**
+     * Да се показва ли вашия номер
+     */
+    public $showReffCode = true;
+
+
     /**
      * Активен таб на менюто
      *
@@ -169,8 +175,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $form = &$data->form;
         $masterRec = $data->masterRec;
         $property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
-        
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'generic'));
+
+        $productTypeParams = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'generic');
+        if($masterRec->isReverse == 'no'){
+            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId);
+            $productTypeParams['priceData'] = $priceData;
+        }
+        $form->setFieldTypeParams('productId', $productTypeParams);
     }
     
     
@@ -237,7 +248,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     $warning = 'Цената е под себестойността';
                     if(isset($foundPrimeCost)){
                         $foundPrimeCost /= $masterRec->currencyRate;
-                        $primeCostVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
+                        $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
                         $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                     }
                     
@@ -260,17 +271,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     }
                 }
             }
-        }
-    }
-    
-    
-    /**
-     * Преди подготовката на полетата за листовия изглед
-     */
-    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
-    {
-        if (!empty($data->masterData->rec->deliveryTime)) {
-            $data->showReffCode = true;
         }
     }
     

@@ -49,7 +49,7 @@ class cms_FancyTheme extends core_ProtoInner
         
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
-        $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (360x104px)->Изображение 1');
+        $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (500х120px)->Изображение 1');
         $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Име на фирмата');
         $form->FLD('subtitle', 'varchar(50)', 'caption=Заглавие на сайта->Подзаглавие');
         $form->FLD('titleColor', 'color_Type', 'caption=Заглавие на сайта->Цвят');
@@ -259,7 +259,7 @@ class cms_FancyTheme extends core_ProtoInner
 
                 if(countR($imgs) > 1){
                     $banner->append('.fadein { position:relative; display:block;} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
-                    jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", true);
+                    jquery_Jquery::run($banner, "fadeImages('#cmsTop', {$fadeTransition}, {$fadeDelay});", true);
                 }
 
                 $this->haveOwnHeaderImages = true;

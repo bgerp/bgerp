@@ -1250,17 +1250,17 @@ function addProduct(el) {
 
 	// При добавяне на артикул ако в инпута има написано число или число и * да го третира като число
 	var quantity = $("input[name=ean]").val();
-	
-	/*
-	 * quantity = $.trim(quantity);
-	 * quantity = quantity.replace("*", "");
-	 * // Подаване и на количеството от инпута
-	 * if(quantity && $.isNumeric(quantity) && quantity > 0){
-	 * data.string = quantity;
-	 * }
-	 */
+
+	if(quantity.length){
+		if(isMicroformat(quantity)){
+			if(quantity.endsWith("*")){
+				quantity = quantity.replace("*", "");
+				data.string = quantity;
+			}
+		}
+	}
+
 	data.recId = getSelectedRowId();
-	
 	processUrl(url, data);
 
 	activeInput = false;
@@ -1412,7 +1412,7 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 		console.log('MICROFORMAT waiting');
 		return;
 	}
-	console.log('trigger SEARCH');
+	console.log('trigger SEARCH:' + operation + ' - ' + inpVal);
 
 	var selectedElement = $(".highlighted.productRow");
 	var selectedRecId = selectedElement.attr("data-id");

@@ -33,8 +33,14 @@ class payment_ParserUC
         $res->warnings = $res->errors = $res->recs = array();
         
         // Вземаме SimpleXMLElement обект, отговарящ на файла
-        $transactions = new SimpleXMLElement($xml);
-        
+        $transactions = @ new SimpleXMLElement(trim($xml));
+
+        if (!$transactions) {
+            $res->warnings[] = "Грешка при парсиране на XML";
+
+            return $res;
+        }
+
         // Циклим по частите за различните IBAN-ове
         foreach ($transactions->ArrayOfAPAccounts->APAccount as $stmt) {
             $iban = (string) $stmt->BankAccount->IBAN;

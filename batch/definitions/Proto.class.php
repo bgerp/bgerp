@@ -30,8 +30,16 @@ abstract class batch_definitions_Proto extends core_BaseClass
      * @param string
      */
     public $fieldCaption;
-    
-    
+
+
+    /**
+     * Дали дефолтно да може да се разпределят автоматично партидностите
+     *
+     * @param bool
+     */
+    protected $defaultAutoAllocate = true;
+
+
     /**
      * Интерфейси които имплементира
      */
@@ -305,7 +313,14 @@ abstract class batch_definitions_Proto extends core_BaseClass
      */
     public function canAutoAllocate()
     {
-        return ($this->rec->autoAllocate == 'yes') ? true : false;
+        if(is_object($this->rec)){
+
+            // Ако има конкретен избор е записа - него
+            return ($this->rec->autoAllocate == 'yes') ? true : false;
+        }
+
+        // Ако няма дефолтно според партидата
+        return $this->defaultAutoAllocate;
     }
     
     

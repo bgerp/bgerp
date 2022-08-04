@@ -56,7 +56,7 @@ class acc_journal_Item
                 $this->objectId = $this->itemRec->objectId;
             }
         } else {
-            acc_journal_Exception::expect(is_numeric($objectId), 'Невалидно ид');
+            acc_journal_Exception::expect(is_numeric($objectId), "Невалидно ид: {$objectId}");
             
             $this->classId = $classId;
             $this->objectId = $objectId;
@@ -84,7 +84,7 @@ class acc_journal_Item
         }
         
         if (is_numeric($iface)) {
-            acc_journal_Exception::expect($iface = core_Interfaces::fetchField($iface, 'name'), 'Липсващ интерфейс');
+            acc_journal_Exception::expect($iface = core_Interfaces::fetchField($iface, 'name'), "Липсващ интерфейс: '{$iface}'");
         }
         
         // Ако перото е системно (класа му е acc_Items) то винаги отговаря на интерфейса
@@ -109,7 +109,7 @@ class acc_journal_Item
         }
         
         if (isset($this->id)) {
-            acc_journal_Exception::expect($this->id == $itemId, 'Грешно ид');
+            acc_journal_Exception::expect($this->id == $itemId, "Грешно ид: {$itemId}");
         }
         
         $this->id = $itemId;
@@ -142,11 +142,12 @@ class acc_journal_Item
         }
         
         // Ако има такова перо извличаме му състоянието
+        $state = null;
         if ($this->id) {
             $state = acc_Items::fetchField($this->id, 'state');
         }
         
-        return ($state == 'closed') ? true : false;
+        return $state == 'closed';
     }
     
     

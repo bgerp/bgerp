@@ -188,9 +188,9 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('contragentCountry', 'varchar(255)', 'input=hidden');
         $mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
-        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Валута (и сума) на плащането->Сума,summary=amount,input=hidden');
-        $mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
+        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Вал.,silent,removeAndRefreshForm=rate|amount');
+        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
+        $mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -219,8 +219,12 @@ abstract class cash_Document extends deals_PaymentDocument
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
             $amount = round($amount, 2);
         }
-       
-        return abs($amount);
+
+        if(isset($amount)){
+            $amount = abs($amount);
+        }
+
+        return $amount;
     }
     
     
@@ -568,31 +572,34 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
      *               ['countryId']      string|NULL - ид на държава
+     *               ['place']          string|NULL - населено място
+     *               ['features']       array       - свойства на адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = $this->fetchRec($rec);
-        
+        $lineState = trans_Lines::fetchField($lineId, 'state');
         $sign = ($this->getClassId() == cash_Pko::getClassId()) ? 1 : -1;
         $baseAmount = round($rec->amount * $rec->rate, 4);
         $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $sign * $rec->amount, 'baseAmount' => $sign * $baseAmount);
         $info['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
-        
+
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
         $info['cases'] = array($rec->peroCase);
         $info['stores'] = array();
-        if($this->haveRightFor('conto', $rec)){
+        if($this->haveRightFor('conto', $rec) && $lineState != 'rejected'){
             $contoUrl = $this->getContoUrl($rec->id);
             $warning = $this->getContoWarning($rec->id, $rec->isContable);
             
             // Сумата да е бутон за контиране
             if(!Mode::is('printing')){
                 $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
-                $btn = ht::createBtn($info['amountVerbal'], $contoUrl, $warning, false, "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
+                $btn = ht::createBtn($info['amountVerbal'], $contoUrl, $warning, false, "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа,id={$this->getHandle($rec->id)}");
                 $info['amountVerbal'] = $btn;
             }
         } else {
+            $info['amountVerbal'] = "<span id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</span>";
             $info['amountVerbal'] = ht::styleNumber($info['amountVerbal'], $info['amount']);
         }
         

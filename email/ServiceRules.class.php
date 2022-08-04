@@ -44,7 +44,7 @@ class email_ServiceRules extends embed_Manager
     /**
      * @see email_AutomaticIntf
      */
-    public $weight = -1;
+    public $weight = 150;
     
     
     /**
@@ -158,33 +158,63 @@ class email_ServiceRules extends embed_Manager
             
             return ;
         }
-        
+
         $pRes = null;
-        
+
+        $haveMatch = false;
+
         foreach ($allFilters as $filterRec) {
+
             $classIdFld = $this->driverClassField;
 
             if (email_ServiceRules::match($sDataArr, $filterRec)) {
-                
+
                 if (!$filterRec->{$classIdFld}) {
                     
                     $this->logDebug("Липсва {$classIdFld}", null, 3);
                     
                     continue;
                 }
-                
+
+                if (!cls::load($filterRec->{$classIdFld}, true)) {
+
+                    continue;
+                }
+
                 $sInst = cls::getInterface('email_ServiceRulesIntf', $filterRec->$classIdFld);
-                
-                $pRes = $sInst->process($mime, $filterRec);
+
+                try {
+                    $pRes = $sInst->process($mime, $filterRec);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                    continue;
+                } catch (Exception $e) {
+                    reportException($e);
+                    continue;
+                } catch (Throwable $e) {
+                    reportException($e);
+                    continue;
+                }
+
+                $haveMatch = true;
 
                 if (isset($pRes)) {
-
                     if (!is_array($pRes)) {
                         email_ServiceRulesData::add($mime, $accId, $uid, $filterRec->id);
                     }
 
                     break;
                 }
+            }
+        }
+
+        if ($haveMatch) {
+            if (!isset($pRes)) {
+                $pRes = array();
+            }
+
+            if (is_array($pRes)) {
+                $pRes['spam']['checkSpam'] = false;
             }
         }
         
@@ -250,6 +280,7 @@ class email_ServiceRules extends embed_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
 
         $driverClassField = $mvc->driverClassField;
 
@@ -266,7 +297,36 @@ class email_ServiceRules extends embed_Manager
             $data->query->where(array("#{$driverClassField} = '[#1#]'", $data->listFilter->rec->{$driverClassField}));
         }
     }
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $mvc->addInfoToForm($data->form);
+    }
+
+
+    /**
+     * Добавя инфо към формата
+     *
+     * @param core_Form $form
+     */
+    public static function addInfoToForm(&$form)
+    {
+        $form->info = tr("Търси се пълно съвпадени в зададените условия.");
+        $form->info .= "<br>";
+        $form->info .= tr("Със звезда (*) може да се зададат  неограничен брой символи в началото, края или по средата");
+        $form->info .= "<br>";
+        $form->info .= tr("Пример 1: *Експерта * документ номер *");
+        $form->info .= "<br>";
+        $form->info .= tr("Пример 2: *@experta.bg");
+    }
+
     
     /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
@@ -334,9 +394,9 @@ class email_ServiceRules extends embed_Manager
 
         $pattern = preg_quote($pattern, '/');
 
-        $pattern = str_ireplace('\\*', '.{0,1000}', $pattern);
+        $pattern = str_ireplace('\\*', '.{0,10000}', $pattern);
 
-        $pattern = '/' . $pattern . '/iu';
+        $pattern = '/^\s*' . $pattern . '\s*$/iu';
 
         $filtersArr[$str] = $pattern;
 

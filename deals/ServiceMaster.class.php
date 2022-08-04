@@ -285,9 +285,10 @@ abstract class deals_ServiceMaster extends core_Master
         
         if (isset($fields['-single'])) {
             core_Lg::push($rec->tplLang);
-            
+
+            $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
-            $row = (object) ((array) $row + (array) $headerInfo);
+            $row = (object) ((array) $row + $headerInfo);
             
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);

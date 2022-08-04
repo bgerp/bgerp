@@ -31,9 +31,9 @@ class bgerp_plg_Blank extends core_Plugin
             
             //Добавяме бланка в началото на документа
             $blank = new ET(getFileContent('/bgerp/tpl/Blank.shtml'));
-            
+
             //Създаваме и заместваме логото на фирмата
-            $logoPath = self::getCompanyLogoUrl();
+            $logoPath = self::getCompanyLogoUrl($mvc->blankImage);
             $logo = "<img src='" . $logoPath . "' alt='Logo'  width='750' height='87'>";
             
             $blank->replace($logo, 'blankImage');
@@ -104,9 +104,9 @@ class bgerp_plg_Blank extends core_Plugin
      *
      * @return string
      */
-    public static function getCompanyLogoUrl()
+    public static function getCompanyLogoUrl($forceImage = null)
     {
-        $thumb = self::getCompanyLogoUrlThumbObj();
+        $thumb = self::getCompanyLogoUrlThumbObj($forceImage);
         $companyLogoUrl = $thumb->getUrl();
         
         return $companyLogoUrl;
@@ -132,7 +132,7 @@ class bgerp_plg_Blank extends core_Plugin
      *
      * @return thumb_Img
      */
-    protected static function getCompanyLogoUrlThumbObj()
+    protected static function getCompanyLogoUrlThumbObj($forceImage = null)
     {
         // Езика на писмото
         $lg = core_Lg::getCurrent();
@@ -146,39 +146,50 @@ class bgerp_plg_Blank extends core_Plugin
         
         $sourceType = 'path';
 
-        // Проверяваме дали е манипулатор на файл
-        if ($companyLogo && (strlen($companyLogo) == fileman_Setup::get('HANDLER_LEN')) && ($filemanInst->fetchByFh($companyLogo))) {
-            $sourceType = 'fileman';        
-
-        } else {
-            
-            // Ако не е зададено логото
-            if (!$companyLogo) {
-                if ($lg == 'bg') {
-                    $companyLogo = 'bgerp/img/companyLogo.png';
-                } else {
-                    $companyLogo = 'bgerp/img/companyLogoEn.png';
-                }
+        if (isset($forceImage)) {
+            if ($lg == 'bg') {
+                $companyLogo = $forceImage;
+            } else {
+                $companyLogoArr = fileman::getNameAndExt($forceImage);
+                $companyLogo = $companyLogoArr['name'] . 'En.' . $companyLogoArr['ext'];
             }
-            
+
             // Ако не е манипулатор, очакваме да е път
             $companyLogo = core_App::getFullPath($companyLogo);
-            
-            // Ако логото не се взема от частния пакет или няма частен пакет
-            // Използваме генерираното лого от SVG файла
-            if (!defined('EF_PRIVATE_PATH') || (strpos($companyLogo, EF_PRIVATE_PATH) !== 0)) {
-                $logoFromSvg = core_Packs::getConfigValue($conf, 'BGERP_COMPANY_LOGO_SVG');
-                if (trim($logoFromSvg)) {
-                    $companyLogo = $logoFromSvg;
-                    $sourceType = 'fileman';
+        } else {
+            // Проверяваме дали е манипулатор на файл
+            if ($companyLogo && (strlen($companyLogo) == fileman_Setup::get('HANDLER_LEN')) && ($filemanInst->fetchByFh($companyLogo))) {
+                $sourceType = 'fileman';
+            } else {
+
+                // Ако не е зададено логото
+                if (!$companyLogo) {
+                    if ($lg == 'bg') {
+                        $companyLogo = 'bgerp/img/companyLogo.png';
+                    } else {
+                        $companyLogo = 'bgerp/img/companyLogoEn.png';
+                    }
+                }
+
+                // Ако не е манипулатор, очакваме да е път
+                $companyLogo = core_App::getFullPath($companyLogo);
+
+                // Ако логото не се взема от частния пакет или няма частен пакет
+                // Използваме генерираното лого от SVG файла
+                if (!defined('EF_PRIVATE_PATH') || (strpos($companyLogo, EF_PRIVATE_PATH) !== 0)) {
+                    $logoFromSvg = core_Packs::getConfigValue($conf, 'BGERP_COMPANY_LOGO_SVG');
+                    if (trim($logoFromSvg)) {
+                        $companyLogo = $logoFromSvg;
+                        $sourceType = 'fileman';
+                    }
                 }
             }
         }
-        
+
         $isAbsolute = (boolean) Mode::is('text', 'xhtml');
         
         // Създаваме thumbnail с определени размери
-        $thumb = new thumb_Img(array($companyLogo, 750, 87, $sourceType, 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => 'companyLog'));
+            $thumb = new thumb_Img(array($companyLogo, 750, 87, $sourceType, 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => 'companyLog'));
         
         return $thumb;
     }

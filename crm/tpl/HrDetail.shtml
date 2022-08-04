@@ -1,17 +1,21 @@
 <table>
 <!--ET_BEGIN code-->
-<tr><td  class='quiet'>|Служебен код|*</td><td><span class='persons-hr-code'>[#code#]</span> [#code_toolbar#]</td></tr>
+<tr><td  class='quiet'>|Служебен код|*:</td><td><span class='persons-hr-code'>[#code#]</span> [#code_toolbar#]</td></tr>
 <!--ET_END code-->
 
 <!--ET_BEGIN contract-->
-<tr><td  class='quiet'>|Трудов договор|*</td><td>[#contract#]</td></tr>
+<tr><td  class='quiet'>|Трудов договор|*:</td><td>[#contract#]</td></tr>
 <!--ET_END contract-->
 
 <!--ET_BEGIN positionId-->
-<tr><td  class='quiet'>|Длъжност|*</td><td>[#positionId#]</td></tr>
+<tr><td  class='quiet'>|Длъжност|*:</td><td>[#positionId#]</td></tr>
 <!--ET_END positionId-->
 
 <!--ET_BEGIN centers-->
-<tr><td class='quiet'>|Центрове на дейност|*</td><td>[#centers#]</td></tr>
+<tr><td class='quiet'>|Центрове на дейност|*:</td><td>[#centers#]</td></tr>
 <!--ET_END centers-->
+
+<!--ET_BEGIN scheduleId-->
+<tr><td class='quiet'>|Работен график|*:</td><td>[#scheduleId#]</td></tr>
+<!--ET_END scheduleId-->
 </table>

@@ -80,8 +80,11 @@ class bgerp_plg_CsvExport extends core_BaseClass
             $sets[] = "{$name}={$fld->caption}";
             $selected[$name] = $name;
         }
-        $sets[] = 'ExternalLink=Линк';
-        
+
+        if($this->mvc instanceof core_Master){
+            $sets[] = 'ExternalLink=Линк';
+        }
+
         $selectedFields = cls::get('type_Set')->fromVerbal($selected);
         
         $sets = implode(',', $sets);
@@ -181,9 +184,11 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $params['decPoint'] = $filter->decimalSign;
         $params['enclosure'] = $filter->enclosure;
         $params['text'] = 'plain';
-        
+
+        Mode::push('text', 'plain');
         $this->mvc->invoke('BeforeExportCsv', array(&$recs));
-        
+        Mode::pop('text');
+
         $content = csv_Lib::createCsv($recs, $fieldSet, $fieldsArr, $params);
         $content = iconv('utf-8', $filter->encoding . '//TRANSLIT', $content);
         

@@ -948,22 +948,8 @@ class eshop_Carts extends core_Master
             'note' => tr("Поръчка") . " #{$rec->id}",
         );
 
-        /*
-         * if(!empty($rec->deliveryCountry)){
-            $fields['deliveryAdress'] = drdata_Countries::getTitleById($rec->deliveryCountry);
-            if(!empty($rec->deliveryPCode)) {
-                $fields['deliveryAdress'] .= ", {$rec->deliveryPCode}";
-            }
-         */
-
         // Коя е ценовата политика
-        $priceListId = $settings->listId;
-        if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
-            $Cover = doc_Folders::getCover($lastActiveFolder);
-            $priceListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
-        }
-        $fields['priceListId'] = $priceListId;
-        
+        $fields['priceListId'] = cms_Helper::getCurrentEshopPriceList($settings);
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
         if (haveRole('sales', $folderIncharge)) {
             $fields['dealerId'] = $folderIncharge;
@@ -1757,14 +1743,25 @@ class eshop_Carts extends core_Master
                 }
             }
         }
-        
-        $finBtn = null;
+
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
             $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), false, null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
-        } elseif(eshop_CartDetails::fetchField("#finalPrice IS NULL")){
-            $finBtn = ht::createErrBtn('Завършване', 'Има проблем с някои от артикулите|*!', 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
-        } else {
-            $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=eshop-btn,rel=nofollow,disabled');
+        } else{
+
+            // Ако има в количката артикули с нулева цена - не може да се приключи
+            $productsWithoutPrice = array();
+            $cQuery = eshop_CartDetails::getQuery();
+            $cQuery->where("#cartId = {$rec->id} AND #finalPrice IS NULL");
+            while($cRec = $cQuery->fetch()){
+                $productsWithoutPrice[] = eshop_ProductDetails::getPublicProductTitle($cRec->eshopProductId, $cRec->productId, true);
+            }
+
+            if(countR($productsWithoutPrice)){
+                $productErrorString = implode(',', $productsWithoutPrice);
+                $finBtn = ht::createErrBtn('Завършване', "Следните артикули нямат цена|*: {$productErrorString}", 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
+            } else {
+                $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=eshop-btn,rel=nofollow,disabled');
+            }
         }
         
         if(!empty($finBtn) && !empty($rec->personNames) && !empty($rec->productCount)){
@@ -1783,8 +1780,7 @@ class eshop_Carts extends core_Master
     private static function renderViewCart($rec)
     {
         $rec = self::fetchRec($rec);
-        
-        $tpl = new core_ET('');
+
         $fields = cls::get('eshop_Carts')->selectFields();
         $fields['-external'] = true;
         
@@ -2255,9 +2251,9 @@ class eshop_Carts extends core_Master
                     $form->setError('invoiceNames', 'Неправилен формат');
                 }
             }
-            
+
             // Ако има регистриран потребител с този имейл. Изисква се да се логне
-            if ($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)) {
+            if ($error = cms_Helper::getEmailError($rec->email)) {
                 $form->setError('email', $error);
             }
             

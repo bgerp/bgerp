@@ -16,7 +16,7 @@
 "стек","стек",,,"active",,,0,"packaging",1,1
 "тон","т","килограм",1000,"active","t","|t|ton|tona|",3,"uom",,1
 "хиляди бройки","хил. бр.","брой",1000,"active","K pcs","|hilqdi brojki|hilqda brojki|",3,"uom",,1
-"час","час","секунда",3600,"active","h","|h|hour|hr|chas|chasa|",2,"uom",,1
+"час","ч","секунда",3600,"active","h","|h|hour|hr|chas|chasa|",2,"uom",,1
 "чувал","чувал",,,"active",,,0,"packaging",1,1
 "ампер","A",,1,"closed","A","|a|ampera|amper|",3,"uom",,1
 "ват","w",,1,"closed","w","|vat|wat|w|",3,"uom",,1

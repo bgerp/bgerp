@@ -211,13 +211,7 @@ class eshop_ProductDetails extends core_Detail
         $res = (object) array('price' => null, 'discount' => null);
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
         $settings = cms_Domains::getSettings($domainId);
-        
-        // Ценовата политика е от активната папка
-        $listId = $settings->listId;
-        if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
-            $Cover = doc_Folders::getCover($lastActiveFolder);
-            $listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
-        }
+        $listId = cms_Helper::getCurrentEshopPriceList($settings);
         
         // Ако има ценоразпис
         if (isset($listId)) {
@@ -732,7 +726,7 @@ class eshop_ProductDetails extends core_Detail
         // Ако е шаблон
         if($isTemplate){
             
-            // Ще се извличат е-артикулите, където той е избран като протоип
+            // Ще се извличат е-артикулите, където той е избран като прототип
             $data->listFields = arr::make('name=Е-артикул,domainId=Домейн,coMoq=МКП,quantityCount=Количества');
             $data->info = tr('Артикулът се използва като прототип за запитване в Е-маг');
             $query = eshop_Products::getQuery();

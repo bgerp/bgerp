@@ -20,13 +20,13 @@ class trans_Vehicles extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Транспортни средства';
+    public $title = 'МПС';
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Транспортно средство';
+    public $singleTitle = 'МПС';
     
     
     /**
@@ -38,7 +38,7 @@ class trans_Vehicles extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, trans';
+    public $canEdit = 'ceo, transMaster';
     
     
     /**
@@ -50,19 +50,19 @@ class trans_Vehicles extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, trans';
+    public $canAdd = 'ceo, transMaster';
     
     
     /**
      * Кой има право да разглежда?
      */
-    public $canList = 'ceo, trans';
+    public $canList = 'ceo, transMaster';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, trans';
+    public $canDelete = 'ceo, transMaster';
     
     
     /**
@@ -102,7 +102,7 @@ class trans_Vehicles extends core_Master
     {
         $this->FLD('name', 'varchar(120)', 'caption=Име,mandatory');
         $this->FLD('number', 'varchar(32)', 'caption=Рег. номер,mandatory');
-        $this->FLD('load', 'double', 'caption=Товароносимост');
+        $this->FLD('load', 'double(smartRound)', 'caption=Товароносимост');
         $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
         $this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап,car=Лек автомобил,other=Друг)', 'caption=Вид');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');

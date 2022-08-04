@@ -31,8 +31,14 @@ class doc_Comments extends embed_Manager
      * Дали да се споделя създадели на оригиналния документ
      */
     public $autoShareOriginCreator = true;
-    
-    
+
+
+    /**
+     * Автоматично споделяне на получателите от входящия имейл
+     */
+    public $autoShareUserEmails = true;
+
+
     /**
      * Поддържани интерфейси
      */
@@ -185,7 +191,7 @@ class doc_Comments extends embed_Manager
     public function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,input=hidden,reduceText');
-        $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Коментар,mandatory');
+        $this->FLD('body', 'richtext(rows=10,bucket=Comments,passage)', 'caption=Коментар,mandatory');
         $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори, input=none');
     }
     

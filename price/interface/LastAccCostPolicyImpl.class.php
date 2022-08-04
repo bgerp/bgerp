@@ -2,7 +2,7 @@
 
 
 /**
- * Имплементация на изчисляване на мениджърски себестойности "Складова себестойност"
+ * Имплементация на изчисляване на мениджърски себестойности "Складова (счетоводна, доставна) себестойност"
  *
  * @category  bgerp
  * @package   price
@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  * @see price_CostPolicyIntf
- * @title Мениджърска себестойност "Складова себестойност"
+ * @title Мениджърска себестойност "Складова (счетоводна, доставна)"
  *
  */
 class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPolicy
@@ -40,7 +40,7 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
      */
     public function getName($verbal = false)
     {
-        $res = ($verbal) ? tr('Складова себестойност') : 'accCost';
+        $res = ($verbal) ? tr('Складова (счетоводна, доставна)') : 'accCost';
         
         return $res;
     }

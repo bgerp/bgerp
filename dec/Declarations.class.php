@@ -123,6 +123,7 @@ class dec_Declarations extends core_Master
      */
     public static $defaultStrategies = array(
         'materials' => 'lastDocUser|lastDoc|lastDocSameCountry',
+        'statements' => 'lastDocUser|lastDoc|lastDocSameCountry|sessionValue',
     );
     
     
@@ -141,7 +142,7 @@ class dec_Declarations extends core_Master
         $this->FLD('date', 'date', 'caption=Дата');
         
         // декларатор
-        $this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, mandatory,recently,remember,');
+        $this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, mandatory,recently,remember');
 
         // позицията на декларатора
         $this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, mandatory,recently,remember');
@@ -155,7 +156,7 @@ class dec_Declarations extends core_Master
         $this->FLD('inv', 'int', 'caption=Фактура, input=none');
         
         // на какви твърдения отговарят
-        $this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory');
+        $this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory,remember');
         
         // от какви материали е
         $this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory,remember');
@@ -592,7 +593,7 @@ class dec_Declarations extends core_Master
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашата декларация за съответствие') . ': #[#handle#]');
+        $tpl = new ET(tr('Моля, запознайте се с нашата декларация за съответствие') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
 
         return $tpl->getContent();

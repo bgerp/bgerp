@@ -134,7 +134,7 @@ class batch_Items extends core_Master
         expect($storeId);
         
         // Имали запис за тази партида
-        if ($rec = self::fetch("#productId = '{$productId}' AND #batch = '{$batch}' AND #storeId = '{$storeId}'")) {
+        if ($rec = self::fetch(array("#productId = '{$productId}' AND #batch = '[#1#]' AND #storeId = '{$storeId}'", $batch))) {
             batch_Features::sync($rec->id);
             
             // Връщаме ид-то на записа
@@ -343,24 +343,28 @@ class batch_Items extends core_Master
     /**
      * Връща всички складируеми артикули с дефинирани видове партидност
      *
+     * @param boolean $showNames - дали да се показват имената
      * @return array $storable - масив с артикули
      */
-    public static function getProductsWithDefs()
+    public static function getProductsWithDefs($showNames = true)
     {
-        $storable = core_Cache::get('batch_Defs', 'products');
-        
+        $storable = core_Cache::get('batch_Defs', "products" . (int)$showNames);
         if (!$storable) {
             $storable = array();
             $dQuery = batch_Defs::getQuery();
             $dQuery->where('#productId IS NOT NULL');
             $dQuery->show('productId');
             while ($dRec = $dQuery->fetch()) {
-                $pRec = cat_Products::fetch($dRec->productId, 'name,isPublic,code,nameEn');
-                if($pRec) {
-                    $storable[$dRec->productId] = cat_Products::getRecTitle($pRec, false);
+                if($showNames){
+                    $pRec = cat_Products::fetch($dRec->productId, 'name,isPublic,code,nameEn');
+                    if($pRec) {
+                        $storable[$dRec->productId] = cat_Products::getRecTitle($pRec, false);
+                    }
+                } else {
+                    $storable[$dRec->productId] = $dRec->productId;
                 }
             }
-            core_Cache::set('batch_Defs', 'products', $storable, 60);
+            core_Cache::set('batch_Defs', "products" . (int)$showNames, $storable, 60);
         }
         
         return $storable;
@@ -536,7 +540,7 @@ class batch_Items extends core_Master
         }
         
         $fieldSet = cls::get('core_FieldSet');
-        $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol,smartCenter');
+        $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol');
         $fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
         $fieldSet->FLD('quantity', 'double');
         
@@ -599,7 +603,8 @@ class batch_Items extends core_Master
         $query->where("#state != 'closed'");
         $query->show('batch,quantity,operation,date,docType,docId');
         $query->where("#productId = {$productId} AND #storeId = {$storeId}");
-        
+        $query->where("#date <= '{$date}'");
+
         if (countR($except) == 2) {
             $docType = cls::get($except[0])->getClassId();
             $docId = $except[1];

@@ -207,8 +207,8 @@ class hr_Leaves extends core_Master
     {
         $this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
-        $this->FLD('leaveFrom', 'datetime(defaultTime=00:00:00)', 'caption=Считано->От, mandatory');
-        $this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
+        $this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
+        $this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
         $this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
         $this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
@@ -218,7 +218,7 @@ class hr_Leaves extends core_Master
         $this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
         
         // Споделени потребители
-        $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo)', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
     
     
@@ -253,7 +253,7 @@ class hr_Leaves extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateRequestsToCalendar($rec->id);
     }
@@ -369,17 +369,10 @@ class hr_Leaves extends core_Master
                 $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.", $ignorable);
             }
             
-            // изисляване на бр дни отпуска
+            // Изисляване на брой дни отпуска
             if ($form->rec->leaveFrom && $form->rec->leaveTo) {
-                $state = hr_EmployeeContracts::getQuery();
-                $state->where("#personId='{$form->rec->personId}' AND #state = 'active'");
-                
-                if ($employeeContractDetails = $state->fetch()) {
-                    $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $employeeContractDetails->departmentId, $form->rec->leaveFrom, $form->rec->leaveTo);
-                } else {
-                    $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
-                }
-                
+                $scheduleId = planning_Hr::getSchedule($form->rec->personId);
+                $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, $form->rec->leaveFrom, $form->rec->leaveTo);
                 $form->rec->leaveDays = $days->workDays;
             }
             
@@ -562,8 +555,8 @@ class hr_Leaves extends core_Master
         $prefix = "REQ-{$id}";
         
         $curDate = $rec->leaveFrom;
-        
-        while ($curDate < $rec->leaveTo) {
+
+        while ($curDate < dt::addDays(1, $rec->leaveTo) ){
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
                 $calRec = new stdClass();
@@ -600,9 +593,10 @@ class hr_Leaves extends core_Master
                 
                 $events[] = $calRec;
             }
+
             $curDate = dt::addDays(1, $curDate);
         }
-        
+
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
@@ -695,7 +689,7 @@ class hr_Leaves extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $DateTime = cls::get('core_DateTime');
-        
+
         if (isset($rec->activatedOn)) {
             $row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
         }
@@ -712,12 +706,12 @@ class hr_Leaves extends core_Master
             $tLeaveFrom = dt::mysql2timestamp($rec->leaveFrom);
             $dayOfWeekFrom = date('l', $tLeaveFrom);
             
-            list(, $hourFrom) = explode(' ', $rec->leaveFrom);
+           // list(, $hourFrom) = explode(' ', $rec->leaveFrom);
             
-            if ($hourFrom != '00:00:00') {
+            //if ($hourFrom != '00:00:00') {
                 $row->leaveFrom = $DateTime->mysql2verbal($rec->leaveFrom, 'd.m.Y');
-                $row->fromHour = $DateTime->mysql2verbal($rec->leaveFrom, 'H:i');
-            }
+                //$row->fromHour = $DateTime->mysql2verbal($rec->leaveFrom, 'H:i');
+           // }
             
             $row->dayFrom = static::$weekDays[$dayOfWeekFrom];
         }
@@ -726,12 +720,12 @@ class hr_Leaves extends core_Master
             $tLeaveTo = dt::mysql2timestamp($rec->leaveTo);
             $dayOfWeekTo = date('l', $tLeaveTo);
             
-            list(, $hourTo) = explode(' ', $rec->leaveTo);
+           // list(, $hourTo) = explode(' ', $rec->leaveTo);
             
-            if ($hourTo != '23:59:59') {
+            //if ($hourTo != '23:59:59') {
                 $row->leaveTo = $DateTime->mysql2verbal($rec->leaveTo, 'd.m.Y');
-                $row->toHour = $DateTime->mysql2verbal($rec->leaveTo, 'H:i');
-            }
+            //    $row->toHour = $DateTime->mysql2verbal($rec->leaveTo, 'H:i');
+            //}
             
             $row->dayTo = static::$weekDays[$dayOfWeekTo];
         }
@@ -797,8 +791,9 @@ class hr_Leaves extends core_Master
         // Ако ще разпечатваме или ще отворим сингъла от qr-код
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
             // ако началната дата на отпуската е по-малка от дата на създаване на документа
+            // или датата на одобрение е по-голяма от  начаната дата на отпуската
             // искаме датите на създаване и одобряване да са преди началната дата
-            if($leaveFromTs <= $createdOnTs) {
+            if($leaveFromTs <= $createdOnTs || $activatedOnTs >= $leaveFromTs ) {
   
                 if($data->rec->state == 'active'){
 
@@ -822,8 +817,8 @@ class hr_Leaves extends core_Master
 
                     // заменяме датат на молбата
                     $row1 = new stdClass();
-                    $rowTpl1 = $tpl->getBlock('createdDate');
-                    $row1->createdDate = dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
+                    $rowTpl1 = $tpl->getBlock('createdDate'); //bp($rowTpl1->createdDate, $data->rec, $row);
+                    $row1->createdDate =  dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
                     $rowTpl1->placeObject($row1);
                     $rowTpl1->removeBlocks();
                     $rowTpl1->append2master();

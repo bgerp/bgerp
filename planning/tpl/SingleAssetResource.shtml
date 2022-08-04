@@ -1,7 +1,7 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div class="info-table">
-        <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>[#codeAndName#]</b></h3>
+        <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>[[#code#]] [#name#]</b></h3>
         
         <fieldset class="detail-info">
             <legend class="groupTitle">|Общи данни|*</legend>
@@ -9,6 +9,12 @@
             <div class="fright">[#image#]</div>
             <!--ET_END image-->
             <table>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        №:
+                    </td>
+                    <td>[#id#]</td>
+                </tr>
                 <!--ET_BEGIN groupId-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
@@ -25,18 +31,45 @@
                     <td>[#simultaneity#]</td>
                 </tr>
                 <!--ET_END simultaneity-->
+				<!--ET_BEGIN scheduleId-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |График|*:
+                    </td>
+                    <td>[#scheduleId#]</td>
+                </tr>
+                <!--ET_END scheduleId-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Създаване|*:
                     </td>
-                    <td>|от|* [#createdBy#] |на|* [#createdOn#]</td>
+                    <td>|на|* [#createdOn#] |от|* [#createdBy#]</td>
                 </tr>
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Модифициране|*:
                     </td>
-                    <td>|от|* [#modifiedBy#] |на|* [#modifiedOn#]</td>
+                    <td>|на|* [#modifiedOn#] |от|* [#modifiedBy#]</td>
                 </tr>
+
+                <!--ET_BEGIN lastRecalcTimes-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Преизчислени времена|*:
+                    </td>
+                    <td>[#lastRecalcTimes#]</td>
+                </tr>
+                <!--ET_END lastRecalcTimes-->
+
+                <!--ET_BEGIN lastReorderedTasks-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Пренаредени операции|*:
+                    </td>
+                    <td>[#lastReorderedTasks#]</td>
+                </tr>
+                <!--ET_END lastReorderedTasks-->
+
                 <!--ET_BEGIN description-->
                 <tr>
                     <td colspan = "2">[#description#]</td>
@@ -44,34 +77,6 @@
                 <!--ET_END description-->
             </table>
         </fieldset>
-        
-        <!--ET_BEGIN jobs-->
-        <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
-            <legend class="groupTitle">|Използване|*</legend>
-            <ul>
-	            <!--ET_BEGIN assetFolderId-->
-	            <li class="info">
-	                [#assetFolderId#]
-	            </li>
-	            <!--ET_END assetFolderId-->
-           </ul>
-        </fieldset>
-        [#jobs#]
-        <!--ET_END jobs-->
-        
-        <!--ET_BEGIN issues-->
-        <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
-            <legend class="groupTitle">|Поддръжка|*</legend>
-            <table>
-                <!--ET_BEGIN systemFolderId-->
-                <tr>
-                    <td colspan="2">[#systemFolderId#]</td>
-                </tr>
-                <!--ET_END systemFolderId-->
-            </table>
-        </fieldset>
-        [#issues#]
-        <!--ET_END issues-->
        
         <!--ET_BEGIN sensors-->
         <div class="scrolling-holder">
@@ -104,5 +109,6 @@
                 </div>
             </fieldset>
         </div>
+        [#DETAILS#]
     </div>
 </div>

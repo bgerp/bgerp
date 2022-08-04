@@ -20,7 +20,13 @@ class marketing_Inquiries2 extends embed_Manager
      * Свойство, което указва интерфейса на вътрешните обекти
      */
     public $driverInterface = 'cat_ProductDriverIntf';
-    
+
+
+    /**
+     * Дали да взема контрагент данните от последния документ в папката
+     */
+    public $getContragentDataFromLastDoc = false;
+
     
     /**
      * Как се казва полето за избор на вътрешния клас
@@ -472,7 +478,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if (is_object($Driver)) {
-            $measureId = $Driver->getDefaultUomId();
+            $measureId = $Driver->getDefaultUomId($rec);
         }
         
         if (!$measureId) {
@@ -1117,7 +1123,7 @@ class marketing_Inquiries2 extends embed_Manager
             $rec = &$form->rec;
             
             // Ако има регистриран потребител с този имейл. Изисква се да се логне
-            if ($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)) {
+            if ($error = cms_Helper::getEmailError($rec->email)) {
                 $form->setError('email', $error);
             }
 

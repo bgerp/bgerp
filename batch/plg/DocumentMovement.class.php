@@ -156,15 +156,17 @@ class batch_plg_DocumentMovement extends core_Plugin
      * @param core_Mvc $mvc
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
+     * @param null|mixed $saveFields
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFields = null)
     {
+        // Ако документа се променя от бутона за промяна или при преизчисляване на курса да не се дублират партидите
+        if($rec->__isBeingChanged || $rec->_recalcRate) return;
+
         if ($rec->state == 'active') {
             if ($mvc->hasPlugin('acc_plg_Contable')) {
-                if (isset($saveFileds)) {
-                    
-                    return;
-                }
+
+                if (isset($saveFields)) return;
             }
             
             $containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');

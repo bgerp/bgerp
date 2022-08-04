@@ -27,14 +27,8 @@ class deals_OpenDeals extends core_Manager
      * Заглавие
      */
     public $title = 'Чакащи сделки';
-    
-    
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'acc_OpenDeals';
-    
-    
+
+
     /**
      * Наименование на единичния обект
      */
@@ -384,19 +378,5 @@ class deals_OpenDeals extends core_Manager
         
         Mode::set('pageMenu', $menu);
         Mode::set('pageSubMenu', $subMenu);
-    }
-
-
-    /**
-     * Тестов екшън за разпределението на фактурите
-     * @todo да се премахне след тестване
-     */
-    function act_Test()
-    {
-        requireRole('debug');
-        $threadId = Request::get('threadId', 'int');
-
-        $inv = deals_Helper::getInvoicePayments($threadId);
-        bp($inv, $threadId);
     }
 }

@@ -206,7 +206,10 @@ abstract class deals_DealDetail extends doc_Detail
         
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
+
+        // Добавяне да се показва ценовата информация за стандартните артикули
+        $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'listId' => $masterRec->priceListId, 'currencyId' => $masterRec->currencyId);
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic', 'priceData' => $priceData));
 
         if (empty($rec->id)) {
             $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
@@ -701,7 +704,7 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         // Добавяне на тулбар
-        $form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Импорт');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Рендиране на опаковката
@@ -727,11 +730,23 @@ abstract class deals_DealDetail extends doc_Detail
     {
         // За всеки листван артикул
         foreach ($listed as $lId => $lRec) {
-            $meta = cat_Products::fetchField($lRec->productId, $this->metaProducts);
-            if ($meta != 'yes') {
-                continue;
+            $pRec = cat_Products::fetch($lRec->productId, "{$this->metaProducts},isPublic,folderId");
+            if ($pRec->{$this->metaProducts} != 'yes') continue;
+
+            // Към кои папки е споделен артикула
+            $sharedQuery = cat_products_SharedInFolders::getQuery();
+            $sharedQuery->where("#productId = {$pRec->id}");
+            $sharedFolders = arr::extractValuesFromArray($sharedQuery->fetchAll(), 'folderId');
+            if(countR($sharedFolders)){
+
+                // Ако не е споделен в конкретната папка или е в папка различна от тази на сделката не се показва
+                if(!array_key_exists($saleRec->folderId, $sharedFolders) && $pRec->folderId != $saleRec->folderId) continue;
+            } else {
+
+                // Ако няма споделени папки и е нестандартен и е в друга папка от тази на сделката не се показва
+                if($pRec->isPublic == 'no' && $pRec->folderId != $saleRec->folderId) continue;
             }
-            
+
             $title = cat_Products::getTitleById($lRec->productId);
             $title = str_replace(',', ' ', $title);
             if($lRec->reff != $lRec->code){
@@ -739,7 +754,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
 
             $caption = '|' . $title . '|*';
-            $caption .= ' |' . cat_UoM::getShortName($lRec->packagingId);
+            $caption .= ': | ' . cat_UoM::getShortName($lRec->packagingId);
             
             // Проверка дали вече не просъства в продажбата
             $res = array_filter($recs, function (&$e) use ($lRec) {

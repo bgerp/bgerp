@@ -40,6 +40,10 @@
                                 </td>
                             </tr>
                             <!--ET_END creation-->
+                            <tr>
+                                <td class='dt'>|Подготовка преди експедиция|*:</td>
+                                <td>[#preparationBeforeShipment#]</td>
+                            </tr>
                             <!--ET_BEGIN CloseTime-->
                             <tr>
                                 <td class='dt'>|Затваряне на нишките|*:</td>
@@ -56,6 +60,27 @@
                                 <td class='dt'>|Мярка на наличностите|*:</td>
                                 <td>[#displayStockMeasure#]</td>
                             </tr>
+
+                            <!--ET_BEGIN samePosPallets-->
+                            <tr>
+                                <td class='dt'>|Различни палети на една позиция|*:</td>
+                                <td>[#samePosPallets#]</td>
+                            </tr>
+                            <!--ET_END samePosPallets-->
+
+                            <!--ET_BEGIN closeCombinedMovementsAtOnce-->
+                            <tr>
+                                <td class='dt'>|Приключване на комбинирани движения|*:</td>
+                                <td>[#closeCombinedMovementsAtOnce#]</td>
+                            </tr>
+                            <!--ET_END closeCombinedMovementsAtOnce-->
+
+                            <!--ET_BEGIN prioritizeRackGroups-->
+                            <tr>
+                                <td class='dt'>|Използване на приоритетни стелажи|*:</td>
+                                <td>[#prioritizeRackGroups#]</td>
+                            </tr>
+                            <!--ET_END prioritizeRackGroups-->
                         </table>
                     </div>
                 </fieldset>
@@ -64,10 +89,12 @@
                 <legend class="groupTitle">|Кой може да контира документи, в които е избран склада|*</legend>
                 <div class="groupList">
                     <table>
+                        <!--ET_BEGIN chiefs-->
                         <tr>
                             <td class='dt'>|Потребители|*:</td>
                             <td>[#chiefs#]</td>
                         </tr>
+                        <!--ET_END chiefs-->
                         <!--ET_BEGIN activateRoles-->
                         <tr>
                             <td class='dt'>|Роли|*:</td>
@@ -100,13 +127,13 @@
                 </div>
             </fieldset>
             <!--ET_END SELECT_FIELD-->
-
+                [#deals/tpl/AdditionalConditionsBlock.shtml#]
             <!--ET_BEGIN store_Products-->
                 <div style="margin-top:10px">
                     [#store_Products#]
                 </div>
             <!--ET_END store_Products-->
-            
+
             <!--ET_END SELECT_FIELD-->
                 [#DETAILS#]
             </div>

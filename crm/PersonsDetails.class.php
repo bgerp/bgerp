@@ -26,43 +26,29 @@ class crm_PersonsDetails extends core_Manager
      * Подготвя ценовата информация за артикула
      */
     public function preparePersonsDetails($data)
-    {
+    { 
         $data->TabCaption = 'Лични данни';
         expect($data->masterMvc instanceof crm_Persons);
-        
+
         $employeeId = crm_Groups::getIdFromSysId('employees');
         if (keylist::isIn($employeeId, $data->masterData->rec->groupList)) {
             $data->Codes = cls::get('planning_Hr');
             $data->TabCaption = 'HR';
+            $Schedule = new stdClass();
+            $Schedule->masterId = planning_Hr::getSchedule($data->masterId);
+            $Schedule->masterMvc = cls::get('hr_Schedules');
+            hr_Schedules::prepareCalendar($Schedule);
+            $data->Schedule = $Schedule;
         }
-        
+
         // Подготовка на индикаторите
         $data->Indicators = cls::get('hr_Indicators');
         if ($this->haveRightFor('seeindicators', (object) array('personId' => $data->masterId))) {
             $data->Indicators->preparePersonIndicators($data);
         }
-        
-        $eQuery = planning_Hr::getQuery();
-        $eQuery->where("#personId = '{$data->masterId}'");
-        
-        while ($eRec = $eQuery->fetch()) {
-            $keys = keylist::toArray($eRec->departments);
-            if (countR($keys) == 1) {
-                foreach ($keys as $key) {
-                    $data->Cycles = cls::get('hr_WorkingCycles');
-                    $data->Cycles->masterId = $key;
-                    $data->Cycles->personId = $data->masterId;
-                }
-            }
-        }
-        
+
         $data->Cards = cls::get('crm_ext_IdCards');
         $data->Cards->prepareIdCard($data);
-        
-        if (isset($data->Cycles)) {
-            $data->Cycles->prepareGrafic($data);
-            $data->TabCaption = 'HR';
-        }
         
         if (isset($data->Codes)) {
             $data->Codes->prepareData($data);
@@ -99,16 +85,15 @@ class crm_PersonsDetails extends core_Manager
             $tpl->append($resTpl, 'CODE');
         }
         
+        $Schedules = cls::get('hr_Schedules');
         // Показване на работните цикли
-        if (isset($data->Cycles)) {
-            $resTpl = $data->Cycles->renderGrafic($data);
-            $resTpl->removeBlock('legend');
-            $resTpl->removeBlocks();
+        if (isset($data->Schedule)) {
+            $resTpl = $Schedules->renderCalendar($data->Schedule);
             $tpl->append($resTpl, 'CYCLES');
             
             if (crm_Persons::haveRightFor('single', (object) array('personId' => $data->masterId))) {
                 // правим url  за принтиране
-                $url = array('hr_WorkingCycles', 'Print', 'Printing' => 'yes', 'masterId' => $data->Cycles->masterId, 'cal_month' => $data->Cycles->month, 'cal_year' => $data->Cycles->year, 'personId' => $data->masterId);
+                $url = array('hr_Schedules', 'Single', $data->Schedule->masterId, 'Printing' => 'yes', 'month' => Request::get('month', 'date'));
                 $efIcon = 'img/16/printer.png';
                 $link = ht::createLink('', $url, false, "title=Печат,ef_icon={$efIcon},style=float:right; height: 16px;");
                 $tpl->append($link, 'print');

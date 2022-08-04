@@ -4,14 +4,11 @@
 /**
  * Клас 'planning_DirectProductionNote' - Документ за производство
  *
- *
- *
- *
  * @category  bgerp
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -241,8 +238,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $storeId = $originRec->storeId;
         $saleId = $originRec->saleId;
         if($originDoc->isInstanceOf('planning_Tasks')){
+
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
-            $storeId = $jobRec->storeId;
+            $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
         } else {
@@ -263,43 +261,40 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $packs = cat_Products::getPacks($rec->productId, false, $jobRec->secondMeasureId);
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
 
-            $secondMeasureDerivitives = array();
+            $secondMeasureDerivatives = array();
             if($jobRec->secondMeasureId){
-                $secondMeasureDerivitives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
+                $secondMeasureDerivatives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
             }
 
             if($originDoc->isInstanceOf('planning_Jobs')){
                 $originPackId = $originRec->packagingId;
                 $form->setDefault('jobQuantity', $originRec->quantity);
                 $quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
-
                 $quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
                 if ($quantityToStore > 0) {
-                    $form->setDefault('packQuantity', $quantityToStore / $originRec->quantityInPack);
+                    $form->setDefault('packQuantity', round($quantityToStore / $originRec->quantityInPack, 5));
                 }
             } else {
-
                 // Ако задачата е за крайния артикул записваме к-то му от заданието
                 if($rec->productId == $jobRec->productId){
-                    $form->setDefault('jobQuantity', $jobRec->quantity);
+                    $form->setDefault('jobQuantity', $originRec->totalQuantity - $originRec->producedQuantity);
                 }
 
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
-                $producedQuantity = $originDoc->fetchField('producedQuantity');
-                $info->totalQuantity -= $producedQuantity;
-                $originPackId = $info->packagingId;
-
-                $form->setDefault('packagingId', $info->packagingId);
-                if ($info->totalQuantity > 0) {
-                    $form->setDefault('packQuantity', $info->totalQuantity);
+                $originRec = $originDoc->fetch('productId,producedQuantity,measureId,isFinal');
+                $originPackId = ($originRec->isFinal == 'yes') ? $originRec->measureId : $info->measureId;
+                $form->setDefault('packagingId', $originPackId);
+                $toProduce = round($info->totalQuantity - $info->producedQuantity - $info->scrappedQuantity, 4);
+                if ($toProduce > 0) {
+                    $form->setDefault('packQuantity', $toProduce);
                 }
             }
 
             $originalPacks = $packs;
-            if(!array_key_exists($originPackId, $secondMeasureDerivitives)){
-                $packs = array_diff_key($packs, $secondMeasureDerivitives);
+            if(!array_key_exists($originPackId, $secondMeasureDerivatives)){
+                $packs = array_diff_key($packs, $secondMeasureDerivatives);
             } else {
-                $packs = array_intersect_key($packs, $secondMeasureDerivitives);
+                $packs = array_intersect_key($packs, $secondMeasureDerivatives);
             }
 
             $form->setOptions('packagingId', $packs);
@@ -324,7 +319,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } else {
                 $form->setField('storeId', 'mandatory');
                 $form->setField('packagingId', 'input');
-                if(cat_Products::haveDriver($rec->productId, 'planning_interface_StageDriver')){
+                if(cat_Products::haveDriver($rec->productId, 'planning_interface_StepProductDriver')){
                     $form->setField('inputStoreId', 'mandatory');
                 }
             }
@@ -341,18 +336,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 if($jobRec->secondMeasureId){
 
                     // Ако заданието е във втора мярка, и се произвежда в някоя от производните и
-                    if(array_key_exists($rec->packagingId, $secondMeasureDerivitives)){
-                        $additionalMeasures = array_diff_key($originalPacks, $secondMeasureDerivitives);
+                    if(array_key_exists($rec->packagingId, $secondMeasureDerivatives)){
+                        $additionalMeasures = array_diff_key($originalPacks, $secondMeasureDerivatives);
 
                         $pQuery = cat_products_Packagings::getQuery();
                         $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
                         $pQuery->where("#type = 'uom' AND #productId = {$rec->productId}");
-                        $pQuery->notIn('packagingId', array_keys($secondMeasureDerivitives));
+                        $pQuery->notIn('packagingId', array_keys($secondMeasureDerivatives));
                         $pQuery->show('packagingId');
                         $ignoreMeasureArr = arr::extractValuesFromArray($pQuery->fetchAll(), 'packagingId');
                         $additionalMeasures = array_diff_key($additionalMeasures, $ignoreMeasureArr);
                     } else {
-                        $additionalMeasures = array_intersect_key($originalPacks, $secondMeasureDerivitives);
+                        $additionalMeasures = array_intersect_key($originalPacks, $secondMeasureDerivatives);
                     }
                     $additionalMeasureCount = countR($additionalMeasures);
 
@@ -490,7 +485,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             // Ако втората мярка е мярка
             if($additionalMeasureType == 'uom'){
                 $equivalentMeasureId = $productRec->measureId;
-                $expectedEquvalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $productRec->measureId, $rec->additionalMeasureId);
+                $expectedEquivalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $productRec->measureId, $rec->additionalMeasureId);
                 $additionalQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId,  $productRec->measureId);
             } else {
 
@@ -498,7 +493,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $equivalentMeasureId = $rec->additionalMeasureId;
                 $addPackRec = cat_products_Packagings::getPack($rec->productId, $rec->additionalMeasureId);
                 $quantityInPack = is_object($addPackRec) ? $addPackRec->quantity : 1;
-                $expectedEquvalentQuantityInMeasure = $expectedQuantity / $quantityInPack;
+                $expectedEquivalentQuantityInMeasure = $expectedQuantity / $quantityInPack;
                 $additionalQuantity = $rec->additionalMeasureQuantity * $quantityInPack;
             }
         } else {
@@ -509,7 +504,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $additionalQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $jobRec->secondMeasureId);
             $expectedQuantity = $rec->quantity / $secondMeasureQuantityInPack;
             $equivalentMeasureId = $rec->additionalMeasureId;
-            $expectedEquvalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $jobRec->secondMeasureId, $rec->additionalMeasureId);
+            $expectedEquivalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $jobRec->secondMeasureId, $rec->additionalMeasureId);
         }
 
         $diff = abs(core_Math::diffInPercent($additionalQuantity, $expectedQuantity));
@@ -517,7 +512,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Ако разликата е над допустимата, показва се предупреждение
         if($diff > $allowedDiff){
-            $expectedSecondMeasureVerbal = core_Type::getByName('double(smartRound)')->toVerbal($expectedEquvalentQuantityInMeasure);
+            $expectedSecondMeasureVerbal = core_Type::getByName('double(smartRound)')->toVerbal($expectedEquivalentQuantityInMeasure);
             $equivalentMeasureIdVerbal = cat_UoM::getShortName($equivalentMeasureId);
 
             $msg = "Има разминаване от над |*{$allowedDiff} %, |спрямо очакваното от|* <b>{$expectedSecondMeasureVerbal} |{$equivalentMeasureIdVerbal}|*</b>";
@@ -536,6 +531,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         if(isset($fields['-single'])){
             $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+
+            if(core_Packs::isInstalled('rack')){
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore == 'yes'){
+                    $showLink = !(core_Packs::isInstalled('batch') && batch_Defs::getBatchDef($rec->productId) );
+                    if($showLink){
+
+                        // Бутон за палетиране
+                        if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($rec->storeId, $rec->productId, $rec->packagingId, $rec->packQuantity, null, $rec->containerId)){
+                            $row->productId = $palletImgLink->getContent() . $row->productId;
+                        }
+                    }
+                }
+            }
+
         } else {
             $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
         }
@@ -602,7 +612,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                         // Което не е чернова или оттеглено
                         $state = $originDoc->fetchField('state');
-                        if ($state == 'rejected' || $state == 'draft' || $state == 'closed') {
+                        if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped', 'pending'))) {
                             $requiredRoles = 'no_one';
                         } else {
 
@@ -811,13 +821,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected static function on_AfterCreate($mvc, $rec)
     {
         // Ако записа е клониран не правим нищо
-        if ($rec->_isClone === true) {
-
-            return;
-        }
+        if ($rec->_isClone === true) return;
 
         $details = $mvc->getDefaultDetails($rec);
-
         if(countR($details)) {
             foreach ($details as $dRec) {
                 $dRec->noteId = $rec->id;
@@ -883,10 +889,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         if ($data->toolbar->haveButton('btnConto')) {
-            if ($mvc->haveRightFor('adddebitamount', $rec)) {
-                $data->toolbar->removeBtn('btnConto');
-                $attr = (!haveRole('seePrice,ceo') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документът не може да бъде контиран, защото артикула няма себестойност') : ((!haveRole('seePrice,ceo') ? array('warning' => 'Наистина ли желаете документът да бъде контиран') : array()));
-                $data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), 'id=btnConto,ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производство', $attr);
+            if (!$data->toolbar->isErrorBtn('btnConto')) {
+                if ($mvc->haveRightFor('adddebitamount', $rec)) {
+                    $data->toolbar->removeBtn('btnConto');
+                    $attr = (!haveRole('seePrice,ceo') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документът не може да бъде контиран, защото артикула няма себестойност') : ((!haveRole('seePrice,ceo') ? array('warning' => 'Наистина ли желаете документът да бъде контиран') : array()));
+                    $data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), 'id=btnConto,ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производство', $attr);
+                }
             }
         }
 
@@ -1421,5 +1429,41 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         static::on_AfterCreate($this, $rec);
 
         followRetUrl(null, 'Записите са заредени от начало');
+    }
+
+
+    /**
+     * Връща позволените партиди за заприхождаване в документа
+     *
+     * @param $id
+     * @return array|null $options
+     */
+    public function getAllowedInBatches_($id)
+    {
+        $rec = static::fetchRec($id);
+
+        // Ако ще се произвежда артикулът от заданиет, наличните партиди за заприхождаване са тези от заданието
+        if(planning_DirectProductionNote::isForJobProductId($rec)) {
+            $jobRec = static::getJobRec($rec);
+            $options = cls::get('planning_Jobs')->getAllowedBatchesForJob($jobRec->containerId);
+
+            return $options;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #productId = {$rec->productId} AND #storeId IS NOT NULL")) {
+            core_Statuses::newStatus('Произвежданият артикул не може да бъде влаган директно от склад в същия протокол|*!', 'error');
+
+            return false;
+        }
     }
 }

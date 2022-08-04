@@ -44,7 +44,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'listId=Политика, cClass=Контрагент, validFrom=В сила от, createdBy=Създаване->От, createdOn=Създаване->На,state=Състояние';
+    public $listFields = 'listId=Политика, cClass=Контрагент, validFrom=В сила от, createdBy=Създал, createdOn=Създаване,state=Състояние';
     
     
     /**
@@ -259,18 +259,27 @@ class price_ListToCustomers extends core_Manager
         
         static::updateStates($rec->cClass, $rec->cId);
     }
-    
-    
+
+
     /**
      * Връща валидните ценови правила за посочения клиент
+     *
+     * @param int           $customerClass - ид на клас
+     * @param int           $customerId    - ид на контрагент
+     * @param datetime|null $datetime      - към коя дата
+     * @param bool          $strict        - само изрично зададено правило
+     * @return int|null
      */
-    public static function getListForCustomer($customerClass, $customerId, &$datetime = null)
+    public static function getListForCustomer($customerClass, $customerId, &$datetime = null, $strict = false)
     {
         $datetime = static::canonizeTime($datetime);
         
         $validRec = self::getValidRec($customerClass, $customerId, $datetime);
-        $listId = ($validRec) ? $validRec->listId : cat_Setup::get('DEFAULT_PRICELIST');
-        
+        $listId = ($validRec) ? $validRec->listId : null;
+        if(empty($listId) && !$strict){
+            $listId = cat_Setup::get('DEFAULT_PRICELIST');
+        }
+
         return $listId;
     }
     
@@ -340,12 +349,20 @@ class price_ListToCustomers extends core_Manager
                 $rec->listId = $listId;
             }
         }
-        
+
+        // Подсигуряване, че няма да е NaN цената
+        if(is_nan($rec->price)){
+            $rec->price = null;
+            wp($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat, $listId, $quotationPriceFirst);
+        }
+
         // Ако все още няма цена, но има прототип проверява се има ли цена по политика за прототипа, използва се тя
         if(is_null($rec->price) && isset($productRec->proto)){
             $rec = $this->getPriceByList($listId, $productRec->proto, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         }
-        
+
+
+
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
         if (!is_null($rec->price)) {
             $vat = cat_Products::getVat($productId);

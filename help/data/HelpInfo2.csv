@@ -155,7 +155,7 @@
 Производство » Планиране » Задания,planning_Jobs,bg,Тук се съдържа списък на всички задания за производство. Документ Задание за производство се създава от общия изглед на производим артикул.,https://bgerp.com/Bg/Startirane-na-proizvodstvo#Zadanie-za-proizvodstvo,
 Производство » Планиране » Протоколи » Влагане,planning_ConsumptionNotes,bg,Тук се съдържа списък на всички протоколи за влагане на ресурси в производството.,https://bgerp.com/Bg/Vlagane-na-resursi/#Protokol-za-vlagane,
 Производство » Планиране » Протоколи » Производство,planning_DirectProductionNote,bg,Тук се съдържа списък на всички протоколи за производство. Документ Протокол за производство се създава от общия изглед на документ Задание за производство.,https://bgerp.com/Bg/Proizvodstvo-na-produkti-i-uslugi#Protokol-za-proizvodstvo,
-Производство » Планиране » Ресурси » Етапи,planning_Stages,bg,Тук се съдържа списък на всички производствени етапи.,http://bgerp.com/Bg/Proizvodstvo-Planirane/,
+Производство » Планиране » Ресурси » Етапи,planning_Steps,bg,Тук се съдържа списък на всички производствени етапи.,http://bgerp.com/Bg/Proizvodstvo-Planirane/,
 Производство » Етикетиране » Шаблони,label_Templates,bg,Това е списък с всички шаблони за етикети.,https://bgerp.com/Bg/Proizvodstvo-Tehnologii/,
 Производство » Етикетиране » Медии,label_Media,bg,Тук се съдържа списък на всички медии (формати) за отпечатване на етикети.,https://bgerp.com/Bg/Proizvodstvo-Tehnologii/,
 Мониторинг » RFID » Събития,rfid_Events,bg,Тук се съдържа списък на всички събития.,https://bgerp.com/Bg/Monitoring-RFID,

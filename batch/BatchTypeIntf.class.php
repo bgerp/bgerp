@@ -252,5 +252,16 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
         return $this->class->afterSavedTemplate($templateRec);
     }
+
+
+    /**
+     * Може ли автоматично да се разпределят к-та
+     *
+     * @return string
+     */
+    public function canAutoAllocate()
+    {
+        return $this->class->canAutoAllocate();
+    }
 }
 

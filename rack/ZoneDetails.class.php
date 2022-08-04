@@ -63,7 +63,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'id, productId, batch, status=Състояние,movementsHtml=@, packagingId, batch';
+    public $listFields = 'productId, batch, status=Състояние,movementsHtml=@, packagingId, batch';
     
     
     /**
@@ -100,7 +100,7 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
         $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
-        
+
         $this->setDbIndex('zoneId,productId,packagingId,batch');
     }
     
@@ -128,10 +128,15 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->productId = Mode::get('inlineDetail') ? cat_Products::getTitleById($rec->productId) : cat_Products::getShortHyperlink($rec->productId, true);
+        if(!Mode::is('printing')){
+            $row->productId = Mode::get('inlineDetail') ?  ht::createLinkRef(cat_Products::getTitleById($rec->productId), array('cat_Products', 'single', $rec->productId)) : cat_Products::getShortHyperlink($rec->productId, true);
+        }
+
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity);
-        $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity);
+        $movementQuantity = core_Math::roundNumber($rec->movementQuantity);
+        $documentQuantity = core_Math::roundNumber($rec->documentQuantity);
+        $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($movementQuantity);
+        $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($documentQuantity);
         $moveStatusColor = (round($rec->movementQuantity, 4) < round($rec->documentQuantity, 4)) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
         
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
@@ -143,8 +148,10 @@ class rack_ZoneDetails extends core_Detail
             $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
             $zonesDefault = array('zone' => array('0' => (string)$rec->zoneId), 'quantity' => array('0' => (string)$overQuantity));
             $zonesDefault = $ZoneType->fromVerbal($zonesDefault);
-            
-            $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'defaultZones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
+
+            if(!Mode::is('printing')){
+                $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'defaultZones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
+            }
         }
         
         if ($Definition = batch_Defs::getBatchDef($rec->productId)) {
@@ -169,6 +176,9 @@ class rack_ZoneDetails extends core_Detail
         setIfNot($data->inlineDetail, false);
         setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
         $requestedProductId = Request::get('productId', 'int');
+        if(Mode::is('printing')){
+            $data->filter = 'notClosed';
+        }
 
         // Допълнително обикаляне на записите
         foreach ($data->rows as $id => &$row){
@@ -328,7 +338,7 @@ class rack_ZoneDetails extends core_Detail
      */
     public static function renderInlineDetail($masterRec, $masterMvc, $additional = null)
     {
-        $tpl = new core_ET();
+        $tpl = new core_ET("");
 
         Mode::push('inlineDetail', true);
         $me = cls::get(get_called_class());
@@ -359,13 +369,17 @@ class rack_ZoneDetails extends core_Detail
     {
         $Movements = clone cls::get('rack_Movements');
         $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
-        
+
         $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements, 'inlineMovement' => true);
         $data->listFields = arr::make('movement=Движение,leftColBtns,rightColBtns,workerId=Работник', true);
         if($masterRec->_isSingle === true){
-            $data->listFields = array('id' => '№') + $data->listFields;
             $data->listFields['modifiedOn'] = 'Модифициране||Modified->На||On';
             $data->listFields['modifiedBy'] = 'Модифициране||Modified->От||By';
+        }
+
+        if(Mode::is('printing')){
+            unset($data->listFields['leftColBtns']);
+            unset($data->listFields['rightColBtns']);
         }
 
         $Movements->setField('workerId', "tdClass=inline-workerId");
@@ -398,9 +412,10 @@ class rack_ZoneDetails extends core_Detail
             if($masterRec->_isSingle === true){
                 $fields['-inline-single'] = true;
             }
+            $mRec->_currentZoneId = $masterRec->id;
             $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
         }
-       
+
         // Рендиране на таблицата
         $tpl = new core_ET('');
         if (countR($data->rows) || $masterRec->_isSingle === true) {

@@ -294,8 +294,8 @@ class crm_Companies extends core_Master
      */
     public $listOrderBy = array(
         'alphabetic' => array('Азбучно', '#nameT=ASC'),
-        'last' => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
-        'modified' => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
+        'last' => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване,createdBy=Създал'),
+        'modified' => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Промяна,modifiedBy=Променил'),
         'vatId' => array('Данъчен №', '#vatId=DESC', 'vatId=Данъчен №'),
         'pCode' => array('Пощенски код', '#pCode=DESC', 'pCode=П. код'),
         'website' => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
@@ -312,7 +312,7 @@ class crm_Companies extends core_Master
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
         
         // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent, class=focus');
         $this->FLD('uicId', 'drdata_type_Uic(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
         $this->FLD('eori', 'drdata_type_Eori', 'caption=EORI №,remember=info,class=contactData,export=Csv,silent');
         
@@ -340,7 +340,7 @@ class crm_Companies extends core_Master
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
-        $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
+        $this->FLD('logo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Лого,export=Csv');
         $this->FLD('folderName', 'varchar', 'caption=Име на папка');
         
         // В кои групи е?
@@ -999,9 +999,9 @@ class crm_Companies extends core_Master
      * @param crm_Companies $mvc
      * @param int           $id
      * @param stdClass      $rec
-     * @param string|NULL   $saveFileds
+     * @param string|NULL   $saveFields
      */
-    protected static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFileds = null)
+    protected static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateGroupsCnt = true;
         
@@ -1542,8 +1542,8 @@ class crm_Companies extends core_Master
         
         return $html;
     }
-    
-    
+
+
     /**
      * Дали на фирмата се начислява ДДС:
      * Не начисляваме ако:
@@ -1552,13 +1552,14 @@ class crm_Companies extends core_Master
      * Ако няма държава начисляваме ДДС
      *
      * @param int $id - id' то на записа
-     *
+     * @param int|null $ownCompanyId - ид на "Моята фирма"
      * @return bool TRUE/FALSE
      */
-    public static function shouldChargeVat($id)
+    public static function shouldChargeVat($id, $ownCompanyId = null)
     {
         $rec = static::fetch($id);
-        
+        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
+
         // Ако не е посочена държава, вингаи начисляваме ДДС
         if (!$rec->country) {
             
@@ -2665,5 +2666,24 @@ class crm_Companies extends core_Master
        
         // Връщане на данните, ако са извлечени
         return $data;
+    }
+
+
+    /**
+     * Дали "Моята Фирма" е регистрирана по ДДС
+     *
+     * @param int|null $ownCompanyId
+     * @return bool
+     */
+    public static function isOwnCompanyVatRegistered($ownCompanyId = null)
+    {
+        if(empty($ownCompanyId)){
+            $myCompany = crm_Companies::fetchOurCompany();
+            $myCompanyVatId = $myCompany->vatId;
+        } else {
+            $myCompanyVatId = crm_Companies::fetchField($ownCompanyId, 'vatId');
+        }
+
+        return !empty($myCompanyVatId);
     }
 }

@@ -65,7 +65,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             if ($BatchClass) {
                 $form->setField('batch', 'input');
                 $form->setFieldType('batch', $BatchClass->getBatchClassType());
-                
+
+                // Ако има само позволени опции само тях
+                $allowedOptions = $mvc->getAllowedInBatches($rec);
+                if(is_array($allowedOptions)){
+                    $form->setOptions('batch', array('' => '') + $allowedOptions);
+                }
+
                 if (isset($BatchClass->fieldPlaceholder)) {
                     $form->setField('batch', "placeholder={$BatchClass->fieldPlaceholder}");
                 }
@@ -101,8 +107,17 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             }
         }
     }
-    
-    
+
+
+    /**
+     * Метод по подразбиране за позволени партиди за заприхождаване
+     */
+    public static function on_AfterGetAllowedInBatches($mvc, &$res, $rec)
+    {
+
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -199,13 +214,18 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             // Ако се създава нова партида, прави се опит за автоматичното и създаване
             if (empty($rec->batch) && $mvc->cantCreateNewBatch !== true) {
-                $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
-                if (is_object($BatchClass)) {
-                    if ($mvc instanceof core_Master) {
-                        $rec->batch = $BatchClass->getAutoValue($mvc, $rec->id, $rec->{$mvc->storeFieldName}, $rec->{$mvc->valiorFld});
-                    } else {
-                        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},{$mvc->Master->valiorFld}");
-                        $rec->batch = $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}, $masterRec->{$mvc->Master->storeFieldName}, $masterRec->{$mvc->Master->valiorFld});
+                $allowedOptions = $mvc->getAllowedInBatches($rec);
+
+                // Ако има позволени опции не се генерира автоматично партида
+                if(!is_array($allowedOptions)){
+                    $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+                    if (is_object($BatchClass)) {
+                        if ($mvc instanceof core_Master) {
+                            $rec->batch = $BatchClass->getAutoValue($mvc, $rec->id, $rec->{$mvc->storeFieldName}, $rec->{$mvc->valiorFld});
+                        } else {
+                            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},{$mvc->Master->valiorFld}");
+                            $rec->batch = $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}, $masterRec->{$mvc->Master->storeFieldName}, $masterRec->{$mvc->Master->valiorFld});
+                        }
                     }
                 }
             }
@@ -230,8 +250,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         
         // Ако записа е редактиран и к-то е променено
         if ($rec->isEdited === true && isset($rec->id)) {
-            if ($rec->quantity != $mvc->fetchField($rec->id, 'quantity') && batch_Defs::getBatchDef($rec->productId)) {
-                $rec->autoAllocate = true;
+            if ($rec->quantity != $mvc->fetchField($rec->id, 'quantity')) {
+                if($BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName})){
+                    if ($BatchClass->canAutoAllocate()) {
+                        $rec->autoAllocate = true;
+                    }
+                }
             }
         }
     }
@@ -398,7 +422,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     /**
      * Кои роли могат да променят групово партидите на изходящите документи
      */
-    public static function on_AfterGetRolesToModfifyBatches($mvc, &$res, $rec)
+    public static function on_AfterGetRolesToModifyBatches($mvc, &$res, $rec)
     {
         $rec = $mvc->fetchRec($rec);
         if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) {

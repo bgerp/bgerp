@@ -24,7 +24,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
     {
         setIfNot($mvc->filterProtoByMeta, 'canSell');
         expect(in_array($mvc->filterProtoByMeta, array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture')));
-        expect($mvc instanceof deals_DealDetail || $mvc instanceof deals_QuotationDetails || $mvc instanceof store_InternalDocumentDetail);
+        expect($mvc instanceof deals_DealDetail || $mvc instanceof deals_QuotationDetails || $mvc instanceof store_InternalDocumentDetail || $mvc instanceof deals_DeliveryDocumentDetail);
     }
     
     
@@ -233,6 +233,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 // Извикваме в класа и драйвера нужните ивенти
                 if ($proto && !$form->rec->innerClass) {
                     $Driver = cat_Products::getDriver($proto);
+                    $Driver->invoke('AfterPrepareEditForm', array($Products, (object) array('form' => $form, 'action' => $action)));
                 } else {
                     $Driver = cls::get($form->rec->innerClass);
                     $cover = doc_Folders::getCover($form->rec->folderId);
@@ -245,9 +246,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     if (countR($defMetas)) {
                         $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
                     }
-                    
-                    if ($Driver->getDefaultUomId()) { 
-                        $driverUomId = $Driver->getDefaultUomId();
+                    $Driver->invoke('AfterPrepareEditForm', array($Products, (object) array('form' => $form, 'action' => $action)));
+
+                    $driverUomId = $Driver->getDefaultUomId($form->rec);
+
+                    if (isset($driverUomId)) {
                         $form->rec->measureId = $driverUomId;
                         $form->setField('measureId', 'input=hidden');
                     } else {
@@ -260,20 +263,15 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     }
                 }
 
-                $Driver->invoke('AfterPrepareEditForm', array($Products, (object) array('form' => $form, 'action' => $action)));
                 $defMetas = $Driver->getDefaultMetas();
                 if (isset($defMetas['canManifacture'])) {
-                    if(!($mvc instanceof store_InternalDocumentDetail)){
+                    if(!(($mvc instanceof store_InternalDocumentDetail) || ($mvc instanceof deals_DeliveryDocumentDetail))){
                         $form->setField('tolerance', 'input');
                         $form->setField('term', 'input');
                     }
                 }
 
                 $form->input();
- 
-                if($driverUomId) {
-                    $form->rec->measureId = $driverUomId;
-                }
 
                 if (empty($form->rec->packagingId)) {
                     $form->rec->packagingId =  $form->rec->measureId;
@@ -396,12 +394,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     if (!empty($productId) && $mvc instanceof sales_QuotationsDetails) {
                         $sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$productId}  AND #quantity='{$rec->quantity}'");
                     }
-                    
+
                     $msg = null;
                     if (!isset($productId)) {
                         if ($sameProduct && $sameProduct->productId) {
                             $pRec->id = $productId = $rec->productId;
-                            $Products->save($pRec);
+                            $productId = $Products->save($pRec);
+
                             $msg = 'Променен е артикул|*:' . cat_Products::getTitleById($productId);
                             $Products->logInAct('Модифициране от документ', $pRec);
                         } else {
@@ -427,6 +426,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
                     // Хакване на автоматично изчислена цена
                     if (!($mvc instanceof sales_QuotationsDetails)) {
+
                         if ($Driver->canAutoCalcPrimeCost($productId) == true && empty($dRec->packPrice)) {
                             $Policy = (isset($mvc->Master->Policy)) ? $mvc->Master->Policy : cls::get('price_ListToCustomers');
                             $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;

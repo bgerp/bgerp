@@ -80,7 +80,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,delta,charge,groupName';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,btns=Количество->Пулт,delta,charge,groupName';
     
     
     /**
@@ -92,7 +92,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'groupName,charge';
+    public $hideListFieldsIfEmpty = 'groupName,charge,btns';
     
     
     /**
@@ -130,7 +130,8 @@ class store_InventoryNoteSummary extends doc_Detail
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('charge', 'user', 'caption=Начет');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
-        
+        $this->FLD('quantityHasAddedValues', 'enum(yes,no)', 'input=none,notNull,value=no');
+
         $this->setDbUnique('noteId,productId');
     }
     
@@ -183,7 +184,7 @@ class store_InventoryNoteSummary extends doc_Detail
             return;
         }
         
-        $rec->delta = round($rec->quantity - $rec->blQuantity, 6);
+        $rec->delta = $rec->quantity - $rec->blQuantity;
     }
     
     
@@ -199,11 +200,6 @@ class store_InventoryNoteSummary extends doc_Detail
         $row->code = $rec->verbalCode;
         $row->ROW_ATTR['id'] = "row->{$rec->id}";
         
-        if (!Mode::isReadOnly()) {
-            $row->productId = cat_Products::getVerbal($rec->productId, 'name');
-            $row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
-        }
-        
         // Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
         $row->groupName = $rec->groupName;
         
@@ -216,14 +212,9 @@ class store_InventoryNoteSummary extends doc_Detail
         
         $row->measureId = cat_UoM::getShortName($measureId);
         
-        if (!isset($rec->quantity) && !Mode::is('printing')) {
-            $row->ROW_ATTR['class'] = ' note-product-row-no-quantity';
-            
-           if (store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
-               
-               
-               $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId));
-               $row->quantity = ht::createLink('', $url, false, 'ef_icon=img/16/edit.png,title=Задаване на установено количество');
+        if (!Mode::is('printing')) {
+            if(empty($rec->quantity)){
+                $row->ROW_ATTR['class'] = ' note-product-row-no-quantity';
             }
         }
     }
@@ -340,6 +331,7 @@ class store_InventoryNoteSummary extends doc_Detail
         
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
+        $data->listTableMvc->FLD('btns', 'varchar', 'tdClass=small-field nowrap,smartCenter');
         $data->listTableMvc->setField('charge', 'tdClass=charge-td');
         $masterRec = $data->masterData->rec;
         
@@ -364,10 +356,29 @@ class store_InventoryNoteSummary extends doc_Detail
                 $data->pager = $Pager;
             }
         }
-        
+
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
-            
+
+            if($rec->quantityHasAddedValues == 'yes'){
+                if($rec->isBatch){
+                    if(!isset($rec->quantity)){
+                        $row->quantity = $row->blQuantity;
+                        $row->quantity = "<span class='quiet small'>{$row->quantity}</span>";
+                    }
+                } else {
+                    $row->quantity = "<span style='color:blue'>{$row->quantity}</span>";
+                    $row->quantity = ht::createHint($row->quantity, 'Към количеството са добавени и неуточнените партиди', 'notice', false);
+                }
+            }
+
+            if(!$rec->isBatch){
+                if (!Mode::isReadOnly()) {
+                    $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+                    $row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
+                }
+            }
+
             if (isset($rec)) {
                 $row->delta = static::renderDeltaCell($rec);
                 $row->delta = "<div id='delta{$rec->id}'>{$row->delta}</div>";
@@ -377,7 +388,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 unset($data->rows[$id]);
                 continue;
             }
-            
+
             if ($filterByGroup === true && isset($filterName)) {
                 if ((!$row instanceof core_ET) && isset($rec)) {
                     if ($rec->{$mvc->groupByField} != $filterName) {
@@ -392,28 +403,49 @@ class store_InventoryNoteSummary extends doc_Detail
                     }
                 }
             }
-            
-            if (isset($rec) && $rec->isBatch !== true) {
-                $row->charge = static::renderCharge($rec);
 
-                // Рендиране на заявките, в които участва артикула
-                if (countR($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()) {
+            if (isset($rec)) {
+                $isNoBatchRow = $rec->isBatch && empty($rec->_batch);
 
-                    $btn = ht::createFnBtn('', null, null, array('class' => 'more-btn linkWithIcon warningContextMenu', 'title' => 'Документи, които са запазили количества от артикула'));
-                    $bodyLayout = new ET("<div class='clearfix21 modal-toolbar'>[#LI#]</div>");
-                    foreach ($pendingDocuments[$rec->productId] as $link) {
-                        $block = new core_ET("<div style='padding: 3px 5px 2px 0px;'>[#1#]</div>");
-                        $block->replace($link, '1');
-                        $block->removeBlocksAndPlaces();
-                        $bodyLayout->append($block, 'LI');
+                // Добавяне на бутон за редакция на реда
+                if ($rec->productId && !$isNoBatchRow && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
+                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId));
+
+                    // Ако се редактира сумарен ред. Маркира се в урл-то
+                    if(isset($rec->quantity) || isset($rec->_batch)){
+                        $url['packagingId'] = cat_Products::fetchField($rec->productId, 'measureId');
+                        $url['editQuantity'] = $rec->quantity;
+                        $url['editSummary'] = true;
+                        if(isset($rec->_batch)){
+                            $url['editBatch'] = $rec->_batch;
+                        }
                     }
 
-                    $layoutHtml = new core_ET('[#btn#][#text#][#productId#]');
-                    $layoutHtml->replace($btn, 'btn');
-                    $layoutHtml->replace($bodyLayout, 'text');
-                    $layoutHtml->replace($row->productId, 'productId');
-                    $layoutHtml->removeBlocksAndPlaces();
-                    $row->productId = $layoutHtml;
+                    $row->btns = ht::createLink('', $url, false, 'ef_icon=img/16/edit.png,title=Задаване на установено количество');
+                }
+
+                if($rec->isBatch !== true){
+                    $row->charge = static::renderCharge($rec);
+
+                    // Рендиране на заявките, в които участва артикула
+                    if (countR($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()) {
+
+                        $btn = ht::createFnBtn('', null, null, array('class' => 'more-btn linkWithIcon warningContextMenu', 'title' => 'Документи, които са запазили количества от артикула'));
+                        $bodyLayout = new ET("<div class='clearfix21 modal-toolbar'>[#LI#]</div>");
+                        foreach ($pendingDocuments[$rec->productId] as $link) {
+                            $block = new core_ET("<div style='padding: 3px 5px 2px 0px;'>[#1#]</div>");
+                            $block->replace($link, '1');
+                            $block->removeBlocksAndPlaces();
+                            $bodyLayout->append($block, 'LI');
+                        }
+
+                        $layoutHtml = new core_ET('[#btn#][#text#][#productId#]');
+                        $layoutHtml->replace($btn, 'btn');
+                        $layoutHtml->replace($bodyLayout, 'text');
+                        $layoutHtml->replace($row->productId, 'productId');
+                        $layoutHtml->removeBlocksAndPlaces();
+                        $row->productId = $layoutHtml;
+                    }
                 }
             }
             
@@ -429,10 +461,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        if ($data->masterData->rec->state == 'rejected' || Mode::isReadOnly()) {
-            
-            return;
-        }
+        if ($data->masterData->rec->state == 'rejected' || Mode::isReadOnly()) return;
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
         $data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
@@ -464,10 +493,22 @@ class store_InventoryNoteSummary extends doc_Detail
             return $rec->id;
         }
         
-        $sRec = (object) array('noteId' => $noteId,
-            'productId' => $productId,
-            'groups' => cat_Products::fetchField($productId, 'groups'));
-        
+        $sRec = (object) array('noteId' => $noteId, 'productId' => $productId, 'groups' => cat_Products::fetchField($productId, 'groups'));
+
+        // Ако форсира нов запис изчислява колко е очакваното от баланса
+        $noteRec = store_InventoryNotes::fetch($noteId);
+        $storeItemId = acc_Items::fetchItem('store_Stores', $noteRec->storeId)->id;
+        $to = dt::addDays(-1, $noteRec->valior);
+        $to = dt::verbal2mysql($to, false);
+        $from = dt::addMonths(-2, $to);
+        $from = dt::verbal2mysql($from, false);
+
+        $productItemRec = acc_Items::fetchItem('cat_Products', $productId);
+        $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => false, 'item1' => $storeItemId, 'item2' => $productItemRec->id, 'keepUnique' => true));
+        $bRecs = $Balance->getBalance('321');
+        $bRec = $bRecs[key($bRecs)];
+        $sRec->blQuantity = $bRec->blQuantity;
+
         // Ако няма запис, създаваме го
         return self::save($sRec);
     }
@@ -532,12 +573,19 @@ class store_InventoryNoteSummary extends doc_Detail
             unset($data->listFields['delta']);
             unset($data->listFields['charge']);
             unset($data->listFields['quantity']);
-            
+            unset($data->listFields['btns']);
+
             if (Request::get('showBlQuantities') !== '1') {
                 unset($data->listFields['blQuantity']);
+            } else {
+                $data->listFields['blQuantity'] = 'Очаквано';
             }
-            
-            $data->listFields['quantitySum'] = 'Количество';
+            $data->listFields['quantitySum'] = 'Установено';
+        } else {
+            $data->listFields['quantity'] = 'Количество->|*<small>|Установено|*</small>';
+            $data->listFields['blQuantity'] = 'Количество->|*<small>|Очаквано|*</small>';
+            $data->listFields['delta'] = 'Количество->|*<small>|Разлика|*</small>';
+            $data->listFields['btns'] = 'Количество->|*<small>|Пулт|*</small>';
         }
     }
     
@@ -547,10 +595,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (!countR($data->recs)) {
-            
-            return;
-        }
+        if (!countR($data->recs)) return;
 
         // Извличаме наведнъж записите за всички артикули в протокола
         $allProducts =  arr::extractValuesFromArray($data->recs, 'productId');
@@ -587,7 +632,7 @@ class store_InventoryNoteSummary extends doc_Detail
         
         $masterRec = store_InventoryNotes::fetch($rec->noteId);
         
-        $responsibles = array();
+        $responsible = array();
         $chiefs = keylist::toArray(store_Stores::fetchField($masterRec->storeId, 'chiefs'));
         $rec->charge = self::fetchField($rec->id, 'charge');
         
@@ -596,10 +641,10 @@ class store_InventoryNoteSummary extends doc_Detail
         }
         
         foreach ($chiefs as $c) {
-            $responsibles[$c] = core_Users::getVerbal($c, 'nick');
+            $responsible[$c] = core_Users::getVerbal($c, 'nick');
         }
-        
-        $responsibles = array('' => '') + $responsibles;
+
+        $responsible = array('' => '') + $responsible;
         
         if ($masterRec->state == 'draft') {
             if (!Mode::isReadOnly() && !Mode::is('blank')) {
@@ -609,7 +654,7 @@ class store_InventoryNoteSummary extends doc_Detail
                     $attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
                     $attr['title'] = 'Избор на материално отговорно лице';
                     
-                    $charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
+                    $charge = ht::createSelect('charge', $responsible, $rec->charge, $attr);
                     $charge->removePlaces();
                 }
             }
@@ -736,15 +781,19 @@ class store_InventoryNoteSummary extends doc_Detail
     public function prepareListRows_(&$data)
     {
         // Филтрираме записите
-        $expand = ($data->masterData->rec->expandGroups == 'yes') ? true : false;
+        $expand = $data->masterData->rec->expandGroups == 'yes';
         self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand);
-        
+
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
         
-        // Проверяваме имали кеш за $data->rows
-        $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
-        $cacheRows = !empty($data->listFilter->rec->search) ? false : true;
+        // Проверяваме имали кеш за $data->rows, ако потребителя е с роля дебъг - няма кеш
+        $cache = null;
+        if(!haveRole('debug')){
+            $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
+        }
+
+        $cacheRows = empty($data->listFilter->rec->search);
         if (!empty($data->listFilter->rec->search) || Mode::is('printing')) {
             $cacheRows = false;
             $cache = false;
@@ -755,7 +804,7 @@ class store_InventoryNoteSummary extends doc_Detail
             // Ако няма кеш подготвяме $data->rows стандартно
             $data = parent::prepareListRows_($data);
             if (Mode::is('blank')) {
-                $callExpandRows = (Request::get('showBatches', 'int')) ? true : false;
+                $callExpandRows = (bool)Request::get('showBatches', 'int');
             } else {
                 $callExpandRows = true;
             }
@@ -812,21 +861,26 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Рекалкулиране на количествата
      *
-     * @param int $id
+     * @param int|stdClass $id
      */
     public static function recalc($id)
     {
         expect($id);
-        $rec = self::fetch($id);
+        $rec = self::fetchRec($id);
         $query = store_InventoryNoteDetails::getQuery();
         $query->where("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
         $query->XPR('sumQuantity', 'double', 'SUM(#quantity)');
         $query->show('sumQuantity,quantity');
-        
-        $quantity = $query->fetch()->sumQuantity;
-        $rec->quantity = round($quantity, 4);
-        
-        cls::get('store_InventoryNoteSummary')->save($rec, 'quantity');
+
+        $rec->quantity = $query->fetch()->sumQuantity;
+        if(isset($rec->quantity)){
+            $rec->quantity = round($rec->quantity, 4);
+        } else {
+            $rec->quantityHasAddedValues = 'no';
+        }
+
+        cls::get('store_InventoryNoteDetails')->invoke('AfterRecalcSummary', array(&$rec));
+        cls::get('store_InventoryNoteSummary')->save($rec, 'quantity,quantityHasAddedValues');
     }
     
     

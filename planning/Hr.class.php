@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     0.12
@@ -36,7 +36,7 @@ class planning_Hr extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'planning_Wrapper,plg_Sorting,plg_Created,plg_RowTools2,plg_Search,label_plg_Print';
+    public $loadList = 'planning_Wrapper,plg_PrevAndNext,plg_Select,plg_Sorting,plg_Created,plg_RowTools2,plg_Search,label_plg_Print';
     
     
     /**
@@ -106,13 +106,30 @@ class planning_Hr extends core_Master
     {
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,mandatory,caption=Оператор');
         $this->FLD('code', 'varchar', 'caption=Код');
+        $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty)', 'caption=Работен график');
         $this->FNC('centers', 'keylist(mvc=doc_Folders,select=title)', 'mandatory, input, caption=Центрове на дейност');
-        
-        // TODO - ще се премахне след като минат миграциите
-        $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
-        
         $this->setDbIndex('code');
         $this->setDbUnique('personId');
+    }
+
+    
+    /**
+     * Изчисляване на функционалното поле centers
+     */
+    public function on_CalcCenters(core_Mvc $mvc, $rec)
+    {
+        $folderQuery = planning_AssetResourceFolders::getQuery();
+        $folderQuery->where("#classId={$this->getClassId()} AND #objectId = {$rec->id}");
+        $folderQuery->show('folderId');
+        $folders = arr::extractValuesFromArray($folderQuery->fetchAll(), 'folderId');
+
+        if(countR($folders)) {
+            $cQuery = planning_Centers::getQuery();
+            $cQuery->show('folderId');
+            $cQuery->in('folderId', $folders);
+            $centers = arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
+            $rec->centers = keylist::fromArray($centers);
+        }
     }
     
     
@@ -245,8 +262,6 @@ class planning_Hr extends core_Master
                 $data->addExtUrl = array($this, 'add', 'personId' => $data->masterId, 'ret_url' => true);
             }
         }
-
-
     }
     
     
@@ -254,7 +269,6 @@ class planning_Hr extends core_Master
      * Рендира информацията
      *
      * @param stdClass $data
-     *
      * @return core_ET $tpl;
      */
     public function renderData($data)
@@ -265,6 +279,11 @@ class planning_Hr extends core_Master
         if($data->row->_rowTools instanceof core_RowToolbar){
             $data->row->code_toolbar = $data->row->_rowTools->renderHtml();
         }
+
+        if(isset($data->row->scheduleId)) {
+            $data->row->scheduleId = hr_Schedules::getHyperLink($data->rec->scheduleId, true);
+        }
+
         $tpl->placeObject($data->row);
         
         if ($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId}")) {
@@ -280,6 +299,47 @@ class planning_Hr extends core_Master
         $tpl->removeBlocks();
         
         return $tpl;
+    }
+
+
+    /**
+     * Връща приложимото работно време за дадения служител
+     * Вземат се по реда на приоритет:
+     *    о Ако има зададен Работен график в този модел
+     *    о Работния график на департамента на служителя
+     *    о Дефолтния работен график = null
+     *
+     * @param int $personId
+     *
+     * @return int?
+     */
+    public static function getSchedule($personId)
+    {
+        $scheduleId = null;
+                
+        // Опитваме се да вземем персоналния график на служителя
+        $hrRec = self::fetch("#personId = {$personId}");
+
+        if(isset($hrRec->scheduleId)) {
+            $scheduleId = $hrRec->scheduleId;
+        } else {
+            $state = hr_EmployeeContracts::getQuery();
+            $state->where("#personId='{$personId}' AND #state = 'active'");
+            if ($employeeContractDetails = $state->fetch()) {
+                if(isset($employeeContractDetails->departmentId)) {
+                    $pcRec = planning_Centers::fetch($employeeContractDetails->departmentId);
+                    if(isset($pcRec->scheduleId)) {
+                        $scheduleId = $pcRec->scheduleId;
+                    }
+                }
+            }
+        }
+
+        if(empty($scheduleId)){
+            $scheduleId = hr_Schedules::getDefaultScheduleId();
+        }
+
+        return $scheduleId;
     }
     
     
@@ -305,47 +365,71 @@ class planning_Hr extends core_Master
     /**
      * Връща всички оператори, избрани като ресурси в папката
      *
-     * @param int $folderId - ид на папка, NULL за всички
+     * @param int|null $folderId - ид на папка, NULL за всички
+     * @param mixed $exIds       - ид-та които да се добавят към опциите
      *
-     * @return array $options
+     * @return array $options    - опции за избор
      */
-    public static function getByFolderId($folderId)
+    public static function getByFolderId($folderId = null, $exIds = null)
     {
-        $options = array();
-        
+        $options = $codes = array();
+        $noOptions = false;
+
         // Ако папката не поддържа ресурси оператори да не се връща нищо
-        $Cover = doc_Folders::getCover($folderId);
-        $resourceTypes = $Cover->getResourceTypeArray();
-        if (!isset($resourceTypes['hr'])) {
-            
-            return $options;
+        if(isset($folderId)){
+            $Cover = doc_Folders::getCover($folderId);
+            $resourceTypes = $Cover->getResourceTypeArray();
+            if (!isset($resourceTypes['hr'])) {
+                $noOptions = true;
+            }
         }
-        
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        $classId = self::getClassId();
-        $fQuery = planning_AssetResourceFolders::getQuery();
-        $fQuery->where("#classId = {$classId} AND #folderId = {$folderId}");
-        $fQuery->show('objectId');
-        $objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
-        
-        $query = static::getQuery();
-        $query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
-        $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
-        $query->like('groupList', "|{$emplGroupId}|");
-        $query->where("#state != 'rejected' && #state != 'closed'");
-        $query->show('personId,code');
-        
-        if (countR($objectIds)) {
-            $query->in('id', $objectIds);
-        } else {
-            $query->where('1=2');
+
+        if(!$noOptions){
+            $employeeGroupId = crm_Groups::getIdFromSysId('employees');
+            $classId = self::getClassId();
+            $fQuery = planning_AssetResourceFolders::getQuery();
+            $fQuery->where("#classId = {$classId}");
+            if(isset($folderId)){
+                $fQuery->where("#folderId = {$folderId}");
+            }
+            $fQuery->show('objectId');
+            $objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
+
+            $query = static::getQuery();
+            $query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
+            $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
+            $query->like('groupList', "|{$employeeGroupId}|");
+            $query->where("#state != 'rejected' && #state != 'closed'");
+            $query->show('personId,code');
+            if (countR($objectIds)) {
+                $query->in('id', $objectIds);
+            } else {
+                $query->where('1=2');
+            }
+
+            while ($rec = $query->fetch()) {
+                $codes[$rec->personId] = $rec->code;
+                $options[$rec->personId] = crm_Persons::getVerbal($rec->personId, 'name');
+            }
         }
-        
-        while ($rec = $query->fetch()) {
-            $options[$rec->personId] = $rec->code;
+
+        // Ако има съществуващи ид-та и тях ги няма в опциите да се добавят
+        if(isset($exIds)) {
+            $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
+            foreach ($exOptions as $eId) {
+                if (!array_key_exists($eId, $options)) {
+                    $exCode = static::fetchField("#personId = {$eId}", 'code');
+                    $codes[$eId] = $exCode;
+                    $options[$eId] = crm_Persons::getVerbal($eId, 'name');
+                }
+            }
         }
-        
+
+        asort($options);
+        foreach ($options as $personId => $val){
+            $options[$personId] = "{$codes[$personId]} - {$val}";
+        }
+
         return $options;
     }
     
@@ -355,9 +439,26 @@ class planning_Hr extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център на дейност');
+        $data->listFilter->showFields = 'search,centerId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+
+        if($rec = $data->listFilter->rec){
+            if(isset($rec->centerId)){
+                $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+
+                $folderQuery = planning_AssetResourceFolders::getQuery();
+                $folderQuery->where("#classId = {$mvc->getClassId()} AND #folderId = {$folderId}");
+                $ids = arr::extractValuesFromArray($folderQuery->fetchAll(), 'objectId');
+                if(countR($ids)){
+                    $data->query->in('id', $ids);
+                } else {
+                    $data->query->where("1=2");
+                }
+            }
+        }
     }
     
     
@@ -442,25 +543,25 @@ class planning_Hr extends core_Master
      */
     public static function getPersonsCodesArr($arr, $withLinks = false)
     {
-        $res = array();
+        $res = $codes = array();
         $arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, true);
-        if (empty($arr)) {
-            
-            return $res;
-        }
-        
+        if (empty($arr)) return $res;
+
         $arr = array_keys($arr);
-        if (is_array($arr)) {
-            foreach ($arr as $id) {
-                $rec = planning_Hr::fetch("#personId = {$id}");
-                if (empty($rec)) {
-                    continue;
-                }
-                $code = ($withLinks === true) ? self::getCodeLink($id) : $rec->code;
-                $res[$id] = $code;
-            }
+        foreach ($arr as $id) {
+            $rec = planning_Hr::fetch("#personId = {$id}");
+            if (empty($rec)) continue;
+
+            $res[$id] = crm_Persons::getVerbal($id, 'name');
+            $code = ($withLinks === true) ? self::getCodeLink($id) : $rec->code;
+            $codes[$id] = $code;
         }
-        
+
+        asort($res);
+        foreach ($res as $k => $v) {
+            $res[$k] = "{$codes[$k]} - {$v}";
+        }
+
         return $res;
     }
     

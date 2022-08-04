@@ -56,28 +56,6 @@ abstract class deals_PaymentDocument extends core_Master
     
     
     /**
-     *  Подготовка на филтър формата
-     */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('dState', 'enum(all=Всички, pending=Заявка, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
-            $data->listFilter->showFields .= ',dState';
-            $data->listFilter->input();
-            $data->listFilter->setDefault('dState', 'all');
-        }
-        
-        if ($rec = $data->listFilter->rec) {
-            if ($rec->dState) {
-                if ($rec->dState != 'all') {
-                    $data->query->where("#state = '{$rec->dState}'");
-                }
-            }
-        }
-    }
-    
-    
-    /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     public function getDocumentRow_($id)
@@ -116,5 +94,19 @@ abstract class deals_PaymentDocument extends core_Master
         }
 
         return (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amountDeal, 'dealCurrencyId' => $rec->dealCurrencyId);
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($fields['-list'])){
+            $invoicesArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId, array(), true);
+            if(countR($invoicesArr)){
+                $row->invoices = implode(',', $invoicesArr);
+            }
+        }
     }
 }

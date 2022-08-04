@@ -224,17 +224,20 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return false;
     }
-    
-    
+
+
     /**
      * Връща задължителната основна мярка
      *
+     * @param stdClass|null $rec
      * @return int|NULL - ид на мярката, или NULL ако може да е всяка
      */
-    public function getDefaultUomId()
+    public function getDefaultUomId($rec = null)
     {
+        return null;
     }
-    
+
+
     /**
      * Връща материалите, необходими за производството на посоченото количество
      *
@@ -354,10 +357,10 @@ abstract class cat_ProductDriver extends core_BaseClass
         
         return $tpl;
     }
-    
-    
+
+
     /**
-     * Връща информация за какви дефолт задачи за производство могат да се създават към заданието на артикула
+     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
      * @param mixed $jobRec   - ид или запис на задание
      * @param float $quantity - к-во за произвеждане
@@ -376,13 +379,15 @@ abstract class cat_ProductDriver extends core_BaseClass
      *               o employees                      - списък (кейлист) от служители
      *               o storeId                        - склад
      *               o indTime                        - норма
+     *               o centerId                       - център на производство
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
      *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
      *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
      *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
-     *               
+     *               o description                    - забележки
+     *
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал
      *                  o packagingId    - ид на опаковка
@@ -766,10 +771,15 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param mixed $sourceClassId  - клас
      * @param mixed $sourceObjectId - ид на обект
      *
-     * @return string $serial       - генериран сериен номер
+     * @return string|null $serial  - генериран сериен номер или null ако не може
      */
     public function generateSerial($id, $sourceClassId = null, $sourceObjectId = null)
     {
+        if(isset($sourceClassId) && cls::get($sourceClassId) instanceof planning_Tasks){
+            $canStore = cat_Products::fetchField($id, 'canStore');
+            if($canStore == 'no') return;
+        }
+
         return cat_Serials::generateSerial($sourceClassId, $sourceObjectId);
     }
     
@@ -980,5 +990,36 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getQuotationEmailText($productId, $quotationId, $lang = null)
     {
         return null;
+    }
+
+
+    /**
+     * Връща информация за данните за производството на артикула
+     *
+     * @param int $productId
+     * @return array
+     *          int|null    ['name']                 - наименование
+     *          int|null    ['centerId']             - ид на център на дейност
+     *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
+     *          int|null    ['inputStores']          - ид на складове за влагане (ако е складируем)
+     *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
+     *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
+     *          int|null    ['norm']                 - норма за производство
+     *          int|null    ['normPackagingId']      - ид на опаковката/мярката на нормата
+     *          int|null    ['labelPackagingId']     - ид на опаковка за етикет
+     *          double|null ['labelQuantityInPack']  - к-во в опаковка за етикет
+     *          string|null ['labelType']            - тип на етикета
+     *          int|null    ['labelTemplate']        - шаблон за етикет
+     *          array|null  ['planningParams']       - параметри за планиране
+     *          array|null  ['actions']              - операции за планиране
+     *          string      ['isFinal']              - дали е финална
+     *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
+     *          string      ['wasteProductId']       - ид на отпадък
+     *          string      ['wasteStart']           - начално количество отпадък
+     *          string      ['wastePercent']         - процент отпадък
+     */
+    public function getProductionData($productId)
+    {
+        return array();
     }
 }

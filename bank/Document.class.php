@@ -35,7 +35,7 @@ abstract class bank_Document extends deals_PaymentDocument
      */
     public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
          plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoicesToDocument, acc_plg_DocumentSummary,doc_plg_HidePrices,
-         plg_Search, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate,deals_plg_SaveValiorOnActivation,bgerp_plg_Export';
+         plg_Search, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate,deals_plg_SaveValiorOnActivation,bgerp_plg_Export,bgerp_plg_CsvExport';
     
     
     /**
@@ -84,8 +84,14 @@ abstract class bank_Document extends deals_PaymentDocument
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'bank, ceo, purchase, sales';
-    
-    
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'reason,invoices';
+
+
     /**
      * Кой може да редактира?
      */
@@ -146,8 +152,16 @@ abstract class bank_Document extends deals_PaymentDocument
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'amountDeal,termDate,amount,valior';
-    
-    
+
+
+    /**
+     * Кои полета да могат да се експортират в CSV формат
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    public $exportableCsvFields = 'valior=Вальор,title=Документ,amount=Сума,currencyId=Валута,rate=Курс,reason=Основание,invoices=Фактури,state';
+
+
     /**
      * Добавяне на дефолтни полета
      *
@@ -509,7 +523,7 @@ abstract class bank_Document extends deals_PaymentDocument
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = $mvc->getLink($rec->id, 0);
-        
+
         if ($fields['-single']) {
             if ($rec->dealCurrencyId != $rec->currencyId) {
                 $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
@@ -526,12 +540,17 @@ abstract class bank_Document extends deals_PaymentDocument
                 $row->rate = cls::get('type_Double', array('params' => array('decimals' => 5)))->toVerbal($rate);
                 $row->rateFromCurrencyId = currency_Currencies::getCodeById($rateFromCurrencyId);
                 $row->rateToCurrencyId = currency_Currencies::getCodeById($rateToCurrencyId);
+
+                if(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+                    $row->amountDeal = doc_plg_HidePrices::getBuriedElement();
+                    $row->rate = doc_plg_HidePrices::getBuriedElement();
+                }
             } else {
                 unset($row->dealCurrencyId);
                 unset($row->amountDeal);
                 unset($row->rate);
             }
-            
+
             // Вземаме данните за нашата фирма
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {
@@ -647,6 +666,37 @@ abstract class bank_Document extends deals_PaymentDocument
         }
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'ownAccount')) {
             $requiredRoles = 'no_one';
+        }
+    }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        $fieldset->FNC('title', 'varchar', 'caption=Документ,after=valior');
+        $fieldset->FNC('invoices', 'varchar', 'caption=Фактури,after=rate');
+    }
+
+
+    /**
+     * Преди експортиране като CSV
+     */
+    protected static function on_BeforeExportCsv($mvc, &$recs)
+    {
+        $fields = $mvc->selectFields();
+        $fields['-list'] = true;
+        foreach ($recs as $id => &$rec) {
+            if($rec->state == 'rejected'){
+                unset($recs[$id]);
+                continue;
+            }
+            $rec->title = "#" . $mvc->getHandle($rec->id);
+            $invoicesArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId, array(), true);
+            $rec->invoices = implode(',', $invoicesArr);
         }
     }
 }

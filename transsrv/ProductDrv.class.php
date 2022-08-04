@@ -2,14 +2,14 @@
 
 
 /**
- * Драйвър за продукт на ЕП
+ * Драйвър за артикул "транспортна услуга"
  *
  *
  * @category  bgerp
  * @package   transsrv
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -73,15 +73,15 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $form->FLD('maxHeight', 'cat_type_Uom(unit=m,min=0.1,max=10)', 'caption=Информация за товара->Макс. височина');
         $form->FLD('dangerous', 'enum( no = Безопасен товар,
                                        hl = Извънгабаритен товар,
-                                        1 = Клас 1 - Взривни вещества и изделия,
-                                        2 = Клас 2 - Газове,
-                                        3 = Клас 3 - Запалими течности,
-                                        4 = Клас 4 - Други запалими вещества,
-                                        5 = Клас 5 - Окисляващи вещества и органични пероксиди,
-                                        6 = Клас 6 - Отровни и заразни вещества,
-                                        7 = Клас 7 - Радиоактивни материали,
-                                        8 = Клас 8 - Корозионни вещества,
-                                        9 = Клас 9 - Други опасни вещества)', 'caption=Информация за товара->Опасност');
+                                        1 = |Клас|* 1 - |Взривни вещества и изделия|*,
+                                        2 = |Клас|* 2 - |Газове|*,
+                                        3 = |Клас|* 3 - |Запалими течности|*,
+                                        4 = |Клас|* 4 - |Други запалими вещества|*,
+                                        5 = |Клас|* 5 - |Окисляващи вещества и органични пероксиди|*,
+                                        6 = |Клас|* 6 - |Отровни и заразни вещества|*,
+                                        7 = |Клас|* 7 - |Радиоактивни материали|*,
+                                        8 = |Клас|* 8 - |Корозионни вещества|*,
+                                        9 = |Клас|* 9 - |Други опасни вещества|*)', 'caption=Информация за товара->Опасност');
         $form->FLD('load', 'varchar', 'caption=Информация за товара->Описание');
         
         // Обща информация
@@ -271,14 +271,15 @@ class transsrv_ProductDrv extends cat_ProductDriver
         
         return $hash;
     }
-    
-    
+
+
     /**
      * Връща задължителната основна мярка
      *
+     * @param stdClass|null $rec
      * @return int|NULL - ид на мярката, или NULL ако може да е всяка
      */
-    public function getDefaultUomId()
+    public function getDefaultUomId($rec = null)
     {
         return cat_UoM::fetchBySinonim($this->uom)->id;
     }
@@ -302,8 +303,27 @@ class transsrv_ProductDrv extends cat_ProductDriver
     {
         return haveRole('powerUser', $userId) || (transsrv_Setup::get('AVIABLE_FOR_PARTNERS') == 'yes' && haveRole('partner', $userId));
     }
-    
-    
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param $row
+     * @param $rec
+     * @param $fields
+     * @return void
+     */
+    public static function on_AfterRecToVerbal(cat_ProductDriver $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+    {
+        $CountryType = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)');
+        $row->fromCountry = $CountryType->toVerbal($rec->fromCountry);
+        $row->toCountry = $CountryType->toVerbal($rec->toCountry);
+        $row->transUnit = type_Varchar::escape(transliterate(tr($rec->transUnit)));
+    }
+
+
     /**
      * Рендиране на описанието на драйвера
      *

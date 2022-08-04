@@ -1484,7 +1484,7 @@ td.portal-date {
 
 .detail-info.portal table.listTable {
 	font-size:1em;
-	.frontToolip img{
+	.frontTooltip img{
 		height: 14px;
 		margin-top: -2px;
 	}
@@ -1555,7 +1555,7 @@ a.tUnsighted {
 
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td{
-	background-color: #fed7d6;
+	background-color: #ff8;
 }
 /*край на стилове при тредове*/
 
@@ -2434,9 +2434,14 @@ font-size: 0.85em;
 font-size: 15px;
 }
 
-.listTable td .endTooltip img{
+.listTable td .endTooltip img, .listTable td .frontTooltip img{
 width: 14px !important;
 height: 14px !important;
+}
+
+.sale-summary td .endTooltip img, .sale-summary td .frontTooltip img{
+	width: 16px !important;
+	height: 16px !important;
 }
 
 .secondMeasure .endTooltip, .listTable td .secondMeasure .endTooltip {
@@ -2757,6 +2762,13 @@ white-space: nowrap;
 
 .block-instock .quiet {
 	color:white !important;
+}
+
+.shipmentErrorDateBlock {
+	border-radius: 3px;
+	border: dotted 1px red;
+	display: inline-block;
+	padding: 1px 3px 1px 3px;
 }
 
 .block-readiness {
@@ -7709,7 +7721,6 @@ body.narrow {
 		color: #333 !important;
 		font-family: Verdana !important;
 	}
-
 }
 
 .narrow .folder-cover .groupTitle {
@@ -8293,7 +8304,7 @@ body.narrow {
     left: auto;
     margin: 0;
 }
-.endTooltip, .frontToolip {
+.endTooltip, .frontTooltip {
 	img {
 		width: 16px;
 		height: 16px;
@@ -8309,7 +8320,7 @@ body.narrow {
 	border-bottom: 1px dashed;
 }
 
-.frontToolip {
+.frontTooltip {
 	display: inline-block;
 }
 /* край на стилове за външната част при потребител контрактор */
@@ -8365,3 +8376,86 @@ body.narrow {
 	background-color:rgb(255, 107, 75, 0.8);
 }
 
+.rack_ZoneDetails .listTable {
+	width: 100%;
+}
+
+.workingTimeBlock table.typeTable {
+	width: 100%;
+}
+
+.selectTaskOptions {
+	width:100%;
+}
+.selectTaskOptions td {
+	padding:4px;
+}
+.selectTaskOptions tr.selectTaskFromJobRow {
+	background-color: #eee;
+	border:1px solid #bbb;
+}
+.selectTaskOptions tr.newTaskBtn {
+	display:none;
+}
+.selectTaskOptions tr.selectTaskFromJobRow td {
+	padding-left:8px;
+	padding-top:5px;
+	padding-bottom:5px;
+	font-weight:bold;
+}
+
+.selectTaskOptions tr.createAllTasksForJob {
+	font-style:italic;
+}
+
+.confidential-field {
+	font-size:0.7em;
+	font-weight:normal;
+	color:#555;
+	border:1px solid #cdcdcd;
+	padding:3px;
+}
+
+table.bomProductionStepTable td{
+	border:0px !important;
+}
+
+.ui-droppable {
+	border:2px solid #ccc;
+}
+
+.ui-draggable-dragging   {
+	background-color:white;
+    z-index:100000 !important;
+}
+
+.ui-droppable-hover-top {
+	border-top:2px solid red !important;
+}
+
+.ui-droppable-hover-bottom {
+	border-bottom:2px solid red !important;
+}
+
+.loadingModal {
+	position:   fixed;
+	z-index:    1000;
+	top:        0;
+	left:       0;
+	height:     100%;
+	width:      100%;
+	background: rgba( 255, 255, 255, .8 )
+	url('../img/loading.gif')
+	50% 50%
+	no-repeat;
+}
+
+.stepProductSingleGroup {
+	margin-top:5px;
+	margin-bottom:5px;
+	text-decoration: underline;
+}
+
+.stepParamTable td {
+	text-indent: 15px;
+}

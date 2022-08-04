@@ -508,11 +508,12 @@ class core_String
             $showEndFrom = round($showEndFrom / 1.05);
         }
         if (mb_strlen($str) > $maxLen) {
+            $dotsLen = mb_strlen($dots);
             if ($maxLen >= $showEndFrom) {
-                $remain = (int) ($maxLen - 3) / 2;
+                $remain = (int) (($maxLen - $dotsLen) / 2);
                 $str = mb_substr($str, 0, $remain) . $dots . mb_substr($str, -$remain);
             } else {
-                $remain = (int) ($maxLen - 3);
+                $remain = (int) ($maxLen - $dotsLen);
                 $str = mb_substr($str, 0, $remain) . $dots;
             }
         }
@@ -1247,8 +1248,14 @@ class core_String
         }
         
         $plural = $word[$cnt == 1 ? 0 : 1];
+
+
         $res = ($onlyWord === false) ? "{$cnt} {$plural}" : $plural;
-        
+
+        // Оправяне в някои случаи
+        $res = str_replace('метъра', 'метра', $res);
+        $res = str_replace('литъра', 'литра', $res);
+
         return $res;
     }
     

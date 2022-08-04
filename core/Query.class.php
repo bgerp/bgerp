@@ -670,7 +670,7 @@ class core_Query extends core_FieldSet
             $wh = $this->getWhereAndHaving();
             $query = 'SELECT ';
             
-            if (($this->mvc->highPriority && $this->limit == 1) || $this->highPriority) {
+            if ((isset($this->mvc->highPriority) && $this->mvc->highPriority && $this->limit == 1) || $this->highPriority) {
                 $query .= ' HIGH_PRIORITY ';
             }
             

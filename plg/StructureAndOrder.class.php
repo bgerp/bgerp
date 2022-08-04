@@ -34,7 +34,7 @@ class plg_StructureAndOrder extends core_Plugin
         $mvc->FNC('saoPosition', 'enum(next=След,prev=Преди,subLevel=Под ниво)', 'caption=Структура и подредба->Положение,input=none,column=none,order=100000,maxRadio=3,columns=3');
         $mvc->FNC('saoRelative', 'int', 'caption=Структура и подредба->Спрямо,input=none,column=none,order=100000,class=w100');
         $mvc->FLD('saoParentId', 'int', 'caption=Структура и подредба->Родител,input=none,column=none,order=100000');
-        $mvc->FLD('saoOrder', 'double', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
+        $mvc->FLD('saoOrder', 'double(smartRound)', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
         $mvc->FLD('saoLevel', 'int', 'caption=Структура и подредба->Ниво,input=none,column=none,order=100000');
         
         $mvc->listItemsPerPage = max($mvc->listItemsPerPage, 1000);
@@ -324,7 +324,7 @@ class plg_StructureAndOrder extends core_Plugin
                 if ($f = $mvc->saoTitleField) {
                     $row->{$f} = $mvc->saoGetTitle($rec, $row->{$f});
                 }
-                $ddTools = $row->_rowTools;
+
                 if ($lastRec && $rec->saoLevel == $lastRec->saoLevel && $mvc->haveRightFor('edit', $rec)) {
                     $row->_rowTools->addLink(
                         'Нагоре',
@@ -334,7 +334,7 @@ class plg_StructureAndOrder extends core_Plugin
                     $lastRow->_rowTools->addLink(
                         'Надолу',
                         array($mvc, 'SaoMove', $lastRec->id, 'direction' => 'down', 'rId' => $rec->id, 'ret_url' => true),
-                        "ef_icon=img/16/arrow_down.png,title=Преместване на елемента нагоре,id=saoup{$rec->id}"
+                        "ef_icon=img/16/arrow_down.png,title=Преместване на елемента нагоре,id=saodown{$rec->id}"
                     );
                 }
                 $lastRec = $rec;
@@ -439,25 +439,27 @@ class plg_StructureAndOrder extends core_Plugin
         
         return $orderedItems;
     }
-    
-    
+
+
     /**
      * Сортира масив с елементи
      */
-    private static function sortItems(&$items)
+    public static function sortItems(&$items, $field = 'saoOrder')
     {
-        uasort($items, function ($a, $b) {
-            if ($a->saoOrder == $b->saoOrder) {
-                
+        uasort($items, function ($a, $b) use ($field){
+
+            if ($a->{$field} == $b->{$field}) {
+
                 return 0;
             }
-            
-            if (!$a->saoOrder || $a->saoOrder > $b->saoOrder) {
-                
+
+            if (!$a->{$field} || $a->{$field} > $b->{$field}) {
+
                 return 1;
             }
-            if (!$b->saoOrder || $a->saoOrder < $b->saoOrder) {
-                
+
+            if (!$b->{$field} || $a->{$field} < $b->{$field}) {
+
                 return -1;
             }
         });

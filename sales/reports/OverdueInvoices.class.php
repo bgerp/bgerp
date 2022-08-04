@@ -19,7 +19,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,salesMaster,acc';
+    public $canSelectDriver = 'ceo,sales,acc';
     
     
     /**
@@ -49,7 +49,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=title,mandatory,single=none');
+        $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=title,single=none');
         $fieldset->FLD('additional', 'table(columns=limit1|limit2,captions=Праг 1|Праг 2,widths=3em|3em,btnOff,unit=дни просрочие)', 'caption=Периоди||Additional,autohide,advanced,after=checkDate,single=none');
         $fieldset->FLD('typeGrupping', 'enum(contragent=Контрагент,overduePeriod=Период на просрочие)', 'caption=Групиране,maxRadio=2,columns=2,after=additional');
         $fieldset->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Филтри->Търговец,placeholder=Всички,single=none,after=typeGrupping,input');
@@ -78,8 +78,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
         
-        $checkDate = dt::today();
-        $form->setDefault('checkDate', "{$checkDate}");
+        //$checkDate = dt::today();
+        //$form->setDefault('checkDate', "{$checkDate}");
         $form->setDefault('typeGrupping', 'contragent');
         
         $salesQuery = sales_Sales::getQuery();
@@ -100,6 +100,23 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $form->setSuggestions('contragent', $suggestions);
     }
+
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param core_Form $form
+     * @param stdClass $data
+     */
+    protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
+    {
+
+        $rec = $form->rec;
+        if ($form->isSubmitted()) {
+
+        }
+    }
     
     
     /**
@@ -112,7 +129,14 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-       $this->groupByField = $rec->typeGrupping;
+       if (!$rec->checkDate){
+           $checkDate = dt::now();
+       }else{
+           $checkDate = $rec->checkDate. ' 23:59:59';
+       }
+
+
+        $this->groupByField = $rec->typeGrupping;
         $recs = array();
         $isRec = array();
         
@@ -141,7 +165,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
        
         $sQuery->where(array(
             "#dueDate IS NOT NULL AND #dueDate < '[#1#]'",
-            $rec->checkDate . ' 23:59:59'
+            $checkDate
         ));
         
         // Фактури ПРОДАЖБИ
@@ -229,7 +253,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 if ($firstDocState == 'closed')continue;
                 
                 // масив от фактури в тази нишка към избраната дата
-                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
+                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
                 
                 if (is_array($invoicePayments)) {
                     
@@ -262,8 +286,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         list($limit2) = $limits->limit2;
                         
                         if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 &&
-                            $iRec->dueDate < $rec->checkDate) {
-                            $overdueDays = dt::daysBetween($rec->checkDate, $iRec->dueDate);
+                            $iRec->dueDate < $checkDate) {
+                            $overdueDays = dt::daysBetween($checkDate, $iRec->dueDate);
                             
                             if ($overdueDays <= $limit1) {
                                 $overduePeriod = 'до '.$limit1;
@@ -581,13 +605,19 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        if (!$data->rec->checkDate){
+            $checkDate = dt::now();
+        }else{
+            $checkDate = $data->rec->checkDate;
+        }
+
         $Date = cls::get('type_Date');
         $fieldTpl = new core_ET(
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN checkDate--><div>|Към дата|*: <b>[#checkDate#]</b></div><!--ET_END to-->
+                                        <!--ET_BEGIN checkDate--><div>|Към дата|*: <b>[#checkDate#]</b></div><!--ET_END checkDate-->
                                         <!--ET_BEGIN contragent--><div>|Контрагент|*: <b>[#contragent#]</b></div><!--ET_END to-->
                                         <!--ET_BEGIN dealer--><div>|Търговец|*: <b>[#dealer#]</b></div><!--ET_END to-->
                                         <!--ET_BEGIN countryGroup--><div>|Група държави|*: <b>[#countryGroup#]</b></div><!--ET_END to-->
@@ -623,9 +653,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $fieldTpl->append('Всички', 'countryGroup');
         }
         
-        if (isset($data->rec->checkDate)) {
-            $fieldTpl->append(dt::mysql2verbal($data->rec->checkDate, $mask = 'd.m.Y'), 'checkDate');
-        }
+
+        $fieldTpl->append($Date->toVerbal($checkDate), 'checkDate');
+
         
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
         

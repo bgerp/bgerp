@@ -170,6 +170,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
+        core_Lg::push($data->masterData->rec->tplLang);
         $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
         if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
@@ -179,6 +180,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             }
         }
+        core_Lg::pop();
     }
     
     

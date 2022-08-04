@@ -41,24 +41,27 @@ class cat_products_Usage extends core_Manager
         $data->jobData->Jobs = cls::get('planning_Jobs');
         $this->prepareJobs($data->jobData);
 
-        $data->taskData = clone $data;
-        $data->taskData->_useMasterField = 'productId';
-        $this->prepareDocuments('planning_Tasks', 'planning_ProductionTaskProducts', $data->taskData);
+
+        if(haveRole('ceo,planning,job')){
+            $data->taskData = clone $data;
+            $data->taskData->_useMasterField = 'productId';
+            $this->prepareDocuments('planning_Tasks', 'planning_ProductionTaskProducts', $data->taskData);
+        }
 
         // Промяна на таба взависимост дали артикула е стандартен или не
         if ($data->isPublic === true) {
-            if ((($masterRec->state == 'template') || ($data->jobData->notManifacturable === true)) && !countR($data->jobData->rows)) {
-                
+            if ((($masterRec->state == 'template') || ($data->jobData->notManifacturable === true)) && !countR($data->jobData->rows) && !countR($data->taskData->rows)) {
+
                 return;
             }
             if (!haveRole('ceo,planning,job')) {
-                
+
                 return;
             }
             $data->Tab = 'top';
             $data->TabCaption =  countR($data->taskData->rows) ? 'Документи' : 'Задания';
             if (!$prepareTab || $prepareTab != 'Usage') {
-                
+
                 return;
             }
         } else {
@@ -70,7 +73,7 @@ class cat_products_Usage extends core_Manager
                 return;
             }
         }
-        
+
         // Ако артикула е нестандартен тогава се показват и документите, в които се използват
         if ($data->isPublic === false) {
             $data->saleData = clone $data;
@@ -220,11 +223,8 @@ class cat_products_Usage extends core_Manager
      */
     private function renderJobs($data)
     {
-        if ($data->hide === true) {
-            
-            return;
-        }
-        
+        if ($data->hide === true) return;
+
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $title = tr('Задания за производство');
         $tpl->append($title, 'title');
@@ -270,6 +270,11 @@ class cat_products_Usage extends core_Manager
      */
     private function prepareJobs(&$data)
     {
+        if($data->masterData->rec->innerClass == planning_interface_StepProductDriver::getClassId()){
+            $data->hide = true;
+            return;
+        }
+
         $masterRec = $data->masterData->rec;
         $data->rows = $data->recs = array();
         
@@ -312,32 +317,13 @@ class cat_products_Usage extends core_Manager
         
         // Проверяваме можем ли да добавяме нови задания
         if ($data->Jobs->haveRightFor('add', (object) array('productId' => $data->masterId))) {
-            $defaultFolderId = $this->getJobDefaultFolder($data->masterId);
-            $data->addUrl = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'defaultFolderId' => $defaultFolderId, 'ret_url' => true);
-        }
-    }
-
-
-    /**
-     * Коя е дефолтната папка за ново задание
-     *
-     * @param int $productId
-     * @return int|null
-     */
-    private function getJobDefaultFolder($productId)
-    {
-        // Дефолтната папка е последната в която е създадено задание от потребителя
-        $query = planning_Jobs::getQuery();
-        $query->where("#productId = '{$productId}' AND #department IS NOT NULL");
-        $query->orderBy('createdOn', 'DESC');
-
-        while($rec = $query->fetch()){
-            if(doc_Folders::haveRightToFolder($rec->folderId)){
-
-                return $rec->folderId;
+            $data->addUrl = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'ret_url' => true);
+            if($Driver = cat_Products::getDriver($data->masterId)) {
+                $productionData = $Driver->getProductionData($data->masterId);
+                if(isset($productionData['centerId'])){
+                    $data->addUrl['folderId'] = planning_Centers::fetchField($productionData['centerId'], 'folderId');
+                }
             }
         }
-
-        return null;
     }
 }

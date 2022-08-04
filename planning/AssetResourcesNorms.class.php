@@ -135,7 +135,9 @@ class planning_AssetResourcesNorms extends core_Manager
                 $row->ROW_ATTR['class'] = 'zebra1';
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->removeBtn('*');
-                $row->indTime = ht::createHint($row->indTime, 'Нормата идва от вида на оборудването', 'notice', false);
+
+                $row->indTime = "<span style='color:blue'>{$row->indTime}</span>";
+                $row->indTime = ht::createHint($row->indTime, 'Нормата е зададена във вида на оборудването', 'notice', false);
                 
                 unset($row->state);
                 if (isset($addUrl)) {
@@ -224,7 +226,7 @@ class planning_AssetResourcesNorms extends core_Manager
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
         if (!isset($rec->limit)) {
-            $row->limit = "<i class='quiet'>" . tr('няма||no') . '</i>';
+            $row->limit = "<i class='quiet'>" . tr('Няма||No') . '</i>';
         }
 
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
@@ -277,45 +279,45 @@ class planning_AssetResourcesNorms extends core_Manager
     /**
      * Връща опциите за избор на действия за оборудването
      *
-     * @param mixed      $assets - списък с оборудвания
-     * @param array|NULL $notIn  - ид-та на артикули, които да се игнорират
+     * @param int      $assetId  - списък с оборудвания
+     * @param array    $notIn    - ид-та на артикули, които да се игнорират
+     * @param boolean  $onlyIds  - дали да са само ид-та
      *
      * @return array $options   - имена на действия, групирани по оборудвания
      */
-    public static function getNormOptions($assets, $notIn = null)
+    public static function getNormOptions($assetId, $notIn = array(), $onlyIds = false)
     {
         $options = array();
-        
-        // Извличат се нормите от групата
-        if (!$groupId = planning_AssetResources::getGroupId($assets)) {
-            
-            return $options;
-        }
+
+        $groupId = planning_AssetResources::fetchField($assetId, 'groupId');
         $groupAssets = self::fetchNormRec('planning_AssetGroups', $groupId, null, $notIn);
         $notIn += arr::make(array_keys($groupAssets), true);
         
         $arr = array();
         if (countR($groupAssets)) {
             $group = planning_AssetGroups::getVerbal($groupId, 'name');
-            $options = array('g' => (object) array('group' => true, 'title' => $group));
+            if(!$onlyIds){
+                $options = array('g' => (object) array('group' => true, 'title' => $group));
+            }
             foreach ($groupAssets as $productId => $rec) {
-                $arr[$rec->productId] = cat_Products::getTitleById($productId, false);
+                $title = ($onlyIds) ? $productId : cat_Products::getTitleById($productId, false);
+                $arr[$rec->productId] = $title;
             }
             $options += $arr;
         }
-        
-        // За всяко оборудване, добавят се неговите специфични действия, които ги няма в групата му
-        foreach ($assets as $assetId) {
-            $assetArr = array();
-            $assetNorms = self::fetchNormRec('planning_AssetResources', $assetId, null, $notIn);
-            foreach ($assetNorms as $productId => $rec1) {
-                $assetArr[$rec1->productId] = cat_Products::getTitleById($productId, false);
-            }
-            
-            if (countR($assetArr)) {
+
+        $assetArr = array();
+        $assetNorms = self::fetchNormRec('planning_AssetResources', $assetId, null, $notIn);
+        foreach ($assetNorms as $productId => $rec1) {
+            $title = ($onlyIds) ? $productId : cat_Products::getTitleById($productId, false);
+            $assetArr[$rec1->productId] = $title;
+        }
+        if (countR($assetArr)) {
+            if(!$onlyIds){
                 $assetName = planning_AssetResources::getTitleById($assetId, false);
-                $options += array("a{$assetId}" => (object) array('group' => true, 'title' => $assetName)) + $assetArr;
+                $options += array("a{$assetId}" => (object) array('group' => true, 'title' => $assetName));
             }
+            $options += $assetArr;
         }
         
         // Връщане на готовите опции
@@ -342,5 +344,50 @@ class planning_AssetResourcesNorms extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+    }
+
+
+    /**
+     * Връща зададените норми в центъра на дейност
+     *
+     * @param int $centerId
+     * @param null|string $exIds
+     * @return array $options
+     */
+    public static function getAllNormOptions($centerId, $exIds = null)
+    {
+        $options = array();
+        $folderId = planning_Centers::fetchField($centerId, 'folderId');
+        $assetOptions = planning_AssetResources::getByFolderId($folderId);
+        $assetIds = array_keys($assetOptions);
+        if(!countR($assetIds)) return $options;
+
+        // Всички нормиз ададени към конкретни оборудвания
+        $assetClassId = planning_AssetResources::getClassId();
+        $query = static::getQuery();
+        $query->where("#classId = {$assetClassId} AND #objectId IN (" . implode(',', $assetIds). ")");
+        $query->show('productId');
+
+        if(countR($assetIds)){
+
+            // Добавят се и всички норми зададени към групите на оборудванията
+            $groupClassId = planning_AssetGroups::getClassId();
+            $gQuery = planning_AssetResources::getQuery();
+            $gQuery->in('id', $assetIds);
+            $gQuery->show('groupId');
+            $groupIds = arr::extractValuesFromArray($gQuery->fetchAll(), 'groupId');
+            $query->orWhere("#classId = {$groupClassId} AND #objectId IN (" . implode(',', $groupIds). ")");
+        }
+        $productIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+        if(isset($exIds)){
+            $productIds += keylist::toArray($exIds);
+        }
+
+        foreach ($productIds as $productId){
+            $options[$productId] = cat_Products::getTitleById($productId, false);
+        }
+
+        return $options;
+
     }
 }

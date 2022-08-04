@@ -20,6 +20,19 @@ defIfNot('STORE_ALLOW_NEGATIVE_SHIPMENT', 'yes');
 
 
 /**
+ * Подготовка преди експедиция
+ */
+defIfNot('STORE_PREPARATION_BEFORE_SHIPMENT', '');
+
+
+/**
+ * Иьчисляване на най-ранната наличност на ЕН-та в рамките на
+ */
+defIfNot('STORE_EARLIEST_SHIPMENT_READY_IN', 14);
+
+
+
+/**
  * class store_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -29,8 +42,8 @@ defIfNot('STORE_ALLOW_NEGATIVE_SHIPMENT', 'yes');
  * @category  bgerp
  * @package   store
  *
- * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -93,9 +106,8 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
         'store_StockPlanning',
-        'migrate::migratePendings',
         'migrate::reconto3231v1',
-        'migrate::updateShipmentOrders'
+        'migrate::updateProductsLastUsedOn'
     );
     
     
@@ -125,6 +137,8 @@ class store_Setup extends core_ProtoSetup
         'STORE_ACC_ACCOUNTS' => array('acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)', 'caption=Складова синхронизация със счетоводството->Сметки'),
         'STORE_TARIFF_NUMBER_LENGTH' => array('int', 'caption=Групиране на тарифните номера по част от него->Първите,unit=цифри'),
         'STORE_ALLOW_NEGATIVE_SHIPMENT' => array('enum(no=Забранено, yes=Разрешено)', 'caption=Изписване на минус от склад->Избор'),
+        'STORE_PREPARATION_BEFORE_SHIPMENT' => array('time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди експедиция->Време'),
+        'STORE_EARLIEST_SHIPMENT_READY_IN' => array('int(min=0)', 'caption=Изчисляване на най-ранната наличност на артикулите в ЕН-та за следващите->Дни'),
     );
     
     
@@ -134,7 +148,7 @@ class store_Setup extends core_ProtoSetup
     public $defClasses = 'store_reports_Documents,store_reports_ChangeQuantity,store_reports_ProductAvailableQuantity,
                           store_iface_ImportShippedProducts,store_reports_DeficitInStores,store_reports_UnfulfilledQuantities,
                           store_reports_ArticlesDepended,store_reports_ProductsInStock,store_reports_UnrealisticPricesAndWeights,
-                          store_reports_ProductAvailableQuantity1';
+                          store_reports_ProductAvailableQuantity1,store_reports_JobsHorizons';
     
     
     /**
@@ -159,6 +173,16 @@ class store_Setup extends core_ProtoSetup
             'offset' => 0,
             'timeLimit' => 100
         ),
+        array(
+            'systemId' => 'Recalc Shipment Document Dates',
+            'description' => 'Кеширане на изчисленията на датите в складовите документи',
+            'controller' => 'store_Setup',
+            'action' => 'RecalcShipmentDates',
+            'period' => 60,
+            'offset' => 10,
+            'timeLimit' => 300,
+        ),
+
     );
     
     
@@ -218,70 +242,6 @@ class store_Setup extends core_ProtoSetup
         } catch (core_exception_Expect $e) {
             reportException($e);
         }
-    }
-
-
-    /**
-     * Първоначално наливане на запазените количества
-     */
-    public function migratePendings()
-    {
-        // Ако не е имало складови движения, не се прави нищо
-        if(!store_Products::count()) return;
-
-        $Stocks = cls::get('store_StockPlanning');
-        $Stocks->truncate();
-
-        // Кои документи запазват на заявка
-        $stockableClasses = array('store_ShipmentOrders',
-                                  'store_Receipts',
-                                  'store_Transfers',
-                                  'store_ConsignmentProtocols',
-                                  'planning_ConsumptionNotes',
-                                  'planning_DirectProductionNote',
-                                  'pos_Receipts');
-
-        // Записват се запазените количества
-        $stocksArr = array();
-        foreach ($stockableClasses as $cls){
-            $Source = cls::get($cls);
-            $Source->setupMvc();
-
-            $query = $Source->getQuery();
-            $query->in("state", $Source->updatePlannedStockOnChangeStates);
-            $count = $query->count();
-            core_App::setTimeLimit(0.6 * $count, false,300);
-
-            while($rec = $query->fetch()){
-                $arr = $Source->getPlannedStocks($rec);
-                store_StockPlanning::addStaticValuesToStockArr($arr, $Source, $rec->id);
-                $stocksArr = array_merge($stocksArr, $arr);
-            }
-        }
-
-        // Записване на запазеното на индивидуланите количества
-        $Stocks->saveArray($stocksArr);
-
-        // Преизчисляване на запазеното по сделки и запазени.
-        $dealsArr = array();
-        $stockableOriginClasses = array('sales_Sales', 'purchase_Purchases', 'planning_Jobs');
-        foreach ($stockableOriginClasses as $cls) {
-            $Source = cls::get($cls);
-            $Source->setupMvc();
-
-            $query = $Source->getQuery();
-            $query->in("state", $Source->updatePlannedStockOnChangeStates);
-            $count = $query->count();
-            core_App::setTimeLimit(0.7 * $count, false,300);
-
-            while ($rec = $query->fetch()) {
-                $arr = $Source->getPlannedStocks($rec);
-                store_StockPlanning::addStaticValuesToStockArr($arr, $Source, $rec->id);
-                $dealsArr = array_merge($dealsArr, $arr);
-            }
-        }
-
-        $Stocks->saveArray($dealsArr);
     }
 
 
@@ -349,12 +309,54 @@ class store_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция за обновяване на ЕН-та
+     * Първоначално обновяване на датата на последна промяна
      */
-    public function updateShipmentOrders()
+    function updateProductsLastUsedOn()
     {
-        foreach (array('store_ShipmentOrders') as $mvc){
-            deals_InvoicesToDocuments::migrateContainerIds($mvc);
+        $Products = cls::get('store_Products');
+        $Products->setupMvc();
+
+        $lastUpdatedColName = str::phpToMysqlName('lastUpdated');
+        $query = "UPDATE {$Products->dbTableName} SET {$lastUpdatedColName} = NOW() WHERE {$lastUpdatedColName} IS NULL";
+        $Products->db->query($query);
+    }
+
+
+    /**
+     * Обновяване по разписание
+     */
+    function cron_RecalcShipmentDates()
+    {
+        // Кои са складовите документи в системата
+        $storableDocuments = core_Classes::getOptionsByInterface('store_iface_DocumentIntf');
+        $transportableIntf = core_Classes::getOptionsByInterface('trans_TransportableIntf');
+        $classesToRecalc = array_intersect_key($storableDocuments, $transportableIntf);
+
+        foreach ($classesToRecalc as $class){
+            $toSave = array();
+            $Class = cls::get($class);
+
+            // Ако има полета за дати в тях
+            $dateData = $Class->getShipmentDateFields();
+            if(!countR($dateData)) return;
+
+            $updateFields = array('id');
+            array_walk($dateData, function($a) use(&$updateFields) {if(isset($a['autoCalcFieldName'])) {$updateFields[$a['autoCalcFieldName']] = $a['autoCalcFieldName'];}});
+
+            // Обикалят се всички заявки и чакащи и се преизчислява това им поле
+            $query = $Class->getQuery();
+            $query->where("#state = 'pending' || #state = 'draft'");
+            while($rec = $query->fetch()){
+                if($Class->recalcShipmentDateFields($rec, false)){
+                    $toSave[$rec->id] = $rec;
+                }
+            }
+
+            // Обновяване на всички записи
+            if(countR($toSave)){
+                $Class->saveArray($toSave, $updateFields);
+            }
         }
     }
+
 }

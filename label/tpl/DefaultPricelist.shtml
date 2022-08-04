@@ -5,8 +5,10 @@
         position: relative;
         width: 62mm;
         border: 1px transparent;
+        margin: -2mm 2mm 2mm -2mm;
     }
     .label-holder table {
+
         height: 30mm;
         width: 62mm;
         border-collapse: collapse;
@@ -23,17 +25,28 @@
         font-weight: bold;
     }
 </style>
+
 <div class="label-holder">
     <table cellpadding="0">
         <tr>
-            <td class="no-border-left big-text" >
-                <div style='padding-top: 1px; height:8mm; min-height:8mm;' align="center"> [#NAME#] - [#CODE#]</div>
+            <td class="top-descr no-border-left no-border-top" >
+                <b> <div class='left'>код: <span class="code">[#CODE#]</span></div></b>
+            </td>
+            <td   class="top-descr no-border-left no-border-top" >
+                 <div class='right'>мярка: <span class="code"><b>[#MEASURE_ID#]</b></span> [#QUANTITY#]</div>
             </td>
         </tr>
         <tr>
-            <td valign="middle" align="center" class="no-border-left bold" style='font-size: 17px;'>
-                [#CATALOG_PRICE#] [#CATALOG_CURRENCY#]
-
+            <td colspan=2  valign="middle" align="center" class="top-descr no-border-left bold" style='font-size: 15px;'>
+                [#NAME#]
+            </td>
+        </tr>
+        <tr>
+            <td   class="top-descr no-border-left  >
+                <div class='left'><span class="date"><b>[#DATE#]</b></span></div>
+            </td>
+            <td valign="middle" align="center" class="top-descr  no-border-left "'>
+[#PRICE_CAPTION#]: <span class="code"><b>[#CATALOG_PRICE#] </b></span>[#CATALOG_CURRENCY#]
             </td>
         </tr>
     </table>

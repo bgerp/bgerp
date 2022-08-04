@@ -105,11 +105,11 @@
                                         [#paymentBlock#]
                                         
                                         <div class='custom-bg-block'><b>Плащане</b></div>
-                                        <!--ET_BEGIN paymentMethodId-->
+                                        <!--ET_BEGIN paymentType-->
 					                    <div class='cellRow'>
-					                        <span class='quiet'>Плащане: </span>[#paymentMethodId#]
+					                        [#paymentType#]
 					                    </div>
-					                    <!--ET_END paymentMethodId-->
+					                    <!--ET_END paymentType-->
 					                    <!--ET_BEGIN downpayment-->
 					                    <div class='cellRow'>
 					                        <span class='quiet'>Авансово:</span> [#downpayment#]

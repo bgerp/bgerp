@@ -1,5 +1,8 @@
 <div class="scrolling-holder">
     <div class="sale-summary">
+        <!--ET_BEGIN originProductId-->
+        <div style="text-align:left;margin-bottom:5px">|За|*: [#originProductId#]</div>
+        <!--ET_END originProductId-->
        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
           <tr>
              <td class = 'sum-th'>
@@ -21,32 +24,65 @@
           </tr>
           <tr>
               <td class = 'nowrap'>[#plannedQuantity#]</td>
-              <td class = 'nowrap'>[#totalQuantity#] </td>
+              <td class = 'nowrap'>[#totalQuantity#]</td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td class = 'nowrap'>[#producedQuantity#]</td>
               
               <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
-                  <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
                   <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
                   <!--ET_BEGIN batch-->
                   <span style='font-weight:normal'>|Партида|*</span>: [#batch#]<br>
                   <!--ET_END batch-->
-                  <!--ET_BEGIN inputInTask-->
-                  <span style='font-weight:normal'>|Влагане в|*</span>: [#inputInTask#]<br>
-                  <!--ET_END inputInTask-->
                   <!--ET_BEGIN storeId-->
-                  <span style='font-weight:normal'>|От склад|*</span>: [#storeId#]<br>
+                  <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->
-                  <!--ET_BEGIN fixedAssets-->
-                  <span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<br>
-                  <!--ET_END fixedAssets-->
-                  
+                  <!--ET_BEGIN wasteProductId-->
+                  <span style='font-weight:normal'>|Отпадък|*</span>: [#wasteProductId#]<br>
+                  <!--ET_END wasteProductId-->
                   <!--ET_BEGIN employees-->
                   <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
                   <!--ET_END employees-->
+                  <!--ET_BEGIN followBatchesForFinalProduct-->
+                  <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
+                  <!--ET_END followBatchesForFinalProduct-->
+                  <!--ET_BEGIN dependantProgress-->
+                  <span style='font-weight:normal'>|Предх.Оп.|*</span>: [#dependantProgress#]<br>
+                  <!--ET_END dependantProgress-->
     			</td>
            </tr>
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
        </table>
+    </div>
+</div>
+
+<div class="scrolling-holder">
+    <div class='sale-summary'>
+        <table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:2px'>
+            <tr>
+                <td class='sum-th'><b>|Планирано начало|*</b></td>
+                <td class='sum-th'><b>|Планиран край|*</b></td>
+                <td class='sum-th'><b>|Продължителност|* [#recalcBtn#]</b></td>
+                <td class='sum-th'>[#productCaption#] <b>[#productId#]</b></td>
+            </tr>
+            <tr>
+                <td>[#expectedTimeStart#]</td>
+                <td>[#expectedTimeEnd#]</td>
+                <td>[#expectedDuration#]<!--ET_BEGIN calcedDuration--> <div style="font-size:0.6em;font-weight:normal;">( |нето|*: [#calcedDuration#] )</div><!--ET_END calcedDuration--></td>
+                <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
+                    <!--ET_BEGIN assetId-->
+                    <span style='font-weight:normal'>|Оборудване|*</span>: [#assetId#]<br>
+                    <!--ET_END assetId-->
+                    <!--ET_BEGIN startAfter-->
+                    <span style='font-weight:normal'>|Започва след|*</span>: [#startAfter#]<br>
+                    <!--ET_END startAfter-->
+                    <!--ET_BEGIN previousJob-->
+                    <span style='font-weight:normal'>[#previousJobCaption#]</span>: [#previousJob#]<br>
+                    <!--ET_END previousJob-->
+                    <!--ET_BEGIN modifiedOn-->
+                    <span style='font-weight:normal'>|Модифициране|*</span>: [#modifiedOn#] |от|* [#modifiedBy#]<br>
+                    <!--ET_END modifiedOn-->
+                </td>
+            </tr>
+        </table>
     </div>
 </div>

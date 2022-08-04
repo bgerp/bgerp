@@ -21,8 +21,15 @@ class cal_Reminders extends core_Master
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
     public $defaultFolder = false;
-    
-    
+
+
+    /**
+     * Автоматично споделяне на текущия потребител
+     * @see doc_SharablePlg
+     */
+    public $autoShareCurrentUser = true;
+
+
     /**
      * Поддържани интерфейси
      */
@@ -228,7 +235,7 @@ class cal_Reminders extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%, changable,silent');
         
-        $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable,silent');
+        $this->FLD('description', 'richtext(bucket=calReminders,passage)', 'caption=Описание,changable,silent');
         
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable,silent');
@@ -318,15 +325,14 @@ class cal_Reminders extends core_Master
             $data->form->setDefault('timeStart', $time);
             $data->form->setDefault('title', $title);
             $data->form->setDefault('priority', 'normal');
-            $data->form->setDefault('sharedUsers', '|'.$cu.'|');
         }
         
         if (Mode::is('screenMode', 'narrow')) {
             $data->form->fields['priority']->maxRadio = 2;
         }
     }
-    
-    
+
+
     /**
      * Проверява и допълва въведените данни от 'edit' формата
      */

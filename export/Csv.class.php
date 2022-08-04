@@ -40,13 +40,13 @@ class export_Csv extends core_Mvc
             
             return $canUse;
         }
-        
+
         $canUse = false;
         
         // Трябва да детайли, които да могат да се експортват
         
         $clsArr = core_Classes::getOptionsByInterface('export_DetailExportCsvIntf');
-        
+
         if (empty($clsArr)) {
             
             return false;
@@ -60,7 +60,7 @@ class export_Csv extends core_Mvc
         }
         
         $detArr = arr::make($clsInst->details);
-        
+
         if (empty($detArr)) {
             
             return false;
@@ -79,20 +79,17 @@ class export_Csv extends core_Mvc
             }
             
             $inst = cls::getInterface('export_DetailExportCsvIntf', $clsName);
-            
-            $mFieldName = $inst->getExportMasterFieldName();
-            
-            if (!$mFieldName) {
-                continue;
-            }
-            
+
             foreach ($detArr as $dName) {
                 if (!cls::load($dName, true)) {
                     continue;
                 }
                 
                 $dInst = cls::get($dName);
-                
+
+                $mFieldName = $inst->getExportMasterFieldName($dName);
+                if (!$mFieldName) continue;
+
                 if (!$dInst->fields[$mFieldName]) {
                     continue;
                 }
@@ -205,17 +202,21 @@ class export_Csv extends core_Mvc
         
         try {
             $clsArr = core_Classes::getOptionsByInterface('export_DetailExportCsvIntf');
-            
+
             foreach ($clsArr as $clsName) {
                 $inst = cls::getInterface('export_DetailExportCsvIntf', $clsName);
                 $csvFields = new core_FieldSet();
                 $recs = $inst->getRecsForExportInDetails($clsInst, $cRec, $csvFields, $userId);
-                
+
                 if (!empty($recs)) {
                     break;
                 }
             }
         } catch (core_exception_Expect $e) {
+            reportException($e);
+            if(haveRole('debug')){
+                core_Statuses::newStatus($e->getMessage(), 'error');
+            }
         }
         
         $fileHnd = null;

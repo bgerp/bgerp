@@ -33,12 +33,20 @@
                             <div class='address-block'>
                                 [#contragentCountryId#]
                                 <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                                <!--ET_BEGIN locationId-->
+                                <hr>
+                                <div>|Обект|*: [#locationId#]</div>
+                                <!--ET_END locationId-->
                             </div>
                         </td>
                         <td class="cell">
                             <b>[#MyCompany#]</b>
                             <div class='address-block'>
                                 [#MyAddress#]
+                                <!--ET_BEGIN storeId-->
+                                <hr>
+                                <div>|Склад|*: [#storeId#]</div>
+                                <!--ET_END storeId-->
                             </div>
                         </td>
                     </tr>
@@ -64,28 +72,54 @@
                                     <td class='quiet nowrap aright' style="width: 1%">|Валута|*:</td>
                                     <td>[#currencyId#]</td>
                                 </tr>
-                                <!--ET_BEGIN storeId-->
+                                <!--ET_BEGIN deliveryAddress-->
                                 <tr>
-                                    <td class='quiet nowrap aright' style="width: 1%">|От склад|*:</td>
-                                    <td>[#storeId#]</td>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Адрес|*:</td>
+                                    <td>[#deliveryAddress#]</td>
                                 </tr>
-                                <!--ET_END storeId-->
+                                <!--ET_END deliveryAddress-->
 
+                                <!--ET_BEGIN readyOn-->
+                                <tr>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Готовност|*:</td>
+                                    <td>[#readyOn#]</td>
+                                </tr>
+                                <!--ET_END readyOn-->
+                                <!--ET_BEGIN deliveryTime-->
+                                <tr>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Товарене|*:</td>
+                                    <td>[#deliveryTime#]</td>
+                                </tr>
+                                <!--ET_END deliveryTime-->
+
+                                <!--ET_BEGIN shipmentOn-->
+                                <tr>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Експед.|*:</td>
+                                    <td>[#shipmentOn#]</td>
+                                </tr>
+                                <!--ET_END shipmentOn-->
+
+                                <!--ET_BEGIN deliveryOn-->
+                                <tr>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Доставка|*:</td>
+                                    <td>[#deliveryOn#]</td>
+                                </tr>
+                                <!--ET_END deliveryOn-->
                                 <!--ET_BEGIN lineId-->
-                                <tr class="no-print">
+                                <tr>
                                     <td class='quiet nowrap aright' style="width: 1%">|Транспорт|*:</td>
                                     <td>[#lineId#]</td>
                                 </tr>
                                 <!--ET_END lineId-->
                                 <!--ET_BEGIN lineForwarderId-->
                                 <tr>
-                                    <td class='nowrap quiet aright'>Forwarder: </td>
+                                    <td class='nowrap quiet aright'>|Спедитор|*: </td>
                                     <td>[#lineForwarderId#]</td>
                                 </tr>
                                 <!--ET_END lineForwarderId-->
                                 <!--ET_BEGIN lineVehicleId-->
                                 <tr>
-                                    <td class='nowrap quiet aright'>Motor vehicle: </td>
+                                    <td class='nowrap quiet aright'>|МПС|*: </td>
                                     <td>[#lineVehicleId#]</td>
                                 </tr>
                                 <!--ET_END lineVehicleId-->

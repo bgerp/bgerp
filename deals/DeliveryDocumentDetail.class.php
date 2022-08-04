@@ -165,21 +165,25 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 }
                 
                 if (!$policyInfo) {
-                    $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
-                    
-                    // Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
-                    $Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
-                    $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+                    if(isset($rec->productId)){
+                        $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
+
+                        // Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
+                        $Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
+                        $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+                    }
                 }
                 
                 // Ако няма последна покупна цена и не се обновява запис в текущата покупка
-                if (!isset($policyInfo->price)) {
-                    $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (2)');
-                } else {
-                    
-                    // Ако се обновява запис се взима цената от него, ако не от политиката
-                    $rec->price = $policyInfo->price;
-                    $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
+                if(isset($rec->productId)){
+                    if (!isset($policyInfo->price)) {
+                        $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (2)');
+                    } else {
+
+                        // Ако се обновява запис се взима цената от него, ако не от политиката
+                        $rec->price = $policyInfo->price;
+                        $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
+                    }
                 }
                 
                 if ($policyInfo->discount && !isset($rec->discount)) {
@@ -252,6 +256,13 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)) {
             if ($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft') {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if ($action == 'createproduct' && isset($rec)) {
+            $isReverse = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'isReverse');
+            if($isReverse == 'yes'){
                 $requiredRoles = 'no_one';
             }
         }

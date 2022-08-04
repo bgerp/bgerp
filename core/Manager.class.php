@@ -542,6 +542,8 @@ class core_Manager extends core_Mvc
                 // Клонираме заявката
                 $data->listSummary->query = clone $data->query;
             }
+
+            setIfNot($data->listSummary->mvc, clone $this);
         }
     }
     
@@ -716,7 +718,7 @@ class core_Manager extends core_Mvc
             } else {
                 if (is_a($this, 'core_Detail')) {
                     if (($masterKey = $this->masterKey) && ($masterId = $data->form->rec->{$masterKey})) {
-                        $master = $mvc->masterClass;
+                        $master = $this->masterClass;
                         if (!$master) {
                             $master = $this->getFieldTypeParam($masterKey, 'mvc');
                         }

@@ -160,9 +160,15 @@ class cash_InternalMoneyTransfer extends core_Master
 
 
     /**
-     * Опашка от свързване на документи
+     * Поле на ориджина за което да се направи линка
      */
-    protected $addLinks = array();
+    public $addLinkedOriginFieldName = 'sourceId';
+
+
+    /**
+     * Дали да се добави документа като линк към оридижина си
+     */
+    public $addLinkedDocumentToOriginId = true;
 
 
     /**
@@ -509,24 +515,14 @@ class cash_InternalMoneyTransfer extends core_Master
         // Споделяме текущия потребител със нишката на заданието
         $cu = core_Users::getCurrent();
         doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
-
-        // Ако е създаден към друг документ да се добави като линк към него
-        if(!empty($rec->sourceId)){
-            $mvc->addLinks[$rec->id] = $rec;
-        }
     }
 
 
     /**
      * Изпълнява се след края на изпълнението на скрипта
      */
-    public static function on_Shutdown($mvc)
+    public function getLinkedDocCommentToOrigin_($rec)
     {
-        if(countR($mvc->addLinks)){
-            foreach($mvc->addLinks as $rec){
-                $linkComment = $mvc->getVerbal($rec, 'operationSysId');
-                doc_Linked::add($rec->containerId, $rec->sourceId, 'doc', 'doc', $linkComment);
-            }
-        }
+        return $this->getVerbal($rec, 'operationSysId');
     }
 }

@@ -155,7 +155,7 @@ class export_Clipboard extends core_Mvc
 
         $clsInst->logWrite('Копиране в клипборда', $objId);
 
-        return new Redirect(array($clsInst, 'single', $objId), 'Копирани датайли в клипборда|*: ' . countR($recs));
+        return new Redirect(array($clsInst, 'single', $objId), 'Копирани детайли в клипборда|*: ' . countR($recs));
     }
 
 

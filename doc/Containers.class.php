@@ -457,9 +457,14 @@ class doc_Containers extends core_Manager
         }
         
         expect($data->threadRec->firstContainerId, 'Проблемен запис на нишка', $data->threadRec);
-        
+
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
-        
+        $otherDocChanges = doc_Threads::fetch(array("#id != '[#1#]' AND #folderId = '[#2#]' AND #state != 'rejected' AND #last > '[#3#]'",
+                                        $data->threadRec->id, $data->threadRec->folderId, $data->threadRec->last));
+        if (!$otherDocChanges) {
+            bgerp_Recently::add('folder', $data->threadRec->folderId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
+        }
+
         $data->query->orderBy('#createdOn, #id');
         
         $threadId = Request::get('threadId', 'int');
@@ -503,7 +508,7 @@ class doc_Containers extends core_Manager
             $docTitle = str::limitLenAndHyphen($docRow->title, 70);
             $title->replace($docTitle, 'threadTitle');
             
-            $mvc->title = '|*' . str::limitLen($docRow->title, 20) . ' « ' . doc_Folders::getTitleById($folderRec->id) .'|';
+            $mvc->title = '|*' . str::limitLen($docRow->title, 25) . ' « ' . doc_Folders::getTitleById($folderRec->id) .'|';
             
             $data->title = $title;
         } catch (ErrorException $e) {
@@ -3493,7 +3498,9 @@ class doc_Containers extends core_Manager
         $document = self::getDocument($id);
         $dRec = $document->rec();
         $dRow = $document->getInstance()->recToVerbal($dRec, array('state', '-single'));
-        
+
+        $document->invoke('prepareHiddenDocTitle', array($dRec, $dRow));
+
         $iconStyle = 'background-image:url(' . sbf($document->getIcon(), '"') . ');';
         $tpl->replace($iconStyle, 'iconStyle');
         
@@ -3502,16 +3509,16 @@ class doc_Containers extends core_Manager
         
         if ($document->haveRightFor('single') || doc_Threads::haveRightFor('single', $dRec->threadId)) {
             $url = array(get_called_class(), 'ShowDocumentInThread', $id);
-            
+
             $attr = array();
             $attr['ef_icon'] = 'img/16/toggle1.png';
             $attr['class'] = 'settings-show-document';
             $attr['title'] = 'Показване на целия документ';
             $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
             $attr['data-url'] = toUrl($url, 'local');
-            
+
             $showDocument = ht::createLink('', $url, null, $attr);
-            
+
             $dRow->DocumentSettings = new ET($dRow->DocumentSettings);
             $dRow->DocumentSettings->append($showDocument);
         }

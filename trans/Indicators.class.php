@@ -45,9 +45,7 @@ class trans_Indicators extends core_BaseClass
         
         $rec = hr_IndicatorNames::force('Доставено_тегло', __CLASS__, 3);
         $result[$rec->id] = $rec->name;
-        
-       
-        
+
         // Връщане на всички индикатори
         return $result;
     }
@@ -83,7 +81,7 @@ class trans_Indicators extends core_BaseClass
         // Индикатор за доставено тегло
         $deliveredWeightArr = self::getDeliveredWeight($timeline);
         $result = array_merge($deliveredWeightArr, $result);
-        
+
         return $result;
     }
     
@@ -98,41 +96,27 @@ class trans_Indicators extends core_BaseClass
     {
         $result = array();
         $numberOfTransportLines = hr_IndicatorNames::force('Брой_транспортни_линии', __CLASS__, 1)->id;
-        
         $from = trans_Setup::get('DATE_FOR_TRANS_INDICATORS');
         
-        if (empty($from)) {
-                
-            return $result;
-        }
+        if (empty($from)) return $result;
      
         $query = trans_Lines::getQuery();
-        
         $query->where("#start >= '{$from}'");
-        
         $query->where("#modifiedOn >= '{$timeline}'");
         
         while ($iRec = $query->fetch()) {
-            
-            if (empty($iRec->forwarderPersonId)) {
-                continue;
-            }
-            
-        $personId =$iRec->forwarderPersonId;
-        
-        $Document = doc_Containers::getDocument($iRec->containerId);
-        
-        $docId = $Document->that;
-        
-        $docClassId = $Document->getClassId();
-        
-        $indicatorId = $numberOfTransportLines;
-        
-        $value = 1;
-        
-        $isRejected = $iRec->state == 'rejected'? true: false;
-            
-        hr_Indicators::addIndicatorToArray($result, $iRec->start, $personId,$docId,$docClassId, $indicatorId, $value, $isRejected);
+            if (empty($iRec->forwarderPersonId)) continue;
+
+            $personId =$iRec->forwarderPersonId;
+            $Document = doc_Containers::getDocument($iRec->containerId);
+            $docId = $Document->that;
+            $docClassId = $Document->getClassId();
+            $indicatorId = $numberOfTransportLines;
+            $value = 1;
+
+            $isRejected = ($iRec->state == 'rejected');
+            $start = dt::verbal2mysql($iRec->start, false);
+            hr_Indicators::addIndicatorToArray($result, $start, $personId,$docId,$docClassId, $indicatorId, $value, $isRejected);
         }
         
         return $result;
@@ -148,50 +132,32 @@ class trans_Indicators extends core_BaseClass
     {
         $result = array();
         $numberOfShipmentsDelivered = hr_IndicatorNames::force('Брой_доставени_пратки', __CLASS__, 2)->id;
-        
         $from = trans_Setup::get('DATE_FOR_TRANS_INDICATORS');
-        
-        if (empty($from)) {
-            
-            return $result;
-        }
+
+        if (empty($from)) return $result;
         
         $details = array();
-        
         $detQuery = trans_LineDetails::getQuery();
-        $detQuery->EXT('modifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
+        $detQuery->EXT('lineModifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
         $detQuery->EXT('start', 'trans_Lines', "externalName=start,externalKey=lineId");
         $detQuery->where("#start >= '{$from}'");
-        $detQuery->where("#modifiedOn >= '{$timeline}'");
-        
+        $detQuery->where("#lineModifiedOn >= '{$timeline}'");
+
         while ($detRec = $detQuery->fetch()) {
-            
             $details[$detRec->id] = $detRec->lineId;
-            
         }
-       
+
         $query = trans_Lines::getQuery();
-        
         $query->where("#start >= '{$from}'");
-        
         $query->where("#modifiedOn >= '{$timeline}'");
-        
         while ($iRec = $query->fetch()) {
-            
-            if (empty($iRec->forwarderPersonId)) {
-                continue;
-            }
-            
-            
-            
-            $personId =$iRec->forwarderPersonId;
-            
+            if (empty($iRec->forwarderPersonId)) continue;
+
+            $personId = $iRec->forwarderPersonId;
             $Document = doc_Containers::getDocument($iRec->containerId);
-            
             $docId = $Document->that;
             
             $docClassId = $Document->getClassId();
-            
             $indicatorId = $numberOfShipmentsDelivered;
             
             $value = 0;
@@ -202,14 +168,15 @@ class trans_Indicators extends core_BaseClass
                 }
             }
             
-            $isRejected = $iRec->state == 'rejected'? true: false;
-            
-            hr_Indicators::addIndicatorToArray($result, $iRec->start, $personId,$docId,$docClassId, $indicatorId, $value, $isRejected);
+            $isRejected = ($iRec->state == 'rejected');
+            $start = dt::verbal2mysql($iRec->start, false);
+            hr_Indicators::addIndicatorToArray($result, $start, $personId,$docId,$docClassId, $indicatorId, $value, $isRejected);
         }
         
         return $result;
     }
-    
+
+
     /**
      * Доставено тегло
      *
@@ -223,17 +190,14 @@ class trans_Indicators extends core_BaseClass
         
         $from = trans_Setup::get('DATE_FOR_TRANS_INDICATORS');
         
-        if (empty($from)) {
-            
-            return $result;
-        }
+        if (empty($from)) return $result;
         
         $weights = array();
         $detQuery = trans_LineDetails::getQuery();
-        $detQuery->EXT('modifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
+        $detQuery->EXT('lineModifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
         $detQuery->EXT('start', 'trans_Lines', "externalName=start,externalKey=lineId");
         $detQuery->where("#start >= '{$from}'");
-        $detQuery->where("#modifiedOn >= '{$timeline}'");
+        $detQuery->where("#lineModifiedOn >= '{$timeline}'");
         
         while ($detRec = $detQuery->fetch()) {
             
@@ -267,11 +231,10 @@ class trans_Indicators extends core_BaseClass
             }
             
             $isRejected = $iRec->state == 'rejected';
-            
-            hr_Indicators::addIndicatorToArray($result, $iRec->start, $personId,$docId,$docClassId, $indicatorId, $value, $isRejected);
+            $start = dt::verbal2mysql($iRec->start, false);
+            hr_Indicators::addIndicatorToArray($result, $start, $personId, $docId, $docClassId, $indicatorId, $value, $isRejected);
         }
         
         return $result;
     }
-   
 }

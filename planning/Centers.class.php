@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -90,7 +90,7 @@ class planning_Centers extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    public $singleLayoutFile = 'planning/tpl/SingleLayoutActivityCenter.shtml';
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutCenters.shtml';
     
     
     /**
@@ -114,7 +114,7 @@ class planning_Centers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Център, departmentId, type, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График, folderId,createdOn,createdBy';
+    public $listFields = 'name=Център, departmentId, type, employmentOccupied=Назначени, employmentTotal=От общо, scheduleId=График, folderId,createdOn,createdBy';
     
     
     /**
@@ -146,7 +146,7 @@ class planning_Centers extends core_Master
      *
      * @var string|array
      */
-    public $details = 'stages=planning_Stages,planning_Points';
+    public $details = 'stages=planning_Steps,planning_Points';
     
     
     /**
@@ -170,15 +170,16 @@ class planning_Centers extends core_Master
                                  brigade=Бригада,
                                  shift=Смяна,
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
-        
+        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
+        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри за планиране->Списък');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', 'caption=Служители->Щат, input=none');
         $this->FLD('employmentOccupied', 'int', 'caption=Служители->Назначени, input=none');
-        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', 'caption=Работен график->Цикъл,mandatory');
-        $this->FLD('startingOn', 'datetime', 'caption=Работен график->От');
-        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
+        $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty=true)', 'caption=Работен график->Разписание,mandatory');
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
-        
+        $this->FLD('mandatoryOperatorsInTasks', 'enum(auto=Автоматично,yes=Задължително,no=Опционално)', 'caption=Прогрес в ПО->Оператор(и), notNull,value=auto');
+        $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор, notNull,value=auto');
+
         $this->setDbUnique('name');
     }
     
@@ -198,6 +199,20 @@ class planning_Centers extends core_Master
         
         if (isset($rec->departmentId)) {
             $row->departmentId = hr_Departments::getHyperlink($rec->departmentId, true);
+        }
+
+        if(isset($rec->scheduleId)){
+            $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
+        }
+
+        if($rec->mandatoryOperatorsInTasks == 'auto'){
+            $row->mandatoryOperatorsInTasks = $mvc->getFieldType('mandatoryOperatorsInTasks')->toVerbal(planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR'));
+            $row->mandatoryOperatorsInTasks = ht::createHint("<span style='color:blue'>{$row->mandatoryOperatorsInTasks}</span>", 'По подразбиране', 'notice', false);
+        }
+
+        if($rec->showPreviousJobField == 'auto'){
+            $row->showPreviousJobField = $mvc->getFieldType('showPreviousJobField')->toVerbal(planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK'));
+            $row->showPreviousJobField = ht::createHint("<span style='color:blue'>{$row->showPreviousJobField}</span>", 'По подразбиране', 'notice', false);
         }
     }
     
@@ -363,29 +378,63 @@ class planning_Centers extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Производствени етапи в папката на центъра на дейност
-     * 
-     * @param int $folderId
-     * @return array $options
+     *
+     * @param int $folderId   - ид на папка
+     * @param int|null $exId  - ид на предишно избран артикул
+     * @param bool $verbal    - само ид-та или имена на артикулите
+     * @return array $options - върнатите опции
      */
-    public static function getManifacturableOptions($folderId)
+    public static function getPlanningStepOptionsByFolderId($folderId, $exId = null, $verbal = false)
     {
-        $options = array();
-        $sQuery = planning_Stages::getQuery();
-        $sQuery->where("LOCATE('|{$folderId}|', #folders) AND #state != 'closed' AND #state != 'rejected' AND #classId = " . cat_Products::getClassId());
+        $Cover = doc_Folders::getCover($folderId);
+        $finalSteps = $nonFinalSteps = array();
+        $sQuery = planning_Steps::getQuery();
+
+        // Извличат се ПЕ към този център на дейност
+        $productClassId = cat_Products::getClassId();
+        $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
         while($sRec = $sQuery->fetch()){
-            if($Extended = planning_Stages::getExtended($sRec)){
-                $options[$Extended->that] = $Extended->getTitleById(false);
+
+            // Разделят се дали са финални или междинни
+            if($Extended = planning_Steps::getExtended($sRec)){
+                if($sRec->isFinal == 'yes'){
+                    $finalSteps[$Extended->that] = ($verbal) ? $Extended->getTitleById(false) : $Extended->that;
+                } else {
+                    $nonFinalSteps[$Extended->that] = ($verbal) ? $Extended->getTitleById(false) : $Extended->that;
+                }
             }
         }
-        
-        if(countR($options)){
-            $options = array('pu' => (object)array('group' => true, 'title' => 'Производствени етапи')) + $options;
+
+        // Ако има съществуващо ид и то не е сред наличните добавям го в правилния масив
+        if(isset($exId)){
+            if(!array_key_exists($exId, $finalSteps) || !array_key_exists($exId, $nonFinalSteps)){
+                $isExIdFinal = planning_Steps::fetchField("#classId = {$productClassId} AND #objectId = {$exId}", 'isFinal');
+                $exIdVal = ($verbal) ? cat_Products::getTitleById($exId) : $exId;
+                if($isExIdFinal == 'no'){
+                    $nonFinalSteps[$exId] = $exIdVal;
+                } else {
+                    $finalSteps[$exId] = $exIdVal;
+                }
+            }
         }
-        
+
+        // Ако се показват вербални опции - слага се група на опциите и се обръщат имената на артикулите
+        if($verbal){
+            $options = array();
+	    if(countR($nonFinalSteps)){
+                $options += array('nfs' => (object) array('group' => true, 'title' => tr('Междинни етапи'))) + $nonFinalSteps;
+            }
+            if(countR($finalSteps)){
+                $options += array('fs' => (object) array('group' => true, 'title' => tr('Финални етапи'))) + $finalSteps;
+            }            
+        } else {
+            $options = $nonFinalSteps + $finalSteps;
+        }
+
         return $options;
     }
     
@@ -402,32 +451,32 @@ class planning_Centers extends core_Master
     {
         $options = array();
         if(isset($jobId)){
-            $jobFolderId = planning_Jobs::fetchField($jobId, 'folderId');
-            $Cover = doc_Folders::getCover($jobFolderId);
+            $jobRec = planning_Jobs::fetch($jobId, 'folderId,productId');
+            $Cover = doc_Folders::getCover($jobRec->folderId);
+
+            // Ако артикула може да се създава само в един център остава само той
+            if($Driver = cat_Products::getDriver($jobRec->productId)) {
+                $productionData = $Driver->getProductionData($jobRec->productId);
+                if(isset($productionData['centerId'])){
+                    $options[$jobRec->folderId] = planning_Centers::getTitleById($productionData['centerId'], false);
+
+                    return $options;
+                }
+            }
+
             if($Cover->isInstanceOf('planning_Centers')){
-                $options[$jobFolderId] = $Cover->getRecTitle(false);
+                $options[$jobRec->folderId] = $Cover->getRecTitle(false);
             }
         }
         
         $query = self::getQuery();
         $query->where("#state != 'closed' AND #state != 'rejected'");
-        $cloneQuery = clone $query;
-        while($rec = $query->fetch()){
-            if(planning_Stages::fetch("LOCATE('|{$rec->folderId}|', #folders)")){
-                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
-                    $options[$rec->folderId] = self::getRecTitle($rec, false);
-                }
+        while($rec = $query->fetch()){  
+            if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
+                $options[$rec->folderId] = self::getRecTitle($rec, false);
             }
         }
-        
-        if(!countR($options)){
-            while($rec = $cloneQuery->fetch()){
-                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
-                    $options[$rec->folderId] = self::getRecTitle($rec, false);
-                }
-            }
-        }
-        
+ 
         return $options;
     }
     

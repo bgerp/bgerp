@@ -264,7 +264,7 @@ class sales_QuotationsDetails extends deals_QuotationDetails
         if (core_Packs::isInstalled('tcost')) {
             $form = sales_QuotationsDetails::getForm();
             $clone = clone sales_Quotations::fetch($rec->quotationId);
-            $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+            $clone->deliveryPlaceId = (!empty($clone->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$clone->contragentClassId}' AND #contragentId = '{$clone->contragentId}'", $clone->deliveryPlaceId), 'id') : null;
             sales_TransportValues::prepareFee($rec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
         }
         

@@ -30,10 +30,19 @@ class store_plg_RequestDetail extends core_Plugin
         setIfNot($mvc->packQuantityFld, 'packQuantity');
         
         // Добавяне на поле за заявено количество
-        $mvc->FLD($mvc->requestQuantityFieldName, 'double', 'caption=Заявено,input=none,forceField,smartCenter');
+        $mvc->FLD($mvc->requestQuantityFieldName, 'double', 'caption=Заявено,forceField,smartCenter');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $data->form->setField($mvc->requestQuantityFieldName, 'input=none');
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -93,10 +102,7 @@ class store_plg_RequestDetail extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles == 'no_one') {
-            
-            return;
-        }
+        if ($requiredRoles == 'no_one') return;
         
         if ($action == 'delete' && isset($rec->{$mvc->requestQuantityFieldName})) {
             $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
@@ -212,10 +218,7 @@ class store_plg_RequestDetail extends core_Plugin
      */
     public static function on_AfterGetUndeliveredDetails($mvc, &$res, $masterId)
     {
-        if (isset($res)) {
-            
-            return $res;
-        }
+        if (isset($res)) return $res;
         $res = array();
         
         $dQuery = $mvc->getQuery();

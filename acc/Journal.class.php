@@ -122,6 +122,7 @@ class acc_Journal extends core_Master
         $this->setDbUnique('docType,docId,state');
         $this->setDbIndex('docType,docId');
         $this->setDbIndex('valior');
+        $this->setDbIndex('createdOn');
     }
     
     
@@ -787,7 +788,7 @@ class acc_Journal extends core_Master
     {
         $Document = cls::get($docType);
         if(empty($valior)){
-            $valior = $Document->fetchField($docId, $Document->valiorFLd);
+            $valior = $Document->fetchField($docId, $Document->valiorFld);
         }
 
         // Ако е в затворен период, пропускаме го

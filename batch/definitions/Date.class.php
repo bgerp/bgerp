@@ -67,7 +67,8 @@ abstract class batch_definitions_Date extends batch_definitions_Proto
         // Проверяваме дали датата отговаря на формата
         $matches = array();
         if (!preg_match("/^{$expr}$/", $value, $matches)) {
-            $msg = "|Партидата трябва да е във формат за дата|* <b>{$this->rec->format}</b>";
+            $exampleDate = dt::mysql2verbal(null, $this->rec->format);
+            $msg = "|Партидата трябва да е във формат|* <b>{$exampleDate}</b>";
             
             return false;
         }
@@ -79,7 +80,8 @@ abstract class batch_definitions_Date extends batch_definitions_Proto
         
         // Проверяваме дали датата е възможна
         if (!checkdate($matches['month'], $matches['day'], $matches['year'])) {
-            $msg = "|Партидата трябва да е във формат за дата|* <b>{$this->rec->format}</b>";
+            $exampleDate = dt::mysql2verbal(null, $this->rec->format);
+            $msg = "|Партидата трябва да е във формат за дата|* <b>{$exampleDate}</b>";
             
             return false;
         }

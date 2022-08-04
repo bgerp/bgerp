@@ -12,7 +12,7 @@
  * @since     v 0.1
  *
  */
-class marketing_Router
+class marketing_Router extends core_Manager
 {
     /**
      * Работен кеш
@@ -133,17 +133,21 @@ class marketing_Router
      * Рутира в папка на лице с подадения имейл
      *
      * @param string $email    - имейл
+     * @param string $egn      - егн
      * @param int    $inCharge - отговорника на папката
      *
      * @return int - ид на папката
      */
-    public static function routeByPersonEmail($email, $inCharge)
+    public static function routeByPersonEmail($email, $egn, $inCharge)
     {
-        $personRec = crm_Persons::fetch(array("#email LIKE '%[#1#]%' AND #state = 'active'", $email));
-        
-        if ($personRec) {
+        $pQuery = crm_Persons::getQuery();
+        $pQuery->where(array("#email LIKE '%[#1#]%' AND #state = 'active'", $email));
+        if(!empty($egn)){
+            $pQuery->where(array("#egn IS NULL OR #egn = '' OR #egn = '[#1#]'", $egn));
+        }
+
+        while ($personRec = $pQuery->fetch()) {
             $emails = type_Emails::toArray($personRec->email);
-            
             if (in_array($email, $emails)) {
                 $rec = (object) array('id' => $personRec->id, 'inCharge' => $inCharge);
                 
@@ -440,31 +444,35 @@ class marketing_Router
      * Рутиран по личен телефон
      *
      * @param string $tel
+     * @param string $egn
      * @param boolean $onlyMobile
      * 
      * @return int|null
      */
-    public static function routeByPersonTel($tel, $onlyMobile = false)
+    public static function routeByPersonTel($tel, $egn = null, $onlyMobile = false)
     {
         // Намиране на всички визитки с подобен телефон, подредени по последна промяна
         $normalized1 = drdata_PhoneType::getNumberStr($tel);
         $pQuery = crm_Persons::getQuery();
         $pQuery->where("#tel IS NOT NULL AND #state = 'active'");
         $pQuery->where(array("#tel LIKE '%[#1#]%' OR #tel LIKE '%[#2#]%'", $tel, $normalized1));
-        $pQuery->show('tel,name');
+        if(!empty($egn)){
+            $pQuery->where(array("#egn IS NULL OR #egn = '' OR #egn = '[#1#]'", $egn));
+        }
+        $pQuery->show('tel,name,egn');
         $pQuery->orderBy('modifiedOn', 'DESC');
-        
+
         while($pRec = $pQuery->fetch()){
             
             // Парсират се телефоните им
             $telArr = drdata_PhoneType::toArray($pRec->tel);
             foreach ($telArr as $telData){
-                
+
                 // Връщане на папката на лицето с първия мачнат телефон
                 $normalized2 = drdata_PhoneType::getNumberStr($telData->original);
                 if($normalized1 == $normalized2){
                     if($onlyMobile === false || ($onlyMobile === true && $telData->mobile === true)){
-                        
+
                         return crm_Persons::forceCoverAndFolder($pRec->id);
                     }
                 }

@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,13 +31,13 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
     
     
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,showInProduct, expenses, isComplete';
+    public $changableFields = 'title,showInProduct,expenses,isComplete';
     
     
     /**
@@ -76,8 +76,14 @@ class cat_Boms extends core_Master
      * @see plg_Clone
      */
     public $cloneDetails = 'cat_BomDetails';
-    
-    
+
+
+    /**
+     * Кои полета да не бъдат презаписвани от шаблона
+     */
+    public $fieldsNotToCopyFromTemplate = 'type';
+
+
     /**
      * Заглавие на единичен документ
      */
@@ -218,12 +224,13 @@ class cat_Boms extends core_Master
         $this->FLD('title', 'varchar(124,nullIfEmpty)', 'caption=Заглавие,tdClass=nameCell');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
-        $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пълна рецепта,notNull,value=auto,mandatory');
-        $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
+
         $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable');
-        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
+        $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пълна рецепта,notNull,value=auto,mandatory');
+        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
+        $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
         $this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
         $this->FLD('hash', 'varchar', 'input=none');
         
@@ -347,11 +354,8 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if ($rec->cloneDetails === true) {
-            
-            return;
-        }
-        
+        if ($rec->cloneDetails === true || !empty($rec->prototypeId)) return;
+
         $activeBom = null;
         cat_BomDetails::addProductComponents($rec->productId, $rec->id, null, $activeBom, true);
     }
@@ -494,14 +498,10 @@ class cat_Boms extends core_Master
                 }
             }
         }
-        
+
+        // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
         if(countR(static::$stoppedActiveBoms)){
             foreach (static::$stoppedActiveBoms as $rec){
-                if ($nextId = $mvc->activateLastBefore($rec)) {
-                    core_Statuses::newStatus("|Активирана е рецепта|* #Bom{$nextId}");
-                }
-
-                // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
                 store_StockPlanning::recalcByReff($mvc, $rec->id);
             }
         }
@@ -523,11 +523,6 @@ class cat_Boms extends core_Master
             $productId = (isset($rec->productId)) ? $rec->productId : $mvc->fetchField($rec->id, 'productId');
             cat_Products::touchRec($productId);
         }
-        
-        // @todo да се махне след като се провери дали някой не записва документа докато е активен
-        if(isset($rec->state) && $rec->state == $rec->brState && $rec->state != 'draft'){
-            wp('cat_Boms::afterSaveActive', $rec);
-        }
     }
     
     
@@ -535,7 +530,6 @@ class cat_Boms extends core_Master
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
-     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -640,6 +634,12 @@ class cat_Boms extends core_Master
                 $res = 'no_one';
             }
         }
+
+        if ($action == 'close' && isset($rec)) {
+            if(!in_array($rec->state, array('active', 'closed'))){
+                $res = 'no_one';
+            }
+        }
     }
     
     
@@ -731,6 +731,8 @@ class cat_Boms extends core_Master
      * Връща информация с ресурсите използвани в технологичната рецепта
      *
      * @param mixed $id - ид или запис
+     * @param double $quantity - ид или запис
+     * @param datetime $date - ид или запис
      *
      * @return array $res - Информация за рецептата
      *               ->quantity - к-во
@@ -798,14 +800,14 @@ class cat_Boms extends core_Master
      * Ф-я за добавяне на нова рецепта към артикул
      *
      * @param mixed   $productId - ид или запис на производим артикул
-     * @param int   $quantity  - количество за което е рецептата
-     * @param array $details   - масив с обекти за детайли
-     *                         ->resourceId   - ид на ресурс
-     *                         ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
-     *                         ->stageId      - опционално, към кой производствен етап е детайла
-     *                         ->baseQuantity - начално количество на ресурса
-     *                         ->propQuantity - пропорционално количество на ресурса
-     * @param string  $notes     - забележки
+     * @param int   $quantity    - количество за което е рецептата
+     * @param array $details     - масив с обекти за детайли
+     *                        ->resourceId   - ид на ресурс
+     *                        ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
+     *                        ->stageId      - опционално, към кой производствен етап е детайла
+     *                        ->baseQuantity - начално количество на ресурса
+     *                        ->propQuantity - пропорционално количество на ресурса
+     * @param string  $notes   - забележки
      * @param float $expenses  - процент режийни разходи
      *
      * @return int $id         - ид на новосъздадената рецепта
@@ -1040,7 +1042,6 @@ class cat_Boms extends core_Master
      * Рендиране на рецептите на един артикул
      *
      * @param stdClass $data
-     *
      * @return core_ET
      */
     public function renderBoms($data)
@@ -1131,8 +1132,7 @@ class cat_Boms extends core_Master
     /**
      * Връща допустимите параметри за формулите
      *
-     * @param stdClass $rec - запис
-     *
+     * @param int $productId - запис
      * @return array - допустимите параметри с техните стойностти
      */
     public static function getProductParams($productId)
@@ -1193,7 +1193,6 @@ class cat_Boms extends core_Master
      * Връща контекста на параметрите
      *
      * @param array $params
-     *
      * @return array $scope
      */
     public static function getScope($params)
@@ -1332,7 +1331,7 @@ class cat_Boms extends core_Master
         // Изчисляваме количеството ако можем
         $rowParams = self::getProductParams($rec->resourceId);
         self::pushParams($params, $rowParams);
-        $doTouchRec = ($rec->state == 'rejected') ? false : true;
+        $doTouchRec = !(($rec->state == 'rejected'));
         
         $scope = self::getScope($params);
         $rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
@@ -1410,7 +1409,11 @@ class cat_Boms extends core_Master
         } else {
             $price = null;
             if (isset($rec->coefficient)) {
-                $rQuantity /= $rec->coefficient;
+                if ($rQuantity != cat_BomDetails::CALC_ERROR) {
+                    $rQuantity /= $rec->coefficient;
+                } else {
+                    $rQuantity = 0;
+                }
             }
             
             // Ако е етап, новите параметри са неговите данни + количестото му по тиража
@@ -1614,7 +1617,7 @@ class cat_Boms extends core_Master
     public function getIcon($id)
     {
         $rec = $this->fetch($id);
-        $icon = ($rec->type == 'sales') ? $this->singleIcon : (($rec->type == 'instant') ? $this->singleProductionBomIcon : $this->singleProductionBomIcon);
+        $icon = ($rec->type == 'sales') ? $this->singleIcon : $this->singleProductionBomIcon;
         
         return $icon;
     }
@@ -1650,45 +1653,27 @@ class cat_Boms extends core_Master
     public static function getTasksFromBom($id, $quantity = 1)
     {
         expect($rec = self::fetchRec($id));
-        $tasks = array();
         $pName = cat_Products::getTitleById($rec->productId, false);
-        
-        // За основния артикул подготвяме задача
-        // В която самия той е за произвеждане
-        $tasks = array(1 => (object) array('title' => $pName,
-            'plannedQuantity' => $quantity,
-            'quantityInPack' => 1,
-            'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'),
-            'productId' => $rec->productId,
-            'products' => array('input' => array(),'waste' => array())));
-        
-        // Намираме неговите деца от първо ниво те ще бъдат артикулите за влагане/отпадък
-        $dQuery = cat_BomDetails::getQuery();
-        $dQuery->where("#bomId = {$rec->id}");
-        $dQuery->where('#parentId IS NULL');
-        while ($detRec = $dQuery->fetch()) {
-            $detRec->params['$T'] = $quantity;
-            $quantityE = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
-            if ($quantityE == cat_BomDetails::CALC_ERROR) {
-                $quantityE = 0;
-            }
-            $quantityE = ($quantityE / $rec->quantity) * $quantity;
-            
-            $place = ($detRec->type == 'pop') ? 'waste' : 'input';
-            $tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantityE / $quantity, 'quantityInPack' => $detRec->quantityInPack);
-        }
-        
+        $Details = cls::get('cat_BomDetails');
+        $productStepClassId = planning_interface_StepProductDriver::getClassId();
+
         // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
         // А неговите подетапи са за влагане/отпадък
+        $onlySteps = $allStages = array();
         $query = cat_BomDetails::getQuery();
+        $query->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $query->where("#bomId = {$rec->id}");
-        $query->where("#type = 'stage'");
-        
+        $query->where("#type = 'stage' AND #innerClass = {$productStepClassId}");
+        while($dRec1 = $query->fetch()){
+            $allStages[$dRec1->id] = $dRec1;
+            if($dRec1->innerClass == $productStepClassId){
+                $onlySteps[$dRec1->id] = $dRec1;
+            }
+        }
+
         // За всеки етап намираме подетапите му
-        while ($dRec = $query->fetch()) {
-            $query2 = cat_BomDetails::getQuery();
-            $query2->where("#parentId = {$dRec->id}");
-            
+        $tasks = array();
+        foreach ($allStages as $dRec) {
             $quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
             if ($quantityP == cat_BomDetails::CALC_ERROR) {
                 $quantityP = 0;
@@ -1703,32 +1688,81 @@ class cat_Boms extends core_Master
                 $quantityP *= $q;
                 $parent = $pRec->parentId;
             }
-            
-            $quantityP = ($quantityP / $rec->quantity) * $quantity;
-            
-            // Подготвяме задачата за етапа, с него за производим
-            $arr = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
-                'plannedQuantity' => $quantityP,
+
+            $quantityP = (($quantityP) / $rec) * $quantity;
+            $q1 = round($quantityP * $dRec->quantityInPack, 5);
+
+            // Подготвяне задачата за етапа, с него за производим
+            $obj = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
+                'plannedQuantity' => $q1,
+                'measureId' => cat_Products::fetchField($dRec->resourceId, 'measureId'),
                 'productId' => $dRec->resourceId,
                 'packagingId' => $dRec->packagingId,
                 'quantityInPack' => $dRec->quantityInPack,
+                'storeId' => $dRec->storeIn,
+                'centerId' => $dRec->centerId,
+                'fixedAssets' => $dRec->fixedAssets,
+                'employees' => $dRec->employees,
+                'indTime' => $dRec->norm,
+                '_dId' => $dRec->id,
+                '_parentId' => $dRec->parentId,
+                '_position' => $dRec->position,
+                'description' =>  $dRec->description,
+                'labelPackagingId' => $dRec->labelPackagingId,
+                'labelQuantityInPack' => $dRec->labelQuantityInPack,
+                'labelType' => $dRec->labelType,
+                'labelTemplate' => $dRec->labelTemplate,
+                'params' => array(),
                 'products' => array('input' => array(), 'waste' => array()));
-            
-            // Добавяме директните наследници на етапа като материали за влагане/отпадък
-            while ($cRec = $query2->fetch()) {
-                $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
-                if ($quantityS == cat_BomDetails::CALC_ERROR) {
-                    $quantityS = 0;
-                }
-                
-                $place = ($cRec->type == 'pop') ? 'waste' : 'input';
-                $arr->products[$place][] = array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
+
+            $pQuery = cat_products_Params::getQuery();
+            $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");
+            $pQuery->show('paramId,paramValue');
+            while($pRec = $pQuery->fetch()){
+                $obj->params[$pRec->paramId] = $pRec->paramValue;
             }
-            
+
+            // Добавяме директните наследници на етапа като материали за влагане/отпадък
+            $query2 = cat_BomDetails::getQuery();
+            $query2->where("#parentId = {$dRec->id}");
+            $query2->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
+            $stageChildren = $query2->fetchAll();
+
+            foreach ($stageChildren as $cRec){
+                if($cRec->innerClass != $productStepClassId){
+                    $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+                    if ($quantityS == cat_BomDetails::CALC_ERROR) {
+                        $quantityS = 0;
+                    }
+
+                    $place = ($cRec->type == 'pop') ? 'waste' : 'input';
+                    $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
+                }
+            }
+
             // Събираме задачите
-            $tasks[] = $arr;
+            $tasks[] = $obj;
         }
-        
+
+        foreach ($tasks as $k => $defTask){
+            $siblingSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_parentId && $a->position < $defTask->_position;});
+            $childrenSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_dId;});
+
+            foreach (array($siblingSteps, $childrenSteps) as $arr){
+                if(countR($arr)){
+                    arr::sortObjects($arr, 'position', 'DESC');
+                    $foundStepId = key($arr);
+                    if($foundStepId){
+                        $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
+                        $foundStepTask = $foundStepArr[key($foundStepArr)];
+                        if($foundStepTask){
+                            $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                        }
+                    }
+                }
+            }
+        }
+
         // Връщаме масива с готовите задачи
         return $tasks;
     }
@@ -1855,7 +1889,7 @@ class cat_Boms extends core_Master
         $dQuery = $Detail->getQuery();
         $dQuery->where("#bomId = {$rec->id}");
         while($dRec = $dQuery->fetch()){
-            $notAllowed[] = array();
+            $notAllowed = array();
             $Detail->findNotAllowedProducts($dRec->resourceId, $rec->productId, $notAllowed);
 
             if (isset($notAllowed[$dRec->resourceId])) return false;

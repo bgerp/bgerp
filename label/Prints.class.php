@@ -179,6 +179,7 @@ class label_Prints extends core_Master
         
         $this->setDbIndex('createdOn');
         $this->setDbIndex('templateId');
+        $this->setDbIndex('objectId');
     }
     
     
@@ -308,7 +309,7 @@ class label_Prints extends core_Master
             
             $form->setOptions('templateId', array('' => '') + $optArr);
             
-            $defOptKey = $mvc->getDefaultTemplateId($optArr, $rec->classId);
+            $defOptKey = $mvc->getDefaultTemplateId($optArr, $rec->classId, $rec->objectId);
             
             $form->setDefault('templateId', $defOptKey);
         }
@@ -331,7 +332,7 @@ class label_Prints extends core_Master
                     $labelDataArr = $intfInst->getLabelPlaceholders($objId);
                 }
             }
-            
+
             // При редакция да се попълват стойностите
             if ($rec->id) {
                 foreach ((array) $rec->params as $fieldName => $val) {
@@ -346,18 +347,21 @@ class label_Prints extends core_Master
             }
             
             core_Lg::pop();
-            
+
             // Добавяме полетата от детайла на шаблона
             label_TemplateFormats::addFieldForTemplate($form, $rec->templateId);
-            
+
             // Обхождаме масива
             foreach ((array) $labelDataArr as $fieldName => $v) {
                 $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-                
+                if(is_array($v->suggestions) && countR($v->suggestions)){
+                    $form->setSuggestions($fieldName, $v->suggestions);
+                }
+
                 if (!$form->fields[$fieldName]) {
                     continue;
                 }
-                
+
                 if (!$form->cmd || $form->cmd == 'refresh') {
                     // Добавяме данните от записите
                     $rec->{$fieldName} = $v->example;
@@ -373,7 +377,7 @@ class label_Prints extends core_Master
             
             $form->input(null, true);
         }
-        
+
         if ($rec->templateId) {
             // Трябва да има зададена медия за шаблона
             $mediaArr = label_Templates::getMediaForTemplate($rec->templateId);
@@ -446,10 +450,19 @@ class label_Prints extends core_Master
      *
      * @return int
      */
-    protected static function getDefaultTemplateId($optArr, $classId = null)
+    protected static function getDefaultTemplateId($optArr, $classId = null, $objectId = null)
     {
-        $qLimit = 5;
-        
+        if (isset($classId) && isset($objectId)) {
+            $intfInst = cls::getInterface('label_SequenceIntf', $classId);
+            $defaultTemplateId = $intfInst->getDefaultLabelTemplateId($objectId);
+
+            if (isset($defaultTemplateId)) {
+
+                return $defaultTemplateId;
+            }
+        }
+
+        $qLimit = 7;
         $query = self::getQuery();
         if ($classId) {
             $query->where(array("#classId = '[#1#]'", $classId));
@@ -467,12 +480,21 @@ class label_Prints extends core_Master
         $query->orderBy('createdOn', 'DESC');
         
         $query->limit($qLimit);
-        
+
+        $cu = core_Users::getCurrent();
+
         $tArr = array();
         while ($rec = $query->fetch()) {
             $tArr[$rec->templateId] += 1 + ($qLimit-- * 0.1);
+
+            // С по-голяма приоритед да са създадените от текущия потребител
+            if ($rec->createdBy == $cu) {
+                $tArr[$rec->templateId] += 0.1 * $qLimit;
+            } else {
+                $tArr[$rec->templateId] -= 0.1 * $qLimit;
+            }
         }
-        
+
         if (empty($tArr)) {
             reset($optArr);
             $defOptKey = key($optArr);
@@ -483,7 +505,7 @@ class label_Prints extends core_Master
             reset($tArr);
             $defOptKey = key($tArr);
         }
-        
+
         return $defOptKey;
     }
     
@@ -821,6 +843,13 @@ class label_Prints extends core_Master
             if ($filter->mediaId) {
                 $data->query->where(array("#mediaId = '[#1#]'", $filter->mediaId));
             }
+        }
+
+        // Добавяне на филтър по източник, ако има в урл-то
+        $classId = Request::get('classId', 'int');
+        $objectId = Request::get('objectId', 'int');
+        if($classId && $objectId){
+            $data->query->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $classId, $objectId));
         }
     }
     

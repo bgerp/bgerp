@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, plg_Sorting, plg_Printing, store_plg_Request, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
 
 
     /**
@@ -189,12 +189,6 @@ class store_Transfers extends core_Master
 
 
     /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
-
-
-    /**
      * Полета, които при клониране да не са попълнени
      *
      * @see plg_Clone
@@ -215,6 +209,12 @@ class store_Transfers extends core_Master
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, deliveryTime, shipmentOn, deliveryOn';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -226,13 +226,13 @@ class store_Transfers extends core_Master
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
 
         // Доставка
-        $this->FLD('deliveryTime', 'datetime', 'caption=Натоварване');
-        $this->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Особености');
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $this->FLD('deliveryTime', "datetime(defaultTime={$startTime})", 'caption=Товарене');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
         // Допълнително
-        $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
+        $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки,after=deliveryOn');
         $this->FLD(
             'state',
             'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
@@ -502,30 +502,32 @@ class store_Transfers extends core_Master
      * @param mixed $rec - ид или запис на документ
      * @return array      - логистичните данни
      *
-     *		string(2)     ['fromCountry']     - международното име на английски на държавата за натоварване
-     * 		string|NULL   ['fromPCode']       - пощенски код на мястото за натоварване
-     * 		string|NULL   ['fromPlace']       - град за натоварване
-     * 		string|NULL   ['fromAddress']     - адрес за натоварване
-     *  	string|NULL   ['fromCompany']     - фирма
-     *   	string|NULL   ['fromPerson']      - лице
-     *      string|NULL   ['fromLocationId']  - лице
-     *      string|NULL   ['fromAddressInfo']   - особености
-     * 		datetime|NULL ['loadingTime']     - дата на натоварване
-     * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
-     * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
-     * 		string|NULL   ['toPlace']         - град за разтоварване
-     *  	string|NULL   ['toAddress']       - адрес за разтоварване
-     *   	string|NULL   ['toCompany']       - фирма
-     *   	string|NULL   ['toPerson']        - лице
-     *      string|NULL   ['toLocationId']    - лице
-     *      string|NULL   ['toPersonPhones']  - телефон на лицето
-     *      string|NULL   ['toAddressInfo']   - особености
-     *      string|NULL   ['instructions']    - инструкции
-     * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
-     * 		text|NULL 	  ['conditions']      - други условия
-     *		varchar|NULL  ['ourReff']         - наш реф
-     * 		double|NULL   ['totalWeight']     - общо тегло
-     * 		double|NULL   ['totalVolume']     - общ обем
+     *		string(2)     ['fromCountry']         - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']           - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']           - град за натоварване
+     * 		string|NULL   ['fromAddress']         - адрес за натоварване
+     *  	string|NULL   ['fromCompany']         - фирма
+     *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromLocationId']      - лице
+     *      string|NULL   ['fromAddressInfo']     - особености
+     *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
+     * 		datetime|NULL ['loadingTime']         - дата на натоварване
+     * 		string(2)     ['toCountry']           - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']             - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']             - град за разтоварване
+     *  	string|NULL   ['toAddress']           - адрес за разтоварване
+     *   	string|NULL   ['toCompany']           - фирма
+     *   	string|NULL   ['toPerson']            - лице
+     *      string|NULL   ['toLocationId']        - лице
+     *      string|NULL   ['toPersonPhones']      - телефон на лицето
+     *      string|NULL   ['toAddressInfo']       - особености
+     *      string|NULL   ['toAddressFeatures']   - особености на транспорта
+     *      string|NULL   ['instructions']        - инструкции
+     * 		datetime|NULL ['deliveryTime']        - дата на разтоварване
+     * 		text|NULL 	  ['conditions']          - други условия
+     *		varchar|NULL  ['ourReff']             - наш реф
+     * 		double|NULL   ['totalWeight']         - общо тегло
+     * 		double|NULL   ['totalVolume']         - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -545,6 +547,7 @@ class store_Transfers extends core_Master
                 $res["{$part}Person"] = !empty($location->mol) ? $location->mol : null;
                 $res["{$part}LocationId"] = $location->id;
                 $res["{$part}AddressInfo"] = $location->specifics;
+                $res["{$part}AddressFeatures"] = $location->features;
             }
         }
 
@@ -595,6 +598,8 @@ class store_Transfers extends core_Master
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
      *               ['countryId']      string|NULL - ид на държава
+     *               ['place']          string|NULL - населено място
+     *               ['features']       array       - свойства на адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -612,6 +617,10 @@ class store_Transfers extends core_Master
             $res['locationId'] = $toStoreLocation->id;
             $res['addressInfo'] = $toStoreLocation->comment;
             $res['countryId'] = $toStoreLocation->countryId;
+            $res['place'] = $toStoreLocation->place;
+            if(!empty($toStoreLocation->features)){
+                $res['features'] = keylist::toArray($toStoreLocation->features);
+            }
         }
 
         return $res;
@@ -694,7 +703,7 @@ class store_Transfers extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
 
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+        $date = $this->getPlannedQuantityDate($rec);
         $Detail = cls::get('store_TransfersDetails');
 
         $dQuery = $Detail->getQuery();
@@ -728,5 +737,129 @@ class store_Transfers extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * АПИ метод за добавяне на детайл към МСТ
+     *
+     * @param int $id
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $packQuantity
+     * @param int $quantityInPack
+     * @param null|string $batch
+     * @return int
+     * @throws core_exception_Expect
+     */
+    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $batch = null)
+    {
+        // Проверки на параметрите
+        expect($noteRec = self::fetch($id), "Няма МСТ с ид {$id}");
+        expect($noteRec->state == 'draft', 'МСТ трябва да е чернова');
+
+        expect($productRec = cat_Products::fetch($productId, 'canStore'), "Няма артикул с ид {$productId}");
+        expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+
+        expect($packagingId, 'Няма мярка/опаковка');
+        expect(cat_UoM::fetch($packagingId), "Няма опаковка/мярка с ид {$packagingId}");
+
+        $packs = cat_Products::getPacks($productId);
+        expect(isset($packs[$packagingId]), "Артикулът не поддържа мярка/опаковка с ид {$packagingId}");
+
+        $Double = cls::get('type_Double');
+        expect($quantityInPack = $Double->fromVerbal($quantityInPack), "Невалидно к-во {$quantityInPack}");
+        expect($packQuantity = $Double->fromVerbal($packQuantity), "Невалидно к-во {$packQuantity}");
+        $quantity = $quantityInPack * $packQuantity;
+
+        $Detail = cls::get('store_TransfersDetails');
+        $nRec = (object)array('transferId' => $id, 'newProductId' => $productId, 'packagingId' => $packagingId, 'quantity' => $quantity, 'quantityInPack' => $quantityInPack, 'batch' => $batch);
+        $nRec->autoAllocate = !empty($row->batch);
+
+        if(!empty($batch)) {
+            expect($Def = batch_Defs::getBatchDef($productId), 'Опит за задаване на партида на артикул без партида');
+            $msg = null;
+            $Def->isValid($batch, $quantity, $msg);
+            if ($msg) {
+                expect(false, tr($msg));
+            }
+            $batch = $Def->normalize($batch);
+            $nRec->_clonedWithBatches = true;
+        }
+
+        $Detail->save($nRec);
+
+        if(!empty($batch)){
+            batch_BatchesInDocuments::saveBatches($Detail, $nRec->id, array($batch => $nRec->quantity), true);
+        }
+
+        return $nRec->id;
+    }
+
+
+    /**
+     * Коя е най-ранната дата на която са налични всички документи
+     *
+     * @param stdClass $rec
+     * @param boolean $cache
+     * @return date|null
+     */
+    public function getEarliestDateAllProductsAreAvailableInStore($rec, $cache = false)
+    {
+        $rec = $this->fetchRec($rec);
+        if($cache){
+            $res = core_Cache::get($this->className, "earliestDateAllAvailable{$rec->containerId}");
+        }
+
+        if(!$cache || $res === false){
+            $products = deals_Helper::sumProductsByQuantity('store_TransfersDetails', $rec->id, true, 'newProductId');
+            $res = store_StockPlanning::getEarliestDateAllAreAvailable($rec->fromStore, $products);
+            core_Cache::set($this->className, "earliestDateAllAvailable{$rec->containerId}", $res, 10);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Kои са полетата за датите за експедирането
+     *
+     * @param mixed $rec     - ид или запис
+     * @param boolean $cache - дали да се използват кеширани данни
+     * @return array $res    - масив с резултат
+     */
+    public function getShipmentDateFields($rec = null, $cache = false)
+    {
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $endTime = trans_Setup::get('END_WORK_TIME');
+        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden", 'autoCalcFieldName' => 'readyOnCalc', 'displayExternal' => true),
+                     'deliveryTime' => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => true, "input" => "input", 'autoCalcFieldName' => 'deliveryTimeCalc', 'displayExternal' => true),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden", 'autoCalcFieldName' => 'shipmentOnCalc', 'displayExternal' => true),
+                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
+
+        if(isset($rec)){
+            $res['deliveryTime']['placeholder'] = store_Stores::calcLoadingDate($rec->fromStore, $rec->deliveryOn);
+            $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * За коя дата се заплануват наличностите
+     *
+     * @param stdClass $rec - запис
+     * @return datetime     - дата, за която се заплануват наличностите
+     */
+    public function getPlannedQuantityDate_($rec)
+    {
+        // Ако има ръчно въведена дата на доставка, връща се тя
+        if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
+
+        $preparationTime = store_Stores::getShipmentPreparationTime($rec->fromStore);
+
+        return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
     }
 }

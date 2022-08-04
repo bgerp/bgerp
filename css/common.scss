@@ -3064,7 +3064,7 @@ a.lang {
     }
 }
 
-.narrow .richtext {
+.narrow .richtext, .hyphen {
 	-webkit-hyphens: auto;
 	-moz-hyphens: auto;
 	-ms-hyphens: auto;
@@ -3396,6 +3396,16 @@ div.richtext ol ol ol {
     border-color: lighten(#00529B, 30%);
     background-color: #BDE5F8;
     background-image: url('../img/info_blue.png');
+}
+
+.richtext-info-no-image {
+	color: #00529B;
+	border-color: lighten(#00529B, 30%);
+	background-color: #BDE5F8;
+	border: 1px dotted;
+	margin: 0 30px;
+	padding: 7px 10px 5px 10px;
+	min-height: 20px;
 }
 
 .richtext-tip {

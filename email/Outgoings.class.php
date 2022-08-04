@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Ръчен постинг в документната система
@@ -32,6 +32,12 @@ class email_Outgoings extends core_Master
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
     public $defaultFolder = false;
+
+
+    /**
+     * Автоматично споделяне на получателите от входящия имейл
+     */
+    public $autoShareUserEmails = true;
     
     
     /**
@@ -121,7 +127,7 @@ class email_Outgoings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools2, 
+    public $loadList = 'email_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
         bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, change_Plugin';
     
@@ -201,7 +207,7 @@ class email_Outgoings extends core_Master
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn,state,lastSendedOn';
-    
+
     
     /**
      * Описание на модела
@@ -209,7 +215,7 @@ class email_Outgoings extends core_Master
     public function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText,changable,tdClass=emailListTitle');
-        $this->FLD('body', 'richtext(rows=15,bucket=Postings,oembed=none)', 'caption=Съобщение,mandatory,changable');
+        $this->FLD('body', 'richtext(rows=15,bucket=Postings,passage,oembed=none)', 'caption=Съобщение,mandatory,changable');
         
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
@@ -217,8 +223,8 @@ class email_Outgoings extends core_Master
         $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
-        $this->FLD('email', 'emails(1024)', 'caption=Адресат->Имейл, width=100%, silent,changable');
-        $this->FLD('emailCc', 'emails(1024)', 'caption=Адресат->Копие до,  width=100%,changable');
+        $this->FLD('email', 'emails(3072)', 'caption=Адресат->Имейл, width=100%, silent,changable');
+        $this->FLD('emailCc', 'emails(3072)', 'caption=Адресат->Копие до,  width=100%,changable');
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData,changable');
         $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData,changable');
         $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData,changable');
@@ -866,7 +872,7 @@ class email_Outgoings extends core_Master
         
         // Ако има originId
         if (($data->rec->originId) && ($data->rec->forward != 'yes')) {
-            
+
             // Контрагент данните от контейнера
             $contrData = doc_Containers::getContragentData($data->rec->originId);
         } else {
@@ -1282,7 +1288,7 @@ class email_Outgoings extends core_Master
                         
                         // Ако няма въведен факс номер
                         if (!trim($form->rec->fax)) {
-                            if (stripos($rec->email, '@fax.man')) {
+                            if (stripos($form->rec->email, '@fax.man')) {
                                 //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
                                 $form->setError('fax', 'За да изпратите факс, трябва да попълните полето|* <b>|Адресат|*->|Факс|*</b>.');
                             }
@@ -1347,7 +1353,7 @@ class email_Outgoings extends core_Master
     /**
      * Изпълнява се след запис на имейла, като дава възможност за моменталното му изпращане
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         if ($mvc->flagSendIt || $mvc->flagSendItFax) {
             $options = array();
@@ -1572,8 +1578,8 @@ class email_Outgoings extends core_Master
             $isAppended = true;
         }
     }
-    
-    
+
+
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -1586,7 +1592,7 @@ class email_Outgoings extends core_Master
         
         $form = $data->form;
         $rec = $form->rec;
-        
+
         // Ако се препраща
         $isForwarding = (boolean) Request::get('forward');
         $isCloning = (boolean) ($data->action == 'clone');
@@ -1597,7 +1603,7 @@ class email_Outgoings extends core_Master
         
         $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
         $emailTo = str_replace('mailto:', '', $emailTo);
-        
+
         $orderVal = 10.000091;
         
         // Бутон за изпращане
@@ -1623,7 +1629,7 @@ class email_Outgoings extends core_Master
         }
         
         $pContragentData = null;
-        
+
         // Ако сме дошли на формата чрез натискане на имейл или се препраща
         if ($emailTo) {
             if (type_Email::isValidEmail($emailTo)) {
@@ -1689,6 +1695,8 @@ class email_Outgoings extends core_Master
             
             if ($rec->originId && $oDoc->haveInterface('email_DocumentIntf')) {
                 $rec->subject = $oDoc->getDefaultEmailSubject($isForwarding);
+                $rec->subject = preg_replace('/\s*[^\s\w]+spam[^\s\w]+\s*/ui', ' ', $rec->subject);
+                $rec->subject = preg_replace('/\s{2,}/ui', ' ', $rec->subject);
             }
             
             $hintStr = tr('Смяна на езика');
@@ -1741,7 +1749,7 @@ class email_Outgoings extends core_Master
             core_Lg::pop();
             
             $recEmailsArr = type_Emails::toArray($rec->email);
-            
+
             // Ако не отговаряме на конкретен имейл, премахваме нашите имейли
             if (!$emailTo) {
                 $recEmailsArr = email_Inboxes::removeOurEmails($recEmailsArr);
@@ -1757,7 +1765,7 @@ class email_Outgoings extends core_Master
                     $removeFromGroup = array();
                 }
             }
-            
+
             // Ако има имейли в Cc и е избрано да се попълват ги добавяме в полето
             if ($contragentData->ccEmail) {
                 $autoFillCnt = email_Setup::get('AUTO_FILL_EMAILS_FROM_CC');
@@ -1799,11 +1807,11 @@ class email_Outgoings extends core_Master
                     }
                 }
             }
-            
+
             // Автоматично попълване на To имейлите
             if ($contragentData->toEmail) {
                 $autoFillCnt = email_Setup::get('AUTO_FILL_EMAILS_FROM_TO');
-                
+
                 if ($autoFillCnt) {
                     
                     $toParser = new email_Rfc822Addr();
@@ -1825,7 +1833,7 @@ class email_Outgoings extends core_Master
                     }
                     
                     $toEmailsArr = email_Inboxes::removeOurEmails($toEmailsArr);
-                    
+
                     // Ако имейлите в To са над лимита, не ги добавяме автоматично в полето
                     if (countR($toEmailsArr) <= $autoFillCnt) {
                         if (countR($recEmailsArr)) {
@@ -1871,10 +1879,10 @@ class email_Outgoings extends core_Master
             $sentToEmailsArr = type_Emails::toArray($sentToEmails);
             $groupEmailsArr = array_merge($groupEmailsArr, $sentToEmailsArr);
         }
-        
+
         $groupEmailsArr = array_diff($groupEmailsArr, $removeFromGroup);
         $groupEmailsArr = email_Inboxes::removeOurEmails($groupEmailsArr);
-        
+
         if ($groupEmailsArr) {
             $groupEmailsArr = array_combine($groupEmailsArr, $groupEmailsArr);
             
@@ -1893,8 +1901,124 @@ class email_Outgoings extends core_Master
             $data->form->addAttr('body', $langAttrArr);
             $data->form->addAttr('subject', $langAttrArr);
         }
+
+        $data->form->rec->emailCc = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->emailCc)));
+        $data->form->rec->email = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->email)));
     }
-    
+
+
+    /**
+     * Взема контрагент данните от предишния имейл, който е създаден за същия тип документ в папката
+     *
+     * @param integer $originId
+     * @param integer $folderId
+     *
+     * @return stdClass|null
+     */
+    protected static function getContragentDataForSameDocument($originId, $folderId)
+    {
+        if ((!$originId) || (!$folderId)) {
+
+            return ;
+        }
+
+        $oDoc = doc_Containers::getDocument($originId);
+
+        if (!$oDoc) {
+
+            return ;
+        }
+
+        if ($oDoc->getContragentDataFromLastDoc === false) {
+
+            return ;
+        }
+
+        if ($oDoc && $oDoc->that) {
+            $oContrData = $oDoc->getContragentData($oDoc->that);
+            if ($oContrData && $oContrData->_getContragentDataFromLastDoc === false) {
+
+                return ;
+            }
+        }
+
+        $docClsName = $oDoc->className;
+
+        $query = self::getQuery();
+        $query->where(array("#folderId = '[#1#]'", $folderId));
+        $query->where("#originId IS NOT NULL");
+        $query->where("#state = 'closed'");
+        $query->orderBy('modifiedOn', 'DESC');
+        $contrData = null;
+
+        $lastGoodRec = null;
+        while ($rec = $query->fetch()) {
+            if (!$rec->originId) {
+
+                continue ;
+            }
+
+            $recODoc = doc_Containers::getDocument($rec->originId);
+
+            if (!$recODoc) {
+
+                continue ;
+            }
+
+            if (!isset($lastGoodRec)) {
+                $lastGoodRec = $rec;
+            }
+
+            $haveCF = $haveMatchCF = false;
+            if ($docClsName == $recODoc->className) {
+                $checkFields = $oDoc->getContragentDataCheckFields;
+                if ($checkFields) {
+                    $haveCF = true;
+
+                    $recORec = $recODoc->fetch();
+                    $oRec = $oDoc->fetch();
+                    $checkFields = explode(',', $checkFields);
+                    foreach ($checkFields as $cf) {
+                        if (!isset($oRec->{$cf})) {
+                            continue;
+                        }
+
+                        if ($oRec->{$cf} == $recORec->{$cf}) {
+
+                            $lastGoodRec = $rec;
+
+                            $haveMatchCF = true;
+
+                            break;
+                        }
+                    }
+                }
+
+                if ($haveMatchCF || !$haveCF) {
+
+                    break;
+                }
+            }
+        }
+
+        if (isset($lastGoodRec)) {
+            $contrData = new stdClass;
+
+            $contrData->company = $lastGoodRec->recipient;
+            $contrData->person = $lastGoodRec->attn;
+            $contrData->tel = $lastGoodRec->tel;
+            $contrData->fax = $lastGoodRec->fax;
+            $contrData->country = $lastGoodRec->country;
+            $contrData->pCode = $lastGoodRec->pcode;
+            $contrData->place = $lastGoodRec->place;
+            $contrData->address = $lastGoodRec->address;
+            $contrData->email = $lastGoodRec->email;
+            $contrData->sameEmailCc = $lastGoodRec->emailCc;
+        }
+
+        return $contrData;
+    }
+
     
     /**
      * Прави опит да определи контрагент данните и връща резултат за тях
@@ -1909,6 +2033,7 @@ class email_Outgoings extends core_Master
         $contragentData = null;
 
         if (!$isForwarding) {
+
             if ($rec->threadId) {
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
             }
@@ -1954,7 +2079,6 @@ class email_Outgoings extends core_Master
                     $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
                     $contragentData->groupEmails .= $oContragentData->groupEmails;
                 }
-
             }
         }
 
@@ -2011,6 +2135,27 @@ class email_Outgoings extends core_Master
             }
         }
 
+        if (!$isForwarding) {
+            $contragentDataDoc = null;
+            if ($rec->originId) {
+                $contragentDataDoc = self::getContragentDataForSameDocument($rec->originId, $rec->folderId);
+            } else {
+                if ($rec->threadId) {
+                    $contragentDataDoc = doc_Threads::getContragentData($rec->threadId);
+                }
+            }
+
+            if ($contragentDataDoc) {
+
+                if ($contragentData->groupEmails) {
+                    $contragentDataDoc->groupEmails .= ($contragentDataDoc->groupEmails) ? ', ' : '';
+                    $contragentDataDoc->groupEmails .= $contragentData->groupEmails;
+                }
+
+                return $contragentDataDoc;
+            }
+        }
+
         return $contragentData;
     }
     
@@ -2049,6 +2194,10 @@ class email_Outgoings extends core_Master
             $rec->email = email_Mime::getAllEmailsFromStr($contragentData->replyToEmail);
         } else {
             $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
+        }
+
+        if ($contragentData->sameEmailCc) {
+            $rec->emailCc = $contragentData->sameEmailCc;
         }
     }
     
@@ -2414,7 +2563,7 @@ class email_Outgoings extends core_Master
         }
         
         $text = core_Packs::getConfigValue('email', $key);
-        
+
         $textTpl = new ET($text);
         
         $placeArr = $textTpl->getPlaceholders();
@@ -2423,14 +2572,20 @@ class email_Outgoings extends core_Master
         
         foreach ((array) $placeArr as $placeHolder) {
             $placeHolderU = strtoupper($placeHolder);
-            
+
+            $yearMask = 'd-M';
+
+            $cYear = date('Y');
+            $eYear = date('Y', dt::mysql2timestamp($date));
+            $yearMask .= ($cYear != $eYear) ? '-Y' : '';
+
             switch ($placeHolderU) {
                 case 'DATETIME':
-                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M H:i', null, false);
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, $yearMask . ' H:i', null, false);
                 break;
                 
                 case 'DATE':
-                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M', null, false);
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, $yearMask, null, false);
                 break;
                 
                 case 'MSG':
@@ -2904,7 +3059,6 @@ class email_Outgoings extends core_Master
                 if (!$lRec->data->to) {
                     continue;
                 }
-                
                 
                 $sendedTo .= ($sendedTo) ? ', ' . $lRec->data->to : $lRec->data->to;
             }

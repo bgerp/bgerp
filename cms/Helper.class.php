@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -114,19 +114,22 @@ class cms_Helper extends core_BaseClass
      * 
      * @return void|string
      */
-    public static function getErrorIfThereIsUserWithEmail($email)
+    public static function getEmailError($email)
     {
         $cu = core_Users::getCurrent('id', false);
-        if (isset($cu)) {
-            
-            return;
-        }
-        
+        if (isset($cu)) return;
+
         // Ако има потребител с този имейл той трябва да е логнат
         if (core_Users::getUserByEmail($email)) {
-
             $link = ht::createLink(tr('логнете'),array('core_Users','login'));
+
             return "Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се|* <b>{$link}</b>.";
+        }
+
+        // Ако имейла е вътрешен да не се допуска създаване/изпращане
+        if(email_Inboxes::fetchField(array("#email = '[#1#]'", $email))){
+
+            return "Посоченият имейл е запазен за вътрешните потребители на системата. Моля посочете друг имейл|*.";
         }
     }
 
@@ -152,5 +155,26 @@ class cms_Helper extends core_BaseClass
         }
 
         return null;
+    }
+
+
+    /**
+     * Коя е текущата ценова политика във външната част
+     *
+     * @param stdClass $settings - запис на настройките
+     * @return int               - ид на ценова политика или null ако няма
+     */
+    public static function getCurrentEshopPriceList($settings)
+    {
+        $listId = $settings->listId;
+        if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
+            $Cover = doc_Folders::getCover($lastActiveFolder);
+            $priceDateTime = null;
+            if($contragentListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that, $priceDateTime, true)){
+                $listId = $contragentListId;
+            }
+        }
+
+        return $listId;
     }
 }

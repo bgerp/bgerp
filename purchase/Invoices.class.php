@@ -64,8 +64,14 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Детайла, на модела
      */
     public $details = 'purchase_InvoiceDetails';
-    
-    
+
+
+    /**
+     * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
+     */
+    public static $updateContragentdataField = array();
+
+
     /**
      * Кой има право да променя?
      */
@@ -193,7 +199,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Стратегии за добавяне на артикули след създаване от източника
      */
-    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от сделката", 'shippedNotInvoiced' => 'Заскладените (Нефактурирани) артикули по сделката');
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от сделката", 'shippedNotInvoiced' => 'Заскладените (Нефактурирани) артикули по сделката', 'none' => 'Без');
 
 
     /**
@@ -209,17 +215,6 @@ class purchase_Invoices extends deals_InvoiceMaster
         $this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv');
         $this->FLD('state', 'enum(draft=Чернова, active=Контирана, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Входяща фактура, credit_note=Входящо кредитно известие, debit_note=Входящо дебитно известие, dc_note=Известие)', 'caption=Вид, input=hidden');
-    }
-    
-    
-    /**
-     * Връща асоциираната форма към MVC-обекта
-     */
-    public static function on_AfterGetForm($mvc, &$form, $params = array())
-    {
-        $form->FLD('contragentSource', 'enum(company=Фирми,newContragent=Нов доставчик)', 'input,silent,removeAndRefreshForm=selectedContragentId,caption=Контрагент->Източник,before=contragentName');
-        $form->setDefault('contragentSource', 'company');
-        $form->FLD('selectedContragentId', 'int', 'input=none,silent,removeAndRefreshForm,caption=Контрагент->Избор,after=contragentSource,mandatory');
     }
     
     
@@ -242,25 +237,6 @@ class purchase_Invoices extends deals_InvoiceMaster
             $form->setDefault('additionalInfo', $additionalInfo);
         }
         
-        // Ако ф-та не е към служебен аванс не искаме да се сменя контрагента
-        $firstDocument = doc_Threads::getFirstDocument($form->rec->threadId);
-        if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
-            $form->setField('contragentSource', 'input=none');
-            unset($form->rec->contragentSource);
-        } else {
-            if(isset($rec->id)){
-                $form->setDefault('selectedContragentId', $rec->contragentId);
-            }
-        }
-        
-        // Ако има избрано поле за източник на контрагента
-        if (isset($rec->contragentSource)) {
-            if ($rec->contragentSource == 'company') {
-                $form->setField('selectedContragentId', 'input');
-                $form->setFieldType('selectedContragentId', core_Type::getByName('key(mvc=crm_Companies,select=name,allowEmpty)'));
-            }
-        }
-        
         parent::prepareInvoiceForm($mvc, $data);
         if(empty($rec->id)){
             $form->setDefault('importProducts', 'shippedNotInvoiced');
@@ -276,8 +252,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
         $form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, true));
         
-        if ($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate') {
-            $form->setField('vatReason', 'mandatory');
+        if (!in_array($form->rec->vatRate, array('yes', 'separate'))) {
+            if(!crm_Companies::isOwnCompanyVatRegistered()){
+                $form->setField('vatReason', 'mandatory');
+            }
         }
         
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
@@ -298,7 +276,6 @@ class purchase_Invoices extends deals_InvoiceMaster
             $fRec = fileman::fetchByFh($clonedFh);
             doc_DocumentPlg::showOriginalFile($fRec, $form);
         }
-        
     }
     
     
@@ -337,60 +314,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
         $rec = &$form->rec;
         
-        $unsetFields = false;
-        
-        // Махане на дефолтните данни при нужда
-        if ((empty($rec->id) && $form->cmd != 'save' && isset($rec->contragentSource) && $rec->contragentSource != 'newContragent' && empty($rec->selectedContragentId))) {
-            $unsetFields = true;
-        }
-        
-        if ($form->cmd == 'refresh') {
-            if ($rec->contragentSource == 'newContragent') {
-                $unsetFields = true;
-            }
-            
-            $arr = array();
-            
-            // Ако е избран контрагент замества ме му данните
-            if (isset($rec->selectedContragentId)) {
-                if ($rec->contragentSource == 'company') {
-                    $cData = crm_Companies::getContragentData($rec->selectedContragentId);
-                    foreach (array('contragentName' => 'company', 'contragentCountryId' => 'countryId', 'contragentVatNo' => 'vatNo', 'uicNo' => 'uicId', 'contragentPCode' => 'pCode', 'contragentPlace' => 'place', 'contragentAddress' => 'address') as $k => $v) {
-                        $arr[$k] = $cData->{$v};
-                    }
-                    $arr['contragentClassId'] = crm_Companies::getClassId();
-                    $arr['contragentId'] = $rec->selectedContragentId;
-                } else {
-                    $arr['contragentClassId'] = null;
-                    $arr['contragentId'] = null;
-                }
-                
-                if (countR($arr)) {
-                    foreach (array('contragentName', 'contragentClassId', 'contragentId', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
-                        $form->rec->{$fld} = $arr[$fld];
-                    }
-                }
-            }
-        }
-        
-        // Ако е указано да махнем записаните данни, правим го
-        if ($unsetFields === true) {
-            foreach (array('contragentName', 'contragentClassId', 'contragentId', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
-                unset($rec->{$fld});
-            }
-            $rec->contragentCountryId = crm_Companies::fetchOurCompany()->country;
-        }
-        
-        if ($rec->type != 'dc_note') {
-            // Ако източника е фирма и не е избрана фирма, забраняваме определени полета
-            if ($rec->contragentSource == 'company' && empty($rec->selectedContragentId)) {
-                unset($rec->contragentName);
-                foreach (array('contragentName', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
-                    $form->setReadOnly($fld);
-                }
-            }
-        }
-        
         parent::inputInvoiceForm($mvc, $form);
         
         if ($form->isSubmitted()) {
@@ -406,16 +329,6 @@ class purchase_Invoices extends deals_InvoiceMaster
                 }
             }
             
-            if ($rec->contragentSource == 'newContragent') {
-                $cRec = self::getContragentRec($rec);
-                
-                // Проверяваме да няма дублиране на записи
-                $resStr = crm_Companies::getSimilarWarningStr($cRec);
-                if ($resStr) {
-                    $form->setWarning('contragentName,contragentCountryId,contragentVatNo,uicNo,contragentPCode,contragentPlace,contragentAddress', $resStr);
-                }
-            }
-            
             if (empty($rec->number)) {
                 $rec->number = null;
             }
@@ -428,24 +341,9 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             if (!$mvc->isNumberFree($checkRec, $foundInvoiceId)) {
                 $foundInvoiceId = purchase_Invoices::getLink($foundInvoiceId, 0);
-                $form->setError("{$fld},number", "Има вече входяща фактура с този номер, за този контрагент|*: <b>{$foundInvoiceId}</b>");
+                $form->setError("number", "Има вече входяща фактура с този номер, за този контрагент|*: <b>{$foundInvoiceId}</b>");
             }
         }
-    }
-    
-    
-    /**
-     * Връща запис с данните на контрагента
-     *
-     * @param stdClass $rec
-     *
-     * @return stdClass $cRec
-     */
-    private static function getContragentRec($rec)
-    {
-        $cRec = (object) array('name' => $rec->contragentName, 'country' => $rec->contragentCountryId, 'vatId' => $rec->contragentVatNo, 'uicId' => $rec->uicNo, 'pCode' => $rec->contragentPCode, 'place' => $rec->contragentPlace, 'address' => $rec->contragentAddress);
-        
-        return $cRec;
     }
     
     
@@ -501,30 +399,11 @@ class purchase_Invoices extends deals_InvoiceMaster
     public static function on_BeforeSave($mvc, $id, $rec)
     {
         parent::beforeInvoiceSave($rec);
-        
-        // Форсиране на нова фирма, ако е указано
-        if ($rec->state == 'draft') {
-            if ($rec->contragentSource == 'newContragent') {
-                $cRec = self::getContragentRec($rec);
-                $rec->contragentId = crm_Companies::save($cRec);
-                $rec->contragentClassId = crm_Companies::getClassId();
-                core_Statuses::newStatus("Добавена е нова фирма|* '{$rec->contragentName}'");
-            }
-        }
-        
+
         if(!empty($rec->number)){
             $number = $mvc->getVerbal($rec, 'number');
             $rec->searchKeywords .= ' ' . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($rec->number);
         }
-    }
-    
-    
-    /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
-    {
-        $tpl->push('purchase/tpl/invoiceStyles.css', 'CSS');
     }
     
     
@@ -835,10 +714,11 @@ class purchase_Invoices extends deals_InvoiceMaster
             if ($pRec->state != 'closed') {
                 if (($pRec->chargeVat == 'exempt') || ($pRec->chargeVat == 'no')) {
                     $form->FNC('invVatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС, input, before=acceptance, mandatory');
-                    
                     $noReason1 = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
                     $noReason2 = acc_Setup::get('VAT_REASON_IN_EU');
-                    $suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2);
+                    $noReason3 = acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
+                    $suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2, $noReason3 => $noReason3);
+
                     $form->setSuggestions('invVatReason', $suggestions);
                 }
             }

@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -301,7 +301,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                     $requiredRoles = 'no_one';
                 } else {
                     $state = $origin->fetchField('state');
-                    if (in_array($state, array('rejected', 'draft', 'closed'))) {
+                    if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped', 'pending'))) {
                         $requiredRoles = 'no_one';
                     }
                 }

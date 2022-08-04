@@ -553,7 +553,7 @@ class email_Inboxes extends core_Master
                 $replaceDomainArr = false;
             }
         }
-        
+
         if ($replaceDomainArr && countR($replaceDomainArr)) {
             list($toNick, $toDomain) = explode('@', $toEmail);
             foreach ($replaceDomainArr as $fromReplace => $toReplace) {
@@ -1129,7 +1129,7 @@ class email_Inboxes extends core_Master
         if (trim($where)) {
             $query->where($where);
         }
-        
+
         // Ако не е зададено да се показват само персоналните
         if (!$personalOnly) {
             $query->orWhere("#shared LIKE '%|{$userId}|%'");
@@ -1201,7 +1201,7 @@ class email_Inboxes extends core_Master
      *
      * @return array
      */
-    public static function getAllEmailsArr($removeClosed = true, $removeRejected = true, $uRole = null)
+    public static function getAllEmailsArr($removeClosed = true, $removeRejected = true, $uRole = null, &$allEmailsInCharge = array())
     {
         $cacheType = 'emailInboxes';
         $cacheHandle = 'allEmails_' . $removeRejected . '_' . $removeClosed . '_' . $uRole;
@@ -1229,13 +1229,16 @@ class email_Inboxes extends core_Master
                     }
                 }
 
-                $allEmailsArr[] = $rec->email;
+                $allEmailsArr['allEmailsArr'][] = $rec->email;
+                $allEmailsArr['allEmailsInChargeArr'][$rec->email] = $rec->inCharge;
             }
             
             core_Cache::set($cacheType, $cacheHandle, $allEmailsArr, $keepMinutes, $depends);
         }
 
-        return $allEmailsArr;
+        $allEmailsInCharge = $allEmailsArr['allEmailsInChargeArr'];
+
+        return (array) $allEmailsArr['allEmailsArr'];
     }
     
     
@@ -1243,53 +1246,92 @@ class email_Inboxes extends core_Master
      * Премахва всички наши имейли от подададения масив с имейли
      *
      * @param array $emailsArr - Масив с имейли
+     * @param array $removedEmailsUsersArr - Масив с имейлите на премахнатите потребители
      *
      * @return array $allEmailsArr - Масив с изчистените имейли
      */
-    public static function removeOurEmails($emailsArr)
+    public static function removeOurEmails($emailsArr, &$removedEmailsUsersArr = array())
     {
-        $emailForRemove = self::getAllEmailsArr();
-        
+        $emailInChargeArr = array();
+
+        $emailForRemove = self::getAllEmailsArr(true, true, null, $emailInChargeArr);
+
+        $commonAndCorporate = email_Accounts::getCommonAndCorporate();
+
+        foreach ((array) $commonAndCorporate as $cEmail) {
+            unset($emailInChargeArr[$cEmail]);
+        }
+
+        foreach ($emailForRemove as $er) {
+            $rEmail = self::replaceDomains($er);
+            if ($rEmail != $er) {
+                $emailForRemove[] = $rEmail;
+                if (isset($emailInChargeArr[$er])) {
+                    $emailInChargeArr[$rEmail] = $emailInChargeArr[$er];
+                }
+            }
+        }
+
+        foreach ($emailsArr as $eStr) {
+            $rEmail = self::replaceDomains($eStr);
+            if ($rEmail != $eStr) {
+                $emailForRemove[] = $eStr;
+                if (isset($emailInChargeArr[$eStr])) {
+                    $emailInChargeArr[$rEmail] = $emailInChargeArr[$er];
+                } elseif (isset($emailInChargeArr[$rEmail])) {
+                    $emailInChargeArr[$rEmail] = $emailInChargeArr[$rEmail];
+                }
+            }
+        }
+
         // Премахваме нашите имейли
         $allEmailsArr = array_diff($emailsArr, $emailForRemove);
-        
+
+        $removedEmailsArr = array_diff($emailsArr, $allEmailsArr);
+        foreach ((array) $removedEmailsArr as $rEmail) {
+            if (isset($emailInChargeArr[$rEmail])) {
+                $uId = $emailInChargeArr[$rEmail];
+                $removedEmailsUsersArr[$uId] = $uId;
+            }
+        }
+
         if (!$allEmailsArr) {
-            
+
             return $allEmailsArr;
         }
-        
+
         // Масив с всички корпоративни домейни
         $domainsArr = email_Accounts::getCorporateDomainsArr();
-        
+
         // Обхождаме масива с останалите имейли
         foreach ($allEmailsArr as $key => $email) {
-            
+
             // Вземаме домейна на имейла
             list($nick, $domain) = explode('@', $email);
-            
+
             // Домейна в долен регистър
             $domain = mb_strtolower($domain);
-            
+
             // Ако домейна съществува в нашите домейни
             if ($domainsArr[$domain]) {
-                
+
                 // Премахваме от масива
                 unset($allEmailsArr[$key]);
-                
+
                 continue;
             }
-            
+
             foreach (self::$removeEmailsUserNameArr as $emailNick) {
                 if (stripos($nick, $emailNick) !== false) {
                     unset($allEmailsArr[$key]);
                 }
             }
         }
-        
+
         return $allEmailsArr;
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -1325,12 +1367,12 @@ class email_Inboxes extends core_Master
      *
      * @return array
      */
-    public static function getAllowedFromEmailOptions($type, $otherParams = array())
+    public static function getAllowedFromEmailOptions($type, $otherParams = array(), $personalOnly = false)
     {
         try {
             
             // Личните имейли на текущия потребител
-            $emailOptions = email_Inboxes::getFromEmailOptions(false, null, true);
+            $emailOptions = email_Inboxes::getFromEmailOptions(false, null, $personalOnly);
         } catch (core_exception_Expect $e) {
             $emailOptions[] = '';
         }

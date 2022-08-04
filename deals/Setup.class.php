@@ -56,6 +56,12 @@ defIfNot('DEALS_TEST_VAT_CALC', 'no');
 
 
 /**
+ * Допустим % "Недоставено" за автоматично приключване на сделка
+ */
+defIfNot('DEALS_CLOSE_UNDELIVERED_OVER', '0.99');
+
+
+/**
  * class deals_Setup
  *
  *
@@ -116,6 +122,7 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_ACTIVE_DEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни продажби и покупки без нови документи->Хоризонт'),
         'DEALS_ACTIVE_FINDEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни финансови сделки без нови документи->Хоризонт'),
         'DEALS_TEST_VAT_CALC' => array('enum(no=Не,yes=Да)', 'caption=Дебъг->Тестово закръгляне,autohide=any'),
+        'DEALS_CLOSE_UNDELIVERED_OVER' => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
     );
     
     

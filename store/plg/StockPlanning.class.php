@@ -102,7 +102,7 @@ class store_plg_StockPlanning extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updatePlannedStocks($rec);
     }
@@ -121,7 +121,7 @@ class store_plg_StockPlanning extends core_Plugin
 
                 if ($firstDocument->isInstanceOf('planning_Tasks')) {
                     $firstDocument = doc_Containers::getDocument($firstDocument->fetchField('originId'));
-                } elseif ($mvc instanceof deals_DealMaster || $firstDocument->isInstanceOf('findeals_Deals') || $mvc instanceof planning_Jobs || $firstDocument->isInstanceOf('store_Transfers') || $firstDocument->isInstanceOf('planning_ConsumptionNotes') || $firstDocument->isInstanceOf('planning_ReturnNotes')) {
+                } elseif ($mvc instanceof deals_DealMaster || $firstDocument->isInstanceOf('findeals_Deals') || $mvc instanceof planning_Jobs || $firstDocument->isInstanceOf('store_Transfers') || $firstDocument->isInstanceOf('planning_ConsumptionNotes') || $firstDocument->isInstanceOf('planning_ReturnNotes') || $firstDocument->isInstanceOf('store_ConsignmentProtocols')) {
                     $firstDocument = null;
                 }
 

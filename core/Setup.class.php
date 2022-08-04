@@ -220,7 +220,7 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '21.45-Dzhano');
+define('CORE_CODE_VERSION', '22.31-Orlovets');
 
 
 /**
@@ -239,12 +239,6 @@ defIfNot('CORE_BACKUP_MAX_CNT', 2);
  * Парола за архиви
  */
 defIfNot('CORE_BACKUP_PASS', '');
-
-
-/**
- * Път до текущия и миналия бекъп
- */
-defIfNot('CORE_BACKUP_PATH', EF_UPLOADS_PATH . '/backup');
 
 
 /**
@@ -369,7 +363,7 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array('int', 'caption=Запомняне на потребителя при логване от един браузър->Брой логвания'),
         
-        'CORE_ALLOW_PASS_SAVE' => array('enum(yes=Да,no=Не)', 'caption=Запомняне в бразузъра на паролата за логин->Разрешено'),
+        'CORE_ALLOW_PASS_SAVE' => array('enum(yes=Да,no=Не)', 'caption=Запомняне в браузъра на паролата за логин->Разрешено'),
         
         'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
         
@@ -400,8 +394,6 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_PERIOD' => array('time', 'caption=Настройки за бекъп->Пълен бекъп през'),
         
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
-        
-        'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
     );
     
     
@@ -428,6 +420,7 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
+        'migrate::clearCallOnTimeBadData2212',
         'migrate::repairSearchKeywords31920',
         'migrate::setBGERPUNIQId3020'
     );
@@ -546,6 +539,13 @@ class core_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
+            
+            // Създаваме директориите
+            $tempDir = core_Backup::getTempPath();
+            core_Os::forceDir($tempDir, 0744);
+            $backupDir = core_Backup::getBackupPath();
+            core_Os::forceDir($backupDir, 0744);
+
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
             $rec->systemId = 'Backup_Create';
@@ -569,13 +569,6 @@ class core_Setup extends core_ProtoSetup
             $rec->delay = 2;
             $rec->timeLimit = 20;
             $html .= core_Cron::addOnce($rec);
-            $html .= core_Os::createDirectories(
-                array(
-                    core_Backup::getDir(),
-                    core_Backup::getDir('backup_work'),
-                ),
-                0744
-            );
             core_SystemData::set('flagDoSqlLog');
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
@@ -854,5 +847,14 @@ class core_Setup extends core_ProtoSetup
     function setBGERPUNIQId3020()
     {
         $this->setBGERPUniqId(true);
+    }
+
+
+    /**
+     * Изчиства лошите данни от core_CallOnTime
+     */
+    function clearCallOnTimeBadData2212()
+    {
+        core_CallOnTime::delete(array("#callOn < '[#1#]' AND #state = 'pending' AND #methodName = 'repairSerchKeywords'", dt::subtractSecs(30 * 86400)));
     }
 }

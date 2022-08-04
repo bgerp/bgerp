@@ -23,10 +23,12 @@ class trans_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('trans_Lines', 'Линии', 'ceo,trans');
         $this->TAB('trans_Cmrs', 'ЧМР', 'ceo,trans');
-        $this->TAB('trans_Vehicles', 'Превозни средства', 'ceo,trans');
-        $this->TAB('trans_TransportUnits', 'ЛЕ', 'trans,ceo');
-        $this->TAB('trans_TransportModes', 'Видове', 'trans,ceo');
-        
+        $this->TAB('trans_IntraCommunitySupplyConfirmations', 'ВОД', 'ceo,trans');
+        $this->TAB('trans_TransportUnits', 'ЛЕ', 'ceo,trans');
+        $this->TAB('trans_Vehicles', 'МПС', 'ceo,trans');
+        $this->TAB('trans_TransportModes', 'Видове', 'ceo,trans');
+        $this->TAB('trans_Features', 'Особености', 'ceo,trans');
+
         $this->title = 'Транспорт';
     }
 }

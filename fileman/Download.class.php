@@ -335,7 +335,9 @@ class fileman_Download extends core_Manager
 //                shutdown();
 //            }
 //        }
-        
+
+        fileman::logRead('Сваляне', $fRec->id);
+
         if (Request::get('forceDownload')) {
             redirect($link);
         } else {

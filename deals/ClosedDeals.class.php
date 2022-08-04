@@ -259,7 +259,12 @@ abstract class deals_ClosedDeals extends core_Master
     protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if ($mvc->haveRightFor('conto', $data->form->rec)) {
-            $data->form->toolbar->addSbBtn('Контиране', 'autoConto', 'warning=Наистина ли желаете да контирате приключването|*?,ef_icon = img/16/tick-circle-frame.png,order=9.99985, title = Контиране на документа');
+            $error = $mvc->getContoBtnErrStr($data->form->rec);
+            $contoBtnUrl = array('warning' => 'Наистина ли желаете да контирате приключването|*?', 'ef_icon' => 'img/16/tick-circle-frame.png', 'order' => '9.99985', 'title' => 'Контиране на документа');
+            if(!empty($error)){
+                $contoBtnUrl['error'] = $error;
+            }
+            $data->form->toolbar->addSbBtn('Контиране', 'autoConto', $contoBtnUrl);
         }
     }
 
@@ -385,10 +390,9 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Изпълнява се след запис
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         // При активация на документа
-        $oldRec = clone $rec;
         $rec = $mvc->fetch($id);
 
         if ($rec->state == 'active') {
@@ -398,10 +402,9 @@ abstract class deals_ClosedDeals extends core_Master
             $firstRec = $DocClass->fetch($rec->docId);
             $firstRec->state = 'closed';
             $firstRec->closedOn = $mvc->getValiorDate($rec);
-            $firstRec->modifiedOn = dt::now();
-            $DocClass->save($firstRec, 'modifiedOn,state,closedOn');
+            $DocClass->save($firstRec, 'modifiedOn,modifiedBy,state,closedOn');
 
-            if (empty($saveFileds)) {
+            if (empty($saveFields)) {
                 $rec->amount = $mvc->getClosedDealAmount($rec->threadId);
                 $mvc->save($rec, 'amount');
             }
@@ -430,10 +433,8 @@ abstract class deals_ClosedDeals extends core_Master
             // Обновяваме състоянието на сделката, само ако не е оттеглена
             if ($firstRec->state != 'rejected') {
                 $firstRec->state = 'active';
-                $firstRec->modifiedOn = dt::now();
                 $firstRec->closeWith = null;
-                
-                $DocClass->save($firstRec, 'modifiedOn,state,closeWith');
+                $DocClass->save($firstRec, 'modifiedOn,modifiedBy,state,closeWith');
             }
         }
         
@@ -801,5 +802,34 @@ abstract class deals_ClosedDeals extends core_Master
         }
 
         return $inc - $cost;
+    }
+
+
+    /**
+     * Взимане на грешка в бутона за контиране
+     */
+    protected static function on_AfterGetContoBtnErrStr($mvc, &$res, $rec)
+    {
+        if(empty($res)){
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDoc->isInstanceOf('deals_DealMaster')){
+
+                // Ако се приключва сделка с валута различна от BGN и EUR
+                $firstDocCurrencyCode = $firstDoc->fetchField('currencyId');
+                if(!in_array($firstDocCurrencyCode, array('BGN', 'EUR'))){
+                    $biggestValior = $mvc->getBiggestValiorInDeal($rec);
+                    $day = dt::mysql2verbal(dt::now(), 'd');
+                    $setupClass = $firstDoc->isInstanceOf('sales_Sales') ? 'sales_Setup' : 'purchase_Setup';
+                    $accDay = acc_Setup::get('DATE_FOR_INVOICE_DATE') + $setupClass::get('CURRENCY_CLOSE_AFTER_ACC_DATE');
+                    $firstDayOfMonth = date('Y-m-01') . " 23:59:59";
+
+                    // Ако най-големия вальор не е в миналия месец или деня е преди нужния за осчетоводяване сетва се грешка
+                    if($biggestValior >= $firstDayOfMonth || $day < $accDay){
+                        $biggestValior = dt::mysql2verbal($biggestValior, 'd.m.Y');
+                        $res = "Не може да се приключи валутна сделка, преди|* {$accDay} |число на месеца следващ най-големия вальор на сделката|*: {$biggestValior}!";
+                    }
+                }
+            }
+        }
     }
 }

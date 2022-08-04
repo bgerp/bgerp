@@ -172,11 +172,11 @@ class core_FieldSet extends core_BaseClass
         $params = arr::make($params, true);
         $names = arr::make($names, true);
         
-        if ($params['after'] && !is_array($params['after'])) {
+        if (isset($params['after']) && $params['after'] && !is_array($params['after'])) {
             $params['after'] = explode('|', $params['after']);
         }
         
-        if (isset($params['before']) && !is_array($params['before'])) {
+        if (isset($params['before']) && $params['before'] && !is_array($params['before'])) {
             $params['before'] = explode('|', $params['before']);
         }
         
@@ -185,7 +185,7 @@ class core_FieldSet extends core_BaseClass
         foreach ($names as $name => $caption) {
             $params = $paramsS;
             
-            $mustOrder = $params['mustOrder'];
+            $mustOrder = isset($params['mustOrder']) ? $params['mustOrder'] : null;
             
             if ($newField && isset($this->fields[$name])) {
                 if ($params['forceField']) {
@@ -254,11 +254,11 @@ class core_FieldSet extends core_BaseClass
                 $this->lastFroGroup[$group] = $name;
             }
             
-            if ((countR($params['before']) || countR($params['after'])) && $mustOrder) {
+            if ((isset($params['before']) && (countR($params['before'])) || (isset($params['after']) && countR($params['after']))) && $mustOrder) {
                 $newFields = array();
                 $isSet = false;
                 foreach ($this->fields as $exName => $exFld) {
-                    if (is_array($params['before']) && in_array($exName, $params['before'])) {
+                    if (isset($params['before']) && is_array($params['before']) && in_array($exName, $params['before'])) {
                         $isSet = true;
                         $newFields[$name] = &$this->fields[$name];
                     }
@@ -267,7 +267,7 @@ class core_FieldSet extends core_BaseClass
                         $newFields[$exName] = &$this->fields[$exName];
                     }
                     
-                    if (is_array($params['after']) && in_array($exName, $params['after'])) {
+                    if (isset($params['after']) && is_array($params['after']) && in_array($exName, $params['after'])) {
                         $newFields[$name] = &$this->fields[$name];
                         $isSet = true;
                     }
@@ -284,11 +284,11 @@ class core_FieldSet extends core_BaseClass
                         $second = true;
                         continue;
                     }
-                    if (is_array($exFld->before) && in_array($name, $exFld->before)) {
+                    if (isset($exFld->before) && is_array($exFld->before) && in_array($name, $exFld->before)) {
                         $before[$exName] = &$this->fields[$exName];
                         continue;
                     }
-                    if (is_array($exFld->after) && in_array($name, $exFld->after)) {
+                    if (isset($exFld->after) && is_array($exFld->after) && in_array($name, $exFld->after)) {
                         $after[$exName] = &$this->fields[$exName];
                         continue;
                     }
@@ -319,7 +319,7 @@ class core_FieldSet extends core_BaseClass
                     list($group, $en) = explode('||', $group);
                 }
                 
-                if ($lastGroup && $lastGroup != $group && $lastField[$group]) {
+                if ($lastGroup && $lastGroup != $group && isset($lastField[$group])) {
                     $flagChange = true;
                     arr::insert($res, $lastField[$group], array($name => $fld), true);
                 } else {
@@ -541,6 +541,12 @@ class core_FieldSet extends core_BaseClass
     /**
      * Връща типа на посоченото поле. Ако полето
      * липсва, а $strict е истина, генерира се грешка
+     *
+     * @param string $name
+     * @param boolean $strict
+     *
+     * @return core_Type
+     * @throws core_exception_Expect
      */
     public function getFieldType($name, $strict = true)
     {

@@ -270,7 +270,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             
             return $res;
         }
-        
+
         $exItem = acc_Items::fetchItem($firstDocClassId, $firstDocument->that);
         if (!$exItem) {
             
@@ -305,27 +305,35 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             }
         }
         
-        $costAlocQuery = acc_CostAllocations::getQuery();
-        $costAlocQuery->where("#expenseItemId = {$exItem->id}");
-        $costAlocQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        $costAlocQuery->where('#productsData IS NOT NULL');
-       
+        $costAllocQuery = acc_CostAllocations::getQuery();
+        $costAllocQuery->where("#expenseItemId = {$exItem->id}");
+        $costAllocQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
+        $costAllocQuery->where('#productsData IS NOT NULL');
+
         $costsArr = array();
-        while ($cost = $costAlocQuery->fetch()) {
+        while ($cost = $costAllocQuery->fetch()) {
+            $document = doc_Containers::getDocument($cost->containerId);
+            $useCost = in_array($cost->state, array('active','closed'));
+            if($useCost && $document->isInstanceOf('deals_DealMaster')){
+                if(!acc_Journal::fetchByDoc($document->getClassId(), $document->that)){
+                    $useCost = false;
+                }
+            }
+
             $costClassName = core_Classes::getName($cost->detailClassId);
             $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
             $costProdAmount = ($cost->quantity < 1) ? $costProdAmount : ($costProdAmount / $cost->quantity);
-            
+
             foreach ($cost->productsData as $costProd) {
-                if (!in_array($cost->state, array('active','closed'))) {
+                if (!$useCost) {
                     $costProdAmount = 0;
                 }
-                
+
                 // Намираме колко е еденичната цена, и я умножаваме по преразпределеното количество
                 $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
             }
         }
-        
+
         $prodsAmount = array();
         foreach ($prods as $purKey => $prod) {
             $prodsAmount[$prod->productId] += $prod->amount;

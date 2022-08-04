@@ -14,6 +14,54 @@ defIfNot('COLAB_DEFAULT_ROLES_FOR_NEW_PARTNER', '');
 
 
 /**
+ * Регистриране на нов партньор Роли
+ */
+defIfNot('COLAB_DEFAULT_ROLES_FOR_NEW_PARTNER', '');
+
+
+/**
+ * Email за регистрация на нов партньор към папка на фирма->BG
+ */
+defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_BG', "Уважаеми потребителю. За да се регистрираш като служител на фирма \"[#company#]\", моля последвай този {{линк}} - изтича след [#lifetime#]");
+
+
+/**
+ * Email за регистрация на нов партньор към папка на фирма->EN
+ */
+defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_EN', "Dear User. To have registration as a member of company \"[#company#]\", please follow this {{link}} - it expires after [#lifetime#]");
+
+
+/**
+ * Email за регистрация на нов партньор към папка на лице->BG
+ */
+defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_BG', "Уважаеми потребителю. За да се регистрираш моля последвай този {{линк}} - изтича след [#lifetime#]");
+
+
+/**
+ * Email за регистрация на нов партньор към папка на лице->EN
+ */
+defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_EN', "Dear User. For registration please follow this {{link}} - it expires after [#lifetime#]");
+
+
+/**
+ * Email за регистрация за е-шоп->BG
+ */
+defIfNot('COLAB_DEFAULT_EMAIL_ESHOP_REGISTRATION_BG', "Уважаеми потребителю. За да се регистрираш, като потребител в нашия онлайн магазин моля последвай този {{линк}} - изтича след [#lifetime#]");
+
+
+/**
+ * Email за регистрация за е-шоп->EN
+ */
+defIfNot('COLAB_DEFAULT_EMAIL_ESHOP_REGISTRATION_EN', "Dear User. To have registration as a user in our e-shop please follow this {{link}} - it expires after [#lifetime#]");
+
+
+/**
+ * Валидност на линка за регистрация
+ */
+defIfNot('COLAB_PARTNER_REGISTRATION_LINK_LIFETIME', '604800');
+
+
+/**
  * Клас 'colab_Setup'
  *
  * Исталиране/деинсталиране на colab
@@ -47,7 +95,6 @@ class colab_Setup extends core_ProtoSetup
     public $managers = array(
         'colab_FolderToPartners',
         'colab_DocumentLog',
-        'migrate::fixPowerPartnerRoles',
     );
     
     
@@ -63,7 +110,17 @@ class colab_Setup extends core_ProtoSetup
     public $configDescription = array(
         'COLAB_CREATABLE_DOCUMENTS_LIST' => array('keylist(mvc=core_Classes,select=name)', 'caption=Кои документи могат да се създават от партньори->Документи,optionsFunc=colab_Setup::getDocumentOptions'),
         'COLAB_DEFAULT_ROLES_FOR_NEW_PARTNER' => array('keylist(mvc=core_Roles,select=name)', 'caption=Регистриране на нов партньор->Роли,optionsFunc=colab_Setup::getExternalRoles'),
-    );
+        'COLAB_PARTNER_REGISTRATION_LINK_LIFETIME' => array('time', 'caption=Регистриране на нов партньор->Валидност (линк)'),
+
+        'COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_BG' => array('richtext(rows=3)', 'caption=Email за регистрация на нов партньор към папка на фирма->BG'),
+        'COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_EN' => array('richtext(rows=3)', 'caption=Email за регистрация на нов партньор към папка на фирма->EN'),
+
+        'COLAB_DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_BG' => array('richtext(rows=3)', 'caption=Email за регистрация на нов партньор към папка на лице->BG'),
+        'COLAB_DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_EN' => array('richtext(rows=3)', 'caption=Email за регистрация на нов партньор към папка на лице->EN'),
+
+        'COLAB_DEFAULT_EMAIL_ESHOP_REGISTRATION_BG' => array('richtext(rows=3)', 'caption=Email за регистрация за е-шоп->BG'),
+        'COLAB_DEFAULT_EMAIL_ESHOP_REGISTRATION_EN' => array('richtext(rows=3)', 'caption=Email за регистрация за е-шоп->EN'),
+        );
     
     
     /**
@@ -203,34 +260,5 @@ class colab_Setup extends core_ProtoSetup
         }
 
         return $res;
-    }
-
-
-    /**
-     * Оправя ролите на powerPartners
-     */
-    public function fixPowerPartnerRoles()
-    {
-        $Users = cls::get('core_Users');
-        $powerPartnerRoleId = core_Roles::fetchByName('powerPartner');
-        $partnerRoleId = core_Roles::fetchByName('partner');
-
-        $recs = array();
-        $query = $Users->getQuery();
-        $query->where("LOCATE('|{$powerPartnerRoleId}|', #rolesInput)");
-
-        // Тези, които имат изрично и partner и powerPartner роли ще им се махне излишната partner
-        while($rec = $query->fetch()){
-            if(keylist::isIn($partnerRoleId, $rec->rolesInput)){
-                $rec->rolesInput = keylist::removeKey($rec->rolesInput, $partnerRoleId);
-                $recs[$rec->id] = $rec;
-            }
-        }
-
-        if(countR($recs)){
-            foreach ($recs as $rec){
-                $Users->save_($rec, 'rolesInput');
-            }
-        }
     }
 }

@@ -174,10 +174,10 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
         return $this->class->getLastActiveBom($id, $type);
     }
-    
-    
+
+
     /**
-     * Връща информация за какви дефолт задачи за производство могат да се създават към заданието на артикула
+     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
      * @param mixed $jobRec   - ид или запис на задание
      * @param float $quantity - к-во за произвеждане
@@ -196,13 +196,15 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      *               o employees                      - списък (кейлист) от служители
      *               o storeId                        - склад
      *               o indTime                        - норма
+     *               o centerId                       - център на производство
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
      *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
      *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
      *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
-     *               
+     *               o description                    - забележки
+     *
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал
      *                  o packagingId    - ид на опаковка

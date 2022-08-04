@@ -104,7 +104,12 @@
                 <td>[#products#]</td>
             </tr>
             <!--ET_END products-->
-            
+            <!--ET_BEGIN productGroups-->
+            <tr>
+                <td class="title-style">|Продуктови групи|*</td>
+                <td>[#productGroups#]</td>
+            </tr>
+            <!--ET_END productGroups-->
             <!--ET_BEGIN rows-->
             <tr>
                 <td class="title-style">|Редове|*</td>

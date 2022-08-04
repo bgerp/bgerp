@@ -77,6 +77,7 @@ class batch_BatchesInDocuments extends core_Manager
         
         $this->setDbIndex('detailClassId,detailRecId');
         $this->setDbIndex('productId');
+        $this->setDbIndex('detailClassId,detailRecId,productId,storeId');
     }
     
     
@@ -107,10 +108,17 @@ class batch_BatchesInDocuments extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'modify' && isset($rec)) {
+            $requiredRoles = cls::get($rec->detailClassId)->getRolesToModifyBatches($rec->detailRecId);
+
             if (!isset($rec->detailClassId) || !isset($rec->detailRecId)) {
                 $requiredRoles = 'no_one';
             } else {
-                $requiredRoles = cls::get($rec->detailClassId)->getRolesToModfifyBatches($rec->detailRecId);
+                $recInfo = cls::get($rec->detailClassId)->getRowInfo($rec->detailRecId);
+                if(cat_Products::fetchField($recInfo->productId, 'canStore') != 'yes'){
+                    $requiredRoles = 'no_one';
+                } elseif(!batch_Defs::getBatchDef($recInfo->productId)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -135,7 +143,7 @@ class batch_BatchesInDocuments extends core_Manager
             return;
         }
         
-        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote);
+        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote) && $rInfo->state != 'rejected';
         $palletStoreId = isset($rInfo->operation['in']) ? $rInfo->operation['in'] : $storeId;
         $operation = key($rInfo->operation);
         
@@ -178,7 +186,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $q = $rec->quantity / $quantityInPack;
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($q);
                 $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
-                
+
                 if ($showBatchLink) {
                     if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch, $rInfo->containerId)) {
                        $label = $palletImgLink . $label;
@@ -372,10 +380,16 @@ class batch_BatchesInDocuments extends core_Manager
         $form->info->replace(store_Stores::getHyperlink($storeId, true), 'storeId');
         $form->info->replace($packName, 'packName');
         $form->info->append(cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($recInfo->quantity / $recInfo->quantityInPack), 'quantity');
-        
+
         $Def = batch_Defs::getBatchDef($recInfo->productId);
         $suggestions = array();
-        
+
+        $type = $Detail->getBatchMovementDocument($detailRecId);
+        $bOptions = null;
+        if($type == 'in'){
+            $bOptions = $Detail->getAllowedInBatches($detailRecId);
+        }
+
         if ($Def instanceof batch_definitions_Serial) {
             
             // Полетата излизат като списък
@@ -410,8 +424,10 @@ class batch_BatchesInDocuments extends core_Manager
             $tableRec = $exTableRec = array();
             $batchesCount = countR($batches);
             foreach ($batches as $batch => $quantityInStore) {
+                Mode::push('text', 'plain');
                 $vBatch = $Def->toVerbal($batch);
-                $suggestions[] = strip_tags($vBatch);
+                Mode::pop('text');
+                $suggestions[] = $vBatch;
                 $tableRec['batch'][$i] = $vBatch;
                 if (array_key_exists($batch, $foundBatches)) {
                     $tableRec['quantity'][$i] = $foundBatches[$batch] / $recInfo->quantityInPack;
@@ -424,22 +440,34 @@ class batch_BatchesInDocuments extends core_Manager
                 $i++;
             }
             Mode::pop('htmlEntity');
-            
+
             if ($batchesCount > batch_Setup::get('COUNT_IN_EDIT_WINDOW')) {
                 $tableRec = $exTableRec;
             }
         }
-        
+
         // Добавяне на поле за нова партида
         $btnoff = ($Detail->cantCreateNewBatch === true) ? 'btnOff' : '';
         $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
-        $captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
+        $captions = ($Def instanceof batch_definitions_Serial) ? 'Партида' : 'Партида|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
-        
+
         if($hideTable === false){
-            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди->{$caption},placeholder={$Def->placeholder}");
+
+            if(is_array($bOptions)){
+                $form->setFieldTypeParams('newArray', array('batch_opt' => $bOptions));
+            }
+
+            // Ако има опции от типа добавят се с възможност за избор
+            $BatchType = $Def->getBatchClassType();
+            if($BatchType instanceof type_Enum){
+                $bOptions = $BatchType->options;
+                $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;
+            }
+
             $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
             $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
             $form->setDefault('newArray', $tableRec);
@@ -456,7 +484,6 @@ class batch_BatchesInDocuments extends core_Manager
         // След събмит
         if ($form->isSubmitted()) {
             $r = $form->rec;
-            
             $delete = array();
             $total = 0;
             
@@ -527,11 +554,15 @@ class batch_BatchesInDocuments extends core_Manager
             }
             
             if (!$form->gotErrors()) {
+                $dRec = cls::get($detailClassId)->fetch($detailRecId);
+                $logMsg = 'Ръчна промяна на партидите на детайл';
+
                 if ($form->cmd == 'auto') {
                     $old = (countR($foundBatches)) ? $foundBatches : array();
                     $saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $Detail, $detailRecId, $recInfo->date);
                     $intersect = array_diff_key($old, $saveBatches);
                     $delete = (countR($intersect)) ? array_keys($intersect) : array();
+                    $logMsg = 'Ръчно преразпределяне на партидите';
                 }
                 
                 // Ъпдейт/добавяне на записите, които трябва
@@ -546,20 +577,24 @@ class batch_BatchesInDocuments extends core_Manager
                         self::delete("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$b}'");
                     }
                 }
-                
-                // Предизвиква се обновяване на документа
-                $dRec = cls::get($detailClassId)->fetch($detailRecId);
-                
+
                 if ($form->cmd == 'updateQuantity' && !empty($total)) {
+                    $logMsg = 'Ръчна промяна на партидите и задаване на ново общо количество на детайл';
                     if($Detail instanceof store_InternalDocumentDetail){
                         $dRec->packQuantity = $total / $recInfo->quantityInPack;
                     } else {
                         $dRec->quantity = $total * $recInfo->quantityInPack;
                     }
                 }
-                
+
+                // Предизвиква се обновяване на документа
                 cls::get($detailClassId)->save($dRec);
-                
+                if($Detail instanceof core_Detail){
+                    $Detail->Master->logWrite($logMsg, $dRec->{$Detail->masterKey});
+                } else {
+                    $Detail->logWrite($logMsg, $dRec->id);
+                }
+
                 return followRetUrl();
             }
         }
@@ -569,7 +604,11 @@ class batch_BatchesInDocuments extends core_Manager
         
         $attr = arr::make('warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
         $attr['onclick'] = "$(this.form).find('.batch-quantity-fields').val('');";
-        $form->toolbar->addSbBtn('Това е количеството', 'updateQuantity', 'ef_icon = img/16/disk.png,title = Обновяване на количеството');
+
+        if(!($Detail instanceof planning_Jobs)){
+            $form->toolbar->addSbBtn('Това е количеството', 'updateQuantity', 'ef_icon = img/16/disk.png,title = Обновяване на количеството');
+        }
+
         $operation = key($recInfo->operation);
         if ($operation == 'out') {
             $form->toolbar->addSbBtn('Автоматично', 'auto', $attr);
@@ -611,8 +650,10 @@ class batch_BatchesInDocuments extends core_Manager
                 }
                 $msg = null;
                 if (!$Def->isValid($batch, $tableData['quantity'][$key], $msg)) {
-                    $error[] = "{$batch} :|* {$msg}";
-                    $errorFields['batch'][$key] = "{$batch} :|* {$msg}";
+                    if($tableData['quantity'][$key] != 0){
+                        $error[] = "{$batch} :|* {$msg}";
+                        $errorFields['batch'][$key] = "{$batch} :|* {$msg}";
+                    }
                 }
                 
                 if (array_key_exists($batch, $bArray)) {
@@ -680,7 +721,7 @@ class batch_BatchesInDocuments extends core_Manager
         if (!empty($batch)) {
             $where .= " AND #batch = '{$batch}'";
         }
-        
+
         return self::fetchField($where);
     }
     
@@ -704,7 +745,7 @@ class batch_BatchesInDocuments extends core_Manager
         $recInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
         $recInfo->detailClassId = cls::get($detailClassId)->getClassId();
         $recInfo->detailRecId = $detailRecId;
-        
+
         // Подготвяне на редовете за обновяване
         $update = array();
         foreach ($batchesArr as $b => $q) {
@@ -714,16 +755,16 @@ class batch_BatchesInDocuments extends core_Manager
                 $obj->storeId = $storeId;
                 $obj->quantity = $q;
                 $obj->batch = $b;
-                
-                $b = ($sync === true) ? null : $obj->batch;
-                if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b, $operation)) {
+
+                $b1 = ($sync === true) ? null : $obj->batch;
+                if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b1, $operation)) {
                     $obj->id = $id;
                 }
                 
                 $update[] = $obj;
             }
         }
-        
+
         // Запис
         if (countR($update)) {
             cls::get(get_called_class())->saveArray($update);

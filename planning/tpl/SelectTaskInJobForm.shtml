@@ -1,0 +1,12 @@
+<table class="selectTaskOptions">
+[#TASK_ROWS#]
+    <!--ET_BEGIN DEFAULT_TASK_BLOCK-->
+    [#DEFAULT_TASK_BLOCK#]
+    <tr class="[#DEFAULT_TASK_TR_CLASS#]">
+        <td colspan="[#DEFAULT_TASK_CAPTION_COLSPAN#]">[#DEFAULT_TASK_CAPTION#]</td>
+        <!--ET_BEGIN DEFAULT_TASK_LINK-->
+        <td style="text-align:right">[#DEFAULT_TASK_LINK#]</td>
+        <!--ET_END DEFAULT_TASK_LINK-->
+    </tr>
+    <!--ET_END DEFAULT_TASK_BLOCK-->
+</table>

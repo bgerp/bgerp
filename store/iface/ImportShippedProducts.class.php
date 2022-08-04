@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -111,8 +111,21 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
      */
     public function checkImportForm($mvc, core_FieldSet $form)
     {
+        $rec = &$form->rec;
         if ($form->isSubmitted()) {
-            $form->rec->importRecs = $this->getImportRecs($mvc, $form->rec);
+            if(isset($rec->doc) && $mvc instanceof sales_InvoiceDetails){
+                $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+
+                $Doc = doc_Containers::getDocument($rec->doc);
+                $handle = "#" . $Doc->getHandle();
+                if(strpos($masterRec->additionalInfo, $handle) !== false){
+                    $form->setWarning('doc', 'Документа вече е бил импортиран във фактурата. Наистина ли желаете да го добавите отново|*?');
+                }
+            }
+
+            if(!$form->gotErrors()){
+                $rec->importRecs = $this->getImportRecs($mvc, $rec);
+            }
         }
     }
     
@@ -138,12 +151,18 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             
             return $recs;
         }
+
         foreach ($rec->detailsDef as $key => $dRec) {
-            
+
             // Ако има въведено количество записва се
             if (!empty($rec->{$key})) {
                 unset($dRec->id);
-                $dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
+                if($mvc instanceof sales_InvoiceDetails){
+                    $dRec->quantity = $rec->{$key};
+                } else {
+                    $dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
+                }
+
                 $dRec->{$mvc->masterKey} = $rec->{$mvc->masterKey};
                 $dRec->isEdited = true;
                 $recs[] = $dRec;
@@ -202,12 +221,14 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
     public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
     {
         if (isset($masterId)) {
-            $masterRec = $mvc->Master->fetchRec($masterId, 'isReverse,threadId');
-            if ($masterRec->isReverse != 'yes') {
-                
+            $masterFields = ($mvc->Master instanceof store_DocumentMaster) ? 'isReverse,threadId' : 'threadId';
+            $masterRec = $mvc->Master->fetchRec($masterId, $masterFields);
+
+            if (isset($masterRec->isReverse) && $masterRec->isReverse != 'yes') {
+
                 return false;
             }
-            
+
             $docs = $this->getShippedDocuments($mvc, $masterRec, 1);
             if (!countR($docs)) {
                 
@@ -228,27 +249,45 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
      */
     public function doImport(core_Manager $mvc, $rec)
     {
-        if (!is_array($rec->importRecs)) {
-            
-            return;
-        }
-        
-        foreach ($rec->importRecs as $rec) {
-            expect($rec->productId, 'Липсва продукт ид');
-            expect(cat_Products::fetchField($rec->productId), 'Няма такъв артикул');
-            expect($rec->packagingId, 'Няма опаковка');
-            expect(cat_UoM::fetchField($rec->packagingId), 'Несъществуваща опаковка');
-            expect($rec->{$mvc->masterKey}, 'Няма мастър кей');
-            expect($mvc->Master->fetch($rec->{$mvc->masterKey}), 'Няма такъв запис на мастъра');
-            expect($mvc->haveRightFor('add', (object) array($mvc->masterKey => $rec->{$mvc->masterKey})), 'Към този мастър не може да се добавя артикул');
-            
-            $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, $rec->batch, $rec->expenseItemId, $rec->notes);
+        if (!is_array($rec->importRecs)) return;
+
+        foreach ($rec->importRecs as $iRec) {
+            expect($iRec->productId, 'Липсва продукт ид');
+            expect(cat_Products::fetchField($iRec->productId), 'Няма такъв артикул');
+            expect($iRec->packagingId, 'Няма опаковка');
+            expect(cat_UoM::fetchField($iRec->packagingId), 'Несъществуваща опаковка');
+            expect($iRec->{$mvc->masterKey}, 'Няма мастър кей');
+            expect($mvc->Master->fetch($iRec->{$mvc->masterKey}), 'Няма такъв запис на мастъра');
+            expect($mvc->haveRightFor('add', (object) array($mvc->masterKey => $iRec->{$mvc->masterKey})), 'Към този мастър не може да се добавя артикул');
+
+            $exRec = deals_Helper::fetchExistingDetail($mvc, $iRec->{$mvc->masterKey}, $iRec->id, $iRec->productId, $iRec->packagingId, $iRec->price, $iRec->discount, null, null, $iRec->batch, $iRec->expenseItemId, $iRec->notes);
             if ($exRec) {
+                if($mvc instanceof sales_InvoiceDetails){
+                    $exRec->quantity += $iRec->quantity;
+                    $mvc->save_($exRec, 'quantity');
+                    continue;
+                }
                 core_Statuses::newStatus('Записът не е импортиран, защото има дублиране', 'warning');
                 continue;
             }
-            
-            $mvc->save($rec);
+
+            $mvc->save($iRec);
+        }
+
+        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        if($mvc->Master instanceof store_DocumentMaster){
+            $masterRec->reverseContainerId = $rec->doc;
+            $masterRec->_replaceReverseContainerId = true;
+            $mvc->Master->save($masterRec);
+        } elseif($mvc->Master instanceof deals_InvoiceMaster){
+
+            // Добавяне на импортирания документ в забележките
+            $Doc = doc_Containers::getDocument($rec->doc);
+            $handle = "#" . $Doc->getHandle();
+            if(strpos($masterRec->additionalInfo, $handle) === false){
+                $masterRec->additionalInfo .= "\n" . $handle;
+                $mvc->Master->save_($masterRec, 'additionalInfo');
+            }
         }
     }
 }

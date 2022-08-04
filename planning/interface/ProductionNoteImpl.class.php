@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -92,9 +92,10 @@ class planning_interface_ProductionNoteImpl
             // Проверка има ли продуктови параметри, които не могат да се редактират от формата
             $productClassId = cat_Products::getClassId();
             $rec = $this->class->fetch($objId);
-            $notEdittableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
+
+            $notEditableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
             $labelData = $this->getLabelData($objId, 1, true);
-           
+
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
                     if (!array_key_exists($key, $placeholders)) {
@@ -102,17 +103,51 @@ class planning_interface_ProductionNoteImpl
                     }
                     $placeholders[$key]->example = $val;
                     
-                    if(array_key_exists($key, $notEdittableParamNames)){
+                    if(array_key_exists($key, $notEditableParamNames)){
                         $placeholders[$key]->hidden = true;
                     }
+                }
+
+                $batches = $this->getBatchesOptions($rec);
+                if(countR($batches) > 1){
+                    $placeholders['BATCH']->suggestions = array('' => '') + $batches;
                 }
             }
         }
        
         return $placeholders;
     }
-    
-    
+
+
+    /**
+     * Опции за наличните партиди в документа
+     *
+     * @param $rec
+     * @return array
+     */
+    function getBatchesOptions($rec)
+    {
+        $batchesArr = array();
+        if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+
+            $bQuery = batch_BatchesInDocuments::getQuery();
+            $bQuery->where("#detailClassId = {$this->class->getClassId()} AND #detailRecId = {$rec->id}");
+            $bQuery->orderBy('quantity', 'DESC');
+            $bQuery->show('batch');
+
+            while($bRec = $bQuery->fetch()){
+                $bArr = batch_Defs::getBatchArray($rec->productId, $bRec->batch);
+                foreach ($bArr as $k => $v){
+                    $bVerbal = strip_tags($BatchDef->toVerbal($k));
+                    $batchesArr[$bVerbal] = $bVerbal;
+                }
+            }
+        }
+
+        return $batchesArr;
+    }
+
+
     /**
      * Връща масив с всички данни за етикетите
      *
@@ -141,14 +176,9 @@ class planning_interface_ProductionNoteImpl
         
         // Каква е мярката и количеството
         $measureId = $pRec->measureId;
-        
-        $origin = doc_Containers::getDocument($rec->originId);
-        $jobId = $origin->that;
-        if($origin->isInstanceOf('planning_Tasks')){
-            $taskOrigin = doc_Containers::getDocument($origin->that);
-            $jobId = $taskOrigin->that;
-        }
-        $jobHandle = "#" . $origin->getHandle($jobId);
+
+        $jobRec = planning_DirectProductionNote::getJobRec($rec);
+        $jobHandle = "#" . planning_Jobs::getHandle($jobRec);
         
         $code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
         $name = trim(cat_Products::getVerbal($rec->productId, 'name'));
@@ -177,24 +207,11 @@ class planning_interface_ProductionNoteImpl
         if($onlyPreview === false){
             core_App::setTimeLimit(round($cnt / 8, 2), false, 100);
         }
-        
+
         // Ако има само една партида, показвасе и тя
-        $batch = null;
-        if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
-            $bQuery = batch_BatchesInDocuments::getQuery();
-            $bQuery->where("#detailClassId = {$this->class->getClassId()} AND #detailRecId = {$rec->id}");
-            $bQuery->show('batch');
-            if($bQuery->count() == 1){
-                $bRec = $bQuery->fetch();
-                $batchArr = batch_Defs::getBatchArray($rec->productId, $bRec->batch);
-                if(countR($batchArr) == 1){
-                    $batch = $BatchDef->toVerbal($batchArr[key($batchArr)]);
-                    $batch = strip_tags($batch);
-                }
-            }
-        }
-        
-        $grossWeight = null;
+        $batchesArr = $this->getBatchesOptions($rec);
+        $batch = (countR($batchesArr)) ? $batchesArr[key($batchesArr)] : null;
+
         $kgId = cat_Uom::fetchBySysId('kg')->id;
         $kgDerivities = cat_UoM::getSameTypeMeasures($kgId);
         unset($kgDerivities['']);
@@ -268,5 +285,17 @@ class planning_interface_ProductionNoteImpl
         $rec = $this->class->fetchRec($id);
         
         return $rec->packQuantity;
+    }
+
+
+    /**
+     * Кой е дефолтния шаблон за печат към обекта
+     *
+     * @param $id
+     * @return int|null
+     */
+    public function getDefaultLabelTemplateId($id)
+    {
+        return null;
     }
 }

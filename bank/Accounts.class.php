@@ -25,9 +25,16 @@ class bank_Accounts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search, plg_Sorting';
-    
-    
+    public $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search, plg_Sorting, deals_plg_AdditionalConditions';
+
+
+    /**
+     * Полета за допълнителни условие към документи
+     * @see deals_plg_AdditionalConditions
+     */
+    public $additionalConditionsToDocuments = 'sales_Sales,purchase_Purchases';
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -96,7 +103,7 @@ class bank_Accounts extends core_Master
         $this->FLD('bic', 'varchar(12)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
-        
+
         // Задаваме индексите и уникалните полета за модела
         $this->setDbIndex('contragentCls,contragentId');
         $this->setDbUnique('iban');

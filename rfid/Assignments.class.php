@@ -94,7 +94,7 @@ class rfid_Assignments extends core_Manager
      */
     public function description()
     {
-       //$this->FLD('holder', 'class(interface=rfid_HolderIntf,allowEmpty,select=title)', 'caption=Притежател,mandatory');
+       $this->FLD('holder', 'class(interface=rfid_HolderIntf,select=title)', 'caption=Вид притежател,mandatory');
        $this->FLD('tag', 'varchar(64)', 'caption=Таг,mandatory');
        $this->FLD('startOn', 'datetime', 'caption=Присвояване->От');
        $this->FLD('endOn', 'datetime(defaultTime=23:59:59)', 'caption=Присвояване->До');
@@ -105,8 +105,11 @@ class rfid_Assignments extends core_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-//        bp($mvc, $data);
-//         $options = crm_Persons::getEmployeesOptions();
+        if ($data->form->isSubmitted()) {
+            // bp($data->form->rec);
+        }
+        //bp($mvc, $data);
+//        $options = crm_Persons::getEmployeesOptions(); bp($options, $data->form->rec->holderId);
 //         if ($holderId = $data->form->rec->holderId) {
 //             if (!array_key_exists($holderId, $options)) {
 //                 $options[$holderId] = crm_Persons::getVerbal($holderId, 'name');

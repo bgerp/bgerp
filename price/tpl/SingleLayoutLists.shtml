@@ -3,7 +3,7 @@
     <table class="styled-table" style='min-width:300px'>
     	<tr>
             <td class="title-style">|Заглавие|*</td>
-            <td>[#title#]</td>
+            <td class="boldText">[#title#]</td>
         </tr>
         <!--ET_BEGIN parent-->
         <tr>
@@ -90,18 +90,18 @@
         <tr>
             <th colspan="2" style='padding-top: 15px;'>|Закръгляне|*</th>
         </tr>
-        <!--ET_BEGIN significantDigits-->
-        <tr>
-            <td class="title-style">|Значещи цифри|*</td>
-            <td>[#significantDigits#]</td>
-        </tr>
-        <!--ET_END significantDigits-->
         <!--ET_BEGIN minDecimals-->
         <tr>
-            <td class="title-style">|Мин. цифри|*</td>
+            <td class="title-style">|Десетични знаци (цел)|*</td>
             <td>[#minDecimals#]</td>
         </tr>
         <!--ET_END minDecimals-->
+        <!--ET_BEGIN significantDigits-->
+        <tr>
+            <td class="title-style">|Значещи цифри ≠0 (поне)|*</td>
+            <td>[#significantDigits#]</td>
+        </tr>
+        <!--ET_END significantDigits-->
     <!--ET_END roundingPrecisionTable-->
     
      <!--ET_BEGIN connectedClients-->

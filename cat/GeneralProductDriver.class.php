@@ -24,7 +24,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('infoInt', 'richtext(rows=4, bucket=Notes)', 'caption=Подробно||In detail->Описание международно||International description,autohide');
+        $fieldset->FLD('infoInt', 'richtext(rows=4, bucket=Notes)', 'caption=Описание международно||International description->Подробно||In detail,autohide');
         if (!$fieldset->getField('photo', false)) {
             $fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Изображение');
         } else {
@@ -94,8 +94,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 } else {
                     $caption = "Параметри->{$name}";
                 }
-                
-                $form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,before=meta");
+
+                $position = "before=InfoInt";
+                if($Driver instanceof planning_interface_StepProductDriver){
+                    $position = "after=planning_Steps_wastePercent";
+                }
+                $form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,{$position}");
                 $form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id, $Embedder, $rec->id));
 
                 // Ако параметъра има суфикс, добавяме го след полето
@@ -164,8 +168,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             $paramQuery = cat_products_Params::getQuery();
             $paramQuery->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
             $paramQuery->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
+            $paramQuery->XPR('orderEx', 'varchar', 'COALESCE(#order, 999999)');
             $paramQuery->where("#productId = {$originRecId} AND #classId = {$classId}");
-            $paramQuery->orderBy('group,order,id', 'ASC');
+            $paramQuery->orderBy('group,orderEx,id', 'ASC');
             while ($pRec = $paramQuery->fetch()) {
                 $res[$pRec->paramId] = $pRec->paramValue;
             }

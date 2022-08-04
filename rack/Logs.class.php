@@ -61,7 +61,7 @@ class rack_Logs extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'createdOn=На,createdBy=От,message,productId';
+    public $listFields = 'message,createdOn=На,createdBy=От,productId';
 
 
     /**
@@ -91,7 +91,7 @@ class rack_Logs extends core_Manager
         $this->FLD('movementId', 'key(mvc=rack_Movements,select=id)', 'caption=Движение');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул');
         $this->FLD('message', 'text', 'caption=Текст');
         $this->FLD('action', 'enum(,create=Създаване,edit=Редактиране,waiting=Запазване,start=Започване,close=Приключване,return=Връщане,reject=Отказване,revision=Ревизия)', 'caption=Действие,after=to,placeholder=Всички');
 
@@ -119,7 +119,9 @@ class rack_Logs extends core_Manager
             if(is_object($movementRec)){
                 $rec->movementId = $movementRec->id;
                 $Movements = cls::get('rack_Movements');
+                Mode::push('text', 'plain');
                 $description = strip_tags($Movements->getMovementDescription($movementRec, false, false));
+                Mode::pop('text');
                 $rec->message .= " / {$description}";
             }
         }
@@ -140,17 +142,14 @@ class rack_Logs extends core_Manager
 
         $newOptions = array();
         $actionOptions = $data->listFilter->getFieldType('action')->options;
-        unset($actionOptions['']);
+
         foreach ($actionOptions as $action => $actionCaption){
             $actionOptionRec = new stdClass();
             $actionOptionRec->attr = array('class' => static::$actionClasses[$action]);
             $actionOptionRec->title = $actionCaption;
             $newOptions[$action] = $actionOptionRec;
         }
-        $data->listFilter->setOptions('action', $newOptions);
-
-
-
+        $data->listFilter->setOptions('action', array('' => '') + $newOptions);
         if($movementId = Request::get('movementId', 'int')){
             $data->query->where("#movementId = {$movementId}");
         }

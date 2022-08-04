@@ -26,14 +26,14 @@
             </div>
         </fieldset>
          <!--ET_END ADDRESS_SECTION-->
-        <!--ET_BEGIN specifics-->
+        <!--ET_BEGIN workingTime-->
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Особености|*</legend>
-            <div class="groupList">
-                [#specifics#]
+            <legend class="groupTitle">|Работно време|*</legend>
+            <div class="groupList workingTimeBlock">
+                [#workingTime#]
             </div>
         </fieldset>
-        <!--ET_END specifics-->
+        <!--ET_END workingTime-->
         <!--ET_BEGIN type-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Описание|*</legend>
@@ -44,6 +44,7 @@
                         <span class="gray-title">|Тип|*:</span> [#type#]
                     </li>
                     <!--ET_END type-->
+
                     <!--ET_BEGIN mol-->
                     <li class="info">
                         <span class="gray-title">|Отговорник|*:</span> [#mol#]
@@ -64,13 +65,26 @@
                         <span class="gray-title">GLN |код|*:</span> [#gln#]
                     </li>
                     <!--ET_END gln-->
+                    <!--ET_BEGIN features-->
+                    <li class="info">
+                        <span class="gray-title">|Особености|*:</span> [#features#]
+                    </li>
+                    <!--ET_END features-->
                 </ul>
             </div>
         </fieldset>
         <!--ET_END type-->
+        <!--ET_BEGIN specifics-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Други|*</legend>
+            <div class="groupList">
+                [#specifics#]
+            </div>
+        </fieldset>
+        <!--ET_END specifics-->
         <!--ET_BEGIN comment-->
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Информация|*</legend>
+            <legend class="groupTitle">|Информация (за вътрешно/служебно ползване - не се показва в документи)|*</legend>
             <div class="groupList">
                 [#comment#]
             </div>

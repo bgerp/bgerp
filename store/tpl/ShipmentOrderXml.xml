@@ -1,0 +1,61 @@
+<document>
+    <data>
+        <id>[#id#]</id>
+        <valior>[#valior#]</valior>
+        <state>[#state#]</state>
+        <location>[#locationId#]</location>
+        <store>[#storeId#]</store>
+        <notes>[#note#]</notes>
+        <currency>[#currencyId#]</currency>
+        <rate>[#currencyRate#]</rate>
+        <responsible>[#responsible#]</responsible>
+        <weight>[#weight#]</weight>
+        <volume>[#volume#]</volume>
+        <amount>
+            <vatIncluded>[#vatIncluded#]</vatIncluded>
+            <discount>[#amountDiscount#]</discount>
+            <vat>[#amountDeliveredVat#]</vat>
+            <total>[#amountDelivered#]</total>
+        </amount>
+    </data>
+    <contragent>
+        <type>[#contragentClassId#]</type>
+        <name>[#contragentName#]</name>
+        <address>[#inlineContragentAddress#]</address>
+        <vatNo>[#vatNo#]</vatNo>
+        <uicId>[#contragentUicId#]</uicId>
+        <eori>[#eori#]</eori>
+    </contragent>
+    <supplier>
+        <name>[#MyCompany#]</name>
+        <address>[#MyAddress#]</address>
+        <vatNo>[#MyCompanyVatNo#]</vatNo>
+        <uicId>[#uicId#]</uicId>
+    </supplier>
+    <delivery>
+        <countryCode>[#countryCode#]</countryCode>
+        <pCode>[#toPCode#]</pCode>
+        <place>[#toPlace#]</place>
+        <address>[#toAddress#]</address>
+        <company>[#toCompany#]</company>
+        <person>[#toPerson#]</person>
+        <loadingTime>[#loadingTime#]</loadingTime>
+        <forwarderer>[#lineForwarderId#]</forwarderer>
+        <motorVehicle>[#lineVehicleId#]</motorVehicle>
+    </delivery>
+    <products>[#PRODUCTS#]<!--ET_BEGIN PRODUCT-->[#PRODUCT#]
+        <product>
+            <code>[#code#]</code>
+            <name>[#productId#]</name>
+            <packaging>[#packagingId#]</packaging>
+            <quantity>[#packQuantity#]</quantity>
+            <notes>[#notes#]</notes>
+            <vat>[#vat#]</vat>
+            <price>
+                <discount>[#discount#]</discount>
+                <amount>[#amount#]</amount>
+            </price>
+            <batches>[#BATCHES#]<!--ET_BEGIN BATCH-->[#BATCH#]<batch><name>[#name#]</name><quantity>[#quantity#]</quantity></batch><!--ET_END BATCH--></batches>
+        </product><!--ET_END PRODUCT-->
+    </products>
+</document>

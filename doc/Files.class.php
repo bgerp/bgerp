@@ -18,12 +18,6 @@ class doc_Files extends core_Manager
 
 
     /**
-     * Разширения, които да не се показват по подразбиране
-     */
-    protected $exludeFilesExt = array('eml');
-
-
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'doc_Wrapper, plg_Sorting, plg_GroupByDate';
@@ -78,7 +72,7 @@ class doc_Files extends core_Manager
             array('notNull' => true, 'caption' => 'Манипулатор')
         );
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни');
-        $this->FLD('show', 'enum(yes,no)', 'caption=Показване');
+        $this->FLD('show', 'enum(yes=Да,isSearch=При търсене,no=Не)', 'caption=Показване');
         $this->FNC('date', 'datetime', 'caption=Дата,input=none');
 
         $this->setDbUnique('containerId, fileHnd');
@@ -151,7 +145,7 @@ class doc_Files extends core_Manager
         $query = self::getQuery();
         $query->where(array("#dataId = '[#1#]'", $fRec->dataId));
         $query->orderBy('show', 'ASC');
-        
+
         while ($rec = $query->fetch()) {
             if ($fInterface && $rec->folderId) {
                 $fRec = doc_Folders::fetchRec($rec->folderId);
@@ -244,7 +238,7 @@ class doc_Files extends core_Manager
             $updateArr['hide'][] = $hideArr;
             $updateArr['show'][] = $bestRec;
         }
-        
+
         // Скриваме файлове, които не трябва да се показват
         foreach ($updateArr['hide'] as $hideArr) {
             foreach ($hideArr as $hRec) {
@@ -257,14 +251,45 @@ class doc_Files extends core_Manager
         
         // Показваме файла
         foreach ($updateArr['show'] as $bestRec) {
+            self::fixShow($bestRec);
             if (isset($bestRec) && (!$bestRec->show || $bestRec->show != 'yes')) {
-                $bestRec->show = 'yes';
+                if ($bestRec->show != 'isSearch') {
+                    $bestRec->show = 'yes';
+                }
                 self::save($bestRec, 'show');
             }
         }
     }
-    
-    
+
+
+    /**
+     * Поправя полето за показване
+     * По подразбиране скриваме eml файловете + някои специфични (от имейлите) HTML файлове
+     *
+     * @param stdClass $bestRec
+     */
+    protected static function fixShow(&$bestRec)
+    {
+        if ($bestRec->show == 'yes') {
+            if ($bestRec->fileHnd) {
+                $fRec = fileman::fetchByFh($bestRec->fileHnd);
+                if ($fRec) {
+                    $nameAndExt = fileman::getNameAndExt(mb_strtolower($fRec->name));
+                    if ($nameAndExt['ext'] == 'eml') {
+                        $bestRec->show = 'isSearch';
+                    }
+
+                    if ($nameAndExt['ext'] == 'html') {
+                        if (preg_match('/[0-9]+\_[a-f0-9]{6}/', $nameAndExt['name'])) {
+                            $bestRec->show = 'isSearch';
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     /**
      *
      *
@@ -347,6 +372,10 @@ class doc_Files extends core_Manager
 
         // Обхождаме всички линкнати файлове
         foreach ($linked as $fh => $name) {
+            if (!$fh) {
+                continue;
+            }
+
             // Данните за файла
             $dataId = fileman_Files::fetchByFh($fh, 'dataId');
             
@@ -371,10 +400,15 @@ class doc_Files extends core_Manager
             $nRec->fileHnd = $fh;
             $nRec->dataId = $dataId;
             $nRec->show = $show;
-            
+
+            $fRec = fileman::fetchByFh($fh);
+            cls::get('fileman_Files')->logRead('Добавяне към документ', $fRec->id);
+
             static::save($nRec, null, 'IGNORE');
         }
-        
+
+        log_Data::flush();
+
         // Ако са останали файлоаве, които не са премахнати от записите
         if (countR($savedFh)) {
             
@@ -461,8 +495,6 @@ class doc_Files extends core_Manager
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->query->where("#show = 'yes' OR #show IS NULL");
-        
         $sPrefix = '__';
         $folderPrefix = $sPrefix . 'folder__';
         
@@ -513,11 +545,16 @@ class doc_Files extends core_Manager
         $usersArr = null;
         $filter = $data->listFilter->rec;
 
-        $fSearch = '';
+        $data->query->where("#show = 'yes'");
+        if ($filter->search && (preg_match("/(\.|\s|^|\-)+(eml|html)(\.|\s|$)+/i", $filter->search))) {
+            $data->query->orWhere("#show = 'isSearch'");
+        }
 
         if ($filter->range) {
             // Ако се филтрира по папките на текущия потребител или файловете му
             if (stripos($filter->range, $sPrefix) === 0) {
+                $fSearch = '';
+
                 // Търсене по папка
                 if (stripos($filter->range, $folderPrefix) === 0) {
                     $fSearch = substr($filter->range, strlen($folderPrefix));
@@ -549,7 +586,7 @@ class doc_Files extends core_Manager
                 $userList = $Users->fromVerbal($filter->range);
                 $usersArr = type_Keylist::toArray($userList);
             }
-            
+
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
                 if ($usersArr[-1]) {
@@ -562,19 +599,6 @@ class doc_Files extends core_Manager
             }
         }
 
-        $fSearchStr = '';
-        foreach ($mvc->exludeFilesExt as $fExt) {
-            $fExtQ = preg_quote($fExt, '/');
-            if (!$filter->search || !preg_match("/(\.|\s|^|\-)+({$fExtQ})(\.|\s|$)+/i", $filter->search)) {
-                $fSearchStr .= " -.{$fExt}";
-            }
-        }
-
-        // Скриваме html файловете
-        if (!$filter->search || !preg_match("/(\.|\s|^|\-)+(html)(\.|\s|$)+/i", $filter->search)) {
-            $data->query->where("#searchKeywords NOT REGEXP '([0-9]+ )+([a-f0-9]{6}) html'");
-        }
-
         // Премахваме нашите файлове
         $ourImgArr = core_Permanent::get('ourImgEmailArr');
         if ($ourImgArr) {
@@ -582,13 +606,28 @@ class doc_Files extends core_Manager
         }
 
         // Налагане на условията за търсене
-        if (!empty($filter->search) || !empty($fSearchStr)) {
+        if (!empty($filter->search)) {
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
 
-            plg_Search::applySearch($filter->search . $fSearchStr, $data->query, 'searchKeywords');
+            plg_Search::applySearch($filter->search, $data->query, 'searchKeywords');
         }
     }
-    
+
+
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        $mvc->fixShow($rec);
+    }
+
     
     /**
      *

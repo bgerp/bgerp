@@ -110,7 +110,8 @@ class trans_LineDetails extends doc_Detail
                                         'store_ConsignmentProtocols' => 'Отговорно пазене',
                                         'store_Transfers' => 'Трансфери',
                                         'cash_Pko' => 'Приходни касови ордери',
-                                        'cash_Rko' => 'Разходни касови ордери',);
+                                        'cash_Rko' => 'Разходни касови ордери',
+                                        'removed' => 'Премахнати документи');
     
     
     /**
@@ -124,6 +125,11 @@ class trans_LineDetails extends doc_Detail
         $this->FLD('status', 'enum(ready=Готово,removed=Изключено)', 'input=none,notNull,value=ready,caption=Статус,smartCenter,tdClass=status-cell');
         $this->EXT('containerState', 'doc_Containers', 'externalName=state,externalKey=containerId');
         $this->EXT('containerThreadId', 'doc_Containers', 'externalName=threadId,externalKey=containerId');
+
+        $this->FLD('createdOn', 'datetime(format=smartTime)', 'input=none');
+        $this->FLD('createdBy', 'key(mvc=core_Users,select=nick)', 'input=none');
+        $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'input=none');
+        $this->FLD('modifiedBy', 'key(mvc=core_Users,select=nick)', 'input=none');
 
         $this->setDbIndex('containerId,status');
         $this->setDbIndex('containerId');
@@ -143,7 +149,9 @@ class trans_LineDetails extends doc_Detail
     public static function sync($lineId, $containerId)
     {
         $Document = doc_Containers::getDocument($containerId);
-        
+        $cu = core_Users::getCurrent();
+        $now = dt::now();
+
         // Има ли запис за тази линия
         $rec = self::fetch("#lineId = {$lineId} AND #containerId = {$containerId}");
         
@@ -152,13 +160,17 @@ class trans_LineDetails extends doc_Detail
         $exQuery->where("#lineId != {$lineId} AND #containerId = {$containerId} AND #status != 'removed'");
         while ($exRec = $exQuery->fetch()) {
             $exRec->status = 'removed';
-            self::save($exRec, 'status');
+            $exRec->modifiedOn = $now;
+            $exRec->modifiedBy = $cu;
+            self::save($exRec, 'status,modifiedOn,modifiedBy');
         }
         
         // Ако няма се създава нов запис
         if (empty($rec)) {
-            $rec = (object) array('lineId' => $lineId, 'containerId' => $containerId, 'classId' => $Document->getClassId());
+            $rec = (object) array('lineId' => $lineId, 'containerId' => $containerId, 'classId' => $Document->getClassId(), 'createdOn' => $now, 'createdBy' => $cu);
         }
+        $rec->modifiedOn = $now;
+        $rec->modifiedBy = $cu;
         $rec->status = 'ready';
 
         self::save($rec);
@@ -192,13 +204,30 @@ class trans_LineDetails extends doc_Detail
         $Document = doc_Containers::getDocument($rec->containerId);
         $transportInfo = $Document->getTransportLineInfo($rec->lineId);
         core_RowToolbar::createIfNotExists($row->_rowTools);
+        $lineRec = trans_Lines::fetch($rec->lineId);
 
         // Линк към документа
         $handle = $Document->getHandle();
         $row->containerId = "#{$handle}";
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
-            $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$row->containerId}</span>";
+            $createdBy = core_Users::getNick($Document->fetchField('createdBy'));
+            $displayContainerId = $row->containerId;
+            $displayContainerId .= " / {$createdBy}";
+
+            if(!empty($lineRec->activatedOn) && $rec->createdOn >= $lineRec->activatedOn){
+                $createdVerbal = dt::mysql2verbal($rec->createdOn);
+                $displayContainerId .= " / <b style='color:red;'>" . tr('Добавен') . ": {$createdVerbal}</b>";
+            }
+
+            $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
+        }
+
+        $tags = tags_Logs::getTagsFor($Document->getClassId(), $Document->that);
+        if(count($tags)){
+            $tagsStr = '';
+            array_walk($tags, function($a) use (&$tagsStr){$tagsStr  .= $a['span'];});
+            $row->containerId .= "<span class='documentTags'>{$tagsStr}</span>";
         }
 
         if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {
@@ -253,7 +282,7 @@ class trans_LineDetails extends doc_Detail
         if($Document->haveInterface('store_iface_DocumentIntf')){
 
             // Ако документа в момента е в зона
-            if(isset($transportInfo['zoneId'])){
+            if(isset($transportInfo['zoneId']) && $rec->status != 'removed'){
                 $readiness = core_Type::getByName('percent(decimals=0)')->toVerbal($transportInfo['readiness']);
                 if(!Mode::isReadOnly()){
                     $readiness = "<div class='block-readiness lineShow'>{$readiness}</div>";
@@ -264,7 +293,7 @@ class trans_LineDetails extends doc_Detail
             // Подготовка на логистичната информация за документа
             $logisticArr = array();
             if(!empty($transportInfo['transportUnits'])){
-                $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits']);
+                $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits'], false, '<br>');
                 $logisticArr[] = $transUnits;
             } elseif(isset($transportInfo['volume'])){
                 $logisticArr[] = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
@@ -280,11 +309,14 @@ class trans_LineDetails extends doc_Detail
             if(!empty($transportInfo['contragentName'])){
                 $row->address = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
             }
-            $amountTpl = new core_ET("");
-            $amountTpl->append('<div class="payment-line-amount">');
-            $amountTpl->append($transportInfo['amountVerbal']);
-            $amountTpl->append('</div>');
-            $row->amount = $amountTpl;
+
+            if($rec->status != 'removed'){
+                $amountTpl = new core_ET("");
+                $amountTpl->append('<div class="payment-line-amount">');
+                $amountTpl->append($transportInfo['amountVerbal']);
+                $amountTpl->append('</div>');
+                $row->amount = $amountTpl;
+            }
         }
 
         if(!empty($row->address)){
@@ -293,7 +325,7 @@ class trans_LineDetails extends doc_Detail
 
         // Бутон за създаване на коментар
         $masterRec = trans_Lines::fetch($rec->lineId);
-        if ($mvc->haveRightFor('doc_Comments', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
+        if (doc_Comments::haveRightFor('add', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
             $commentUrl = array('doc_Comments', 'add', 'originId' => $masterRec->containerId, 'detId' => $rec->id, 'ret_url' => true);
             $row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => 'img/16/comment_add.png', 'alwaysShow' => true, 'title' => 'Известяване на отговорниците на документа'));
         }
@@ -308,7 +340,21 @@ class trans_LineDetails extends doc_Detail
         }
 
         if ($Document->haveRightFor('changeline') && (!Mode::is('printing') && !Mode::is('xhtml')) && $rec->status != 'removed') {
-            $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
+            $lineThreadId = trans_Lines::fetchField($rec->lineId, 'threadId');
+            $retUrl = (trans_Lines::haveRightFor('single', $rec->lineId)) ? array('doc_Containers', 'list', 'threadId' => $lineThreadId, 'docId' => trans_Lines::getHandle($rec->lineId), "#" => $handle) : true;
+            if (!Mode::is('screenMode', 'narrow')){
+                $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => $retUrl), false, 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
+            } else {
+                $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), array('ef_icon' => 'img/16/lorry_go.png', 'title' => 'Промяна на транспортната информация'));
+            }
+        }
+
+        if(!empty($transportInfo['features'])){
+            $featuresString = '';
+            foreach ($transportInfo['features'] as $transFeatureId){
+                $featuresString .= "<span class='lineFeature'>" . trans_Features::getVerbal($transFeatureId, 'name') . "</span>";
+            }
+            $row->containerId .= " {$featuresString}";
         }
 
         // Ако има платежни документи към складовия
@@ -327,9 +373,11 @@ class trans_LineDetails extends doc_Detail
                     $paymentInfo['amountVerbal'] = "<span class='state-{$p->containerState} document-handler'>{$paymentInfo['amountVerbal']}</span>";
                 }
 
-                if(!core_Mode::isReadOnly()){
-                    $paymentInfo['amountVerbal'] = ht::createLinkRef($paymentInfo['amountVerbal'], $PayDoc->getSingleUrlArray(), false, 'title=Преглед на документа');
-                }
+                Mode::push('text', 'plain');
+                $paymentCaption = "#" . $PayDoc->getHandle() . " (" . core_Type::getByName('double(decimals=2)')->toVerbal($paymentInfo['amount']) . ")";
+                Mode::pop('text');
+                $row->_rowTools->addLink($paymentCaption, $PayDoc->getSingleUrlArray(), array('ef_icon' => $PayDoc->singleIcon, 'title' => 'Преглед на документа'));
+
                 $amountTpl->append('<div class="payment-line-amount">');
                 $amountTpl->append($paymentInfo['amountVerbal']);
                 $amountTpl->append('</div>');
@@ -392,6 +440,10 @@ class trans_LineDetails extends doc_Detail
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');
+
+        if($data->masterData->rec->state == 'rejected'){
+            unset($data->listFields['_rowTools']);
+        }
     }
 
 
@@ -427,7 +479,7 @@ class trans_LineDetails extends doc_Detail
     {
         $form->setDefault('transUnitsInput', $value);
         $units = trans_TransportUnits::getAll();
-        $form->FLD('transUnitsInput', 'table(columns=unitId|quantity,captions=ЛЕ|Брой,validate=trans_LineDetails::validateTransTable)', 'caption=Лог. ед.,after=lineNotes');
+        $form->FLD('transUnitsInput', 'table(columns=unitId|quantity,captions=Вид|Брой,validate=trans_LineDetails::validateTransTable)', 'caption=Логистична информация->Лог. ед.,after=lineNotes');
         $form->setFieldTypeParams('transUnitsInput', array('unitId_opt' => array('' => '') + $units));
     }
     
@@ -517,8 +569,12 @@ class trans_LineDetails extends doc_Detail
     {
         // Към коя група спада документа
         if (!array_key_exists($groupId, self::$cache)) {
-            $className = cls::getClassName($groupId);
+            $className = ($groupId == 'removed') ? 'removed' : cls::getClassName($groupId);
             $className = tr(self::$classGroups[$className]);
+
+            if(!Mode::isReadOnly() && $groupId == 'removed'){
+                $className .= " <a id= 'groupBtn{$groupId}' href=\"javascript:toggleDisplayByClass('groupBtn{$groupId}','group{$groupId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+            }
             self::$cache[$groupId] = $className;
         }
 
@@ -539,7 +595,7 @@ class trans_LineDetails extends doc_Detail
         $rkoClassId = cash_Rko::getClassId();
         
         $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 WHEN {$pkoClassId} THEN 5 WHEN {$rkoClassId} THEN 6 ELSE 7 END)");
-        $data->query->orderBy('#orderByClassId=ASC,#status');
+        $data->query->orderBy('#orderByClassId=ASC,#containerId=ASC');
 
         if(Mode::is('printing')){
             $data->query->where("#status != 'removed'");
@@ -558,10 +614,18 @@ class trans_LineDetails extends doc_Detail
         // Кои документи са платежни и кои документи могат да имат такива към тях
         $paymentDocsClassIds = array(cash_Pko::getClassId(), cash_Rko::getClassId());
         $documentsWithPayments = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId());
-        $paymentDocuments = array_filter($recs, function ($a) use ($paymentDocsClassIds) {return in_array($a->classId, $paymentDocsClassIds);});
+        $paymentDocuments = array_filter($recs, function ($a) use ($paymentDocsClassIds) {return in_array($a->classId, $paymentDocsClassIds) && ($a->status != 'removed');});
 
+        $removedRecs = array();
         foreach ($data->recs as $rec){
-            if(!in_array($rec->classId, $documentsWithPayments) || $rec->status == 'removed') continue;
+            if($rec->status == 'removed'){
+                $rec->classId = 'removed';
+                $removedRecs[$rec->id] = $rec;
+                unset($data->recs[$rec->id]);
+                continue;
+            }
+
+            if(!in_array($rec->classId, $documentsWithPayments)) continue;
 
             // Към всеки документ който може да има платежен се добавят на неговия ред тези създадени към него
             $shipmentPayments = array_filter($paymentDocuments, function($a) use (&$rec){
@@ -602,6 +666,10 @@ class trans_LineDetails extends doc_Detail
                 unset($paymentDocuments[$i]);
                 unset($data->recs[$i]);
             }
+        }
+
+        if(countR($removedRecs)){
+            $data->recs += $removedRecs;
         }
     }
     

@@ -42,10 +42,12 @@
                 <legend class="groupTitle">|Кой може да контира документи, в които е избрана касата|*</legend>
                 <div class="groupList">
                     <table>
+                        <!--ET_BEGIN cashiers-->
                         <tr>
                             <td class='dt'>|Потребители|*:</td>
                             <td>[#cashiers#]</td>
                         </tr>
+                        <!--ET_END cashiers-->
                         <!--ET_BEGIN activateRoles-->
                         <tr>
                             <td class='dt'>|Екипи|*:</td>
@@ -78,7 +80,7 @@
                 </div>
             </fieldset>
             <!--ET_END SELECT_FIELD-->
-            
+            [#deals/tpl/AdditionalConditionsBlock.shtml#]
             [#DETAILS#]
             <div style="clear:both;"></div>
         </div>

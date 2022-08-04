@@ -82,16 +82,20 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
         
         if (!empty($pArr)) {
             $data->form->setSuggestions('name', $pArr);
-            
-            $data->form->setField('name', array('removeAndRefreshForm' => implode('|', $Driver->fieldArr)));
-            
+
+            if ($Driver->fieldArr) {
+                $data->form->setField('name', array('removeAndRefreshForm' => implode('|', $Driver->fieldArr)));
+            }
+
             $data->form->input('name');
             
             if ($data->form->rec->name && $pArr[$data->form->rec->name]) {
                 $pRec = $clsName::fetch(array("#{$nameField} = '[#1#]'", $data->form->rec->name));
-                
-                foreach ($Driver->fieldArr as $fName) {
-                    $data->form->setDefault($fName, $pRec->{$fName});
+
+                if ($Driver->fieldArr) {
+                    foreach ($Driver->fieldArr as $fName) {
+                        $data->form->setDefault($fName, $pRec->{$fName});
+                    }
                 }
             }
         }
@@ -105,9 +109,9 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
      * @param peripheral_Devices $mvc
      * @param int                $id
      * @param stdClass           $rec
-     * @param NULL|array         $saveFileds
+     * @param NULL|array         $saveFields
      */
-    public static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFields = null)
     {
         $nameField = $Driver->nameField;
         $clsName = $Driver->clsName;
@@ -123,11 +127,13 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
             $dRec = new stdClass();
             $msgStr = 'Дабавяне на|* ';
         }
-        
-        foreach ($Driver->fieldArr as $fName) {
-            $dRec->{$fName} = $rec->{$fName};
+
+        if ($Driver->fieldArr) {
+            foreach ($Driver->fieldArr as $fName) {
+                $dRec->{$fName} = $rec->{$fName};
+            }
         }
-        
+
         $dRec->{$nameField} = $rec->{$nameField};
         
         if ($clsName::save($dRec)) {

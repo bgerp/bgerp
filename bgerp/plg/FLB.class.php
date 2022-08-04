@@ -42,7 +42,7 @@ class bgerp_plg_FLB extends core_Plugin
             $mvc->FLD($mvc->canSelectUserFld, 'userList', "caption=Избор на текущ и използване в документи->Потребители,after={$mvc->canActivateRoleFld}");
         }
         
-        // Поле, в които се указват rolite, които могат да избират обекта в документи
+        // Поле, в които се указват ролите, които могат да избират обекта в документи
         if (!$mvc->getField($mvc->canSelectRoleFld, false)) {
             $mvc->FLD($mvc->canSelectRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', "caption=Избор на текущ и използване в документи->Екипи,after={$mvc->canSelectUserFld}");
         }
@@ -58,7 +58,6 @@ class bgerp_plg_FLB extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $form->setField($mvc->canActivateUserFld, 'mandatory');
         
         $roles = array();
         $rQuery = core_Roles::getQuery();
@@ -76,8 +75,22 @@ class bgerp_plg_FLB extends core_Plugin
         $roles = implode('|', $roles);
         $form->setFieldType('inCharge', "user(roles={$roles}, rolesForAll=officer)");
     }
-    
-    
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = &$form->rec;
+        if ($form->isSubmitted()) {
+            if(empty($rec->{$mvc->canActivateUserFld}) && empty($rec->{$mvc->canActivateRoleFld})){
+                $form->setError("{$mvc->canActivateUserFld},{$mvc->canActivateRoleFld}", 'Задължително трябва да е попълнено поне едно от полетата');
+            }
+        }
+    }
+
+
     /**
      * Помощна ф-я връщаща дали потребителя може да активира корицата или да я избира
      *
@@ -162,9 +175,15 @@ class bgerp_plg_FLB extends core_Plugin
         // Ако се проверява за избор на текущ, допълнително се проверява, дали потребителя може да избира обекта
         if ($action == 'select') {
             $res = isset($mvc->canSelect) ? $mvc->canSelect : $mvc->canActivate;
-            
-            if (isset($rec) && !self::canUse($mvc, $rec, $userId, 'select')) {
-                $res = 'no_one';
+
+            if(isset($rec)){
+                if(!self::canUse($mvc, $rec, $userId, 'select')){
+                    $res = 'no_one';
+                }
+
+                if(in_array($rec->state, array('closed', 'rejected'))){
+                    $res = 'no_one';
+                }
             }
         }
     }
@@ -204,7 +223,8 @@ class bgerp_plg_FLB extends core_Plugin
         
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
         $data->listFilter->setDefault('users', $default);
-        
+        $data->query->orderBy('state', 'ASC');
+
         // Скриване на записите до които няма достъп
         if ($selectedUsers = $data->listFilter->rec->users) {
             self::addUserFilterToQuery($mvc, $data->query, $selectedUsers);
@@ -255,7 +275,11 @@ class bgerp_plg_FLB extends core_Plugin
             $cond .= " OR #inCharge = {$userId} ";
             $count++;
         }
-        
+
+        if($mvc->getField('state', false)){
+            $cond = "(#state != 'rejected' AND #state != 'closed') AND ($cond)";
+        }
+
         $query->where($cond);
     }
     

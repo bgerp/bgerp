@@ -75,10 +75,10 @@ function runOnLoad(functionName) {
 /**
  * Сменя изображенията с fade ефект
  */
-function fadeImages(el, delay){
+function fadeImages(el, transition, delay){
 	$('.fadein img:gt(0)').hide();
 	setInterval(function(){
-		$('.fadein :first-child').css({position: 'absolute'}).fadeOut(el).next('img').css({position: 'absolute'}).fadeIn(1500).end().appendTo('.fadein');
+		$('.fadein :first-child').css({position: 'absolute'}).fadeOut(el).next('img').css({position: 'absolute'}).fadeIn(transition).end().appendTo('.fadein');
 		$('.fadein :first-child').css({position: 'relative'});
 	}, delay);
 }
@@ -1593,6 +1593,9 @@ function flashDocInterpolation(docId) {
     el.style.backgroundColor = '#ffff80';
     setTimeout(function() {
         el.style.backgroundColor = endColorHex;
+
+        // Премахва хаштага (котвата) след отваряне и флашване на документа
+        history.pushState({}, '', location.href.replace(/\#[a-z0-9]+$/gi, ''));
     }, 2010);
 
     if (endColorHex.substring(0, 1) != '#') {
@@ -1955,10 +1958,22 @@ function setRicheditWidth(el) {
  * Ако имаме 6 бутона в richedit, да излизат в 2 колони
  */
 function prepareRichtextAddElements(){
-    if($('.richedit-toolbar .addElements').length && $('.richedit-toolbar .addElements').children().length == 6) {
-        $( "<span class='clearfix21'></span>" ).insertAfter( '.richedit-toolbar .addElements a:odd' );
-        $('.richedit-toolbar .addElements a' ).css('display', 'table-cell');
+
+    if (!$('.richEdit') || !$('.richedit-toolbar .addElements').length) {
+
+        return ;
     }
+
+    $('.richEdit').each(function() {
+        var len = $(this).find('.richedit-toolbar .addElements').children().length;
+        if ((len < 6) || (len % 2 == 1)) {
+
+            return ;
+        }
+
+        $(this).find('.richedit-toolbar .addElements a:odd').after("<span class='clearfix21'></span>");
+        $(this).find('.richedit-toolbar .addElements a').css('display', 'table-cell');
+    });
 }
 
 
@@ -2126,7 +2141,7 @@ var quoteLine;
  * @param id
  * @param line
  */
-function appendQuote(id, line) {
+function appendQuote(id, line, useParagraph) {
 
 	quoteId = id;
 	quoteLine = line;
@@ -2150,22 +2165,79 @@ function appendQuote(id, line) {
         text = sessionStorage.getItem('selText');
 
         if (text) {
-			// Вземаме манипулатора на документа
-			selHandle = sessionStorage.getItem('selHandle');
-			
-			// Стринга, който ще добавим
-			quoteText = "[bQuote";
-			
-			// Ако има манипулато, го добавяме
-			if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
-				quoteText += "=" + selHandle + "]";
-			} else {
-				quoteText += "]";
-			}
-			quoteText += text + "[/bQuote]";
+
+            if (typeof useParagraph === "undefined") {
+                useParagraph = 'no';
+            }
+
+            if (useParagraph == 'no') {
+                // Вземаме манипулатора на документа
+                selHandle = sessionStorage.getItem('selHandle');
+
+                // Стринга, който ще добавим
+                quoteText = "[bQuote";
+
+                // Ако има манипулато, го добавяме
+                if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
+                    quoteText += "=" + selHandle + "]";
+                } else {
+                    quoteText += "]";
+                }
+                quoteText += text + "[/bQuote]";
+            } else {
+                text = text.replace(/^\s+|\s+$/g, '');
+                text = text.replace(/\n{2,}/g, "\n\n");
+
+                if (text.length) {
+
+                    var textSplit = text.split("\n");
+
+                    // Вземаме манипулатора на документа
+                    selHandle = sessionStorage.getItem('selHandle');
+
+                    var isBegin = true;
+                    newText = new Array();
+
+                    $.each( textSplit, function( key, value ) {
+                        if (value.trim()) {
+                            if (isBegin) {
+
+                                var quoteStr = '';
+                                if (key) {
+                                    quoteStr = '\n\n\n';
+                                }
+
+                                quoteStr += '[bQuote';
+
+                                // Ако има манипулато, го добавяме
+                                if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
+                                    quoteStr += "=" + selHandle + "]";
+                                } else {
+                                    quoteStr += "]";
+                                }
+
+                                value = quoteStr + value.trim();
+                            }
+
+                            newText.push(value);
+
+                            isBegin = false;
+                        } else {
+                            lastVal = newText.pop();
+                            newText.push(lastVal + "[/bQuote]");
+                            isBegin = true;
+                        }
+                    });
+                    lastVal = newText.pop();
+                    newText.push(lastVal + "[/bQuote]");
+
+                    quoteText = newText.join("\n");
+
+                }
+            }
 		}
 	}
-	
+
     if (quoteText) {
         var textVal = get$(id).value;
     	
@@ -3238,7 +3310,9 @@ jQuery.extend({
                 if (/\s/.test(node.data[match.index])) {
                     match.index++;
                 }
-                var wordNode = node.splitText(match.index);
+
+                var wordNode = node.splitText(match.index + match[1].trim().length);
+
                 wordNode.splitText(match[2].length);
                 var wordClone = wordNode.cloneNode(true);
                 highlight.appendChild(wordClone);
@@ -3301,7 +3375,7 @@ jQuery.fn.highlight = function(words, options) {
         pattern = "\\b" + pattern + "\\b";
     }
     if (settings.startsWith) {
-        pattern = "(\\s|^)" + pattern;
+        pattern = "(\\s|^|[\\W])" + pattern;
     }
     var re = new RegExp(pattern, flag);
 

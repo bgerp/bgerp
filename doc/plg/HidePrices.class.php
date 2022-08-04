@@ -63,9 +63,9 @@ class doc_plg_HidePrices extends core_Plugin
     
     
     /**
-     * Дали потребителя може да вичжда чувствителната информация
+     * Дали потребителя може да вижда чувствителната информация
      */
-    protected static function canSeePriceFields($rec)
+    public static function canSeePriceFields($rec)
     {
         // Ако има изброените роли, може да вижда цените
         if (haveRole('ceo,seePrice')) {
@@ -179,8 +179,18 @@ class doc_plg_HidePrices extends core_Plugin
             $data = new stdClass();
         }
     }
-    
-    
+
+
+    /**
+     * Какъв е скритие елемент, с който ще се замести чувствителната информация
+     * @return string
+     */
+    public static function getBuriedElement()
+    {
+        return "<span class='confidential-field'>" . tr('заличено||buried'). "</span>";
+    }
+
+
     /**
      * Ф-я махаща всички полета от вербален запис, които са маркирани
      */
@@ -188,7 +198,7 @@ class doc_plg_HidePrices extends core_Plugin
     {
         if (countR($fields)) {
             foreach ($fields as $name) {
-                unset($row->{$name});
+                $row->{$name} = static::getBuriedElement();
             }
         }
     }

@@ -99,8 +99,8 @@ class cat_products_SharedInFolders extends core_Manager
         
         $this->setDbUnique('productId,folderId');
     }
-    
-    
+
+
     /**
      * Клонира споделените папки от един артикул на друг
      *
@@ -124,24 +124,6 @@ class cat_products_SharedInFolders extends core_Manager
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            $rec = $form->rec;
-            $productFolderId = cat_Products::fetchField($rec->productId, 'folderId');
-            if ($productFolderId == $rec->folderId) {
-                $form->setError('folderId', 'Вече съществува запис със същите данни');
-            }
-        }
-    }
-    
-    
-    /**
      * След подготовката на заглавието на формата
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
@@ -157,21 +139,17 @@ class cat_products_SharedInFolders extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'delete') && isset($rec)) {
-            $productRec = cat_Products::fetch($rec->productId);
-            $folders = cat_Categories::getProtoFolders();
-            if ($productRec->isPublic == 'yes' && !in_array($productRec->folderId, $folders) && $action != 'delete') {
-                $requiredRoles = 'no_one';
-            } elseif ($productRec->state == 'rejected' || $productRec->state == 'closed') {
+            $productRec = cat_Products::fetch($rec->productId, 'state');
+            if ($productRec->state == 'rejected' || $productRec->state == 'closed') {
                 $requiredRoles = 'no_one';
             }
         }
         
         if ($action == 'changepublicstate') {
-            $pRec = (isset($rec->productId)) ? cat_Products::fetch($rec->productId) : null;
+            $pRec = (isset($rec->productId)) ? cat_Products::fetch($rec->productId, 'state,folderId') : null;
             $requiredRoles = cat_Products::getRequiredRoles('edit', $pRec, $userId);
-            
+
             if ($requiredRoles != 'no_one' && isset($rec->productId)) {
-                $pRec = cat_Products::fetch($rec->productId, 'state,folderId');
                 if ($pRec->state != 'active') {
                     $requiredRoles = 'no_one';
                 } else {
@@ -199,23 +177,17 @@ class cat_products_SharedInFolders extends core_Manager
             }
         }
         
-        if (($masterRec->isPublic == 'yes' && !$data->isProto && !isset($data->changeStateUrl)) && !self::fetch("#productId = {$masterRec->id}")) {
-            $data->hide = true;
-            
-            return;
-        }
-        
         $data->TabCaption = 'Достъпност';
         $data->Tab = 'top';
         
         $data->recs = $data->rows = array();
-        if ($data->isProto !== true) {
-            $data->recs[0] = (object) array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id);
+        if ($data->isProto !== true && $masterRec->isPublic != 'yes') {
+            $data->recs[$masterRec->folderId] = (object) array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id);
         }
         $query = self::getQuery();
         $query->where("#productId = {$masterRec->id}");
         while ($rec = $query->fetch()) {
-            $data->recs[$rec->id] = $rec;
+            $data->recs[$rec->folderId] = $rec;
         }
         
         foreach ($data->recs as $id => $rec) {
@@ -223,8 +195,6 @@ class cat_products_SharedInFolders extends core_Manager
             $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
             $data->rows[$id] = $row;
         }
-        
-        unset($data->rows[0]->tools);
         
         if (!Mode::isReadOnly()) {
             if ($this->haveRightFor('add', (object) array('productId' => $masterRec->id))) {
@@ -278,8 +248,16 @@ class cat_products_SharedInFolders extends core_Manager
             if ($data->isProto === true) {
                 $tpl->append("<div style='margin-bottom:5px'><b>" . tr('Създадените на база прототипа артикули, ще са споделени в следните папки') . ':</b></div>', 'content');
             } else {
-                $tpl->append('<div><b>' . tr('Артикулът е стандартен и е достъпен във всички папки.') . '</b></div>', 'content');
-                $tpl->append("<div style='margin-bottom:5px'><i><small>" . tr('Като частен е бил споделен в папките на:') . '</small></i></div>', 'content');
+                if(countR($data->recs)){
+                    $tpl->append('<div><b>' . tr('Артикулът е стандартен и е достъпен само в изброените папки.') . '</b></div>', 'content');
+                } else {
+                    $tpl->append('<div><b>' . tr('Артикулът е стандартен и е достъпен във всички папки.') . '</b></div>', 'content');
+                }
+
+                $folderCover = doc_Folders::fetchCoverClassName($data->masterData->rec->folderId);
+                if (cls::haveInterface('crm_ContragentAccRegIntf', $folderCover)) {
+                    $tpl->append("<div style='margin-bottom:5px'><i><small>" . tr('Като частен е бил споделен в папките на:') . '</small></i></div>', 'content');
+                }
             }
         }
         
@@ -300,7 +278,6 @@ class cat_products_SharedInFolders extends core_Manager
             
             $ht = ht::createBtn(str::mbUcfirst($bTitle), $data->changeStateUrl, $warning, null, "title={$title},ef_icon=img/16/arrow_refresh.png");
             $ht->prepend('<br>');
-            
             $tpl->append($ht, 'content');
         }
         
@@ -311,8 +288,7 @@ class cat_products_SharedInFolders extends core_Manager
     /**
      * Кои са споделените папки към един артикул
      *
-     * @param int $folderId - ид на папка
-     *
+     * @param int $productId - ид на папка
      * @return array $res - масив със споделените артикули
      */
     public static function getSharedFolders($productId)
@@ -320,12 +296,12 @@ class cat_products_SharedInFolders extends core_Manager
         $res = array();
         $productRec = cat_Products::fetchRec($productId, 'isPublic,folderId');
         if($productRec->isPublic == 'yes') return $res;
-        
-        $res[$productRec->folderId] = $productRec->folderId;
-        
+
         $query = self::getQuery();
         $query->where(array('#productId = [#1#]', $productRec->id));
         $query->orderBy('id', 'DESC');
+
+        $res[$productRec->folderId] = $productRec->folderId;
         while ($rec = $query->fetch()) {
             $res[$rec->folderId] = $rec->folderId;
         }
@@ -367,15 +343,32 @@ class cat_products_SharedInFolders extends core_Manager
     public static function limitQuery(&$query, $folderId)
     {
         expect($query->mvc instanceof cat_Products);
+
+        // Кои са споделените артикули към папката
         $sharedProducts = cat_products_SharedInFolders::getSharedProducts($folderId);
-        
-        // Избираме всички публични артикули, или частните за тази папка
-        $query->where("#isPublic = 'yes'");
+
+        // Кои са стандартните артикули споделени към конкретни папки
+        $query1 = self::getQuery();
+        $query1->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $query1->where("#isPublic = 'yes'");
+        $query1->show('productId');
+        $publicProductsWithSharedFolders = arr::extractValuesFromArray($query1->fetchAll(), 'productId');
+        $publicWhere = "#isPublic = 'yes'";
+        if(countR($publicProductsWithSharedFolders)){
+            $publicProductsWithSharedFoldersStr = implode(',', $publicProductsWithSharedFolders);
+            $publicWhere .= " AND #id NOT IN ({$publicProductsWithSharedFoldersStr})";
+        }
+
+        // Ако има споделени папки
         if (countR($sharedProducts)) {
+
+            // Артикула се показва ако: е нестандартен и е в същата папка, ако е споделен конкретно към тази папка или ако е стандартен и не е споделен към никоя папка
             $sharedProducts = implode(',', $sharedProducts);
-            $query->orWhere("#isPublic = 'no' AND (#folderId = {$folderId} OR #id IN ({$sharedProducts}))");
+            $query->where("(#isPublic = 'no' AND #folderId = {$folderId}) OR #id IN ({$sharedProducts}) OR ({$publicWhere})");
         } else {
-            $query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
+
+            // Артикула се показва ако: е нестандартен и е в същата папка или ако е стандартен и не е споделен към никоя папка
+            $query->where("(#isPublic = 'no' AND #folderId = {$folderId}) OR {$publicWhere}");
         }
     }
 }

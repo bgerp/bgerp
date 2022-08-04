@@ -92,7 +92,7 @@ class marketing_InquiryRouter extends core_Manager
         }
         
         // Ако има папка на лице с този имейл
-        $folderId = marketing_Router::routeByPersonEmail($email, $inCharge);
+        $folderId = marketing_Router::routeByPersonEmail($email, $uicId, $inCharge);
         if ($folderId) {
             $explained = 'Рутиране на лице по личен имейл';
 
@@ -100,7 +100,7 @@ class marketing_InquiryRouter extends core_Manager
         }
         
         if(!empty($tel)){
-            $folderId = marketing_Router::routeByPersonTel($tel, true);
+            $folderId = marketing_Router::routeByPersonTel($tel, $uicId, true);
             if ($folderId) {
                 $explained = "Рутиране на лице по мобилен телефон";
 

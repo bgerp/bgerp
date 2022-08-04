@@ -54,6 +54,11 @@
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow span {
     color: #000 !important;
 }
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow span.red {
+    color: red !important;
+}
+
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow .quiet, .rack_Zones  .listTable > tbody > tr.zonesCommonRow .rack-zone-batch span {
     color: #eee !important;
 }
@@ -154,4 +159,25 @@
         width: 16px;
         height: 13px;
     }
+}
+
+.terminalWorkerCol {
+    width:100px !important;
+}
+
+.terminalRightBtnsCol {
+    text-align:right;
+    width:1% !important;
+}
+
+.terminalLeftBtnsCol {
+    text-align:right;
+    width:1% !important;
+}
+
+.differentReturnPosition a{
+    font-weight:bold;
+    padding: 2px;
+    background-color: orange;
+    border:#eee;
 }

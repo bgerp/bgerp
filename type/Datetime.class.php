@@ -64,11 +64,21 @@ class type_Datetime extends type_Date
             }
         }
         
-        if (strlen($time) && strpos($this->params['defaultTime'], $time) === 0) {
+        if (strlen($time) && strpos($this->params['defaultTime'], $time) === 0 && $this->params['defaultTime'] == '00:00:00') {
             $time = '';
         }
-        
+
+        $datePlaceholder = $timePlaceholder = null;
+        if(isset($attr['placeholder'])){
+            list($datePlaceholder, $timePlaceholder) = explode(' ', $attr['placeholder']);
+        }
+
         $attr['value'] = $date;
+        if(isset($datePlaceholder)){
+            $datePlaceholder = dt::mysql2verbal($datePlaceholder, 'd.m.Y', null, false);
+        }
+
+        $attr['placeholder'] = $datePlaceholder;
         $input = $this->dt->renderInput($name . '[d]', null, $attr);
         $input->append('&nbsp;');
         
@@ -104,9 +114,18 @@ class type_Datetime extends type_Date
         } else {
             $ts = array('' => '', $time => $time);
         }
-        
+
+        if(isset($timePlaceholder)){
+            if(empty($date)){
+                list($h, $m) = explode(':', $timePlaceholder);
+                $timePlaceholder = "{$h}:{$m}";
+            } else {
+                $timePlaceholder = null;
+            }
+        }
+        $attr['placeholder'] = $timePlaceholder;
         $timeInput = ht::createCombo($name . '[t]', $time, $attr, $ts);
-        
+
         $input->append($timeInput);
         
         return $input;
@@ -131,7 +150,7 @@ class type_Datetime extends type_Date
         
         $time = trim($value['t']);
         
-        if(isset($this->params['requireTime'])){
+        if(isset($this->params['requireTime']) && !$this->_isRefreshed){
             if(!empty($value['d']) && empty($value['t'])){
                 $this->error = 'Посочването на време е задължително';
                 

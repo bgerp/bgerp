@@ -57,8 +57,15 @@ class payment_ParserIso20022 extends core_BaseClass
         $res->warnings = $res->errors = $res->recs = array();
         
         // Вземаме SimpleXMLElement обект, отговарящ на файла
-        $transactions = new SimpleXMLElement($xml);
-        
+        $transactions = @ new SimpleXMLElement(trim($xml));
+
+        if (!$transactions) {
+
+            $res->warnings[] = "Грешка при парсиране на XML";
+
+            return $res;
+        }
+
         if(strpos(implode('|', $transactions->getNamespaces()), 'camt.052') !== false) {
             $array = array($transactions->BkToCstmrAcctRpt->Rpt);
         } else {

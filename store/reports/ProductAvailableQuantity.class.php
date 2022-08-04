@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Артикули наличности и лимити
+ * @title     Склад » Артикули наличности и лимити (стара; извън поддръжка)
  */
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
@@ -48,7 +48,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planning,purchase';
+    public $canSelectDriver = 'debug';
 
 
     /**

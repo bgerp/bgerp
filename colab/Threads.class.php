@@ -147,7 +147,14 @@ class colab_Threads extends core_Manager
         
         // Ако има папка записва се като активна
         colab_Folders::setLastActiveContragentFolder($data->folderId);
-        
+
+        bgerp_Recently::add('document', $data->threadRec->firstContainerId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
+        $otherDocChanges = doc_Threads::fetch(array("#id != '[#1#]' AND #folderId = '[#2#]' AND #state != 'rejected' AND #partnerDocLast > '[#3#]'",
+            $data->threadRec->id, $data->threadRec->folderId, $data->threadRec->partnerDocLast));
+        if (!$otherDocChanges) {
+            bgerp_Recently::add('folder', $data->threadRec->folderId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
+        }
+
         // Показваме само неоттеглените документи, чиито контейнери са видими за партньори
         $cu = core_Users::getCurrent();
         $sharedUsers = colab_Folders::getSharedUsers($data->folderId);
@@ -242,7 +249,10 @@ class colab_Threads extends core_Manager
         if (isset($folderId) && colab_Folders::haveRightFor('list', (object) array('folderId' => $folderId))) {
             colab_Folders::setLastActiveContragentFolder($folderId);
         }
-        
+
+        $folderRec = doc_Folders::fetch($folderId);
+        bgerp_Recently::add('folder', $folderId, null, ($folderRec->state == 'rejected') ? 'yes' : 'no');
+
         return parent::act_List();
     }
     
@@ -291,7 +301,13 @@ class colab_Threads extends core_Manager
                 
                 $row->title = $docRow->title;
                 if ($this->haveRightFor('single', $rec)) {
-                    $row->title = ht::createLink($docRow->title, array($this, 'single', 'threadId' => $id), false, "ef_icon={$docProxy->getIcon()},title=Разглеждане на нишката");
+                    $class = '';
+                    $lastThreadSee = bgerp_Recently::getLastDocumentSee($rec->firstContainerId, null, true);
+                    if ($lastThreadSee && ($rec->partnerDocLast > $lastThreadSee)) {
+                        $class = ',class=tUnsighted';
+                    }
+
+                    $row->title = ht::createLink($docRow->title, array($this, 'single', 'threadId' => $id), false, "ef_icon={$docProxy->getIcon()},title=Разглеждане на нишката{$class}");
                 }
                 
                 if ($docRow->subTitle) {

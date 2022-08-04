@@ -400,7 +400,7 @@ class colab_FolderToPartners extends core_Manager
                 } elseif (!doc_Folders::haveRightToObject($objectRec)) {
                     $requiredRoles = 'no_one';
                 } else {
-                    $emailsFrom = email_Inboxes::getAllowedFromEmailOptions(null);
+                    $emailsFrom = email_Inboxes::getAllowedFromEmailOptions(null, array(), true);
                     if (!countR($emailsFrom)) {
                         $requiredRoles = 'no_one';
                     }
@@ -488,7 +488,7 @@ class colab_FolderToPartners extends core_Manager
                 $btns->append($ht);
                 
                 if(core_Packs::isInstalled('eshop')){
-                    $ht = ht::createBtn('Покана е-шоп', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'onlyPartner' => 'yes', 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
+                    $ht = ht::createBtn('Покана е-шоп', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'onlyPartner' => 'yes', 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за покана за регистрация в е-маг');
                     $btns->append($ht);
                 }
             } else {
@@ -564,27 +564,29 @@ class colab_FolderToPartners extends core_Manager
         $subject = tr('Създайте нов акаунт в') . ' ' . core_Setup::get('EF_APP_TITLE', true);
         $form->setDefault('subject', $subject);
         $placeHolder = '{{' . tr('линк||link') . '}}';
-        
-        if($form->rec->onlyPartner == 'yes'){
-            $middleMsg = tr('За да се регистрираш, като потребител в нашия онлайн магазин||To have registration as user in our e-shop') . " ";
+
+        $lg = core_Lg::getCurrent();
+        if($form->rec->onlyPartner == 'yes') {
+            $bodyText = ($lg == 'bg')  ? colab_Setup::get('DEFAULT_EMAIL_ESHOP_REGISTRATION_BG') : colab_Setup::get('DEFAULT_EMAIL_ESHOP_REGISTRATION_EN');
         } else {
-            $middleMsg = tr('За да се регистрираш като служител на фирма||To have registration as a member of company') . ' "[#company#]", ';
-            $middleMsg = ($Class instanceof crm_Companies) ? $middleMsg : tr('За да се регистрираш||For registration') . ' ';
+            if($Class instanceof crm_Companies){
+                $bodyText = ($lg == 'bg')  ? colab_Setup::get('DEFAULT_EMAIL_PARTNER_REGISTRATION_BG') : colab_Setup::get('DEFAULT_EMAIL_PARTNER_REGISTRATION_EN');
+            } else {
+                $bodyText = ($lg == 'bg')  ? colab_Setup::get('DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_BG') : colab_Setup::get('DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_EN');
+            }
         }
-        
-        $body = new ET(
-            tr('Уважаеми потребителю||Dear User') . ",\n\n" .
-            $middleMsg .
-            tr('моля последвай този||please follow this') .
-            " {$placeHolder} - " .
-            tr('изтича след 7 дена||it expires after 7 days')
-        );
-        
+
+        $body = new core_ET($bodyText);
         $companyName = str_replace(array('&lt;', '&amp;'), array('<', '&'), $contragentName);
+
+        $lifetime = colab_Setup::get('PARTNER_REGISTRATION_LINK_LIFETIME');
+        $lifetimeVerbal = core_Type::getByName('time')->toVerbal($lifetime);
+        $body->replace($lifetimeVerbal, 'lifetime');
+
         $body->replace($companyName, 'company');
-        
         $footer = cls::get('email_Outgoings')->getFooter($objectRec->country);
         $body = $body->getContent() . "\n\n" . $footer;
+
         $form->setDefault('body', $body);
         core_Lg::pop();
         $form->input();
@@ -604,7 +606,8 @@ class colab_FolderToPartners extends core_Manager
             $msg = ($res) ? 'Успешно изпратен имейл' : 'Проблем при изпращането на имейл';
             
             cls::get($className)->logInAct('Изпращане на имейл за регистрация на нов партньор', $objectId);
-            
+            cls::get($className)->logDebug("Изпращане на имейл за регистрация на нов партньор: '{$form->rec->to}'", $objectId);
+
             return followRetUrl(null, $msg);
         }
         
@@ -648,8 +651,9 @@ class colab_FolderToPartners extends core_Manager
             }
         }
 
+        $lifetime = colab_Setup::get('PARTNER_REGISTRATION_LINK_LIFETIME');
         $PML->Encoding = 'quoted-printable';
-        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), 604800);
+        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), $lifetime);
         $rec->body = str_replace($rec->placeHolder, "[link=${url}]link[/link]", $rec->body);
         
         Mode::push('text', 'plain');
@@ -731,7 +735,7 @@ class colab_FolderToPartners extends core_Manager
         } else {
             vislog_History::add("Форма за регистрация на партньор в «{$contragentName}»");
         }
-        //core_Users::
+
         $form = $Users->getForm();
         $form->title = "Регистриране на нов акаунт на партньор";
         $form->FLD('contragentName', 'varchar', "caption=Папка,after=passRe");
@@ -741,6 +745,7 @@ class colab_FolderToPartners extends core_Manager
         // Ако има готово име, попълва се
         if ($userNames = Request::get('userNames', 'varchar')) {
             $form->setDefault('names', $userNames);
+            $form->setReadonly('names');
         }
         
         // Ако имаме хора от crm_Persons, които принадлежат на тази компания, и нямат свързани профили,

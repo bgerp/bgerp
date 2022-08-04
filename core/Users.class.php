@@ -998,7 +998,7 @@ class core_Users extends core_Manager
                         Request::setProtected('userId');
                         $url = array('core_Users', 'unblocklocal', 'userId' => $userRec->id);
                         $url = toUrl($url);
-                        $msg = 'Този потребител е блокиран|*.<br>|Може да го активирате от тук:|* <a href="' . $url . '">[*]</a>';
+                        $msg = 'Този потребител е блокиран|*.<br>|Може да го активирате от тук|*: <a href="' . $url . '">[*]</a>';
                     } else {
                         $msg = 'Този потребител е блокиран|*.<br>|На имейла от регистрацията е изпратена информация и инструкция за ре-активация|*.';
                     }

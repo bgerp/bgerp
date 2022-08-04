@@ -56,10 +56,16 @@
                     </tr>
                     <!--ET_BEGIN storeId-->
                     <tr>
-                        <td class='quiet' style='text-align: left'>|Склад|*:</td>
+                        <td class='quiet' style='text-align: left'>|Произвеждане в|*:</td>
                         <td>[#storeId#]</td>
                     </tr>
                     <!--ET_END storeId-->
+                    <!--ET_BEGIN inputStores-->
+                    <tr>
+                        <td class='quiet' style='text-align: left'>|Влагане от|*:</td>
+                        <td>[#inputStores#]</td>
+                    </tr>
+                    <!--ET_END inputStores-->
                     <!--ET_BEGIN tolerance-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Толеранс|*:</td>
@@ -112,6 +118,12 @@
                     </tr>
                     <!--ET_END pBomId-->
                     <!--ET_END RECEIPTS-->
+                    <!--ET_BEGIN BATCHES-->
+                    <tr style='padding-bottom:80px;padding-top:80px'>
+                        <td class='quiet' style='text-align: left'>|Партиди|* [#addBatchBtn#]:</td>
+                        <td>[#BATCHES#]</td>
+                    </tr>
+                    <!--ET_END BATCHES-->
                     <!--ET_BEGIN oldJobId-->
                     <tr>
                         <td class='quiet' style='text-align: left;white-space: nowrap;'>|Предходно задание|*:</td>
@@ -210,12 +222,6 @@
                         <td>[#deliveryDate#]</td>
                     </tr>
                     <!--ET_END deliveryDate-->
-                    <!--ET_BEGIN batches-->
-                    <tr>
-                        <td class='quiet'>|Партиди|*</td>
-                        <td class='small'>[#batches#]</td>
-                    </tr>
-                    <!--ET_END batches-->
                 </table>
             </td>
         </tr>
@@ -236,11 +242,11 @@
     <!--ET_BEGIN Tasks-->
     <div class='scrolling-holder'>
         <div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
-            <b>|Производствени операции|*</b>
+            <b>|Производствени операции|* [#btnTasks#]</b>
         </div>
         <div class="clearfix21 portal planning" style='border-top: none'>
             [#Tasks#]
-            <div style='margin-top:6px'>[#btnTasks#]</div>
+            <div style='margin-top:6px'></div>
         </div>
     </div>
 

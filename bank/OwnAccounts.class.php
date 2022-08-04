@@ -179,7 +179,7 @@ class bank_OwnAccounts extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg)', 'caption=Държави, title=Използване по подразбиране за фирми от съответните държави');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
-        $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Контиране на документи->Потребители,mandatory');
+        $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Контиране на документи->Потребители');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         
         $this->setDbUnique('title');
@@ -221,7 +221,12 @@ class bank_OwnAccounts extends core_Master
      */
     protected static function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
-        $row->STATE_CLASS .= ($rec->state == 'rejected') ? ' state-rejected' : ' state-active';
+        $stateClass = ($rec->state == 'rejected') ? ' state-rejected' : (($rec->state == 'closed' ? ' state-closed': ' state-active'));
+        $row->STATE_CLASS .= $stateClass;
+        if($mvc->getCurrent('id', false) != $rec->id){
+            $row->ROW_ATTR['class'] = $stateClass;
+        }
+
         $row->bankAccountId = ht::createLink($row->bankAccountId, array('bank_Accounts', 'single', $rec->bankAccountId));
         
         if (isset($fields['-list'])) {
@@ -255,9 +260,11 @@ class bank_OwnAccounts extends core_Master
             $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
             $row->currency = currency_Currencies::getCodeById($currencyId);
             $ownAccounts = bank_OwnAccounts::getOwnAccountInfo($rec->id);
-            
+
             $row->bank = bank_Accounts::getVerbal($ownAccounts, 'bank');
             $row->bic = bank_Accounts::getVerbal($ownAccounts, 'bic');
+            $row->conditionSaleBg = bank_Accounts::getVerbal($ownAccounts, 'conditionSaleBg');
+            $row->conditionSaleEn = bank_Accounts::getVerbal($ownAccounts, 'conditionSaleEn');
         }
     }
     
@@ -318,6 +325,8 @@ class bank_OwnAccounts extends core_Master
         $form->FNC('currencyId', 'key(mvc=currency_Currencies, select=code,allowEmpty)', 'caption=Валута,mandatory,after=iban,input');
         $form->FNC('bic', 'varchar(12)', 'caption=BIC,after=currencyId,input');
         $form->FNC('bank', 'varchar(64)', 'caption=Банка,after=bic,input');
+        $form->FNC('conditionSaleBg', 'text(rows=2)', 'caption=Допълнителни условия към Продажба->BG,autohide,input,after=comment');
+        $form->FNC('conditionSaleEn', 'text(rows=2)', 'caption=Допълнителни условия към Продажба->EN,autohide,input,after=conditionSaleBg');
         $form->FNC('fromOurCompany', 'int', 'input=hidden');
         if (Request::get('fromOurCompany', 'int')) {
             $form->rec->fromOurCompany = true;
@@ -331,6 +340,8 @@ class bank_OwnAccounts extends core_Master
                 $form->setDefault('bank', $ibanRec->bank);
                 $form->setDefault('bic', $ibanRec->bic);
                 $form->setDefault('currencyId', $ibanRec->currencyId);
+                $form->setDefault('conditionSaleBg', $ibanRec->conditionSaleBg);
+                $form->setDefault('conditionSaleEn', $ibanRec->conditionSaleEn);
             }
         }
     }
@@ -430,6 +441,8 @@ class bank_OwnAccounts extends core_Master
                     $form->setDefault('bank', $accountRec->bank);
                     $form->setDefault('bic', $accountRec->bic);
                     $form->setDefault('currencyId', $accountRec->currencyId);
+                    $form->setDefault('conditionSaleBg', $accountRec->conditionSaleBg);
+                    $form->setDefault('conditionSaleEn', $accountRec->conditionSaleEn);
                 }
             }
         }
@@ -470,32 +483,34 @@ class bank_OwnAccounts extends core_Master
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         if ($rec->_isSubmitted === true) {
-            $rec->bankAccountId = self::syncWithAccouns($rec->bankAccountId, $rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
+            $rec->bankAccountId = self::syncWithAccount($rec->bankAccountId, $rec->iban, $rec->currencyId, $rec->bank, $rec->bic, $rec->conditionSaleBg, $rec->conditionSaleEn);
         }
     }
-    
-    
+
+
     /**
      * Синхронизиране на банкова сметка с наша сметка
      *
-     * @param string $iban
-     * @param int    $currencyId
-     * @param string $bank
-     * @param string $bic
-     *
-     * @return int $accId
+     * @param $id
+     * @param $iban
+     * @param $currencyId
+     * @param $bank
+     * @param $bic
+     * @param $commonConditionSaleBg
+     * @param $commonConditionSaleEn
+     * @return int
      */
-    private static function syncWithAccouns($id, $iban, $currencyId, $bank, $bic)
+    private static function syncWithAccount($id, $iban, $currencyId, $bank, $bic, $commonConditionSaleBg, $commonConditionSaleEn)
     {
         $save = false;
         $bank = ($bank) ? $bank : null;
         $bic = ($bic) ? $bic : null;
         $ourCompany = crm_Companies::fetchOurCompany();
-        $newRec = (object) array('id' => $id, 'iban' => $iban, 'currencyId' => $currencyId, 'bank' => $bank, 'bic' => $bic, 'contragentId' => $ourCompany->id, 'contragentCls' => $ourCompany->classId);
+        $newRec = (object) array('id' => $id, 'iban' => $iban, 'currencyId' => $currencyId, 'bank' => $bank, 'bic' => $bic, 'contragentId' => $ourCompany->id, 'contragentCls' => $ourCompany->classId, 'conditionSaleBg' => $commonConditionSaleBg, 'conditionSaleEn' => $commonConditionSaleEn);
         if (isset($id)) {
             $exRec = bank_Accounts::fetch($id);
             if (!is_null($newRec->iban) || !is_null($newRec->currencyId) || !is_null($newRec->bank) || !is_null($newRec->bic)) {
-                foreach (array('iban', 'currencyId', 'bank', 'bic') as $fld) {
+                foreach (array('iban', 'currencyId', 'bank', 'bic', 'conditionSaleBg', 'conditionSaleEn') as $fld) {
                     if ($exRec->{$fld} != $newRec->{$fld}) {
                         $save = true;
                     }

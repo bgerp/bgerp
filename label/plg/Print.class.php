@@ -132,6 +132,7 @@ class label_plg_Print extends core_Plugin
             if($type == 'error'){
                 $msg = $res;
                 $logMvc->logDebug($msg, $logId);
+                $msg = haveRole('debug') ? $msg : tr('Проблем при разпечатването|*!');
                 core_Statuses::newStatus($msg, 'error');
             } else {
                 $logMvc->logWrite('Разпечатване на бърз етикет', $logId);

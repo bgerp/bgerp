@@ -104,37 +104,51 @@ abstract class trans_Helper
         
         return $combined;
     }
-    
-    
+
+
     /**
      * Показва транспортните единици в документа
      *
-     * @param mixed $transUnits
-     * @param mixed $transUnitsTable
-     * @param bool  $newLines
-     *
-     * @return string
+     * @param array $transUnits      - масив с логистичните еденици и техните к-ва
+     * @param boolean $combineByName - дали да се групират по име или да са подробни
+     * @param string $divider        - разделител
+     * @return string $str           - готовия стринг за показване
      */
-    public static function displayTransUnits($transUnits, $transUnitsTable = array(), $newLines = false)
+    public static function displayTransUnits($transUnits, $combineByName = true, $divider = ' + ')
     {
-        $str = '';
-        $delimeter = ($newLines) ? '<br>' : ' + ';
         $transUnits = empty($transUnits) ? array() : $transUnits;
-        $transUnitsTable = empty($transUnitsTable) ? array() : $transUnitsTable;
-        $combined = self::getCombinedTransUnits($transUnits, $transUnitsTable);
-        
-        foreach ($combined as $unitId => $quantity) {
-            if (empty($quantity)) {
-                continue;
+
+        $displayArr = $combined = array();
+        foreach ($transUnits as $unitId => $quantity) {
+            if (empty($quantity)) continue;
+
+            $unitId = ($unitId) ? $unitId : self::fetchIdByName('load');
+            $uRec = trans_TransportUnits::fetch($unitId, 'name,pluralName');
+
+            if($combineByName){
+                $nameArr = explode(' [', $uRec->name);
+                $pluralNameArr = explode(' [', $uRec->pluralName);
+                $nameArr[0] = tr(mb_strtolower($nameArr[0]));
+                $pluralNameArr[0] = tr(mb_strtolower($pluralNameArr[0]));
+                $key = "{$nameArr[0]}|{$pluralNameArr[0]}";
+            } else {
+                $name = tr(mb_strtolower($uRec->name));
+                $pluralName = tr(mb_strtolower($uRec->pluralName));
+                $key = "{$name}|{$pluralName}";
             }
-            $strPart = trans_TransportUnits::display($unitId, $quantity);
-            if (array_key_exists($unitId, $transUnitsTable) && !Mode::isReadOnly()) {
-                $strPart = ht::createHint($strPart, 'Зададено е ръчно');
-            }
-            
-            $str .= "{$strPart} {$delimeter} ";
+
+            $combined[$key] += $quantity;
         }
-        $str = trim($str, " {$delimeter} ");
+
+        // Вербализиране на к-то спрямо числото на обединената ЛЕ
+        foreach ($combined as $key => $quantity) {
+            $unitNameArr = explode('|', $key);
+            $unitName = ($quantity == 1) ? $unitNameArr[0] : $unitNameArr[1];
+            $quantity = core_Type::getByName('int')->toVerbal($quantity);
+            $displayArr[] = "{$quantity} {$unitName}";
+        }
+
+        $str = implode($divider, $displayArr);
         
         return $str;
     }
@@ -187,5 +201,29 @@ abstract class trans_Helper
         }
         
         return (serialize($arr1) == serialize($arr2));
+    }
+
+
+    /**
+     * Коя от датите ще се използва за експедиране
+     *
+     * @param date $valior          - вальор
+     * @param int $lineId           - ид на транспортна линия (ако има)
+     * @param datetime $activatedOn - дата на активиране
+     * @return datetime|null        - изчислената дата за експедиране
+     */
+    public static function calcShippedOnDate($valior, $lineId, $activatedOn)
+    {
+        $shippedDate = null;
+        if(!empty($valior)) {
+            $startTime = trans_Setup::get('START_WORK_TIME');
+            $shippedDate = "{$valior} {$startTime}:00";
+        } elseif(isset($lineId)){
+            $shippedDate = trans_Lines::fetchField($lineId, 'start');
+        }
+
+        $shippedDate = (!empty($shippedDate) && $shippedDate >= dt::now()) ? $shippedDate :(dt::today() . " " . trans_Setup::get('END_WORK_TIME') . ":00");
+
+        return $shippedDate;
     }
 }

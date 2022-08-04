@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Проверка на имейли за смяна на състояние
+ * @title     Затваряне, оттегляне или изтриване
  */
 class email_drivers_CheckEmails extends core_BaseClass
 {
@@ -46,7 +46,7 @@ class email_drivers_CheckEmails extends core_BaseClass
     protected static function on_AfterInputEditForm($Driver, $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
-            if (!$form->rec->closeAfter && !$form->rec->rejectAfter && !$form->rec->deleteAfter) {
+            if (!strlen(trim($form->rec->closeAfter)) && !strlen(trim($form->rec->rejectAfter)) && !strlen(trim($form->rec->deleteAfter))) {
                 $form->setError('closeAfter, rejectAfter, deleteAfter', 'Поне едно от полетата трябва да бъде попълнено');
             }
         }
@@ -65,8 +65,28 @@ class email_drivers_CheckEmails extends core_BaseClass
      */
     public function process($mime, $serviceRec)
     {
+        // Ако ще се изтрива веднага
+        if (($serviceRec->deleteAfter === 0) || ($serviceRec->deleteAfter === 0.0)) {
 
-        return ;
+            email_ServiceRules::logNotice('Игнориран имейл при сваляне', $serviceRec->id);
+
+            return 'ignored';
+        }
+
+        // Ако ще се затваря веднага
+        if (($serviceRec->closeAfter === 0) || ($serviceRec->closeAfter === 0.0)) {
+            email_ServiceRules::logNotice('Свален имейл без отваряне на нишка', $serviceRec->id);
+
+            return array('closeThread' => 'closeThread');
+        }
+
+        // Ако ще се оттегля веднага
+        if (($serviceRec->rejectAfter === 0) || ($serviceRec->rejectAfter === 0.0)) {
+
+            email_ServiceRules::logNotice('Свален имейл и оттеглен веднага', $serviceRec->id);
+
+            return array('rejectThread' => 'rejectThread');
+        }
     }
 
 

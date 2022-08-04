@@ -150,13 +150,19 @@ defIfNot('DOC_LINKED_LAST_SHOW_LIMIT', 3);
 /**
  * Допълнителен ред в листовия изглед
  */
-defIfNot('DOC_LIST_FIELDS_EXTRA_LINE', 'yes');
+defIfNot('DOC_LIST_FIELDS_EXTRA_LINE', 'no');
 
 
 /**
  * Преместване на последен документ от нишка
  */
 defIfNot('DOC_MOVE_LAST_DOCUMENT', 'yes');
+
+
+/**
+ * Преместване на последен документ от нишка
+ */
+defIfNot('DOC_SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE', 'no');
 
 
 /**
@@ -240,6 +246,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_LINKED_LAST_SHOW_LIMIT' => array('int(min=0)', 'caption=До колко документа от последните добавени връзки да се показват при нова->Брой, customizeBy=powerUser'),
         'DOC_LIST_FIELDS_EXTRA_LINE' => array('enum(yes=Да,no=Не)', 'caption=Допълнителен ред в листовия изглед->Избор, customizeBy=powerUser'),
         'DOC_MOVE_LAST_DOCUMENT' => array('enum(yes=Да,no=Не)', 'caption=Възможност за преместване на последния документ в нишката->Избор'),
+        'DOC_SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE' => array('enum(no=Не,yes=Да)', 'caption=Разбиване на цитиран текст на параграфи->Избор, customizeBy=user'),
     );
 
 
@@ -268,8 +275,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_FolderResources',
         'doc_LinkedLast',
         'migrate::foldersRepairSerchKeywords2124',
-        'migrate::showFiles2126',
-        'migrate::updateOldShipmentTemplate'
+        'migrate::showFiles2152',
     );
 
 
@@ -529,17 +535,17 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Миграция, за показване/скирване на файловете в документите
      */
-    public function showFiles2126()
+    public function showFiles2152()
     {
         $callOn = dt::addSecs(120);
-        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2126', NULL, $callOn);
+        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2152', NULL, $callOn);
     }
 
 
     /**
-     * Постепенна миграция, която се вика от showFiles2126 и се самонавива
+     * Постепенна миграция, която се вика от showFiles2152 и се самонавива
      */
-    public static function callback_migrateShowFiles2126()
+    public static function callback_migrateShowFiles2152()
     {
         core_App::setTimeLimit(100);
         $query = doc_Files::getQuery();
@@ -557,7 +563,7 @@ class doc_Setup extends core_ProtoSetup
 
         if ($cnt) {
             $callOn = dt::addSecs(120);
-            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2126', NULL, $callOn);
+            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2152', NULL, $callOn);
         } else {
             doc_Files::logDebug("Няма повече файлове за миграция в документите");
 
@@ -588,24 +594,5 @@ class doc_Setup extends core_ProtoSetup
         $lastId++;
 
         core_Permanent::set('docFilesLastId', $lastId, 1000);
-    }
-
-
-    /**
-     * Обновяване ан стар шаблон за ЕН
-     */
-    public static function updateOldShipmentTemplate()
-    {
-        $rec = doc_TplManager::fetch("#name = 'Експедиционно нареждане с цени (Онлайн поръчка)'");
-        if(is_object($rec)){
-            $rec->state = 'closed';
-            $rec->path = null;
-            $contentTpl = new core_ET($rec->content);
-            $contentTpl->removeBlock('fromContainerId');
-            $rec->content = $contentTpl->content;
-            $rec->content = str_replace("<!--ET_END lineId-->", "<!--ET_END lineId-->[#InvoicesToDocuments#]", $rec->content);
-
-            doc_TplManager::save($rec);
-        }
     }
 }

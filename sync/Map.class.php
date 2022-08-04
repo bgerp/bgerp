@@ -44,7 +44,7 @@ class sync_Map extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Съответсвия между две bgERP системи";
+    public $title = "Съответствия между две bgERP системи";
     
     
     /**
@@ -189,7 +189,7 @@ class sync_Map extends core_Manager
                 foreach ($kArr as $fId) {
                     $fn = fileman::idToFh($fId);
                     try {
-                        $kArrN[] = fileman_Download::getDownloadUrl($$fn);
+                        $kArrN[] = fileman_Download::getDownloadUrl($fn);
                     } catch (core_exception_Expect $e) {
 //                         wp($e);
                     }
@@ -547,13 +547,28 @@ class sync_Map extends core_Manager
             $rec->id = $rec->__id;
             unset($rec->__id);
         }
-        
-        $lId = $mvc->save($exRec);
+
+        try {
+            $lId = $mvc->save($exRec);
+        } catch (core_exception_Expect $e) {
+            log_System::add($mvc, "Грешка при синхронизиране на данните: " . core_Type::mixedToString($e->getMessage()), $exRec, 'err', 10);
+            reportException($e);
+            $lId = 0;
+        } catch (Exception $e) {
+            log_System::add($mvc, "Грешка при синхронизиране на данните: " . core_Type::mixedToString($e->getMessage()), $exRec, 'err', 10);
+            reportException($e);
+            $lId = 0;
+        } catch (Throwable $t) {
+            log_System::add($mvc, "Грешка при синхронизиране на данните: " . core_Type::mixedToString($t->getMessage()), $exRec, 'err', 10);
+            reportException($t);
+            $lId = 0;
+        }
+
         //log_System::add('sync_Map', "Записахме {$class} {$lId}");
 
         if (!$haveRec) {
             $mRec = (object) array('classId' => $mvc->getClassId(), 'remoteId' => $id, 'localId' => $lId);
-            self::save($mRec);
+            self::save($mRec, null, 'IGNORE');
         }
 
         self::$imported[$class][$id] = $lId;

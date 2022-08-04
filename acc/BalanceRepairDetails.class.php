@@ -204,7 +204,7 @@ class acc_BalanceRepairDetails extends doc_Detail
         $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
         if($useDefaults != 'yes'){
             if(empty($rec->blRoundQuantity)){
-                $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANITITY_BELLOW'));
+                $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANTITY_BELLOW'));
             }
 
             if(empty($rec->blRoundAmount)){

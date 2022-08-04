@@ -197,6 +197,12 @@ class crm_ext_ContragentInfo extends core_manager
                 $row->overdueDealsAmount = core_Type::getByName('double(decimals=2)')->toVerbal($cInfo->overdueDeals['amount']) . " {$currencyId}";
             }
         }
+
+        if(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+            foreach (array('totalPurchaseAmount','totalDealsAmount','overdueDealsAmount') as $fld){
+                $row->{$fld} = doc_plg_HidePrices::getBuriedElement();
+            }
+        }
     }
     
     

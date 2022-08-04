@@ -68,6 +68,24 @@ defIfNot('PURCHASE_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
 
 
 /**
+ * Показване на ваш реф в нишката на покупката
+ */
+defIfNot('PURCHASE_SHOW_REFF_IN_SALE_THREAD', 'no');
+
+
+/**
+ * Дали да се изчислява дефолтен закупчик в покупката
+ */
+defIfNot('PURCHASE_SET_DEFAULT_DEALER_ID', 'yes');
+
+
+/**
+ * Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки
+ */
+defIfNot('PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -121,8 +139,6 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_PurchasesData',
         'purchase_Quotations',
         'purchase_QuotationDetails',
-        'migrate::updateInvoiceJournalDate',
-        'migrate::migrateOldQuotes1',
     );
     
     
@@ -139,7 +155,11 @@ class purchase_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'PURCHASE_OVERDUE_CHECK_DELAY' => array('time', 'caption=Толеранс за просрочване на покупката->Време'),
-        'PURCHASE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на покупката->Дни'),
+        'PURCHASE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на продажби в BGN / EUR->Дни'),
+        'PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
+            'int(Min=0)',
+            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'
+        ),
         'PURCHASE_CLOSE_OLDER_NUM' => array('int', 'caption=По колко покупки да се приключват автоматично на опит->Брой'),
         'PURCHASE_USE_RATE_IN_CONTRACTS' => array('enum(no=Не,yes=Да)', 'caption=Ръчно въвеждане на курс в покупките->Избор'),
         'PURCHASE_INVOICE_DEFAULT_VALID_FOR' => array('time', 'caption=Срок за плащане по подразбиране->Срок'),
@@ -154,6 +174,8 @@ class purchase_Setup extends core_ProtoSetup
             'mandatory,caption=Действие на бързия бутон "Покупка" и "Оферта от доставчик" в папките->Оферта от доставчик,customizeBy=ceo|sales|purchase',
         ),
         'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за липсваща фактура за направено плащане->Време'),
+        'PURCHASE_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
+        'PURCHASE_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен закупчик в покупката->Избор'),
     );
     
     
@@ -207,97 +229,5 @@ class purchase_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('purQuoteFiles', 'Прикачени файлове в офертите от доставчици', null, '104857600', 'user', 'user');
 
         return $html;
-    }
-
-
-    /**
-     * Мигриране на сч. дата на активираните ф-ри ако е празна
-     */
-    public function updateInvoiceJournalDate()
-    {
-        $Invoices = cls::get('purchase_Invoices');
-        if (!$Invoices->count()) return;
-
-        $stateColName = str::phpToMysqlName('state');
-        $dateFieldName = str::phpToMysqlName('date');
-        $journalDateFieldName = str::phpToMysqlName('journalDate');
-
-        $query = "UPDATE {$Invoices->dbTableName} SET {$Invoices->dbTableName}.{$journalDateFieldName} = {$Invoices->dbTableName}.{$dateFieldName} WHERE {$Invoices->dbTableName}.{$journalDateFieldName} IS NULL AND ({$Invoices->dbTableName}.{$stateColName} = 'active' OR {$Invoices->dbTableName}.{$stateColName} = 'stopped')";
-        $Invoices->db->query($query);
-    }
-
-
-    /**
-     * Миграция на старите оферти към новите
-     */
-    function migrateOldQuotes1()
-    {
-        $db = new core_Db();
-        if (!$db->tableExists('purchase_offers')) return;
-
-        $OldQuote = cls::get('purchase_Offers');
-        $oldQuoteCount = $OldQuote->count();
-        if(!$oldQuoteCount) return;
-
-        $Quotations = cls::get('purchase_Quotations');
-        $query = $OldQuote->getQuery();
-        //$query->FLD('containerId', 'int');
-        //$query->FLD('folderId', 'int');
-        $query->where("#state != ''");
-
-        core_App::setTimeLimit($oldQuoteCount * 0.6, false, 300);
-        while($rec = $query->fetch()){
-            $Cover = doc_Folders::getCover($rec->folderId);
-            if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-
-                $others = "";
-                if(!empty($rec->product)){
-                    $others .= "Продукт: {$rec->product}" . "\n";
-                }
-
-                if(!empty($rec->sum)){
-                    $others .= "Цена: {$rec->sum}" . "\n";
-                }
-
-                if(!empty($rec->offer)){
-                    $others .= "Детайли: {$rec->offer}" . "\n";
-                }
-
-                if(!empty($rec->documentId)){
-                    $others .= "Документ: [file={$rec->documentId}][/file]";
-                }
-
-                $fields = array();
-                $date = !empty($rec->date) ? $rec->date : null;
-                if(!empty($others)){
-                    $fields['others'] = $others;
-                }
-
-                // Подмяна на старата оферта с новата в същия контейнер
-                $containerRec = doc_Containers::fetch($rec->containerId);
-                if($containerRec->docClass == purchase_Quotations::getClassId()) continue;
-                $fields['_replaceContainerId'] = $containerRec->id;
-
-                core_Users::sudo($rec->createdBy);
-                $quoteId = purchase_Quotations::createNewDraft($Cover->getClassId(), $Cover->that, $date, $fields);
-                purchase_Quotations::logWrite('Автоматично прехвърляне на стара оферта', $quoteId);
-                $containerRec->docClass = purchase_Quotations::getClassId();
-                $containerRec->docId = $quoteId;
-                doc_Containers::save($containerRec);
-
-                $quoteRec = purchase_Quotations::fetch($quoteId);
-
-                if($rec->state == 'active'){
-                    $quoteRec->date = dt::verbal2mysql($containerRec->createdOn, false);
-                    $quoteRec->state = 'active';
-                    $quoteRec->activatedOn = $containerRec->modifiedOn;
-                    $quoteRec->modifiedOn = $containerRec->modifiedOn;
-                    $Quotations->save($quoteRec, 'state,activatedOn,modifiedOn');
-                    $Quotations->invoke('AfterActivation', array($quoteRec));
-                }
-                core_Users::exitSudo($rec->createdBy);
-                doc_Threads::doUpdateThread($quoteRec->threadId);
-            }
-        }
     }
 }

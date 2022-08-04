@@ -155,13 +155,19 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountBl,amountToPay,amountToDeliver,amountToInvoice';
+    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountBl,amountToPay,amountInvoicedDownpaymentToDeduct,amountInvoicedDownpayment,amountToDeliver,amountToInvoice';
     
     
     /**
      * Кой може да превалутира документите в нишката
      */
     public $canChangerate = 'ceo, purchaseMaster';
+
+
+    /**
+     * Огледален клас за обратната операция
+     */
+    public $reverseClassName = 'store_ShipmentOrders';
 
 
     /**
@@ -186,11 +192,11 @@ class purchase_Purchases extends deals_DealMaster
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
-        'bankAccountId' => 'lastDocUser|lastDoc',
-        'dealerId' => 'lastDocUser',
+        'bankAccountId' => 'defMethod',
+        'dealerId' => 'defMethod',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
         'oneTimeDelivery' => 'clientCondition'
@@ -296,6 +302,7 @@ class purchase_Purchases extends deals_DealMaster
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
         $this->setField('oneTimeDelivery', 'salecondSysId=purchaseOneTimeDelivery');
+        $this->setField('chargeVat', 'salecondSysId=purchaseChargeVat');
     }
     
     
@@ -493,14 +500,16 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('allowedPaymentOperations', $this->getPaymentOperations($rec));
         $result->set('allowedShipmentOperations', $this->getShipmentOperations($rec));
         $result->set('involvedContragents', array((object) array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
-        
+
+        $deliveryTime = !empty($rec->deliveryTermTime) ? (dt::addSecs($rec->deliveryTermTime, $rec->valior, false) . " " . trans_Setup::get('END_WORK_TIME') . ":00") : $rec->deliveryTime;
+        $result->setIfNot('deliveryTime', $deliveryTime);
+
         $result->setIfNot('amount', $rec->amountDeal);
         $result->setIfNot('currency', $rec->currencyId);
         $result->setIfNot('rate', $rec->currencyRate);
         $result->setIfNot('vatType', $rec->chargeVat);
         $result->setIfNot('agreedValior', $rec->valior);
         $result->setIfNot('deliveryLocation', $rec->deliveryLocationId);
-        $result->setIfNot('deliveryTime', $rec->deliveryTime);
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
@@ -571,7 +580,13 @@ class purchase_Purchases extends deals_DealMaster
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
-            
+
+            if(Mode::is('isClosedWithDeal')){
+                if(!empty($rec->reff)){
+                    $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                }
+            }
+
             $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
             
             if (core_Packs::isInstalled('batch')) {
@@ -629,7 +644,7 @@ class purchase_Purchases extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if (purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")) {
+            if ($rec->state != 'active' && purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")) {
                 $res = 'no_one';
             } elseif (!haveRole('purchase,ceo', $userId)) {
                 $res = 'no_one';
@@ -694,9 +709,10 @@ class purchase_Purchases extends deals_DealMaster
         $conf = core_Packs::getConfig('purchase');
         $olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
         $limit = $conf->PURCHASE_CLOSE_OLDER_NUM;
+        $daysAfterAcc = $conf->PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE;
         $ClosedDeals = cls::get('purchase_ClosedDeals');
         
-        $this->closeOldDeals($olderThan, $ClosedDeals, $limit);
+        $this->closeOldDeals($olderThan, $daysAfterAcc, $ClosedDeals, $limit);
     }
     
     
@@ -784,6 +800,8 @@ class purchase_Purchases extends deals_DealMaster
         
         if (countR($shipped)) {
             foreach ($shipped as $ship) {
+                if($ship->quantity <= 0) continue;
+
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
                 
@@ -857,5 +875,49 @@ class purchase_Purchases extends deals_DealMaster
                 }
             }
         }
+    }
+
+
+    /**
+     * Дефолтна стойност на полето за банкова сметка
+     *
+     * @param $rec
+     * @return mixed|void|null
+     */
+    public function getDefaultBankAccountId($rec)
+    {
+        $bankAccounts = array();
+
+        // Намиране на последните б. сметки
+        foreach (array('lastDocUser', 'lastDoc') as $strat){
+            $foundAccId = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'bankAccountId', $strat);
+            if(!empty($foundAccId)){
+                $bankAccounts[$foundAccId] = $foundAccId;
+            }
+        }
+
+        // Връща се последната, която не е премахната
+        foreach ($bankAccounts as $bankAccountId){
+            $bAccId = bank_Accounts::fetchField(array("#iban = '[#1#]'", $bankAccountId), 'id');
+            if($bAccId) return $bankAccountId;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Кой е дефолтния търговец по продажбата
+     *
+     * @param stdClass $rec   - папка
+     * @return int|NULL $dealerId - ид на търговец
+     */
+    public static function getDefaultDealerId($rec)
+    {
+        $setDefaultDealerId = purchase_Setup::get('SET_DEFAULT_DEALER_ID');
+        if($setDefaultDealerId != 'yes') return null;
+
+        $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $rec->folderId, 'dealerId', true);
+        if (core_Users::haveRole('purchase', $dealerId)) return $dealerId;
     }
 }

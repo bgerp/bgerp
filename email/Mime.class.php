@@ -759,43 +759,34 @@ class email_Mime extends core_BaseClass
         
         $bestPos = strlen($data);
         
-        foreach (array("\r\n", "\n\r", "\n", "\r") as $c) {
-            $pos = strpos($data, $c . $c);
-            
+        foreach (array("\r\n", "\r", "\n") as $c) {
+            $headerDelim = $c . $c;
+            $pos = strpos($data, $headerDelim);
             if ($pos > 0 && $pos < $bestPos) {
                 $bestPos = $pos;
                 $nl = $c;
             }
         }
-        
+
         $headerStr = '';
         $headerDelim = "\n\r";
-        
         if ($nl != $headerDelim) {
             $headerStrArr = explode($headerDelim, $data, 2);
-            
             if (countR($headerStrArr) > 1) {
                 $headerStr = trim($headerStrArr[0]);
                 $data = trim($headerStrArr[1]);
             }
         }
-        
-        // Отделяме хедърите от данните
-        if ((!$headerStr) && ($bestPos < strlen($data))) {
-            do {
-                list($line, $data) = explode($nl, $data, 2);
-                
-                if (!trim($line)) {
-                    break;
-                } elseif (substr($line, 0, 3) == '--=') {
-                    $data = $line . $nl . $data;
-                    break;
-                }
-                
-                $headerStr .= ($headerStr ? $nl : '') . $line;
-            } while ($data);
+
+        if (!$headerStr) {
+
+            // Отделяме хедърите
+            $headerStr = mb_strcut($data, 0, $bestPos);
+
+            // Отделяме данните
+            $data = mb_strcut($data,$bestPos);
         }
-        
+
         $p = &$this->parts[$index];
         
         if (!is_object($p)) {
@@ -812,19 +803,6 @@ class email_Mime extends core_BaseClass
         
         // Парсираме хедър-а 'Content-Type'
         $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
-        
-        // Ако има текст в в началото на боундарито, да го премести в хедърите
-        if ($b = $ctParts['boundary']) {
-            if ($bPos = mb_strpos($data, '--'. $b)) {
-                $headerStr .= $nl . ' ' . mb_strcut($data, 0, $bPos);
-                $p->headersStr = $headerStr;
-                $p->headersArr = $this->parseHeaders($headerStr);
-
-//                 $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
-                
-                $data = mb_strcut($data, $bPos);
-            }
-        }
         
         list($p->type, $p->subType) = explode('/', strtoupper($ctParts[0]), 2);
         

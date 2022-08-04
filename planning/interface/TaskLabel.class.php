@@ -2,13 +2,13 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса label_SequenceIntf за класа cat_products_Packagings
+ * Помощен клас-имплементация на интерфейса label_SequenceIntf за класа planning_Tasks
  *
  * @category  bgerp
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -21,8 +21,8 @@ class planning_interface_TaskLabel
      * Инстанция на класа
      */
     public $class;
-    
-    
+
+
     /**
      * Връща наименованието на етикета
      *
@@ -33,12 +33,12 @@ class planning_interface_TaskLabel
     public function getLabelName($id)
     {
         $rec = $this->class->fetchRec($id);
-        $labelName = planning_Tasks::getTitleById($rec->taskId);
-        
+        $labelName = planning_Tasks::getTitleById($rec->id);
+
         return $labelName;
     }
-    
-    
+
+
     /**
      * Връща масив с данните за плейсхолдерите
      *
@@ -54,16 +54,27 @@ class planning_interface_TaskLabel
     public function getLabelPlaceholders($objId = null)
     {
         $placeholders = array();
-        $placeholders['PRODUCT_NAME'] = (object) array('type' => 'text');
-        $placeholders['QUANTITY'] = (object) array('type' => 'text');
-        $placeholders['WEIGHT'] = (object) array('type' => 'text');
-        $placeholders['DATE'] = (object) array('type' => 'text');
-        $placeholders['SERIAL'] = (object) array('type' => 'text', 'hidden' => true);
-        $placeholders['BATCH'] = (object) array('type' => 'text', 'hidden' => true);
-        $placeholders['SERIAL_STRING'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['JOB'] = (object) array('type' => 'text');
-        
+        $placeholders['CODE'] = (object) array('type' => 'text');
+        $placeholders['NAME'] = (object) array('type' => 'text');
+        $placeholders['DATE'] = (object) array('type' => 'text');
+        $placeholders['PREVIEW'] = (object) array('type' => 'picture');
+        $placeholders['MEASURE_ID'] = (object) array('type' => 'text');
+        $placeholders['QUANTITY'] = (object) array('type' => 'text');
+        $placeholders['ORDER'] = (object) array('type' => 'text');
+        $placeholders['OTHER'] = (object) array('type' => 'text');
+        $placeholders['SERIAL'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['MATERIAL'] = (object) array('type' => 'text');
+        $placeholders['SIZE_UNIT'] = (object) array('type' => 'text');
+        $placeholders['SIZE'] = (object) array('type' => 'text');
+        $placeholders['EAN'] = (object) array('type' => 'text');
+
         if (isset($objId)) {
+            // Проверка има ли продуктови параметри, които не могат да се редактират от формата
+            $taskClassId = planning_Tasks::getClassId();
+            $rec = $this->class->fetch($objId);
+            $notEditableParamNames = cat_products_Params::getNotEditableLabelParamNames($taskClassId, $rec->id);
+
             $labelData = $this->getLabelData($objId, 1, true);
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
@@ -71,14 +82,18 @@ class planning_interface_TaskLabel
                         $placeholders[$key] = (object) array('type' => 'text');
                     }
                     $placeholders[$key]->example = $val;
+
+                    if(array_key_exists($key, $notEditableParamNames)){
+                        $placeholders[$key]->hidden = true;
+                    }
                 }
             }
         }
-        
+
         return $placeholders;
     }
-    
-    
+
+
     /**
      * Връща масив с всички данни за етикетите
      *
@@ -92,46 +107,146 @@ class planning_interface_TaskLabel
     {
         static $resArr = array();
         $lg = core_Lg::getCurrent();
-        
+
         $key = $id . '|' . $cnt . '|' . $onlyPreview . '|' . $lg;
-        
+
         if (isset($resArr[$key])) {
-            
+
             return $resArr[$key];
         }
-        
-        expect($rec = planning_ProductionTaskDetails::fetchRec($id));
-        $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
-        $productName = trim(cat_Products::getVerbal($rec->productId, 'name'));
-        
-        core_Lg::push('en');
-        $quantity = $rec->quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
-        $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->weight) : null;
-        core_Lg::pop('en');
-        
-        $date = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
-        $Origin = doc_Containers::getDocument(planning_Tasks::fetchField($rec->taskId, 'originId'));
-        
+
+        expect($rec = planning_Tasks::fetchRec($id));
+
+        // Кое е последното задание към артикула
+        $jRec = doc_Containers::getDocument($rec->originId)->fetch();
+        $productId = ($rec->isFinal == 'yes') ? $jRec->productId : $rec->productId;
+
+        $jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
+        if ($lg != 'bg' && isset($jRec->saleId)) {
+            $lData = cls::get('sales_Sales')->getLogisticData($jRec->saleId);
+            $countryCode = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $lData['toCountry']), 'letterCode2');
+            $countryCode .= ' ' . date('m/y');
+        }
+
+        $code = (!empty($pRec->code)) ? $pRec->code : "Art{$productId}";
+        $name = trim(cat_Products::getVerbal($productId, 'name'));
+        $date = date('m/y');
+
+        $ean = null;
+        $quantity = $rec->labelQuantityInPack;
+        if(empty($quantity) && isset($rec->labelPackagingId)){
+            $packRec = cat_products_Packagings::getPack($productId, $rec->labelPackagingId);
+            $quantity = is_object($packRec) ? $packRec->quantity : 1;
+            $ean = is_object($packRec) ? $rec->eanCode : null;
+        }
+
+        $measureId = $rec->measureId;
+        $quantity = cat_UoM::round($measureId, $quantity);
+        $measureId = cat_UoM::getShortName($measureId);
+
+        Mode::push('text', 'plain');
+        $quantity = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+        Mode::pop('text');
+
+        // Продуктови параметри, като тези от операцията са с приоритет
+        $params = $this->getTaskParamData($rec->id, $productId);
+        $Driver = cat_Products::getDriver($productId);
+        $additionalFields = (is_object($Driver)) ? $Driver->getAdditionalLabelData($productId, $this->class) : array();
+
+        if($onlyPreview === false){
+            core_App::setTimeLimit(round($cnt / 8, 2), false, 100);
+        }
+
         $batch = null;
-        if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
-            if($BatchDef instanceof batch_definitions_Job){
-                $batch = $BatchDef->getDefaultBatchName($Origin->that);
+        if(core_Packs::isInstalled('batch')){
+            if($BatchDef = batch_Defs::getBatchDef($productId)){
+                if($BatchDef instanceof batch_definitions_Job){
+                    $origin = doc_Containers::getDocument($rec->originId);
+                    $batch = $BatchDef->getDefaultBatchName($origin->that);
+                }
             }
         }
-        
+
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('PRODUCT_NAME' => $productName, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle());
-            $res['BATCH'] = $batch;
-            
+            $res = array('CODE' => $code, 'NAME' => $name, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobCode);
+            if(!empty($ean)){
+                $res['EAN'] = $ean;
+            }
+
+            if(!empty($batch)){
+                $res['BATCH'] = $batch;
+            }
+
+            if (countR($params)) {
+                $res = array_merge($res, $params);
+            }
+
+            // Допълване на параметрите с тези от драйвера, само за тези за които вече няма дефолтна стойност
+            foreach ($additionalFields as $addFieldName => $addFieldValue){
+                if(!array_key_exists($addFieldName, $res)){
+                    $res[$addFieldName] = $addFieldValue;
+                }
+            }
+
+            if (isset($countryCode) && empty($res['OTHER'])) {
+                $res['OTHER'] = $countryCode;
+            }
+
             $arr[] = $res;
         }
+
         $resArr[$key] = $arr;
-       
+
         return $resArr[$key];
     }
-    
-    
+
+
+    /**
+     * Връща масив с плейсхолдъри за продуктови параметри
+     *
+     * @param $taskId
+     * @param $productId
+     * @return array
+     */
+    protected function getTaskParamData($taskId, $productId)
+    {
+        // Кои продуктови параметри са предефинирани в операцията
+        $paramRecs = array();
+        $taskClassId = planning_Tasks::getClassId();
+        $taskParamQuery = cat_products_Params::getQuery();
+        $taskParamQuery->where("#productId = {$taskId} AND #classId = {$taskClassId}");
+        while($pRec = $taskParamQuery->fetch()){
+            $paramRecs[$pRec->paramId] = $pRec->paramValue;
+        }
+
+        // От останалите продуктови параметри, се извличат тези, които вече не са предефинирани
+        $productParams = cat_Products::getParams($productId, null, false);
+
+        foreach ($productParams as $paramId => $paramValue){
+            if(!array_key_exists($paramId, $paramRecs)){
+                $paramRecs[$paramId] = $paramValue;
+            }
+        }
+
+        // Вербализират се
+        $res = array();
+        foreach ($paramRecs as $pId => $pVal){
+            $ParamType = cat_Params::getTypeInstance($pId, $taskClassId, $productId, $pVal);
+            if($ParamType instanceof fileman_FileType){
+                $paramValue = $pVal;
+            } else {
+                $paramValue = $ParamType->toVerbal(trim($pVal));
+            }
+            $res[$pId] = $paramValue;
+        }
+
+        $res = cat_Params::getParamNameArr($res, true);
+
+        return $res;
+    }
+
+
     /**
      * Броя на етикетите, които могат да се отпечатат
      *
@@ -139,14 +254,35 @@ class planning_interface_TaskLabel
      * @param string $allowSkip
      *
      * @return int
-     *
      * @see label_SequenceIntf
      */
     public function getLabelEstimatedCnt($id)
     {
+        $rec = $this->class->fetchRec($id);
+        if(!empty($rec->labelQuantityInPack)){
+            $count = $rec->plannedQuantity / $rec->labelQuantityInPack;
+
+            return ceil($count);
+        }
     }
-    
-    
+
+
+    /**
+     * Кой е дефолтния шаблон за печат към обекта
+     *
+     * @param $id
+     * @return int|null
+     */
+    public function getDefaultLabelTemplateId($id)
+    {
+        $rec = $this->class->fetchRec($id);
+        if(isset($rec->labelTemplate)){
+            return $rec->labelTemplate;
+        }
+
+        return null;
+    }
+
     /**
      * Връща дефолтен шаблон за печат на бърз етикет
      *
@@ -157,31 +293,6 @@ class planning_interface_TaskLabel
      */
     public function getDefaultFastLabel($id, $driverRec = null)
     {
-        $defaultRec = label_Templates::fetchField("#classId={$this->class->getClassId()} AND #peripheralDriverClassId = {$driverRec->driverClass}");
-       
-        return $defaultRec;
-    }
-    
-    
-    /**
-     * Връща попълнен дефолтен шаблон с дефолтни данни.
-     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
-     *
-     * @param int  $id
-     * @param int $templateId
-     *
-     * @return core_ET|null
-     */
-    public function getDefaultLabelWithData($id, $templateId)
-    {
-        $template = label_Templates::fetch($templateId);
-        $templateTpl = new core_ET($template->template);
-        
-        // Взимат се данните за бърз етикет
-        $labelData = $this->getLabelData($id, 1, false);
-        $content = $labelData[0];
-        $templateTpl->placeObject($content);
-        
-        return $templateTpl->getContent();
+        return null;
     }
 }

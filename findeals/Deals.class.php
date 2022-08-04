@@ -1,4 +1,4 @@
-		<?php
+<?php
 
 
 /**
@@ -213,7 +213,7 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('valior', 'date', 'caption=Дата');
         $this->FLD('dealName', 'varchar(255)', 'caption=Наименование');
         $this->FLD('amountDeal', 'double(decimals=2)', 'input=none,notNull,oldFieldName=blAmount');
-        $this->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory,silent');
+        $this->FLD('accountId', 'acc_type_Account', 'caption=Сметка (основна),mandatory,silent');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
         $this->FNC('contragentItemId', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Втори контрагент,input');
 
@@ -223,9 +223,9 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
-        $this->FLD('baseAccountId', 'acc_type_Account(regInterfaces=none,allowEmpty)', 'silent,caption=Начално салдо->Сметка,input=none,before=description');
+        $this->FLD('baseAccountId', 'acc_type_Account(regInterfaces=none,allowEmpty)', 'silent,caption=Начално салдо->Сметка (коресп.),input=none,before=description');
         $this->FLD('baseAmount', 'double(decimals=2, Min=0)', 'caption=Начално салдо->Сума,input=none,before=description');
-        $this->FLD('baseAmountType', 'enum(debit=Дебит,credit=Кредит)', 'caption=Начално салдо->Тип,input=none,before=description');
+        $this->FLD('baseAmountType', 'enum(debit=дебит,credit=кредит)', 'caption=Начално салдо->Салдото е по,input=none,before=description', "unit=|-а на основната сметка");
         
         $this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
         $this->FLD('secondContragentId', 'int', 'input=none');
@@ -761,25 +761,6 @@ class findeals_Deals extends deals_DealBase
         
         if ($data->pager) {
             $tpl->replace($data->pager->getHtml(), 'PAGER');
-        }
-    }
-    
-    
-    /**
-     * Филтър на продажбите
-     */
-    protected static function on_AfterPrepareListFilter(core_Mvc $mvc, &$data)
-    {
-        if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активиран, closed=Приключен', true));
-            $data->listFilter->setField('state', 'placeholder=Всички');
-            $data->listFilter->showFields .= ',state';
-            
-            $data->listFilter->input();
-            
-            if ($state = $data->listFilter->rec->state) {
-                $data->query->where("#state = '{$state}'");
-            }
         }
     }
     

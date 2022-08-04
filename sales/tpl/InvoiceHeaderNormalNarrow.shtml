@@ -13,6 +13,9 @@
                     <!--ET_BEGIN place-->
                     <div class="subtitle">[#place#]</div>
                     <!--ET_END place-->
+                    <!--ET_BEGIN reff-->
+                    <div class="invInfo">Ваш реф: <span class="bigData">[#reff#]</span></div>
+                    <!--ET_END reff-->
                 </div>
                 <div>
                     <div class='original'>[#INV_STATUS#]</div>

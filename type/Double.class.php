@@ -184,8 +184,10 @@ class type_Double extends core_Type
         
         // Ако закръгляме умно
         if ($this->params['smartRound']) {
-            // Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-            $decimals = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
+
+            // За да знаем броя знаци след десетичния знак обръща се във удобен вид
+            $value = rtrim(sprintf('%.9F', $value), '0');
+            $decimals = strlen(substr(strrchr($value, '.'), 1));
         }
         
         // Ограничаване на минималния брой знаци след десетичната точка

@@ -18,6 +18,14 @@
  */
 class sales_Quotations extends deals_QuotationMaster
 {
+
+
+    /**
+     * Дали да взема контрагент данните от последния документ в папката
+     */
+    public $getContragentDataFromLastDoc = false;
+
+
     /**
      * Заглавие
      */
@@ -147,6 +155,12 @@ class sales_Quotations extends deals_QuotationMaster
      * Кои полета да са нередактируеми, ако има вече детайли
      */
     protected $readOnlyFieldsIfHaveDetail = 'chargeVat,currencyRate,currencyId,deliveryTermId,deliveryPlaceId,deliveryAdress,deliveryCalcTransport';
+
+
+    /**
+     * Полета свързани с цени
+     */
+    public $priceFields = 'expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost';
 
 
     /**
@@ -364,10 +378,11 @@ class sales_Quotations extends deals_QuotationMaster
             }
 
             if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
-                $deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
-                if ($deliveryTermTime) {
+                $deliveryTermTime = $mvc->calcDeliveryTime($rec);
+                if (isset($deliveryTermTime)) {
                     $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
-                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
+                    $deliveryTermTime = "<span style='color:blue'>{$deliveryTermTime}</span>";
+                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
                 }
             }
 
@@ -517,7 +532,7 @@ class sales_Quotations extends deals_QuotationMaster
     {
         $rec = $this->fetchRec($id);
         $handle = $this->getHandle($id);
-        $tpl = new core_ET(tr("Моля запознайте се с нашата оферта|*: #[#handle#]."));
+        $tpl = new core_ET(tr("Моля, запознайте се с нашата оферта|*: #[#handle#]."));
         $tpl->append($handle, 'handle');
         
         if($rec->chargeVat == 'separate'){
@@ -547,7 +562,7 @@ class sales_Quotations extends deals_QuotationMaster
         }
         
         if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
-            $rec->deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+            $rec->deliveryTermTime = $mvc->calcDeliveryTime($rec);
             if (isset($rec->deliveryTermTime)) {
                 $updateFields[] = 'deliveryTermTime';
             }
@@ -607,39 +622,49 @@ class sales_Quotations extends deals_QuotationMaster
             return false;
         }
 
-        $saveRecs = $productsWithoutPrices = array();
+
+        $saveRecs = $productsWithoutPrices = $productIds = array();
         $Detail = cls::get($mvc->mainDetail);
         $dQuery = sales_QuotationsDetails::getQuery();
         $dQuery->where("#quotationId = {$rec->id}");
-        $dQuery->where('#price IS NULL || #tolerance IS NULL || #term IS NULL || #weight IS NULL');
+
         while ($dRec = $dQuery->fetch()) {
-            if (!isset($dRec->price)) {
-                $Detail::calcLivePrice($dRec, $rec, true);
+            $productIds[$dRec->productId] = $dRec->productId;
+            if(!isset($dRec->price) || !isset($dRec->tolerance) || !isset($dRec->term) || !isset($dRec->weight)){
                 if (!isset($dRec->price)) {
-                    $productsWithoutPrices[] = cat_Products::getTitleById($dRec->productId);
-                }
-            }
-
-            if (!isset($dRec->term)) {
-                if ($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)) {
-                    if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime) {
-                        $term += $deliveryTime;
+                    $Detail::calcLivePrice($dRec, $rec, true);
+                    if (!isset($dRec->price)) {
+                        $productsWithoutPrices[] = cat_Products::getTitleById($dRec->productId);
                     }
-                    $dRec->term = $term;
                 }
-            }
 
-            if (!isset($dRec->tolerance)) {
-                if ($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)) {
-                    $dRec->tolerance = $tolerance;
+                if (!isset($dRec->term)) {
+                    if ($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)) {
+                        if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime) {
+                            $term += $deliveryTime;
+                        }
+                        $dRec->term = $term;
+                    }
                 }
-            }
 
-            if (!isset($dRec->weight)) {
-                $dRec->weight = cat_Products::getTransportWeight($dRec->productId, $dRec->quantity);
+                if (!isset($dRec->tolerance)) {
+                    if ($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)) {
+                        $dRec->tolerance = $tolerance;
+                    }
+                }
+
+                if (!isset($dRec->weight)) {
+                    $dRec->weight = cat_Products::getTransportWeight($dRec->productId, $dRec->quantity);
+                }
+
+                $saveRecs[] = $dRec;
             }
-            
-            $saveRecs[] = $dRec;
+        }
+
+        if($redirectError = deals_Helper::getContoRedirectError($productIds, 'canSell', 'generic', 'вече не са продаваеми или са генерични')){
+            core_Statuses::newStatus($redirectError, 'error');
+
+            return false;
         }
 
         $count = countR($productsWithoutPrices);
@@ -648,6 +673,7 @@ class sales_Quotations extends deals_QuotationMaster
             $start = ($count == 1) ? 'артикулът' : 'артикулите';
             $mid = ($count == 1) ? 'му' : 'им';
             $error = "На {$start}|* <b>{$imploded}</b> |трябва да {$mid} се въведе цена|*!";
+            core_Statuses::newStatus($error, 'error');
 
             return false;
         }
@@ -713,30 +739,30 @@ class sales_Quotations extends deals_QuotationMaster
     /**
      * Най-големия срок на доставка
      *
-     * @param int $id
-     *
+     * @param int|stdClass $id
      * @return int|NULL
      */
-    protected function getMaxDeliveryTime($id)
+    protected function calcDeliveryTime($id)
     {
         $maxDeliveryTime = null;
+        $rec = $this->fetchRec($id);
+
+        // Добавяне на срока за транспорт към локацията
+        $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
+        if(is_object($Calculator)){
+            $locationId = isset($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+            $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
+            $deliveryParams = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode']);
+            $maxDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryParams);
+        }
 
         $Detail = cls::get($this->mainDetail);
-        $query = $Detail->getQuery();
-        $query->where("#{$Detail->masterKey} = {$id} AND #optional = 'no'");
-        $query->show("productId,term,quantity,quotationId");
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #optional = 'no'");
+        $dQuery->show("productId,term,quantity,quotationId");
 
-        while ($dRec = $query->fetch()) {
-            $term = $dRec->term;
-            if (!isset($term)) {
-                $term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity);
-
-                $cRec = sales_TransportValues::get($this, $dRec->quotationId, $dRec->id);
-                if (isset($cRec->deliveryTime)) {
-                    $term = $cRec->deliveryTime + $term;
-                }
-            }
-
+        while ($dRec = $dQuery->fetch()) {
+            $term = (!isset($term)) ? cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity) : $dRec->term;
             if (isset($term)) {
                 $maxDeliveryTime = max($maxDeliveryTime, $term);
             }

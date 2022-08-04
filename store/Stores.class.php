@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,9 +37,16 @@ class store_Stores extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified, doc_plg_Close';
-    
-    
+    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified, doc_plg_Close, deals_plg_AdditionalConditions';
+
+
+    /**
+     * Полета за допълнителни условие към документи
+     * @see deals_plg_AdditionalConditions
+     */
+    public $additionalConditionsToDocuments = 'sales_Sales,purchase_Purchases,store_ShipmentOrders';
+
+
     /**
      * Кой има право да променя?
      */
@@ -159,7 +166,7 @@ class store_Stores extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
+    public $listFields = 'name=Наименование,chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
     
     
     /**
@@ -193,9 +200,10 @@ class store_Stores extends core_Master
     {
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка за показване на наличностите,notNull,value=productMeasureId');
+        $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка,notNull,value=productMeasureId', "unit= (|за показване на наличностите|*)");
+        $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди Експедиция->Време');
 
-        $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители,mandatory');
+        $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
         $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Допълнително->Продуктови групи');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
@@ -205,11 +213,13 @@ class store_Stores extends core_Master
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
 
         $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
+        $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
+        $this->FLD('prioritizeRackGroups', 'enum(,yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване,maxRadio=2,placeholder=Автоматично');
 
         $this->setDbUnique('name');
     }
-    
-    
+
+
     /**
      * След подготовка на тулбара на единичен изглед.
      *
@@ -272,10 +282,17 @@ class store_Stores extends core_Master
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
-            
-            // Да има само 2 колони
             $data->form->setField('workersIds', array('maxColumns' => 2));
         }
+
+        if(!core_Packs::isInstalled('rack')){
+            $data->form->setField('samePosPallets', 'input=none');
+            $data->form->setField('closeCombinedMovementsAtOnce', 'input=none');
+            $data->form->setField('prioritizeRackGroups', 'input=none');
+        }
+
+        $preparationShipmentPlaceholder = $mvc->getFieldType('preparationBeforeShipment')->toVerbal(store_Setup::get('PREPARATION_BEFORE_SHIPMENT'));
+        $data->form->setField('preparationBeforeShipment', "placeholder={$preparationShipmentPlaceholder}");
     }
     
     
@@ -317,6 +334,33 @@ class store_Stores extends core_Master
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }
+
+            if(!isset($rec->preparationBeforeShipment)){
+                if($defaultBeforeShipmentTime = store_Setup::get('PREPARATION_BEFORE_SHIPMENT')){
+                    $row->preparationBeforeShipment = $mvc->getFieldType('preparationBeforeShipment')->toVerbal($defaultBeforeShipmentTime);
+                    $row->preparationBeforeShipment = ht::createHint($row->preparationBeforeShipment, 'По подразбиране от пакета', 'notice', false);
+                } else {
+                    $row->preparationBeforeShipment = tr("Няма");
+                }
+            }
+
+            if(core_Packs::isInstalled('rack')){
+                if(empty($rec->samePosPallets)){
+                    $row->samePosPallets = $mvc->getFieldType('samePosPallets')->toVerbal(rack_Setup::get('DIFF_PALLETS_IN_SAME_POS'));
+                    $row->samePosPallets = ht::createHint($row->samePosPallets, 'Автоматично за системата', 'notice', false);
+                }
+
+                if(empty($rec->closeCombinedMovementsAtOnce)){
+                    $row->closeCombinedMovementsAtOnce = $mvc->getFieldType('closeCombinedMovementsAtOnce')->toVerbal(rack_Setup::get('CLOSE_COMBINED_MOVEMENTS_AT_ONCE'));
+                    $row->closeCombinedMovementsAtOnce = ht::createHint($row->closeCombinedMovementsAtOnce, 'Автоматично за системата', 'notice', false);
+                }
+
+                if(empty($rec->prioritizeRackGroups)){
+                    $row->prioritizeRackGroups = $mvc->getFieldType('prioritizeRackGroups')->toVerbal(rack_Setup::get('ENABLE_PRIORITY_RACKS'));
+                    $row->prioritizeRackGroups = ht::createHint($row->prioritizeRackGroups, 'Автоматично за системата', 'notice', false);
+                }
+            }
+
         } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->name = "<b style='position:relative; top: 5px;'>" . $row->name . "</b>";
             $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";
@@ -378,5 +422,48 @@ class store_Stores extends core_Master
     protected static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
     {
         $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
+    }
+
+
+    /**
+     * Колко време е нужна за подготовка на склада преди експедиция
+     *
+     * @param int|null $storeId - ид на склад, или null ако няма
+     * @return int     $secs    - времето за подготовка в секунди
+     */
+    public static function getShipmentPreparationTime($storeId = null)
+    {
+        $secs = store_Setup::get('PREPARATION_BEFORE_SHIPMENT');
+        if(isset($storeId)){
+            $storeBeforeShipmentTimeSecs = store_Stores::fetchField($storeId, 'preparationBeforeShipment');
+            $secs = ($storeBeforeShipmentTimeSecs) ? $storeBeforeShipmentTimeSecs : $secs;
+        }
+
+        return (int)$secs;
+    }
+
+
+    /**
+     * Какво е времето за подговотка, при подадената дата на доставка
+     *
+     * @param int $storeId
+     * @param datetime|null $deliveryDate
+     * @return null|datetime
+     */
+    public static function calcLoadingDate($storeId, $deliveryDate)
+    {
+        // Ако няма дата нищо не се прави
+        if(!isset($deliveryDate)) return null;
+
+        // Приспада се времето за подготовка на склада
+        $preparationTime = store_Stores::getShipmentPreparationTime($storeId);
+        $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
+
+        // Ако датата е в миналото, подменя се с края на работния ден на текущата дата
+        if($res < dt::now()){
+            $res = dt::today() . " " . trans_Setup::get('END_WORK_TIME') . ":00";
+        }
+
+        return $res;
     }
 }

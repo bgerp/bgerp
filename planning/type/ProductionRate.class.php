@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -26,13 +26,14 @@ class planning_type_ProductionRate extends type_Varchar
     /**
      * Разрешените опции
      */
-    private static $allowedRates = array('secsPer1' => '|сек. за|* |[#measureId#]|*',
-                                         'minPer1' => '|минути за|* |[#measureId#]|*',
-                                         'minPer10' => '|минути за|* 10 |[#measureId#]|*',
-                                         'minPer100' => '|минути за|* 100 |[#measureId#]|*',
-                                         'per1Hour' => '|[#measureId#]|* |за|* 1 |час|*',
-                                         'per1Min' => '|[#measureId#]|* |за|* 1 |минута|*',
-                                         'per8Hour' => '|[#measureId#]|* |за|* 8 |часа|*',);
+    private static $allowedRates = array('secsPer1'   => '|сек. за|* |[#measureId#]|*',
+                                         'minPer1'    => '|минути за|* |[#measureId#]|*',
+                                         'minPer10'   => '|минути за|* 10 |[#measureId#]|*',
+                                         'minPer100'  => '|минути за|* 100 |[#measureId#]|*',
+                                         'minPer1000' => '|минути за|* 1000 |[#measureId#]|*',
+                                         'per1Hour'   => '|[#measureId#]|* |за|* 1 |час|*',
+                                         'per1Min'    => '|[#measureId#]|* |за|* 1 |минута|*',
+                                         'per8Hour'   => '|[#measureId#]|* |за|* 8 |часа|*',);
 
 
     /**
@@ -54,9 +55,13 @@ class planning_type_ProductionRate extends type_Varchar
         }
 
         // Валидиране на цифровата част
-        $Int = core_Type::getByName('int');
         if(!empty($valueArr['cL'])){
-            $valueArr['cL'] = $Int->fromVerbal($valueArr['cL']);
+            $Type = core_Type::getByName('double(decimals=1)');
+            if($valueArr['cR'] == 'secsPer1'){
+                $Type = core_Type::getByName('int');
+            }
+            $valueArr['cL'] = $Type->fromVerbal($valueArr['cL']);
+
             if(empty($valueArr['cL'])){
                 $this->error = 'Невалидно число';
 
@@ -65,10 +70,18 @@ class planning_type_ProductionRate extends type_Varchar
                 $this->error = "Не е над|* - 0";
 
                 return false;
+            } elseif(in_array($valueArr['cR'], array('per1Hour', 'per1Min', 'per8Hour'))){
+                $error = null;
+                deals_Helper::checkQuantity($this->params['measureId'], $valueArr['cL'], $error);
+                if(!empty($error)){
+                    $this->error = $error;
+
+                    return false;
+                }
             }
 
             if(strpos($valueArr['cR'], 'min') !== false){
-                $valueArr['cL'] = $valueArr['cL'] * 60;
+                $valueArr['cL'] = round($valueArr['cL'], 1) * 60;
             }
         }
 
@@ -198,9 +211,9 @@ class planning_type_ProductionRate extends type_Varchar
     {
         $me = cls::get(get_called_class());
         $parseValue = $me->parseValue($value);
+        $secs = null;
 
-        switch($parseValue['right'])
-        {
+        switch($parseValue['right']){
             case 'secsPer1':
                 $secs = $parseValue['left'] * $quantity;
                 break;
@@ -212,6 +225,11 @@ class planning_type_ProductionRate extends type_Varchar
                 break;
             case 'minPer100':
                 $secs = (60 * $parseValue['left'] / 100);
+                $secs *= $quantity;
+                $secs = round($secs);
+                break;
+            case 'minPer1000':
+                $secs = (60 * $parseValue['left'] / 1000);
                 $secs *= $quantity;
                 $secs = round($secs);
                 break;

@@ -49,15 +49,21 @@ class cat_Categories extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,meta=Свойства,useAsProto=Шаблони,count=Артикули';
+    public $listFields = 'name,meta=Свойства,useAsProto=Шаблони,count=Артикули, createdOn,createdBy';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     public $searchFields = 'sysId, name, productCnt, info';
-    
-    
+
+
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'price_Updates';
+
+
     /**
      * Да се създаде папка при създаване на нов запис
      */
@@ -203,7 +209,18 @@ class cat_Categories extends core_Master
         $this->setDbUnique('sysId');
         $this->setDbUnique('name');
     }
-    
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        // Сортиране на записите по num
+        $data->query->orderBy('createdOn', 'DESC');
+    }
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -231,10 +248,8 @@ class cat_Categories extends core_Master
         if ($fields['-list']) {
             $row->name .= " {$row->folder}";
             $count = cat_Products::count("#folderId = '{$rec->folderId}'");
-            
             $row->count = cls::get('type_Int')->toVerbal($count);
             $row->count = "<span style='float:right'>{$row->count}</span>";
-            
             if (empty($rec->useAsProto)) {
                 $row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal('no');
             }
@@ -243,17 +258,6 @@ class cat_Categories extends core_Master
         if ($fields['-single']) {
             if ($rec->useAsProto == 'yes') {
                 $row->protoFolder = tr('Всички артикули в папката са шаблони');
-            }
-            
-            $uRec = price_Updates::fetch("#type = 'category' AND #objectId = {$rec->id}");
-            if(is_object($uRec)){
-                $row->updateCostsInfo = price_Updates::getUpdateTpl($uRec);
-            } else {
-                $row->updateCostsInfo = tr('Все още няма зададени правила за обновяване');
-            }
-            
-            if (price_Updates::haveRightFor('add', (object) array('type' => 'category', 'objectId' => $rec->id))) {
-                $row->updateCostBtn = ht::createLink('', array('price_Updates', 'add', 'type' => 'category', 'objectId' => $rec->id, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/add.png');
             }
         }
     }
@@ -541,18 +545,41 @@ class cat_Categories extends core_Master
      * Добавена проверка на различните комбинации от свойства
      * 
      * @param mixed $metasArr
+     * @param int|null $driverId
      * @param int|null $productId
      * @param string|null $error
      * @return boolean
      */
-    public static function checkMetas($metasArr, $productId, &$error)
+    public static function checkMetas($metasArr, $driverId, $productId, &$error)
     {
         $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
         $exMeta = (isset($productId)) ? type_Set::toArray(cat_Products::fetchField($productId, 'meta')) : array();
-        
+
+        $Driver = cls::get($driverId);
+        if($Driver instanceof planning_interface_StepProductDriver){
+            if(!isset($metasArr['canManifacture'])){
+                $error = "Артикулът е етап от производство и трябва да остане производим|*!";
+            } elseif(isset($metasArr['canSell'])){
+                $error = "Артикулът е етап от производство и не може да е продаваем|*!";
+            } elseif(isset($metasArr['canBuy'])){
+                $error = "Артикулът е етап от производство и не може да е купуваем|*!";
+            } elseif(!isset($metasArr['canConvert'])){
+                $error = "Артикулът е етап от производство и трябва да остане вложим|*!";
+            } elseif(isset($productId)) {
+                $pRec = cat_Products::fetch($productId);
+                if($pRec->planning_Steps_canStore == 'yes' && !isset($metasArr['canStore'])){
+                    $error = "Артикулът е складируем етап от производство и трябва да остане складируем|*!";
+                } elseif($pRec->planning_Steps_canStore != 'yes' && isset($metasArr['canStore'])){
+                    $error = "Артикулът е нескладируем етап от производство и не може да стане складируем|*!";
+                }
+
+                if(!empty($error)) return false;
+            }
+        }
+
         if(isset($metasArr['generic'])) {
              if(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
-                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА|*";
+                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА|*!";
              } elseif(!isset($metasArr['canConvert'])){
                  $error = "Генеричният артикул трябва да е и Вложим|*!";
              } elseif(isset($productId) && !haveRole('debug')){
@@ -585,8 +612,12 @@ class cat_Categories extends core_Master
                     $error = "Артикулът се използва е Е-маг. Трябва да остане продаваем|*!";
                 }
             }
+
+            if(!isset($metasArr['canManifacture']) && planning_Jobs::fetchField("#productId = {$productId} AND #state IN ('active', 'wakeup', 'stopped')")){
+                $error = "Артикулът се използва в активни/спрени/приключени задания. Трябва да остане производим|*!";
+            }
         }
-        
+
         return empty($error);
     }
 }

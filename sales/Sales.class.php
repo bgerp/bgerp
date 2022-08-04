@@ -49,7 +49,7 @@ class sales_Sales extends deals_DealMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-                    acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
+                    acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
@@ -62,7 +62,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery';
+    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery';
     
     
     /**
@@ -81,8 +81,8 @@ class sales_Sales extends deals_DealMaster
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales';
-    
-    
+
+
     /**
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
@@ -134,11 +134,17 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,
-                             dealerId=Търговец,paymentState,
+    public $listFields = 'valior, title=Документ, currencyId=Вал., amountDeal, amountDelivered, amountPaid, amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,
+                             paymentState,dealerId=Търговец,
                              createdOn, createdBy';
     
     
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,dealerId';
+	
+	
     /**
      * Името на полето, което ще е на втори ред
      */
@@ -166,9 +172,9 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountBl,expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
-    
-    
+    public $priceFields = 'amountDeal,amountBl,expectedTransportCost,visibleTransportCost,amountInvoicedDownpaymentToDeduct,amountInvoicedDownpayment,hiddenTransportCost,leftTransportCost,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
+
+
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -217,8 +223,14 @@ class sales_Sales extends deals_DealMaster
      * @see bgerp_plg_CsvExport
      */
     public $exportableCsvFields = 'valior,id,folderId,currencyId,paymentMethodId,amountDeal,amountDelivered,amountPaid,amountInvoiced,invoices=Фактури';
-    
-    
+
+
+    /**
+     * Огледален клас за обратната операция
+     */
+    public $reverseClassName = 'store_Receipts';
+
+
     /**
      * Стратегии за дефолт стойностти
      */
@@ -229,7 +241,7 @@ class sales_Sales extends deals_DealMaster
         'bankAccountId' => 'lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
         'oneTimeDelivery' => 'clientCondition'
@@ -384,22 +396,19 @@ class sales_Sales extends deals_DealMaster
      */
     public static function getDefaultDealerId($folderId, $locationId = null)
     {
+        $setDefaultDealerId = sales_Setup::get('SET_DEFAULT_DEALER_ID');
+        if($setDefaultDealerId != 'yes') return null;
+
         if (isset($locationId)) {
             $dealerId = sales_Routes::getSalesmanId($locationId);
-            if (isset($dealerId)) {
-                return $dealerId;
-            }
+            if (isset($dealerId)) return $dealerId;
         }
         
         $dealerId = doc_Folders::fetchField($folderId, 'inCharge');
-        if (core_Users::haveRole('sales', $dealerId)) {
-            return $dealerId;
-        }
+        if (core_Users::haveRole('sales', $dealerId)) return $dealerId;
         
         $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', true);
-        if (core_Users::haveRole('sales', $dealerId)) {
-            return $dealerId;
-        }
+        if (core_Users::haveRole('sales', $dealerId)) return $dealerId;
     }
     
     
@@ -465,11 +474,19 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
-                    $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
-                    $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
-                    $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
-                    $form->setReadOnly('deliveryCalcTransport');
-                    
+                    if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
+                        $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                        $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
+                        $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
+                        if(empty($rec->deliveryCalcTransport)){
+                            $form->setReadOnly('deliveryCalcTransport', $calcCostDefault);
+                        } else {
+                            $form->setReadOnly('deliveryCalcTransport');
+                        }
+                    } else {
+                        $form->setReadOnly('deliveryCalcTransport');
+                    }
+
                     if ($deliveryCalcCost == 'yes') {
                         $form->setReadOnly('deliveryAdress');
                         $form->setReadOnly('deliveryLocationId');
@@ -553,13 +570,16 @@ class sales_Sales extends deals_DealMaster
             if (deals_Helper::showInvoiceBtn($rec->threadId) && sales_Invoices::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
                 $data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/invoice.png,title=Създаване на нова фактура,order=9.9993');
             }
-            
+
+            $paymentType = isset($rec->paymentMethodId) ? cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type') : null;
             if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'originId' => $rec->containerId))) {
-                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
+                $btnRow = ($paymentType != 'cash') ? 2 : 1;
+                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер,row={$btnRow}");
             }
             
             if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
-                $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
+                $btnRow = ($paymentType == 'cash') ? 2 : 1;
+                $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ,row={$btnRow}");
             }
         }
     }
@@ -651,7 +671,9 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('vatType', $rec->chargeVat);
         $result->setIfNot('agreedValior', $rec->valior);
         $result->setIfNot('deliveryLocation', $rec->deliveryLocationId);
-        $result->setIfNot('deliveryTime', $rec->deliveryTime);
+        $deliveryTime = !empty($rec->deliveryTermTime) ? (dt::addSecs($rec->deliveryTermTime, $rec->valior, false) . " " . trans_Setup::get('END_WORK_TIME') . ":00") : $rec->deliveryTime;
+
+        $result->setIfNot('deliveryTime', $deliveryTime);
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
@@ -726,7 +748,13 @@ class sales_Sales extends deals_DealMaster
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
-            
+
+            if(Mode::is('isClosedWithDeal')){
+                if(!empty($rec->reff)){
+                    $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                }
+            }
+
             if (core_Packs::isInstalled('batch')) {
                 $bQuery = batch_BatchesInDocuments::getQuery();
                 $bQuery->where("#detailClassId = {$detailId}");
@@ -810,9 +838,10 @@ class sales_Sales extends deals_DealMaster
         $conf = core_Packs::getConfig('sales');
         $olderThan = $conf->SALE_CLOSE_OLDER_THAN;
         $limit = $conf->SALE_CLOSE_OLDER_NUM;
+        $daysAfterAcc = $conf->SALES_CURRENCY_CLOSE_AFTER_ACC_DATE;
         $ClosedDeals = cls::get('sales_ClosedDeals');
         
-        $this->closeOldDeals($olderThan, $ClosedDeals, $limit);
+        $this->closeOldDeals($olderThan, $daysAfterAcc, $ClosedDeals, $limit);
     }
     
     
@@ -855,13 +884,13 @@ class sales_Sales extends deals_DealMaster
     protected function setTemplates(&$res)
     {
         $tplArr = array();
-        $tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/Sale.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/SaleNarrow.shtml');
-        $tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/Manufacturing.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrow.shtml');
-        $tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ServiceNarrow.shtml');
-        $tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/SaleNarrowEN.shtml');
-        $tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrowEN.shtml');
-        $tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ServiceNarrowEN.shtml');
-        $tplArr[] = array('name' => 'Договор за транспорт',   'content' => 'sales/tpl/sales/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/TransportNarrow.shtml');
+        $tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/Sale.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/SaleNarrow.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/Manufacturing.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrow.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ServiceNarrow.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/SaleNarrowEN.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrowEN.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ServiceNarrowEN.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Договор за транспорт',   'content' => 'sales/tpl/sales/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/TransportNarrow.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
         
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -900,7 +929,7 @@ class sales_Sales extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if (sales_SalesDetails::fetch("#saleId = {$rec->id}")) {
+            if ($rec->state != 'active' && sales_SalesDetails::fetch("#saleId = {$rec->id}")) {
                 $res = 'no_one';
             } elseif (!haveRole('sales,ceo', $userId)) {
                 $res = 'no_one';
@@ -1103,7 +1132,7 @@ class sales_Sales extends deals_DealMaster
     protected function prepareJobsInfo($data)
     {
         $rec = $data->rec;
-        $manifacturableProducts = static::getManifacurableProducts($data->rec);
+        $manifacturableProducts = static::getManifacturableProducts($data->rec);
         if (!countR($manifacturableProducts)) {
             return;
         }
@@ -1158,7 +1187,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @return array $res - масив с производимите артикули
      */
-    public static function getManifacurableProducts($id, $onlyActive = false)
+    public static function getManifacturableProducts($id, $onlyActive = false)
     {
         $rec = static::fetchRec($id);
         $res = array();
@@ -1168,6 +1197,7 @@ class sales_Sales extends deals_DealMaster
         $saleQuery->where("#saleId = {$rec->id}");
         $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
         $saleQuery->where("#canManifacture = 'yes'");
+        $saleQuery->orderBy('productId', 'ASC');
         if($onlyActive){
             $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
             $saleQuery->where("#state = 'active'");
@@ -1461,6 +1491,8 @@ class sales_Sales extends deals_DealMaster
                     $canStore = cat_Products::fetchField($ship->productId, 'canStore');
                     if($canStore != 'yes') continue;
                 }
+
+                if($ship->quantity <= 0) continue;
 
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
@@ -1913,7 +1945,9 @@ class sales_Sales extends deals_DealMaster
                 
                 $contrData->email = $cartRec->email;
                 $contrData->priority = 20;
-                
+
+                $contrData->_getContragentDataFromLastDoc = false;
+
                 return $contrData;
             }
         }

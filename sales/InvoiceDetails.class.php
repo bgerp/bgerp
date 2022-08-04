@@ -30,18 +30,24 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     
     
     /**
-     * Старо име на класа
-     */
-    public $oldClassName = 'acc_InvoiceDetails';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_AlignDecimals2, doc_plg_HidePrices, deals_plg_DpInvoice,Policy=price_ListToCustomers, 
-                        LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes';
-    
-    
+                        LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes, import2_Plugin';
+
+
+    /**
+     * Интерфейс на драйверите за импортиране
+     */
+    public $importInterface = 'store_iface_ImportDetailIntf';
+
+
+    /**
+     * Кой може да импортира
+     */
+    public $canImport = 'powerUser';
+
+
     /**
      * Кое е активното меню
      */
@@ -85,6 +91,14 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
 
 
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'exportParamValue,exciseTax,productTax';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -92,6 +106,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         parent::setInvoiceDetailFields($this);
         $this->FLD('batches', 'text(rows=1)', 'caption=Допълнително->Партиди, input=none, before=notes');
+        $this->FLD('exportParamValue', 'varchar', 'caption=Счетоводен параметър, input=none');
     }
     
     
@@ -142,5 +157,88 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
                 $mvc->save_($rec, 'batches');
             }
         }
+    }
+
+
+    /**
+     * Екшън за добавяне на артикулите от ЕН-то към фактурата
+     *
+     * @return void
+     * @throws core_exception_Expect
+     */
+    function act_addFromShipmentDocument()
+    {
+        $this->requireRightFor('add');
+        expect($invoiceId = Request::get('invoiceId', 'int'));
+        expect($invoiceRec = sales_Invoices::fetch($invoiceId));
+        expect($originId = Request::get('originId', 'int'));
+        expect($origin  = doc_Containers::getDocument($originId));
+        expect($origin->isInstanceOf('store_ShipmentOrders'));
+        $this->requireRightFor('add', (object)array('invoiceId' => $invoiceId));
+        $added = $updated = 0;
+
+        // Прехвърляне на детайлите на ЕН-то към фактурата
+        $OriginDetail = cls::get($origin->mainDetail);
+        $odQuery = $OriginDetail->getQuery();
+        $odQuery->where("#{$OriginDetail->masterKey} = {$origin->that}");
+        while($oRec = $odQuery->fetch()){
+            unset($oRec->id);
+            $oRec->price = $oRec->price * (1 - $oRec->discount);
+            unset($oRec->discount);
+
+            $oRec->invoiceId = $invoiceId;
+            $exRec = deals_Helper::fetchExistingDetail($this, $oRec->invoiceId, $oRec->id, $oRec->productId, $oRec->packagingId, $oRec->price, $oRec->discount, null, null, $oRec->batch, $oRec->expenseItemId, $oRec->notes);
+            $oRec->quantity = $oRec->packQuantity;
+            if ($exRec) {
+                $exRec->quantity += $oRec->quantity;
+                $this->save($exRec, 'quantity');
+                $updated++;
+            } else {
+                $this->save($oRec);
+                $added++;
+            }
+        }
+
+        $msg = "Добавени|*: {$added}. |Обновени|*: {$updated}!";
+        $handle = "#{$origin->getHandle()}";
+
+        // Добавяне в забележките
+        if(strpos($invoiceRec->additionalInfo, $handle) === false){
+            $invoiceRec->additionalInfo .= "\n" . $handle;
+            $this->Master->save_($invoiceRec, 'additionalInfo');
+        }
+
+        followRetUrl(null, $msg);
+    }
+
+
+    /**
+     * Кои полета да се преизичслят при активиране
+     *
+     * @param stdClass $invoiceRec;
+     */
+    public function getFieldsToCalcOnActivation_($invoiceRec)
+    {
+        return (acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')) ? array('exportParamValue') : array();
+    }
+
+
+    /**
+     * Дали да се обнови записа при активиране
+     *
+     * @param stdClass $dRec      - ид на запис
+     * @param stdClass $masterRec - ид на мастъра на записа
+     * @param array $params       - продуктовите параметри
+     * @return bool               - ще се обновява ли реда или не
+     */
+    public function calcFieldsOnActivation_(&$dRec, $masterRec, $params)
+    {
+        // При активиране ще се запише стойността на експортния параметър при нужда
+        if($exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')){
+            $dRec->exportParamValue = $params[$exportParamId];
+            return true;
+        }
+
+        return false;
     }
 }

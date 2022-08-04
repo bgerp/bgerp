@@ -77,7 +77,11 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
         setIfNot($mvc->interfaces['acc_RegisterIntf'], 'acc_RegisterIntf');
-        
+
+        setIfNot($mvc->addDocumentLinks, array());
+        setIfNot($mvc->addLinkedDocumentToOriginId, false);
+        setIfNot($mvc->addLinkedOriginFieldName, 'originId');
+
         // Добавя поле за последно използване
         if (!isset($mvc->fields['lastUsedOn'])) {
             $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
@@ -85,23 +89,23 @@ class doc_DocumentPlg extends core_Plugin
         
         // Добавяне на полета за created
         if (!$mvc->fields['createdOn']) {
-            $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created->На, notNull, input=none');
+            $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created, notNull, input=none');
         }
 
         if (!$mvc->fields['createdBy']) {
-            $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване||Created->От||By, notNull, input=none');
+            $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създал||Creator, notNull, input=none');
         }
 
         // Добавяне на полета за modified
-        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none');
-        $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране||Modified->От||By,input=none');
+        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Промяна||Modified,input=none');
+        $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Променил||Modified By,input=none');
         
         if (!$mvc->fields['activatedOn']) {
-            $mvc->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
+            $mvc->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated,input=none');
         }
         
         if (!$mvc->fields['activatedBy']) {
-            $mvc->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активиране||Activated->От||By,input=none');
+            $mvc->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирал||Activated By,input=none');
         }
         
         // Вербализирането на ид-то да е без интервали за улеснение
@@ -165,7 +169,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
-        $mvc->fetchFieldsBeforeDelete = 'containerId';
+        $mvc->fetchFieldsBeforeDelete .= 'containerId';
 
         setIfNot($mvc->addSubTitleToList, false);
     }
@@ -761,7 +765,10 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Ако създаваме нов документ и ...
         if (!$rec->id) {
-            
+            if($rec->{$mvc->addLinkedOriginFieldName} && $mvc->canAddDocumentToOriginAsLink($rec)){
+                $mvc->addDocumentLinks[$rec->id] = $rec;
+            }
+
             // ... този документ няма ключ към папка и нишка, тогава
             // извикваме метода за рутиране на документа
             if (!isset($rec->folderId) || !isset($rec->threadId)) {
@@ -921,6 +928,16 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
+        // Ако има заопашени документи за добавяне като връзки да се добавят
+        if(countR($mvc->addDocumentLinks)){
+            foreach ($mvc->addDocumentLinks as $r){
+                if(isset($r->containerId) && isset($r->{$mvc->addLinkedOriginFieldName})){
+                    $comment = $mvc->getLinkedDocCommentToOrigin($r);
+                    doc_Linked::add($r->containerId, $r->{$mvc->addLinkedOriginFieldName}, 'doc', 'doc', $comment);
+                }
+            }
+        }
+
         if (countR($mvc->pendingQueue)) {
             foreach ($mvc->pendingQueue as $rec) {
                 $log = ($rec->state == 'pending') ? 'Документът става на заявка' : 'Документът се връща в чернова';
@@ -1079,7 +1096,11 @@ class doc_DocumentPlg extends core_Plugin
             // Ако текущия потребител няма права за тази папка, или тя не е определена до сега,
             // То 'Unsorted' папката е дефолт папката на потребителя, ако има потребител
             if ((!$folderId || !doc_Folders::haveRightFor('single', $folderId)) && $userId) {
-                $folderId = doc_Folders::getDefaultFolder($userId);
+                if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId)){
+                    wp($folderId, $userId, getCurrentUrl());
+                } else {
+                    $folderId = doc_Folders::getDefaultFolder($userId);
+                }
             }
         }
     }
@@ -2029,7 +2050,7 @@ class doc_DocumentPlg extends core_Plugin
                 $userId = core_Users::getCurrent();
                 $colabFolders = colab_Folders::getSharedFolders($userId);
                 if (!in_array($rec->folderId, $colabFolders)) {
-                    error('403 Недостъпен ресурс');
+                    error('403 Недостъпен ресурс', $rec->folderId);
                 }
             } else {
                 error('403 Недостъпен ресурс');
@@ -2112,19 +2133,19 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
-        
+
         if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
             $detId = Request::get('detId', 'int');
             
             $dData = $mvc->getDefaultData($rec, array('detId' => $detId, 'fType' => $fType));
-            
+
             if (!empty($dData)) {
                 foreach ($dData as $key => $val) {
                     $data->form->setDefault($key, $val);
                 }
             }
         }
-        
+
         // Показваме свързаните документи, ако има такива
         if ($data->form->rec->id) {
             $cId = $data->form->rec->containerId;
@@ -2136,8 +2157,8 @@ class doc_DocumentPlg extends core_Plugin
             doc_Linked::showLinkedInForm($data->form, $cId);
         }
     }
-    
-    
+
+
     /**
      *
      * @param core_Mvc   $mvc
@@ -2147,7 +2168,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
     {
-        $res = array();
+        $res = arr::make($res);
         
         if ($rec->foreignId && $otherParams['fType'] == 'doc') {
             $document = doc_Containers::getDocument($rec->foreignId);
@@ -2164,6 +2185,50 @@ class doc_DocumentPlg extends core_Plugin
                 $for = tr('За|*: ');
                 $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                 $res[$titleFld] = $title;
+            }
+        }
+
+        if ($mvc->autoShareUserEmails) {
+
+            $originId = null;
+
+            if ($rec->originId) {
+                $originId = $rec->originId;
+            } elseif ($rec->linkedHashKey) {
+                $lRec = core_Permanent::get($rec->linkedHashKey);
+                if (($lRec->outType == 'doc') && $lRec->outVal) {
+                    $originId = $lRec->outVal;
+                }
+            }
+
+            if ($originId) {
+                $document = doc_Containers::getDocument($originId);
+                if ($document->className == 'email_Incomings') {
+                    $eRec = $document->fetch();
+                    $allEmails = array();
+                    foreach (array('allTo', 'allCc') as $fName) {
+                        foreach ((array)$eRec->toAndCc[$fName] as $eAdd) {
+                            $eAdd['address'] = trim($eAdd['address']);
+                            if (!$eAdd['address']) {
+                                continue;
+                            }
+                            $allEmails[] = $eAdd['address'];
+                        }
+                    }
+
+                    $removedUsersArr = array();
+
+                    email_Inboxes::removeOurEmails($allEmails, $removedUsersArr);
+
+                    $cu = core_Users::getCurrent();
+                    unset($removedUsersArr[$cu]);
+                    unset($removedUsersArr[-1]);
+                    unset($removedUsersArr[0]);
+
+                    if (!empty($removedUsersArr)) {
+                        $res['sharedUsers'] = type_UserList::merge($res['sharedUsers'], $removedUsersArr);
+                    }
+                }
             }
         }
     }
@@ -2203,10 +2268,10 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        $saveBtnName = (haveRole('powerUser') && !(($mvc->canEditActivated === true && $rec->state == 'active'))) ? 'Чернова' : 'Запис';
+        $saveBtnName = (haveRole('powerUser') && !(($mvc->canEditActivated === true && in_array($rec->state, array('active', 'waiting', 'wakeup'))))) ? 'Чернова' : 'Запис';
         $form->toolbar->renameBtn('save', $saveBtnName);
         
-        if ($rec->state == 'pending') {
+        if ($rec->state == 'pending' && isset($rec->id)) {
             $form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
         }
         
@@ -2301,7 +2366,7 @@ class doc_DocumentPlg extends core_Plugin
                 $sP->updateOnShutdown = true;
             }
 
-            if ($form->cmd == 'save_pending' && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
+            if (in_array($form->cmd, array('save_pending', 'save_pending_new')) && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
                 // Преизчисляване на запазените количествата, ако новото състояние е "Заявка"
                 if ($rec->state != 'pending') {
                     $sP = cls::get('store_Products');
@@ -2551,7 +2616,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';
             } elseif (($action == 'edit') && ($oRec->state != 'draft' && $oRec->state != 'pending')) {
-                if (!(($oRec->state == 'active' || $oRec->state == 'template') && $mvc->canEditActivated === true)) {
+                if (!(in_array($oRec->state, array('active', 'template', 'waiting', 'wakeup')) && $mvc->canEditActivated === true)) {
                     $requiredRoles = 'no_one';
                 } else {
                     // Ако потребителя няма достъп до сингъла, той не може и да редактира записа
@@ -4819,5 +4884,25 @@ class doc_DocumentPlg extends core_Plugin
         } else {
             $res = $comment;
         }
+    }
+
+
+    /**
+     * Метод по подразбиране може ли документа да се добавя като свързан документ към оридижина си
+     */
+    public static function on_AfterCanAddDocumentToOriginAsLink($mvc, &$res, $rec)
+    {
+        if(!$res){
+           $res = $mvc->addLinkedDocumentToOriginId;
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране за коментара с който да се добави свързания документ към оридижина си
+     */
+    public static function on_AfterGetLinkedDocCommentToOrigin($mvc, &$res, $rec)
+    {
+
     }
 }

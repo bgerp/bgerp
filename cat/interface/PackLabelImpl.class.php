@@ -65,21 +65,20 @@ class cat_interface_PackLabelImpl
         $placeholders['QUANTITY'] = (object) array('type' => 'text');
         $placeholders['ORDER'] = (object) array('type' => 'text');
         $placeholders['OTHER'] = (object) array('type' => 'text');
-        $placeholders['SERIAL'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['MATERIAL'] = (object) array('type' => 'text');
         $placeholders['SIZE_UNIT'] = (object) array('type' => 'text');
         $placeholders['SIZE'] = (object) array('type' => 'text');
         $placeholders['CATALOG_PRICE'] = (object) array('type' => 'text');
         $placeholders['CATALOG_CURRENCY'] = (object) array('type' => 'text');
         $placeholders['EAN'] = (object) array('type' => 'text');
-        
+        $placeholders['EAN_ROTATED'] = (object) array('type' => 'text');
+
         if (isset($objId)) {
             // Проверка има ли продуктови параметри, които не могат да се редактират от формата
             $productClassId = cat_Products::getClassId();
             $rec = $this->class->fetch($objId);
-            $notEdittableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
-            
-            $labelData = $this->getLabelData($objId, 1, true);
+            $notEditableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
+
             $labelData = $this->getLabelData($objId, 1, true);
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
@@ -87,10 +86,14 @@ class cat_interface_PackLabelImpl
                         $placeholders[$key] = (object) array('type' => 'text');
                     }
                     $placeholders[$key]->example = $val;
+
+                    if(array_key_exists($key, $notEditableParamNames)){
+                        $placeholders[$key]->hidden = true;
+                    }
                 }
             }
         }
-        
+
         return $placeholders;
     }
     
@@ -212,16 +215,12 @@ class cat_interface_PackLabelImpl
             
             if (!empty($rec->eanCode)) {
                 $res['EAN'] = $rec->eanCode;
+                $res['EAN_ROTATED'] = $rec->eanCode;
             }
             
             if (is_object($Driver)) {
                 if (countR($additionalFields)) {
                     $res = $additionalFields + $res;
-                }
-                
-                $res['SERIAL'] = 'EXAMPLE';
-                if ($onlyPreview === false) {
-                    $res['SERIAL'] = $Driver->generateSerial($rec->productId, 'cat_products_Packagings', $rec->id);
                 }
             }
             
@@ -290,6 +289,18 @@ class cat_interface_PackLabelImpl
      * @return core_ET|null 
      */
     public function getDefaultLabelWithData($id, $templateId)
+    {
+        return null;
+    }
+
+
+    /**
+     * Кой е дефолтния шаблон за печат към обекта
+     *
+     * @param $id
+     * @return int|null
+     */
+    public function getDefaultLabelTemplateId($id)
     {
         return null;
     }

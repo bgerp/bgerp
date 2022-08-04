@@ -109,9 +109,21 @@ defIfNot('CAT_DEFAULT_BOM_IS_COMPLETE', 'no');
 
 
 /**
- * стратегия за изчисляване на транспортния обем
+ * Стратегия за изчисляване на транспортния обем
  */
 defIfNot('CAT_TRANSPORT_WEIGHT_STRATEGY', 'paramFirst');
+
+
+/**
+ * Код на артикула позволени символи
+ */
+defIfNot('CAT_PRODUCT_CODE_TYPE', 'default');
+
+
+/**
+ * Продуктови групи които могат да имат правила за обновяване на себестойностти
+ */
+defIfNot('CAT_GROUPS_WITH_PRICE_UPDATE_RULES', '');
 
 
 /**
@@ -125,7 +137,7 @@ defIfNot('CAT_TRANSPORT_WEIGHT_STRATEGY', 'paramFirst');
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -217,6 +229,7 @@ class cat_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
+        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Латински букви цифри тирета интервали и долна черта,all=Латински или кирилски букви цифри тирета интервали и долна черта,alphanumeric=Цифри и латински букви,numbers=Само цифри)', 'caption=Код на артикула позволени символи->Разрешаване'),
         'CAT_BOM_REMEMBERED_RESOURCES' => array('int', 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
         'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
         'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
@@ -237,6 +250,7 @@ class cat_Setup extends core_ProtoSetup
 
         'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Пълни,no=Непълни)', 'caption=Дали рецептите по подразбиране са завършени->Избор'),
         'CAT_TRANSPORT_WEIGHT_STRATEGY' => array('enum(paramFirst=Първо параметър после опаковка,packFirst=Първо опаковка после параметър)', 'caption=Стратегия за изчисляване на транспортния обем->Избор,customizeBy=debug'),
+        'CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи които могат да имат правила за обновяване на себестойностти->Избор'),
     );
     
     
@@ -302,5 +316,71 @@ class cat_Setup extends core_ProtoSetup
     {
         $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
         $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
+    }
+
+
+    /**
+     * Проверка дали кода на артикула е допустим
+     *
+     * @param string $code     - код за проверка
+     * @param null|string $msg - съобщение за грешка
+     * @return boolean $res    - валиден ли е кода или не
+     */
+    public static function checkProductCode($code, &$msg)
+    {
+        $productCodeType = static::get('PRODUCT_CODE_TYPE');
+
+        $res = true;
+        switch($productCodeType) {
+            case 'default':
+                if (preg_match('/[^0-9a-z\- _]/iu', $code)) {
+                    $msg = 'Полето може да съдържа само латински букви, цифри, тирета, интервали и долна черта|*!';
+                    $res = false;
+                }
+                break;
+            case 'all':
+                if (preg_match('/[^0-9a-zа-я\- _]/iu', $code)) {
+                    $msg = 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта|*!';
+                    $res = false;
+                }
+                break;
+            case 'alphanumeric':
+                if (preg_match('/[^a-z_\-0-9]/i', $code)) {
+                    $msg = 'Полето може да съдържа само латински букви и цифри|*!';
+                    $res = false;
+                }
+                break;
+            case 'numbers':
+                if (preg_match('/[^0-9]/i', $code)) {
+                    $msg = 'Полето може да съдържа само цифри|*!';
+                    $res = false;
+                }
+                break;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Зареждане на данните
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        // Ако няма посочени от потребителя сметки за синхронизация
+        $groupsWithUpdateRules = cat_Setup::get('GROUPS_WITH_PRICE_UPDATE_RULES');
+        if (strlen($groupsWithUpdateRules) === 0) {
+            if($priceGroupRec = cat_Groups::fetch("#sysId = 'priceGroup'", 'name,id')){
+                $defaultGroupKeylist = keylist::addKey('', $priceGroupRec->id);
+
+                // Записват се ид-та на дефолт сметките за синхронизация
+                core_Packs::setConfig('cat', array('CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => $defaultGroupKeylist));
+                $res .= "<li style='color:green'>Дефолтна продуктова група за ценови правила: <b>{$priceGroupRec->name}</b></li>";
+            }
+        }
+
+        return $res;
     }
 }

@@ -107,8 +107,7 @@ class acc_ArticleDetails extends doc_Detail
     public function description()
     {
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
-        $this->FLD('reason', 'varchar', 'caption=Информация');
-        
+                
         $this->FLD(
             
             'debitAccId',
@@ -138,6 +137,8 @@ class acc_ArticleDetails extends doc_Detail
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
         $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума,remember=info');
+	
+	$this->FLD('reason', 'varchar', 'caption=Допълнителна информация->Забележка');
     }
     
     
@@ -181,6 +182,44 @@ class acc_ArticleDetails extends doc_Detail
                 }
             }
         }
+    }
+    
+	    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        // Подсигуряване че запис и нов го има дори и при редакция
+        if (isset($data->form->rec->id)) {
+            $data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', null, array('id' => 'saveAndNew', 'order' => '1', 'ef_icon' => 'img/16/save_and_new.png', 'title' => 'Запиши документа и създай нов'));
+        }
+    }
+	
+	
+	    
+    /**
+     * Логика за определяне къде да се пренасочва потребителския интерфейс.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $data)
+    {
+        if (!isset($data->form) || !$data->form->isSubmitted()) {
+            return;
+        }
+        
+        if ($data->form->cmd == 'save_n_new') {
+            $rec = $data->form->rec;
+
+
+            unset($data->retUrl['id']);
+            unset($data->retUrl['packagingId']);
+            unset($data->retUrl['editSummary']);
+            unset($data->retUrl['editBatch']);
+            unset($data->retUrl['editQuantity']);
+                                    
+      }
     }
     
     
@@ -232,15 +271,18 @@ class acc_ArticleDetails extends doc_Detail
             if (!isset($acc)) {
                 continue;
             }
-            
+
             foreach ($acc->groups as $i => $list) {
                 if (!$list->rec->itemsCnt) {
                     redirect(array('acc_Items', 'list', 'listId' => $list->rec->id), false, '|Липсва избор за|* "' . acc_Lists::getVerbal($list->rec, 'name') . '"');
                 }
-                
+
                 $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
-                $form->setField("{$type}Ent{$i}", "silent,removeAndRefreshForm,mandatory,input,caption={$caption}->" . $list->rec->name);
-                
+                $form->setField("{$type}Ent{$i}", "silent,mandatory,input,caption={$caption}->" . $list->rec->name);
+                if($list->rec->regInterfaceId == core_Interfaces::fetchByName('currency_CurrenciesAccRegIntf')){
+                    $form->setField("{$type}Ent{$i}", "removeAndRefreshForm");
+                }
+
                 // Ако може да се избират приключени пера, сетваме параметър в типа на перата
                 if ($masterRec->useCloseItems == 'yes') {
                     $form->getField("{$type}Ent{$i}")->type->params['showAll'] = true;
@@ -284,9 +326,14 @@ class acc_ArticleDetails extends doc_Detail
                             $form->setField("{$type}Ent{$i}", "removeAndRefreshForm={{$type}Price}");
                             
                             // Задаваме курса към основната валута за дефолт цена
-                            $rate = currency_CurrencyRates::getRate($masterRec->valior, currency_Currencies::getCodeById($itemRec->objectId), null);
+                            $currencyCode = currency_Currencies::getCodeById($itemRec->objectId);
+                            $rate = currency_CurrencyRates::getRate($masterRec->valior, $currencyCode, null);
                             $form->setDefault("{$type}Price", $rate);
                             $form->setField("{$type}Ent{$i}", "removeAndRefreshForm={$type}Price");
+                            if($currencyCode == acc_Periods::getBaseCurrencyCode($masterRec->valior)){
+                                $form->setReadOnly("{$type}Price");
+                                $form->setField("{$type}Price", array('hint' => 'Цената на основната валута за периода, трябва да е винаги фиксирана|*!'));
+                            }
                         }
                     }
                 }

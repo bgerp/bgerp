@@ -184,12 +184,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Кои полета да могат да се променят след активация
-     */
-    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template';
-    
-    
-    /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
      * @see plg_Clone
@@ -228,7 +222,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Стратегии за добавяне на артикули след създаване от източника
      */
-    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички от договора", 'shippedNotInvoiced' => 'Нефактурираните експедирани');
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички от договора", 'shippedNotInvoiced' => 'Нефактурираните експедирани', 'none' => 'Без');
 
 
     /**
@@ -362,12 +356,6 @@ class sales_Invoices extends deals_InvoiceMaster
                 $form->setDefault('accountId', $ownAcc);
             }
         }
-        
-        if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
-            if ($rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')) {
-                $form->setField('vatReason', 'mandatory');
-            }
-        }
 
         $tLang = doc_TplManager::fetchField($rec->template, 'lang');
         core_Lg::push($tLang);
@@ -410,9 +398,11 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         core_Lg::pop();
-
         $invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText');
-        $invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
+        $invTextPublic = '';
+        if(isset($rec->contragentCountryId)){
+            $invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
+        }
         if(!empty($invTextPrivate) && !empty($invTextPublic) && md5($invTextPrivate) != md5($invTextPublic)){
             $form->setField('selectInvoiceText', 'input');
         }
@@ -425,7 +415,7 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         // Ако има дефолтен текст за държавата и е различен, добавя се и той
-        if(in_array($rec->selectInvoiceText, array('public', 'both'))) {
+        if(in_array($rec->selectInvoiceText, array('public', 'both')) && isset($rec->contragentCountryId)) {
             if ($invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText')) {
                 if(md5($invTextPrivate) != md5($invTextPublic)){
                     $defInfo .= "\n";
@@ -509,8 +499,6 @@ class sales_Invoices extends deals_InvoiceMaster
             $original = tr('ОРИГИНАЛ');
             $tpl->replace($original, 'INV_STATUS');
         }
-        
-        $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
     
@@ -535,17 +523,21 @@ class sales_Invoices extends deals_InvoiceMaster
             
             if ($amount < 0) {
                 if (cash_Rko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                    $data->toolbar->addBtn('РКО', array('cash_Rko', 'add', 'originId' => $originId, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate,'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов разходен касов ордер към документа');
+                    $btnRow = ($rec->paymentType != 'cash') ? 2 : 1;
+                    $data->toolbar->addBtn('РКО', array('cash_Rko', 'add', 'originId' => $originId, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate,'ret_url' => true), "row={$btnRow},ef_icon=img/16/money_add.png,title=Създаване на нов разходен касов ордер към документа");
                 }
                 if (bank_SpendingDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                    $data->toolbar->addBtn('РБД', array('bank_SpendingDocuments', 'add', 'originId' => $originId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
+                    $btnRow = ($rec->paymentType == 'cash') ? 2 : 1;
+                    $data->toolbar->addBtn('РБД', array('bank_SpendingDocuments', 'add', 'originId' => $originId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), "row={$btnRow},ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ");
                 }
             } else {
                 if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                    $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $originId, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към документа');
+                    $btnRow = ($rec->paymentType != 'cash') ? 2 : 1;
+                    $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $originId, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), "row={$btnRow},ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към документа");
                 }
                 if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                    $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
+                    $btnRow = ($rec->paymentType == 'cash') ? 2 : 1;
+                    $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), "row={$btnRow},ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ");
                 }
             }
         }
@@ -766,7 +758,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $error = null;
         if (!$mvc->isAllowedToBePosted($rec, $error, true)) {
-            $res = $error;
+            $res = strip_tags($error);
         }
     }
     
@@ -780,7 +772,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($rec->date > dt::today()) {
             $res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
         } elseif (!$mvc->isAllowedToBePosted($rec, $error)) {
-            $res = $error;
+            $res = strip_tags($error);
         }
     }
     
@@ -811,7 +803,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $rec = $self->fetch($id);
         
         if (!$rec->number) {
-            $hnd = $self->abbr . $rec->id;
+            $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;
         } else {
             $number = $self->getVerbal($rec, 'number');
             $hnd = $self->abbr . $number;
@@ -826,26 +818,34 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function fetchByHandle($parsedHandle)
     {
-        if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
-            $rec = static::fetch($parsedHandle['id']);
+        $pId = $parsedHandle['id'];
+        $pLen = strlen($pId);
+        $rec = null;
+
+        if ($pLen != 10) {
+            if (!$parsedHandle['endDs']) return null;
+        }
+
+        if ($parsedHandle['endDs'] && ($pLen != 10)) {
+            $rec = static::fetch($pId);
         } else {
-            $number = ltrim($parsedHandle['id'], '0');
+            $number = ltrim($pId, '0');
             if ($number) {
                 $rec = static::fetch("#number = '{$number}'");
             }
         }
-        
+
         return $rec;
     }
-    
-    
+
+
     /**
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
         $rec = $mvc->fetchRec($rec);
-        
+
         if (!empty($rec->sourceContainerId)) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('store_ShipmentOrders')) {
@@ -861,9 +861,31 @@ class sales_Invoices extends deals_InvoiceMaster
                     $amount = $Source->getPaymentData($sRec)->amount;
                     $dRec = (object)array('documentContainerId' => $sRec->containerId, 'containerId' => $sRec->fromContainerId, 'amount' => $amount);
                     deals_InvoicesToDocuments::save($dRec);
-
                     doc_DocumentCache::cacheInvalidation($sRec->containerId);
                 }
+            }
+        }
+
+        // Има ли полета, чиито стойности да се преизчислят при активиране
+        $Detail = cls::get('sales_InvoiceDetails');
+        $cacheFields = $Detail->getFieldsToCalcOnActivation($rec);
+
+        if(countR($cacheFields)){
+            $saveDetails = array();
+            $updateFields = implode(',', $cacheFields);
+
+            // Извличат се детайлите
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#invoiceId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $params = cat_Products::getParams($dRec->productId);
+                if($Detail->calcFieldsOnActivation($dRec, $rec, $params)){
+                    $saveDetails[] = $dRec;
+                }
+            }
+
+            if(countR($saveDetails)){
+                $Detail->saveArray($saveDetails, "id,{$updateFields}");
             }
         }
     }

@@ -207,9 +207,11 @@ class cal_Calendar extends core_Master
 
         $fromTime = $fromDate . ' 00:00:00';
         $toTime   = $toDate   . ' 23:59:59';
-        
-        $query->where("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND #key LIKE '{$prefix}%'");
-        
+
+        // Ако завършва с -, тогава търсим -%
+        $like = (substr($prefix, -1) === '-') ? '%' : '';
+        $query->where("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND #key LIKE '{$prefix}{$like}'");
+
         // Извличаме съществуващите събития за този префикс
         $exEvents = array();
         while($rec = $query->fetch()) {

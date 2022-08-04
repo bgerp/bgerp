@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -252,9 +252,7 @@ class store_StockPlanning extends core_Manager
     function act_recalcAll()
     {
         requireRole('debug');
-
-        cls::get('store_Setup')->migratePendings();
-
+        $this->recalcPlannedStocks();
         followRetUrl();
     }
 
@@ -353,7 +351,7 @@ class store_StockPlanning extends core_Manager
         foreach ($allRecs as $key => $datesObj){
             $max = null;
 
-            // Обхождат се датите за, които има запланувани движение
+            // Обхождат се датите за, които има запланувани движения
             foreach ($datesObj as $date => $obj){
 
                 // Наличността към датата е сумата от предходните дати
@@ -377,6 +375,186 @@ class store_StockPlanning extends core_Manager
         }
 
         return $res;
+    }
+
+
+    /**
+     * Първоначално наливане на запазените количества
+     */
+    private function recalcPlannedStocks()
+    {
+        // Ако не е имало складови движения, не се прави нищо
+        if(!store_Products::count()) return;
+
+        $Stocks = cls::get('store_StockPlanning');
+        $Stocks->truncate();
+
+        // Кои документи запазват на заявка
+        $stockableClasses = array('store_ShipmentOrders',
+            'store_Receipts',
+            'store_Transfers',
+            'store_ConsignmentProtocols',
+            'planning_ConsumptionNotes',
+            'planning_DirectProductionNote',
+            'pos_Receipts');
+
+        // Записват се запазените количества
+        $stocksArr = array();
+        foreach ($stockableClasses as $cls){
+            $Source = cls::get($cls);
+            $Source->setupMvc();
+
+            $query = $Source->getQuery();
+            $query->in("state", $Source->updatePlannedStockOnChangeStates);
+            $count = $query->count();
+            core_App::setTimeLimit(0.6 * $count, false,300);
+
+            while($rec = $query->fetch()){
+                $arr = $Source->getPlannedStocks($rec);
+                store_StockPlanning::addStaticValuesToStockArr($arr, $Source, $rec->id);
+                $stocksArr = array_merge($stocksArr, $arr);
+            }
+        }
+
+        // Записване на запазеното на индивидуланите количества
+        $Stocks->saveArray($stocksArr);
+
+        // Преизчисляване на запазеното по сделки и запазени.
+        $dealsArr = array();
+        $stockableOriginClasses = array('sales_Sales', 'purchase_Purchases', 'planning_Jobs');
+        foreach ($stockableOriginClasses as $cls) {
+            $Source = cls::get($cls);
+            $Source->setupMvc();
+
+            $query = $Source->getQuery();
+            $query->in("state", $Source->updatePlannedStockOnChangeStates);
+            $count = $query->count();
+            core_App::setTimeLimit(0.7 * $count, false,300);
+
+            while ($rec = $query->fetch()) {
+                $arr = $Source->getPlannedStocks($rec);
+                store_StockPlanning::addStaticValuesToStockArr($arr, $Source, $rec->id);
+                $dealsArr = array_merge($dealsArr, $arr);
+            }
+        }
+
+        $Stocks->saveArray($dealsArr);
+    }
+
+
+    /**
+     * Коя е най-ранната дата, на която са разполагаеми всички количества на посочените артикули
+     *
+     * @param int $storeId          - ид на склад
+     * @param array $products       - масив от търсените наличностти ['productId' => 'quantity']
+     * @param int|null $daysForward - колко дни напред да се търси
+     * @return null|date            - най-ранната дата на която са налични или null ако няма
+     */
+    public static function getEarliestDateAllAreAvailable($storeId, $products, $daysForward = null)
+    {
+        $productIds = array_keys($products);
+        if(!countR($products)) return;
+        $daysForward = isset($daysForward) ? $daysForward : store_Setup::get('EARLIEST_SHIPMENT_READY_IN');
+
+        // Коя е крайната дата до която най-късно ще се гледа
+        $today = dt::today();
+        $endDate = dt::verbal2mysql(dt::addSecs($daysForward * 24 * 3600, $today), false);
+
+        // Извличат се еднократно всички текущи наличности на търсените артикули в търсения склад
+        $inStockArr = array();
+        $sQuery = store_Products::getQuery();
+        $sQuery->where("#storeId = '{$storeId}'");
+        $sQuery->in("productId", $productIds);
+        $sQuery->show('productId,quantity');
+        while($sRec = $sQuery->fetch()){
+            $inStockArr[$sRec->productId] = $sRec->quantity;
+        }
+
+        // Извличат се от хоризонтите движенията за посочените артикули в посочения склад до желаната крайна дата
+        $plannedArr = array();
+        $query = static::getQuery();
+        $query->XPR("shortDate", 'date', "(CASE WHEN DATE(#date) >= CURDATE() THEN DATE(#date) ELSE CURDATE() END)");
+        $query->XPR("quantityMove", 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4) - ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
+        $query->where("#storeId = '{$storeId}' && #shortDate >= '{$today}' AND #shortDate <= '{$endDate}'");
+        $query->in("productId", $productIds);
+        $query->show('quantityMove,shortDate,productId');
+        $query->groupBy('storeId,productId,shortDate');
+
+        // Групиране за всеки артикул на коя дата колко ще е общо движението: влязло - излязло
+        while($rec = $query->fetch()){
+            $plannedArr[$rec->productId][$rec->shortDate] = $rec->quantityMove;
+        }
+
+        // Ще се обикаля за всички дати от днеска до $daysForward дни напред
+        $currentDate = $today;
+        $countNeeded = countR($products);
+        do {
+            $ok = 0;
+
+            // За всеки артикул с нужно количество
+            foreach ($products as $productId => $neededQuantity){
+
+                // Колко е първоначално наличното
+                $finalQuantity = isset($inStockArr[$productId]) ? $inStockArr[$productId] : 0;
+
+                // Ако има записи в хоризонтите се сумират движенията до текущата дата
+                if(is_array($plannedArr[$productId])){
+                    array_walk($plannedArr[$productId], function($totalMovement, $date) use ($currentDate, &$finalQuantity) {
+
+                        // Ако датата е преди текущата добавя се към първоначалното налично
+                        if($date <= $currentDate){
+                            $finalQuantity += $totalMovement;
+                        }
+                    });
+                }
+
+                // Ако крайното разполагаемо удовлетворява нужното количество, отбелязва се че артикула е готов
+                if(round($finalQuantity, 4) >= round($neededQuantity, 4)){
+                    $ok++;
+                }
+            }
+
+            // Ако всичките готови артикули са точно толкова колкото се търсят връща се текущата дата на обхождането
+            if($ok == $countNeeded) return $currentDate;
+
+            // Обхождането продължава докато не се стигне до крайната дата, или не се излезе от цикъла
+            $currentDate = dt::addDays(1, $currentDate, false);
+        } while($currentDate <= $endDate);
+
+        // Ако се обходят всички дати и няма удовлетворени количества ще се върне null
+        return null;
+    }
+
+
+    /**
+     * Връща записите отговарящи на условията
+     *
+     * @param int         $productId - ид на артикул
+     * @param null|array  $stores    - складове или null за всички
+     * @param date        $toDate    - към коя дата
+     * @param string|null $field     - кое поле или и двете
+     * @return array
+     */
+    public static function getRecs($productId, $stores, $toDate, $field = null)
+    {
+        $end = (strlen($toDate) == 10) ? "{$toDate} 23:59:59" : $toDate;
+        $query = static::getQuery();
+        $query->where("#productId = {$productId} AND #date <= '{$end}'");
+        if(isset($stores)){
+            $query->in('storeId', $stores);
+        }
+
+        if($field){
+            $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
+            $query->where("#{$quantityField} IS NOT NULL");
+        } else {
+            $query->where("#quantityOut IS NOT NULL OR #quantityIn IS NOT NULL");
+        }
+
+        $query->EXT('measureId', 'cat_Products', 'externalKey=productId');
+        $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId,storeId');
+
+        return $query->fetchAll();
     }
 }
 

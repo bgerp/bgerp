@@ -73,15 +73,40 @@
                         </table>
                     </div>
                 </fieldset>
-                
+
+                <!--ET_BEGIN CONDITIONS_BLOCK-->
+                [#CONDITIONS_BLOCK#]
+                <fieldset class="detail-info">
+                    <legend class="groupTitle">|Допълнителни условия|*</legend>
+                    <div class="groupList">
+                        <table>
+                            <!--ET_BEGIN conditionSaleBg-->
+                            <tr>
+                                <td class='quiet' style="padding:2px 0px;">|Продажба (BG)|*:</td>
+                                <td style="padding:2px 0px;">[#conditionSaleBg#]</td>
+                            </tr>
+                            <!--ET_END conditionSaleBg-->
+                            <!--ET_BEGIN conditionSaleEn-->
+                            <tr>
+                                <td class='quiet' style="padding:2px 0px;">|Продажба (EN)|*:</td>
+                                <td style="padding:2px 0px;">[#conditionSaleEn#]</td>
+                            </tr>
+                            <!--ET_END conditionSaleEn-->
+                        </table>
+                        </div>
+                </fieldset>
+                <!--ET_END CONDITIONS_BLOCK-->
+
                 <fieldset class="detail-info">
                 <legend class="groupTitle">|Кой може да контира документи, в които е избрана сметката|*</legend>
                 <div class="groupList">
                     <table>
+                        <!--ET_BEGIN operators-->
                         <tr>
                             <td class='dt'>|Потребители|*:</td>
                             <td>[#operators#]</td>
                         </tr>
+                        <!--ET_END operators-->
                         <!--ET_BEGIN activateRoles-->
                         <tr>
                             <td class='dt'>|Екипи|*:</td>

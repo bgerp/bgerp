@@ -235,6 +235,18 @@ class email_SpamRules extends core_Manager
 
 
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        email_ServiceRules::addInfoToForm($data->form);
+    }
+
+
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      *
      * Зареждане на потребителски правила за
