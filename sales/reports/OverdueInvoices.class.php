@@ -839,7 +839,11 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         //Добавяне в blob полето
         $listForEmail = array();
 
-        $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
+        if(!$rec->countryGroup){
+            $emailLanguage = 'bg';
+        }else{
+            $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
+        }
 
         $unsentEmails = array();
 
@@ -940,7 +944,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
 
         $blastArr = array('sharedUser' => array(core_Users::getCurrent() => core_Users::getCurrent()),
-            // 'text' => "Имате просрочия за [#docs#].\nМоля направете плащане.",
             'text' => $body,
             'subject' => $subject,
             'canUnsubscribe' => 'no',
