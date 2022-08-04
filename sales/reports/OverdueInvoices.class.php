@@ -62,6 +62,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldset->FLD('listForEmail', 'blob', 'caption=Списък за имейл,single=none,after=countryGroup,input=hidden');
         $fieldset->FLD('excludedFromEmail', 'text', 'caption=Изключени за имейл фирми,single=none,after=listForEmail,input=hidden');
         $fieldset->FLD('unsentEmails', 'blob', 'caption=Неизпратени имейли,single=none,after=listForEmail,input=hidden');
+        $fieldset->FLD('blastId', 'int', 'caption=Последен документ,single=none,after=unsentEmails,input=hidden');
 
         $fieldset->FNC('salesTotalOverDue', 'double', 'caption=Общо просрочени,input=none,single=none');
         $fieldset->FNC('salesTotalPayout', 'double', 'caption=Общо плащания,input=none,single=none');
@@ -639,6 +640,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                         <!--ET_BEGIN salesCurrentSum--><div>|Общо за плащане|*: <b>[#salesCurrentSum#]</b></div><!--ET_END salesCurrentSum-->
                                         <!--ET_BEGIN excludedFromEmail--><div>|Изключени от имейла|*: <b>[#excludedFromEmail#]</b></div><!--ET_END excludedFromEmail-->
                                         <!--ET_BEGIN unsentEmails--><div>|Неизпратени имейли|*: <b>[#unsentEmails#]</b></div><!--ET_END unsentEmails-->
+                                        <!--ET_BEGIN blastId--><div>|Последен документ|*: <b>[#blastId#]</b></div><!--ET_END blastId-->
                                         <!--ET_BEGIN button--><div>| |* [#button#]</div><!--ET_END button-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"
@@ -719,6 +721,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 $fieldTpl->append('Няма', 'unsentEmails');
             }
 
+            if (isset($data->rec->blastId)) {
+                $link = blast_Emails::getHyperlink($data->rec->blastId);
+                $fieldTpl->append(trim($link, ', '), 'blastId');
+            }
 
             $toolbar->addBtn('Циркулярно писмо', toUrl($exportUrl), null, $worning);
         }
@@ -842,16 +848,15 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         //Добавяне в blob полето
         if ($rec->listForEmail) {
             $oldListForEmail = $rec->listForEmail;
-        }else{
+        } else {
             $oldListForEmail = array();
         }
-            $listForEmail = array();
+        $listForEmail = array();
 
 
-
-        if(!$rec->countryGroup){
+        if (!$rec->countryGroup) {
             $emailLanguage = 'bg';
-        }else{
+        } else {
             $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
         }
 
@@ -902,9 +907,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
         $rec->unsentEmails = $unsentEmails;
-        frame2_Reports::save($rec);
-
-       // status_Messages::newStatus('На ' . countR($unsentEmails).' контрагента не бяха изпратени имейли' .  frame2_Reports::getLinkToSingle($rec->id), 'warning');
+        frame2_Reports::save($rec, 'unsentEmails');
 
         return $listForEmail;
     }
@@ -922,7 +925,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         foreach ($rec->listForEmail as $key => $val) {
 
-            if ($val['excludе'] == 'yes')continue;
+            if ($val['excludе'] == 'yes') continue;
 
             $listForSend[$key] = array('email' => $val['email'],
                 'company' => $val['company'],
@@ -969,7 +972,11 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         expect($res['blastId']);
 
-        status_Messages::newStatus('На ' . countR($rec->unsentEmails).' контрагента не бяха изпратени имейли. Виж :' .  frame2_Reports::getLinkToSingle($rec->id), 'warning');
+        $rec->blastId = $res['blastId'];
+
+        status_Messages::newStatus('На ' . countR($rec->unsentEmails) . ' контрагента не бяха изпратени имейли. Виж :' . frame2_Reports::getLinkToSingle($rec->id), 'warning');
+
+        frame2_Reports::save($rec, 'blastId');
 
         if (blast_Emails::haveRightFor('single', $res['blastId'])) {
             return new Redirect(array('blast_Emails', 'single', $res['blastId']));
