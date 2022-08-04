@@ -304,9 +304,11 @@ class select2_Plugin extends core_Plugin
             
             $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1));
         }
-        
+
+        $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
+
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl, (boolean)$invoker->params['parentId'], $invoker->params['forceOpen']);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl, (boolean)$invoker->params['parentId'], $invoker->params['forceOpen'], $minimumResultsForSearch);
 
         return false;
     }
