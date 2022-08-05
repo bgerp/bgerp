@@ -730,7 +730,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected static function on_AfterAddFields(frame2_driver_Proto $Driver, embed_Manager $Embedder, core_Fieldset &$fieldset)
     {
-
-          $fieldset->FLD('listItemsPerPage', 'int(min=10,Max=200)', "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={bp}");
+          $fieldset->FLD('listItemsPerPage', 'int', "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={bp}");
     }
 }
