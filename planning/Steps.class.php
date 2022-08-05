@@ -562,4 +562,33 @@ class planning_Steps extends core_Extender
         
         return $tpl;
     }
+
+
+    /**
+     * Връща активните операции за предходните етапи, на етапа в рамките на подаденото задание
+     *
+     * @param int $stepId      - ид на артикул - етап
+     * @param int $containerId - контейнер на задание, в което ще се търсят операциите
+     * @return array $res
+     */
+    public static function getPreviousStepTaskIds($stepId, $containerId)
+    {
+        $res = array();
+
+        // Кои са предходните етапи на този етап
+        $cQuery = planning_StepConditions::getQuery();
+        $cQuery->where("#stepId = {$stepId}");
+        $cQuery->show('prevStepId');
+        $prevStepIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'prevStepId');
+        if(!countR($prevStepIds)) return $res;
+
+        // Всички текущи ПО към заданието за посочените етапи
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$containerId} AND #state IN ('active', 'stopped', 'wakeup', 'closed')");
+        $tQuery->in('productId', $prevStepIds);
+        $tQuery->show('id');
+        $res = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
+
+        return $res;
+    }
 }

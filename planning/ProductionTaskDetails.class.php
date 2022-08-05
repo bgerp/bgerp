@@ -142,7 +142,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     public function description()
     {
         $this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Артикул,removeAndRefreshForm=serial|quantity');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Артикул,removeAndRefreshForm=serial|quantity,mandatory');
         $this->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък,scrap=Бракуване)', 'input=hidden,silent,tdClass=small-field nowrap');
         $this->FLD('serial', 'varchar(32)', 'caption=Производ. №,focus,autocomplete=off,silent');
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
@@ -274,8 +274,18 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако е избран артикул
         if (isset($rec->productId)) {
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
-            if(($rec->type == 'production' && $masterRec->labelType == 'scan') || ($rec->type == 'input' && $pRec->canStore == 'yes')){
+            if($rec->type == 'production' && $masterRec->labelType == 'scan'){
                 $form->setField('serial', 'mandatory');
+            } elseif($rec->type == 'input'){
+                $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
+                if(countR($availableSerialsToInput)){
+                    $serialOptions = array_combine(array_keys($availableSerialsToInput), array_keys($availableSerialsToInput));
+                    $form->setField('serial', 'removeAndRefreshForm=quantity|batch');
+                    $form->setOptions('serial', $serialOptions);
+                    $form->setDefault('serial', key($serialOptions));
+                } else {
+                    $form->setField('serial', 'input=none');
+                }
             }
 
             if ($pRec->canStore != 'yes' && $rec->type == 'production' && $rec->productId == $masterRec->productId) {
@@ -324,6 +334,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
             }
             $form->setField('date', "placeholder=" . dt::now());
+        } else {
+            if($rec->type == 'input'){
+                $form->setField('serial', 'input=none');
+            }
         }
 
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
@@ -369,25 +383,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
 
             if($rec->type == 'input'){
-
-                // При влагане ако няма артикул, прави се опит да се намери от произв. номер
-                if(!isset($rec->productId) && !empty($rec->serial)){
-                    if($pData = static::getProductBySerial($rec->serial)){
-                        if(!planning_ProductionTaskProducts::fetchField("#taskId = '{$rec->taskId}' AND #type = 'input' AND #productId = '{$pData['productId']}'")){
-                            $form->setError('serial', "Номера е на артикул, който не в допустим за влагане в тази операция|*: <b>" . cat_Products::getHyperlink($pData['productId'], true) . "</b>");
-                            return;
-                        }
-                        $rec->productId = $pData['productId'];
-                        if(empty($rec->quantity)){
-                            $rec->quantity = $pData['quantity'];
-                        }
-                    }
-                }
-
-                if(!isset($rec->productId)){
-                    $form->setError('productId,serial', "Трябва да е посочен артикул или производствен номер");
-                    return;
-                }
+                //@todo ?
             }
 
             if(isset($rec->productId)){
@@ -402,17 +398,23 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $rec->serial = $Driver->canonizeSerial($checkProductId, $rec->serial);
                         }
 
-                        // Проверка на сериния номер
-                        $serialInfo = self::fetchSerialInfo($rec->serial, $checkProductId, $rec->taskId, $rec->type);
-
-                        $rec->serialType = $serialInfo['type'];
-                        if (isset($serialInfo['error'])) {
-                            $form->setError('serial', $serialInfo['error']);
-                        } elseif ($serialInfo['type'] == 'existing') {
-                            if(!empty($rec->batch) && $rec->batch != $serialInfo['batch']){
-                                $form->setError('serial,batch', "Този номер е към друга партида");
+                        if($rec->type == 'production'){
+                            // Проверка на сериния номер
+                            $serialInfo = self::getProductionSerialInfo($rec->serial, $rec->productId, $rec->taskId);
+                            $rec->serialType = $serialInfo['type'];
+                            if (isset($serialInfo['error'])) {
+                                $form->setError('serial', $serialInfo['error']);
+                            } elseif ($serialInfo['type'] == 'existing') {
+                                if(!empty($rec->batch) && $rec->batch != $serialInfo['batch']){
+                                    $form->setError('serial,batch', "Този номер е към друга партида");
+                                }
                             }
+                        } else {
+                            $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
+                            $serialInfo = $availableSerialsToInput[$rec->serial];
+                            $form->setDefault('quantity', $serialInfo['quantity']);
                         }
+
                     } else {
                         $form->setError('serial', "Невалиден производствен номер");
                     }
@@ -447,39 +449,45 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $rec->quantity = $serialInfo['quantity'];
                     }
 
-                    if(empty($rec->batch) && !empty($serialInfo['quantity'])){
-                        if(isset($masterRec->storeId) && $masterRec->followBatchesForFinalProduct == 'yes'){
+                    if(empty($rec->batch)){
+                        if($masterRec->followBatchesForFinalProduct == 'yes'){
                             $rec->batch = $serialInfo['batch'];
                         }
                     }
                 }
 
-                if($rec->_isKgMeasureId){
-                    $rec->quantity = !empty($rec->quantity) ? $rec->quantity : ((!empty($rec->weight)) ? $rec->weight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1));
-                    $rec->weight = $rec->weight;
-                } else {
-                    $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
+                if($masterRec->followBatchesForFinalProduct == 'yes' && empty($rec->batch)){
+                    $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
                 }
 
-                if(in_array($rec->type, array('production', 'scrap')) && planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId) && isset($rec->quantity)){
-                    $rec->quantity *= $masterRec->quantityInPack;
-                }
-
-                $limit = '';
-                if (isset($rec->productId) && !in_array($rec->type, array('production', 'scrap'))) {
-                    if (!$mvc->checkLimit($rec, $limit)) {
-                        $limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
-                        $form->setError('quantity', "Надвишаване на допустимото максимално количество|* <b>{$limit}</b>");
+                if (!$form->gotErrors()) {
+                    if($rec->_isKgMeasureId){
+                        $rec->quantity = !empty($rec->quantity) ? $rec->quantity : ((!empty($rec->weight)) ? $rec->weight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1));
+                        $rec->weight = $rec->weight;
+                    } else {
+                        $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
                     }
-                }
 
-                $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-                if (isset($info->indTime)) {
-                    $rec->norm = $info->indTime;
-                }
+                    if(in_array($rec->type, array('production', 'scrap')) && planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId) && isset($rec->quantity)){
+                        $rec->quantity *= $masterRec->quantityInPack;
+                    }
 
-                if($masterRec->assetId != $rec->fixedAsset){
-                    $rec->newAssetId = $rec->fixedAsset;
+                    $limit = '';
+                    if (isset($rec->productId) && !in_array($rec->type, array('production', 'scrap'))) {
+                        if (!$mvc->checkLimit($rec, $limit)) {
+                            $limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
+                            $form->setError('quantity', "Надвишаване на допустимото максимално количество|* <b>{$limit}</b>");
+                        }
+                    }
+
+                    $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
+                    if (isset($info->indTime)) {
+                        $rec->norm = $info->indTime;
+                    }
+
+                    if($masterRec->assetId != $rec->fixedAsset){
+                        $rec->newAssetId = $rec->fixedAsset;
+                    }
                 }
             }
         }
@@ -525,33 +533,36 @@ class planning_ProductionTaskDetails extends doc_Detail
 
 
     /**
-     * Извлича кой е артикула по дадения сериен номер
+     * Връща вече произведените серийни номера по артикула за влагане
      *
-     * @param string $serial
-     * @return array|null
+     * @param int $productId
+     * @param int $taskId
+     * @return array $res
      */
-    private static function getProductBySerial($serial)
+    private static function getAvailableSerialsToInput($productId, $taskId)
     {
         $res = array();
-        if($exRec = self::fetch(array("#serial = '[#1#]'", $serial))){
-            $sQuery = static::getQuery();
-            $sQuery->where(array("#type = 'scrap' AND #serial = '[#1#]'", $serial));
-            $sQuery->XPR('scrapped', 'int', 'SUM(#quantity)');
-            $sQuery->show('scrapped');
+        $canStore = cat_Products::fetchField($productId, 'canStore');
+        if($canStore != 'yes') return $res;
 
-            $res['quantity'] = $exRec->quantity - $sQuery->fetch()->scrapped;
-            $res['productId'] = $exRec->productId;
-        } else {
-            if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
-                $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
-                if($printRec->classId == cat_products_Packagings::getClassId()){
-                    $res['productId'] = $exRec->productId;
-                }
+        // Кои са наличните за предишните операции за етапа от операцията
+        $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId');
+        $previousTaskIds = planning_Steps::getPreviousStepTaskIds($taskRec->productId, $taskRec->originId);
+        if(!countR($previousTaskIds)) return $res;
+
+        // За всяка една от тях се сумират произведените к-ва по сериен номер от операции в това задание
+        $query = static::getQuery();
+        $query->in("taskId", $previousTaskIds);
+        $query->where("#productId = {$productId} AND #type IN ('production', 'scrap') AND #state != 'rejected'");
+        while($rec = $query->fetch()){
+            if(!array_key_exists($rec->serial, $res)){
+                $res[$rec->serial] = array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
             }
+            $sign = ($rec->type == 'scrap') ? -1 : 1;
+            $res[$rec->serial]['quantity'] += $sign * $rec->quantity;
         }
 
-        return countR($res) ? $res : null;
-
+        return $res;
     }
 
 
@@ -561,54 +572,83 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @param string      $serial
      * @param int         $productId
      * @param int         $taskId
-     * @param string|null $type
      *
      * @return array $res
      */
-    private static function fetchSerialInfo($serial, $productId, $taskId, $type = null)
+    private static function getProductionSerialInfo($serial, $productId, $taskId)
     {
-        if (!$Driver = cat_Products::getDriver($productId)) return;
-
+        $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId');
         $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
-        $canonizedSerial = $Driver->canonizeSerial($productId, $serial);
-        $exRec = self::fetch(array("#serial = '[#1#]'", $canonizedSerial));
+        $exRec = static::fetch(array("#taskId = {$taskRec->id} AND #serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
 
-        if (!empty($exRec)) {
-            $exProductId = $exRec->productId;
-            if($exRec->type == 'production'){
-                $taskRec = planning_Tasks::fetchField($exRec->taskId, 'originId,isFinal');
-                $exProductId = ($taskRec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId') : $exRec->productId;
-            }
-
-            $res['type'] = 'existing';
-            $res['productId'] = $exProductId;
+        // Ако произ. номер е съществуващ в текущата ПО - взима се информацията от първото му използване
+        if(is_object($exRec)){
             $res['batch'] = $exRec->batch;
-            $res['quantity'] = $exRec->quantity;
+            $res['type'] = 'existing';
 
-            if(planning_Setup::get('ALLOW_SERIAL_FROM_DIFFERENT_TASKS') != 'yes'){
-                if($exRec->state != 'rejected' && $type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
-                    $res['error'] = 'Производственият номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
+            if ($exRec->productId != $productId) {
+                $res['error'] = 'Производственият номер е към друг артикул в същата операция|*: <b>' . cat_Products::getHyperlink($exRec->productId, true) . '</b>';
+            }
+
+            return $res;
+        }
+
+        // Кои са предходните операции на този етап
+        $previousTaskIds = planning_Steps::getPreviousStepTaskIds($taskRec->productId, $taskRec->originId);
+
+        if(countR($previousTaskIds)){
+
+            // От предходните се оставят само тези със същата опаковка за етикетиране
+            $foundRecs = array();
+            $query = static::getQuery();
+            $query->EXT('labelPackagingId', 'planning_Tasks', "externalName=labelPackagingId,externalKey=taskId");
+            if(isset($taskRec->labelPackagingId)){
+                $query->where("#labelPackagingId = {$taskRec->labelPackagingId}");
+            } else {
+                $query->where("#labelPackagingId IS NULL OR #labelPackagingId = {$taskRec->measureId}");
+            }
+
+            // Сумира се реално произведеното по този проз. номер по операция
+            $query->where(array("#serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
+            $query->in('taskId', $previousTaskIds);
+            while($rec = $query->fetch()){
+                if(!array_key_exists($rec->taskId, $foundRecs)){
+                    $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
+                }
+                $sign = ($rec->type == 'scrap') ? -1 : 1;
+                $foundRecs[$rec->taskId]->quantity += $sign * $rec->quantity;
+            }
+
+            // Връща се информацията от операцията с най-малко произведено к-во
+            if(countR($foundRecs)){
+                arr::sortObjects($foundRecs, 'quantity', 'ASC');
+                $firstFound = (array)$foundRecs[key($foundRecs)];
+
+                return $firstFound;
+            }
+        }
+
+        // Ако номера не е наличен в прогрес на ПО
+        $Driver = cat_Products::getDriver($productId);
+        if(!$Driver) return $res;
+
+        // Проверка дали серийния номер е за този артикул
+        $pRec = $Driver->getRecBySerial($serial);
+
+        // Ако не е намерен артикул търси се в етикет от опаковка
+        $serialProductId = is_object($pRec) ? $pRec->id : null;
+        if(empty($serialProductId)){
+            if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
+                $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
+                if($printRec->classId == cat_products_Packagings::getClassId()){
+                    $serialProductId = cls::get($printRec->classId)->fetchField($printRec->objectId, 'productId');
                 }
             }
-        } else {
+        }
 
-            // Проверка дали серийния номер е за този артикул
-            $pRec = $Driver->getRecBySerial($serial);
-
-            $serialProductId = is_object($pRec) ? $pRec->id : null;
-            if(empty($serialProductId)){
-                if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
-                    $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
-                    if($printRec->classId == cat_products_Packagings::getClassId()){
-                        $serialProductId = cls::get($printRec->classId)->fetchField($printRec->objectId, 'productId');
-                    }
-                }
-            }
-
-            if (isset($serialProductId)) {
-                $res['type'] = 'existing';
-                $res['productId'] = $serialProductId;
-            }
+        if (isset($serialProductId)) {
+            $res['type'] = 'existing';
+            $res['productId'] = $serialProductId;
         }
 
         $error = '';
@@ -1242,11 +1282,14 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($Driver = cat_Products::getDriver($productId)) {
                 $params['serial'] = $Driver->canonizeSerial($productId, $params['serial']);
             }
-            $serialInfo = self::fetchSerialInfo($params['serial'], $productId, $taskId);
-            $rec->serial = $params['serial'];
-            $rec->serialType = $serialInfo['type'];
+
+            //@todo
+            //$serialInfo = self::fetchSerialInfo($params['serial'], $rec->taskId, $rec->type);
+
+            //$rec->serial = $params['serial'];
+            //$rec->serialType = $serialInfo['type'];
         }
-        
+
         if($taskRec->labelType == 'scan' || $rec->type == 'input'){
             expect($params['serial'], 'Трябва да е сканиран сериен номер|*!');
         }
