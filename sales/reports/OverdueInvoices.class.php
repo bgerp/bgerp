@@ -192,6 +192,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $cQuery->where("#overdueSales = 'yes'");
 
+        $contragentsArr = array();
+
         while ($contragent = $cQuery->fetch()) {
 
             $contragentKey = $contragent->contragentClassId . '|' . $contragent->contragentId;
