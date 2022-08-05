@@ -45,7 +45,7 @@ class batch_plg_TaskDetails extends core_Plugin
         $jobProductId = $Job->fetchField('productId');
         $BatchClass = batch_Defs::getBatchDef($jobProductId);
 
-        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct != 'yes' || !$BatchClass) return;
+        if($rec->type != 'production' || $taskRec->followBatchesForFinalProduct != 'yes' || !$BatchClass) return;
 
         $form->setField('batch', 'input,unit=|*<small>|на|* ' . cat_Products::getTitleById($jobProductId) . "</small>");
         $batchClassType = $BatchClass->getBatchClassType();
@@ -64,15 +64,17 @@ class batch_plg_TaskDetails extends core_Plugin
         }
 
         // Ако има налични партиди в склада да се показват като предложения
-        $exBatches = batch_Items::getBatchQuantitiesInStore($jobProductId, $taskRec->storeId);
-        if (countR($exBatches)) {
-            $suggestions = array();
-            foreach ($exBatches as $b => $q) {
-                $verbal = strip_tags($BatchClass->toVerbal($b));
-                $suggestions[$verbal] = $verbal;
-            }
+        if(isset($taskRec->storeId)){
+            $exBatches = batch_Items::getBatchQuantitiesInStore($jobProductId, $taskRec->storeId);
+            if (countR($exBatches)) {
+                $suggestions = array();
+                foreach ($exBatches as $b => $q) {
+                    $verbal = strip_tags($BatchClass->toVerbal($b));
+                    $suggestions[$verbal] = $verbal;
+                }
 
-            $form->setSuggestions('batch', $suggestions);
+                $form->setSuggestions('batch', $suggestions);
+            }
         }
 
         $fieldCaption = $BatchClass->getFieldCaption();
@@ -100,7 +102,7 @@ class batch_plg_TaskDetails extends core_Plugin
         $Job = doc_Containers::getDocument($taskRec->originId);
 
         $jobProductId = $Job->fetchField('productId');
-        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct != 'yes') return;
+        if($rec->type != 'production' || $taskRec->followBatchesForFinalProduct != 'yes') return;
 
         if (isset($jobProductId)) {
             $BatchClass = batch_Defs::getBatchDef($jobProductId);

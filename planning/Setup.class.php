@@ -257,6 +257,8 @@ class planning_Setup extends core_ProtoSetup
         'migrate::updateTaskAssets',
         'migrate::reorderTasks2',
         'migrate::migrateOldTasks',
+        'migrate::updateLabelType',
+        'migrate::deletePoints',
     );
     
     
@@ -286,7 +288,7 @@ class planning_Setup extends core_ProtoSetup
      */
     public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
-                          planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,planning_Terminal,
+                          planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning';
     
     
@@ -458,5 +460,34 @@ class planning_Setup extends core_ProtoSetup
 
         $Tasks->saveArray($saveTasks, 'id,isFinal');
         cls::get('planning_ProductionTaskProducts')->saveArray($saveDetails);
+    }
+
+
+    /**
+     * Мигриране на етикетирането
+     */
+    function updateLabelType()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+
+        $labelTypeColName = str::phpToMysqlName('labelType');
+        $query = "UPDATE {$Tasks->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
+        $Tasks->db->query($query);
+
+        $Steps = cls::get('planning_Steps');
+        $Steps->setupMvc();
+
+        $query = "UPDATE {$Steps->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
+        $Steps->db->query($query);
+    }
+
+
+    /**
+     * Изтриване на старите поризводствени точки
+     */
+    function deletePoints()
+    {
+        planning_Points::truncate();
     }
 }
