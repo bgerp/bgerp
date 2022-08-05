@@ -47,7 +47,7 @@ class doc_SharablePlg extends core_Plugin
         if (!$mvc->getField('sharedViews', false)) {
             // Стойността на полето е сериализиран масив с ключ - потребител и стойност - дата
             // на първо виждане от потребителя
-            $mvc->FLD('sharedViews', 'blob', 'caption=Споделяне->Виждания,input=none');
+            $mvc->FLD('sharedViews', 'blob', 'caption=Споделяне->Виждания,input=none,single=none, column=none');
         }
         
         // Дали да са споделени потребителите от оригиналния документ (ако създателят е един и същи)
