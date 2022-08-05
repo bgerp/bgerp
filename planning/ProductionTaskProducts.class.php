@@ -269,13 +269,11 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     public function prepareDetail_($data)
     {
-        if(!Mode::is('taskInTerminal')){
-            $data->TabCaption = 'Планиране';
-            if(static::fetchField("#taskId = {$data->masterId} AND #type = 'waste' AND #plannedQuantity IS NULL")){
-                $data->TabCaption = ht::createHint($data->TabCaption, 'Планираното к-во на отпадъка не може да бъде изчислено|*!', 'warning');
-            }
-            $data->Tab = 'top';
+        $data->TabCaption = 'Планиране';
+        if(static::fetchField("#taskId = {$data->masterId} AND #type = 'waste' AND #plannedQuantity IS NULL")){
+            $data->TabCaption = ht::createHint($data->TabCaption, 'Планираното к-во на отпадъка не може да бъде изчислено|*!', 'warning');
         }
+        $data->Tab = 'top';
         
         parent::prepareDetail_($data);
     }
@@ -529,11 +527,6 @@ class planning_ProductionTaskProducts extends core_Detail
                 }
             }
         }
-        
-        // Ако се показва в терминала, колонката за артикул да е в отделен ред
-        if(Mode::is('taskInTerminal')){
-            $data->listFields['productId'] = '@';
-        }
     }
     
     
@@ -588,13 +581,11 @@ class planning_ProductionTaskProducts extends core_Detail
             unset($data->rows[$jobProductIdRecId]);
         }
 
-        if(!Mode::is('taskInTerminal')){
-            $data->listTableMvc->setField('packagingId', 'smartCenter');
-            $data->listTableMvc->setField('plannedQuantity', 'smartCenter');
-            $data->listTableMvc->setField('totalQuantity', 'smartCenter');
-            $data->listTableMvc->setField('indTime', 'smartCenter');
-            $data->listTableMvc->setField('totalTime', 'smartCenter');
-        }
+        $data->listTableMvc->setField('packagingId', 'smartCenter');
+        $data->listTableMvc->setField('plannedQuantity', 'smartCenter');
+        $data->listTableMvc->setField('totalQuantity', 'smartCenter');
+        $data->listTableMvc->setField('indTime', 'smartCenter');
+        $data->listTableMvc->setField('totalTime', 'smartCenter');
     }
 
 

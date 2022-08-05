@@ -10,6 +10,7 @@
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
+ * @deprecated
  *
  * @since     v 0.1
  */

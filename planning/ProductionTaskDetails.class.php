@@ -337,9 +337,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
 
             if(countR($employees) == 1){
-                if(!Mode::is('terminalProgressForm')){
-                    $form->setDefault('employees', keylist::addKey('', key($employees)));
-                }
+                $form->setDefault('employees', keylist::addKey('', key($employees)));
             }
         }
 
@@ -353,11 +351,6 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         } else {
             $form->setField('weight', 'input=none');
-        }
-
-        if(Mode::is('terminalProgressForm')){
-            $form->layout = $form->renderLayout();
-            jquery_Jquery::run($form->layout, 'prepareKeyboard();');
         }
     }
 
@@ -732,25 +725,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         $lastRecId = null;
 
         if (isset($data->masterMvc)) {
-            $selectedTerminalId = Mode::get('taskProgressInTerminal');
-
-            if(!$selectedTerminalId){
-                unset($data->listFields['notes']);
-                $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
-                $data->listTableMvc->setField('productId', 'tdClass=nowrap');
-                $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
-                $data->listTableMvc->FNC('created', 'varchar', 'smartCenter');
-                $data->listTableMvc->setField('weight', 'smartCenter');
-            } else {
-                $data->listTableMvc->FNC('quantityExtended', 'varchar', 'tdClass=centerCol');
-                if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
-                    $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>\n";
-                } else {
-                    $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
-                }
-
-                $lastRecId = Mode::get("terminalLastRec{$selectedTerminalId}");
-            }
+            unset($data->listFields['notes']);
+            $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
+            $data->listTableMvc->setField('productId', 'tdClass=nowrap');
+            $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
+            $data->listTableMvc->FNC('created', 'varchar', 'smartCenter');
+            $data->listTableMvc->setField('weight', 'smartCenter');
         }
 
         $rows = &$data->rows;
@@ -758,15 +738,6 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $weightWarningPercent = ($data->masterData->rec->weightDeviationWarning) ? $data->masterData->rec->weightDeviationWarning : planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING');
         $masterRec = $data->masterData->rec;
-
-        $selectRowUrl = array();
-        if($terminalId = Mode::get('taskProgressInTerminal')){
-            $terminalRec = planning_Points::fetch($terminalId);
-            $terminalRec->taskId = Mode::get("currentTaskId{$terminalId}");
-            if(planning_Points::haveRightFor('selecttask', $terminalRec)){
-                $selectRowUrl = array('planning_Terminal', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
-            }
-        }
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
@@ -831,28 +802,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $row->type = ht::createHint($row->type, $notes, 'img/16/comment.png');
             }
             
-            if(Mode::is('taskProgressInTerminal')){
-                $row->typeExtended = "<span class='extended-type'>{$row->type}</span><span class='extended-productId'> » {$row->productId}</span><span class='extended-created fright'>{$row->created}</span>";
-                $row->quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";
-                if(!empty($rec->weight)){
-                    $row->quantityExtended .= "<span class='extended-weight'>{$row->weight} " . tr('кг') . "</span>";
-                }
-                $row->additional = null;
-                if(!empty($rec->employees)){
-                    $row->additional = "<div class='extended-employees'>{$row->employees}</div>";
-                }
-                if(!empty($rec->fixedAsset)){
-                    $row->additional .= "<div class='extended-fixedAsset'>{$row->fixedAsset}</div>";
-                }
-                
-                if(!empty($rec->serial) && countR($selectRowUrl)){
-                    $selectRowUrl['recId'] = $rec->id;
-                    $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
-                }
-            } else {
-                if(!empty($rec->serial) && $rec->state != 'rejected'){
-                    $row->serial = self::getLink($rec->taskId, $rec->serial);
-                }
+            if(!empty($rec->serial) && $rec->state != 'rejected'){
+                $row->serial = self::getLink($rec->taskId, $rec->serial);
             }
         }
     }
@@ -925,28 +876,13 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
-     * Рендиране на детайла
-     */
-    public function renderDetail_($data)
-    {
-        if(!Mode::is('taskInTerminal')){
-            
-            return parent::renderDetail_($data);
-        }
-    }
-    
-    
-    /**
      * Подготовка на детайла
      */
     public function prepareDetail_($data)
     {
-        if(!Mode::is('taskInTerminal')){
-            $data->TabCaption = 'Прогрес';
-            $data->Tab = 'top';
-            
-            parent::prepareDetail_($data);
-        }
+        $data->TabCaption = 'Прогрес';
+        $data->Tab = 'top';
+        parent::prepareDetail_($data);
     }
     
     
@@ -956,7 +892,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
-        if(Mode::is('getLinkedObj') || Mode::is('inlineDocument') || Mode::is('taskProgressInTerminal')) {
+        if(Mode::is('getLinkedObj') || Mode::is('inlineDocument')) {
             
             return ;
         }
