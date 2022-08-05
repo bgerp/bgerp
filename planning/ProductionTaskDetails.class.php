@@ -1453,4 +1453,26 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         return $res;
     }
+
+
+    /**
+     * Създаване на шаблона за общия List-изглед
+     */
+    public function renderDetailLayout_($data)
+    {
+        $className = cls::getClassName($this);
+
+        // Шаблон за листовия изглед
+        $listLayout = new ET("
+            <div class='clearfix21 {$className}'>
+            	<div class='listTopContainer clearfix21'>[#ListFilter#]</div>
+                [#ListToolbar#]
+                [#ListPagerTop#]
+                [#ListTable#]
+                [#ListPagerBottom#]
+            </div>
+        ");
+
+        return $listLayout;
+    }
 }
