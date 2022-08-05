@@ -936,7 +936,12 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             );
         }
 
-        $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
+        if(!$rec->countryGroup){
+            $emailLanguage = 'bg';
+        }else{
+            $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
+        }
+
 
         $handle = doc_Containers::getDocument($rec->containerId)->getHandle();
 
