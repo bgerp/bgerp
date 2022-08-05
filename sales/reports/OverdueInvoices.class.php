@@ -896,6 +896,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         'date' => dt::mysql2verbal($rec->lastRefreshed, 'd.m.Y'),
                         'docs' => $inv,
                         'sum' => $dRec->invoiceCurrentSummArr[$dRec->contragent],
+                        'currency' => $dRec->currencyId,
                         'excludе' => $excludе,
                     );
 
@@ -933,6 +934,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 'date' => $val['date'],
                 'docs' => $val['docs'],
                 'sum' => $val['sum'],
+                'currency' => $val['currency'],
             );
         }
 
@@ -948,7 +950,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $listArr = array('title' => 'Справка' . ' ' . $rec->title . ' ' . $handle,
             'ifExist' => 'truncateAndUpdate',
             'keyField' => 'email',
-            'fieldsArr' => array('company' => 'Име', 'country' => 'Държава', 'docs' => 'Документи', 'sum' => 'Стойност', 'date' => 'Дата'),
+            'fieldsArr' => array('company' => 'Име', 'country' => 'Държава', 'docs' => 'Документи', 'sum' => 'Стойност','currency'=>'Валута', 'date' => 'Дата'),
             'state' => 'closed',
             'lg' => $emailLanguage,
             'folderId' => blast_Lists::getDefaultFolder(),
