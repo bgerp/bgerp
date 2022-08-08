@@ -340,7 +340,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
 
-        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
+        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId, null, true);
         if (countR($employees)) {
             $form->setSuggestions('employees', $employees);
             $form->setField('employees', 'input');
