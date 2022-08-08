@@ -521,7 +521,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
         }
         if (isset($dRec->assetResources)) {
-            $row->assetResources = planning_AssetResources::fetch($dRec->assetResources)->name;
+            $assetResources = '['.planning_AssetResources::fetch($dRec->assetResources)->code.']'.planning_AssetResources::fetch($dRec->assetResources)->name;
+            $row->assetResources = ht::createLink($assetResources,array('planning_AssetResources','single',$dRec->assetResources));
         } else {
             $row->assetResources = '';
         }
