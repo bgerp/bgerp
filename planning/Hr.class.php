@@ -596,11 +596,13 @@ class planning_Hr extends core_Master
         if(empty($string)) return null;
         $string = trim($string, ',');
 
+        // Нормализиране на кодовете
         $parsedCodes = $persons = $errorArr = array();
         $exploded = explode(',', $string);
         array_walk($exploded, function($a) use (&$parsedCodes){$v = trim($a);$v = strtoupper($v);$parsedCodes[$v] = $v;});
         if(empty($parsedCodes)) return null;
 
+        // Ако по този код има оператор - извлича се, ако няма ще се добави като грешка
         foreach ($parsedCodes as $code){
             $personId = planning_Hr::fetchField(array("#code = '[#1#]'", $code), 'personId');
             if($personId){
@@ -612,7 +614,7 @@ class planning_Hr extends core_Master
 
         $res = (object)array('keylist' => keylist::fromArray($persons));
         if(countR($errorArr)){
-            $res->error = "Следните кодове нямат оператори|*:" . implode(',', $errorArr);
+            $res->error = "Следните кодове нямат оператори|*:" . implode(', ', $errorArr);
         }
 
         return $res;
