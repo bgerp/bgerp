@@ -567,11 +567,6 @@ class planning_Tasks extends core_Master
                 unset($row->isFinal);
             }
 
-            if (!empty($rec->employees)) {
-                $row->employees = planning_Hr::getPersonsCodesArr($rec->employees, true);
-                $row->employees = implode(', ', $row->employees);
-            }
-
             $row->originId = $origin->getHyperlink(true);
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
@@ -1255,7 +1250,7 @@ class planning_Tasks extends core_Master
 
             $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees, true);
             if(countR($employeeOptions)){
-                $form->setSuggestions('employees', $employeeOptions);
+                $form->setSuggestions('employees',  array('' => '') + $employeeOptions);
             } else {
                 $form->setField('employees', 'input=none');
             }

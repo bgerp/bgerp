@@ -541,14 +541,15 @@ class planning_Hr extends core_Master
     /**
      * Обръща масив от потребители в имена с техните кодове
      *
-     * @param mixed $arr       - масив или кейлист
-     * @param bool  $withLinks
+     * @param mixed $arr         - масив или кейлист
+     * @param bool  $withLinks   - дали да са линкове
+     * @param bool  $codesAsKeys - дали ключа да е кода или ид-то
      *
      * @return array $arr
      */
-    public static function getPersonsCodesArr($arr, $withLinks = false)
+    public static function getPersonsCodesArr($arr, $withLinks = false, $codesAsKeys = false)
     {
-        $res = $codes = array();
+        $res = $tempKeys = $codes = array();
         $arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, true);
         if (empty($arr)) return $res;
 
@@ -557,14 +558,16 @@ class planning_Hr extends core_Master
             $rec = planning_Hr::fetch("#personId = {$id}");
             if (empty($rec)) continue;
 
-            $res[$id] = crm_Persons::getVerbal($id, 'name');
+            $tempKeys[$id] = crm_Persons::getVerbal($id, 'name');
             $code = ($withLinks === true) ? self::getCodeLink($id) : $rec->code;
             $codes[$id] = $code;
         }
 
-        asort($res);
-        foreach ($res as $k => $v) {
-            $res[$k] = "{$codes[$k]} - {$v}";
+        asort($tempKeys);
+
+        foreach ($tempKeys as $k => $v) {
+            $key = ($codesAsKeys) ? $codes[$k] : $k;
+            $res[$key] = "{$codes[$k]} - {$v}";
         }
 
         return $res;

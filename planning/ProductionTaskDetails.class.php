@@ -340,9 +340,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
 
-        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId, null, true);
+        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees, false, true) : planning_Hr::getByFolderId($masterRec->folderId, null, true);
         if (countR($employees)) {
-            $form->setSuggestions('employees', $employees);
+            $form->setSuggestions('employees', array('' => '') + $employees);
             $form->setField('employees', 'input');
             $mandatoryOperatorsInTasks = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'mandatoryOperatorsInTasks');
             $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR') : $mandatoryOperatorsInTasks;

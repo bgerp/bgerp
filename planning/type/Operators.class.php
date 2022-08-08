@@ -92,7 +92,7 @@ class planning_type_Operators extends type_Keylist
     {
         $res = null;
         if(!empty($value)){
-            $res = planning_Hr::getPersonsCodesArr($value, false);
+            $res = planning_Hr::getPersonsCodesArr($value);
             $res = implode(', ', $res);
         }
 
