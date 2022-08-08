@@ -2590,9 +2590,13 @@ class planning_Tasks extends core_Master
      */
     public static function getSaoItems($rec)
     {
+        if(empty($rec->originId)){
+            wp($rec, core_Users::getCurrent());
+        }
+
         $res = array();
         $query = self::getQuery();
-        $query->where("#originId = {$rec->originId} AND #state != 'rejected'");
+        $query->where("#originId = '{$rec->originId}' AND #state != 'rejected'");
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;
         }
