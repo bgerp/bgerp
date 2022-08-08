@@ -190,7 +190,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
 
             foreach ($counter as $val) {
+
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
+
                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity,originId');
 
                 $quantity = $tRec->quantity;
@@ -244,6 +246,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'taskId' => $tRec->taskId,
                         'originId' => $tRec->originId,
                         'detailId' => $tRec->id,
+                        'type' => $tRec->type,
                         'indTime' => $normTime,
                         'indTimeSum' => $indTimeSum,
                         'indPackagingId' => $iRec->indPackagingId,
@@ -349,6 +352,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             'taskId' => $clone->taskId,
                             'originId' => $clone->originId,
                             'detailId' => $clone->detailId,
+                            'type' => $clone->type,
                             'indTime' => $clone->indTime,
                             'indPackagingId' => $clone->indPackagingId,
                             'indTimeAllocation' => $clone->indTimeAllocation,
@@ -494,10 +498,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
 
-        $row->labelMeasure = isset($dRec->labelMeasure) ? cat_UoM::getShortName($dRec->labelMeasure) : '';
+      if ($dRec->type != 'input'){
 
+          $row->labelMeasure = isset($dRec->labelMeasure) ? cat_UoM::getShortName($dRec->labelMeasure) : '';
+          $row->labelQuantity = $Double->toVerbal($dRec->labelQuantity);
+      }else{
+          $row->labelMeasure = 'бр.';
+          $row->labelQuantity = 1;
+      }
 
-        $row->labelQuantity = $Double->toVerbal($dRec->labelQuantity);
 
         $row->scrap = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->scrap);
         $row->weight = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->weight);
