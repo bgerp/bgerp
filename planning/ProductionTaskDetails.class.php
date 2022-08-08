@@ -398,7 +398,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $rec->serial = $Driver->canonizeSerial($checkProductId, $rec->serial);
                         }
 
-                        if($rec->type == 'production'){
+                        if(in_array($rec->type, array('production', 'scrap'))){
                             // Проверка на сериния номер
                             $serialInfo = self::getProductionSerialInfo($rec->serial, $rec->productId, $rec->taskId);
                             $rec->serialType = $serialInfo['type'];
