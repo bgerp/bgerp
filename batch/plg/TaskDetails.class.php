@@ -61,7 +61,7 @@ class batch_plg_TaskDetails extends core_Plugin
         $allowedOptions = $mvc->getAllowedInBatches($rec);
         if(is_array($allowedOptions)){
             $form->setOptions('batch', array('' => '') + $allowedOptions);
-            if(countR($allowedOptions) == 1 && $taskRec->followBatchesForFinalProduct == 'yes'){
+            if(countR($allowedOptions) == 1){
                 $form->setDefault('batch', key($allowedOptions));
             }
         }
