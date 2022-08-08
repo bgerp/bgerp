@@ -36,7 +36,10 @@ class planning_type_Operators extends type_Keylist
     public function fromVerbal_($value)
     {
         if(!empty($value)){
-
+            if(is_array($value)){
+                wp($this, $value);
+                $value = implode(',', $value);
+            }
             // Опит за парсиране на на стойноста към кейлист
             $parsedValueObj = planning_Hr::parseStringToKeylist($value);
             if(!empty($parsedValueObj->error)){
