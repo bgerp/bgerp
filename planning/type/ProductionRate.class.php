@@ -167,8 +167,14 @@ class planning_type_ProductionRate extends type_Varchar
             }
         }
 
+        if(!strlen($leftVal)){
+            $leftVal = null;
+        }
+
         if(strpos($rightVal, 'min') !== false){
-            $leftVal /= 60;
+            if(isset($leftVal)){
+                $leftVal /= 60;
+            }
         }
 
         return array('left' => $leftVal, 'right' => $rightVal);
