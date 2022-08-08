@@ -240,10 +240,6 @@ class planning_Setup extends core_ProtoSetup
         'planning_Points',
         'planning_GenericMapper',
         'planning_StepConditions',
-        'migrate::updatePlanningStages1',
-        'migrate::updateTaskAssets',
-        'migrate::reorderTasks2',
-        'migrate::migrateOldTasks',
         'migrate::updateLabelType',
         'migrate::deletePoints',
     );
@@ -328,125 +324,6 @@ class planning_Setup extends core_ProtoSetup
                 core_Cron::addOnce($rec);
             }
         }
-    }
-
-
-    /**
-     * Миграция на производствените етапи
-     */
-    public function updatePlanningStages1()
-    {
-        $Steps = cls::get('planning_Steps');
-        $Steps->setupMvc();
-
-        $update = array();
-        $query = $Steps->getQuery();
-        $query->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty,makeLinks)');
-        $query->where("#centerId IS NULL AND #folders IS NOT NULL");
-
-        while($rec = $query->fetch()){
-            $oldFolders = keylist::toArray($rec->folders);
-            if(countR($oldFolders)){
-                $firstFolderId = key($oldFolders);
-                $Cover = doc_Folders::getCover($firstFolderId);
-                if($Cover->isInstanceOf('planning_Centers')){
-                    $rec->centerId =  $Cover->that;
-                    $update[$rec->id] = $rec;
-                }
-            }
-        }
-
-        if(countR($update)){
-            $Steps->saveArray($update, 'id,centerId');
-        }
-    }
-
-
-    /**
-     * Обновяване на полета за оборудване
-     */
-    public function updateTaskAssets()
-    {
-        $arr = array();
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-        $query = $Tasks->getQuery();
-        $query->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Производство->Оборудване');
-        $query->where("#fixedAssets IS NOT NULL");
-        $query->show('id,fixedAssets');
-        while($rec = $query->fetch()){
-            $assetId = key(keylist::toArray($rec->fixedAssets));
-            $rec->assetId = $assetId;
-            $arr[] = $rec;
-        }
-
-        if(countR($arr)){
-            $Tasks->saveArray($arr, 'id,assetId');
-        }
-    }
-
-
-    /**
-     * Преподредба на операциите към оборудванията
-     */
-    public function reorderTasks2()
-    {
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-
-        // Кои оборудвания са към операции
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
-        $tQuery->where('#assetId IS NOT NULl');
-        $tQuery->show('assetId');
-
-        // Ако има такива
-        $assets = arr::extractValuesFromArray($tQuery->fetchAll(), 'assetId');
-        if(!countR($assets)) return;
-
-        // Нулиране на подредбата на всички ПО
-        $lastUpdatedColName = str::phpToMysqlName('orderByAssetId');
-        $query = "UPDATE {$Tasks->dbTableName} SET {$lastUpdatedColName} = NULL";
-        $Tasks->db->query($query);
-
-        // За всяко оборудване с операция - преизчислява се подредбата
-        foreach ($assets as $assetId){
-            planning_AssetResources::reOrderTasks($assetId);
-        }
-    }
-
-
-    /**
-     * Миграция на стари операции
-     */
-    public function migrateOldTasks()
-    {
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-
-        if(!planning_Tasks::count()) return;
-
-        core_App::setTimeLimit(400);
-        $query = planning_Tasks::getQuery();
-        $query->EXT('driverClass', 'cat_Products', 'externalName=innerClass,externalKey=productId');
-        $query->where("#isFinal IS NULL");
-        $query->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
-        $query->in('state', array('active', 'wakeup', 'stopped', 'pending', 'waiting'));
-        $query->show('productId,jobProductId,driverClass');
-
-        $saveTasks = array();
-        $saveDetails = array();
-        while($rec = $query->fetch()){
-            if($rec->jobProductId == $rec->productId){
-                $rec->isFinal = 'yes';
-                $saveTasks[$rec->id] = $rec;
-                $dRec = (object)array('taskId' => $rec->id, 'productId' => $rec->jobProductId, 'type' => 'production');
-                $saveDetails[$rec->id] = $dRec;
-            }
-        }
-
-        $Tasks->saveArray($saveTasks, 'id,isFinal');
-        cls::get('planning_ProductionTaskProducts')->saveArray($saveDetails);
     }
 
 
