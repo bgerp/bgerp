@@ -1055,7 +1055,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $saleValue = $dRec->saleValue;
 
         $res->contragentId = self::getContragent($dRec, false, $rec);
 
