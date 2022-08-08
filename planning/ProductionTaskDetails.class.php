@@ -351,7 +351,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
 
             if(countR($employees) == 1){
-                $form->setDefault('employees', keylist::addKey('', key($employees)));
+                $form->setDefault('employees', keylist::addKey('', planning_Hr::getPersonIdByCode(key($employees))));
             }
         }
 

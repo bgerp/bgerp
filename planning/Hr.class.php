@@ -148,11 +148,6 @@ class planning_Hr extends core_Master
         
         $allowedCenterSuggestions = doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf');
         $form->setSuggestions('centers', $allowedCenterSuggestions);
-
-        //$form->setSuggestions('code', array('aa' => 'A - gotin', 'bb' => 'B - gotin', 'ccc' => 'C - super'));
-        //$data->form->addAttr('code', array('data-role' => 'list'));
-
-
         if(isset($rec->id)){
             
             // Показват се всички центрове за избрани където е включен
@@ -607,7 +602,7 @@ class planning_Hr extends core_Master
 
         // Ако по този код има оператор - извлича се, ако няма ще се добави като грешка
         foreach ($parsedCodes as $code){
-            $personId = planning_Hr::fetchField(array("#code = '[#1#]'", $code), 'personId');
+            $personId = static::getPersonIdByCode($code);
             if($personId){
                 $persons[$personId] = $personId;
             } else {
@@ -642,5 +637,20 @@ class planning_Hr extends core_Master
         if(!countR($codes)) return null;
 
         return implode(',', $codes);
+    }
+
+
+    /**
+     * Връща ид-то на лицето с подадения код
+     *
+     * @param varchar $code - код
+     * @return int|null     - ид на намереното лице (ключ към crm_Persons)
+     */
+    public static function getPersonIdByCode($code)
+    {
+        $normalizedCode = strtoupper(trim($code));
+        $personId = planning_Hr::fetchField(array("#code='[#1#]'", $normalizedCode), 'personId');
+
+        return (!empty($personId)) ? $personId : null;
     }
 }
