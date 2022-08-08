@@ -720,14 +720,11 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             }
         } else {
             if ($dRec->contragentId) {
-                // try {
+
                 $contragentClassName = $dRec->contragentClassName;
 
                 $contragent = $contragentClassName::getTitleById($dRec->contragentId);
 
-//                } catch (Exception $e) {
-//                    reportException($e);
-//                }
             }
         }
 
