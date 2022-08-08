@@ -148,7 +148,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,silent');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=20)', 'caption=Оператори,input=hidden');
+        $this->FLD('employees', 'planning_type_Operators', 'caption=Оператори,input=hidden');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap,smartCenter');
         $this->FLD('date', 'datetime', 'caption=Дата,remember');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');

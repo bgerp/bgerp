@@ -148,7 +148,11 @@ class planning_Hr extends core_Master
         
         $allowedCenterSuggestions = doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf');
         $form->setSuggestions('centers', $allowedCenterSuggestions);
-        
+
+        //$form->setSuggestions('code', array('aa' => 'A - gotin', 'bb' => 'B - gotin', 'ccc' => 'C - super'));
+        //$data->form->addAttr('code', array('data-role' => 'list'));
+
+
         if(isset($rec->id)){
             
             // Показват се всички центрове за избрани където е включен
@@ -365,14 +369,14 @@ class planning_Hr extends core_Master
     /**
      * Връща всички оператори, избрани като ресурси в папката
      *
-     * @param int|null $folderId - ид на папка, NULL за всички
-     * @param mixed $exIds       - ид-та които да се добавят към опциите
-     *
-     * @return array $options    - опции за избор
+     * @param int|null $folderId   - ид на папка, NULL за всички
+     * @param mixed $exIds         - ид-та които да се добавят към опциите
+     * @param boolean $codesAsKeys - дали ключа да са кодовете или ид-то на лицето
+     * @return array $options      - опции за избор
      */
-    public static function getByFolderId($folderId = null, $exIds = null)
+    public static function getByFolderId($folderId = null, $exIds = null, $codesAsKeys = false)
     {
-        $options = $codes = array();
+        $options = $tempOptions = $codes = array();
         $noOptions = false;
 
         // Ако папката не поддържа ресурси оператори да не се връща нищо
@@ -409,7 +413,7 @@ class planning_Hr extends core_Master
 
             while ($rec = $query->fetch()) {
                 $codes[$rec->personId] = $rec->code;
-                $options[$rec->personId] = crm_Persons::getVerbal($rec->personId, 'name');
+                $tempOptions[$rec->personId] = crm_Persons::getVerbal($rec->personId, 'name');
             }
         }
 
@@ -417,17 +421,18 @@ class planning_Hr extends core_Master
         if(isset($exIds)) {
             $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
             foreach ($exOptions as $eId) {
-                if (!array_key_exists($eId, $options)) {
+                if (!array_key_exists($eId, $tempOptions)) {
                     $exCode = static::fetchField("#personId = {$eId}", 'code');
                     $codes[$eId] = $exCode;
-                    $options[$eId] = crm_Persons::getVerbal($eId, 'name');
+                    $tempOptions[$eId] = crm_Persons::getVerbal($eId, 'name');
                 }
             }
         }
 
-        asort($options);
-        foreach ($options as $personId => $val){
-            $options[$personId] = "{$codes[$personId]} - {$val}";
+        asort($tempOptions);
+        foreach ($tempOptions as $personId => $val){
+            $key = $codesAsKeys ? $codes[$personId] : $personId;
+            $options[$key] = "{$codes[$personId]} - {$val}";
         }
 
         return $options;
@@ -575,5 +580,62 @@ class planning_Hr extends core_Master
         $name = crm_Persons::getVerbal($rec->personId, 'name');
         
         return "{$name} ({$code})";
+    }
+
+
+    /**
+     * Парсира стринг към кейлист с лица
+     *
+     * @param string $string - стринг
+     * @return object|null   - обект с парсиран стринга и грешките, ако има
+     * @throws core_exception_Expect
+     */
+    public static function parseStringToKeylist($string)
+    {
+        $string = trim($string);
+        if(empty($string)) return null;
+        $string = trim($string, ',');
+
+        $parsedCodes = $persons = $errorArr = array();
+        $exploded = explode(',', $string);
+        array_walk($exploded, function($a) use (&$parsedCodes){$v = trim($a);$v = strtoupper($v);$parsedCodes[$v] = $v;});
+        if(empty($parsedCodes)) return null;
+
+        foreach ($parsedCodes as $code){
+            $personId = planning_Hr::fetchField(array("#code = '[#1#]'", $code), 'personId');
+            if($personId){
+                $persons[$personId] = $personId;
+            } else {
+                $errorArr[] = "<b>{$code}</b>";
+            }
+        }
+
+        $res = (object)array('keylist' => keylist::fromArray($persons));
+        if(countR($errorArr)){
+            $res->error = "Следните кодове нямат оператори|*:" . implode(',', $errorArr);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Обръща кейлист в стринг, готов за парсиране от 'parseStringToKeylist($string)'
+     *
+     * @param string $keylist - кейлист с лица
+     * @return string|null    - парсиран стринг
+     */
+    public static function keylistToParsableString($keylist)
+    {
+        $personIds = keylist::toArray($keylist);
+        if(!countR($personIds)) return null;
+
+        $query = static::getQuery();
+        $query->in('personId', $keylist);
+        $query->show('code');
+        $codes = arr::extractValuesFromArray($query->fetchAll(), 'code');
+        if(!countR($codes)) return null;
+
+        return implode(',', $codes);
     }
 }
