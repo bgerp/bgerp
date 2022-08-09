@@ -190,7 +190,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
 
             foreach ($counter as $val) {
+
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
+
                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity,originId');
 
                 $quantity = $tRec->quantity;
@@ -244,6 +246,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'taskId' => $tRec->taskId,
                         'originId' => $tRec->originId,
                         'detailId' => $tRec->id,
+                        'type' => $tRec->type,
                         'indTime' => $normTime,
                         'indTimeSum' => $indTimeSum,
                         'indPackagingId' => $iRec->indPackagingId,
@@ -332,9 +335,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         $id = $val->taskId . '|' . $val->productId . '|' . '|' . $v . '|' . '|' . $val->assetResources;
                     }
 
+                    $labelQuantity = $clone->labelQuantity;
                     if ($divisor) {
                         $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
                         $indTimeSum = $timeAlocation * $clone->indTime;
+                        if ($clone->type == 'input'){
+                            $labelQuantity = 1;
+                        }
                     } else {
                         $indTimeSum = 0;
                     }
@@ -349,6 +356,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             'taskId' => $clone->taskId,
                             'originId' => $clone->originId,
                             'detailId' => $clone->detailId,
+                            'type' => $clone->type,
                             'indTime' => $clone->indTime,
                             'indPackagingId' => $clone->indPackagingId,
                             'indTimeAllocation' => $clone->indTimeAllocation,
@@ -366,7 +374,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             'scrap' => $clone->scrap / $divisor,
 
                             'labelMeasure' => $clone->labelMeasure,
-                            'labelQuantity' => $clone->labelQuantity / $divisor,
+                            'labelQuantity' => $labelQuantity / $divisor,
 
                             'weight' => $clone->weight / $divisor,
 
@@ -376,7 +384,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                         $obj->quantity += $clone->quantity / $divisor;
                         $obj->scrap += $clone->scrap / $divisor;
-                        $obj->labelQuantity += $clone->labelQuantity / $divisor;
+                        $obj->labelQuantity += $labelQuantity / $divisor;
                         $obj->weight += $clone->weight / $divisor;
                         $obj->indTimeSum += $indTimeSum;
                     }
@@ -494,9 +502,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
 
-        $row->labelMeasure = isset($dRec->labelMeasure) ? cat_UoM::getShortName($dRec->labelMeasure) : '';
-
-
+        $row->labelMeasure = ($dRec->type == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure) ;
         $row->labelQuantity = $Double->toVerbal($dRec->labelQuantity);
 
         $row->scrap = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->scrap);
@@ -521,7 +527,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
         }
         if (isset($dRec->assetResources)) {
-            $row->assetResources = planning_AssetResources::fetch($dRec->assetResources)->name;
+            $assetResources = '['.planning_AssetResources::fetch($dRec->assetResources)->code.']'.planning_AssetResources::fetch($dRec->assetResources)->name;
+            $row->assetResources = ht::createLink($assetResources,array('planning_AssetResources','single',$dRec->assetResources));
         } else {
             $row->assetResources = '';
         }
