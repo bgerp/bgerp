@@ -38,6 +38,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
 
     /**
+     * Максимален допустим брой записи на страница
+     *
+     * @var int
+     */
+    protected $maxListItemsPerPage = 200;
+
+
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'start,to,resultsOn,centre,assetResources,employees';
@@ -726,17 +734,5 @@ class planning_reports_Workflows extends frame2_driver_TableData
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         $row->centre = planning_Centers::getHyperlink($rec->centre, true);
-    }
-
-    /**
-     * След полетата за добавяне
-     *
-     * @param frame2_driver_Proto $Driver   - драйвер
-     * @param embed_Manager       $Embedder - ембедър
-     * @param core_Fieldset       $fieldset - форма
-     */
-    protected static function on_AfterAddFields(frame2_driver_Proto $Driver, embed_Manager $Embedder, core_Fieldset &$fieldset)
-    {
-          $fieldset->FLD('listItemsPerPage', 'int', "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={bp}");
     }
 }
