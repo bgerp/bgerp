@@ -40,7 +40,9 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $clone = clone $rec;
         $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
         $clone->folderId = (isset($clone->folderId)) ? $clone->folderId : $mvc->fetchField($clone->id, 'folderId');
-        
+        $clone->activatedOn = (isset($clone->activatedOn)) ? $clone->activatedOn : $mvc->fetchField($clone->id, 'activatedOn');
+        $clone->activatedOn = dt::addSecs(1, $clone->activatedOn);
+
         $save = $mvc->getDeltaRecs($clone);
         if(is_array($save)){
             foreach ($save as &$dRec) {
