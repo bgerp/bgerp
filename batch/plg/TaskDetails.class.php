@@ -76,7 +76,7 @@ class batch_plg_TaskDetails extends core_Plugin
                     $suggestions[$verbal] = $verbal;
                 }
 
-                $form->setSuggestions('batch', $suggestions);
+                $form->setSuggestions('batch', array('' => '') + $suggestions);
             }
         }
 
