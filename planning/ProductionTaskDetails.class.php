@@ -446,7 +446,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (!$form->gotErrors()) {
                 if(isset($serialInfo)){
                     if(empty($rec->quantity) && !empty($serialInfo['quantity'])){
-                        $rec->quantity = $serialInfo['quantity'];
+                        $rec->quantity = min($serialInfo['quantity'], $rec->_defaultQuantity);
                     }
 
                     if(empty($rec->batch)){
@@ -579,38 +579,24 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId');
         $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
-        $exRec = static::fetch(array("#taskId = {$taskRec->id} AND #serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
-
-        // Ако произ. номер е съществуващ в текущата ПО - взима се информацията от първото му използване
-        if(is_object($exRec)){
-            $res['batch'] = $exRec->batch;
-            $res['type'] = 'existing';
-
-            if ($exRec->productId != $productId) {
-                $res['error'] = 'Производственият номер е към друг артикул в същата операция|*: <b>' . cat_Products::getHyperlink($exRec->productId, true) . '</b>';
-            }
-
-            return $res;
-        }
 
         // Кои са предходните операции на този етап
+        $foundFromOtherTask = null;
         $previousTaskIds = planning_Steps::getPreviousStepTaskIds($taskRec->productId, $taskRec->originId);
-
         if(countR($previousTaskIds)){
 
             // От предходните се оставят само тези със същата опаковка за етикетиране
             $foundRecs = array();
             $query = static::getQuery();
+            $query->EXT('measureId', 'planning_Tasks', "externalName=measureId,externalKey=taskId");
             $query->EXT('labelPackagingId', 'planning_Tasks', "externalName=labelPackagingId,externalKey=taskId");
-            if(isset($taskRec->labelPackagingId)){
-                $query->where("#labelPackagingId = {$taskRec->labelPackagingId}");
-            } else {
-                $query->where("#labelPackagingId IS NULL OR #labelPackagingId = {$taskRec->measureId}");
-            }
+            $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
+            $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
 
             // Сумира се реално произведеното по този проз. номер по операция
             $query->where(array("#serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
             $query->in('taskId', $previousTaskIds);
+
             while($rec = $query->fetch()){
                 if(!array_key_exists($rec->taskId, $foundRecs)){
                     $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
@@ -623,10 +609,39 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(countR($foundRecs)){
                 arr::sortObjects($foundRecs, 'quantity', 'ASC');
                 $firstFound = (array)$foundRecs[key($foundRecs)];
-
-                return $firstFound;
+                $foundFromOtherTask = $firstFound;
             }
         }
+
+        // Изчисляване сумарно по този произ. номер в текущата операция
+        $cQuery = static::getQuery();
+        $cQuery->where(array("#taskId = {$taskRec->id} AND #serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
+        while($cRec = $cQuery->fetch()){
+            $sign = ($cRec->type == 'scrap') ? -1 : 1;
+            $res['totalQuantity'] += $sign * $cRec->quantity;
+            $res['batch'] = $cRec->batch;
+            $res['type'] = 'existing';
+        }
+
+        // Ако номера е от предходна ПО
+        if(isset($foundFromOtherTask)){
+            if(!empty($res['totalQuantity'])){
+
+                // то ще се предложи за к-во остатъка от намереното к-во от там и прозиведеното досега
+                $left = $foundFromOtherTask['quantity'] - $res['totalQuantity'];
+                if($left > 0){
+                    $foundFromOtherTask['quantity'] = $left;
+                } else {
+                    unset($foundFromOtherTask['quantity']);
+                }
+            }
+            $res = $foundFromOtherTask;
+
+            return $res;
+        }
+
+        // Ако номера е от текущата ПО и не се среща в друга приемаме го такъв какъвто е
+        if(!empty($res['totalQuantity'])) return $res;
 
         // Ако номера не е наличен в прогрес на ПО
         $Driver = cat_Products::getDriver($productId);
