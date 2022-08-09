@@ -456,7 +456,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
                 }
 
-                if($masterRec->followBatchesForFinalProduct == 'yes' && empty($rec->batch)){
+                if($masterRec->followBatchesForFinalProduct == 'yes' && empty($rec->batch) && $rec->type == 'production'){
                     $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
                 }
 
