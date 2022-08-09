@@ -820,9 +820,11 @@ class planning_Tasks extends core_Master
                 <!--ET_BEGIN simultaneity--><tr><td style='font-weight:normal'>|Едновременност|*:</td><td>[#simultaneity#]</td></tr><!--ET_END simultaneity-->
                 </table>"));
 
-        $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
-        if($batchTpl instanceof core_ET){
-            $resArr['batches'] = array('name' => tr('Партиди'), 'val' => $batchTpl->getContent());
+        if(core_Packs::isInstalled('batch')){
+            $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
+            if($batchTpl instanceof core_ET){
+                $resArr['batches'] = array('name' => tr('Партиди'), 'val' => $batchTpl->getContent());
+            }
         }
 
         if(empty($rec->weightDeviationWarning)){
@@ -845,7 +847,6 @@ class planning_Tasks extends core_Master
             foreach ((array) $headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
-
                 $res->append('<tr>');
                 $res->append($name);
                 $res->append('</tr><tr>');

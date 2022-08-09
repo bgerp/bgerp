@@ -466,23 +466,21 @@ class planning_Hr extends core_Master
      * Връща кода като линк
      *
      * @param int $personId - ид на служителя
-     *
      * @return core_ET $link - линк към визитката
      */
     public static function getCodeLink($personId)
     {
-        $code = planning_Hr::fetchField("#personId = {$personId}", 'code');
-        $name = crm_Persons::getVerbal($personId, 'name');
-        
         $singleUrl = array();
+        $code = planning_Hr::fetchField("#personId = {$personId}", 'code');
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
             $singleUrl = crm_Persons::getSingleUrlArray($personId);
             if (countR($singleUrl)) {
                 $singleUrl['Tab'] = 'PersonsDetails';
             }
         }
-        
-        $link = ht::createLink($code, $singleUrl, false, "title=Към визитката на|* '{$name}'");
+
+        $name = crm_Persons::getVerbal($personId, 'name');
+        $link = ht::createLink($code, $singleUrl, false, "title={$name}");
         
         return $link;
     }
