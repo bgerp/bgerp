@@ -61,7 +61,7 @@ class plg_StructureAndOrder extends core_Plugin
         
         $form->setDefault('saoRelative', $id);
         
-        $options = self::getOptiopns($mvc, $rec);
+        $options = self::getOptions($mvc, $rec);
         
         if (countR($options)) {
             $form->setField('saoPosition', 'input');
@@ -109,7 +109,7 @@ class plg_StructureAndOrder extends core_Plugin
     /**
      * Подготвя опциите за saoPosition
      */
-    private static function getOptiopns($mvc, $rec)
+    private static function getOptions($mvc, $rec)
     {
         $res = array();
         $removeIds = array();

@@ -194,6 +194,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
+        'migrate::updateLabelType',
     );
     
     
@@ -382,5 +383,19 @@ class cat_Setup extends core_ProtoSetup
         }
 
         return $res;
+    }
+
+
+    /**
+     * Мигриране на етикетирането
+     */
+    function updateLabelType()
+    {
+        $Boms = cls::get('cat_BomDetails');
+        $Boms->setupMvc();
+
+        $labelTypeColName = str::phpToMysqlName('labelType');
+        $query = "UPDATE {$Boms->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
+        $Boms->db->query($query);
     }
 }

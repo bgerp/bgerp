@@ -106,8 +106,6 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
         'store_StockPlanning',
-        'migrate::reconto3231v1',
-        'migrate::updateProductsLastUsedOn'
     );
     
     
@@ -242,83 +240,6 @@ class store_Setup extends core_ProtoSetup
         } catch (core_exception_Expect $e) {
             reportException($e);
         }
-    }
-
-
-    /**
-     * Реконтира документите засягащи сметка 323
-     */
-    public function reconto3231v1()
-    {
-        $Consignemts = cls::get('store_ConsignmentProtocols');
-        $Consignemts->setupMvc();
-
-        // Коя е първата дата след последния затворен период
-        $lastClosed = acc_Periods::getLastClosed();
-        $nextDay = is_object($lastClosed) ? $lastClosed->end : '0000-00-00';
-
-        // Взимат се активните протоколи за отговорно пазене
-        $documents = array();
-        $query = $Consignemts::getQuery();
-        $query->where("#state = 'active' AND #valior > '{$nextDay}'");
-        $query->show('id');
-        while($rec = $query->fetch()){
-            $documents[] = (object)array('docType' => $Consignemts->getClassId(), 'docId' => $rec->id);
-        }
-
-        // Взимат се и документите с амбалаж
-        $packQuery = store_DocumentPackagingDetail::getQuery();
-        while($packRec = $packQuery->fetch()){
-            $Document = cls::get($packRec->documentClassId);
-            $docRec = $Document->fetch($packRec->documentId, "state,{$Document->valiorFld}");
-            if($docRec->state == 'active' && $docRec->{$Document->valiorFld} > $nextDay){
-                $documents[] = (object)array('docType' => $Document->getClassId(), 'docId' => $packRec->documentId);
-            }
-        }
-
-        // Ако няма такива не се прави нищо
-        $count = countR($documents);
-        if(!$count)  return;
-
-        $accSetup = cls::get('acc_Setup');
-        $accSetup->loadSetupData();
-
-        core_App::setTimeLimit($count * 0.6, false, 250);
-
-        // Всеки документ от тях се реконтира
-        foreach ($documents as $doc){
-
-            // Изтриваме му транзакцията
-            acc_Journal::deleteTransaction($doc->docType, $doc->docId);
-
-            // Записване на новата транзакция на документа
-            try{
-                $startReconto = true;
-                Mode::push('recontoTransaction', true);
-                $success = acc_Journal::saveTransaction($doc->docType, $doc->docId, false);
-                Mode::pop('recontoTransaction');
-                $startReconto = false;
-            } catch(core_exception_Expect  $e){
-                reportException($e);
-                if($startReconto){
-                    Mode::pop('recontoTransaction');
-                }
-            }
-        }
-    }
-
-
-    /**
-     * Първоначално обновяване на датата на последна промяна
-     */
-    function updateProductsLastUsedOn()
-    {
-        $Products = cls::get('store_Products');
-        $Products->setupMvc();
-
-        $lastUpdatedColName = str::phpToMysqlName('lastUpdated');
-        $query = "UPDATE {$Products->dbTableName} SET {$lastUpdatedColName} = NOW() WHERE {$lastUpdatedColName} IS NULL";
-        $Products->db->query($query);
     }
 
 

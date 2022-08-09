@@ -290,7 +290,7 @@ class planning_Tasks extends core_Master
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|freeTimeAfter|simultaneity');
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,silent');
+        $this->FLD('employees', 'planning_type_Operators(mvc=crm_Persons)', 'caption=Оператори,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
@@ -334,8 +334,8 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
     }
-    
-    
+
+
     /**
      * След подготовка на сингъла
      */
@@ -359,8 +359,8 @@ class planning_Tasks extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
@@ -368,8 +368,8 @@ class planning_Tasks extends core_Master
     {
         $tpl->prepend(getTplFromFile('planning/tpl/TaskStatistic.shtml'), 'ABOVE_LETTER_HEAD');
     }
-    
-    
+
+
     /**
      * След рендиране на единичния изглед
      *
@@ -413,14 +413,14 @@ class planning_Tasks extends core_Master
         $row = parent::recToVerbal_($rec, $fields);
         $mvc = cls::get(get_called_class());
         $row->title = self::getHyperlink($rec->id, isset($fields['-list']));
-        
+
         $red = new color_Object('#FF0000');
         $blue = new color_Object('green');
         $grey = new color_Object('#bbb');
-        
+
         $progressPx = min(200, round(200 * $rec->progress));
         $progressRemainPx = 200 - $progressPx;
-        
+
         $color = ($rec->progress <= 1) ? $blue : $red;
         $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
         $grey->setGradient($color, $rec->progress);
@@ -432,12 +432,12 @@ class planning_Tasks extends core_Master
         if(!Mode::isReadOnly()){
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
         }
-        
+
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
             $row->{$quantityFld} = ht::styleNumber($row->{$quantityFld}, $rec->{$quantityFld});
         }
-        
+
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
@@ -525,7 +525,7 @@ class planning_Tasks extends core_Master
             $row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
             $row->productDescription = cat_Products::getAutoProductDesc($rec->productId, null, 'detailed', 'job');
             $row->tId = $rec->id;
-            
+
             if(core_Packs::isInstalled('batch')){
                 if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
                     if($BatchDef instanceof batch_definitions_Job){
@@ -567,11 +567,6 @@ class planning_Tasks extends core_Master
                 unset($row->isFinal);
             }
 
-            if (!empty($rec->employees)) {
-                $row->employees = planning_Hr::getPersonsCodesArr($rec->employees, true);
-                $row->employees = implode(', ', $row->employees);
-            }
-
             $row->originId = $origin->getHyperlink(true);
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
@@ -584,7 +579,7 @@ class planning_Tasks extends core_Master
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);
             $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
         }
-        
+
         if(empty($rec->indTime)){
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
@@ -667,29 +662,29 @@ class planning_Tasks extends core_Master
     {
         $rec = $this->fetch($id);
         $row = new stdClass();
-        
+
         $row->title = self::getRecTitle($rec);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
         $row->subTitle = doc_Containers::getDocument($rec->originId)->getShortHyperlink();
-        
+
         return $row;
     }
-    
-    
+
+
     /**
      * Прави заглавие на ПО от данните в записа
      */
     public static function getRecTitle($rec, $escaped = true)
     {
         $title = "Opr{$rec->id} - " . cls::get(get_called_class())->getStepTitle($rec->productId);
-        
+
         return $title;
     }
-    
-    
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
@@ -779,8 +774,8 @@ class planning_Tasks extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Добавя допълнителни полетата в антетката
      *
@@ -817,7 +812,7 @@ class planning_Tasks extends core_Master
                 <tr><td style='font-weight:normal'>|Отпечатвания|*:</td><td>[#printCount#]</td></tr>
                 <!--ET_END printCount-->
                 </table>"));
-        
+
         $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table>
                 <tr><td style='font-weight:normal'>|Норма|*:</td><td>[#indTime#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#indPackagingId#]</td></tr>
@@ -825,9 +820,11 @@ class planning_Tasks extends core_Master
                 <!--ET_BEGIN simultaneity--><tr><td style='font-weight:normal'>|Едновременност|*:</td><td>[#simultaneity#]</td></tr><!--ET_END simultaneity-->
                 </table>"));
 
-        $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
-        if($batchTpl instanceof core_ET){
-            $resArr['batches'] = array('name' => tr('Партиди'), 'val' => $batchTpl->getContent());
+        if(core_Packs::isInstalled('batch')){
+            $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
+            if($batchTpl instanceof core_ET){
+                $resArr['batches'] = array('name' => tr('Партиди'), 'val' => $batchTpl->getContent());
+            }
         }
 
         if(empty($rec->weightDeviationWarning)){
@@ -838,8 +835,8 @@ class planning_Tasks extends core_Master
             $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->indPackagingId})")->toVerbal($rec->indTime);
         }
     }
-    
-    
+
+
     /**
      * След подготовка на антетката
      */
@@ -850,7 +847,6 @@ class planning_Tasks extends core_Master
             foreach ((array) $headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
-                
                 $res->append('<tr>');
                 $res->append($name);
                 $res->append('</tr><tr>');
@@ -901,13 +897,13 @@ class planning_Tasks extends core_Master
             $rec->totalWeight += $dRec->weight;
             $rec->scrappedQuantity += $dRec->scrappedQuantity / $rec->quantityInPack;
         }
-        
+
         // Изчисляваме колко % от зададеното количество е направено
         if (!empty($rec->plannedQuantity)) {
             $percent = ($rec->totalQuantity - $rec->scrappedQuantity) / $rec->plannedQuantity;
             $rec->progress = round($percent, 2);
         }
-        
+
         $rec->progress = max(array($rec->progress, 0));
 
         $producedQuantity = 0;
@@ -920,7 +916,7 @@ class planning_Tasks extends core_Master
                 $producedQuantity += $nRec->quantity;
             }
         }
-       
+
         // Обновяване на произведеното по заданието
         if($producedQuantity != $rec->producedQuantity){
             planning_Jobs::updateProducedQuantity($rec->originId);
@@ -997,7 +993,7 @@ class planning_Tasks extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-        
+
         // Ако има прогрес, операцията не може да се оттегля
         if ($action == 'reject' && isset($rec)) {
             if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")) {
@@ -1088,8 +1084,8 @@ class planning_Tasks extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * След успешен запис
      */
@@ -1101,13 +1097,13 @@ class planning_Tasks extends core_Master
         if (isset($rec->originId)) {
             $originDoc = doc_Containers::getDocument($rec->originId);
             $originRec = $originDoc->fetch();
-            
+
             // Ако е по източник
             if (isset($rec->systemId)) {
                 $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
                 if (isset($tasks[$rec->systemId])) {
                     $def = $tasks[$rec->systemId];
-                    
+
                     // Намираме на коя дефолтна операция отговаря и извличаме продуктите от нея
                     foreach (array('production' => 'production', 'input' => 'input', 'waste' => 'waste') as $var => $type) {
                         if (is_array($def->products[$var])) {
@@ -1121,7 +1117,7 @@ class planning_Tasks extends core_Master
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
-                                
+
                                 planning_ProductionTaskProducts::save($nRec);
                             }
                         }
@@ -1172,7 +1168,7 @@ class planning_Tasks extends core_Master
                 $form->rec->_editActive = true;
             }
         }
-        
+
         // За произвеждане може да се избере само артикула от заданието
         try{
             $origin = doc_Containers::getDocument($rec->originId);
@@ -1182,7 +1178,7 @@ class planning_Tasks extends core_Master
         }
 
         $originRec = $origin->fetch();
-        
+
         // Добавяне на допустимите опции
         $options = planning_Centers::getPlanningStepOptionsByFolderId($rec->folderId, $rec->productId, true);
 
@@ -1213,7 +1209,7 @@ class planning_Tasks extends core_Master
                 $form->setReadOnly('productId');
             }
         }
-        
+
         if (isset($rec->productId)) {
             $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
             $form->setFieldTypeParams("wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
@@ -1253,9 +1249,9 @@ class planning_Tasks extends core_Master
                 $fixedAssetOptions = $productionData['fixedAssets'];
             }
 
-            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
+            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees, true);
             if(countR($employeeOptions)){
-                $form->setSuggestions('employees', $employeeOptions);
+                $form->setSuggestions('employees',  array('' => '') + $employeeOptions);
             } else {
                 $form->setField('employees', 'input=none');
             }
@@ -1537,8 +1533,8 @@ class planning_Tasks extends core_Master
 
         return $query->fetch()->id;
     }
-    
-    
+
+
     /**
      * Подготвя задачите към заданията
      */
@@ -1620,8 +1616,8 @@ class planning_Tasks extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Рендира задачите на заданията
      */
@@ -1666,8 +1662,8 @@ class planning_Tasks extends core_Master
         // Връщаме шаблона
         return $tpl;
     }
-    
-    
+
+
     /**
      * Подготовка на филтър формата
      */
@@ -1723,8 +1719,8 @@ class planning_Tasks extends core_Master
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
     }
-    
-    
+
+
     /**
      * Връща масив от задачи към дадено задание
      *
@@ -1742,35 +1738,35 @@ class planning_Tasks extends core_Master
         $query->where("#originId = {$oldContainerId}");
         $states = arr::make($states, true);
         $query->in("state", $states);
-        
+
         while ($rec = $query->fetch()) {
             $res[$rec->id] = ($verbal) ? self::getLink($rec->id, false) : $rec;
         }
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         if (empty($rec->id)) return;
-        
+
         // Добавяне на всички ключови думи от прогреса
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $dQuery->XPR('concat', 'varchar', 'GROUP_CONCAT(#searchKeywords)');
         $dQuery->where("#taskId = {$rec->id}");
         $dQuery->limit(1);
-        
+
         if ($keywords = $dQuery->fetch()->concat) {
             $keywords = str_replace(' , ', ' ', $keywords);
             $res = ' ' . $res . ' ' . $keywords;
         }
     }
-    
-    
+
+
     /**
      * Връща количеството произведено по задачи по дадено задание
      *
@@ -1816,11 +1812,11 @@ class planning_Tasks extends core_Master
         $code = cat_Products::getVerbal($rec->productId, 'code');
         $batchName = "{$productName}/{$code}/Opr{$rec->id}";
         $batchName = str::removeWhiteSpace($batchName);
-        
+
         return $batchName;
     }
-    
-    
+
+
     /**
      * В кои корици може да се вкарва документа
      *
@@ -1830,8 +1826,8 @@ class planning_Tasks extends core_Master
     {
         return array('folderClass' => 'planning_Centers');
     }
-    
-    
+
+
     /**
      * Търси по подадения баркод
      *
@@ -1847,16 +1843,16 @@ class planning_Tasks extends core_Master
     {
         $resArr = array();
         $str = trim($str);
-        
+
         $taskDetailQuery = planning_ProductionTaskDetails::getQuery();
         $taskDetailQuery->where(array("#serial = '[#1#]'", $str));
-        
+
         while($dRec = $taskDetailQuery->fetch()) {
-            
+
             $res = new stdClass();
             $tRec = $this->fetch($dRec->taskId);
             $res->title = tr('ПО') . ': ' . $tRec->title;
-            
+
             if ($this->haveRightFor('single', $tRec)) {
                 if (doc_Threads::haveRightFor('single', $tRec->threadId)) {
                     $hnd = $this->getHandle($tRec->id);
@@ -1864,30 +1860,30 @@ class planning_Tasks extends core_Master
                 } else {
                     $res->url = array('planning_Tasks', 'single', $dRec->taskId, 'Q' => $str);
                 }
-                
+
                 $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
                 $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;
-                
+
                 if ($tRec->progress) {
                     $progress = $this->getVerbal($tRec, 'progress');
                     $res->title .= ' (' . $progress . ')';
                 }
             }
-            
+
             $res->priority = 1;
             if ($dRec->state == 'active') {
                 $res->priority = 2;
             } else if ($dRec->state == 'rejected') {
                 $res->priority = 0;
             }
-            
+
             $resArr[] = $res;
         }
-        
+
         return $resArr;
     }
-    
-    
+
+
     /**
      * Поставя бутони за генериране на други банкови документи възоснова
      * на този, само ако документа е "чернова"
@@ -1901,7 +1897,7 @@ class planning_Tasks extends core_Master
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Произвеждане', $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от операцията');
         }
-        
+
         // Бутон за добавяне на документ за производство
         if (planning_ConsumptionNotes::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
             $pUrl = array('planning_ConsumptionNotes', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
@@ -1923,8 +1919,8 @@ class planning_Tasks extends core_Master
             $data->toolbar->renameBtn('btnActivate', 'Стартиране');
         }
     }
-    
-    
+
+
     /**
      * След промяна на състоянието
      */
@@ -2595,9 +2591,13 @@ class planning_Tasks extends core_Master
      */
     public static function getSaoItems($rec)
     {
+        if(empty($rec->originId)){
+            wp($rec, core_Users::getCurrent());
+        }
+
         $res = array();
         $query = self::getQuery();
-        $query->where("#originId = {$rec->originId} AND #state != 'rejected'");
+        $query->where("#originId = '{$rec->originId}' AND #state != 'rejected'");
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;
         }

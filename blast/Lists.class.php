@@ -165,6 +165,12 @@ class blast_Lists extends core_Master
      * Масив, където се записват списъците с ID-та за обновяване
      */
     protected $mustUpdate = array();
+
+
+    /**
+     * Масив, където се записват списъците с ID-та за обновяване
+     */
+    protected $listFields = 'id, title, keyField, contactsCnt, lg, negativeList=Игнориране, sharedUsers=Споделяне, createdOn=Създадено->От, createdBy=Създадено->На';
     
     
     /**
