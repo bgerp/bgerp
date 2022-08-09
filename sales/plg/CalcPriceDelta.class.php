@@ -131,11 +131,11 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 }
             }
         }
-        
-        $valior = $rec->{$mvc->valiorFld};
+
+        $valior = $rec->activatedOn;
         while ($dRec = $query->fetch()) {
             if ($mvc instanceof sales_Sales) {
-                
+
                 // Ако документа е продажба, изчислява се каква му е себестойноста
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId);
             } else {
@@ -192,7 +192,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             }
             
             // Изчисляване на цената по политика
-            $r = (object) array('valior' => $valior,
+            $r = (object) array('valior' => dt::verbal2mysql($valior),
                 'detailClassId' => $detailClassId,
                 'detailRecId' => $dRec->id,
                 'quantity' => $dRec->{$mvc->detailQuantityFld},
