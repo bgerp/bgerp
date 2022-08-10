@@ -282,7 +282,7 @@ class planning_Tasks extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
-        $this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
+        $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо тегло,input=none');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано');
         $this->FLD('isFinal', 'enum(yes=Да,no=Не)', 'input=hidden,caption=Финална,silent');
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=К-во в мярка,input=none');
