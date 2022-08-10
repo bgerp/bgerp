@@ -442,68 +442,75 @@ class planning_Tasks extends core_Master
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
 
-        // Проверяване на времената
-        foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField) {
+        if(in_array($rec->state, array('closed', 'rejected'))){
+            $row->expectedTimeStart = "<i class = 'quiet'>{$row->state}</i>";
+            $row->expectedTimeEnd = "<i class = 'quiet'>{$row->state}</i>";
+        } else {
+            // Проверяване на времената
+            foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField) {
 
-            // Вербализиране на времената
-            $DateTime = core_Type::getByName('datetime(format=smartTime)');
-            $row->{$eTimeField} = '<span class=quiet>N/A</span>';
-            if(!empty($rec->{$eTimeField})){
-                $row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
-                if($eTimeField == 'expectedTimeStart'){
-                    $now = dt::now();
-                    if(in_array($rec->state, array('wakeup', 'stopped', 'active'))){
-                        if($rec->expectedTimeEnd < $now){
-                            $row->expectedTimeStart = ht::createHint("<span class='red'>{$row->expectedTimeStart}</span>", 'Планираният край е в миналото', 'warning');
+                // Вербализиране на времената
+                $DateTime = core_Type::getByName('datetime(format=smartTime)');
+                $row->{$eTimeField} = '<span class=quiet>N/A</span>';
+                if(!empty($rec->{$eTimeField})){
+                    $row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
+                    if($eTimeField == 'expectedTimeStart'){
+                        $now = dt::now();
+                        if(in_array($rec->state, array('wakeup', 'stopped', 'active'))){
+                            if($rec->expectedTimeEnd < $now){
+                                $row->expectedTimeStart = ht::createHint("<span class='red'>{$row->expectedTimeStart}</span>", 'Планираният край е в миналото', 'warning');
+                            }
                         }
                     }
                 }
-            }
 
-            if($rec->{$timeField}){
-                $row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
-            }
+                if($rec->{$timeField}){
+                    $row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
+                }
 
-            $hint = null;
-            if(!empty($rec->{$timeField})){
-                $hint = "Зададено|*: {$row->{$timeField}}";
+                $hint = null;
+                if(!empty($rec->{$timeField})){
+                    $hint = "Зададено|*: {$row->{$timeField}}";
 
-                if(!empty($rec->{$eTimeField})){
-                    // Колко е разликата в минути между тях?
-                    $diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
-                    if ($diff != 0) {
-                        $diffVerbal = cls::get('type_Time')->toVerbal($diff);
-                        $diffVerbal = ($diff > 0) ? "+{$diffVerbal}" : $diffVerbal;
-                        $hint .= " ({$diffVerbal})";
+                    if(!empty($rec->{$eTimeField})){
+                        // Колко е разликата в минути между тях?
+                        $diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
+                        if ($diff != 0) {
+                            $diffVerbal = cls::get('type_Time')->toVerbal($diff);
+                            $diffVerbal = ($diff > 0) ? "+{$diffVerbal}" : $diffVerbal;
+                            $hint .= " ({$diffVerbal})";
+                        }
                     }
+                }
+
+                if(isset($hint)){
+                    $row->{$eTimeField} = ht::createHint($row->{$eTimeField}, $hint, 'notice', true, array('height' => '12', 'width' => '12'));
                 }
             }
 
-            if(isset($hint)){
-                $row->{$eTimeField} = ht::createHint($row->{$eTimeField}, $hint, 'notice', true, array('height' => '12', 'width' => '12'));
+            if(!empty($rec->prevErrId)){
+                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходната операция #{$mvc->getHandle($rec->prevErrId)}", 'img/16/red-warning.png', false);
             }
+
+            if(!empty($rec->nextErrId)){
+                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следващата операция #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
+            }
+
+            if($rec->freeTimeAfter == 'yes'){
+                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има свободно време между края на тази операция и началото на следващата|*!", 'warning');
+            }
+
+            if(!empty($rec->expectedTimeEnd) && $rec->expectedTimeEnd >= ($origin->fetchField('dueDate') . " 23:59:59")){
+                $useField = isset($fields['-list']) ? 'expectedTimeStart' : 'expectedTimeEnd';
+                $row->{$useField} = ht::createHint($row->{$useField}, "Планирания край е след падежа на заданието|*!", 'img/16/red-warning.png');
+            }
+
+            $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
+            $durationUom = ($expectedDuration < 60) ? 'seconds' : (($expectedDuration < 3600) ? 'minutes' : 'hours');
+            $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$durationUom},noSmart)")->toVerbal($expectedDuration);
         }
 
-        if(!empty($rec->prevErrId)){
-            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходната операция #{$mvc->getHandle($rec->prevErrId)}", 'img/16/red-warning.png', false);
-        }
 
-        if(!empty($rec->nextErrId)){
-            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следващата операция #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
-        }
-
-        if($rec->freeTimeAfter == 'yes'){
-            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има свободно време между края на тази операция и началото на следващата|*!", 'warning');
-        }
-
-        if(!empty($rec->expectedTimeEnd) && $rec->expectedTimeEnd >= ($origin->fetchField('dueDate') . " 23:59:59")){
-            $useField = isset($fields['-list']) ? 'expectedTimeStart' : 'expectedTimeEnd';
-            $row->{$useField} = ht::createHint($row->{$useField}, "Планирания край е след падежа на заданието|*!", 'img/16/red-warning.png');
-        }
-
-        $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
-        $durationUom = ($expectedDuration < 60) ? 'seconds' : (($expectedDuration < 3600) ? 'minutes' : 'hours');
-        $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$durationUom},noSmart)")->toVerbal($expectedDuration);
         $calcedDurationUom = ($rec->calcedDuration < 60) ? 'seconds' : (($rec->calcedDuration < 3600) ? 'minutes' : 'hours');
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
 
@@ -603,6 +610,7 @@ class planning_Tasks extends core_Master
             }
 
             if(haveRole('debug')){
+                $row->orderByAssetId = isset($rec->orderByAssetId) ? $row->orderByAssetId : 'n/a';
                 $row->assetId = ht::createHint($row->assetId, "Подредба|*: {$row->orderByAssetId}", 'img/16/bug.png');
             }
 
