@@ -25,6 +25,7 @@ class cat_type_Weight extends cat_type_Uom
     {
         // Основната мярка на типа е килограм
         $this->params['unit'] = 'kg';
+        $this->params['smartRound'] = 'yes';
         if (is_array($params['params'])) {
             $this->params = array_merge($this->params, $params['params']);
         }
@@ -38,13 +39,19 @@ class cat_type_Weight extends cat_type_Uom
     public function toVerbal_($value)
     {
         if(!empty($value)){
-            if($value > 10){
-                $value = round($value);
-            } elseif($value >= 1){
-                $value = round($value, 1);
+            if($this->params['smartRound'] == 'yes'){
+                if($value > 10){
+                    $value = round($value);
+                } elseif($value >= 1){
+                    $value = round($value, 1);
+                } else {
+                    $value = round($value, 3);
+                }
             } else {
-                $value = round($value, 3);
+                $round = cat_UoM::fetchBySysId($this->params['unit'])->round;
+                $value = round($value, $round);
             }
+
         }
 
         $value = parent::toVerbal_($value);
