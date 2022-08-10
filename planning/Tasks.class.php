@@ -975,7 +975,8 @@ class planning_Tasks extends core_Master
             if (isset($rec->originId)) {
                 $origin = doc_Containers::getDocument($rec->originId);
                 $state = $origin->fetchField('state');
-                if (in_array($state, array('closed', 'rejected', 'draft', 'stopped'))) {
+                $notAllowedStates = ($action == 'edit') ? array('closed', 'rejected', 'draft') : array('closed', 'rejected', 'draft', 'stopped');
+                if (in_array($state, $notAllowedStates)) {
                     $requiredRoles = 'no_one';
                 }
             }
