@@ -225,7 +225,7 @@ defIfNot('SALES_DEFAULT_BLAST_SUBJECT_BG', "Просрочени задълже�
 /**
  * Дефолтен текст на циркулярен имейл за просрочени фактури на английски
  */
-defIfNot('SALES_DEFAULT_BLAST_BODY_EN',  "Hello,\nThis letter is to bring to your attention that as of [#date#] no payment has been received for the invoices\nlisted below [#docs#],\ntotal value [#sum#] [#currency#].\n\nWe kindly ask you to promptly settle the outstanding invoices.\n\nShould you have made your payment in the interim, please disregard this reminder.\nThis is an automatically generated message that does not require a response. For additional questions and information, please contact our representative.\nWith respect");
+defIfNot('SALES_DEFAULT_BLAST_BODY_EN',  "Hello,\nThis letter is to bring to your attention that as of [#date#] no payment has been received for the invoices\nlisted below [#docs#],\ntotal value [#sum#] [#currency#].\n\nWe kindly ask you to promptly settle the outstanding invoices.\n\nShould you have made your payment in the interim, please disregard this reminder.\n\nThis is an automatically generated message that does not require a response. For additional questions and information, please contact our representative.\n\nWith respect");
 
 /**
  * Дефолтен subject на циркулярен имейл за просрочени фактури на английски
