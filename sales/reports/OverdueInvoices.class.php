@@ -982,8 +982,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         expect($res['blastId']);
 
         $rec->blastId = $res['blastId'];
-
-        if (countR($rec->unsentEmails)>0){
+        if (countR($rec->unsentEmails)){
             status_Messages::newStatus('На ' . countR($rec->unsentEmails) . ' контрагента няма да бъдат изпратени имейли. Виж :' . frame2_Reports::getLinkToSingle($rec->id), 'warning');
         }
 

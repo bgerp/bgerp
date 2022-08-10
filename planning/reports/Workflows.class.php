@@ -42,7 +42,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $maxListItemsPerPage = 200;
+    protected $maxListItemsPerPage = 1000;
 
 
     /**
