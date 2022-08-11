@@ -178,7 +178,7 @@ class planning_Tasks extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn';
+    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn,dueDate';
     
     
     /**
@@ -329,6 +329,7 @@ class planning_Tasks extends core_Master
         $this->FLD('prevErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Предишна грешка');
         $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
         $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
+        $this->EXT('dueDate', 'planning_Jobs', 'externalName=dueDate,remoteKey=containerId,externalFieldName=originId,caption=Задание->Падеж');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('assetId,orderByAssetId');
@@ -500,7 +501,7 @@ class planning_Tasks extends core_Master
                 $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има свободно време между края на тази операция и началото на следващата|*!", 'warning');
             }
 
-            if(!empty($rec->expectedTimeEnd) && $rec->expectedTimeEnd >= ($origin->fetchField('dueDate') . " 23:59:59")){
+            if(!empty($rec->expectedTimeEnd) && $rec->expectedTimeEnd >= ("{$rec->dueDate} 23:59:59")){
                 $useField = isset($fields['-list']) ? 'expectedTimeStart' : 'expectedTimeEnd';
                 $row->{$useField} = ht::createHint($row->{$useField}, "Планирания край е след падежа на заданието|*!", 'img/16/red-warning.png');
             }
@@ -584,7 +585,7 @@ class planning_Tasks extends core_Master
         } else {
             $jobPackQuantity = $origin->fetchField('packQuantity');
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);
-            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
+            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
         }
 
         if(empty($rec->indTime)){
@@ -606,7 +607,7 @@ class planning_Tasks extends core_Master
 
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
             if(planning_Tasks::haveRightFor('list')){
-                $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folderId' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
+                $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
             }
             if(isset($fields['-single']) && isset($rec->prevAssetId)){
                 $row->assetId = ht::createHint($row->assetId, "Предишно оборудване|*: " . planning_AssetResources::getTitleById($rec->prevAssetId), 'warning', false);
@@ -1669,7 +1670,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
-        $data->listFilter->setField('folder', 'autoFilter');
+        $data->listFilter->setField('folder', 'autoFilter,silent');
         $orderByField = 'orderByDate';
 
         // Добавят се за избор само използваните в ПО оборудвания
