@@ -82,27 +82,13 @@ class planning_StepConditions extends core_Detail
      */
     public function description()
     {
-        $this->FLD('stepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'input=hidden,silent,mandatory,caption=Производствен етап');
-        $this->FLD('prevStepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'mandatory,caption=Предходен етап,tdClass=leftCol');
+        $this->FLD('stepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'input=hidden,silent,mandatory,caption=Производствен етап');
+        $this->FLD('prevStepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,caption=Предходен етап,tdClass=leftCol,class=w100');
         $this->FLD('delay', 'time', 'caption=Изчакване');
         $this->FLD('intersect', 'enum(yes=Да,no=Не)', 'caption=Застъпване,notNull,default=yes');
 
         $this->setDbIndex('prevStepId');
         $this->setDbUnique('stepId,prevStepId');
-    }
-
-
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = &$data->form;
-
-        $form->setFieldTypeParams('prevStepId', array('driverId' => planning_interface_StepProductDriver::getClassId()));
     }
 
 

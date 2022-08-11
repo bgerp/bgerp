@@ -280,7 +280,7 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent,silent');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо тегло,input=none');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано');
@@ -1177,6 +1177,7 @@ class planning_Tasks extends core_Master
                 $form->rec->_editActive = true;
             }
         }
+        $form->setFieldTypeParams('productId', array('centerFolderId' => $rec->folderId));
 
         // За произвеждане може да се избере само артикула от заданието
         try{
@@ -1187,20 +1188,6 @@ class planning_Tasks extends core_Master
         }
 
         $originRec = $origin->fetch();
-
-        // Добавяне на допустимите опции
-        $options = planning_Centers::getPlanningStepOptionsByFolderId($rec->folderId, $rec->productId, true);
-
-        // Ако няма ПЕ - редирект, ако е само един избира се той, ако са повече от един потребителя трябва да избере
-        $stepOptionsCount = countR($options);
-        if(!countR($options)){
-            followRetUrl(null, 'В център няма споделени етапи за производство|*!', 'warning');
-        } elseif($stepOptionsCount == 1){
-            $form->setDefault('productId', key($options));
-        } else {
-            $options = array('' => '') + $options;
-        }
-        $form->setOptions('productId', $options);
 
         // Задаване на дефолти от шаблонни ПО
         $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);

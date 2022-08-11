@@ -591,4 +591,86 @@ class planning_Steps extends core_Extender
 
         return $res;
     }
+
+
+    /**
+     * Връща достъпните избираеми продуктови етапи
+     */
+    public static function getSelectableSteps($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $productClassId = cat_Products::getClassId();
+        $driverClassId = planning_interface_StepProductDriver::getClassId();
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#innerClass = {$driverClassId}");
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+            $ids = implode(',', $onlyIds);
+            $pQuery->where("#id IN ({$ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $pQuery->where("#id = ${onlyIds}");
+        } else {
+            $pQuery->where("#state != 'closed' AND #state != 'rejected'");
+
+            if(isset($params['centerFolderId'])){
+                $sQuery = planning_Steps::getQuery();
+                $Cover = doc_Folders::getCover($params['centerFolderId']);
+                $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
+                $sQuery->show('objectId');
+                $in = arr::extractValuesFromArray($sQuery->fetchAll(), 'objectId');
+
+                if(countR($in)){
+                    $pQuery->in('id', $in);
+                } else {
+                    $pQuery->where("1=2");
+                }
+            }
+        }
+
+        cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);
+        $res = $finalSteps = $nonFinalSteps = array();
+        while ($pRec = $pQuery->fetch()) {
+            $isFinal = planning_Steps::fetchField("#objectId = {$pRec->id} AND #classId = {$productClassId}", 'isFinal');
+            if($isFinal == 'yes'){
+                $finalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+            } else {
+                $nonFinalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+            }
+        }
+
+        if (countR($nonFinalSteps)) {
+            krsort($nonFinalSteps);
+            if (!isset($onlyIds)) {
+                $nonFinalSteps = array('nfs' => (object) array('group' => true, 'title' => tr('Междинни етапи'))) + $nonFinalSteps;
+            }
+            $res += $nonFinalSteps;
+        }
+
+        if (countR($finalSteps)) {
+            krsort($finalSteps);
+            if (!isset($onlyIds)) {
+                $finalSteps = array('fs' => (object) array('group' => true, 'title' => tr('Финални етапи'))) + $finalSteps;
+            }
+            $res += $finalSteps;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Колко са активните етапи в папката на посочения център на дейност
+     *
+     * @param int $folderId  - ид на папка
+     * @return int           - брой намерени етапи
+     */
+    public static function getCountByCenterFolderId($folderId)
+    {
+        $Cover = doc_Folders::getCover($folderId);
+        $productClassId = cat_Products::getClassId();
+
+        return static::count("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
+    }
 }
