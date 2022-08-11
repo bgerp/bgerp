@@ -634,7 +634,7 @@ class planning_Steps extends core_Extender
         }
 
         if (countR($nonFinalSteps)) {
-            krsort($nonFinalSteps);
+            asort($nonFinalSteps, SORT_NATURAL);
             if (!isset($onlyIds)) {
                 $nonFinalSteps = array('nfs' => (object) array('group' => true, 'title' => tr('Междинни етапи'))) + $nonFinalSteps;
             }
@@ -642,7 +642,7 @@ class planning_Steps extends core_Extender
         }
 
         if (countR($finalSteps)) {
-            krsort($finalSteps);
+            asort($finalSteps, SORT_NATURAL);
             if (!isset($onlyIds)) {
                 $finalSteps = array('fs' => (object) array('group' => true, 'title' => tr('Финални етапи'))) + $finalSteps;
             }
