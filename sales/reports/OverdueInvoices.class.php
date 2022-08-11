@@ -785,8 +785,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $listForEmail = self::createListForEmail($rec);
 
         if (empty($listForEmail)) {
-            status_Messages::newStatus('Липсват контрагенти, на които да се изпратят имейли', 'warning');
-            return new Redirect(array('frame2_Reports', 'single', $rec->id),);
+            return new Redirect(array('frame2_Reports', 'single', $rec->id), 'Липсват контрагенти, на които да се изпратят имейли', 'warning');
         }
 
         $rec->listForEmail = $listForEmail;
@@ -949,8 +948,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
         if (empty($listForSend)) {
-            status_Messages::newStatus('Липсват контрагенти, на които да се изпратят имейли', 'warning');
-            return new Redirect(array('frame2_Reports', 'single', $rec->id),);
+            return new Redirect(array('frame2_Reports', 'single', $rec->id), 'Липсват контрагенти, на които да се изпратят имейли', 'warning');
         }
 
         if (!$rec->countryGroup) {
