@@ -1133,27 +1133,32 @@ class cat_Boms extends core_Master
      * Връща допустимите параметри за формулите
      *
      * @param int $productId - запис
-     * @return array - допустимите параметри с техните стойностти
+     * @return array $res    - допустимите параметри с техните стойностти
      */
     public static function getProductParams($productId)
     {
-        $res = array();
+        $strings = $ids = array();
         $params = cat_Products::getParams($productId);
-        
+
         if (is_array($params)) {
             foreach ($params as $paramId => $value) {
-                if (!is_numeric($value)) {
-                    continue;
+                if(cat_Params::haveDriver($paramId, 'cond_type_YesOrNo')){
+                    $value = ($value == 'yes') ? 1 : 0;
                 }
-                $key = '$' . cat_Params::getNormalizedName($paramId);
-                $res[$key] = $value;
+                if (!is_numeric($value)) continue;
+                $normalizedName = cat_Params::getNormalizedName($paramId);
+
+                $key = '$' . $normalizedName;
+                $strings[$key] = $value;
+
+                $key1 = "#{$paramId}";
+                $ids[$key1] = $value;
             }
         }
-        
-        if (countR($res)) {
-            
-            return array($productId => $res);
-        }
+
+        $res = $strings + $ids;
+
+        if (countR($res)) return array($productId => $res);
         
         return $res;
     }

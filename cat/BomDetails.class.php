@@ -345,7 +345,7 @@ class cat_BomDetails extends doc_Detail
     {
         $expr = preg_replace('/\$Начално\s*=\s*/iu', '1/$T*', $expr);
         $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
-        
+
         if (is_array($params)) {
             
             // Да не променяме логиката, не позволяваме на потребителя да въвежда тиражът ръчно
@@ -465,7 +465,7 @@ class cat_BomDetails extends doc_Detail
         // Ако има избран ресурс, добавяме му мярката до полетата за количества
         if (isset($rec->resourceId)) {
             $params = cat_Boms::getProductParams($masterProductId);
-            
+
             $path = $mvc->getProductPath($rec);
             foreach ($path as $pId) {
                 $newParams = cat_Boms::getProductParams($pId);
@@ -478,10 +478,10 @@ class cat_BomDetails extends doc_Detail
             $scope['$Начално='] = '$Начално=';
             
             $rec->params = $scope;
-
             $context = array_keys($scope);
             $context = array_combine($context, $context);
             unset($context['$T']);
+
             $form->setSuggestions('propQuantity', $context);
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
             
