@@ -182,8 +182,22 @@ class planning_Centers extends core_Master
 
         $this->setDbUnique('name');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams);
+        $form->setSuggestions("planningParams", $paramSuggestions);
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *

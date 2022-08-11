@@ -158,15 +158,8 @@ class planning_Steps extends core_Extender
         $form->setFieldTypeParams("{$mvc->className}_wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
 
         // Добавяне на избор само на Параметрите за производствени операции
-        $paramOptions = array();
-        $taskParamIds = cat_Params::getTaskParamIds();
-        $exParamIds = keylist::toArray($rec->{"{$mvc->className}_planningParams"});
-        $allowedParamIds = $taskParamIds + $exParamIds;
-        foreach ($allowedParamIds as $paramId){
-            $paramOptions[$paramId] = cat_Params::getVerbal($paramId, 'typeExt');
-        }
-        $form->setSuggestions("{$mvc->className}_planningParams", $paramOptions);
-
+        $paramSuggestions = cat_Params::getTaskParamOptions($rec->{"{$mvc->className}_planningParams"});
+        $form->setSuggestions("{$mvc->className}_planningParams", $paramSuggestions);
         if($form->getField('meta', false)){
             $form->setField('meta', 'input=none');
         }
