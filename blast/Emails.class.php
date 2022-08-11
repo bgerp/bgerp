@@ -161,18 +161,18 @@ class blast_Emails extends core_Master
      * @see change_Plugin
      */
     protected $canChangerec = 'blast, ceo';
-    
-    
+
+
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'email_DocumentIntf';
+    public $interfaces = 'email_DocumentIntf, doc_DocumentIntf';
     
     
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_Blank, change_Plugin, plg_Search, plg_Clone, plg_Printing, doc_plg_Close';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_Blank, change_Plugin, plg_Search, plg_Clone, plg_Printing, doc_plg_Close, doc_SharablePlg';
     
     
     /**
@@ -227,6 +227,9 @@ class blast_Emails extends core_Master
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast,oembed=none)', 'caption=Съобщение,mandatory, changable');
         $this->FLD('unsubscribe', 'text(rows=3,oembed=none)', 'caption=Отписване, changable', array('attr' => array('id' => 'unsId')));
+
+        $this->FLD('canUnsubscribe', 'enum(yes=Да,no=Не)', 'caption=Възможност за отписване->Избор,changable,notNull,removeAndRefreshForm=unsubscribe,silent, hint=Дали потребителя да може да се отписва от циркулярния имейл и ако е отписан да не му се изпраща');
+
         $this->FLD('sendPerCall', 'int(min=1, max=100)', 'caption=Изпращания заедно, input=none, mandatory, oldFieldName=sendPerMinute, title=Максимален брой изпращания за минута, unit=на мин.');
         
         $this->FLD('sendingFrom', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Начален час, input=none');
@@ -259,8 +262,8 @@ class blast_Emails extends core_Master
         
         cls::get('core_Lg');
         
-        $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
-        
+        $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull,removeAndRefreshForm=unsubscribe,silent');
+
         $this->FLD('errMsg', 'varchar', 'caption=Съобщение за грешка, input=none');
         
         $this->FNC('srcLink', 'varchar', 'caption=Списък');
@@ -274,11 +277,12 @@ class blast_Emails extends core_Master
      * @param int    $perSrcObjectId
      * @param string $text
      * @param string $subject
-     * @param array  $otherParams
+     * @param array  $otherFieldParams
+     * @param array  $otherParamsArr
      *
      * @return int
      */
-    public static function createEmail($perSrcClassId, $perSrcObjectId, $text, $subject, $otherParams = array())
+    public static function createEmail($perSrcClassId, $perSrcObjectId, $text, $subject, $otherFieldParams = array(), $otherParamsArr = array())
     {
         // Задаваме стойност
         $rec = new stdClass();
@@ -291,7 +295,7 @@ class blast_Emails extends core_Master
         expect($rec->perSrcClassId && $rec->perSrcObjectId, $rec);
         
         // Задаваме стойности за останалите полета
-        foreach ((array) $otherParams as $fieldName => $value) {
+        foreach ((array) $otherFieldParams as $fieldName => $value) {
             if ($rec->$fieldName) {
                 continue;
             }
@@ -304,10 +308,24 @@ class blast_Emails extends core_Master
         }
         
         expect($rec->from, 'Не може да се определи имейл по подразбиране за изпращача');
-        
+
+        $rec->canUnsubscribe = $otherParamsArr['canUnsubscribe'] ? $otherParamsArr['canUnsubscribe'] : 'yes';
+
+        if ($otherParamsArr['sharedUsers']) {
+            $rec->sharedUsers = $otherParamsArr['sharedUsers'];
+        }
+
+        if ($otherParamsArr['lg']) {
+            $rec->lg = $otherParamsArr['lg'];
+        }
+
+        if ($otherParamsArr['folderId']) {
+            $rec->folderId = $otherParamsArr['folderId'];
+        }
+
         // Записваме
         $id = self::save($rec);
-        
+
         return $id;
     }
     
@@ -365,7 +383,7 @@ class blast_Emails extends core_Master
         
         // Масив с всички имейл полета
         $emailFieldsArr = self::getEmailFields($descArr);
-        
+
         expect($emailFieldsArr, 'Трябва да има поне едно поле за имейли');
         
         $negativeArr = array();
@@ -382,7 +400,7 @@ class blast_Emails extends core_Master
                 }
             }
         }
-        
+
         // Обновяваме листа и връщаме броя на обновленията
         $updateCntArr = blast_EmailSend::updateList($rec->id, $personalizationArr, $emailFieldsArr, $negativeArr);
         
@@ -458,7 +476,9 @@ class blast_Emails extends core_Master
         
         //Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
         while ($rec = $query->fetch()) {
-            
+
+            $canUnsubscribe = $rec->canUnsubscribe;
+
             // Ако се изпраща от частна мрежа, спираме процеса
             if (core_App::checkCurrentHostIsPrivate()) {
                 $this->logErr('Прекъснато изпращане на циркулярни имейли. Прави се опит за изпращане от частна мрежа', $rec->id);
@@ -567,9 +587,12 @@ class blast_Emails extends core_Master
                 
                 // Първия валиден имейл, който не е в блокорани, да е получателя
                 foreach ((array) $emailsArr as $email) {
-                    if (email_AddressesInfo::isBlocked($email)) {
-                        continue;
+                    if ($canUnsubscribe != 'no') {
+                        if (email_AddressesInfo::isBlocked($email)) {
+                            continue;
+                        }
                     }
+
                     $toEmail = $email;
                     break;
                 }
@@ -1460,7 +1483,11 @@ class blast_Emails extends core_Master
     public static function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
     {
         $form = $data->form;
-        
+
+        if ($form->rec->canUnsubscribe == 'no') {
+            $form->setField('unsubscribe', 'input=none');
+        }
+
         $defPerSrcClassId = null;
         $currUserId = core_Users::getCurrent();
         
@@ -1572,54 +1599,37 @@ class blast_Emails extends core_Master
             // Задаваме опциите
             $form->setOptions('perSrcObjectId', $perOptArr);
         }
-        
-        if (!$form->rec->id) {
-            if (!$perSrcObjId) {
-                $perSrcObjId = key($perOptArr);
-            }
+
+        if (!$perSrcObjId) {
+            $perSrcObjId = key($perOptArr);
+        }
+
+        $defLg = $form->rec->lg;
+        if ($defLg == 'auto') {
+            unset($defLg);
+        }
+
+        if (!isset($defLg)) {
             $defLg = $perClsInst->getPersonalizationLg($perSrcObjId);
-            $form->setDefault('perSrcObjectId', $perSrcObjId);
-            $form->setDefault('lg', $defLg);
-            
-            $conf = core_Packs::getConfig('blast');
-            
-            $unsubscribeText = $conf->BLAST_UNSUBSCRIBE_TEXT_FOOTER;
-            
-            $bodyLangArr = array();
-            $bCnt = 0;
-            
-            $allLangArr = arr::make(EF_LANGUAGES);
-            $currLg = core_Lg::getCurrent();
-            
-            if (empty($allLangArr)) {
-                $allLangArr = arr::make($currLg, true);
-            }
-            
-            if (!$defLg || $defLg == 'auto') {
-                $defLg = $currLg;
-            }
-            
-            foreach ($allLangArr as $lang => $verbLang) {
-                
-                // За всеки език подоготвяме текста
-                core_Lg::push($lang);
-                $bodyLangArr[$bCnt]['data'] = tr($unsubscribeText);
-                $bodyLangArr[$bCnt]['lg'] = $lang;
-                core_Lg::pop();
-                
-                if ($defLg == $lang) {
-                    $form->setDefault('unsubscribe', $bodyLangArr[$bCnt]['data']);
-                }
-                
-                $bCnt++;
-            }
-            
-            $jsonData = json_encode(array('hint' => tr('Смяна на езика'), 'lg' => $defLg, 'data' => $bodyLangArr, 'id' => 'unsId'));
-            
-            $form->layout = new ET($data->form->renderLayout());
-            
-            jquery_Jquery::run($form->layout, 'prepareLangBtn(' . $jsonData . ');');
-        } else {
+        }
+
+        $unsubscribeText = blast_Setup::get('UNSUBSCRIBE_TEXT_FOOTER');
+
+        if (!$defLg || $defLg == 'auto') {
+            $defLg = core_Lg::getCurrent();
+        }
+        core_Lg::push($defLg);
+        $unsubscribeText = tr($unsubscribeText);
+        core_Lg::pop();
+
+        if ($form->rec->canUnsubscribe != 'no') {
+            $form->setDefault('unsubscribe', $unsubscribeText);
+        }
+
+        $form->setDefault('perSrcObjectId', $perSrcObjId);
+        $form->setDefault('lg', $defLg);
+
+        if ($form->rec->id) {
             $form->fields['perSrcObjectId']->removeAndRefreshForm = 'lg';
         }
         
@@ -1702,7 +1712,7 @@ class blast_Emails extends core_Master
     public function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-        
+
         // Ако сме субмитнали формата
         if ($form->isSubmitted()) {
             
@@ -2442,5 +2452,64 @@ class blast_Emails extends core_Master
             $cid = $srcClsInst->fetchField($rec->perSrcObjectId, 'containerId');
             $res[$cid] = $cid;
         }
+    }
+
+
+    /**
+     * Създава списък за масово разпращане и циркулярен имейл с подадените данни
+     *
+     * @param array $listParams - blast_Lists::createList()
+     * @param array $emailParams
+     * text => тялото на имейла
+     * subject => заглавието на имейла
+     * fields => масив със стойности - recipient,attn,email,tel,fax,country,pcode,place,address
+     * canUnsubscribe - дали имейла е системен - дали ще може да се отписват от него - yes|no
+     * sharedUser - списък със споделените потребители към документа
+     * lg - език на циркулярния имейл
+     * folderId - език на циркулярния имейл
+     *
+     * @return array
+     * [listId]
+     * [blastId]
+     */
+    public static function createListAndEmail($listParams, $emailParams)
+    {
+        $listId = blast_Lists::createList($listParams);
+
+        expect($listId);
+
+        setIfNot($emailParams['fields']['email'], '[#email#]');
+        setIfNot($emailParams['canUnsubscribe'], 'yes');
+
+        $eParamsArr = array('canUnsubscribe' => $emailParams['canUnsubscribe']);
+
+        if ($emailParams['sharedUsers'] !== false) {
+            if (is_null($emailParams['sharedUsers'])) {
+                $cu = core_Users::getCurrent();
+                $emailParams['sharedUsers'][$cu] = $cu;
+            }
+
+            $eParamsArr['sharedUsers'] = type_UserList::fromArray($emailParams['sharedUsers']);
+        }
+
+        if ($emailParams['lg']) {
+            $eParamsArr['lg'] = $emailParams['lg'];
+        }
+
+        if ($emailParams['folderId']) {
+            $eParamsArr['folderId'] = $emailParams['folderId'];
+        }
+
+        $blId = self::createEmail('blast_Lists', $listId, $emailParams['text'], $emailParams['subject'], $emailParams['fields'], $eParamsArr);
+
+        if ($blId) {
+            $rec = self::fetch($blId);
+
+            if ($rec->containerId && $rec->threadId && $rec->sharedUsers) {
+                doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $rec->sharedUsers);
+            }
+        }
+
+        return array('listId' => $listId, 'blastId' => $blId);
     }
 }

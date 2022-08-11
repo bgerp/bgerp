@@ -124,6 +124,8 @@ class blast_EmailSend extends core_Detail
      */
     public static function updateList($emailId, $dataArr, $emailFieldsArr, $negativeEmailArr = array())
     {
+        $canUnsubscribe = blast_Emails::fetchField($emailId, 'canUnsubscribe');
+
         $addCnt = $rCnt = $allCnt = 0;
         
         // Обхождаме масива с данните
@@ -156,10 +158,12 @@ class blast_EmailSend extends core_Detail
             
             // Добавяме първия имейл, който не е списъка с блокирани
             foreach ((array) $emailsArr as $email) {
-                if (email_AddressesInfo::isBlocked($email)) {
-                    continue;
+                if ($canUnsubscribe != 'no') {
+                    if (email_AddressesInfo::isBlocked($email)) {
+                        continue;
+                    }
                 }
-                
+
                 // Ако е в отрицателния списък - просто го игнорираме
                 if ($negativeEmailArr[$email]) {
                     $nRec->email = $email;

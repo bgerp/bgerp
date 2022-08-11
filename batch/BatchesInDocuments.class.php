@@ -158,7 +158,8 @@ class batch_BatchesInDocuments extends core_Manager
         $count = 0;
         $total = $rInfo->quantity;
         $totalCount = $query->count() - 1;
-        
+
+        $blocks = array();
         while ($rec = $query->fetch()) {
             $batch = batch_Movements::getLinkArr($rec->productId, $rec->batch);
             if (is_array($batch)) {
@@ -212,10 +213,16 @@ class batch_BatchesInDocuments extends core_Manager
             
             $block->append($string, 'batch');
             $block->removePlaces();
-            $block->append2Master();
+
+            $blocks[$rec->batch] = $block;
             $count++;
         }
-        
+
+        $batchDef->orderBatchesForDisplay($blocks);
+        foreach ($blocks as $block){
+            $block->append2Master();
+        }
+
         // Ако има остатък
         if ($total > 0 || $total < 0) {
             
@@ -369,7 +376,7 @@ class batch_BatchesInDocuments extends core_Manager
         // Филтриране на партидите
         $Detail->filterBatches($detailRecId, $batches);
         $packName = cat_UoM::getShortName($recInfo->packagingId);
-        
+
         $link = doc_Containers::getDocument($recInfo->containerId)->getLink(0);
         
         // Подготовка на формата
@@ -383,6 +390,7 @@ class batch_BatchesInDocuments extends core_Manager
 
         $Def = batch_Defs::getBatchDef($recInfo->productId);
         $suggestions = array();
+        $Def->orderBatchesForDisplay($batches);
 
         $type = $Detail->getBatchMovementDocument($detailRecId);
         $bOptions = null;

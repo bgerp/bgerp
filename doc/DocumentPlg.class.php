@@ -2366,7 +2366,7 @@ class doc_DocumentPlg extends core_Plugin
                 $sP->updateOnShutdown = true;
             }
 
-            if ($form->cmd == 'save_pending' && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
+            if (in_array($form->cmd, array('save_pending', 'save_pending_new')) && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
                 // Преизчисляване на запазените количествата, ако новото състояние е "Заявка"
                 if ($rec->state != 'pending') {
                     $sP = cls::get('store_Products');

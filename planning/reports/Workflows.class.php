@@ -38,6 +38,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
 
     /**
+     * Максимален допустим брой записи на страница
+     *
+     * @var int
+     */
+    protected $maxListItemsPerPage = 1000;
+
+
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'start,to,resultsOn,centre,assetResources,employees';
@@ -175,6 +183,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $query->in('fixedAsset', $assetArr);
         }
+
         $indTimeSumArr = array();
         while ($tRec = $query->fetch()) {
             $id = self::breakdownBy($tRec, $rec);
@@ -189,7 +198,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
 
             foreach ($counter as $val) {
+
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
+
                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity,originId');
 
                 $quantity = $tRec->quantity;
@@ -205,10 +216,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $quantity = round(($tRec->quantity / $quantityInPack), 3);
                 }
 
-                // $normTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $quantity);
                 $normTime = planning_ProductionTaskDetails::calcNormByRec($tRec);
 
-                $divisor = countR(keylist::toArray($tRec->employees));
+
+                if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines' || $rec->typeOfReport == 'short') {
+                    $divisor = countR(keylist::toArray($tRec->employees));
+                } else {
+                    $divisor = 1;
+                }
                 if ($rec->typeOfReport == 'short') {
 
                     $id = $val;
@@ -216,11 +231,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $labelQuantity = 1 / $divisor;
 
                     $employees = $val;
+                    $employeesName = crm_Persons::getTitleById($val);
                 }
 
                 if ($divisor) {
 
                     $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+
                     $indTimeSum = $timeAlocation * $normTime;
 
                 } else {
@@ -229,6 +246,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
 
+
                 // Запис в масива
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object)array(
@@ -236,6 +254,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'taskId' => $tRec->taskId,
                         'originId' => $tRec->originId,
                         'detailId' => $tRec->id,
+                        'type' => $tRec->type,
                         'indTime' => $normTime,
                         'indTimeSum' => $indTimeSum,
                         'indPackagingId' => $iRec->indPackagingId,
@@ -243,6 +262,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'quantityInPack' => $iRec->quantityInPack,
 
                         'employees' => $employees,
+                        'employeesName' => $employeesName,
                         'assetResources' => $tRec->fixedAsset,
 
                         'productId' => $tRec->productId,
@@ -271,90 +291,113 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
         }
 
+        if (countR($recs)) {
+            arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
+        }
+
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
             if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                 $this->groupByField = 'employees';
             }
 
-            //Разпределяне по работници, когато са повече от един
+            //Разпределяне по работници,или по машини
             foreach ($recs as $key => $val) {
-                if (countR(keylist::toArray($val->employees)) > 1) {
-                    $clone = clone $val;
 
+                if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                     $divisor = countR(keylist::toArray($val->employees));
-
-                    foreach (keylist::toArray($val->employees) as $k => $v) {
-                        unset($id);
-
-                        if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees))) {
-                            continue;
-                        }
-
-                        if ($rec->resultsOn == 'arts') {
-                            $id = $val->taskId . '|' . $val->productId . '|';
-                        }
-
-                        if ($rec->resultsOn == 'machines') {
-                            $id = $val->taskId . '|' . $val->productId . '|' . '|' . $val->assetResources . '|';
-                        }
-
-                        if ($rec->resultsOn == 'users') {
-                            $id = $val->taskId . '|' . $val->productId . '|' . '|' . $v . '|';
-                        }
-                        if ($rec->resultsOn == 'usersMachines') {
-                            $id = $val->taskId . '|' . $val->productId . '|' . '|' . $v . '|' . '|' . $val->assetResources;
-                        }
-
-                        if ($divisor) {
-                            $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
-                            $indTimeSum = $timeAlocation * $clone->indTime;
-                        } else {
-                            $indTimeSum = 0;
-                        }
-
-                        $clone = clone $val;
-
-                        if (!array_key_exists($id, $recs)) {
-                            $recs[$id] = (object)array(
-
-                                'taskId' => $clone->taskId,
-                                'originId' => $tRec->originId,
-                                'detailId' => $clone->detailId,
-                                'indTime' => $clone->indTime,
-                                'indPackagingId' => $clone->indPackagingId,
-                                'indTimeAllocation' => $clone->indTimeAllocation,
-
-                                'indTimeSum' => $indTimeSum,
-
-                                'employees' => '|' . $v . '|',
-                                'assetResources' => $clone->assetResources,
-
-                                'productId' => $clone->productId,
-                                'measureId' => $clone->measureId,
-
-                                'quantity' => $clone->quantity / $divisor,
-                                'scrap' => $clone->scrap / $divisor,
-
-                                'labelMeasure' => $clone->labelMeasure,
-                                'labelQuantity' => $clone->labelQuantity / $divisor,
-
-                                'weight' => $clone->weight / $divisor,
-
-
-                            );
-                        } else {
-                            $obj = &$recs[$id];
-
-                            $obj->quantity += $clone->quantity / $divisor;
-                            $obj->scrap += $clone->scrap / $divisor;
-                            $obj->labelQuantity += $clone->labelQuantity / $divisor;
-                            $obj->weight += $clone->weight / $divisor;
-                            $obj->indTimeSum += $indTimeSum;
-                        }
-                    }
-                    unset($recs[$key]);
+                    $arr = keylist::toArray($val->employees);
+                } else {
+                    $arr = array($val->assetResources => $val->assetResources);
+                    $divisor = 1;
                 }
+
+                $clone = clone $val;
+
+
+                foreach ($arr as $k => $v) {
+                    unset($id);
+
+                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees))) {
+                        continue;
+                    }
+
+                    if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+                        $employeesName = crm_Persons::getTitleById($v);
+                    }else{
+                        $employeesName = '';
+                    }
+
+                    if ($rec->resultsOn == 'arts') {
+                        $id = $val->taskId . '|' . $val->productId . '|';
+                    }
+
+                    if ($rec->resultsOn == 'machines') {
+                        $id = $val->taskId . '|' . $val->productId . '|' . '|' . $val->assetResources . '|';
+                    }
+
+                    if ($rec->resultsOn == 'users') {
+                        $id = $val->taskId . '|' . $val->productId . '|' . '|' . $v . '|';
+                    }
+                    if ($rec->resultsOn == 'usersMachines') {
+                        $id = $val->taskId . '|' . $val->productId . '|' . '|' . $v . '|' . '|' . $val->assetResources;
+                    }
+
+                    $labelQuantity = $clone->labelQuantity;
+                    if ($divisor) {
+                        $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+                        $indTimeSum = $timeAlocation * $clone->indTime;
+                        if ($clone->type == 'input'){
+                            $labelQuantity = 1;
+                        }
+                    } else {
+                        $indTimeSum = 0;
+                    }
+
+                    $indTimeSum = $clone->indTimeSum;
+
+                    $clone = clone $val;
+                    unset($recs[$key]);
+                    if (!array_key_exists($id, $recs)) {
+                        $recs[$id] = (object)array(
+
+                            'taskId' => $clone->taskId,
+                            'originId' => $clone->originId,
+                            'detailId' => $clone->detailId,
+                            'type' => $clone->type,
+                            'indTime' => $clone->indTime,
+                            'indPackagingId' => $clone->indPackagingId,
+                            'indTimeAllocation' => $clone->indTimeAllocation,
+
+                            'indTimeSum' => $indTimeSum,
+
+                            'employees' => '|' . $v . '|',
+                            'employeesName' => $employeesName,
+                            'assetResources' => $clone->assetResources,
+
+                            'productId' => $clone->productId,
+                            'measureId' => $clone->measureId,
+
+                            'quantity' => $clone->quantity / $divisor,
+                            'scrap' => $clone->scrap / $divisor,
+
+                            'labelMeasure' => $clone->labelMeasure,
+                            'labelQuantity' => $labelQuantity / $divisor,
+
+                            'weight' => $clone->weight / $divisor,
+
+                        );
+                    } else {
+                        $obj = &$recs[$id];
+
+                        $obj->quantity += $clone->quantity / $divisor;
+                        $obj->scrap += $clone->scrap / $divisor;
+                        $obj->labelQuantity += $labelQuantity / $divisor;
+                        $obj->weight += $clone->weight / $divisor;
+                        $obj->indTimeSum += $indTimeSum;
+                    }
+                }
+
             }
 
             foreach ($recs as $key => $val) {
@@ -362,9 +405,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $k = trim($val->employees, '|');
                 $indTimeSumArr[$k] += $val->indTimeSum / 60;
 
-
             }
             arr::sortObjects($recs, 'taskId', 'asc');
+
+            if ((countR($recs) && ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines'))) {
+                arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
+            }
+
         }
 
         $rec->indTimeSumArr = $indTimeSumArr;
@@ -452,7 +499,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row = new stdClass();
 
 
-
         if ($dRec->originId) {
             $Job = doc_Containers::getDocument($dRec->originId);
             $row->jobs = ht::createLink($Job->getHandle(), array($Job->getInstance(), 'single', $Job->that));
@@ -464,9 +510,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
 
-        $row->labelMeasure = isset($dRec->labelMeasure) ? cat_UoM::getShortName($dRec->labelMeasure) : '';
-
-
+        $row->labelMeasure = ($dRec->type == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure) ;
         $row->labelQuantity = $Double->toVerbal($dRec->labelQuantity);
 
         $row->scrap = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->scrap);
@@ -484,18 +528,18 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val]);
 
                     $name = crm_Persons::fetch($val)->name;
-                    $pers = ht::createLink($name,array('crm_Persons', 'single',$val)) . ' - ' . $indTimeSum . ' мин.';
+                    $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
 
                     $row->employees .= $pers . '</br>';
                 }
             }
         }
         if (isset($dRec->assetResources)) {
-            $row->assetResources = planning_AssetResources::fetch($dRec->assetResources)->name;
+            $assetResources = '['.planning_AssetResources::fetch($dRec->assetResources)->code.']'.planning_AssetResources::fetch($dRec->assetResources)->name;
+            $row->assetResources = ht::createLink($assetResources,array('planning_AssetResources','single',$dRec->assetResources));
         } else {
             $row->assetResources = '';
         }
-
 
         $row->min = $Double->toVerbal($dRec->indTimeSum / 60);
         return $row;

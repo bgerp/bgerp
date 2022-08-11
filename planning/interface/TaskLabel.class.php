@@ -282,4 +282,17 @@ class planning_interface_TaskLabel
 
         return null;
     }
+
+    /**
+     * Връща дефолтен шаблон за печат на бърз етикет
+     *
+     * @param int  $id
+     * @param stdClass|null  $driverRec
+     *
+     * @return int
+     */
+    public function getDefaultFastLabel($id, $driverRec = null)
+    {
+        return null;
+    }
 }

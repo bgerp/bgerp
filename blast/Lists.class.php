@@ -44,7 +44,7 @@ class blast_Lists extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'blast_Wrapper,plg_RowTools2,doc_DocumentPlg, plg_Search, 
-                     bgerp_plg_Blank, plg_Clone';
+                     bgerp_plg_Blank, plg_Clone, doc_SharablePlg';
     
     
     /**
@@ -165,6 +165,12 @@ class blast_Lists extends core_Master
      * Масив, където се записват списъците с ID-та за обновяване
      */
     protected $mustUpdate = array();
+
+
+    /**
+     * Масив, където се записват списъците с ID-та за обновяване
+     */
+    protected $listFields = 'id, title, keyField, contactsCnt, lg, negativeList=Игнориране, sharedUsers=Споделяне, createdOn=Създадено->От, createdBy=Създадено->На';
     
     
     /**
@@ -835,5 +841,116 @@ class blast_Lists extends core_Master
         $res = arr::make($res);
         
         $res['external']['created'] = true;
+    }
+
+
+    /**
+     * @param array $paramsArr
+     * * title => Име на списъка
+     * ifExist => Какво да се прави, ако има такъв списък (полето `title`) - update, ignore, truncateAndUpdate
+     * keyField => Ключово поле - email=Имейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма,uniqId=№
+     * fieldsArr => списък на всички полета - ключ и вербално представяне. Може и да не се подаде и ще ги извлече от listFieldsArr
+     * state => Състояние на документа, след създаване - closed, draft
+     * folderId => В коя папка да се създаде, ако е нов запис
+     * lg => Език на списъка
+     * sharedUsers => споделени потребители - array|false|null
+     * listFieldsDetArr => многомерен масив с контакти за циркулярния имейл - ключ стойността за keyField и масив с опциите от fieldsArr
+     *
+     * @return integer
+     */
+    public static function createList($paramsArr)
+    {
+        $paramsArr['title'] = trim($paramsArr['title']);
+
+        setIfNot($paramsArr['ifExist'], 'update');
+        setIfNot($paramsArr['state'], 'closed');
+        setIfNot($paramsArr['keyField'], 'email');
+
+        expect($paramsArr['title']);
+
+        $rec = self::fetch(array("#title = '[#1#]'", $paramsArr['title']));
+
+        if ($rec) {
+            if ($rec->state != $paramsArr['state']) {
+                $rec->brState = $rec->state;
+                $rec->state = $paramsArr['state'];
+
+                self::save($rec, 'state, brState');
+            }
+
+            expect($rec->keyField == $paramsArr['keyField']);
+
+            if ($paramsArr['ifExist'] == 'ignore') {
+
+                return array($rec->id => $rec);
+            }
+
+            if (($paramsArr['ifExist'] == 'truncateAndUpdate') && $rec->id) {
+                blast_ListDetails::delete(array("#listId = '[#1#]'", $rec->id));
+            }
+        } else {
+            setIfNot($paramsArr['folderId'], self::getDefaultFolder());
+
+            $rec = new stdClass();
+            $rec->folderId = $paramsArr['folderId'];
+            $rec->state = $paramsArr['state'];
+            if ($rec->state == 'active') {
+                $rec->brState = 'draft';
+            }
+
+            $rec->title = $paramsArr['title'];
+
+            $rec->keyField = $paramsArr['keyField'];
+        }
+
+        if ($paramsArr['lg']) {
+            $rec->lg = $paramsArr['lg'];
+        }
+
+        foreach ((array) $paramsArr['listFieldsDetArr'] as $fKey => $fVlassArr) {
+            foreach ($fVlassArr as $k => $v) {
+                setIfNot($paramsArr['fieldsArr'][$k], $k);
+            }
+        }
+
+        if ($paramsArr['fieldsArr']) {
+
+            unset($paramsArr['fieldsArr'][$paramsArr['keyField']]);
+
+            $rec->fields = '';
+            foreach ($paramsArr['fieldsArr'] as $k => $v) {
+                $rec->fields .= $rec->fields ? "\n" : '';
+                $rec->fields .= $k . '=' . $v;
+            }
+        }
+
+        if ($paramsArr['sharedUsers'] !== false) {
+            if (is_null($paramsArr['sharedUsers'])) {
+                $cu = core_Users::getCurrent();
+                $paramsArr['sharedUsers'][$cu] = $cu;
+            }
+
+            $rec->sharedUsers = type_UserList::fromArray($paramsArr['sharedUsers']);
+        }
+
+        self::save($rec);
+
+        expect($rec->id);
+
+        foreach ((array) $paramsArr['listFieldsDetArr'] as $fKey => $fVlassArr) {
+            $dRec = new stdClass();
+            $dRec->listId = $rec->id;
+            $dRec->key = $fKey;
+            $fVlassArr[$paramsArr['keyField']] = $fKey;
+            $dRec->data = serialize($fVlassArr);
+
+            blast_ListDetails::save($dRec, null, 'REPLACE');
+        }
+
+        if ($rec->containerId && $rec->threadId && $paramsArr['sharedUsers']) {
+            doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $paramsArr['sharedUsers']);
+        }
+
+        return $rec->id;
     }
 }

@@ -101,8 +101,14 @@ class planning_ProductionTaskProducts extends core_Detail
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'totalQuantity';
-    
-    
+
+
+    /**
+     * На кои операции трябва да се преизчисли нормата на детайлите
+     */
+    protected $recalcProducedDetailIndTime = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -142,7 +148,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if (isset($rec->type)) {
             $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
             $onlyInGroups = ($rec->type == 'waste') ? cat_Groups::getKeylistBySysIds('waste') : null;
-            $form->setFieldTypeParams('productId', array('hasProperties' => $meta, 'groups' => $onlyInGroups, 'hasnotProperties' => 'generic'));
+            $form->setFieldTypeParams('productId', array('hasProperties' => $meta, 'groups' => $onlyInGroups));
         }
         
         if (isset($rec->productId)) {
@@ -217,7 +223,6 @@ class planning_ProductionTaskProducts extends core_Detail
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            $masterRec = planning_Tasks::fetch($rec->taskId);
             if(!empty($rec->inputedQuantity) && empty($rec->employees)){
                 $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
             }
@@ -264,10 +269,11 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     public function prepareDetail_($data)
     {
-        if(!Mode::is('taskInTerminal')){
-            $data->TabCaption = 'Планиране';
-            $data->Tab = 'top';
+        $data->TabCaption = 'Планиране';
+        if(static::fetchField("#taskId = {$data->masterId} AND #type = 'waste' AND #plannedQuantity IS NULL")){
+            $data->TabCaption = ht::createHint($data->TabCaption, 'Планираното к-во на отпадъка не може да бъде изчислено|*!', 'warning');
         }
+        $data->Tab = 'top';
         
         parent::prepareDetail_($data);
     }
@@ -292,10 +298,14 @@ class planning_ProductionTaskProducts extends core_Detail
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
 
-        $row->plannedQuantity = "<span class='green'>{$row->plannedQuantity}</span>";
-        if($rec->totalQuantity > $rec->plannedQuantity){
-            $row->totalQuantity = "<span class='red'>{$row->totalQuantity}</span>";
-            $row->totalQuantity = ht::createHint($row->totalQuantity, 'Изпълнено е повече от планираното', 'warning', false);
+        if(isset($rec->plannedQuantity)){
+            $row->plannedQuantity = ht::styleNumber($row->plannedQuantity, $rec->plannedQuantity, 'green');
+            if($rec->totalQuantity > $rec->plannedQuantity){
+                $row->totalQuantity = "<span class='red'>{$row->totalQuantity}</span>";
+                $row->totalQuantity = ht::createHint($row->totalQuantity, 'Изпълнено е повече от планираното', 'warning', false);
+            }
+        } else {
+            $row->plannedQuantity = "<span class='quiet'>n/a</span>";
         }
     }
     
@@ -382,28 +392,37 @@ class planning_ProductionTaskProducts extends core_Detail
     {
         $taskRec = planning_Tasks::fetchRec($taskId);
         $usedProducts = $options = array();
-        expect(in_array($type, array('input', 'waste', 'production')));
+        expect(in_array($type, array('input', 'waste', 'production', 'scrap')));
 
         if ($type == 'production' && $taskRec->isFinal != 'yes') {
             $options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, false);
         }
 
-        $query = self::getQuery();
-        $query->where("#taskId = {$taskId}");
-        $query->where("#type = '{$type}'");
-        $query->show('productId');
-        while ($rec = $query->fetch()) {
-            $options[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
-            $usedProducts[$rec->productId] = $rec->productId;
-        }
-        
-        if ($type == 'input') {
+        if($type == 'scrap'){
+            $query = planning_ProductionTaskDetails::getQuery();
+            $query->where("#taskId = {$taskId} AND #state != 'rejected'");
+            $query->show('serial');
+            $query->where("#type = 'production'");
+            while ($rec = $query->fetch()) {
+                $options[$rec->serial] = cls::get('planning_ProductionTaskDetails')->getVerbal($rec, 'serial');
+            }
+        } else {
+            $query = self::getQuery();
+            $query->where("#taskId = {$taskId}");
+            $query->show('productId');
+            $query->where("#type = '{$type}'");
+            while ($rec = $query->fetch()) {
+                $options[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
+                $usedProducts[$rec->productId] = $rec->productId;
+            }
 
             // Ако има избрано оборудване
-            if (!empty($taskRec->assetId)) {
-                $norms = planning_AssetResourcesNorms::getNormOptions($taskRec->assetId, $usedProducts);
-                if (countR($norms)) {
-                    $options += $norms;
+            if ($type == 'input') {
+                if (!empty($taskRec->assetId)) {
+                    $norms = planning_AssetResourcesNorms::getNormOptions($taskRec->assetId, $usedProducts);
+                    if (countR($norms)) {
+                        $options += $norms;
+                    }
                 }
             }
         }
@@ -431,10 +450,12 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     public static function getInfo($taskId, $productId, $type, $assetId = null)
     {
-        expect(in_array($type, array('input', 'waste', 'production')));
-        
+        expect(in_array($type, array('input', 'waste', 'production', 'scrap')), $type);
+
+        if($type == 'scrap') return static::getInfo($taskId, $productId, 'production', $assetId);
+
         // Ако артикула е същия като от операцията, връща се оттам
-        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,assetId,productId,indTime,labelPackagingId,plannedQuantity,measureId,quantityInPack,isFinal,originId,producedQuantity,scrappedQuantity');
+        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,assetId,productId,indTime,labelPackagingId,plannedQuantity,measureId,quantityInPack,isFinal,originId,producedQuantity');
         if($type == 'production'){
 
             // Ако ПО е финална и артикула за производство е този от заданието - взимат се неговите данни
@@ -506,11 +527,6 @@ class planning_ProductionTaskProducts extends core_Detail
                 }
             }
         }
-        
-        // Ако се показва в терминала, колонката за артикул да е в отделен ред
-        if(Mode::is('taskInTerminal')){
-            $data->listFields['productId'] = '@';
-        }
     }
     
     
@@ -565,13 +581,11 @@ class planning_ProductionTaskProducts extends core_Detail
             unset($data->rows[$jobProductIdRecId]);
         }
 
-        if(!Mode::is('taskInTerminal')){
-            $data->listTableMvc->setField('packagingId', 'smartCenter');
-            $data->listTableMvc->setField('plannedQuantity', 'smartCenter');
-            $data->listTableMvc->setField('totalQuantity', 'smartCenter');
-            $data->listTableMvc->setField('indTime', 'smartCenter');
-            $data->listTableMvc->setField('totalTime', 'smartCenter');
-        }
+        $data->listTableMvc->setField('packagingId', 'smartCenter');
+        $data->listTableMvc->setField('plannedQuantity', 'smartCenter');
+        $data->listTableMvc->setField('totalQuantity', 'smartCenter');
+        $data->listTableMvc->setField('indTime', 'smartCenter');
+        $data->listTableMvc->setField('totalTime', 'smartCenter');
     }
 
 
@@ -599,5 +613,50 @@ class planning_ProductionTaskProducts extends core_Detail
         // При клониране да се пропуска прогнозния отпадъка посочен в операцията (той ще се запише при активиране)
         $newTask = planning_Tasks::fetch($rec->taskId);
         if($rec->type == 'waste' && $rec->productId == $newTask->wasteProductId) return false;
+    }
+
+
+    /**
+     * Преди запис
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        // Преди запис се помни, каква е била старата норма
+        if(isset($rec->id)){
+            $exRec = $mvc->fetch($rec->id, 'indTime');
+            $rec->_exIndTime = $exRec->indTime;
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        // Ако има прогрес и са сменени заработките, преизчисляват се на старите записи
+        if($rec->indTime != $rec->_exIndTime){
+            if(planning_ProductionTaskDetails::count("#taskId = {$rec->taskId} AND #type = '{$rec->type}' AND #productId = {$rec->productId}")){
+                $mvc->recalcProducedDetailIndTime[$rec->id] = (object)array('taskId' => $rec->taskId, 'type' => $rec->type, 'productId' => $rec->productId);
+            }
+        }
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    protected static function on_AfterSessionClose($mvc)
+    {
+        if (countR($mvc->recalcProducedDetailIndTime)) {
+            foreach ($mvc->recalcProducedDetailIndTime as $rec) {
+
+                // На заопашените редове с променени норми им се преизчисляват заработките
+                planning_ProductionTaskDetails::recalcIndTime($rec->taskId, $rec->type, $rec->productId);
+                $typeVerbal = mb_strtolower($mvc->getFieldType('type')->toVerbal($rec->type));
+                $productName = cat_Products::getTitleById($rec->productId);
+                core_Statuses::newStatus("Нормата е променена. Преизчислени са заработките за|* {$typeVerbal} |на|* {$productName}!");
+            }
+        }
     }
 }

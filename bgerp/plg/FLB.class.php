@@ -227,9 +227,7 @@ class bgerp_plg_FLB extends core_Plugin
 
         // Скриване на записите до които няма достъп
         if ($selectedUsers = $data->listFilter->rec->users) {
-            if(!haveRole('ceo,debug,admin')){
-                self::addUserFilterToQuery($mvc, $data->query, $selectedUsers);
-            }
+            self::addUserFilterToQuery($mvc, $data->query, $selectedUsers);
         }
     }
     
