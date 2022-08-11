@@ -68,7 +68,7 @@ class core_QueryCnts extends core_Manager
     
     
     /**
-     * Връща кешираната стойност за броя на резултатите в заявката
+     * Задава кешираната стойност за броя на резултатите в заявката
      */
     public static function set($query, $cnt, $start = null)
     {
