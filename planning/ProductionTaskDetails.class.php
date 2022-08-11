@@ -1160,7 +1160,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (!countR($persons)) continue;
 
             $taskRec = new stdClass();
-            $arr = arr::make("taskId=id,taskMeasureId=measureId,indTimeAllocation=indTimeAllocation,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId,taskQuantityInPack=quantityInPack", true);
+            $arr = arr::make("taskId=id,taskMeasureId=measureId,indTimeAllocation=indTimeAllocation,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId,taskQuantityInPack=quantityInPack,labelQuantityInPack=labelQuantityInPack", true);
             foreach ($arr as $fldAlias => $fld){
                 $taskRec->{$fld} = $rec->{$fldAlias};
             }
