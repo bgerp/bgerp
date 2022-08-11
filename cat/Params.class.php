@@ -147,10 +147,14 @@ class cat_Params extends bgerp_ProtoParam
      */
     public static function getNormalizedName($rec, $upperCase = false, $lg = 'bg')
     {
-        $rec = cat_Params::fetchRec($rec, 'name,suffix');
-        
+        $rec = cat_Params::fetchRec($rec, 'name,suffix,group');
+
         core_Lg::push($lg);
         $name = tr($rec->name) . ((!empty($rec->suffix)) ? ' (' . tr($rec->suffix) . ')': '');
+        if(!empty($rec->group)) {
+            $group = tr($rec->group);
+            $name = "{$group} {$name}";
+        }
         $name = preg_replace('/\s+/', '_', $name);
         $name = str_replace('/', '_', $name);
         $name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
