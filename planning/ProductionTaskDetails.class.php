@@ -1080,11 +1080,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         $quantity = $rec->quantity;
 
         if(in_array($rec->type, array('production', 'scrap'))) {
-            $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack');
+            $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
             $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
 
-            // Ако артикула е за финален етап вземат се данните от мастъра на операцията
+            // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
             if(($taskRec->isFinal == 'yes' && $rec->productId == $jobProductId) || $rec->productId == $taskRec->productId){
+
                 if(cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom'){
                     if($taskRec->indPackagingId == $taskRec->measureId){
                         $quantity /= $taskRec->quantityInPack;
@@ -1092,7 +1093,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 if($taskRec->measureId != $taskRec->indPackagingId){
-                    if ($indQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->indPackagingId, 'quantity')) {
+                    if(!empty($taskRec->labelQuantityInPack)){
+                        $quantity = ($quantity / $taskRec->labelQuantityInPack);
+                    } elseif ($indQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->indPackagingId, 'quantity')) {
                         $quantity = ($quantity / $indQuantityInPack);
                     }
                 }
