@@ -605,6 +605,9 @@ class planning_Tasks extends core_Master
             }
 
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+            if(planning_Tasks::haveRightFor('list')){
+                $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folderId' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
+            }
             if(isset($fields['-single']) && isset($rec->prevAssetId)){
                 $row->assetId = ht::createHint($row->assetId, "Предишно оборудване|*: " . planning_AssetResources::getTitleById($rec->prevAssetId), 'warning', false);
             }
