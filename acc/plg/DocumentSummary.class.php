@@ -237,7 +237,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if (!$defaultFilterDateField) {
                         $defaultFilterDateField = $f;
                     }
-                    $caption = $mvc->getField($f)->caption;
+                    $caption = $data->listFilter->getField($f)->caption;
                     if (strpos($caption, '->')) {
                         list($l, $r) = explode('->', $caption);
                         $caption = tr($l) . ' » ' . tr($r);
@@ -414,7 +414,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $where = '';
 
                 if ($fromField) {
-                    $autoCalcField = $mvc->getFieldParam($fromField, 'autoCalcDateField');
+                    $autoCalcField = $data->listFilter->getFieldParam($fromField, 'autoCalcDateField');
 
                     if ($dateRange[0] && $dateRange[1]) {
 
