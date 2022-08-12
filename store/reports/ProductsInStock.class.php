@@ -99,7 +99,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=3,columns=3,after=availability,silent');
 
+        $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Покажи по гупи,after=orderBy,single=none');
+
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
+        $fieldset->FNC('amountByGroup', 'blob', 'input=none,single=none');
     }
 
 
@@ -132,6 +135,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $form->setDefault('selfPrices', 'balance');
         $form->setDefault('availability', 'Всички');
+        $form->setDefault('seeByGroups', '');
         $form->setDefault('orderBy', 'name');
         $form->setDefault('type', 'short');
 
@@ -260,6 +264,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                     'productId' => $productId,
                     'code' => $productCode,
                     'productName' => $productName,
+                    'prodGroups' => $prodRec->groups,
+                    'groupOne' => '',
 
                     'selfPrice' => '',
                     'amount' => '',
@@ -298,7 +304,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
         }
 
-        //Ако е избран разширен вариант на справката
+        //Ако е избран разширен вариант на справката добавяме резервираните и очаквните количества
         if ($rec->type == 'long') {
 
             //Извличанве на всички артикули със запазени количества
@@ -402,6 +408,42 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $rec->totalProducts = (countR($recs));
 
+        if ($rec->seeByGroups) {
+            //Разпределение по групи
+            $amountByGroup = array();
+            foreach ($recs as $key => $val) {
+
+                $prodGroupsArr = (!empty(keylist::toArray($val->prodGroups))) ? keylist::toArray($val->prodGroups) : array('nn' => 'nn');
+
+
+                foreach ($prodGroupsArr as $gr) {
+
+                    $cln = clone $val;
+
+                    $amountByGroup[$gr] += $cln->amount;
+
+                    $id = $key . '|' . $gr;
+                    $cln->groupOne = $gr;
+
+                    $recs[$id] = $cln;
+
+                    $recs[$id]->groupOne = $gr;
+
+                }
+                unset($recs[$key]);
+            }
+            $this->groupByField = 'groupOne';
+           ;
+            if (!is_null($recs) && $rec->orderBy) {
+                $order = ($rec->orderBy == 'amount') ? 'DESC' : 'ASC';
+                arr::sortObjects($recs, 'groupOne', $order);
+            }
+
+            $rec->amountByGroup = $amountByGroup;
+
+        }
+
+
         return $recs;
     }
 
@@ -418,6 +460,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
 
+        $fld->FLD('groupOne', 'varchar', 'caption=Група,tdClass=centered nowrap');
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered nowrap');
         $fld->FLD('productName', 'varchar', 'caption=Артикул');
         $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
@@ -453,6 +496,14 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
 
         $row = new stdClass();
+
+        if (is_numeric($dRec->groupOne)){
+            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name'). ' :  '.' Стойност на групата: '.$Double->toVerbal($rec->amountByGroup[$dRec->groupOne]);
+        }else{
+            $row->groupOne = 'Без група';
+        }
+
+
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
         }
@@ -608,4 +659,5 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $res->measure = cat_UoM::fetch(cat_Products::fetch($dRec->productId)->measureId)->shortName;
     }
+
 }
