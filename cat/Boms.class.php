@@ -1151,7 +1151,7 @@ class cat_Boms extends core_Master
                 $key = '$' . $normalizedName;
                 $strings[$key] = $value;
 
-                $key1 = "#{$paramId}";
+                $key1 = "#{$paramId} ({$normalizedName})";
                 $ids[$key1] = $value;
             }
         }
