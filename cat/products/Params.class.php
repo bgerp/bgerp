@@ -694,7 +694,15 @@ class cat_products_Params extends doc_Detail
         }
 
         foreach ($params as $pId) {
-            $v = (array_key_exists($pId, $paramValues)) ? $paramValues[$pId] : (array_key_exists($pId, $stepParams) ? $stepParams[$pId] : $prevRecValues[$pId]);
+            if(array_key_exists($pId, $paramValues)){
+                $v = $paramValues[$pId];
+            } elseif(array_key_exists($pId, $stepParams)){
+                $v = $stepParams[$pId];
+            } elseif($defaultVal = cat_Params::getDefaultValue($pId, $classId, $objectId)){
+                $v = $defaultVal;
+            } else {
+                $v = $prevRecValues[$pId];
+            }
 
             $paramRec = cat_Params::fetch($pId);
             $name = cat_Params::getVerbal($paramRec, 'name');
