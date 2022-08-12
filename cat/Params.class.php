@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджира динамичните параметри на продуктите
+ * Мениджър за продуктови параметри
  *
  *
  * @category  bgerp
@@ -147,10 +147,14 @@ class cat_Params extends bgerp_ProtoParam
      */
     public static function getNormalizedName($rec, $upperCase = false, $lg = 'bg')
     {
-        $rec = cat_Params::fetchRec($rec, 'name,suffix');
-        
+        $rec = cat_Params::fetchRec($rec, 'name,suffix,group');
+
         core_Lg::push($lg);
         $name = tr($rec->name) . ((!empty($rec->suffix)) ? ' (' . tr($rec->suffix) . ')': '');
+        if(!empty($rec->group)) {
+            $group = tr($rec->group);
+            $name = "{$group} {$name}";
+        }
         $name = preg_replace('/\s+/', '_', $name);
         $name = str_replace('/', '_', $name);
         $name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
@@ -166,8 +170,7 @@ class cat_Params extends bgerp_ProtoParam
      *
      * @param array $params    - масив с параметри
      * @param bool  $upperCase - дали имената да са в долен или горен регистър
-     *
-     * @return array $arr        - масив
+     * @return array $arr      - масив
      */
     public static function getParamNameArr($params, $upperCase = false)
     {
@@ -194,7 +197,6 @@ class cat_Params extends bgerp_ProtoParam
      * Рендира блок с параметри за артикули
      *
      * @param array $paramArr
-     *
      * @return core_ET $tpl
      */
     public static function renderParamBlock($paramArr)
@@ -304,5 +306,25 @@ class cat_Params extends bgerp_ProtoParam
         }
         
         return $res;
+    }
+
+
+    /**
+     * Наличните опции за избор на параметри за производствените операции
+     *
+     * @param mixed $exParamIds - ид-та на съществуващите записи
+     * @return array $options
+     */
+    public static function getTaskParamOptions($exParamIds = null)
+    {
+        $options = array();
+        $taskParamIds = cat_Params::getTaskParamIds();
+        $exParamIds = is_array($exParamIds) ? $exParamIds : keylist::toArray($exParamIds);
+        $allowedParamIds = $taskParamIds + $exParamIds;
+        foreach ($allowedParamIds as $paramId){
+            $options[$paramId] = cat_Params::getVerbal($paramId, 'typeExt');
+        }
+
+        return $options;
     }
 }

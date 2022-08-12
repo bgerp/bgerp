@@ -211,6 +211,27 @@ defIfNot('SALES_SHOW_PRICE_IN_PRODUCT_SELECTION', 'no');
  */
 defIfNot('SALES_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
 
+/**
+ * Дефолтен текст на циркулярен имейл за просрочени фактури
+ */
+defIfNot('SALES_DEFAULT_BLAST_BODY_BG',  "Здравейте,\nС настоящото бихме желали да Ви обърнем внимание, че към [#date#] година имате просрочия по фактури:\n[#docs#]\nна обща стойност [#sum#] [#currency#]\nМолим във възможно най-кратки срокове да погасите цитираното задължение.\nВ случай, че вече сте направили плащане по посочените документи, молим да ни извините и да игнорирате настоящото писмо.\n\nТова е автоматично генерирано съобщение, което не изисква отговор. За допълнителни въпроси и информация моля, свържете се с наш представител.\n\nС уважение");
+
+/**
+ * Дефолтен subject на циркулярен имейл за просрочени фактури
+ */
+defIfNot('SALES_DEFAULT_BLAST_SUBJECT_BG', "Просрочени задължения към [#date#]
+");
+
+/**
+ * Дефолтен текст на циркулярен имейл за просрочени фактури на английски
+ */
+defIfNot('SALES_DEFAULT_BLAST_BODY_EN',  "Hello,\nThis letter is to bring to your attention that as of [#date#] no payment has been received for the invoices\nlisted below [#docs#],\ntotal value [#sum#] [#currency#].\n\nWe kindly ask you to promptly settle the outstanding invoices.\n\nIn case you have already made payment, please excuse us and ignore this reminder.\n\nThis letter is automatically generated that does not require a response. For additional questions and information, please contact our representative.\n\nWith respect");
+
+/**
+ * Дефолтен subject на циркулярен имейл за просрочени фактури на английски
+ */
+defIfNot('SALES_DEFAULT_BLAST_SUBJECT_EN', "Dunning Notice");
+
 
 /**
  * Продажби - инсталиране / деинсталиране
@@ -379,6 +400,11 @@ class sales_Setup extends core_ProtoSetup
         'SALES_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към продажба->Избор'),
         'SALES_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен търговец в продажбите->Избор'),
         'SALES_SHOW_PRICE_IN_PRODUCT_SELECTION' => array('enum(no=Изключено,measureId=Основна мярка,basePack=Избраната за основна мярка/опаковка)', 'caption=Показване на продажната цена при избор на артикул в документи->Избор'),
+
+        'SALES_DEFAULT_BLAST_BODY_BG' => array('richtext(rows=5,bucket=Blast)', 'caption=Текст на циркулярен имейл за просрочени плащания->На български, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_SUBJECT_BG' => array('varchar', 'caption=Subject на циркулярен имейл за просрочени плащания->На български, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_BODY_EN' => array('richtext(rows=5,bucket=Blast)', 'caption=Текст на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_SUBJECT_EN' => array('varchar', 'caption=Subject на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
     );
     
     

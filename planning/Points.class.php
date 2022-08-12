@@ -32,8 +32,14 @@ class planning_Points extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
-    
-    
+
+
+    /**
+     * Кой може да го създава?
+     */
+    public $canAdd = 'no_one';
+
+
     /**
      * Полета, които се виждат
      */
@@ -115,7 +121,7 @@ class planning_Points extends core_Manager
         $row->centerId = planning_Centers::getHyperlink($rec->centerId, true);
         
         if(planning_Points::haveRightFor('openterminal', $rec)){
-            $row->terminal = ht::createBtn('Отвори', array('planning_Terminal', 'open', $rec->id), false, true, 'title=Отваряне на терминала за отчитане на производството,ef_icon=img/16/forward16.png');
+            //@todo
         }
     }
     
@@ -126,8 +132,7 @@ class planning_Points extends core_Manager
     public function act_OpenTerminal()
     {
         expect($objectId = Request::get('id', 'int'));
-        
-        return new Redirect(array('planning_Terminal', 'open', $objectId));
+        //@todo
     }
     
     
