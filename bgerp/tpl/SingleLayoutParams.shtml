@@ -83,7 +83,14 @@
                 <td>[#max#]</td>
             </tr>
             <!--ET_END max-->
-            
+
+            <!--ET_BEGIN formula-->
+            <tr>
+                <td class="title-style">|Формула|*</td>
+                <td>[#formula#]</td>
+            </tr>
+            <!--ET_END formula-->
+
             <!--ET_BEGIN options-->
             <tr>
                 <td class="title-style" style='vertical-align:top'>|Опции|*</td>
