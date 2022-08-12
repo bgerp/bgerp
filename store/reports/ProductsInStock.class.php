@@ -428,14 +428,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
                     if (!array_key_exists($gr, $sumByGroup)) {
                         $sumByGroup[$gr] = (object)array(
-
                             'amount' => $cln->amount,
-                            'quantity' => array(),
-
                         );
                     }else{
                         $obj = &$sumByGroup[$gr];
-
                         $obj->amount += $cln->amount;
                     }
 
@@ -446,6 +442,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
                             'quantity' => $cln->blQuantity,
                             'measureId' => $cln->measureId,
+                            'gr' => $gr,
 
                         );
                     }else{
@@ -455,10 +452,15 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                     }
 
                     $id = $key . '|' . $gr;
+                    if (is_numeric($gr)){
+                        $grName = cat_Groups::getVerbal($gr, 'name');
+                    }else{
+                        $grName = 'яяя';
+                    }
+
                     $cln->groupOne = $gr;
-
+                    $cln->groupName = $grName;
                     $recs[$id] = $cln;
-
                     $recs[$id]->groupOne = $gr;
 
                 }
@@ -468,10 +470,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             $sumByGroup['quantities'] = $quantityByMeasureGroup;
 
             $this->groupByField = 'groupOne';
-           ;
-            if (!is_null($recs) && $rec->orderBy) {
-                $order = ($rec->orderBy == 'amount') ? 'DESC' : 'ASC';
-                arr::sortObjects($recs, 'groupOne', $order);
+
+            if (!is_null($recs)) {
+                arr::sortObjects($recs, 'groupName', 'asc','stri');
+
             }
 
             $rec->sumByGroup = $sumByGroup;
@@ -536,9 +538,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $row = new stdClass();
 
+
         if (is_numeric($dRec->groupOne)){
+
             $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name').' : '.'Общо: '.'стойност '.$Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount).
-                             ' количества:';
+                             ' количества';
+            foreach ($rec->sumByGroup['quantities'] as $val){
+                if($val->gr == $dRec->groupOne) {
+                    $row->groupOne .= ': '.$Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
+                }
+            }
         }else{
             $row->groupOne = 'Без група';
         }
