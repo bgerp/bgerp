@@ -127,7 +127,7 @@ class rtac_Plugin extends core_Plugin
             $tpl->appendOnce('rtacObj.shareUsersURL = {};', 'SCRIPTS');
             $tpl->appendOnce('rtacObj.shareUserRoles = {};', 'SCRIPTS');
             $tpl->appendOnce('rtacObj.sharedUsers = {};', 'SCRIPTS');
-            
+
             // Добавяме потребителите, до които ще се споделя
             $tpl->appendOnce("rtacObj.shareUserRoles.{$id} = '{$shareUsersRoles}';", 'SCRIPTS');
             
@@ -140,9 +140,11 @@ class rtac_Plugin extends core_Plugin
             // Ескейпваме
             $localUrl = urlencode($localUrl);
             $tpl->appendOnce("rtacObj.shareUsersURL.{$id} = '{$localUrl}';", 'SCRIPTS');
-            
+
+            setIfNot($maxShowCnt, $mvc->params['maxOptionsShowCount'], rtac_Setup::get('MAX_SHOW_COUNT'));
+
             // Стартираме autocomplete-a за добавяне на потребител
-            $inst->runAutocompleteUsers($tpl, $id);
+            $inst->runAutocompleteUsers($tpl, $id, $maxShowCnt);
         }
     }
     
