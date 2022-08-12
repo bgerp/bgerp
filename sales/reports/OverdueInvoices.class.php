@@ -57,10 +57,12 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldset->FLD(
             'countryGroup',
             'key(mvc=drdata_CountryGroups,select=name)',
-            'caption=Група държави,placeholder=Всички,single=none,mandatory,after=contragent'
+            'caption=Група държави,single=none,mandatory,after=contragent'
         );
         $fieldset->FLD('listForEmail', 'blob', 'caption=Списък за имейл,single=none,after=countryGroup,input=hidden');
-        $fieldset->FLD('excludedForEmail', 'text', 'caption=Изключени за имейл фирми,single=none,after=listForEmail,input=hidden');
+        $fieldset->FLD('excludedFromEmail', 'text', 'caption=Изключени за имейл фирми,single=none,after=listForEmail,input=hidden');
+        $fieldset->FLD('unsentEmails', 'blob', 'caption=Неизпратени имейли,single=none,after=listForEmail,input=hidden');
+        $fieldset->FLD('blastId', 'int', 'caption=Последен документ,single=none,after=unsentEmails,input=hidden');
 
         $fieldset->FNC('salesTotalOverDue', 'double', 'caption=Общо просрочени,input=none,single=none');
         $fieldset->FNC('salesTotalPayout', 'double', 'caption=Общо плащания,input=none,single=none');
@@ -189,6 +191,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $cQuery = crm_ext_ContragentInfo::getQuery();
 
         $cQuery->where("#overdueSales = 'yes'");
+
+        $contragentsArr = array();
 
         while ($contragent = $cQuery->fetch()) {
 
@@ -636,6 +640,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                         <!--ET_BEGIN salesTotalOverDue--><div>|Общо просрочени|*: <b>[#salesTotalOverDue#]</b></div><!--ET_END salesTotalOverDue-->
                                         <!--ET_BEGIN salesTotalPayout--><div>|Общо платено|*: <b>[#salesTotalPayout#]</b></div><!--ET_END salesTotalPayout-->
                                         <!--ET_BEGIN salesCurrentSum--><div>|Общо за плащане|*: <b>[#salesCurrentSum#]</b></div><!--ET_END salesCurrentSum-->
+                                        <!--ET_BEGIN excludedFromEmail--><div>|Изключени от имейла|*: <b>[#excludedFromEmail#]</b></div><!--ET_END excludedFromEmail-->
+                                        <!--ET_BEGIN unsentEmails--><div>|Неизпратени имейли|*: <b>[#unsentEmails#]</b></div><!--ET_END unsentEmails-->
+                                        <!--ET_BEGIN blastId--><div>|Последен документ|*: <b>[#blastId#]</b></div><!--ET_END blastId-->
                                         <!--ET_BEGIN button--><div>| |* [#button#]</div><!--ET_END button-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"
@@ -685,16 +692,42 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
         $exportUrl = array('sales_reports_OverdueInvoices', 'excludCompanies', 'recId' => $data->rec->id, 'ret_url' => true);
-        if (dt::secsBetween(dt::now(),$data->rec->lastRefreshed) > 3600){
+        if (dt::secsBetween(dt::now(), $data->rec->lastRefreshed) > 3600) {
             $worning = "warning='Справката е обновена преди повече от 1 час. Да продължи ли без обновяване?'";
-        }else{
+        } else {
             $worning = null;
         }
 
 
         $toolbar = cls::get('core_Toolbar');
 
-        if (haveRole('blast')){
+        if (haveRole('blast')) {
+
+            //Изключените контрагенти от имейла
+            if (isset($data->rec->excludedFromEmail)) {
+                foreach (keylist::toArray($data->rec->excludedFromEmail) as $v) {
+                    $exludedContragents .= doc_Folders::fetchField($v, 'title') . ', ';
+                }
+                $fieldTpl->append(trim($exludedContragents, ', '), 'excludedFromEmail');
+            } else {
+                $fieldTpl->append('Няма', 'excludedFromEmail');
+            }
+
+            //Неизпратени имейли
+            if (isset($data->rec->unsentEmails)) {
+                foreach (keylist::toArray($data->rec->unsentEmails) as $v) {
+                    $unsentEmails .= doc_Folders::fetchField($v, 'title') . ', ';
+                }
+                $fieldTpl->append(trim($unsentEmails, ', '), 'unsentEmails');
+            } else {
+                $fieldTpl->append('Няма', 'unsentEmails');
+            }
+
+            if (isset($data->rec->blastId)) {
+                $link = blast_Emails::getHyperlink($data->rec->blastId);
+                $fieldTpl->append(trim($link, ', '), 'blastId');
+            }
+
             $toolbar->addBtn('Циркулярно писмо', toUrl($exportUrl), null, $worning);
         }
 
@@ -739,7 +772,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     }
 
     /**
-     * Създаване на циркулярно писмо
+     * Изключване на получатели
      */
     public static function act_ExcludCompanies()
     {
@@ -749,7 +782,11 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $rec = frame2_Reports::fetch($recId);
 
-        $listForEmail = self::createLiftForEmail($rec);
+        $listForEmail = self::createListForEmail($rec);
+
+        if (empty($listForEmail)) {
+            return new Redirect(array('frame2_Reports', 'single', $rec->id), 'Липсват контрагенти, на които да се изпратят имейли', 'warning');
+        }
 
         $rec->listForEmail = $listForEmail;
 
@@ -758,7 +795,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $form = cls::get('core_Form');
 
-        $form->title = "Подготовка на списък за циркулерн имейл";
+        $form->title = "Подготовка на списък за циркулярен имейл";
+
+        $cSuggestionsArr = array('' => '');
 
         foreach ($rec->listForEmail as $key => $val) {
 
@@ -772,7 +811,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $form->setSuggestions('companyFilter', $cSuggestionsArr);
 
-        $form->rec->companyFilter = $rec->excludedForEmail;
+        $form->rec->companyFilter = $rec->excludedFromEmail;
 
         $mRec = $form->input();
 
@@ -782,18 +821,21 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         if ($form->isSubmitted()) {
 
-            foreach ($rec->listForEmail as $key => $val){
+            foreach ($rec->listForEmail as $key => $val) {
 
 
-                if (in_array($val['folder'], keylist::toArray($form->rec->companyFilter))){
+                if (in_array($val['folder'], keylist::toArray($form->rec->companyFilter))) {
 
-                    $rec->listForEmail[$key]['exclude'] = 'yes';
-                }else {
-                    $rec->listForEmail[$key]['exclude'] = 'no';
+                    $rec->listForEmail[$key]['excludе'] = 'yes';
+
+                } else {
+
+                    $rec->listForEmail[$key]['excludе'] = 'no';
                 }
             }
 
-            $rec->excludedForEmail = $form->rec->companyFilter;
+
+            $rec->excludedFromEmail = $form->rec->companyFilter;
             frame2_Reports::save($rec);
 
             $exportUrl = array('sales_reports_OverdueInvoices', 'blast', 'recId' => $rec->id, 'ret_url' => true);
@@ -806,57 +848,82 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     /**
      * Създаване на списък за циркулярно писмо
      */
-    public static function createLiftForEmail($rec)
+    public static function createListForEmail($rec)
     {
+        $listForEmail = array();
+        $unsentEmails = array();
 
-            //Добавяне в blob полето
-            $listForEmail = array();
+        if (empty($rec->data->recs)) {
+            return $listForEmail;
+        }
+        //Добавяне в blob полето
+        if ($rec->listForEmail) {
+            $oldListForEmail = $rec->listForEmail;
+        } else {
+            $oldListForEmail = array();
+        }
 
+
+        if (!$rec->countryGroup) {
+            $emailLanguage = 'bg';
+        } else {
             $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
+        }
 
-            foreach ($rec->data->recs as $dRec) {
 
-                $contragentClassName = core_Classes::fetch($dRec->contragentClassId)->name;
+        foreach ($rec->data->recs as $dRec) {
 
-                $contragentRec = $contragentClassName::fetch($dRec->contragentId);
+            $contragentClassName = core_Classes::fetch($dRec->contragentClassId)->name;
 
-                $countryName = drdata_Countries::fetch($contragentRec->country)->commonName;
+            $contragentRec = $contragentClassName::fetch($dRec->contragentId);
 
-                foreach (explode(',', $contragentRec->email) as $email) {
+            $countryName = drdata_Countries::fetch($contragentRec->country)->commonName;
 
-                    if ($email == '') continue;
+            foreach (explode(',', $contragentRec->email) as $email) {
 
-                    $inv = '#'.sales_Invoices::getHandle($dRec->invoiceId);
+                //Ако има контрагенти без имейл ги изключва и ги записва в полето $rec->unsentEmails
+                if ($email == '') {
+                    $unsentEmails[$contragentRec->folderId] = $contragentRec->folderId;
+                    continue;
+                }
 
-                    if (is_array($rec->listForEmail[$email])){
-                        $excludе = $rec->listForEmail[$email]['exclude'];
-                    }else {
-                        $excludе = 'no';
-                    }
+                $inv = '#' . sales_Invoices::getHandle($dRec->invoiceId);
 
-                    if(!in_array($email,array_keys($listForEmail))){
+                if (!empty($oldListForEmail) && array_key_exists('exclude', $oldListForEmail)) {
 
-                        $listForEmail[$email] = array('email' => $email,
-                                                      'company' => $contragentRec->name,
-                                                      'folder' => $contragentRec->folderId,
-                                                      'country' => $countryName,
-                                                      'date' => dt::mysql2verbal($rec->lastRefreshed, 'd.m.Y'),
-                                                      'docs' => $inv,
-                                                      'sum' => $dRec->invoiceCurrentSummArr[$dRec->contragent],
-                                                      'excludе' => $excludе,
-                        );
+                    $excludе = $oldListForEmail[$email]['exclude'];
+                } else {
+                    $excludе = 'no';
+                }
 
-                    }else{
-                        $listForEmail[$email]['docs'] .= ', '.$inv;
+                if (!in_array($email, array_keys($listForEmail))) {
 
-                    }
+                    $listForEmail[$email] = array('email' => $email,
+                        'company' => $contragentRec->name,
+                        'folder' => $contragentRec->folderId,
+                        'country' => $countryName,
+                        'date' => dt::mysql2verbal($rec->lastRefreshed, 'd.m.Y'),
+                        'docs' => $inv,
+                        'sum' => $dRec->invoiceCurrentSummArr[$dRec->contragent],
+                        'currency' => $dRec->currencyId,
+                        'excludе' => $excludе,
+                    );
+
+                } else {
+                    $listForEmail[$email]['docs'] .= ', ' . $inv;
+
                 }
             }
+        }
+
+        $rec->unsentEmails = $unsentEmails;
+        frame2_Reports::save($rec, 'unsentEmails');
 
         return $listForEmail;
     }
 
-    function act_Blast() {
+    function act_Blast()
+    {
 
         requireRole('admin,blast');
 
@@ -865,27 +932,38 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $rec = frame2_Reports::fetch($recId);
 
         $listForSend = array();
-        foreach ($rec->listForEmail as $key => $val){
 
-            if ($val->exclude == 'yes')continue;
+        foreach ($rec->listForEmail as $key => $val) {
+
+            if ($val['excludе'] == 'yes') continue;
 
             $listForSend[$key] = array('email' => $val['email'],
-                                       'company' =>$val['company'],
-                                       'country' => $val['country'],
-                                       'date' => $val['date'],
-                                       'docs' => $val['docs'],
-                                       'sum' =>$val['sum'],
+                'company' => $val['company'],
+                'country' => $val['country'],
+                'date' => $val['date'],
+                'docs' => $val['docs'],
+                'sum' => $val['sum'],
+                'currency' => $val['currency'],
             );
         }
 
-        $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
+        if (empty($listForSend)) {
+            return new Redirect(array('frame2_Reports', 'single', $rec->id), 'Липсват контрагенти, на които да се изпратят имейли', 'warning');
+        }
+
+        if (!$rec->countryGroup) {
+            $emailLanguage = 'bg';
+        } else {
+            $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
+        }
+
 
         $handle = doc_Containers::getDocument($rec->containerId)->getHandle();
 
-        $listArr = array('title' => 'Справка'.' '.$rec->title.' '.$handle ,
+        $listArr = array('title' => 'Справка' . ' ' . $rec->title . ' ' . $handle,
             'ifExist' => 'truncateAndUpdate',
             'keyField' => 'email',
-            'fieldsArr' => array('company' => 'Име','country' => 'Държава', 'docs' => 'Документи', 'sum' => 'Стойност', 'date' => 'Дата'),
+            'fieldsArr' => array('company' => 'Име', 'country' => 'Държава', 'docs' => 'Документи', 'sum' => 'Стойност', 'currency' => 'Валута', 'date' => 'Дата'),
             'state' => 'closed',
             'lg' => $emailLanguage,
             'folderId' => blast_Lists::getDefaultFolder(),
@@ -893,9 +971,18 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             'listFieldsDetArr' => $listForSend,
         );
 
+        if ($emailLanguage == 'bg') {
+            $body = sales_Setup::get('DEFAULT_BLAST_BODY_BG');
+            $subject = sales_Setup::get('DEFAULT_BLAST_SUBJECT_BG');
+        } else {
+            $body = sales_Setup::get('DEFAULT_BLAST_BODY_EN');
+            $subject = sales_Setup::get('DEFAULT_BLAST_SUBJECT_EN');
+        }
+
+
         $blastArr = array('sharedUser' => array(core_Users::getCurrent() => core_Users::getCurrent()),
-            'text' => "Имате просрочия за [#docs#].\nМоля направете плащане.",
-            'subject' => 'Просрочия към [#date#]',
+            'text' => $body,
+            'subject' => $subject,
             'canUnsubscribe' => 'no',
             'lg' => core_Lg::getCurrent(),
             'folderId' => blast_Emails::getDefaultFolder(),
@@ -904,6 +991,13 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $res = blast_Emails::createListAndEmail($listArr, $blastArr);
 
         expect($res['blastId']);
+
+        $rec->blastId = $res['blastId'];
+        if (countR($rec->unsentEmails)) {
+            status_Messages::newStatus('На ' . countR($rec->unsentEmails) . ' контрагента няма да бъдат изпратени имейли. Виж :' . frame2_Reports::getLinkToSingle($rec->id), 'warning');
+        }
+
+        frame2_Reports::save($rec, 'blastId');
 
         if (blast_Emails::haveRightFor('single', $res['blastId'])) {
             return new Redirect(array('blast_Emails', 'single', $res['blastId']));

@@ -771,7 +771,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
         // Ако има зададена политика за делта, връща се цената по нея
         if(isset($deltaListId)){
-            $primeCost = price_ListRules::getPrice($deltaListId, $productId, $packagingId, $saleRec->valior);
+            $primeCost = price_ListRules::getPrice($deltaListId, $productId, $packagingId, $saleRec->activatedOn);
             
             return $primeCost;
         }
@@ -810,7 +810,7 @@ class sales_PrimeCostByDocument extends core_Manager
         }
 
         // Ако няма намерена себестойност
-        $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $saleRec->valior, price_ListRules::PRICE_LIST_COST);
+        $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $saleRec->activatedOn, price_ListRules::PRICE_LIST_COST);
         if (isset($primeCost)) {
             $costs = sales_Sales::getCalcedTransports($saleRec->threadId);
             if (isset($costs[$productId])) {

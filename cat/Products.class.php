@@ -4320,4 +4320,31 @@ class cat_Products extends embed_Manager
             }
         }
     }
+
+
+    /**
+     * Помощна ф-я за добавяне на заявка за търсене към опциите използвани в key
+     */
+    public static function addSearchQueryToKey2SelectArr(&$query, $q, $limit)
+    {
+        $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
+
+        if ($q) {
+            $strict = ($q[0] == '"');
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = mb_strtolower($q);
+            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
+
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $query->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        $query->show('id,name,code,isPublic,nameEn');
+    }
 }

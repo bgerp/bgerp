@@ -138,7 +138,7 @@ class planning_Jobs extends core_Master
     /**
      * Поле за дата по което ще филтрираме
      */
-    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn';
+    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn,activatedOn';
     
     
     /**
@@ -539,9 +539,9 @@ class planning_Jobs extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('view', 'enum(createdOn=По дата на създаване,activatedOn=По дата на Активиране,dueDate=По дата на падеж,deliveryDate=По дата за доставка,progress=Според изпълнението,all=Всички,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
+            $data->listFilter->FNC('view', 'enum(all=Всички,progress=Според изпълнението,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
             $data->listFilter->input('view', 'silent');
-            $data->listFilter->setDefault('view', 'createdOn');
+            $data->listFilter->setDefault('view', 'all');
             $data->listFilter->showFields .= ',view';
         }
         
@@ -567,9 +567,8 @@ class planning_Jobs extends core_Master
                 }
             }
 
-            // Филтър по изглед
-            if (isset($filter->view)) {
-                switch ($filter->view) {
+            if (isset($filter->filterDateField)) {
+                switch ($filter->filterDateField) {
                     case 'createdOn':
                         unset($data->listFields['modifiedOn']);
                         unset($data->listFields['modifiedBy']);
@@ -581,10 +580,23 @@ class planning_Jobs extends core_Master
                         $data->query->orderBy('dueDate', 'ASC');
                         $data->query->where("#state = 'active'");
                         break;
+                    case 'activatedOn':
+                        unset($data->listFields['activatedOn']);
+                        unset($data->listFields['activatedBy']);
+                        $data->listFields['activatedOn'] = 'Активиране||Activated->На';
+                        $data->listFields['activatedBy'] = 'Активиране||Activated->От||By';
+                        $data->query->orderBy('activatedOn', 'DESC');
+                        break;
                     case 'deliveryDate':
                         arr::placeInAssocArray($data->listFields, array('deliveryDate' => 'Дата за доставка'), 'modifiedOn');
                         $data->query->orderBy('deliveryDate', 'ASC');
                         break;
+                }
+            }
+
+            // Филтър по изглед
+            if (isset($filter->view)) {
+                switch ($filter->view) {
                     case 'draft':
                     case 'active':
                     case 'stopped':
@@ -1370,8 +1382,8 @@ class planning_Jobs extends core_Master
                     $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId, 'ret_url' => true);
                 }
 
-                $productionSteps = planning_Centers::getPlanningStepOptionsByFolderId($depFolderId);
-                if(!countR($productionSteps)) continue;
+                $productionStepCount = planning_Steps::getCountByCenterFolderId($depFolderId);
+                if(!$productionStepCount) continue;
 
                 $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, "title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png");
                 $dName = doc_Folders::recToVerbal($depFolderId)->title;

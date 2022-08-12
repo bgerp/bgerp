@@ -117,7 +117,7 @@ class planning_Steps extends core_Extender
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelType', 'enum(scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
         $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
@@ -158,15 +158,8 @@ class planning_Steps extends core_Extender
         $form->setFieldTypeParams("{$mvc->className}_wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
 
         // Добавяне на избор само на Параметрите за производствени операции
-        $paramOptions = array();
-        $taskParamIds = cat_Params::getTaskParamIds();
-        $exParamIds = keylist::toArray($rec->{"{$mvc->className}_planningParams"});
-        $allowedParamIds = $taskParamIds + $exParamIds;
-        foreach ($allowedParamIds as $paramId){
-            $paramOptions[$paramId] = cat_Params::getVerbal($paramId, 'typeExt');
-        }
-        $form->setSuggestions("{$mvc->className}_planningParams", $paramOptions);
-
+        $paramSuggestions = cat_Params::getTaskParamOptions($rec->{"{$mvc->className}_planningParams"});
+        $form->setSuggestions("{$mvc->className}_planningParams", $paramSuggestions);
         if($form->getField('meta', false)){
             $form->setField('meta', 'input=none');
         }
@@ -561,5 +554,116 @@ class planning_Steps extends core_Extender
         }
         
         return $tpl;
+    }
+
+
+    /**
+     * Връща активните операции за предходните етапи, на етапа в рамките на подаденото задание
+     *
+     * @param int $stepId      - ид на артикул - етап
+     * @param int $containerId - контейнер на задание, в което ще се търсят операциите
+     * @return array $res
+     */
+    public static function getPreviousStepTaskIds($stepId, $containerId)
+    {
+        $res = array();
+
+        // Кои са предходните етапи на този етап
+        $cQuery = planning_StepConditions::getQuery();
+        $cQuery->where("#stepId = {$stepId}");
+        $cQuery->show('prevStepId');
+        $prevStepIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'prevStepId');
+        if(!countR($prevStepIds)) return $res;
+
+        // Всички текущи ПО към заданието за посочените етапи
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$containerId} AND #state IN ('active', 'stopped', 'wakeup', 'closed')");
+        $tQuery->in('productId', $prevStepIds);
+        $tQuery->show('id');
+        $res = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
+
+        return $res;
+    }
+
+
+    /**
+     * Връща достъпните избираеми продуктови етапи
+     */
+    public static function getSelectableSteps($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $productClassId = cat_Products::getClassId();
+        $driverClassId = planning_interface_StepProductDriver::getClassId();
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#innerClass = {$driverClassId}");
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+            $ids = implode(',', $onlyIds);
+            $pQuery->where("#id IN ({$ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $pQuery->where("#id = ${onlyIds}");
+        } else {
+            $pQuery->where("#state != 'closed' AND #state != 'rejected'");
+
+            if(isset($params['centerFolderId'])){
+                $sQuery = planning_Steps::getQuery();
+                $Cover = doc_Folders::getCover($params['centerFolderId']);
+                $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
+                $sQuery->show('objectId');
+                $in = arr::extractValuesFromArray($sQuery->fetchAll(), 'objectId');
+
+                if(countR($in)){
+                    $pQuery->in('id', $in);
+                } else {
+                    $pQuery->where("1=2");
+                }
+            }
+        }
+
+        cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);
+        $res = $finalSteps = $nonFinalSteps = array();
+        while ($pRec = $pQuery->fetch()) {
+            $isFinal = planning_Steps::fetchField("#objectId = {$pRec->id} AND #classId = {$productClassId}", 'isFinal');
+            if($isFinal == 'yes'){
+                $finalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+            } else {
+                $nonFinalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+            }
+        }
+
+        if (countR($nonFinalSteps)) {
+            asort($nonFinalSteps, SORT_NATURAL);
+            if (!isset($onlyIds)) {
+                $nonFinalSteps = array('nfs' => (object) array('group' => true, 'title' => tr('Междинни етапи'))) + $nonFinalSteps;
+            }
+            $res += $nonFinalSteps;
+        }
+
+        if (countR($finalSteps)) {
+            asort($finalSteps, SORT_NATURAL);
+            if (!isset($onlyIds)) {
+                $finalSteps = array('fs' => (object) array('group' => true, 'title' => tr('Финални етапи'))) + $finalSteps;
+            }
+            $res += $finalSteps;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Колко са активните етапи в папката на посочения център на дейност
+     *
+     * @param int $folderId  - ид на папка
+     * @return int           - брой намерени етапи
+     */
+    public static function getCountByCenterFolderId($folderId)
+    {
+        $Cover = doc_Folders::getCover($folderId);
+        $productClassId = cat_Products::getClassId();
+
+        return static::count("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
     }
 }

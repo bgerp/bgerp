@@ -228,6 +228,10 @@ class core_Pager extends core_BaseClass
                 $this->itemsCount = $resCntCache;
             }
         }
+
+        if(!$this->itemsCount && $query->mvc->simplePaging) {
+            $this->itemsCount = $qCnt->count();
+        }
         
         $this->calc();
         

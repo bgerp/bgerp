@@ -31,10 +31,11 @@ class rtac_AutocompleteIntf
      *
      * @param core_Et $tpl
      * @param string  $rtId
+     * @param integer  $maxShowCnt
      */
-    public function runAutocompleteUsers(&$tpl, $rtId)
+    public function runAutocompleteUsers(&$tpl, $rtId, $maxShowCnt)
     {
-        return $this->class->runAutocompleteUsers($tpl, $rtId);
+        return $this->class->runAutocompleteUsers($tpl, $rtId, $maxShowCnt);
     }
     
     
@@ -43,9 +44,10 @@ class rtac_AutocompleteIntf
      *
      * @param core_Et $tpl
      * @param string  $rtId
+     * @param integer  $maxShowCnt
      */
-    public function runAutocompleteText(&$tpl, $rtId)
+    public function runAutocompleteText(&$tpl, $rtId, $maxShowCnt)
     {
-        return $this->class->runAutocompleteText($tpl, $rtId);
+        return $this->class->runAutocompleteText($tpl, $rtId, $maxShowCnt);
     }
 }

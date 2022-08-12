@@ -645,28 +645,9 @@ class cat_Listings extends core_Master
             $products = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
             $pQuery->in('id', $products);
         }
-        
-        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
-        
-        if ($q) {
-            if ($q[0] == '"') {
-                $strict = true;
-            }
-            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
-            $q = mb_strtolower($q);
-            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
-            
-            $pBegin = type_Key2::getRegexPatterForSQLBegin();
-            foreach ($qArr as $w) {
-                $pQuery->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
-            }
-        }
-        
-        if ($limit) {
-            $pQuery->limit($limit);
-        }
-        
-        $pQuery->show('id,name,code,isPublic,nameEn');
+
+        cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);
+
         while ($pRec = $pQuery->fetch()) {
             $options[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }

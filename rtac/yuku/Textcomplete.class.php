@@ -42,16 +42,12 @@ class rtac_yuku_Textcomplete extends core_Manager
      *
      * @param core_Et $tpl
      * @param string  $rtId
+     * @param integer  $maxShowCnt
      *
-     * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId)
+     * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId, $maxShowCnt)
      */
-    public static function runAutocompleteUsers(&$tpl, $rtId)
+    public static function runAutocompleteUsers(&$tpl, $rtId, $maxCount)
     {
-        $conf = core_Packs::getConfig('rtac');
-        
-        // Максималния брой на елементи, които
-        $maxCount = $conf->RTAC_MAX_SHOW_COUNT;
-        
         jquery_Jquery::run($tpl, "
         	$('#{$rtId}').textcomplete(
                 {
@@ -81,16 +77,12 @@ class rtac_yuku_Textcomplete extends core_Manager
      *
      * @param core_Et $tpl
      * @param string  $textId
+     * @param integer  $maxCount
      *
-     * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId)
+     * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId, $maxShowCnt)
      */
-    public static function runAutocompleteText(&$tpl, $textId)
+    public static function runAutocompleteText(&$tpl, $textId, $maxCount)
     {
-        $conf = core_Packs::getConfig('rtac');
-        
-        // Максималния брой на елементи, които
-        $maxCount = $conf->RTAC_MAX_SHOW_COUNT;
-        
         jquery_Jquery::run($tpl, "
         	$('#{$textId}').textcomplete(
                 {
