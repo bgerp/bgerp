@@ -693,15 +693,22 @@ class cat_products_Params extends doc_Detail
             $params = arr::extractValuesFromArray($oQuery->fetchAll(), 'id');
         }
 
+        if(!isset($objectId)){
+            $domainClassId = cat_Products::getClassId();
+            $objectId = $productId;
+        } else {
+            $domainClassId = $class->getClassId();
+        }
+
         foreach ($params as $pId) {
             if(array_key_exists($pId, $paramValues)){
                 $v = $paramValues[$pId];
             } elseif(array_key_exists($pId, $stepParams)){
                 $v = $stepParams[$pId];
-            } elseif($defaultVal = cat_Params::getDefaultValue($pId, $classId, $objectId)){
-                $v = $defaultVal;
-            } else {
+            } elseif(array_key_exists($pId, $prevRecValues)){
                 $v = $prevRecValues[$pId];
+            } else {
+                $v = cat_Params::getDefaultValue($pId, $domainClassId, $objectId);
             }
 
             $paramRec = cat_Params::fetch($pId);
@@ -711,7 +718,8 @@ class cat_products_Params extends doc_Detail
                 $name = "{$groupName}: {$name}";
             }
             $form->FLD("paramcat{$pId}", 'double', "caption=Параметри за планиране на:|* <b>{$plannedProductName}</b>->|{$name}|*,before=indTime");
-            $ParamType = cat_Params::getTypeInstance($pId, $class->getClassId(), $objectId);
+
+            $ParamType = cat_Params::getTypeInstance($pId, $domainClassId, $objectId);
             $form->setFieldType("paramcat{$pId}", $ParamType);
 
             if (!empty($paramRec->suffix)) {
