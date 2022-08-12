@@ -62,7 +62,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fieldset->FLD('to', 'datetime', 'caption=До,after=start,single=none,mandatory');
 
         $fieldset->FLD('centre', 'key(mvc=planning_Centers,title=name)', 'caption=Център,removeAndRefreshForm,after=to,silent');
-        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,title=title)', 'caption=Машини,placeholder=Всички,after=centre,single=none');
+        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources)', 'caption=Машини,placeholder=Всички,after=centre,single=none');
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none');
 
         $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
