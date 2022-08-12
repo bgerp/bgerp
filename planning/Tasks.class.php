@@ -1734,7 +1734,7 @@ class planning_Tasks extends core_Master
 
                 if($filter->filterDateField == 'dueDate'){
                     if(!isset($filter->assetId)){
-                        $orderByDir = 'DESC';
+                        $orderByDir = 'ASC';
                         $orderByDateCoalesce = '#dueDate';
                     }
                     arr::placeInAssocArray($data->listFields, array('dueDate' => 'Падеж'), null, 'expectedTimeStart');
