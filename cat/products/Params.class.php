@@ -478,8 +478,11 @@ class cat_products_Params extends doc_Detail
             $pRec = cat_Params::fetch($rec->paramId, 'roles,valueType');
             if (!empty($roles) && !haveRole($roles, $userId)) {
                 $requiredRoles = 'no_one';
-            } elseif($pRec->valueType == 'readonly'){
-                $requiredRoles = 'no_one';
+            }
+            if($action == 'edit'){
+                if($pRec->valueType == 'readonly'){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
