@@ -24,8 +24,6 @@
 class plg_StructureAndOrder extends core_Plugin
 {
     const PADDING = '&nbsp;&nbsp;» ';
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -39,6 +37,7 @@ class plg_StructureAndOrder extends core_Plugin
         
         $mvc->listItemsPerPage = max($mvc->listItemsPerPage, 1000);
         setIfNot($mvc->saoOrderPrioriy, -100);
+        setIfNot($mvc->autoOrderBySaoOrder, true);
     }
     
     
@@ -309,7 +308,9 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public function on_AfterGetQuery($mvc, $query)
     {
-        $query->orderBy('#saoOrder', 'ASC', $mvc->saoOrderPrioriy);
+        if($mvc->autoOrderBySaoOrder){
+            $query->orderBy('#saoOrder', 'ASC', $mvc->saoOrderPrioriy);
+        }
     }
     
     

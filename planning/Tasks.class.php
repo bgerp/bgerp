@@ -56,6 +56,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Дали автоматично да се филтрира по полето за подредба
+     */
+    public $autoOrderBySaoOrder = false;
+
+
+    /**
      * Заглавие
      */
     public $title = 'Производствени операции';
