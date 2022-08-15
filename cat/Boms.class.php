@@ -1137,26 +1137,8 @@ class cat_Boms extends core_Master
      */
     public static function getProductParams($productId)
     {
-        $strings = $ids = array();
         $params = cat_Products::getParams($productId);
-
-        if (is_array($params)) {
-            foreach ($params as $paramId => $value) {
-                if(cat_Params::haveDriver($paramId, 'cond_type_YesOrNo')){
-                    $value = ($value == 'yes') ? 1 : 0;
-                }
-                if (!is_numeric($value)) continue;
-                $normalizedName = cat_Params::getNormalizedName($paramId);
-
-                $key = '$' . $normalizedName;
-                $strings[$key] = $value;
-
-                $key1 = "#{$paramId}";
-                $ids[$key1] = $value;
-            }
-        }
-
-        $res = $strings + $ids;
+        $res = cat_Params::getFormulaParamMap($params);
 
         if (countR($res)) return array($productId => $res);
         

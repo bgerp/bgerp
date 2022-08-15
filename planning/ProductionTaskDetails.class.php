@@ -341,7 +341,15 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
 
-        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees, false, true) : planning_Hr::getByFolderId($masterRec->folderId, null, true);
+        $exIdKeylist = '';
+        $dQuery = static::getQuery();
+        $dQuery->where("#taskId = {$rec->taskId}");
+        $dQuery->show('employees');
+        while($dRec = $dQuery->fetch()){
+            $exIdKeylist = keylist::merge($exIdKeylist, $dRec->employees);
+        }
+
+        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr(keylist::merge($masterRec->employees, $exIdKeylist), false, true) : planning_Hr::getByFolderId($masterRec->folderId, $exIdKeylist, true);
         if (countR($employees)) {
             $form->setSuggestions('employees', array('' => '') + $employees);
             $form->setField('employees', 'input');

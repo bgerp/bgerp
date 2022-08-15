@@ -150,7 +150,7 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
         $this->FLD('position', 'int(Min=0)', 'caption=Позиция,tdClass=leftCol');
-        $this->FLD('propQuantity', 'text(rows=2)', 'caption=Формула,tdClass=accCell,mandatory');
+        $this->FLD('propQuantity', 'text(rows=2, maxOptionsShowCount=20)', 'caption=Формула,tdClass=accCell,mandatory');
         $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
@@ -478,10 +478,8 @@ class cat_BomDetails extends doc_Detail
             $scope['$Начално='] = '$Начално=';
             
             $rec->params = $scope;
-            $context = array_keys($scope);
-            $context = array_combine($context, $context);
+            $context = cat_Params::formulaMapToSuggestions($scope);
             unset($context['$T']);
-
             $form->setSuggestions('propQuantity', $context);
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
             

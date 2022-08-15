@@ -56,6 +56,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Дали автоматично да се филтрира по полето за подредба
+     */
+    public $autoOrderBySaoOrder = false;
+
+
+    /**
      * Заглавие
      */
     public $title = 'Производствени операции';
@@ -272,6 +278,12 @@ class planning_Tasks extends core_Master
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
     public $hideListFieldsIfEmpty = 'dependantProgress';
+
+
+    /**
+     * Да се показват ли бъдещи периоди в лист изгледа
+     */
+    public $filterFutureOptions = true;
 
 
     /**
@@ -596,9 +608,10 @@ class planning_Tasks extends core_Master
                 $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
         } else {
+            $row->dueDate = $origin->getVerbal('dueDate');
             $jobPackQuantity = $origin->fetchField('packQuantity');
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);
-            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
+            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
         }
 
         if(empty($rec->indTime)){
@@ -1487,9 +1500,9 @@ class planning_Tasks extends core_Master
                 $taskOptions = array();
                 foreach ($assetTasks as $tRec){
                     $job = doc_Containers::getDocument($tRec->originId);
-                    $jobTitle = str::limitLen($job->getRecTitle(), 42);
-                    $productTitle = str::limitLen($mvc->getVerbal($tRec->id, 'title'), 42);
-                    $title = "#Opr{$tRec->id}/{$jobTitle}/{$productTitle}";
+                    $jobTitle =  str::limitLen("Job{$job->that}-" . cat_Products::getVerbal($job->fetchField('productId'), 'name'), 42);
+                    $productTitle = str::limitLen(cat_Products::getVerbal($tRec->productId, 'name'), 42);
+                    $title = "Opr{$tRec->id}/{$jobTitle}/{$productTitle}";
                     $taskOptions[$tRec->id] = $title;
                 }
 
@@ -1712,16 +1725,25 @@ class planning_Tasks extends core_Master
             $data->listFilter->setDefault('state', 'activeAndPending');
 
             $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 9999999999999)';
-            if ($state = $data->listFilter->rec->state) {
-                if ($state == 'activeAndPending') {
-                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
-                } elseif($state != 'all') {
-                    $data->query->where("#state = '{$state}' OR #state = 'rejected'");
 
-                    if($state == 'closed'){
+            if ($filter = $data->listFilter->rec) {
+                if ($filter->state == 'activeAndPending') {
+                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
+                } elseif($filter->state != 'all') {
+                    $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
+
+                    if($filter->state == 'closed'){
                         $orderByDir = 'DESC';
                         $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
                     }
+                }
+
+                if($filter->filterDateField == 'dueDate'){
+                    if(!isset($filter->assetId)){
+                        $orderByDir = 'ASC';
+                        $orderByDateCoalesce = '#dueDate';
+                    }
+                    arr::placeInAssocArray($data->listFields, array('dueDate' => 'Падеж'), null, 'expectedTimeStart');
                 }
             }
         } else {
