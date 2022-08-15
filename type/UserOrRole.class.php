@@ -53,6 +53,9 @@ class type_UserOrRole extends type_User
         
         setIfNot($this->params['additionalRoles'], 'partner, distributor, agent');
         $this->params['additionalRoles'] = str_replace('|', ',', $this->params['additionalRoles']);
+
+        setIfNot($this->params['rolesForDomains'], 'no_one');
+        $this->params['rolesForDomains'] = str_replace('|', ',', $this->params['rolesForDomains']);
     }
     
     
@@ -68,11 +71,11 @@ class type_UserOrRole extends type_User
         $this->options = parent::prepareOptions();
         
         $oArr = array();
-        
+
         // Ако има съответната роля за виждане на ролите
         if (haveRole($this->params['rolesForAllRoles'])) {
             
-            // Добавяме неизбираемо поле за оли
+            // Добавяме неизбираемо поле за роли
             $group = new stdClass();
             $group->title = tr('Роли');
             $group->attr = array('class' => 'role');
@@ -127,7 +130,35 @@ class type_UserOrRole extends type_User
                 $this->options += $oArr;
             }
         }
-        
+
+        // Ако има съответната роля за виждане на домейните
+        if (haveRole($this->params['rolesForDomains'])) {
+
+            $oArr = array();
+
+            // Добавяме неизбираемо поле за домейни
+            $group = new stdClass();
+            $group->title = tr('Домейни');
+            $group->attr = array('class' => 'role');
+            $group->group = true;
+            $oArr['domains'] = $group;
+
+            // Вземаме всички домейни
+            $rQuery = cms_Domains::getQuery();
+
+            while ($rec = $rQuery->fetch()) {
+                $roleObj = new stdClass();
+                $roleObj->title = cms_Domains::getRecTitle($rec);
+                $roleObj->id = $rec->id;
+                $roleObj->value = self::getDomainRoleId($rec->id);
+                $oArr['d_' . $rec->id] = $roleObj;
+            }
+
+            if (countR($oArr) > 1) {
+                $this->options += $oArr;
+            }
+        }
+
         $this->prepareSelOpt = true;
         
         $this->prepareSelectOpt($this->options);
@@ -148,12 +179,18 @@ class type_UserOrRole extends type_User
     {
         $sel = $this->params['select'];
         $mvc = $this->params['mvc'];
-        
+
         if ($value < 0) {
-            $this->params['mvc'] = cls::get('core_Roles');
-            $this->params['select'] = 'role';
+
+            if (self::getTypeFromId($value) == 'domain') {
+                $this->params['mvc'] = cls::get('cms_Domains');
+                $this->params['select'] = 'domain';
+            } else {
+                $this->params['mvc'] = cls::get('core_Roles');
+                $this->params['select'] = 'role';
+            }
         }
-        
+
         $res = parent::toVerbal_($value);
         
         $this->params['mvc'] = $mvc;
@@ -174,20 +211,49 @@ class type_UserOrRole extends type_User
     public function fromVerbal_($value)
     {
         $key = self::getKeyFromTitle($value);
-        
+
         if (!$key) {
             $key = $value;
         }
-        
+
         list($type, $id) = explode('_', $key);
         
-        if ($type == 'r') {
-            $value = self::getSysRoleId($id);
+        if (($type == 'r') || ($type == 'd')) {
+
+            $rType = ($type == 'd') ? 'domain' : 'role';
+
+            $value = self::getSysRoleId($id, $rType);
         }
-        
+
         return parent::fromVerbal_($value);
     }
-    
+
+
+    /**
+     * Помощна функция за вземане на типа спрямо `id`
+     *
+     * @param integer $id
+     *
+     * return string
+     */
+    protected static function getTypeFromId($id)
+    {
+        if ($id > 0) {
+
+            return 'user';
+        }
+
+        $domainsSysId = self::getAllSysTeamId('domain');
+//        $rolesSysId = self::getAllRolesSysId('roles');
+
+        if ($id > $domainsSysId) {
+
+            return 'domain';
+        }
+
+        return 'role';
+    }
+
     
     /**
      *
@@ -201,9 +267,15 @@ class type_UserOrRole extends type_User
     protected function fetchVal(&$value)
     {
         if ($value < 0) {
-            $roleId = self::getRoleIdFromSys($value);
-            
-            return core_Roles::fetch((int) $roleId);
+            $type = '';
+            $recId = self::getRoleIdFromSys($value, $type);
+
+            $class = 'core_Roles';
+            if ($type == 'domain') {
+                $class = 'cms_Domains';
+            }
+
+            return $class::fetch((int) $recId);
         }
         
         return parent::fetchVal($value);
@@ -222,39 +294,55 @@ class type_UserOrRole extends type_User
     public function renderInput($name, $value = '', &$attr = array())
     {
         if ($value < 0) {
-            $value = self::getRoleIdFromSys($value);
-            
+            $type = '';
+            $value = self::getRoleIdFromSys($value, $type);
+
             if ($value === 0) {
                 $value = 'allSysTeam';
             }
-            
-            $attr['value'] = 'r_' . $value;
+
+            $t = $type == 'domain' ? 'd_' : 'r_';
+
+            $attr['value'] = $t . $value;
             $value = '';
         }
-        
+
         return parent::renderInput($name, $value, $attr);
     }
-    
-    
+
+
     /**
      * Връща ID-то за allSysTeam
      *
      * @return int
      */
-    public static function getAllSysTeamId()
+    public static function getAllSysTeamId($type = 'role')
     {
-        static $allSysTeams = 0;
+        static $allSysTeamsArr = array();
         
-        if (!$allSysTeams) {
-            $allSysTeams = 1 - pow(2, 31);
+        if (!$allSysTeamsArr[$type]) {
+            $pow = pow(2, 31);
+
+            if ($type == 'role') {
+                $allSysTeamsArr[$type] = 1 - $pow;
+            }
+
+            if ($type == 'domain') {
+                $allSysTeamsArr[$type] = 1 - ($pow / 2);
+            }
         }
-        
-        if ($allSysTeams >= 0) {
-            wp($allSysTeams);
-            $allSysTeams = -2147483647;
+
+        if ($allSysTeamsArr[$type] >= 0) {
+            wp($allSysTeamsArr);
+            if ($type == 'role') {
+                $allSysTeamsArr[$type] = -2147483647;
+            }
+            if ($type == 'domain') {
+                $allSysTeamsArr[$type] = -1073741823;
+            }
         }
-        
-        return $allSysTeams;
+
+        return $allSysTeamsArr[$type];
     }
     
     
@@ -262,17 +350,37 @@ class type_UserOrRole extends type_User
      * Връща id за групата базирано на allSysTeam
      *
      * @param int $roleId
+     * @param string $type
      *
      * @return int
      */
-    public static function getSysRoleId($roleId)
+    public static function getSysRoleId($roleId, $type = 'role')
     {
         $roleId = (int) $roleId;
 
-        $allSysTeam = self::getAllSysTeamId();
-        
+        $allSysTeam = self::getAllSysTeamId($type);
+
         $nRoleId = $allSysTeam + $roleId;
-        
+
+        return $nRoleId;
+    }
+
+
+    /**
+     * Връща id за групата базирано на allSysTeam
+     *
+     * @param int $roleId
+     *
+     * @return int
+     */
+    public static function getDomainRoleId($roleId)
+    {
+        $roleId = (int) $roleId;
+
+        $allSysTeam = self::getAllSysTeamId('domain');
+
+        $nRoleId = $allSysTeam + $roleId;
+
         return $nRoleId;
     }
     
@@ -284,19 +392,21 @@ class type_UserOrRole extends type_User
      *
      * @return int|NULL
      */
-    public static function getRoleIdFromSys($sysRoleId)
-    {   
+    public static function getRoleIdFromSys($sysRoleId, &$type = null)
+    {
         $sysRoleId = (int) $sysRoleId;
 
         if ($sysRoleId >= 0) {
             
             return;
         }
-        
-        $allSysTeam = self::getAllSysTeamId();
+
+        $type = self::getTypeFromId($sysRoleId);
+
+        $allSysTeam = self::getAllSysTeamId($type);
         
         $roleId = (int) ($sysRoleId - $allSysTeam);
-        
+
         return $roleId;
     }
     
