@@ -22,7 +22,12 @@
                 <td>[#sysId#]</td>
             </tr>
             <!--ET_END sysId-->
-            
+            <!--ET_BEGIN valueType-->
+            <tr>
+                <td class="title-style">|Стойност|*</td>
+                <td>[#valueType#]</td>
+            </tr>
+            <!--ET_END valueType-->
             <!--ET_BEGIN lastUsedOn-->
             <tr>
                 <td class="title-style nowrap">|Последно използване|*</td>
