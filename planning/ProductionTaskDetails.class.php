@@ -451,7 +451,11 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (!$form->gotErrors()) {
                 if(isset($serialInfo)){
                     if(empty($rec->quantity) && !empty($serialInfo['quantity'])){
-                        $rec->quantity = min($serialInfo['quantity'], $rec->_defaultQuantity);
+                        if(isset($rec->_defaultQuantity)){
+                            $rec->quantity = min($serialInfo['quantity'], $rec->_defaultQuantity);
+                        } else {
+                            $rec->quantity = $serialInfo['quantity'];
+                        }
                     }
 
                     if(empty($rec->batch)){
