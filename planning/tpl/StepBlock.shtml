@@ -1,6 +1,13 @@
 [#info#]
 <div class="stepProductSingleGroup">|Етап в производството - спецификация|*</div>
     <table class="stepParamTable">
+		<!--ET_BEGIN image-->
+		<div class="productImage">
+			<div>
+				[#image#]
+			</div>
+		</div>
+		<!--ET_END image-->
     	<tr>
     		<td class='quiet'>|Операция|*:</td>
     		<td>[#planning_Steps_name#]</td>
