@@ -601,7 +601,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('measureId', 'planning_Tasks', "externalName=measureId,externalKey=taskId");
         $query->EXT('labelPackagingId', 'planning_Tasks', "externalName=labelPackagingId,externalKey=taskId");
         $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
-        $query->where("#originId = {$taskRec->originId}");
+        $query->where("#originId = {$taskRec->originId} AND #taskId != {$taskRec->id}");
         $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
 
         // Сумира се реално произведеното по този проз. номер по операция
