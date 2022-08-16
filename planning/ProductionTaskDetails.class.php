@@ -592,37 +592,36 @@ class planning_ProductionTaskDetails extends doc_Detail
         $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId');
         $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
 
-        // Кои са предходните операции на този етап
+        // Търси се в другите ПО от това задание дали вече се използва този сериен номер
+        // със същата опаковка за етикетиране
         $foundFromOtherTask = null;
-        $previousTaskIds = planning_Steps::getPreviousStepTaskIds($taskRec->productId, $taskRec->originId);
-        if(countR($previousTaskIds)){
+        $foundRecs = array();
+        $query = static::getQuery();
+        $query->EXT('originId', 'planning_Tasks', "externalName=originId,externalKey=taskId");
+        $query->EXT('measureId', 'planning_Tasks', "externalName=measureId,externalKey=taskId");
+        $query->EXT('labelPackagingId', 'planning_Tasks', "externalName=labelPackagingId,externalKey=taskId");
+        $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
+        $query->where("#originId = {$taskRec->originId}");
+        $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
 
-            // От предходните се оставят само тези със същата опаковка за етикетиране
-            $foundRecs = array();
-            $query = static::getQuery();
-            $query->EXT('measureId', 'planning_Tasks', "externalName=measureId,externalKey=taskId");
-            $query->EXT('labelPackagingId', 'planning_Tasks', "externalName=labelPackagingId,externalKey=taskId");
-            $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
-            $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
+        // Сумира се реално произведеното по този проз. номер по операция
+        $query->where(array("#serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
 
-            // Сумира се реално произведеното по този проз. номер по операция
-            $query->where(array("#serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
-            $query->in('taskId', $previousTaskIds);
-
-            while($rec = $query->fetch()){
-                if(!array_key_exists($rec->taskId, $foundRecs)){
-                    $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
-                }
-                $sign = ($rec->type == 'scrap') ? -1 : 1;
-                $foundRecs[$rec->taskId]->quantity += $sign * $rec->quantity;
+        while($rec = $query->fetch()){
+            if(!array_key_exists($rec->taskId, $foundRecs)){
+                $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
             }
+            $sign = ($rec->type == 'scrap') ? -1 : 1;
+            $foundRecs[$rec->taskId]->quantity += $sign * $rec->quantity;
+            $date = isset($rec->date) ? $rec->date : $rec->createdOn;
+            $foundRecs[$rec->taskId]->date = max($foundRecs[$rec->taskId]->date , $date);
+        }
 
-            // Връща се информацията от операцията с най-малко произведено к-во
-            if(countR($foundRecs)){
-                arr::sortObjects($foundRecs, 'quantity', 'ASC');
-                $firstFound = (array)$foundRecs[key($foundRecs)];
-                $foundFromOtherTask = $firstFound;
-            }
+        // Връща се информацията от операцията с най-малко произведено к-во
+        if(countR($foundRecs)){
+            arr::sortObjects($foundRecs, 'date', 'DESC');
+            $firstFound = (array)$foundRecs[key($foundRecs)];
+            $foundFromOtherTask = $firstFound;
         }
 
         // Изчисляване сумарно по този произ. номер в текущата операция
