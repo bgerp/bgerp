@@ -125,15 +125,19 @@ class cond_type_Formula extends cond_type_Text
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
+        $idToNameArr = array();
         $params = static::getParamsFromDomain($domainClass, $domainId);
-        $paramMap = cat_Params::getFormulaParamMap($params);
-
+        $paramMap = cat_Params::getFormulaParamMap($params, $idToNameArr);
         $calced = cat_BomDetails::calcExpr($value, $paramMap);
-        if ($calced === cat_BomDetails::CALC_ERROR) {
-            $verbal = ht::createHint('', "Не може да се изчисли: {$value}", 'warning');
-        } else {
-            $calced = "<span style='color:blue'>{$calced}</span>";
-            $verbal = ht::createHint($calced, "Изчислено от: {$value}");
+        $verbal = $calced;
+        if(!Mode::is('text', 'plain')){
+            $exprDisplay = strtr($value, $idToNameArr);
+            if ($calced === cat_BomDetails::CALC_ERROR) {
+                $verbal = ht::createHint('', "Не може да се изчисли: {$exprDisplay}", 'warning');
+            } else {
+                $calced = "<span style='color:blue'>{$calced}</span>";
+                $verbal = ht::createHint($calced, "Изчислено от: {$exprDisplay}");
+            }
         }
 
         return $verbal;
