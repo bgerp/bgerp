@@ -99,7 +99,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=3,columns=3,after=availability,silent');
 
-        $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Покажи по гупи артикули,after=orderBy,input=none,single=none');
+        $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Покажи по групи артикули,after=orderBy,input=none,single=none');
 
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
         $fieldset->FNC('sumByGroup', 'blob', 'input=none,single=none');
@@ -310,10 +310,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
         }
 
-        //Ако е избран разширен вариант на справката добавяме резервираните и очаквните количества
+        //Ако е избран разширен вариант на справката добавяме резервираните и очакваните количества
         if ($rec->type == 'long') {
 
-            //Извличанве на всички артикули със запазени количества
+            //Извличане на всички артикули със запазени количества
             $prodQuery = store_Products::getQuery();
             if ($rec->products) {
                 $prodQuery->where("#productId = $rec->products");
