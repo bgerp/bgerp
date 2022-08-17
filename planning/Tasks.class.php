@@ -1255,8 +1255,7 @@ class planning_Tasks extends core_Master
             }
 
             if(empty($rec->systemId) && empty($rec->id)){
-                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,indPackagingId=normPackagingId");
-
+                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm");
                 foreach ($defFields as $fld => $val){
                     $form->setDefault($fld, $productionData[$val]);
                 }
@@ -1390,6 +1389,10 @@ class planning_Tasks extends core_Master
                 $packs = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false)) + cat_products_Packagings::getOnlyPacks($productId4Form);
                 $form->setOptions('labelPackagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
+                if(isset($productionData) && array_key_exists($productionData['normPackagingId'], $packs)){
+                    $form->setDefault('indPackagingId', $productionData['normPackagingId']);
+                }
+
                 if($rec->isFinal != 'yes'){
                     if(array_key_exists($productionData['labelPackagingId'], $packs)){
                         $form->setDefault('labelPackagingId', $productionData['labelPackagingId']);
