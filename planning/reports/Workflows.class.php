@@ -204,7 +204,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity,originId');
 
                 $quantity = $tRec->quantity;
-                $crapQuantity = ($tRec->type = 'scrap') ? $tRec->quantity : 0;
+                $crapQuantity = ($tRec->type == 'scrap') ? $tRec->quantity : 0;
 
                 //Количеството се преизчилсява според мерките за производство
                 $quantityInPack = 1;
