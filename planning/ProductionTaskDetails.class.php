@@ -830,7 +830,11 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             // Проверка има ли отклонение спрямо очакваното транспортно тегло
             if(!empty($rec->weight)){
-                $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
+                $weightQuantity = $rec->quantity;
+                if($rec->type == 'production'){
+                    $weightQuantity = $rec->quantity * $masterRec->quantityInPack;
+                }
+                $transportWeight = cat_Products::getTransportWeight($rec->productId, $weightQuantity);
                 
                 if(!empty($transportWeight)){
                     $deviation = abs(round(($transportWeight - $rec->weight) / (($transportWeight + $rec->weight) / 2), 2));
