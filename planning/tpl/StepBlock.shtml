@@ -44,7 +44,7 @@
 		<!--ET_END planning_Steps_planningParams-->
 		<!--ET_BEGIN planning_Steps_showPreviousJobField-->
 		<tr>
-			<td class='quiet'>|Предх. Зад.|*:</td>
+			<td class='quiet nowrap'>|Предх. Зад.|*:</td>
 			<td>[#planning_Steps_showPreviousJobField#]</td>
 		</tr>
 		<!--ET_END planning_Steps_showPreviousJobField-->
