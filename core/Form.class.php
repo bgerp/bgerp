@@ -859,7 +859,7 @@ class core_Form extends core_FieldSet
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
-                    // Гупиране по часта преди посочения разделител
+                    // Групиране по частта преди посочения разделител
                     if ($div = $field->groupByDiv) {
                         $options = ht::groupOptions($options, $div);
                     }
