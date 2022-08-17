@@ -663,7 +663,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             //Когато НЕ СА ИЗБРАНИ групи артикули
             if (!$rec->group) {
                 if (keylist::isKeylist(($v->group))) {
-                    $v->group = keylist::toArray($v->group); //Кейлиста с гупите го записва като масив
+                    $v->group = keylist::toArray($v->group); //Кейлиста с групите го записва като масив
                 } else {
                     $v->group = array('Без група' => 'Без група'); //Ако артикула не е включен в групи записва 'Без група'
                 }

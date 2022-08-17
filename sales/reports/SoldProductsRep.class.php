@@ -929,7 +929,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             //Когато НЕ СА ИЗБРАНИ групи артикули
             if (!($rec->$typeGroup)) {
                 if (keylist::isKeylist(($v->$typeGroup))) {
-                    $v->$typeGroup = keylist::toArray($v->$typeGroup); //Кейлиста с гупите го записва като масив
+                    $v->$typeGroup = keylist::toArray($v->$typeGroup); //Кейлиста с групите го записва като масив
                 } elseif (is_numeric($v->$typeGroup)) {
                     $v->$typeGroup = array($v->$typeGroup => $v->$typeGroup); //Ако е избрана категория
                 } else {
