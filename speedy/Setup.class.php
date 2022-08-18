@@ -16,7 +16,7 @@ defIfNot('SPEEDY_TRACKING_URL', "https://www.speedy.bg/bg/track-shipment?shipmen
 /**
  * Коя е клиентската версия на библиотеката
  */
-defIfNot('SPEEDY_CLIENT_LIBRARY_VERSION', '3.5.4');
+defIfNot('SPEEDY_CLIENT_LIBRARY_VERSION', '3.5.6');
 
 
 /**
@@ -100,7 +100,7 @@ class speedy_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'speedy_interface_DeliveryToOffice';
+    public $defClasses = 'speedy_interface_DeliveryToOffice,speedy_interface_DeliveryToDoor';
     
     
     /**
