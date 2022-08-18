@@ -358,14 +358,14 @@ class sales_PrimeCostByDocument extends core_Manager
     private static function getDeltaIndicators($indicatorRecs, $masters, &$personIds)
     {
         $result = $personIds = array();
-        if (!countR($indicatorRecs)) {
-            
-            return $result;
-        }
+        if (!countR($indicatorRecs)) return $result;
         
-        $deltaId = hr_IndicatorNames::force('Delta', __CLASS__, 1)->id;
-        $deltaIId = hr_IndicatorNames::force('DeltaI', __CLASS__, 2)->id;
-        
+        $deltaRec = hr_IndicatorNames::force('Delta', __CLASS__, 1);
+        $deltaIRec = hr_IndicatorNames::force('DeltaI', __CLASS__, 2);
+        if($deltaRec->state == 'closed' && $deltaIRec->state == 'closed') return $result;
+
+        $deltaId = $deltaRec->id;
+        $deltaIId = $deltaIRec->id;
         foreach ($indicatorRecs as $rec) {
             
             // Намиране на дилъра, инициатора и взимане на данните на мастъра на детайла
@@ -376,7 +376,10 @@ class sales_PrimeCostByDocument extends core_Manager
                 if (!isset($rec->{$personFld})) {
                     continue;
                 }
-                
+
+                $deltaFullRec = ($personFld == 'dealerId') ? $deltaRec : $deltaIRec;
+                if($deltaFullRec->state == 'closed') continue;
+
                 // Намиране на визитката на потребителя
                 if (!isset($personIds[$rec->{$personFld}])) {
                     $personIds[$rec->{$personFld}] = crm_Profiles::fetchField("#userId = '{$rec->{$personFld}}'", 'personId');
@@ -384,7 +387,7 @@ class sales_PrimeCostByDocument extends core_Manager
                 
                 $personFldValue = $personIds[$rec->{$personFld}];
                 $indicatorId = ($personFld == 'dealerId') ? $deltaId : $deltaIId;
-                
+
                 // Ключа по който ще събираме е лицето, документа и вальора
                 $key = "{$personFldValue}|{$Document->getClassId()}|{$Document->that}|{$rec->valior}|{$indicatorId}";
                 
@@ -527,15 +530,16 @@ class sales_PrimeCostByDocument extends core_Manager
         }
         
         $productGroups = self::getAllProductGroups($indicatorRecs);
-        
-        $groupSumId = hr_IndicatorNames::force('GroupSum', __CLASS__, 3)->id;
-        $noGroupSumId = hr_IndicatorNames::force('NoGroupSum', __CLASS__, 4)->id;
-        
+
+        $groupSumRec = hr_IndicatorNames::force('GroupSum', __CLASS__, 3);
+        $noGroupSumRec = hr_IndicatorNames::force('NoGroupSum', __CLASS__, 4);
+
+        $groupSumId = $groupSumRec->id;
+        $noGroupSumId = $noGroupSumRec->id;
+
         // За всеки запис
         foreach ($indicatorRecs as $rec) {
-            if (!$rec->dealerId) {
-                continue;
-            }
+            if (!$rec->dealerId) continue;
             
             // Намира се в колко от търсените групи участва
             $groups = $productGroups[$rec->productId];
@@ -546,30 +550,37 @@ class sales_PrimeCostByDocument extends core_Manager
             $personFldValue = $personIds[$rec->dealerId];
             $isRejected = ($masters[$rec->containerId][1] == 'rejected');
             $sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
-            
-            
+
             if (!empty($delimiter)) {
                 foreach ($diff as $groupId => $obj) {
                     // Сумата е X / броя на групите в които се среща от тези, които се следят
                     $indicatorId = $selectedGroups[$groupId]->groupRec->id;
                     $value = $sign * (round(($rec->quantity * $rec->sellCost) / $delimiter, 2));
-                    hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
+                    if($selectedGroups[$groupId]->groupRec->state != 'closed') {
+                        hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
+                    }
                     
                     // Индикатор за делта по групите
-                    $indicatorDeltaId = $selectedGroups[$groupId]->deltaRec->id;
-                    $delta = $sign * (round($rec->delta / $delimiter, 2));
-                    $delta = self::addSurchargeToDelta($delta, $rec->productId);
-                    
-                    hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorDeltaId, $delta, $isRejected);
+                    if($selectedGroups[$groupId]->deltaRec->state != 'closed') {
+                        $indicatorDeltaId = $selectedGroups[$groupId]->deltaRec->id;
+                        $delta = $sign * (round($rec->delta / $delimiter, 2));
+                        $delta = self::addSurchargeToDelta($delta, $rec->productId);
+                        hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorDeltaId, $delta, $isRejected);
+                    }
+
                     
                     // Сумиране по индикатор на общата сума на групите
-                    hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $groupSumId, $value, $isRejected);
+                    if($groupSumRec->state != 'closed'){
+                        hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $groupSumId, $value, $isRejected);
+                    }
                 }
             } else {
                 
                 // Сумиране на индикатор без група
-                $value = $sign * (round(($rec->quantity * $rec->sellCost), 2));
-                hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $noGroupSumId, $value, $isRejected);
+                if($noGroupSumRec->state != 'closed') {
+                    $value = $sign * (round(($rec->quantity * $rec->sellCost), 2));
+                    hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $noGroupSumId, $value, $isRejected);
+                }
             }
         }
         
@@ -589,27 +600,39 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Индикатор за делта на търговеца
         $rec = hr_IndicatorNames::force('Delta', __CLASS__, 1);
-        $result[$rec->id] = $rec->name;
+        if($rec->state != 'closed') {
+            $result[$rec->id] = $rec->name;
+        }
         
         // Индикатор за делта на инициатора
         $rec = hr_IndicatorNames::force('DeltaI', __CLASS__, 2);
-        $result[$rec->id] = $rec->name;
+        if($rec->state != 'closed') {
+            $result[$rec->id] = $rec->name;
+        }
         
         // Индикатори за избраните артикулни групи
         $groupNames = self::cacheGroupNames();
         if (countR($groupNames)) {
             foreach ($groupNames as $indRec) {
-                $result[$indRec->groupRec->id] = $indRec->groupRec->name;
-                $result[$indRec->deltaRec->id] = $indRec->deltaRec->name;
+                if($indRec->groupRec->state != 'closed'){
+                    $result[$indRec->groupRec->id] = $indRec->groupRec->name;
+                }
+                if($indRec->deltaRec->state != 'closed') {
+                    $result[$indRec->deltaRec->id] = $indRec->deltaRec->name;
+                }
             }
             
             $rec = hr_IndicatorNames::force('GroupSum', __CLASS__, 3);
-            $result[$rec->id] = $rec->name;
+            if($rec->state != 'closed'){
+                $result[$rec->id] = $rec->name;
+            }
             
             $rec = hr_IndicatorNames::force('NoGroupSum', __CLASS__, 4);
-            $result[$rec->id] = $rec->name;
+            if($rec->state != 'closed') {
+                $result[$rec->id] = $rec->name;
+            }
         }
-        
+
         // Връщане на всички индикатори
         return $result;
     }
