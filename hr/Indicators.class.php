@@ -239,7 +239,7 @@ class hr_Indicators extends core_Manager
                 
                 continue;
             }
-            
+
             if (is_array($data) && countR($data)) {
                 
                 // Даваме време
@@ -255,10 +255,11 @@ class hr_Indicators extends core_Manager
                     }
                     
                     $periodRec = acc_Periods::fetchByDate($rec->date);
-                    
+                    if(!is_object($periodRec)) continue;
+
                     // Запомняме за кой период е документа
                     $periods[$periodRec->id] = $periodRec;
-                    
+
                     // Оттеглените източници ги записваме само за почистване
                     if ($rec->isRejected === true) {
                         continue;
@@ -312,10 +313,13 @@ class hr_Indicators extends core_Manager
     private static function calcPeriod($pRec)
     {
         // Намираме последните, активни договори за назначения, които се засичат с периода
+        $start = (empty($pRec->start)) ? '0000-00-00' : $pRec->start;
+        $end = (empty($pRec->end)) ? '0000-00-00' : $pRec->end;
+
         $ecQuery = hr_EmployeeContracts::getQuery();
         $ecQuery->where("#state = 'active' OR #state = 'closed'");
-        $ecQuery->where("#startFrom <= '{$pRec->end}'");
-        $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$pRec->start}')");
+        $ecQuery->where("#startFrom <= '{$end}'");
+        $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$start}')");
         $ecQuery->orderBy('#dateId', 'DESC');
         
         $ecArr = array();
