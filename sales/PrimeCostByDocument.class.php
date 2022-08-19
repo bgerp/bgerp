@@ -601,6 +601,8 @@ class sales_PrimeCostByDocument extends core_Manager
                 }
             }
         }
+
+        return $result;
     }
 
 
