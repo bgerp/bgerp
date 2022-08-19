@@ -68,14 +68,38 @@ class sales_PrimeCostByDocument extends core_Manager
      * Работен кеш
      */
     public static $cache = array();
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    public static $productGroupsCache = array();
+
+
+    /**
+     * Работен кеш
+     */
+    public static $clientGroupsCache = array();
+
+
     /**
      * Работен кеш
      */
     public static $groupNames = array();
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    public static $contragentIndicatorGroupNames = array();
+
+
+    /**
+     * Работен кеш
+     */
+    public static $productIndicatorGroupNames = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -472,8 +496,7 @@ class sales_PrimeCostByDocument extends core_Manager
         // Всички записи
         $indicatorRecs = $iQuery->fetchAll();
         core_App::setTimeLimit(countR($indicatorRecs) * 0.8);
-        
-        
+
         // Ако няма делта се пропуска
         foreach ($indicatorRecs as $k => $r2) {
             if (!isset($r2->delta)) {
@@ -500,12 +523,87 @@ class sales_PrimeCostByDocument extends core_Manager
         if (countR($result2)) {
             $result = array_merge($result2, $result);
         }
-        
+
+        $result3 = self::getOtherGroupIndicators($indicatorRecs, $masters, $personIds);
+        if (countR($result3)) {
+            $result = array_merge($result3, $result);
+        }
+
         // Връщане на всички индикатори
         return $result;
     }
-    
-    
+
+
+    /**
+     * Връща по посочените за следени продуктови и клиентски групи
+     *
+     * @param array $indicatorRecs - филтрираните записи
+     * @param array $masters       - помощен масив
+     * @param array $personIds     - масив с ид-та на визитките на дилърите
+     *
+     * @return array $result       - @see hr_IndicatorsSourceIntf::getIndicatorValues($timeline)
+     */
+    private static function getOtherGroupIndicators($indicatorRecs, $masters, $personIds)
+    {
+        $result = array();
+        if (!countR($indicatorRecs)) return $result;
+
+        // Извличане и кеш на индикаторите за групи и групите на клиента
+        $crmGroupMap = $catGroupMap = array();
+        $clientGroupNames = static::cacheIndicatorGroupNames('crm_Groups');
+        $clientGroups = static::getAllClientGroups($indicatorRecs);
+        array_walk($clientGroupNames, function($a) use (&$crmGroupMap) {
+            if($a->state != 'closed'){
+                $groupId = str_replace('crm_Groups', '', $a->uniqueId);
+                $crmGroupMap[$groupId] = $a->id;
+            }
+        });
+
+        // Извличане и кеш на индикаторите за групи и групите на артикула
+        $productGroupNames = static::cacheIndicatorGroupNames('cat_Groups');
+        $productGroups = static::getAllProductGroups($indicatorRecs);
+        array_walk($productGroupNames, function($a) use (&$catGroupMap) {
+            if($a->state != 'closed'){
+                $groupId = str_replace('cat_Groups', '', $a->uniqueId);
+                $catGroupMap[$groupId] = $a->id;
+            }
+        });
+
+        // Ако няма никакви активни индикатори по групи
+        if(!countR($crmGroupMap) && !countR($catGroupMap)) return $result;
+
+        // Обхождане на индикаторите
+        foreach ($indicatorRecs as $iRec) {
+            if (empty($iRec->dealerId))  continue;
+            $personId = $personIds[$iRec->dealerId];
+            $Document = $masters[$iRec->containerId][0];
+
+            $isRejected = ($masters[$iRec->containerId][1] == 'rejected');
+            $sign = ($masters[$iRec->containerId][2] == 'yes') ? -1 : 1;
+            $value = round($sign * $iRec->delta, 2);
+
+            $pGroup = $productGroups[$iRec->productId];
+            $cGroups = $clientGroups[$iRec->folderId];
+
+            // За всяка от клиентските групи, която е от посочените ще се натрупва отделен индикатор
+            if($intersectedClientGroups = array_intersect_key($cGroups, $crmGroupMap)){
+                foreach ($intersectedClientGroups as $clientGroupId){
+                    $indicatorId = $crmGroupMap[$clientGroupId];
+                    hr_Indicators::addIndicatorToArray($result, $iRec->valior, $personId, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
+                }
+            }
+
+            // За всяка от продуктовите групи, която е от посочените ще се натрупва отделен индикатор
+            if($intersectedProductGroups = array_intersect_key($pGroup, $catGroupMap)){
+                foreach ($intersectedProductGroups as $pGroupId){
+                    $indicatorId = $catGroupMap[$pGroupId];
+                    hr_Indicators::addIndicatorToArray($result, $iRec->valior, $personId, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
+                }
+            }
+        }
+    }
+
+
     /**
      * Връща индикаторите за сумата на продадените артикули по групи
      *
@@ -633,6 +731,13 @@ class sales_PrimeCostByDocument extends core_Manager
             }
         }
 
+        $indicatorGroupNames = static::cacheIndicatorGroupNames('crm_Groups') + static::cacheIndicatorGroupNames('cat_Groups');
+        foreach ($indicatorGroupNames as $iRec){
+            if($iRec->state != 'closed') {
+                $result[$iRec->id] = $iRec->name;
+            }
+        }
+
         // Връщане на всички индикатори
         return $result;
     }
@@ -667,8 +772,33 @@ class sales_PrimeCostByDocument extends core_Manager
         // Връщане на кешираните групи
         return self::$groupNames;
     }
-    
-    
+
+
+    /**
+     * Кешира ид-та на индикаторите за продуктови/клиентски групи
+     *
+     * @param string $class
+     * @return array
+     */
+    private static function cacheIndicatorGroupNames($class)
+    {
+        $varName = ($class == 'crm_Groups') ? 'contragentIndicatorGroupNames' : 'productIndicatorGroupNames';
+        if (!countR(self::${"$varName"})) {
+            $mvc = cls::get($class);
+            $parentGroupSysId = ($class == 'crm_Groups') ? $mvc::getIdFromSysId('indicators') : cat_Groups::fetchField("#sysId = 'indicators'");
+            $prefix = ($class == 'crm_Groups') ? 'Визитник' : 'Артикули';
+            $iDescendants = $mvc->getDescendantArray($parentGroupSysId);
+            foreach ($iDescendants as $descendantId){
+                $groupName = str::mbUcfirst($prefix . " » " . $mvc->getVerbal($descendantId, 'name'));
+                $rec = hr_IndicatorNames::force($groupName, __CLASS__, "{$class}{$descendantId}");
+                self::${"$varName"}[$rec->id] = $rec;
+            }
+        }
+
+        return self::${"$varName"};
+    }
+
+
     /**
      * Помощна ф-я връщаща всички  групи на артикулите
      *
@@ -678,25 +808,54 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     private static function getAllProductGroups($indicatorRecs)
     {
-        $groups = array();
-        if (!countR($indicatorRecs)) {
-            
-            return $groups;
+        if(!countR(static::$productGroupsCache)){
+            $groups = array();
+
+            // Извличане на всички артикули от записите
+            $productArr = arr::extractValuesFromArray($indicatorRecs, 'productId');
+            $pQuery = cat_Products::getQuery();
+            $pQuery->show('groups');
+            $pQuery->in('id', $productArr);
+            while ($pRec = $pQuery->fetch()) {
+                $groups[$pRec->id] = keylist::toArray($pRec->groups);
+            }
+
+            static::$productGroupsCache = $groups;
         }
-        
-        // Извличане на всички артикули от записите
-        $productArr = arr::extractValuesFromArray($indicatorRecs, 'productId');
-        $pQuery = cat_Products::getQuery();
-        $pQuery->show('groups');
-        $pQuery->in('id', $productArr);
-        while ($pRec = $pQuery->fetch()) {
-            $groups[$pRec->id] = keylist::toArray($pRec->groups);
-        }
-        
-        return $groups;
+
+        return static::$productGroupsCache;
     }
-    
-    
+
+
+    /**
+     * Връща кеширайки, всички групи на клиентите
+     *
+     * @param array $indicatorRecs
+     * @return array
+     */
+    private static function getAllClientGroups($indicatorRecs)
+    {
+        if(!countR(static::$clientGroupsCache)){
+            $groups = array();
+
+            $folderIds = arr::extractValuesFromArray($indicatorRecs, 'folderId');
+            foreach (array('crm_Companies', 'crm_Persons') as $contrMvc)
+            {
+                $cQuery = $contrMvc::getQuery();
+                $cQuery->in('folderId', $folderIds);
+                $cQuery->show('groupList,folderId');
+                while ($cRec = $cQuery->fetch()){
+                    $groups[$cRec->folderId] = keylist::toArray($cRec->groupList);
+                }
+            }
+
+            static::$clientGroupsCache = $groups;
+        }
+
+        return static::$clientGroupsCache;
+    }
+
+
     /**
      * Подготовка на филтър формата
      */

@@ -778,4 +778,14 @@ class hr_Indicators extends core_Manager
             $ref->value += $value;
         }
     }
+
+
+    function act_Test()
+    {
+        $r = '$височина_(см) + #100';
+
+        $params = array('$височина' => 2, '#10' => 2, '#100' => 5);
+
+        bp($r, strtr($r, $params));
+    }
 }
