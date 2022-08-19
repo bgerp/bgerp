@@ -100,7 +100,7 @@ class speedy_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'speedy_interface_DeliveryToOffice,speedy_interface_DeliveryToDoor';
+    public $defClasses = 'speedy_interface_DeliveryToOffice';
     
     
     /**
