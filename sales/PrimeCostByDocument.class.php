@@ -570,7 +570,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
         $now = dt::now();
         $thresholdFrom = dt::verbal2mysql(dt::addSecs(-1 * $from, $now), false);
-        $thresholdTo = dt::verbal2mysql(dt::addSecs(-1 * $to, $now), false);
+        $thresholdTo = dt::verbal2mysql(dt::addSecs(-1 * $to, $thresholdFrom), false);
         foreach($indicatorRecs as $iRec){
             if (!isset($iRec->dealerId))  continue;
 
