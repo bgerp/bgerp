@@ -298,7 +298,7 @@ class sales_Setup extends core_ProtoSetup
         ),
         'SALES_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
             'int(Min=0)',
-            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'
+            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на изходяща фактура" за приключване на валутни сделки->Дни'
         ),
         'SALE_CLOSE_OLDER_NUM' => array(
             'int',
@@ -418,8 +418,8 @@ class sales_Setup extends core_ProtoSetup
         'SALES_DEFAULT_BLAST_BODY_EN' => array('richtext(rows=5,bucket=Blast)', 'caption=Текст на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
         'SALES_DEFAULT_BLAST_SUBJECT_EN' => array('varchar', 'caption=Subject на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
 
-        'SALES_CALC_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за за нов артикул->От,unit=назад'),
-        'SALES_CALC_NEW_PRODUCT_TO' => array('time', 'caption=Непродавани артикули от колко време да се считат за за нов артикул->До,unit=назад'),
+        'SALES_CALC_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->От,unit=назад'),
+        'SALES_CALC_NEW_PRODUCT_TO' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=назад'),
     );
     
     
