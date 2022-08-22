@@ -443,6 +443,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
+        'sales_LastSaleByContragents',
     );
     
     
