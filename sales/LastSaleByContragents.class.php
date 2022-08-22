@@ -65,8 +65,8 @@ class sales_LastSaleByContragents extends core_Manager
     {
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'caption=Артикул');
         $this->FLD('folderId', 'key2(mvc=doc_Folders,select=title,coverInterface=crm_ContragentAccRegIntf)', 'caption=Папка');
-        $this->FLD('lastDate', 'datetime', 'caption=Последна продажба преди->На');
-        $this->FLD('lastDateContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Последна продажба преди->Документ');
+        $this->FLD('lastDate', 'date', 'caption=Последна продажба->Вальор');
+        $this->FLD('lastDateContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Последна продажба->Документ');
 
         $this->setDbIndex('productId,folderId');
     }
@@ -106,15 +106,23 @@ class sales_LastSaleByContragents extends core_Manager
         $secondsBefore = sales_Setup::get('CALC_NEW_PRODUCT_FROM');
         $date = dt::verbal2mysql(dt::addSecs(-1 * $secondsBefore), false);
         $date = dt::mysql2verbal($date, 'd.m.Y');
-        $data->listFields['lastDate'] = "Продажба преди|* '{$date}'->На";
-        $data->listFields['lastDateContainerId'] = "Продажба преди|* '{$date}'->Документ";
-
+        $data->title = "Последни продажби на артикули преди|*: <b style='color:green'>{$date}</b>";
     }
 
+
+    /**
+     * Обновяване на датата на последната продажба на артикулите в папката
+     *
+     * @param array $productArr
+     * @param int $folderId
+     * @return void
+     */
     public static function updateDates($productArr, $folderId)
     {
+        // Кои са актуалните времена
         $newRecs = static::getLastSaleDate($productArr, $folderId);
 
+        // Кои са старите времена
         $oQuery = static::getQuery();
         $oQuery->where("#folderId = {$folderId}");
         $oQuery->in('productId', $productArr);
@@ -127,7 +135,7 @@ class sales_LastSaleByContragents extends core_Manager
 
         // Ъпдейт на старите
         if (countR($res['update'])) {
-            static::saveArray($res['update'], 'lastDate,lastDateContainerId');
+            static::saveArray($res['update'], 'id,lastDate,lastDateContainerId');
         }
 
         // Изтриване на тези дето не се срещат
@@ -138,6 +146,14 @@ class sales_LastSaleByContragents extends core_Manager
     }
 
 
+    /**
+     * На коя дата е последната продажба в посочения интервал
+     *
+     * @param array $productArr       - ид-та на артикули
+     * @param int $folderId           - в коя папка да се проверява
+     * @param int|null $secondsBefore - с вальор колко време преди текущата дата
+     * @return array $result          - масив от обекти
+     */
     public static function getLastSaleDate($productArr, $folderId, $secondsBefore = null)
     {
         $secondsBefore = isset($secondsBefore) ? $secondsBefore : sales_Setup::get('CALC_NEW_PRODUCT_FROM');
@@ -159,5 +175,29 @@ class sales_LastSaleByContragents extends core_Manager
         }
 
         return $result;
+    }
+
+
+    /**
+     * Обновява датите на артикулите от детайла на мастъра
+     *
+     * @param core_Mvc $mvc
+     * @param int|stdClass $masterRec
+     * @return void
+     */
+    public static function updateByMvc($mvc, $masterRec)
+    {
+        if(!isset($mvc->mainDetail)) return;
+
+        // има ли ид-та на артикулите в детайла
+        $masterRec = $mvc->fetchRec($masterRec);
+        $Detail = cls::get($mvc->mainDetail);
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$masterRec->id}");
+        $dQuery->show($Detail->productFieldName);
+        $pIds = arr::extractValuesFromArray($dQuery->fetchAll(), $Detail->productFieldName);
+        if(!countR($pIds)) return;
+
+        sales_LastSaleByContragents::updateDates($pIds,  $masterRec->folderId);
     }
 }

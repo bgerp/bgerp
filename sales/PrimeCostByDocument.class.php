@@ -485,9 +485,10 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Подготовка на заявката
         $iQuery = self::getIndicatorQuery($timeline, $masters);
-        
+
         // Ако не е намерен променен документ, връща се празен масив
         $wh = $iQuery->getWhereAndHaving();
+
         if (empty($wh->w)) {
             
             return array();
@@ -529,7 +530,64 @@ class sales_PrimeCostByDocument extends core_Manager
             $result = array_merge($result3, $result);
         }
 
+        $result4 = self::getDeltaNewProducts($indicatorRecs, $masters, $personIds);
+        if (countR($result4)) {
+            $result = array_merge($result4, $result);
+        }
+
         // Връщане на всички индикатори
+        return $result;
+    }
+
+
+    /**
+     * Връща делтата за новите продукти
+     *
+     * @param array $indicatorRecs - филтрираните записи
+     * @param array $masters       - помощен масив
+     * @param array $personIds     - масив с ид-та на визитките на дилърите
+     *
+     * @return array $result       - @see hr_IndicatorsSourceIntf::getIndicatorValues($timeline)
+     */
+    private static function getDeltaNewProducts($indicatorRecs, $masters, $personIds)
+    {
+        $result = array();
+        if (!countR($indicatorRecs)) return $result;
+
+        $indicatorRec = hr_IndicatorNames::force('Delta_new_products', __CLASS__, 'newDeltaProducts');
+        if($indicatorRec->state == 'closed') return $result;
+
+        $lastDateArr = array();
+        $folderIds = arr::extractValuesFromArray($indicatorRecs, 'folderId');
+        $lastQuery = sales_LastSaleByContragents::getQuery();
+        $lastQuery->in('folderId', $folderIds);
+        while($lRec = $lastQuery->fetch()){
+            $lastDateArr[$lRec->productId][$lRec->folderId] = $lRec->lastDate;
+        }
+
+        $from = sales_Setup::get('CALC_NEW_PRODUCT_FROM');
+        $to = sales_Setup::get('CALC_NEW_PRODUCT_TO');
+
+        $now = dt::now();
+        $thresholdFrom = dt::verbal2mysql(dt::addSecs(-1 * $from, $now), false);
+        $thresholdTo = dt::verbal2mysql(dt::addSecs(-1 * $to, $now), false);
+        foreach($indicatorRecs as $iRec){
+            if (!isset($iRec->dealerId))  continue;
+
+            $lDate = $lastDateArr[$iRec->productId][$iRec->folderId];
+            if(isset($lDate)){
+                if($lDate >= $thresholdTo && $lDate <= $thresholdFrom) continue;
+            }
+
+            $Document = $masters[$iRec->containerId][0];
+            $personFldValue = $personIds[$iRec->dealerId];
+            $isRejected = ($masters[$iRec->containerId][1] == 'rejected');
+            $sign = ($masters[$iRec->containerId][2] == 'yes') ? -1 : 1;
+            $value = round($sign * $iRec->delta, 2);
+
+            hr_Indicators::addIndicatorToArray($result, $iRec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorRec->id, $value, $isRejected);
+        }
+
         return $result;
     }
 
@@ -739,6 +797,12 @@ class sales_PrimeCostByDocument extends core_Manager
                 $result[$iRec->id] = $iRec->name;
             }
         }
+
+        $rec = hr_IndicatorNames::force('Delta_new_products', __CLASS__, 5);
+        if($rec->state != 'closed') {
+            $result[$rec->id] = $rec->name;
+        }
+
 
         // Връщане на всички индикатори
         return $result;
