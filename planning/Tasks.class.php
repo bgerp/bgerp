@@ -1157,7 +1157,9 @@ class planning_Tasks extends core_Master
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
 
+                                core_Users::forceSystemUser();
                                 planning_ProductionTaskProducts::save($nRec);
+                                core_Users::cancelSystemUser();
                             }
                         }
                     }
@@ -1167,7 +1169,9 @@ class planning_Tasks extends core_Master
                 $nRec->taskId = $rec->id;
                 $nRec->productId = $originRec->productId;
                 $nRec->type = 'production';
+                core_Users::forceSystemUser();
                 planning_ProductionTaskProducts::save($nRec);
+                core_Users::cancelSystemUser();
             }
         }
 
@@ -2540,6 +2544,7 @@ class planning_Tasks extends core_Master
     {
         $saveRecs = array();
 
+        $now = dt::now();
         if(isset($rec->wasteProductId)){
 
             // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
@@ -2561,7 +2566,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
+            $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdOn' => core_Users::getCurrent(), 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
             $saveRecs[] = $wasteRec;
         }
 
@@ -2574,7 +2579,7 @@ class planning_Tasks extends core_Master
                     if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
 
                     // Ще се създава запис за планираното действие за влагане
-                    $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'));
+                    $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => core_Users::SYSTEM_USER, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now, 'createdOn' => $now);
                     if($normRec = planning_AssetResources::getNormRec($rec->assetId, $actionId)){
                         $inputRec->indTime = $normRec->indTime;
                     }
