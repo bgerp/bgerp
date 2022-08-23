@@ -16,7 +16,7 @@
  *
  * @since     v 0.1
  */
-class rfid_Assignments extends core_Manager
+class rfid_Assignments extends embed_Manager
 {
 
     /**
@@ -27,7 +27,7 @@ class rfid_Assignments extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Присвоявания';
+    public $title = 'Присвоявания RFID';
     
     /**
      * Титлата на обекта в единичен изглед
@@ -94,7 +94,6 @@ class rfid_Assignments extends core_Manager
      */
     public function description()
     {
-       $this->FLD('holder', 'class(interface=rfid_HolderIntf,select=title)', 'caption=Вид притежател,mandatory');
        $this->FLD('tag', 'varchar(64)', 'caption=Таг,mandatory');
        $this->FLD('startOn', 'datetime', 'caption=Присвояване->От');
        $this->FLD('endOn', 'datetime(defaultTime=23:59:59)', 'caption=Присвояване->До');
@@ -105,8 +104,11 @@ class rfid_Assignments extends core_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $form = $data->form;
+        $rec = $form->rec;
+        $form->setField('holderId', 'removeAndRefreshForm=holder');
+        
         if ($data->form->isSubmitted()) {
-            // bp($data->form->rec);
         }
         //bp($mvc, $data);
 //        $options = crm_Persons::getEmployeesOptions(); bp($options, $data->form->rec->holderId);
