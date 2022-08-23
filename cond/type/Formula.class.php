@@ -133,10 +133,10 @@ class cond_type_Formula extends cond_type_Text
         if(!Mode::is('text', 'plain')){
             $exprDisplay = strtr($value, $idToNameArr);
             if ($calced === cat_BomDetails::CALC_ERROR) {
-                $verbal = ht::createHint('', "Не може да се изчисли|*: {$exprDisplay}", 'warning');
+                $verbal = ht::createHint('', "Не може да се изчисли|*: {$exprDisplay}", 'warning', false);
             } else {
                 $calced = "<span style='color:blue'>{$calced}</span>";
-                $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}");
+                $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}", 'notice', false);
             }
         }
 
