@@ -68,7 +68,9 @@ class sales_LastSaleByContragents extends core_Manager
         $this->FLD('lastDate', 'date', 'caption=Последна продажба->Вальор');
         $this->FLD('lastDateContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Последна продажба->Документ');
 
-        $this->setDbIndex('productId,folderId');
+        $this->setDbUnique('productId,folderId');
+        $this->setDbIndex('folderId');
+        $this->setDbIndex('productId');
     }
 
 
@@ -151,13 +153,13 @@ class sales_LastSaleByContragents extends core_Manager
      *
      * @param array $productArr       - ид-та на артикули
      * @param int $folderId           - в коя папка да се проверява
-     * @param int|null $secondsBefore - с вальор колко време преди текущата дата
+     * @param int|null $monthsBefore  - колко месеца назад
      * @return array $result          - масив от обекти
      */
-    public static function getLastSaleDate($productArr, $folderId, $secondsBefore = null)
+    public static function getLastSaleDate($productArr, $folderId, $monthsBefore = null)
     {
-        $secondsBefore = isset($secondsBefore) ? $secondsBefore : sales_Setup::get('CALC_NEW_PRODUCT_FROM');
-        $date = dt::verbal2mysql(dt::addSecs(-1 * $secondsBefore), false);
+        $monthsBefore = isset($monthsBefore) ? $monthsBefore : sales_Setup::get('DELTA_NEW_PRODUCT_TO');
+        $date = dt::getLastDayOfMonth(dt::addMonths(-1 * $monthsBefore));
 
         $result = array();
         $sQuery = sales_PrimeCostByDocument::getQuery();
