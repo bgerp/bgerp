@@ -137,7 +137,8 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             }
         }
 
-        $valior = $rec->activatedOn;
+        // да записвам вальора а да подавам активирането
+        $valior = $mvc->getValiorValue($rec);
         while ($dRec = $query->fetch()) {
             if ($mvc instanceof sales_Sales) {
 

@@ -65,7 +65,7 @@ class sales_LastSaleByContragents extends core_Manager
     {
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'caption=Артикул');
         $this->FLD('folderId', 'key2(mvc=doc_Folders,select=title,coverInterface=crm_ContragentAccRegIntf)', 'caption=Папка');
-        $this->FLD('lastDate', 'date', 'caption=Последна продажба->Активиране');
+        $this->FLD('lastDate', 'date', 'caption=Последна продажба->Вальор');
         $this->FLD('lastDateContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Последна продажба->Документ');
 
         $this->setDbIndex('productId,folderId');

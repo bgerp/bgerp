@@ -105,7 +105,7 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     public function description()
     {
-        $this->FLD('valior', 'date(smartTime)', 'caption=Активиране,mandatory');
+        $this->FLD('valior', 'date(smartTime)', 'caption=Вальор,mandatory');
         $this->FLD('detailClassId', 'class(interface=core_ManagerIntf)', 'caption=Детайл,mandatory');
         $this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory, tdClass=leftCol');
         $this->FLD('containerId', 'int', 'caption=Документ,mandatory');
