@@ -440,8 +440,16 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $form->setError('productId', 'Избраният артикул е генеричен|*! |Трябва да бъде заместен|*!');
                 }
 
-            } elseif(empty($rec->serial)){
-                $form->setError('productId,serial', 'Трябва да е избран артикул');
+                // Опит за приспадане на параметър от стойността на теглото
+                if(isset($rec->weight) && $rec->type == 'production'){
+                    $weightMsg = $weightMsgType = null;
+                    $rec->_subtractedWeight = static::subtractParamValueFromWeight($rec->taskId, $rec->originId, $rec->weight, $weightMsg, $weightMsgType);
+                    if($weightMsgType == 'warning'){
+                        $form->setWarning('weight', $weightMsg);
+                    } elseif($weightMsgType == 'error'){
+                        $form->setError('weight', $weightMsg);
+                    }
+                }
             }
 
             if($masterRec->assetId != $rec->fixedAsset){
@@ -470,6 +478,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 if (!$form->gotErrors()) {
+                    if(isset($rec->_subtractedWeight)){
+                        $rec->weight = $rec->_subtractedWeight;
+                    }
+
                     if($rec->_isKgMeasureId){
                         $rec->quantity = !empty($rec->quantity) ? $rec->quantity : ((!empty($rec->weight)) ? $rec->weight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1));
                         $rec->weight = $rec->weight;
@@ -507,6 +519,62 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
             }
         }
+    }
+
+
+    /**
+     * Помощна ф-я изваждаща стойността на определен параметър от теглото
+     *
+     * @param int $taskId          - ид на ПО
+     * @param int $originId        - ид на ориджина на ПО
+     * @param double $weight       - тегло
+     * @param string|null $msg     - съобщение за грешка/предупреждение
+     * @param string|null $msgType - грешка или предупреждение или null ако няма
+     * @return null|double         - приспаднатото тегло
+     */
+    public static function subtractParamValueFromWeight($taskId, $originId, $weight, &$msg = null, &$msgType = null)
+    {
+        if(is_null($weight)) return;
+
+        $result = $weight;
+        $tareWeightParamId = planning_Setup::get('TASK_WEIGHT_SUBTRACT_PARAM_VALUE');
+        if(!$tareWeightParamId) return null;
+
+        $taskClassId = planning_Tasks::getClassId();
+        $taskWeightSubtractValue = cat_products_Params::fetchField("#paramId = {$tareWeightParamId} AND #classId = {$taskClassId} AND #productId = {$taskId}", 'paramValue');
+        if(!isset($taskWeightSubtractValue)){
+            $productId = planning_Jobs::fetchField("#containerId = {$originId}", 'productId');
+            $taskWeightSubtractValue = cat_Products::getParams($productId, $tareWeightParamId);
+        }
+
+        $paramName = cat_Params::getVerbal($tareWeightParamId, 'typeExt');
+        if(isset($taskWeightSubtractValue)){
+
+            // Ако параметъра е формула, се прави опит за изчислението ѝ
+            if(cat_Params::haveDriver($tareWeightParamId, 'cond_type_Formula')){
+                Mode::push('text', 'plain');
+                $taskWeightSubtractValue = cat_Params::toVerbal($tareWeightParamId, $taskClassId, $taskId, $taskWeightSubtractValue);
+                Mode::pop('text');
+                if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
+                    $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
+                    $msgType = 'warning';
+                    return $result;
+                }
+            }
+        }
+
+        // Приспадане и проверка
+        $round = cat_UoM::fetchBySysId('kg')->round;
+        $result = $result - $taskWeightSubtractValue;
+        $result = round($result, $round);
+        if($result <= 0){
+            $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
+            $msg = "Получава се невалидно тегло, като се приспадне стойността от параметъра|* <b>{$paramName}</b> : {$subtractTareWeightValVerbal}";
+            $msgType = 'error';
+            $result = null;
+        }
+
+        return $result;
     }
 
 

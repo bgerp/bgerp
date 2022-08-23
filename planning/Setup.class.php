@@ -128,6 +128,12 @@ defIfNot('PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE', 60 * 60 * 24 * 5);
 
 
 /**
+ * От кой параметър да се приспада стойност при въвеждане на бруто тегло в ПО
+ */
+defIfNot('PLANNING_TASK_WEIGHT_SUBTRACT_PARAM_VALUE', '');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -196,6 +202,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR' => array('enum(yes=Задължително,no=Опционално)', 'caption=Въвеждане на прогрес в ПО->Оператор(и)'),
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
+        'PLANNING_TASK_WEIGHT_SUBTRACT_PARAM_VALUE' => array('key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=От кой параметър да се приспада стойност при въвеждане на бруто тегло в ПО->Параметър'),
     );
 
 
@@ -291,6 +298,19 @@ class planning_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
         
         return $html;
+    }
+
+
+    /**
+     * Менижиране на формата формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        $paramOptions = cat_Params::getOptionsByDriverClass(array('cond_type_Double', 'cond_type_Int', 'cond_type_Formula'), 'typeExt');
+        $configForm->setOptions('PLANNING_TASK_WEIGHT_SUBTRACT_PARAM_VALUE', array('' => '') + $paramOptions);
     }
 
 
