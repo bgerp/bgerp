@@ -103,8 +103,8 @@ class sales_LastSaleByContragents extends core_Manager
             }
         }
 
-        $secondsBefore = sales_Setup::get('CALC_NEW_PRODUCT_FROM');
-        $date = dt::verbal2mysql(dt::addSecs(-1 * $secondsBefore), false);
+        $monthsBefore = sales_Setup::get('DELTA_NEW_PRODUCT_TO');
+        $date = dt::getLastDayOfMonth(dt::addMonths(-1 * $monthsBefore));
         $date = dt::mysql2verbal($date, 'd.m.Y');
         $data->title = "Последни продажби на артикули преди|*: <b style='color:green'>{$date}</b>";
     }

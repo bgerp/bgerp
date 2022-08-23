@@ -236,13 +236,13 @@ defIfNot('SALES_DEFAULT_BLAST_SUBJECT_EN', "Dunning Notice");
 /**
  * Непродавани от кога артикули да се считат за нови
  */
-defIfNot('SALES_CALC_NEW_PRODUCT_FROM', dt::SECONDS_IN_MONTH);
+defIfNot('SALES_DELTA_NEW_PRODUCT_TO', 1);
 
 
 /**
  * Непродавани от кога артикули да се считат за нови
  */
-defIfNot('SALES_CALC_NEW_PRODUCT_TO', 12 * dt::SECONDS_IN_MONTH);
+defIfNot('SALES_DELTA_NEW_PRODUCT_FROM', 12 * dt::SECONDS_IN_MONTH);
 
 
 /**
@@ -418,8 +418,8 @@ class sales_Setup extends core_ProtoSetup
         'SALES_DEFAULT_BLAST_BODY_EN' => array('richtext(rows=5,bucket=Blast)', 'caption=Текст на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
         'SALES_DEFAULT_BLAST_SUBJECT_EN' => array('varchar', 'caption=Subject на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
 
-        'SALES_CALC_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->От,unit=назад'),
-        'SALES_CALC_NEW_PRODUCT_TO' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=назад'),
+        'SALES_DELTA_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->От,unit=назад'),
+        'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
     );
     
     
