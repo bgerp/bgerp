@@ -414,8 +414,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $rec->totalProducts = (countR($recs));
 
+
+        //Разпределение по групи
         if ($rec->seeByGroups && $rec->type == 'short') {
-            //Разпределение по групи
+
             $sumByGroup = $quantityByMeasureGroup = array();
 
             foreach ($recs as $key => $val) {
@@ -427,6 +429,12 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                     $cln = clone $val;
 
                     if (!array_key_exists($gr, $sumByGroup)) {
+
+                        //филтър по групи
+                        if(isset($rec->group)){
+                            if(!in_array($gr,keylist::toArray($rec->group)))continue;
+                        }
+
                         $sumByGroup[$gr] = (object)array(
                             'amount' => $cln->amount,
                         );

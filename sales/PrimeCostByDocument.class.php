@@ -565,18 +565,20 @@ class sales_PrimeCostByDocument extends core_Manager
             $lastDateArr[$lRec->productId][$lRec->folderId] = $lRec->lastDate;
         }
 
-        $from = sales_Setup::get('CALC_NEW_PRODUCT_FROM');
-        $to = sales_Setup::get('CALC_NEW_PRODUCT_TO');
+        $from = sales_Setup::get('DELTA_NEW_PRODUCT_FROM');
+        $months = sales_Setup::get('DELTA_NEW_PRODUCT_TO');
 
         $now = dt::now();
-        $thresholdFrom = dt::verbal2mysql(dt::addSecs(-1 * $from, $now), false);
-        $thresholdTo = dt::verbal2mysql(dt::addSecs(-1 * $to, $now), false);
+        $thresholdTo = dt::verbal2mysql(dt::getLastDayOfMonth(dt::addMonths(-1 * $months, $now)), false);
+        $thresholdFrom = dt::verbal2mysql(dt::addSecs(-1 * $from, $thresholdTo), false);
+
         foreach($indicatorRecs as $iRec){
             if (!isset($iRec->dealerId))  continue;
 
+            // Ако датата на последната продажба е в интервала между константите - няма да се начислява
             $lDate = $lastDateArr[$iRec->productId][$iRec->folderId];
             if(isset($lDate)){
-                if($lDate >= $thresholdTo && $lDate <= $thresholdFrom) continue;
+                if($lDate <= $thresholdTo && $lDate >= $thresholdFrom) continue;
             }
 
             $Document = $masters[$iRec->containerId][0];

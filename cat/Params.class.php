@@ -353,7 +353,7 @@ class cat_Params extends bgerp_ProtoParam
                 $key = '$' . $normalizedName;
                 $strings[$key] = $value;
 
-                $key1 = "#{$paramId}";
+                $key1 = "#{$paramId}#";
                 $ids[$key1] = $value;
                 $idToNameArr[$key1] = $key;
             }

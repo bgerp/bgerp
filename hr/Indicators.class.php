@@ -141,7 +141,9 @@ class hr_Indicators extends core_Manager
             
             $this->logWrite("Преизчисляване на индикаторите");
             $sources = !empty($rec->sources) ? keylist::toArray($rec->sources) : null;
+            Mode::push('manualRecalc', true);
             self::recalc($rec->timeline, $sources);
+            Mode::pop('manualRecalc');
 
             followRetUrl(null, 'Индикаторите са преизчислени');
         }
@@ -224,7 +226,7 @@ class hr_Indicators extends core_Manager
                 return $periods;
             }
         }
-        
+
         // Зареждаме всеки един такъв клас
         foreach ($docArr as $class) {
             $sMvc = cls::get($class);
@@ -234,6 +236,11 @@ class hr_Indicators extends core_Manager
                 $data = $sMvc->getIndicatorValues($timeline);
                 
             } catch(core_exception_Expect $e){
+                // Ако грешката е сетната при ръчно обновяване от дебъг потребител - да се визуализира
+                if(Mode::is('manualRecalc') && haveRole('debug')){
+                    bp($e);
+                }
+
                 reportException($e);
                 hr_Indicators::logWarning("Грешка при подготвяне на индикаторите за: {$sMvc->className}");
                 
