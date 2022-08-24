@@ -148,8 +148,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $recs = array();
 
         $query = planning_ProductionTaskDetails::getQuery();
-
-        $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('folderId', 'planning_Tasks', 'externalName=folderId,externalKey=taskId');
         $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
 
@@ -201,7 +199,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
 
-                $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity,originId');
+                $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,totalQuantity,originId');
 
                 $quantity = $tRec->quantity;
                 $crapQuantity = ($tRec->type == 'scrap') ? $tRec->quantity : 0;
@@ -237,8 +235,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 if ($divisor) {
 
-                    $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
-
+                    $timeAlocation = 1;
                     $indTimeSum = $timeAlocation * $normTime;
 
                 } else {
@@ -259,9 +256,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'indTime' => $normTime,
                         'indTimeSum' => $indTimeSum,
                         'indPackagingId' => $iRec->indPackagingId,
-                        'indTimeAllocation' => $iRec->indTimeAllocation,
                         'quantityInPack' => $iRec->quantityInPack,
-
                         'employees' => $employees,
                         'employeesName' => $employeesName,
                         'assetResources' => $tRec->fixedAsset,
@@ -346,7 +341,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                     $labelQuantity = $clone->labelQuantity;
                     if ($divisor) {
-                        $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+                        $timeAlocation = 1;
                         $indTimeSum = $timeAlocation * $clone->indTime;
                         if ($clone->type == 'input') {
                             $labelQuantity = 1;
@@ -368,10 +363,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             'type' => $clone->type,
                             'indTime' => $clone->indTime,
                             'indPackagingId' => $clone->indPackagingId,
-                            'indTimeAllocation' => $clone->indTimeAllocation,
-
                             'indTimeSum' => $indTimeSum,
-
                             'employees' => '|' . $v . '|',
                             'employeesName' => $employeesName,
                             'assetResources' => $clone->assetResources,
