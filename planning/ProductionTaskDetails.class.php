@@ -173,6 +173,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако с бракува конкретен ред, задават се дефолтите от предишните
         if($rec->type == 'scrap' && isset($rec->scrapRecId)){
             $scrapRec = $mvc->fetch($rec->scrapRecId);
+            $form->setDefault('serial', $scrapRec->serial);
             $form->setDefault('employees', $scrapRec->employees);
             $form->setDefault('fixedAsset', $scrapRec->fixedAsset);
         }
@@ -454,17 +455,17 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $rec->quantity = $rec->_defaultScrapQuantity;
                         $rec->weight = $rec->_defaultScrapWeight;
                     } elseif(!empty($rec->quantity) && empty($rec->weight)){
-                        $singleWeight = $rec->_defaultScrapWeight / $rec->_defaultScrapQuantity;
-                        $kgRound = cat_UoM::fetchBySinonim('kg')->round;
-                        $rec->weight = round($rec->quantity * $singleWeight, $kgRound);
+                        if(isset($rec->_defaultScrapWeight)){
+                            $singleWeight = $rec->_defaultScrapWeight / $rec->_defaultScrapQuantity;
+                            $kgRound = cat_UoM::fetchBySinonim('kg')->round;
+                            $rec->weight = round($rec->quantity * $singleWeight, $kgRound);
+                        }
                     }elseif(!empty($rec->weight) && empty($rec->quantity)){
                         $singleWeight = $rec->_defaultScrapWeight / $rec->_defaultScrapQuantity;
                         $mRound = cat_UoM::fetchField($masterRec->measureId, 'round');
                         $rec->quantity = round($rec->weight / $singleWeight, $mRound);
                     }
                 }
-
-
 
                 if(isset($serialInfo)){
                     if(empty($rec->quantity) && !empty($serialInfo['quantity'])){
