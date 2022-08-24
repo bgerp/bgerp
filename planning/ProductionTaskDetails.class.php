@@ -172,20 +172,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Ако с бракува конкретен ред, задават се дефолтите от предишните
         if($rec->type == 'scrap' && isset($rec->scrapRecId)){
-
-            // Задаване на дефолти за скрапа
             $scrapRec = $mvc->fetch($rec->scrapRecId);
-            $availableScrap = static::getAvailableScrap($scrapRec->serial, $scrapRec->taskId);
-            $scrapRecQuantity = $scrapRec->quantity;
-            if(planning_ProductionTaskProducts::isProduct4Task($scrapRec->taskId, $scrapRec->productId)){
-                $measureRound = cat_UoM::fetchField($data->masterRec->measureId, 'round');
-                $scrapRecQuantity = round($scrapRec->quantity / $data->masterRec->quantityInPack, $measureRound);
-            }
-
-            $defaultScrapQuantity = min($availableScrap, $scrapRecQuantity);
-            $form->setDefault('serial', $scrapRec->serial);
             $form->setDefault('employees', $scrapRec->employees);
-            $form->setDefault('quantity', $defaultScrapQuantity);
+            $form->setDefault('fixedAsset', $scrapRec->fixedAsset);
         }
 
         // Добавяне на последните данни за дефолтни
@@ -266,10 +255,19 @@ class planning_ProductionTaskDetails extends doc_Detail
             $form->setOptions('productId', array($scrapProductId => cat_Products::getTitleById($scrapProductId, false)));
             $form->setDefault('productId', $scrapProductId);
             $form->setField('quantity', 'caption=Брак');
-
+            $form->setField('weight', 'caption=Тегло');
             $availableScrap = static::getAvailableScrap($rec->serial, $rec->taskId);
-            $form->setDefault('quantity', $availableScrap);
-            $form->setFieldTypeParams('quantity', array('max' => $availableScrap));
+
+            $defaultScrapQuantity = $availableScrap['quantity'];
+            $defaultWeight = $availableScrap['weight'];
+
+            $form->setField('quantity', "placeholder={$defaultScrapQuantity}");
+            $form->setField('weight', "placeholder={$defaultWeight}");
+            $form->rec->_defaultScrapQuantity = $defaultScrapQuantity;
+            $form->rec->_defaultScrapWeight = $defaultWeight;
+
+            $form->setFieldTypeParams('quantity', array('max' => $availableScrap['quantity']));
+            $form->setFieldTypeParams('weight', array('max' => $availableScrap['weight']));
         }
 
         // Ако е избран артикул
@@ -371,8 +369,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             } elseif($masterRec->showadditionalUom == 'mandatory'){
                 $form->setField('weight', 'mandatory');
             }
-
-        } else {
+        } elseif($rec->type != 'scrap') {
             $form->setField('weight', 'input=none');
         }
     }
@@ -439,24 +436,36 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if($productRec->generic == 'yes') {
                     $form->setError('productId', 'Избраният артикул е генеричен|*! |Трябва да бъде заместен|*!');
                 }
-
-                // Опит за приспадане на параметър от стойността на теглото
-                if(isset($rec->weight) && $rec->type == 'production'){
-                    $weightMsg = $weightMsgType = null;
-                    $rec->_subtractedWeight = static::subtractParamValueFromWeight($rec->taskId, $rec->originId, $rec->weight, $weightMsg, $weightMsgType);
-                    if($weightMsgType == 'warning'){
-                        $form->setWarning('weight', $weightMsg);
-                    } elseif($weightMsgType == 'error'){
-                        $form->setError('weight', $weightMsg);
-                    }
-                }
             }
 
             if($masterRec->assetId != $rec->fixedAsset){
                 $form->setWarning('fixedAsset', "Избраното оборудване е различно от посоченото в операцията! Наистина ли желаете да снените оборудването в операцията?");
             }
 
+            if($rec->type == 'scrap'){
+                if(!empty($rec->quantity) && !empty($rec->weight)){
+                    $form->setError('weight,quantity', 'При бракуване трябва да е попълнено само едно от полетата');
+                }
+            }
+
             if (!$form->gotErrors()) {
+                if($rec->type == 'scrap'){
+                    if(empty($rec->quantity) && empty($rec->weight)){
+                        $rec->quantity = $rec->_defaultScrapQuantity;
+                        $rec->weight = $rec->_defaultScrapWeight;
+                    } elseif(!empty($rec->quantity) && empty($rec->weight)){
+                        $singleWeight = $rec->_defaultScrapWeight / $rec->_defaultScrapQuantity;
+                        $kgRound = cat_UoM::fetchBySinonim('kg')->round;
+                        $rec->weight = round($rec->quantity * $singleWeight, $kgRound);
+                    }elseif(!empty($rec->weight) && empty($rec->quantity)){
+                        $singleWeight = $rec->_defaultScrapWeight / $rec->_defaultScrapQuantity;
+                        $mRound = cat_UoM::fetchField($masterRec->measureId, 'round');
+                        $rec->quantity = round($rec->weight / $singleWeight, $mRound);
+                    }
+                }
+
+
+
                 if(isset($serialInfo)){
                     if(empty($rec->quantity) && !empty($serialInfo['quantity'])){
                         if(isset($rec->_defaultQuantity)){
@@ -475,6 +484,17 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if($masterRec->followBatchesForFinalProduct == 'yes' && empty($rec->batch) && $rec->type == 'production'){
                     $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
+                }
+
+                // Опит за приспадане на параметър от стойността на теглото
+                if(isset($rec->weight) && $rec->type == 'production'){
+                    $weightMsg = $weightMsgType = null;
+                    $rec->_subtractedWeight = static::subtractParamValueFromWeight($rec->taskId, $masterRec->originId, $rec->weight, $weightMsg, $weightMsgType);
+                    if($weightMsgType == 'warning'){
+                        $form->setWarning('weight', $weightMsg);
+                    } elseif($weightMsgType == 'error'){
+                        $form->setError('weight', $weightMsg);
+                    }
                 }
 
                 if (!$form->gotErrors()) {
@@ -1533,11 +1553,11 @@ class planning_ProductionTaskDetails extends doc_Detail
      *
      * @param string $serial
      * @param int $taskId
-     * @return double $res
+     * @return array $res
      */
     public static function getAvailableScrap($serial, $taskId)
     {
-        $produced = $scrapped = 0;
+        $produced = $scrapped = $weightScrapped = $weightProduced = 0;
         $query = static::getQuery();
         $query->EXT('quantityInPack', 'planning_Tasks', 'externalName=quantityInPack,externalKey=taskId');
         $query->where(array("#taskId = {$taskId} AND #state != 'rejected' AND #serial = '[#1#]' AND #type IN ('production', 'scrap')", $serial));
@@ -1550,13 +1570,23 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             if($rec->type == 'scrap'){
                 $scrapped += $rec->quantity / $quantityInPack;
+                if(isset($rec->weight)){
+                    $weightScrapped += $rec->weight;
+                }
             } else{
                 $produced += $rec->quantity / $quantityInPack;
+                if(isset($rec->weight)){
+                    $weightProduced += $rec->weight;
+                }
             }
         }
 
         $round = cat_UoM::fetchField(planning_Tasks::fetchField($taskId, 'measureId'), 'round');
-        $res = round($produced - $scrapped, $round);
+        $res = array();
+        $res['quantity'] = round($produced - $scrapped, $round);
+
+        $roundKg = cat_UoM::fetchBySinonim('kg')->round;
+        $res['weight'] = round($weightProduced - $weightScrapped, $roundKg);
 
         return $res;
     }

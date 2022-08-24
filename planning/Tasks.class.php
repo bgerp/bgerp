@@ -894,6 +894,10 @@ class planning_Tasks extends core_Master
     }
 
 
+    function act_Test()
+    {
+        static::updateMaster(1041);
+    }
     /**
      * Обновява данни в мастъра
      *
@@ -924,14 +928,18 @@ class planning_Tasks extends core_Master
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
-        $dQuery->where("#taskId = {$rec->id} AND #productId = {$productId} AND #type = 'production' AND #state != 'rejected'");
+        $dQuery->where("#taskId = {$rec->id} AND #productId = {$productId} AND (#type = 'production' OR #type = 'scrap') AND #state != 'rejected'");
 
         $rec->totalWeight = $rec->totalQuantity = $rec->scrappedQuantity = 0;
         while($dRec = $dQuery->fetch()){
-            $quantity = $dRec->quantity / $rec->quantityInPack;
-            $rec->totalQuantity += $quantity;
-            $rec->totalWeight += $dRec->weight;
-            $rec->scrappedQuantity += $dRec->scrappedQuantity / $rec->quantityInPack;
+            if($dRec->type == 'production'){
+                $quantity = $dRec->quantity / $rec->quantityInPack;
+                $rec->totalQuantity += $quantity;
+                $rec->totalWeight += $dRec->weight;
+            } else {
+                $rec->scrappedQuantity += $dRec->quantity / $rec->quantityInPack;
+                $rec->totalWeight -= $dRec->weight;
+            }
         }
 
         // Изчисляваме колко % от зададеното количество е направено
