@@ -261,6 +261,15 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $defaultScrapQuantity = $availableScrap['quantity'];
             $defaultWeight = $availableScrap['weight'];
+            if(isset($rec->scrapRecId)){
+                $scrapRec = static::fetch($rec->scrapRecId);
+                $measureRound = cat_UoM::fetchField($data->masterRec->measureId, 'round');
+                $scrapRecQuantity = round($scrapRec->quantity / $data->masterRec->quantityInPack, $measureRound);
+                if($scrapRecQuantity < $defaultScrapQuantity){
+                    $defaultScrapQuantity = $scrapRecQuantity;
+                    $defaultWeight = $scrapRec->weight;
+                }
+            }
 
             $form->setField('quantity', "placeholder={$defaultScrapQuantity}");
             $form->setField('weight', "placeholder={$defaultWeight}");
