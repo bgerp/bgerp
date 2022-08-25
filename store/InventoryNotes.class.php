@@ -1019,9 +1019,6 @@ class store_InventoryNotes extends core_Master
         expect($rec = self::fetch($id));
         $this->requireRightFor('fillreport', $rec);
 
-        store_InventoryNoteDetails::delete("#noteId = {$rec->id}");
-
-
         $summaryQuery = store_InventoryNoteSummary::getQuery();
         $summaryQuery->where("#noteId = {$rec->id} AND #quantity IS NULL");
 
@@ -1073,16 +1070,5 @@ class store_InventoryNotes extends core_Master
         $title = "{$handle} / " . store_Stores::getTitleById($rec->storeId, false);
          
         return $title;
-    }
-
-    function act_Test()
-    {
-        requireRole('debug');
-
-        $summaryRec = store_InventoryNoteSummary::fetch(13803);
-
-        cls::get('store_InventoryNoteDetails')->invoke('AfterRecalcSummary', array(&$summaryRec));
-
-       // cls::get('store_InventoryNoteSummary')->recalcSummary($summaryRec);
     }
 }
