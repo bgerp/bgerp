@@ -1019,6 +1019,9 @@ class store_InventoryNotes extends core_Master
         expect($rec = self::fetch($id));
         $this->requireRightFor('fillreport', $rec);
 
+        store_InventoryNoteDetails::delete("#noteId = {$rec->id}");
+
+
         $summaryQuery = store_InventoryNoteSummary::getQuery();
         $summaryQuery->where("#noteId = {$rec->id} AND #quantity IS NULL");
 
@@ -1027,20 +1030,30 @@ class store_InventoryNotes extends core_Master
 
             if(core_Packs::isInstalled('batch')){
                 $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $rec->storeId, $rec->valior, null, array(), true);
+                $noBatchQuantity = $summaryRec->blQuantity - array_sum($batchQuantities);
+                if(isset($noBatchQuantity)){
+                    $batchQuantities[''] = $noBatchQuantity;
+                }
+
                 foreach ($batchQuantities as $batch => $batchQuantity){
+                    if(store_InventoryNoteDetails::fetchField("#noteId = {$id} AND #productId = {$summaryRec->productId} AND #batch = '{$batch}'")) continue;
+
                     $dRec = (object) array('noteId' => $id,
                                            'productId' => $summaryRec->productId,
                                            'quantityInPack' => 1,
                                            'quantity' => 0,
                                            'batch' => $batch,
                                            'packagingId' => $packagingId);
+
                     store_InventoryNoteDetails::save($dRec);
                 }
+
+                $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1, 'packagingId' => $packagingId);
+                $dRec->quantity = 0;
+                store_InventoryNoteDetails::save($dRec);
             }
 
-            $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1, 'packagingId' => $packagingId);
-            $dRec->quantity = 0;
-            store_InventoryNoteDetails::save($dRec);
+
         }
 
         $this->logInAct('Нулиране на невъведените артикули', $id);
@@ -1060,5 +1073,16 @@ class store_InventoryNotes extends core_Master
         $title = "{$handle} / " . store_Stores::getTitleById($rec->storeId, false);
          
         return $title;
+    }
+
+    function act_Test()
+    {
+        requireRole('debug');
+
+        $summaryRec = store_InventoryNoteSummary::fetch(13803);
+
+        cls::get('store_InventoryNoteDetails')->invoke('AfterRecalcSummary', array(&$summaryRec));
+
+       // cls::get('store_InventoryNoteSummary')->recalcSummary($summaryRec);
     }
 }
