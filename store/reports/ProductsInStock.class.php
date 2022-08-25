@@ -99,7 +99,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=3,columns=3,after=availability,silent');
 
-        $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Покажи по групи артикули,after=orderBy,input=none,single=none');
+        $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Филтри->"Общо" по групи,after=orderBy,input=none,single=none');
 
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
         $fieldset->FNC('sumByGroup', 'blob', 'input=none,single=none');
@@ -549,11 +549,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         if (is_numeric($dRec->groupOne)){
 
-            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name').' : '.'Общо: '.'стойност '.$Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount).
-                             ' количества';
+            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name').' :: стойност: '.$Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount).' '.acc_Periods::getBaseCurrencyCode($rec->date).
+                             ';  количества: ';
+	    $bm = 0;
             foreach ($rec->sumByGroup['quantities'] as $val){
                 if($val->gr == $dRec->groupOne) {
-                    $row->groupOne .= ': '.$Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
+		    if($bm > 0) {
+			    $row->groupOne .= ' + ';
+		    }
+                    $row->groupOne .= $Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
+		    $bm = $bm + 1;
                 }
             }
         }else{
