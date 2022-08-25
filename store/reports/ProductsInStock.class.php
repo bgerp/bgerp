@@ -555,7 +555,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             foreach ($rec->sumByGroup['quantities'] as $val){
                 if($val->gr == $dRec->groupOne) {
 		    if($bm > 0) {
-			    $row->groupOne .= ', ';
+			    $row->groupOne .= ' + ';
 		    }
                     $row->groupOne .= $Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
 		    $bm = $bm + 1;
