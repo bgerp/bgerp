@@ -549,12 +549,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         if (is_numeric($dRec->groupOne)){
 
-            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name').' : '.'Общо: '.'стойност '.$Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount).
-                             ' количества';
+            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name').' : '.'Стойност '.$Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount). {acc_Periods::getBaseCurrencyCode($rec->date)}.
+                             '; Количества: ';
+	    $bm==0
             foreach ($rec->sumByGroup['quantities'] as $val){
                 if($val->gr == $dRec->groupOne) {
-                    $row->groupOne .= ': '.$Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
+		    if($bm>0) {
+			    $row->groupOne .= ', ';}
+                    $row->groupOne .= $Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
                 }
+		$bm==$bm+1
             }
         }else{
             $row->groupOne = 'Без група';
