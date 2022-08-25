@@ -558,7 +558,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 			    $row->groupOne .= ', ';}
                     $row->groupOne .= $Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
                 }
-		$bm==$bm+1
+		$bm==$bm+1;
             }
         }else{
             $row->groupOne = 'Без група';
