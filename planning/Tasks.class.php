@@ -894,10 +894,6 @@ class planning_Tasks extends core_Master
     }
 
 
-    function act_Test()
-    {
-        static::updateMaster(1041);
-    }
     /**
      * Обновява данни в мастъра
      *
