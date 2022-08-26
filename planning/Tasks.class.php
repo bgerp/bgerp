@@ -853,7 +853,7 @@ class planning_Tasks extends core_Master
 
         $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table>
                 <tr><td style='font-weight:normal'>|Норма|*:</td><td>[#indTime#]</td></tr>
-                <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#indPackagingId#]</td></tr>
+                <tr><td style='font-weight:normal'>|Мярка|*:</td><td>[#indPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|Разпределяне|*:</td><td>[#indTimeAllocation#]</td></tr>
                 <!--ET_BEGIN simultaneity--><tr><td style='font-weight:normal'>|Едновременност|*:</td><td>[#simultaneity#]</td></tr><!--ET_END simultaneity-->
                 </table>"));
