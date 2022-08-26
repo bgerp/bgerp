@@ -417,7 +417,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                             if (isset($serialInfo['error'])) {
                                 $form->setError('serial', $serialInfo['error']);
                             } elseif ($serialInfo['type'] == 'existing') {
-                                if(!empty($rec->batch) && $rec->batch != $serialInfo['batch']){
+                                if(!empty($rec->batch) && isset($serialInfo['batch']) && $rec->batch != $serialInfo['batch']){
                                     $form->setError('serial,batch', "Този номер е към друга партида");
                                 }
                             }
@@ -780,7 +780,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $error = '';
-        if ($res['productId'] != $productId) {
+        $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+        if ($res['productId'] != $productId && $res['productId'] != $jobProductId) {
             $res['error'] = 'Производственият номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
@@ -1197,7 +1198,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $quantity = $rec->quantity;
 
         if(in_array($rec->type, array('production', 'scrap'))) {
-            $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,quantityInPack,labelQuantityInPack');
+            $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
             $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
 
             // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
@@ -1259,6 +1260,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
         $query->EXT('labelPackagingId', 'planning_Tasks', 'externalName=labelPackagingId,externalKey=taskId');
         $query->EXT('taskProductId', 'planning_Tasks', 'externalName=productId,externalKey=taskId');
+        $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('taskQuantityInPack', 'planning_Tasks', 'externalName=quantityInPack,externalKey=taskId');
         $query->EXT('isFinal', 'planning_Tasks', 'externalName=isFinal,externalKey=taskId');
         $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
@@ -1276,12 +1278,13 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (!countR($persons)) continue;
 
             $taskRec = new stdClass();
-            $arr = arr::make("taskId=id,taskMeasureId=measureId,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId,taskQuantityInPack=quantityInPack,labelQuantityInPack=labelQuantityInPack", true);
+            $arr = arr::make("taskId=id,taskMeasureId=measureId,indTimeAllocation=indTimeAllocation,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId,taskQuantityInPack=quantityInPack,labelQuantityInPack=labelQuantityInPack", true);
             foreach ($arr as $fldAlias => $fld){
                 $taskRec->{$fld} = $rec->{$fldAlias};
             }
 
-            $timePerson = static::calcNormByRec($rec, $taskRec);
+            $normFormQuantity = static::calcNormByRec($rec, $taskRec);
+            $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
             $sign = ($rec->type != 'scrap') ? 1 : -1;
 
             $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
