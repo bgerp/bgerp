@@ -417,7 +417,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                             if (isset($serialInfo['error'])) {
                                 $form->setError('serial', $serialInfo['error']);
                             } elseif ($serialInfo['type'] == 'existing') {
-                                if(!empty($rec->batch) && $rec->batch != $serialInfo['batch']){
+                                if(!empty($rec->batch) && isset($serialInfo['batch']) && $rec->batch != $serialInfo['batch']){
                                     $form->setError('serial,batch', "Този номер е към друга партида");
                                 }
                             }
@@ -780,7 +780,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $error = '';
-        if ($res['productId'] != $productId) {
+        $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+        if ($res['productId'] != $productId && $res['productId'] != $jobProductId) {
             $res['error'] = 'Производственият номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
