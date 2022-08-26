@@ -1027,30 +1027,35 @@ class store_InventoryNotes extends core_Master
 
             if(core_Packs::isInstalled('batch')){
                 $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $rec->storeId, $rec->valior, null, array(), true);
-                $noBatchQuantity = $summaryRec->blQuantity - array_sum($batchQuantities);
-                if(isset($noBatchQuantity)){
-                    $batchQuantities[''] = $noBatchQuantity;
+
+                $save = true;
+                if(countR($batchQuantities)){
+                    $noBatchQuantity = $summaryRec->blQuantity - array_sum($batchQuantities);
+                    if(isset($noBatchQuantity)){
+                        $batchQuantities[''] = $noBatchQuantity;
+                        $save = false;
+                    }
+
+                    foreach ($batchQuantities as $batch => $batchQuantity){
+                        if(store_InventoryNoteDetails::fetchField("#noteId = {$id} AND #productId = {$summaryRec->productId} AND #batch = '{$batch}'")) continue;
+
+                        $dRec = (object) array('noteId' => $id,
+                            'productId' => $summaryRec->productId,
+                            'quantityInPack' => 1,
+                            'quantity' => 0,
+                            'batch' => $batch,
+                            'packagingId' => $packagingId);
+
+                        store_InventoryNoteDetails::save($dRec);
+                    }
                 }
 
-                foreach ($batchQuantities as $batch => $batchQuantity){
-                    if(store_InventoryNoteDetails::fetchField("#noteId = {$id} AND #productId = {$summaryRec->productId} AND #batch = '{$batch}'")) continue;
-
-                    $dRec = (object) array('noteId' => $id,
-                                           'productId' => $summaryRec->productId,
-                                           'quantityInPack' => 1,
-                                           'quantity' => 0,
-                                           'batch' => $batch,
-                                           'packagingId' => $packagingId);
-
+                if($save){
+                    $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1, 'packagingId' => $packagingId);
+                    $dRec->quantity = 0;
                     store_InventoryNoteDetails::save($dRec);
                 }
-
-                $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1, 'packagingId' => $packagingId);
-                $dRec->quantity = 0;
-                store_InventoryNoteDetails::save($dRec);
             }
-
-
         }
 
         $this->logInAct('Нулиране на невъведените артикули', $id);
