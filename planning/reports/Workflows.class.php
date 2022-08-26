@@ -148,8 +148,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $recs = array();
 
         $query = planning_ProductionTaskDetails::getQuery();
-
-        $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('folderId', 'planning_Tasks', 'externalName=folderId,externalKey=taskId');
         $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
 
@@ -201,9 +199,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
 
-                $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity,originId');
+                $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,totalQuantity,originId');
 
                 $quantity = $tRec->quantity;
+                $crapQuantity = ($tRec->type == 'scrap') ? $tRec->quantity : 0;
 
                 //Количеството се преизчилсява според мерките за производство
                 $quantityInPack = 1;
@@ -236,8 +235,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 if ($divisor) {
 
-                    $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
-
+                    $timeAlocation = 1;
                     $indTimeSum = $timeAlocation * $normTime;
 
                 } else {
@@ -258,9 +256,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'indTime' => $normTime,
                         'indTimeSum' => $indTimeSum,
                         'indPackagingId' => $iRec->indPackagingId,
-                        'indTimeAllocation' => $iRec->indTimeAllocation,
                         'quantityInPack' => $iRec->quantityInPack,
-
                         'employees' => $employees,
                         'employeesName' => $employeesName,
                         'assetResources' => $tRec->fixedAsset,
@@ -269,7 +265,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'measureId' => $pRec->measureId,
 
                         'quantity' => $tRec->quantity,
-                        'scrap' => $tRec->scrappedQuantity,
+                        'scrap' => $crapQuantity,
 
                         'labelMeasure' => $iRec->labelPackagingId,
                         'labelQuantity' => $labelQuantity,
@@ -282,7 +278,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $obj = &$recs[$id];
 
                     $obj->quantity += $tRec->quantity;
-                    $obj->scrap += $tRec->scrappedQuantity;
+                    $obj->scrap += $crapQuantity;
                     $obj->labelQuantity += $labelQuantity;
                     $obj->indTimeSum += $indTimeSum;
 
@@ -324,7 +320,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                     if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                         $employeesName = crm_Persons::getTitleById($v);
-                    }else{
+                    } else {
                         $employeesName = '';
                     }
 
@@ -345,9 +341,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                     $labelQuantity = $clone->labelQuantity;
                     if ($divisor) {
-                        $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+                        $timeAlocation = 1;
                         $indTimeSum = $timeAlocation * $clone->indTime;
-                        if ($clone->type == 'input'){
+                        if ($clone->type == 'input') {
                             $labelQuantity = 1;
                         }
                     } else {
@@ -367,10 +363,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             'type' => $clone->type,
                             'indTime' => $clone->indTime,
                             'indPackagingId' => $clone->indPackagingId,
-                            'indTimeAllocation' => $clone->indTimeAllocation,
-
                             'indTimeSum' => $indTimeSum,
-
                             'employees' => '|' . $v . '|',
                             'employeesName' => $employeesName,
                             'assetResources' => $clone->assetResources,
@@ -510,7 +503,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
 
-        $row->labelMeasure = ($dRec->type == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure) ;
+        $row->labelMeasure = ($dRec->type == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure);
         $row->labelQuantity = $Double->toVerbal($dRec->labelQuantity);
 
         $row->scrap = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->scrap);
@@ -535,8 +528,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
         }
         if (isset($dRec->assetResources)) {
-            $assetResources = '['.planning_AssetResources::fetch($dRec->assetResources)->code.']'.planning_AssetResources::fetch($dRec->assetResources)->name;
-            $row->assetResources = ht::createLink($assetResources,array('planning_AssetResources','single',$dRec->assetResources));
+            $assetResources = '[' . planning_AssetResources::fetch($dRec->assetResources)->code . ']' . planning_AssetResources::fetch($dRec->assetResources)->name;
+            $row->assetResources = ht::createLink($assetResources, array('planning_AssetResources', 'single', $dRec->assetResources));
         } else {
             $row->assetResources = '';
         }

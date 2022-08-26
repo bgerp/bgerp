@@ -32,7 +32,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,packagingId=Количества->Мярка,storeId,indTime,totalTime';
+    public $listFields = 'type,productId,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,packagingId=Количества->Мярка,storeId,indTime,totalTime,modified=Промяна';
     
     
     /**
@@ -295,7 +295,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if(isset($rec->indTime)){
             $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($rec->indTime);
         } else {
-            $row->indTime = "<span class='quiet'>N/A</span>";
+            $row->indTime = "<span class='quiet'>n/a</span>";
         }
 
         if(isset($rec->plannedQuantity)){
@@ -307,6 +307,8 @@ class planning_ProductionTaskProducts extends core_Detail
         } else {
             $row->plannedQuantity = "<span class='quiet'>n/a</span>";
         }
+
+        $row->modified = $mvc->getVerbal($rec, 'modifiedOn') . " " . tr('от') . " "  . crm_Profiles::createLink($rec->modifiedBy);
     }
     
     

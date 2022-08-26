@@ -100,15 +100,25 @@ class email_Mime extends core_BaseClass
     
     /**
      * Връща събджекта на писмото
+     *
+     * @param boolean $cleanMB - премахва емотиконуте в събджекта
+     *
+     * @returbn string
      */
-    public function getSubject()
+    public function getSubject($cleanMB = false)
     {
         if (!isset($this->subject)) {
             $this->subject = $this->getHeader('Subject');
             $this->subject = str_replace(array("\n\t", "\n"), array('', ''), $this->subject);
         }
-        
-        return $this->subject;
+
+        $subject = $this->subject;
+
+        if ($cleanMB) {
+            $subject = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '_', $subject);
+        }
+
+        return $subject;
     }
     
     
@@ -669,7 +679,7 @@ class email_Mime extends core_BaseClass
             
             $res = $headersArr[$name][$headerIndex];
         }
-        
+
         if ($decode) {
             $res = static::decodeHeader($res, $charset);
         }
@@ -708,41 +718,73 @@ class email_Mime extends core_BaseClass
         
         return $res;
     }
-    
+
+
+    /**
+     * Рекурсивна функция, която съединява съседни стрингове с еднакви енкодинзи
+     *
+     * @param $imapDecodeArr
+     *
+     * @return array
+     */
+    protected static function fixDocedeArr($imapDecodeArr)
+    {
+        if (!$imapDecodeArr) {
+
+            return $imapDecodeArr;
+        }
+
+        $aCnt = countR($imapDecodeArr);
+
+        if ($aCnt <= 1) {
+
+            return $imapDecodeArr;
+        }
+
+        $imapDecodeArr = array_values($imapDecodeArr);
+
+        foreach ($imapDecodeArr as $id => $header) {
+            if(isset($imapDecodeArr[$id-1]) && $imapDecodeArr[$id-1]->charset == $header->charset) {
+                $imapDecodeArr[$id-1]->text .= $header->text;
+                unset($imapDecodeArr[$id]);
+            }
+        }
+
+        if (countR($imapDecodeArr) == $aCnt) {
+
+            return $imapDecodeArr;
+        }
+
+        return self::fixDocedeArr($imapDecodeArr);
+    }
+
     
     /**
      * Декодира хедърната част част
      */
     public static function decodeHeader($val, $charset = null)
-    { 
+    {
         // Ако стойността на хедъра е 7-битова, той може да е кодиран
         if (i18n_Charset::is7Bit($val) || (strpos($val, '=?') !== false)) {
             $imapDecodeArr = @imap_mime_header_decode($val);
-             
             $decoded = '';
-            
+
             if (is_array($imapDecodeArr) && countR($imapDecodeArr) > 0) {
-                foreach ($imapDecodeArr as $id => $header) {
-                    if(isset($imapDecodeArr[$id-1]) && $imapDecodeArr[$id-1]->charset == $header->charset) {
-                        $imapDecodeArr[$id-1]->text .= $header->text;
-                        unset($imapDecodeArr[$id]);
-                    }
-                }
-                foreach ($imapDecodeArr as $id => $header) {
+                $imapDecodeArr = self::fixDocedeArr($imapDecodeArr);
+                foreach ($imapDecodeArr as $header) {
                     if(isset($header->charset) && $header->charset != '' && $header->charset != 'default') {
                         $decoded .= @iconv($header->charset, 'utf-8', $header->text);
                     } else {
                         $decoded .= i18n_Charset::convertToUtf8($header->text, $charset);
                     }
                 }
-
             } else {
                 $decoded = i18n_Charset::convertToUtf8($val, $charset);
             }
         } else {
             $decoded = i18n_Charset::convertToUtf8($val, $charset);
         }
-        
+
         return $decoded;
     }
     

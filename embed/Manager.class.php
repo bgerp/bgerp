@@ -516,4 +516,41 @@ abstract class embed_Manager extends core_Master
         
         return $data;
     }
+
+
+    /**
+     * Намира записите с посочените драйвери
+     *
+     * @param mixed $classes      - интерфейси, които да имплементира драйвера
+     * @param string $valueField  - кое поле ще се показва в опциите
+     * @param boolean $onlyActive - дали да са само активните записи или всички (само за моделите със състояние)
+     * @return array $res         - опции от намерените записи
+     */
+    public static function getOptionsByDriverClass($classes, $valueField = 'id', $onlyActive = false)
+    {
+        $res = $classesArrIds = array();
+
+        // Обръщане на класовете в ид-та
+        $me = cls::get(get_called_class());
+        $classes = arr::make($classes);
+        array_walk($classes, function($a) use (&$classesArrIds) {$classId = cls::get($a)->getClassId(); $classesArrIds[$classId] = $classId;});
+
+        // Подготвяне на заявката за извличане на опциите
+        $query = static::getQuery();
+        if($onlyActive){
+            if($me->getField('state', false)){
+                $query->where("#state != 'rejected' AND #state != 'closed'");
+            }
+        }
+        $query->in($me->driverClassField, $classesArrIds);
+        if($valueField == 'id'){
+            $query->show('id');
+        }
+
+        while($rec = $query->fetch()){
+            $res[$rec->id] = ($valueField == 'id') ? $rec->id : $me->getVerbal($rec, $valueField);
+        }
+
+        return $res;
+    }
 }
