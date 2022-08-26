@@ -198,7 +198,14 @@ class cat_products_Params extends doc_Detail
             if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
                 $form->setField('paramValue', 'input');
                 $form->setFieldType('paramValue', $Type);
-                $form->setDefault('paramValue', cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue));
+                $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
+                $form->setDefault('paramValue', $defaultValue);
+                if(isset($defaultValue)){
+                    if($pRec->valueType == 'readonly'){
+                        $form->setReadOnly('paramValue');
+                        $form->info = tr("Стойноста идва от параметъра и не може да се променя|*!");
+                    }
+                }
 
                 if (!empty($pRec->suffix)) {
                     $suffix = cat_Params::getVerbal($pRec, 'suffix');
@@ -468,9 +475,14 @@ class cat_products_Params extends doc_Detail
         
         // Ако има указани роли за параметъра, потребителя трябва да ги има за редакция/изтриване
         if (($action == 'edit' || $action == 'delete') && $requiredRoles != 'no_one' && isset($rec)) {
-            $roles = cond_Parameters::fetchField($rec->paramId, 'roles');
+            $pRec = cat_Params::fetch($rec->paramId, 'roles,valueType');
             if (!empty($roles) && !haveRole($roles, $userId)) {
                 $requiredRoles = 'no_one';
+            }
+            if($action == 'edit'){
+                if($pRec->valueType == 'readonly'){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -693,8 +705,23 @@ class cat_products_Params extends doc_Detail
             $params = arr::extractValuesFromArray($oQuery->fetchAll(), 'id');
         }
 
+        if(!isset($objectId)){
+            $domainClassId = cat_Products::getClassId();
+            $objectId = $productId;
+        } else {
+            $domainClassId = $class->getClassId();
+        }
+
         foreach ($params as $pId) {
-            $v = (array_key_exists($pId, $paramValues)) ? $paramValues[$pId] : (array_key_exists($pId, $stepParams) ? $stepParams[$pId] : $prevRecValues[$pId]);
+            if(array_key_exists($pId, $paramValues)){
+                $v = $paramValues[$pId];
+            } elseif(array_key_exists($pId, $stepParams)){
+                $v = $stepParams[$pId];
+            } elseif(array_key_exists($pId, $prevRecValues)){
+                $v = $prevRecValues[$pId];
+            } else {
+                $v = cat_Params::getDefaultValue($pId, $domainClassId, $objectId);
+            }
 
             $paramRec = cat_Params::fetch($pId);
             $name = cat_Params::getVerbal($paramRec, 'name');
@@ -703,7 +730,8 @@ class cat_products_Params extends doc_Detail
                 $name = "{$groupName}: {$name}";
             }
             $form->FLD("paramcat{$pId}", 'double', "caption=Параметри за планиране на:|* <b>{$plannedProductName}</b>->|{$name}|*,before=indTime");
-            $ParamType = cat_Params::getTypeInstance($pId, $class->getClassId(), $objectId);
+
+            $ParamType = cat_Params::getTypeInstance($pId, $domainClassId, $objectId);
             $form->setFieldType("paramcat{$pId}", $ParamType);
 
             if (!empty($paramRec->suffix)) {
@@ -712,15 +740,20 @@ class cat_products_Params extends doc_Detail
             }
 
             if (isset($v)) {
-                if (($ParamType instanceof fileman_FileType)) {
-                    $form->setDefault("paramcat{$pId}", $v);
-                } else {
+                if(!($ParamType instanceof fileman_FileType)) {
                     if(cat_Params::haveDriver($paramRec, 'cond_type_Keylist')){
                         $defaults = keylist::toArray($v);
                         $v = array_intersect_key($ParamType->getSuggestions(), $defaults);
                     }
-                    $form->setDefault("paramcat{$pId}", $v);
                 }
+                $form->setDefault("paramcat{$pId}", $v);
+                if($paramRec->valueType == 'readonly'){
+                    $form->setReadOnly("paramcat{$pId}");
+                }
+            }
+
+            if($paramRec->valueType == 'mandatory'){
+                $form->setField("paramcat{$pId}", 'mandatory');
             }
 
             $form->rec->_params["paramcat{$pId}"] = (object) array('paramId' => $pId);

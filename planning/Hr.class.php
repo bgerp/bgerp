@@ -591,11 +591,13 @@ class planning_Hr extends core_Master
         $string = trim($string);
         if(empty($string)) return null;
         $string = trim($string, ',');
+        $string = str::removeWhiteSpace($string, ',');
 
         // Нормализиране на кодовете
         $parsedCodes = $persons = $errorArr = array();
         $exploded = explode(',', $string);
-        array_walk($exploded, function($a) use (&$parsedCodes){$v = trim($a);$v = strtoupper($v);$parsedCodes[$v] = $v;});
+        array_walk($exploded, function($a) use (&$parsedCodes){$v = trim($a);$v = strtoupper($v);if(!empty($v)) {$parsedCodes[$v] = $v;}});
+
         if(empty($parsedCodes)) return null;
 
         // Ако по този код има оператор - извлича се, ако няма ще се добави като грешка

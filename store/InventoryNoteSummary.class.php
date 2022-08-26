@@ -366,7 +366,7 @@ class store_InventoryNoteSummary extends doc_Detail
                         $row->quantity = $row->blQuantity;
                         $row->quantity = "<span class='quiet small'>{$row->quantity}</span>";
                     }
-                } else {
+                } elseif(isset($rec->quantity) && $rec->quantity != 0) {
                     $row->quantity = "<span style='color:blue'>{$row->quantity}</span>";
                     $row->quantity = ht::createHint($row->quantity, 'Към количеството са добавени и неуточнените партиди', 'notice', false);
                 }

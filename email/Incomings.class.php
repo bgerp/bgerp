@@ -621,7 +621,7 @@ class email_Incomings extends core_Master
         $rec = new stdClass();
         
         // Декодираме и запазваме събджекта на писмото
-        $rec->subject = $mime->getSubject();
+        $rec->subject = $mime->getSubject(EF_DB_CHARSET != 'utf8mb4');
         
         $rec->subject = str::limitLen($rec->subject, 245, 20, '.....');
         

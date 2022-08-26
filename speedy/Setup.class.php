@@ -16,7 +16,7 @@ defIfNot('SPEEDY_TRACKING_URL', "https://www.speedy.bg/bg/track-shipment?shipmen
 /**
  * Коя е клиентската версия на библиотеката
  */
-defIfNot('SPEEDY_CLIENT_LIBRARY_VERSION', '3.5.4');
+defIfNot('SPEEDY_CLIENT_LIBRARY_VERSION', '3.5.6');
 
 
 /**

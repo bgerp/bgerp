@@ -141,7 +141,9 @@ class hr_Indicators extends core_Manager
             
             $this->logWrite("Преизчисляване на индикаторите");
             $sources = !empty($rec->sources) ? keylist::toArray($rec->sources) : null;
+            Mode::push('manualRecalc', true);
             self::recalc($rec->timeline, $sources);
+            Mode::pop('manualRecalc');
 
             followRetUrl(null, 'Индикаторите са преизчислени');
         }
@@ -224,7 +226,7 @@ class hr_Indicators extends core_Manager
                 return $periods;
             }
         }
-        
+
         // Зареждаме всеки един такъв клас
         foreach ($docArr as $class) {
             $sMvc = cls::get($class);
@@ -234,12 +236,17 @@ class hr_Indicators extends core_Manager
                 $data = $sMvc->getIndicatorValues($timeline);
                 
             } catch(core_exception_Expect $e){
+                // Ако грешката е сетната при ръчно обновяване от дебъг потребител - да се визуализира
+                if(Mode::is('manualRecalc') && haveRole('debug')){
+                    bp($e);
+                }
+
                 reportException($e);
                 hr_Indicators::logWarning("Грешка при подготвяне на индикаторите за: {$sMvc->className}");
                 
                 continue;
             }
-            
+
             if (is_array($data) && countR($data)) {
                 
                 // Даваме време
@@ -255,10 +262,11 @@ class hr_Indicators extends core_Manager
                     }
                     
                     $periodRec = acc_Periods::fetchByDate($rec->date);
-                    
+                    if(!is_object($periodRec)) continue;
+
                     // Запомняме за кой период е документа
                     $periods[$periodRec->id] = $periodRec;
-                    
+
                     // Оттеглените източници ги записваме само за почистване
                     if ($rec->isRejected === true) {
                         continue;
@@ -312,10 +320,13 @@ class hr_Indicators extends core_Manager
     private static function calcPeriod($pRec)
     {
         // Намираме последните, активни договори за назначения, които се засичат с периода
+        $start = (empty($pRec->start)) ? '0000-00-00' : $pRec->start;
+        $end = (empty($pRec->end)) ? '0000-00-00' : $pRec->end;
+
         $ecQuery = hr_EmployeeContracts::getQuery();
         $ecQuery->where("#state = 'active' OR #state = 'closed'");
-        $ecQuery->where("#startFrom <= '{$pRec->end}'");
-        $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$pRec->start}')");
+        $ecQuery->where("#startFrom <= '{$end}'");
+        $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$start}')");
         $ecQuery->orderBy('#dateId', 'DESC');
         
         $ecArr = array();

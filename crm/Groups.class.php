@@ -413,7 +413,11 @@ class crm_Groups extends core_Master
                 'exName' => 'Потребителски профили',
                 'allow' => 'persons',
             ),
-        
+            array(
+                'name' => 'Индикатори',
+                'sysId' => 'indicators',
+                'exName' => 'Индикатори',
+            ),
         );
         
         // END масив с данни за инициализация

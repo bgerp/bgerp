@@ -1242,7 +1242,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             }
 
-            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' лв.';
+            $allCurrency = ($dRec->totalInvoiceValue) ? $dRec->currencyId : '';
+            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) .' '. $allCurrency;
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
             }

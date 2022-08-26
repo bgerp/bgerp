@@ -2,33 +2,39 @@
 
 
 /**
- * Мениджър на Имената на индикаторите
+ * Мениджър на Имената на показателите
  *
  *
  * @category  bgerp
  * @package   hr
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Имена на индикаторите
+ * @title     Имена на показателi
  */
 class hr_IndicatorNames extends core_Manager
 {
     /**
      * Заглавие
      */
-    public $title = 'Имена на индикаторите';
+    public $title = 'Имена на показател';
     
     
     /**
      * Заглавие в единично число
      */
     public $singleTitle = 'Име на показател';
-    
-    
+
+
+    /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'admin';
+
+
     /**
      * Кой има право да променя?
      */
@@ -56,9 +62,15 @@ class hr_IndicatorNames extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'hr_Wrapper';
-    
-    
+    public $loadList = 'hr_Wrapper,plg_State2';
+
+
+    /**
+     * Работен кеш за активните показатели
+     */
+    public static $cacheActive = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -89,7 +101,7 @@ class hr_IndicatorNames extends core_Manager
         $name = self::normalizeName($name);
         
         if (!$rec) {
-            $rec = (object) array('name' => $name, 'classId' => $class->getClassId(), 'uniqueId' => $uniqueId);
+            $rec = (object) array('name' => $name, 'classId' => $class->getClassId(), 'uniqueId' => $uniqueId, 'state' => 'active');
             self::save($rec);
         } else {
             if ($rec->name != $name) {
