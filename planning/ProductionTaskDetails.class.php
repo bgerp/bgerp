@@ -148,10 +148,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,silent');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Оператори,input=hidden');
-        $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap,smartCenter');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Оператори,input=hidden');        
         $this->FLD('date', 'datetime', 'caption=Допълнително->Дата');
         $this->FNC('otherEmployees', 'planning_type_Operators(mvc=crm_Persons)', 'caption=Допълнително->Други оператори,input');
+        $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Допълнително->Оборудване,input=none,tdClass=nowrap,smartCenter');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
