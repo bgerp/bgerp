@@ -29,7 +29,7 @@ class cond_type_YesOrNo extends cond_type_abstract_Proto
      */
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
-        $Type = core_Type::getByName('enum(yes=Да,no=Не)', 'maxRadio=2');
+        $Type = core_Type::getByName('enum(yes=Да,no=Не), maxRadio=2');
         
         return $Type;
     }
