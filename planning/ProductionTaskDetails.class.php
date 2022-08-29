@@ -801,7 +801,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
         $dateVerbal = $mvc->getFieldType('createdOn')->toVerbal($date);
-        $dateVerbal = !empty($rec->date) ? ht::createHint($dateVerbal, 'Датата е ръчно въведена|*!', 'notice', false) : $dateVerbal;
+        $createdOnVerbal = $mvc->getFieldType('createdOn')->toVerbal($rec->createdOn);
+        $dateVerbal = !empty($rec->date) ? ht::createHint($dateVerbal, "Датата е ръчно въведена на|*: {$createdOnVerbal}", 'notice', false) : $dateVerbal;
 
         $row->date = "<div class='nowrap'>{$dateVerbal}";
         $row->date .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
@@ -841,7 +842,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $row->measureId = cat_UoM::getShortName($measureId);
         $labelPackagingName = cat_UoM::getShortName($labelPackagingId);
-        if (cat_UoM::fetchField($measureId, 'type') != 'uom') {
+        if ($measureId && cat_UoM::fetchField($measureId, 'type') != 'uom') {
             $row->measureId = str::getPlural($rec->quantity, $row->measureId, true);
         }
 
