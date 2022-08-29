@@ -148,10 +148,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,silent');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
-        $this->FLD('employees', 'planning_type_Operators', 'caption=Оператори,input=hidden');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Оператори,input=hidden');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap,smartCenter');
-        $this->FLD('date', 'datetime', 'caption=Дата');
-        $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
+        $this->FLD('date', 'datetime', 'caption=Допълнително->Дата');
+        $this->FNC('otherEmployees', 'planning_type_Operators(mvc=crm_Persons)', 'caption=Допълнително->Други оператори,input');
+        $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
         $this->FNC('scrapRecId', 'int', 'caption=Време,input=hidden,silent');
@@ -348,16 +349,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setField('serial', 'input=none');
             }
         }
+        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr(keylist::merge($masterRec->employees, $rec->employees)) : planning_Hr::getByFolderId($masterRec->folderId, $rec->employees);
 
-        $exIdKeylist = '';
-        $dQuery = static::getQuery();
-        $dQuery->where("#taskId = {$rec->taskId}");
-        $dQuery->show('employees');
-        while($dRec = $dQuery->fetch()){
-            $exIdKeylist = keylist::merge($exIdKeylist, $dRec->employees);
-        }
-
-        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr(keylist::merge($masterRec->employees, $exIdKeylist), false, true) : planning_Hr::getByFolderId($masterRec->folderId, $exIdKeylist, true);
         if (countR($employees)) {
             $form->setSuggestions('employees', array('' => '') + $employees);
             $form->setField('employees', 'input');
@@ -508,6 +501,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 if (!$form->gotErrors()) {
+                    if(!empty($rec->otherEmployees)){
+                        $rec->employees = keylist::merge($rec->employees, $rec->otherEmployees);
+                    }
+
                     if(isset($rec->_subtractedWeight)){
                         $rec->weight = $rec->_subtractedWeight;
                     }
