@@ -859,6 +859,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         if($mvc->haveRightFor('add', (object)array('taskId' => $rec->taskId, 'type' => 'scrap', 'scrapRecId' => $rec->id))){
+            core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Бракуване', array($mvc, 'add', 'taskId' => $rec->taskId, 'type' => 'scrap', 'scrapRecId' => $rec->id, 'ret_url' => true), 'title=Бракуване на прогреса,ef_icon=img/16/bin_closed.png');
         }
         if($mvc->haveRightFor('fix', $rec)){
