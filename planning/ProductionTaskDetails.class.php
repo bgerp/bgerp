@@ -1228,7 +1228,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $normFormQuantity = "|Заработка|*: {$normFormQuantityVerbal}";
             if(haveRole('debug')){
                 $quantity = round($quantity, 5);
-                $normFormQuantity .= " [N:{$rec->norm} - Q:{$quantity}]";
+                $normFormQuantity .= " [N:{$rec->norm}; Q:{$quantity}]";
             }
         }
 
