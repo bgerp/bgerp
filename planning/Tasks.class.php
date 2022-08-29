@@ -607,6 +607,11 @@ class planning_Tasks extends core_Master
                 $row->wastePercent = isset($row->wastePercent) ? $row->wastePercent : 'n/a';
                 $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
+
+            if(!empty($rec->employees)){
+                $employees = planning_Hr::getPersonsCodesArr($rec->employees, true);
+                $row->employees = implode(', ', $employees);
+            }
         } else {
             $row->dueDate = $origin->getVerbal('dueDate');
             $jobPackQuantity = $origin->fetchField('packQuantity');
