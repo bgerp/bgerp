@@ -140,7 +140,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         // Ако е посочена начална дата на период
         if ($rec->start) {
-
             $query->where("(#date IS NOT NULL AND #date >= '$rec->start') OR (#date IS NULL AND #createdOn >= '$rec->start')");
         }
 
@@ -151,6 +150,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $date = date('Y:m:d', $date);
 
             $query->where("(#date IS NOT NULL AND #date <= '$date.23:59:59')OR (#date IS NULL AND #createdOn <= '$date.23:59:59')");
+        }else{
+            $query->where("(#date IS NOT NULL AND #date <= '$rec->to')OR (#date IS NULL AND #createdOn <= '$rec->to')");
         }
 
         //Филтър по център на дейност
