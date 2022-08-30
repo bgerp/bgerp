@@ -75,7 +75,7 @@ if(php_sapi_name() == 'cli') {
 
 
 // Подсигуряваме $_GET['virtual_url']
-if(!$_GET['virtual_url']) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
+if (!isset($_GET['virtual_url'])) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
 
 try {
     $isDefinedFatalErrPath = defined('DEBUG_FATAL_ERRORS_PATH');
