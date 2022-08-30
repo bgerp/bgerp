@@ -183,7 +183,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
                 $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
                 if (countR($employees)) {
-                    $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=20)', 'caption=Оператори,after=inputedQuantity');
+                    $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=0)', 'caption=Оператори,after=inputedQuantity');
                     $form->setSuggestions('employees', $employees);
                 }
             }
