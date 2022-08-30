@@ -911,10 +911,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         $weightWarningPercent = ($data->masterData->rec->weightDeviationWarning) ? $data->masterData->rec->weightDeviationWarning : planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING');
         $masterRec = $data->masterData->rec;
 
-        $recsBySerials = array();
-        $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
-        array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap'){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
-
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             if($data->isMeasureKg && ($masterRec->productId == $rec->productId)){
@@ -984,12 +980,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             if(!empty($rec->serial) && $rec->state != 'rejected'){
                 $row->serial = self::getLink($rec->taskId, $rec->serial);
-            }
-
-            if($checkSerials4Warning == 'yes' && $rec->type != 'scrap'){
-                if($recsBySerials[$rec->serial] > 1){
-                    $row->serial = ht::createHint($row->serial, 'Номера се повтаря в операцията|*!', 'warning');
-                }
             }
         }
     }
