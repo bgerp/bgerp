@@ -302,7 +302,7 @@ class planning_Tasks extends core_Master
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|freeTimeAfter|simultaneity');
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
-        $this->FLD('employees', 'planning_type_Operators(mvc=crm_Persons)', 'caption=Оператори,silent');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
@@ -606,6 +606,11 @@ class planning_Tasks extends core_Master
                 $row->wasteStart = isset($row->wasteStart) ? $row->wasteStart : 'n/a';
                 $row->wastePercent = isset($row->wastePercent) ? $row->wastePercent : 'n/a';
                 $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
+            }
+
+            if(!empty($rec->employees)){
+                $employees = planning_Hr::getPersonsCodesArr($rec->employees, true);
+                $row->employees = implode(', ', $employees);
             }
         } else {
             $row->dueDate = $origin->getVerbal('dueDate');
@@ -1282,7 +1287,7 @@ class planning_Tasks extends core_Master
                 $fixedAssetOptions = $productionData['fixedAssets'];
             }
 
-            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees, true);
+            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
             if(countR($employeeOptions)){
                 $form->setSuggestions('employees',  array('' => '') + $employeeOptions);
             } else {

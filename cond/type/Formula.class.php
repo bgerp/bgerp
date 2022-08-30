@@ -25,6 +25,7 @@ class cond_type_Formula extends cond_type_Text
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('formula', 'text(rows=2, maxOptionsShowCount=20)', 'mandatory,caption=Конкретизиране->Формула,after=order');
+        $fieldset->FLD('round', 'int', 'caption=Конкретизиране->Закръгляне,after=formula');
 
         // Налични за достъп са всички параметри
         $pQuery = cat_Params::getQuery();
@@ -135,6 +136,9 @@ class cond_type_Formula extends cond_type_Text
             if ($calced === cat_BomDetails::CALC_ERROR) {
                 $verbal = ht::createHint('', "Не може да се изчисли|*: {$exprDisplay}", 'warning', false);
             } else {
+                if(isset($this->driverRec->round)){
+                    $calced = round($calced, $this->driverRec->round);
+                }
                 $calced = "<span style='color:blue'>{$calced}</span>";
                 $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}", 'notice', false);
             }
