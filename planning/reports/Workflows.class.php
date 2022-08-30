@@ -577,6 +577,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN start--><div>|От|*: [#start#]</div><!--ET_END start-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN centre--><div>|Центрове|*: [#centre#]</div><!--ET_END centre-->
                                         <!--ET_BEGIN employees--><div>|Служители|*: [#employees#]</div><!--ET_END employees-->
                                         <!--ET_BEGIN assetResources--><div>|Оборудване|*: [#assetResources#]</div><!--ET_END assetResources-->
                                         <!--ET_BEGIN button--><div>|Филтри |*: [#button#]</div><!--ET_END button-->
@@ -639,6 +640,21 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 }
 
                 $fieldTpl->append('<b>' . $assetVerb . '</b>', 'assetResources');
+            }
+
+            if (isset($data->rec->centre)) {
+                $marker = 0;
+                foreach (type_Keylist::toArray($data->rec->centre) as $ce) {
+                    $marker++;
+
+                    $centreVerb .= (planning_Centers::getHyperlink(($ce)));
+
+                    if ((countR(type_Keylist::toArray($data->rec->centre))) - $marker != 0) {
+                        $centreVerb .= ', ';
+                    }
+                }
+
+                $fieldTpl->append('<b>' . $centreVerb . '</b>', 'centre');
             }
 
             $grUrl = array('planning_reports_Workflows', 'employees', 'recId' => $data->rec->id, 'ret_url' => true);
