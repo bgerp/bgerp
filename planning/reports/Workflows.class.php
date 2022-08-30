@@ -61,7 +61,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fieldset->FLD('start', 'datetime', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'datetime', 'caption=До,after=start,single=none,mandatory');
 
-        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Център,removeAndRefreshForm,after=to,silent');
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Център,removeAndRefreshForm,after=to,silent,single=none');
         $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources)', 'caption=Машини,placeholder=Всички,after=centre,single=none,input=none');
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none,input=none');
 
@@ -255,7 +255,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 if ($tRec->type == 'scrap'){
                    // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
                     $crapQuantity = round(($tRec->quantity), 3);
-                   // $quantity = 0;
+                    $quantity = 0;
                     $labelQuantity = 0;
                     $indTimeSum = 0;
                 }
