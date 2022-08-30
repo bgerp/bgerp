@@ -148,10 +148,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,silent');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=1)', 'caption=Оператори,input=hidden');
-        $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap,smartCenter');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Оператори,input=hidden');
+        $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Допълнително->Оборудване,input=none,tdClass=nowrap,smartCenter');
         $this->FLD('date', 'datetime', 'caption=Допълнително->Дата');
-        $this->FNC('otherEmployees', 'planning_type_Operators(mvc=crm_Persons)', 'caption=Допълнително->Други оператори,input');
+        $this->FNC('otherEmployees', 'planning_type_Operators(mvc=crm_Persons)', 'caption=Допълнително->Други оператори,input');        
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
@@ -911,10 +911,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         $weightWarningPercent = ($data->masterData->rec->weightDeviationWarning) ? $data->masterData->rec->weightDeviationWarning : planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING');
         $masterRec = $data->masterData->rec;
 
-        $recsBySerials = array();
-        $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
-        array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap'){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
-
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             if($data->isMeasureKg && ($masterRec->productId == $rec->productId)){
@@ -984,12 +980,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             if(!empty($rec->serial) && $rec->state != 'rejected'){
                 $row->serial = self::getLink($rec->taskId, $rec->serial);
-            }
-
-            if($checkSerials4Warning == 'yes' && $rec->type != 'scrap'){
-                if($recsBySerials[$rec->serial] > 1){
-                    $row->serial = ht::createHint($row->serial, 'Номера се повтаря в операцията|*!', 'warning');
-                }
             }
         }
     }
