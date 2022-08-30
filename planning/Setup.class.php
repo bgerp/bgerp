@@ -256,6 +256,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_StepConditions',
         'migrate::updateLabelType',
         'migrate::deletePoints',
+        'migrate::changeCentreFieldToKeylistInWorkflows',
     );
     
     
@@ -371,6 +372,29 @@ class planning_Setup extends core_ProtoSetup
 
         $query = "UPDATE {$Steps->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
         $Steps->db->query($query);
+    }
+
+    /**
+     * Миграция за поправка на centre полето от key на keylist
+     */
+    function changeCentreFieldToKeylistInWorkflows()
+    {
+        $frameCls = cls::get('frame2_Reports');
+
+        $query = $frameCls::getQuery();
+
+        $repClass = planning_reports_Workflows::getClassId();
+
+        $query->where("#driverClass = $repClass");
+
+        while ($rec = $query->fetch()) {
+
+            if (is_integer($rec->centre)) {
+                $arr[$rec->centre] = $rec->centre;
+                $rec->centre = keylist::fromArray($arr);
+                $frameCls->save_($rec, $frameCls->centre);
+            }
+        }
     }
 
 
