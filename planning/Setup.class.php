@@ -388,10 +388,8 @@ class planning_Setup extends core_ProtoSetup
         $query->where("#driverClass = $repClass");
 
         while ($rec = $query->fetch()) {
-
             if (is_integer($rec->centre)) {
-                $arr[$rec->centre] = $rec->centre;
-                $rec->centre = keylist::fromArray($arr);
+                $rec->centre = keylist::fromArray(array($rec->centre => $rec->centre));
                 $frameCls->save_($rec, $frameCls->centre);
             }
         }
