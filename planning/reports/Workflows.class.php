@@ -178,7 +178,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         //Филтър по служители
-        if ($rec->employees) {
+        if ($rec->employees) {//bp($rec->employees,$query->fetchAll());
             $query->likeKeylist('employees', $rec->employees);
         }
 
@@ -255,7 +255,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 if ($tRec->type == 'scrap'){
                    // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
                     $crapQuantity = round(($tRec->quantity), 3);
-                    $quantity = 0;
+                   // $quantity = 0;
                     $labelQuantity = 0;
                     $indTimeSum = 0;
                 }
@@ -823,7 +823,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 if (empty($suggestionsEmpl)) {
                     $suggestionsEmpl = $sugg;
                 } else {
-                    $suggestionsEmpl = array_unique(array_merge($suggestionsEmpl, $sugg));
+
+                    foreach ($sugg as $key => $v){
+
+                        if(!in_array($key,array_keys($suggestionsEmpl))){
+                            $suggestionsEmpl[$key] = $v;
+                        }
+                    }
+
                 }
 
                 unset($sugg);
@@ -833,7 +840,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 if (empty($suggestionsAssets)) {
                     $suggestionsAssets = $sugg;
                 } else {
-                    $suggestionsAssets = array_unique(array_merge($suggestionsAssets, $sugg));
+                    foreach ($sugg as $key => $v){
+
+                        if(!in_array($key,array_keys($suggestionsAssets))){
+                            $suggestionsAssets[$key] = $v;
+                        }
+                    }
                 }
                 unset($sugg);
             }
@@ -872,7 +884,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             frame2_Reports::save($rec);
             frame2_Reports::refresh($rec);
-            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'grFilter' => $form->rec->groupFilter, 'ret_url' => true));
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
         }
 
              }
