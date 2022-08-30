@@ -140,18 +140,23 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         // Ако е посочена начална дата на период
         if ($rec->start) {
-            $query->where("(#date IS NOT NULL AND #date >= '$rec->start .00:00:01') OR (#date IS NULL AND #createdOn >= '$rec->start .00:00:01')");
+
+            $query->where("(#date IS NOT NULL AND #date >= '$rec->start') OR (#date IS NULL AND #createdOn >= '$rec->start')");
         }
 
+
         //Крайна дата / 'към дата'
-        if ($rec->to) {
-            $query->where("(#date IS NOT NULL AND #date <= '$rec->to.23:59:59') OR (#date IS NULL AND #createdOn <= '$rec->to.23:59:59')");
+        $date = strtotime($rec->to);
+        if ($rec->to && date('H:i:s', $date) == '00:00:00') {
+            $date = date('Y:m:d', $date);
+
+            $query->where("(#date IS NOT NULL AND #date <= '$date.23:59:59')OR (#date IS NULL AND #createdOn <= '$date.23:59:59')");
         }
 
         //Филтър по център на дейност
         if ($rec->centre) {
 
-            foreach (keylist::toArray($rec->centre) as $cent){
+            foreach (keylist::toArray($rec->centre) as $cent) {
                 $centFoldersArr[planning_Centers::fetch($cent)->folderId] = planning_Centers::fetch($cent)->folderId;
             }
 
@@ -234,8 +239,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
 
                 //Ако е брак
-                if ($tRec->type == 'scrap'){
-                   // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
+                if ($tRec->type == 'scrap') {
+                    // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
                     $crapQuantity = round(($tRec->quantity), 3);
                     $quantity = 0;
                     $labelQuantity = 0;
@@ -822,9 +827,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $suggestionsEmpl = $sugg;
                 } else {
 
-                    foreach ($sugg as $key => $v){
+                    foreach ($sugg as $key => $v) {
 
-                        if(!in_array($key,array_keys($suggestionsEmpl))){
+                        if (!in_array($key, array_keys($suggestionsEmpl))) {
                             $suggestionsEmpl[$key] = $v;
                         }
                     }
@@ -838,9 +843,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 if (empty($suggestionsAssets)) {
                     $suggestionsAssets = $sugg;
                 } else {
-                    foreach ($sugg as $key => $v){
+                    foreach ($sugg as $key => $v) {
 
-                        if(!in_array($key,array_keys($suggestionsAssets))){
+                        if (!in_array($key, array_keys($suggestionsAssets))) {
                             $suggestionsAssets[$key] = $v;
                         }
                     }
@@ -854,38 +859,38 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $form->setSuggestions('empployFilter', $suggestionsEmpl);
             $form->setSuggestions('assetFilter', $suggestionsAssets);
-            if ($rec->employees){
+            if ($rec->employees) {
                 $form->rec->empployFilter = $rec->employees;
             }
-            if ($rec->assetResources){
+            if ($rec->assetResources) {
                 $form->rec->assetFilter = $rec->assetResources;
             }
 
-        $mRec = $form->input();
+            $mRec = $form->input();
 
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+            $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+            $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
-        if ($form->isSubmitted()) {
+            if ($form->isSubmitted()) {
 
-            if (!$form->rec->empployFilter){
-                $rec->employees = null;
-            }else{
-                $rec->employees = $form->rec->empployFilter;
+                if (!$form->rec->empployFilter) {
+                    $rec->employees = null;
+                } else {
+                    $rec->employees = $form->rec->empployFilter;
+                }
+                if (!$form->rec->assetFilter) {
+                    $rec->assetResources = null;
+                } else {
+                    $rec->assetResources = $form->rec->assetFilter;
+                }
+
+                frame2_Reports::save($rec);
+                frame2_Reports::refresh($rec);
+                return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
             }
-            if (!$form->rec->assetFilter){
-                $rec->assetResources = null;
-            }else{
-                $rec->assetResources = $form->rec->assetFilter;
-            }
 
-            frame2_Reports::save($rec);
-            frame2_Reports::refresh($rec);
-            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
         }
-
-             }
         return $form->renderHtml();
     }
 
