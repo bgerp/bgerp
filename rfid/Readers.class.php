@@ -19,7 +19,7 @@
  *
  * @since     v 0.1
  */
-class rfid_Readers extends core_Manager
+class rfid_Readers extends embed_Manager
 {
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
@@ -87,7 +87,7 @@ class rfid_Readers extends core_Manager
     {
         $this->FLD('title', 'varchar', 'caption=Име,mandatory');
         $this->FLD('settins', 'varchar', 'caption=Състояние,mandatory');
-        $this->FLD('driver', 'class(interface=rfid_ReaderIntf)', 'caption=Драйвер,mandatory');
+        //$this->FLD('driver', 'class(interface=rfid_ReaderIntf)', 'caption=Драйвер,mandatory');
         
         /*
         Формата на серийният номер на картата се изчислява по следните начини и зависи от четеца
