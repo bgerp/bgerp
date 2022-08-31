@@ -148,7 +148,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,silent');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Оператори,input=hidden');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,input=hidden');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Допълнително->Оборудване,input=none,tdClass=nowrap,smartCenter');
         $this->FLD('date', 'datetime', 'caption=Допълнително->Дата');
         $this->FNC('otherEmployees', 'planning_type_Operators(mvc=crm_Persons)', 'caption=Допълнително->Други оператори,input');        
@@ -181,14 +181,19 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Добавяне на последните данни за дефолтни
         $masterRec = planning_Tasks::fetch($rec->taskId);
-        $query = $mvc->getQuery();
-        $query->where("#taskId = {$rec->taskId}");
-        $query->orderBy('id', 'DESC');
 
-        // Задаваме последно въведените данни
-        if ($lastRec = $query->fetch()) {
-            $form->setDefault('employees', $lastRec->employees);
+        // Кои оператори са въведени досега
+        $lastEmployees = null;
+        $selectedEmployeesByNowKeylist = '';
+        $query = $mvc->getQuery();
+        $query->where("#taskId = {$rec->taskId} AND #employees IS NOT NULL");
+        $query->orderBy('id', 'ASC');
+        $query->show('employees');
+        while ($dRec = $query->fetch()) {
+            $selectedEmployeesByNowKeylist = keylist::merge($selectedEmployeesByNowKeylist, $dRec->employees);
+            $lastEmployees = $dRec->employees;
         }
+        $form->setDefault('employees', $lastEmployees);
 
         // Ако в мастъра са посочени машини, задават се като опции
         if (isset($masterRec->assetId)) {
@@ -351,15 +356,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr(keylist::merge($masterRec->employees, $rec->employees)) : planning_Hr::getByFolderId($masterRec->folderId, $rec->employees);
 
+        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr(keylist::toArray($selectedEmployeesByNowKeylist) + keylist::toArray($masterRec->employees)) : planning_Hr::getByFolderId($masterRec->folderId, $selectedEmployeesByNowKeylist);
+
         if (countR($employees)) {
             $form->setSuggestions('employees', array('' => '') + $employees);
             $form->setField('employees', 'input');
-            $mandatoryOperatorsInTasks = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'mandatoryOperatorsInTasks');
-            $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR') : $mandatoryOperatorsInTasks;
-            if($mandatoryOperatorsInTasks == 'yes'){
-                $form->setField('employees', 'mandatory');
-            }
-
             if(countR($employees) == 1){
                 $form->setDefault('employees', keylist::addKey('', planning_Hr::getPersonIdByCode(key($employees))));
             }
@@ -425,6 +426,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
                 }
 
+
                 // Ако артикулът е действие към оборудването
                 if ($productRec->canStore != 'yes' && $rec->type == 'input') {
                     $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
@@ -438,6 +440,14 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if($productRec->generic == 'yes') {
                     $form->setError('productId', 'Избраният артикул е генеричен|*! |Трябва да бъде заместен|*!');
+                }
+
+                if(empty($rec->employees) && empty($rec->otherEmployees)){
+                    $mandatoryOperatorsInTasks = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'mandatoryOperatorsInTasks');
+                    $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR') : $mandatoryOperatorsInTasks;
+                    if($mandatoryOperatorsInTasks == 'yes'){
+                       $form->setError('employees,otherEmployees', 'Избирането на оператор е задължително');
+                    }
                 }
             }
 
