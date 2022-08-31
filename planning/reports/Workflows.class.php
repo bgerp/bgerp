@@ -131,7 +131,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $query = planning_ProductionTaskDetails::getQuery();
 
-
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('folderId', 'planning_Tasks', 'externalName=folderId,externalKey=taskId');
         $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
@@ -140,27 +139,30 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         // Ако е посочена начална дата на период
         if ($rec->start) {
-            $query->where("(#date IS NOT NULL AND #date >= '$rec->start .00:00:01') OR (#date IS NULL AND #createdOn >= '$rec->start .00:00:01')");
+            $query->where("(#date IS NOT NULL AND #date >= '$rec->start') OR (#date IS NULL AND #createdOn >= '$rec->start')");
         }
 
         //Крайна дата / 'към дата'
-        if ($rec->to) {
-            $query->where("(#date IS NOT NULL AND #date <= '$rec->to.23:59:59') OR (#date IS NULL AND #createdOn <= '$rec->to.23:59:59')");
+        $date = strtotime($rec->to);
+        if ($rec->to && date('H:i:s', $date) == '00:00:00') {
+            $date = date('Y:m:d 23:59:59', $date);
+
+            $query->where("(#date IS NOT NULL AND #date <= '$date')OR (#date IS NULL AND #createdOn <= '$date')");
+        } else {
+            $query->where("(#date IS NOT NULL AND #date <= '$rec->to')OR (#date IS NULL AND #createdOn <= '$rec->to')");
         }
 
         //Филтър по център на дейност
         if ($rec->centre) {
 
-            foreach (keylist::toArray($rec->centre) as $cent){
+            foreach (keylist::toArray($rec->centre) as $cent) {
                 $centFoldersArr[planning_Centers::fetch($cent)->folderId] = planning_Centers::fetch($cent)->folderId;
             }
-
             $query->in('folderId', $centFoldersArr);
-
         }
 
         //Филтър по служители
-        if ($rec->employees) {//bp($rec->employees,$query->fetchAll());
+        if ($rec->employees) {
             $query->likeKeylist('employees', $rec->employees);
         }
 
@@ -234,12 +236,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
 
                 //Ако е брак
-                if ($tRec->type == 'scrap'){
-                   // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
+                if ($tRec->type == 'scrap') {
+                    // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
                     $crapQuantity = round(($tRec->quantity), 3);
-                    $quantity = 0;
+                    $quantity = round(($tRec->quantity*(-1)), 3);
                     $labelQuantity = 0;
-                    $indTimeSum = 0;
+                    $indTimeSum = $indTimeSum*(-1);
                 }
 
 
@@ -307,7 +309,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 }
 
                 $clone = clone $val;
-
 
                 foreach ($arr as $k => $v) {
                     unset($id);
@@ -413,10 +414,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param stdClass $rec
-     *                         - записа
-     * @param bool $export $fld->FLD('scrap', 'double(decimals=2)', 'caption=Брак');
-     *                         - таблицата за експорт ли е
+     * @param stdClass $rec- записа
+     *
+     * @param bool $export - таблицата за експорт ли е
      *
      * @return core_FieldSet - полетата
      */
@@ -504,14 +504,11 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        $isPlain = Mode::is('text', 'plain');
-        $Int = cls::get('type_Int');
-        $Date = cls::get('type_Date');
-        $Time = cls::get('type_Time');
+
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $row = new stdClass();
 
+        $row = new stdClass();
 
         if ($dRec->originId) {
             $Job = doc_Containers::getDocument($dRec->originId);
@@ -592,58 +589,11 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
             }
 
-
-            if (($data->rec->resultsOn == 'users' || $data->rec->resultsOn == 'usersMachines')) {
-                if (isset($data->rec->employees)) {
-                    $marker = 0;
-                    foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
-                        $marker++;
-
-                        $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
-
-                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
-                            $employeesVerb .= ', ';
-                        }
-                    }
-
-                    $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
-                } else {
-                    $fieldTpl->append('<b>' . 'Всички от този център на дейност' . '</b>', 'employees');
-                }
-            } else {
-                if (isset($data->rec->employees)) {
-                    $marker = 0;
-                    foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
-                        $marker++;
-
-                        $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
-
-                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
-                            $employeesVerb .= ', ';
-                        }
-                    }
-
-                    $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
-                }
-            }
-
-            if (isset($data->rec->assetResources)) {
-                $marker = 0;
-                foreach (type_Keylist::toArray($data->rec->assetResources) as $asset) {
-                    $marker++;
-
-                    $assetVerb .= planning_AssetResources::fetch($asset)->name;
-
-                    if ((countR(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
-                        $assetVerb .= ', ';
-                    }
-                }
-
-                $fieldTpl->append('<b>' . $assetVerb . '</b>', 'assetResources');
-            }
-
             if (isset($data->rec->centre)) {
                 $marker = 0;
+                $empText = 'Всички от избраните центрове';
+                $worning = null;
+
                 foreach (type_Keylist::toArray($data->rec->centre) as $ce) {
                     $marker++;
 
@@ -655,13 +605,68 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 }
 
                 $fieldTpl->append('<b>' . $centreVerb . '</b>', 'centre');
+            }else{
+                $worning = "warning='Липсва избран център на дейност'";
+                $empText = 'Всички';
             }
 
-            $grUrl = array('planning_reports_Workflows', 'employees', 'recId' => $data->rec->id, 'ret_url' => true);
+
+            if (($data->rec->resultsOn == 'users' || $data->rec->resultsOn == 'usersMachines')) {
+                if (isset($data->rec->employees)) {
+                    $marker = 0;
+                    foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
+                        $marker++;
+
+                        $employeesVerb .= (crm_Persons::getHyperlink($empl,'name'));
+
+                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
+                            $employeesVerb .= ', ';
+                        }
+                    }
+
+                    $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
+                } else {
+                    $fieldTpl->append('<b>' . $empText . '</b>', 'employees');
+                }
+            } else {
+                if (isset($data->rec->employees)) {
+                    $marker = 0;
+                    foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
+                        $marker++;
+
+                        $employeesVerb .= (crm_Persons::getHyperlink($empl,'name'));
+
+                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
+                            $employeesVerb .= ', ';
+                        }
+                    }
+
+                    $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
+                }else {
+                    $fieldTpl->append('<b>' . $empText . '</b>', 'employees');
+                }
+            }
+
+            if (isset($data->rec->assetResources)) {
+                $marker = 0;
+                foreach (type_Keylist::toArray($data->rec->assetResources) as $asset) {
+                    $marker++;
+
+                    $assetVerb .= planning_AssetResources::getHyperlink($asset);
+
+                    if ((countR(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
+                        $assetVerb .= ', ';
+                    }
+                }
+
+                $fieldTpl->append('<b>' . $assetVerb . '</b>', 'assetResources');
+            }
+
+            $grUrl = array('planning_reports_Workflows', 'employeesAndAssets', 'recId' => $data->rec->id, 'ret_url' => true);
 
             $toolbar = cls::get('core_Toolbar');
 
-            $toolbar->addBtn('Филтър по служители и оборудване', toUrl($grUrl));
+            $toolbar->addBtn('Филтър по служители и оборудване', toUrl($grUrl),null,$worning);
 
             $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
 
@@ -787,14 +792,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        $row->centre = planning_Centers::getHyperlink($rec->centre, true);
+      //  $row->centre = planning_Centers::getHyperlink($rec->centre, true);
     }
 
     /**
      * Филтриране служител
      *
      */
-    public static function act_Employees()
+    public static function act_EmployeesAndAssets()
     {
 
         expect($recId = Request::get('recId', 'int'));
@@ -822,9 +827,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $suggestionsEmpl = $sugg;
                 } else {
 
-                    foreach ($sugg as $key => $v){
+                    foreach ($sugg as $key => $v) {
 
-                        if(!in_array($key,array_keys($suggestionsEmpl))){
+                        if (!in_array($key, array_keys($suggestionsEmpl))) {
                             $suggestionsEmpl[$key] = $v;
                         }
                     }
@@ -838,9 +843,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 if (empty($suggestionsAssets)) {
                     $suggestionsAssets = $sugg;
                 } else {
-                    foreach ($sugg as $key => $v){
+                    foreach ($sugg as $key => $v) {
 
-                        if(!in_array($key,array_keys($suggestionsAssets))){
+                        if (!in_array($key, array_keys($suggestionsAssets))) {
                             $suggestionsAssets[$key] = $v;
                         }
                     }
@@ -854,38 +859,41 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $form->setSuggestions('empployFilter', $suggestionsEmpl);
             $form->setSuggestions('assetFilter', $suggestionsAssets);
-            if ($rec->employees){
+            if ($rec->employees) {
                 $form->rec->empployFilter = $rec->employees;
             }
-            if ($rec->assetResources){
+            if ($rec->assetResources) {
                 $form->rec->assetFilter = $rec->assetResources;
             }
 
-        $mRec = $form->input();
+            $mRec = $form->input();
 
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+            $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+            $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
-        if ($form->isSubmitted()) {
+            if ($form->isSubmitted()) {
 
-            if (!$form->rec->empployFilter){
-                $rec->employees = null;
-            }else{
-                $rec->employees = $form->rec->empployFilter;
+                if (!$form->rec->empployFilter) {
+                    $rec->employees = null;
+                } else {
+                    $rec->employees = $form->rec->empployFilter;
+                }
+                if (!$form->rec->assetFilter) {
+                    $rec->assetResources = null;
+                } else {
+                    $rec->assetResources = $form->rec->assetFilter;
+                }
+
+                frame2_Reports::save($rec);
+                frame2_Reports::refresh($rec);
+                return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
             }
-            if (!$form->rec->assetFilter){
-                $rec->assetResources = null;
-            }else{
-                $rec->assetResources = $form->rec->assetFilter;
-            }
 
-            frame2_Reports::save($rec);
-            frame2_Reports::refresh($rec);
+        }else{
+            status_Messages::newStatus('Липсва избран център на дейност' , 'warning');
             return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
         }
-
-             }
         return $form->renderHtml();
     }
 
