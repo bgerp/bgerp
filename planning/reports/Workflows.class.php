@@ -239,9 +239,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 if ($tRec->type == 'scrap') {
                     // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
                     $crapQuantity = round(($tRec->quantity), 3);
-                    $quantity = 0;
+                    $quantity = round(($tRec->quantity*(-1)), 3);
                     $labelQuantity = 0;
-                    $indTimeSum = 0;
+                    $indTimeSum = $indTimeSum*(-1);
                 }
 
 
