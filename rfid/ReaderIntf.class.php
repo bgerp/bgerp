@@ -23,6 +23,6 @@ class rfid_ReaderIntf extends embed_DriverIntf
      */
     public function getData($date)
     {
-        $this->class->getData($date); bp($this->class);
+        $this->class->getData($date);
     }
 }
