@@ -405,7 +405,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
 
                         $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
-                        if($checkSerials4Warning == 'yes' && planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #type != 'scrap' AND #taskId = {$rec->taskId} AND #state != 'rejected'", $rec->serial))){
+                        if($checkSerials4Warning == 'yes' && $rec->type == 'production' && planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #type != 'scrap' AND #taskId = {$rec->taskId} AND #state != 'rejected'", $rec->serial))){
                             $form->setWarning('serial', 'Производственият номер се повтаря в рамките на операцията');
                         }
 
