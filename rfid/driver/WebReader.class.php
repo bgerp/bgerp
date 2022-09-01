@@ -13,9 +13,9 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Драйвер на RFID четец
+ * @title     WEB RFID четец 
  */
-class rfid_driver_WebReader extends embed_DriverIntf
+class rfid_driver_WebReader extends core_Mvc
 {
     /**
      * Инстанция на мениджъра имащ интерфейса
@@ -40,7 +40,7 @@ class rfid_driver_WebReader extends embed_DriverIntf
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $form->FLD('readerId', 'key(mvc=rfid_Readers, select=name, allowEmpty)', 'caption=Четец,mandatory,silent,after=tag');
+        //$form->FLD('readerId', 'key(mvc=rfid_Readers, select=name, allowEmpty)', 'caption=Четец,mandatory,silent,after=tag');
     }
 
     /**
@@ -54,7 +54,7 @@ class rfid_driver_WebReader extends embed_DriverIntf
      */
     protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        $row->driverClass = rfid_Readers::getLinkToSingle($rec->readerId, 'name');
+        $row->driverClass = rfid_Readers::getLinkToSingle($rec->id, 'title'); //bp($Driver);
     }
     
     /**
@@ -67,23 +67,14 @@ class rfid_driver_WebReader extends embed_DriverIntf
     public function canSelectDriver($userId = null)
     {
         
-        return false;
+        return true;
     }
 
-    /**
-     * Чете данни от WEB
-     *
-     * @param NULL|int $userId
-     *
-     * @return bool
-     */
-    public function getData()
-    {
-        //         if (!isset($userId)) {
-        //             $userId = core_Users::getCurrent();
-        //         }
-        
-        return false;
-    }
+ 
     
+    public static function on_BeforeAction($Driver, embed_Manager $Embedder, &$res, $action)
+    {
+        if($action == 'addevent') {
+        }
+    }
 }

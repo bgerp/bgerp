@@ -88,7 +88,6 @@ class rfid_Events extends core_Manager
     public function description()
     {
         // Обща информация
-        $this->FLD('holderId', 'key(mvc=rfid_Holders,select=objectId)', 'caption=Картодържател');
         $this->FLD('tagId', 'key(mvc=rfid_Tags,select=rfid10d)', 'caption=Карта');
         $this->FLD('readerId', 'key(mvc=rfid_Readers,select=title)', 'caption=Четец');
         $this->FLD('time', 'datetime', 'caption=Време');
@@ -105,4 +104,22 @@ class rfid_Events extends core_Manager
         $data->query->orderBy('#createdOn', 'DESC');
         $data->toolbar = null;
     }
+
+
+    /**
+     * Регистрира събитие през WEB
+     */
+    public  function act_add()
+    {
+        $card = Request::get('card', 'int');
+        $stamp = Request::get('stamp', 'int');
+        $term = Request::get('term', 'int');
+        $secret = Request::get('secret', 'int');
+        
+        clearstatcache('rfid_debug.txt');
+        file_put_contents('rfid_debug.txt', $card . "|" . $stamp . "|" . $term . "|" . $secret . "\n", FILE_APPEND);
+        
+        shutdown();
+    }
+    
 }
