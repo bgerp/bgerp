@@ -1131,7 +1131,11 @@ class cat_BomDetails extends doc_Detail
     public function cloneDetails($fromBomId, $toBomId)
     {
         $fromBomRec = cat_Boms::fetchRec($fromBomId);
-        cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, null);
+        if($fromBomRec->state == 'template'){
+            $this->cloneDetailsFromBomId($fromBomId, $toBomId);
+        } else {
+            cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, null);
+        }
     }
     
     
@@ -1212,44 +1216,53 @@ class cat_BomDetails extends doc_Detail
         } else {
             $activeBom = cat_Products::getLastActiveBom($productId, 'sales');
         }
-        
+
         // Ако етапа има рецепта
         if ($activeBom) {
             if ($onlyIfQuantitiesAreEqual === true) {
-                if ($activeBom->quantity != $toBomRec->quantity) {
-                    
-                    return;
-                }
+                if ($activeBom->quantity != $toBomRec->quantity) return;
             }
-            
-            $outArr = static::getOrderedBomDetails($activeBom->id);
-            $cu = core_Users::getCurrent();
-            
-            // Копираме всеки запис
-            $map = array();
-            if (is_array($outArr)) {
-                foreach ($outArr as $dRec) {
-                    $oldId = $dRec->id;
-                    
-                    unset($dRec->id);
-                    $dRec->modidiedOn = dt::now();
-                    $dRec->modifiedBy = $cu;
-                    $dRec->bomId = $toBomId;
-                    if (empty($dRec->parentId)) {
-                        $dRec->parentId = $componentId;
-                    } else {
-                        $dRec->parentId = $map[$dRec->parentId];
-                    }
-                    
-                    // Добавяме записа
-                    $me->save_($dRec);
-                    $map[$oldId] = $dRec->id;
+
+            $me->cloneDetailsFromBomId($activeBom, $toBomRec, $componentId);
+        }
+    }
+
+
+    /**
+     * Помощна функция
+     */
+    private function cloneDetailsFromBomId($fromRec, $toRec, $componentId = null)
+    {
+        $fromRec = cat_Boms::fetchRec($fromRec);
+        $toRec = cat_Boms::fetchRec($toRec);
+
+        $outArr = static::getOrderedBomDetails($fromRec->id);
+        $cu = core_Users::getCurrent();
+
+        // Копираме всеки запис
+        $map = array();
+        if (is_array($outArr)) {
+            foreach ($outArr as $dRec) {
+                $oldId = $dRec->id;
+
+                unset($dRec->id);
+                $dRec->modidiedOn = dt::now();
+                $dRec->modifiedBy = $cu;
+                $dRec->bomId = $toRec->id;
+                if (empty($dRec->parentId)) {
+                    $dRec->parentId = $componentId;
+                } else {
+                    $dRec->parentId = $map[$dRec->parentId];
                 }
+
+                // Добавяме записа
+                $this->save_($dRec);
+                $map[$oldId] = $dRec->id;
             }
         }
     }
-    
-    
+
+
     /**
      * Подрежда записите от детайла на рецептата по етапи
      *
