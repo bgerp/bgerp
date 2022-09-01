@@ -208,6 +208,7 @@ class doc_plg_Prototype extends core_Plugin
             
             // След създаване на документ с избран прототип, клонират се детайлите му
             $Details = $mvc->getDetailsToClone($rec);
+
             plg_Clone::cloneDetails($Details, $rec->{$mvc->protoFieldName}, $rec->id);
         }
         

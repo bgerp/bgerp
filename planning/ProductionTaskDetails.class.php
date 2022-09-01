@@ -405,7 +405,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
 
                         $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
-                        if($checkSerials4Warning == 'yes' && planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #type != 'scrap' AND #taskId = {$rec->taskId} AND #state != 'rejected'", $rec->serial))){
+                        if($checkSerials4Warning == 'yes' && $rec->type == 'production' && planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #type != 'scrap' AND #taskId = {$rec->taskId} AND #state != 'rejected'", $rec->serial))){
                             $form->setWarning('serial', 'Производственият номер се повтаря в рамките на операцията');
                         }
 
@@ -929,7 +929,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $recsBySerials = array();
         $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
-        array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap'){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
+        array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];

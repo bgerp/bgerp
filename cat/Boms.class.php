@@ -81,7 +81,7 @@ class cat_Boms extends core_Master
     /**
      * Кои полета да не бъдат презаписвани от шаблона
      */
-    public $fieldsNotToCopyFromTemplate = 'type';
+    public $fieldsNotToCopyFromTemplate = 'type,productId';
 
 
     /**
