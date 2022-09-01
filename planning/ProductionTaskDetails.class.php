@@ -929,7 +929,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $recsBySerials = array();
         $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
-        array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap'){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
+        array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
