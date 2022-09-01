@@ -397,18 +397,19 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if(!empty($rec->serial)){
                     $rec->serial = plg_Search::normalizeText($rec->serial);
                     if(!empty($rec->serial)){
+
+                        $checkProductId = ($rec->type == 'production') ? planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId') : $rec->productId;
+                        $rec->serial = str::removeWhiteSpace($rec->serial);
+                        if ($Driver = cat_Products::getDriver($checkProductId)) {
+                            $rec->serial = $Driver->canonizeSerial($checkProductId, $rec->serial);
+                        }
+
                         $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
-                        if($checkSerials4Warning == 'yes' && planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #type != 'scrap' AND #taskId = {$rec->taskId}", $rec->serial))){
+                        if($checkSerials4Warning == 'yes' && planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #type != 'scrap' AND #taskId = {$rec->taskId} AND #state != 'rejected'", $rec->serial))){
                             $form->setWarning('serial', 'Производственият номер се повтаря в рамките на операцията');
                         }
 
                         if(!$form->gotErrors()){
-                            $checkProductId = ($rec->type == 'production') ? planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId') : $rec->productId;
-                            $rec->serial = str::removeWhiteSpace($rec->serial);
-                            if ($Driver = cat_Products::getDriver($checkProductId)) {
-                                $rec->serial = $Driver->canonizeSerial($checkProductId, $rec->serial);
-                            }
-
                             if(in_array($rec->type, array('production', 'scrap'))){
                                 // Проверка на сериния номер
                                 $serialInfo = self::getProductionSerialInfo($rec->serial, $rec->productId, $rec->taskId);
@@ -1003,7 +1004,8 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             if($checkSerials4Warning == 'yes' && $rec->type != 'scrap'){
                 if($recsBySerials[$rec->serial] > 1){
-                    $row->serial = ht::createHint($row->serial, 'Номера се повтаря в операцията|*!', 'warning');
+                    $row->serial = ht::createElement('span', array('class' => 'warning-balloon'), $row->serial);
+                    $row->serial = ht::createHint($row->serial, 'Номера се повтаря в операцията|*!', 'notice');
                 }
             }
         }

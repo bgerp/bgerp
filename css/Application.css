@@ -7438,3 +7438,9 @@ table.bomProductionStepTable td {
 .stepParamTable td {
   text-indent: 15px; }
 
+.warning-balloon {
+  border: 1px dotted #fb9531;
+  display: inline-block;
+  padding: 2px;
+  border-radius: 3px; }
+
