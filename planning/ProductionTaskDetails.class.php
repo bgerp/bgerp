@@ -397,29 +397,35 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if(!empty($rec->serial)){
                     $rec->serial = plg_Search::normalizeText($rec->serial);
                     if(!empty($rec->serial)){
-                        $checkProductId = ($rec->type == 'production') ? planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId') : $rec->productId;
-                        $rec->serial = str::removeWhiteSpace($rec->serial);
-                        if ($Driver = cat_Products::getDriver($checkProductId)) {
-                            $rec->serial = $Driver->canonizeSerial($checkProductId, $rec->serial);
+                        $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
+                        if($checkSerials4Warning == 'yes' && planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #type != 'scrap' AND #taskId = {$rec->taskId}", $rec->serial))){
+                            $form->setWarning('serial', 'Производственият номер се повтаря в рамките на операцията');
                         }
 
-                        if(in_array($rec->type, array('production', 'scrap'))){
-                            // Проверка на сериния номер
-                            $serialInfo = self::getProductionSerialInfo($rec->serial, $rec->productId, $rec->taskId);
-                            $rec->serialType = $serialInfo['type'];
-                            if (isset($serialInfo['error'])) {
-                                $form->setError('serial', $serialInfo['error']);
-                            } elseif ($serialInfo['type'] == 'existing') {
-                                if(!empty($rec->batch) && isset($serialInfo['batch']) && $rec->batch != $serialInfo['batch']){
-                                    $form->setError('serial,batch', "Този номер е към друга партида");
-                                }
+                        if(!$form->gotErrors()){
+                            $checkProductId = ($rec->type == 'production') ? planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId') : $rec->productId;
+                            $rec->serial = str::removeWhiteSpace($rec->serial);
+                            if ($Driver = cat_Products::getDriver($checkProductId)) {
+                                $rec->serial = $Driver->canonizeSerial($checkProductId, $rec->serial);
                             }
-                        } else {
-                            $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
-                            $serialInfo = $availableSerialsToInput[$rec->serial];
-                            $form->setDefault('quantity', $serialInfo['quantity']);
-                        }
 
+                            if(in_array($rec->type, array('production', 'scrap'))){
+                                // Проверка на сериния номер
+                                $serialInfo = self::getProductionSerialInfo($rec->serial, $rec->productId, $rec->taskId);
+                                $rec->serialType = $serialInfo['type'];
+                                if (isset($serialInfo['error'])) {
+                                    $form->setError('serial', $serialInfo['error']);
+                                } elseif ($serialInfo['type'] == 'existing') {
+                                    if(!empty($rec->batch) && isset($serialInfo['batch']) && $rec->batch != $serialInfo['batch']){
+                                        $form->setError('serial,batch', "Този номер е към друга партида");
+                                    }
+                                }
+                            } else {
+                                $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
+                                $serialInfo = $availableSerialsToInput[$rec->serial];
+                                $form->setDefault('quantity', $serialInfo['quantity']);
+                            }
+                        }
                     } else {
                         $form->setError('serial', "Невалиден производствен номер");
                     }
