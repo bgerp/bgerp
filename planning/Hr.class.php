@@ -384,6 +384,21 @@ class planning_Hr extends core_Master
         }
 
         if(!$noOptions){
+
+
+
+
+            // Ако има съществуващи ид-та и тях ги няма в опциите да се добавят
+            if(isset($exIds)) {
+                $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
+                foreach ($exOptions as $eId) {
+                    $exCode = static::fetchField("#personId = {$eId}", 'code');
+                    $codes[$eId] = $exCode;
+                    $tempOptions[$eId] = crm_Persons::getVerbal($eId, 'name');
+                }
+            }
+
+
             $employeeGroupId = crm_Groups::getIdFromSysId('employees');
             $classId = self::getClassId();
             $fQuery = planning_AssetResourceFolders::getQuery();
@@ -400,10 +415,16 @@ class planning_Hr extends core_Master
             $query->like('groupList', "|{$employeeGroupId}|");
             $query->where("#state != 'rejected' && #state != 'closed'");
             $query->show('personId,code');
+            $query->orderBy('id', 'ASC');
             if (countR($objectIds)) {
                 $query->in('id', $objectIds);
             } else {
                 $query->where('1=2');
+            }
+
+            if(countR($tempOptions)){
+                $notInPersonIds = array_keys($tempOptions);
+                $query->notIn('personId', $notInPersonIds);
             }
 
             while ($rec = $query->fetch()) {
@@ -412,19 +433,6 @@ class planning_Hr extends core_Master
             }
         }
 
-        // Ако има съществуващи ид-та и тях ги няма в опциите да се добавят
-        if(isset($exIds)) {
-            $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
-            foreach ($exOptions as $eId) {
-                if (!array_key_exists($eId, $tempOptions)) {
-                    $exCode = static::fetchField("#personId = {$eId}", 'code');
-                    $codes[$eId] = $exCode;
-                    $tempOptions[$eId] = crm_Persons::getVerbal($eId, 'name');
-                }
-            }
-        }
-
-        asort($tempOptions);
         foreach ($tempOptions as $personId => $val){
             $key = $codesAsKeys ? $codes[$personId] : $personId;
             $options[$key] = "{$codes[$personId]} - {$val}";
@@ -556,8 +564,6 @@ class planning_Hr extends core_Master
             $codes[$id] = $code;
         }
 
-        asort($tempKeys);
-
         foreach ($tempKeys as $k => $v) {
             $key = ($codesAsKeys) ? $codes[$k] : $k;
             $res[$key] = "{$codes[$k]} - {$v}";
@@ -591,11 +597,13 @@ class planning_Hr extends core_Master
         $string = trim($string);
         if(empty($string)) return null;
         $string = trim($string, ',');
+        $string = str::removeWhiteSpace($string, ',');
 
         // Нормализиране на кодовете
         $parsedCodes = $persons = $errorArr = array();
         $exploded = explode(',', $string);
-        array_walk($exploded, function($a) use (&$parsedCodes){$v = trim($a);$v = strtoupper($v);$parsedCodes[$v] = $v;});
+        array_walk($exploded, function($a) use (&$parsedCodes){$v = trim($a);$v = strtoupper($v);if(!empty($v)) {$parsedCodes[$v] = $v;}});
+
         if(empty($parsedCodes)) return null;
 
         // Ако по този код има оператор - извлича се, ако няма ще се добави като грешка

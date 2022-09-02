@@ -727,9 +727,11 @@ class cat_products_Params extends doc_Detail
             $name = cat_Params::getVerbal($paramRec, 'name');
             if(!empty($paramRec->group)){
                 $groupName = cat_Params::getVerbal($paramRec, 'group');
-                $name = "{$groupName}: {$name}";
+                $caption = "Параметри за|*: <b>{$groupName}</b>->{$name}";
+            } else {
+                $caption = "Параметри за планиране на|*: <b>{$plannedProductName}</b>->|{$name}|*";
             }
-            $form->FLD("paramcat{$pId}", 'double', "caption=Параметри за планиране на:|* <b>{$plannedProductName}</b>->|{$name}|*,before=indTime");
+            $form->FLD("paramcat{$pId}", 'double', "caption={$caption},before=indPackagingId");
 
             $ParamType = cat_Params::getTypeInstance($pId, $domainClassId, $objectId);
             $form->setFieldType("paramcat{$pId}", $ParamType);

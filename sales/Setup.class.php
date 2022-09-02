@@ -234,6 +234,18 @@ defIfNot('SALES_DEFAULT_BLAST_SUBJECT_EN', "Dunning Notice");
 
 
 /**
+ * Непродавани от кога артикули да се считат за нови
+ */
+defIfNot('SALES_DELTA_NEW_PRODUCT_TO', 1);
+
+
+/**
+ * Непродавани от кога артикули да се считат за нови
+ */
+defIfNot('SALES_DELTA_NEW_PRODUCT_FROM', 12 * dt::SECONDS_IN_MONTH);
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -286,7 +298,7 @@ class sales_Setup extends core_ProtoSetup
         ),
         'SALES_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
             'int(Min=0)',
-            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'
+            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на изходяща фактура" за приключване на валутни сделки->Дни'
         ),
         'SALE_CLOSE_OLDER_NUM' => array(
             'int',
@@ -405,6 +417,9 @@ class sales_Setup extends core_ProtoSetup
         'SALES_DEFAULT_BLAST_SUBJECT_BG' => array('varchar', 'caption=Subject на циркулярен имейл за просрочени плащания->На български, customizeBy=blast'),
         'SALES_DEFAULT_BLAST_BODY_EN' => array('richtext(rows=5,bucket=Blast)', 'caption=Текст на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
         'SALES_DEFAULT_BLAST_SUBJECT_EN' => array('varchar', 'caption=Subject на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
+
+        'SALES_DELTA_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->От,unit=назад'),
+        'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
     );
     
     
@@ -428,6 +443,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
+        'sales_LastSaleByContragents',
     );
     
     

@@ -63,6 +63,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldset->FLD('excludedFromEmail', 'text', 'caption=Изключени за имейл фирми,single=none,after=listForEmail,input=hidden');
         $fieldset->FLD('unsentEmails', 'blob', 'caption=Неизпратени имейли,single=none,after=listForEmail,input=hidden');
         $fieldset->FLD('blastId', 'int', 'caption=Последен документ,single=none,after=unsentEmails,input=hidden');
+        $fieldset->FLD('minSumForEmail', 'double', 'caption=Минимално задължение за имейл,single=none,after=blastId,input=hidden');
 
         $fieldset->FNC('salesTotalOverDue', 'double', 'caption=Общо просрочени,input=none,single=none');
         $fieldset->FNC('salesTotalPayout', 'double', 'caption=Общо плащания,input=none,single=none');
@@ -86,6 +87,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         //$checkDate = dt::today();
         //$form->setDefault('checkDate', "{$checkDate}");
         $form->setDefault('typeGrupping', 'contragent');
+        $form->setDefault('minSumForEmail', 0.05);
 
         $salesQuery = sales_Sales::getQuery();
 
@@ -414,10 +416,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 $fld->FLD('overduePeriod', 'varchar', 'caption=Дни,smartCenter');
             }
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност,smartCenter');
-            $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума,smartCenter');
+            $fld->FLD('invoiceValue', 'double(decimals=2)', 'caption=Стойност,smartCenter');
+            $fld->FLD('paidAmount', 'double(decimals=2)', 'caption=Платено->сума,smartCenter');
             $fld->FLD('paidDates', 'varchar', 'caption=Платено->дата,smartCenter');
-            $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Неплатено');
+            $fld->FLD('invoiceCurrentSumm', 'double(decimals=2)', 'caption=Неплатено');
         } else {
             $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
             $fld->FLD('invoiceDate', 'date', 'caption=Дата,smartCenter');
@@ -428,10 +430,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 $fld->FLD('overduePeriod', 'varchar', 'caption=Дни,smartCenter');
             }
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
-            $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платена сума');
+            $fld->FLD('invoiceValue', 'double(decimals=2)', 'caption=Стойност');
+            $fld->FLD('paidAmount', 'double(decimals=2)', 'caption=Платена сума');
             $fld->FLD('paidDates', 'varchar', 'caption=Плащания,smartCenter');
-            $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Неплатено');
+            $fld->FLD('invoiceCurrentSumm', 'double(decimals=2)', 'caption=Неплатено');
         }
 
         return $fld;
@@ -808,10 +810,13 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
         $form->FLD('companyFilter', 'keylist(mvc=doc_Folders, select=title)', 'caption=Изключени контрагенти,placeholder = Няма,silent');
+        $form->FLD('minSumForEmail', 'double(decimals=2)', 'caption=Минимална сума на задължението,placeholder = Няма,silent');
 
         $form->setSuggestions('companyFilter', $cSuggestionsArr);
+        $form->setDefault('minSumForEmail', 0.05);
 
         $form->rec->companyFilter = $rec->excludedFromEmail;
+        $form->rec->minSumForEmail = $rec->minSumForEmail;
 
         $mRec = $form->input();
 
@@ -836,6 +841,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
 
             $rec->excludedFromEmail = $form->rec->companyFilter;
+            $rec->minSumForEmail = $form->rec->minSumForEmail;
             frame2_Reports::save($rec);
 
             $exportUrl = array('sales_reports_OverdueInvoices', 'blast', 'recId' => $rec->id, 'ret_url' => true);
@@ -935,14 +941,14 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         foreach ($rec->listForEmail as $key => $val) {
 
-            if ($val['excludе'] == 'yes') continue;
+            if (($val['excludе'] == 'yes') || ($val['sum'] <= $rec->minSumForEmail)) continue;
 
             $listForSend[$key] = array('email' => $val['email'],
                 'company' => $val['company'],
                 'country' => $val['country'],
                 'date' => $val['date'],
                 'docs' => $val['docs'],
-                'sum' => $val['sum'],
+                'sum' => round($val['sum'], 2),
                 'currency' => $val['currency'],
             );
         }

@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @title     Драйвер за лица на RFID номер
  */
-class rfid_driver_HolderPerson
+class rfid_driver_HolderPerson extends core_Mvc
 {
     
     /**
@@ -34,11 +34,23 @@ class rfid_driver_HolderPerson
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
      */
-    public function addFields(core_Form &$form)
+    public function addFields(core_FieldSet &$fieldset)
     {
-        $form->FLD('holderId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Лице,mandatory,silent,after=tag');
+        $fieldset->FLD('holderId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Лице,mandatory,silent,after=tag');
     }
 
+    public function on_AfterInputEditForm($driver, $embedder, $form)
+    {
+    }
+    
+    /**
+     * След подготовка на формата за добавяне/редакция
+     */
+    protected static function on_AfterPrepareEditForm($driver, $mvc, $data)
+    {
+    }
+    
+    
     /**
      * След вербализирането на данните
      *
@@ -50,7 +62,6 @@ class rfid_driver_HolderPerson
      */
     protected function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        //bp($rec);
         $row->driverClass = crm_Persons::getLinkToSingle($rec->holderId, 'name');
     }
     
@@ -63,7 +74,6 @@ class rfid_driver_HolderPerson
      */
     public function canSelectDriver($userId = null)
     {
-        //bp();
         
         return true;
     }

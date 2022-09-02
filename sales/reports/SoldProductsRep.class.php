@@ -659,7 +659,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $primeCostPrevious = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
                         $deltaPrevious = (-1) * $recPrime->delta;
 
-                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails) {
+                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
                         $quantityPrevious = $recPrime->quantity;
                         $primeCostPrevious = $recPrime->{"${price}"} * $recPrime->quantity;
                         $deltaPrevious = $recPrime->delta;
@@ -698,7 +698,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $primeCostLastYear = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
                         $deltaLastYear = (-1) * $recPrime->delta;
 
-                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails) {
+                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
 
                         $quantityLastYear = $recPrime->quantity;
                         $primeCostLastYear = $recPrime->{"${price}"} * $recPrime->quantity;
@@ -736,7 +736,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     $delta = (-1) * $recPrime->delta;
 
-                } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails) {
+                } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
                     $quantity = $recPrime->quantity;
 
                     $primeCost = $recPrime->{"${price}"} * $recPrime->quantity;
@@ -929,7 +929,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             //Когато НЕ СА ИЗБРАНИ групи артикули
             if (!($rec->$typeGroup)) {
                 if (keylist::isKeylist(($v->$typeGroup))) {
-                    $v->$typeGroup = keylist::toArray($v->$typeGroup); //Кейлиста с гупите го записва като масив
+                    $v->$typeGroup = keylist::toArray($v->$typeGroup); //Кейлиста с групите го записва като масив
                 } elseif (is_numeric($v->$typeGroup)) {
                     $v->$typeGroup = array($v->$typeGroup => $v->$typeGroup); //Ако е избрана категория
                 } else {

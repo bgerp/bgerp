@@ -333,10 +333,11 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Връща масив от подадените параметри обърнати в удобен вид за писане във формули
      *
-     * @param array $params - подадените параметри
-     * @return array $res   - обърнати във вид удобен за използване във формули
+     * @param array $params      - подадените параметри
+     * @param array $idToNameArr - масив с мапване на параметрите като ид-та към тези с имена
+     * @return array $res        - обърнати във вид удобен за използване във формули
      */
-    public static function getFormulaParamMap($params)
+    public static function getFormulaParamMap($params, &$idToNameArr = array())
     {
         $strings = $ids = array();
         $params = keylist::isKeylist($params) ? keylist::toArray($params) : $params;
@@ -352,8 +353,9 @@ class cat_Params extends bgerp_ProtoParam
                 $key = '$' . $normalizedName;
                 $strings[$key] = $value;
 
-                $key1 = "#{$paramId}";
+                $key1 = "#{$paramId}#";
                 $ids[$key1] = $value;
+                $idToNameArr[$key1] = $key;
             }
         }
 

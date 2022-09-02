@@ -302,14 +302,14 @@ class planning_Tasks extends core_Master
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|freeTimeAfter|simultaneity');
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
-        $this->FLD('employees', 'planning_type_Operators(mvc=crm_Persons)', 'caption=Оператори,silent');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
-        }
-        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
-        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,caption=Нормиране->Опаковка,input=hidden,tdClass=small-field nowrap');
+        }        
+        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=common');
+        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both,input=hidden');
@@ -607,6 +607,11 @@ class planning_Tasks extends core_Master
                 $row->wastePercent = isset($row->wastePercent) ? $row->wastePercent : 'n/a';
                 $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
+
+            if(!empty($rec->employees)){
+                $employees = planning_Hr::getPersonsCodesArr($rec->employees, true);
+                $row->employees = implode(', ', $employees);
+            }
         } else {
             $row->dueDate = $origin->getVerbal('dueDate');
             $jobPackQuantity = $origin->fetchField('packQuantity');
@@ -853,7 +858,7 @@ class planning_Tasks extends core_Master
 
         $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table>
                 <tr><td style='font-weight:normal'>|Норма|*:</td><td>[#indTime#]</td></tr>
-                <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#indPackagingId#]</td></tr>
+                <tr><td style='font-weight:normal'>|Мярка|*:</td><td>[#indPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|Разпределяне|*:</td><td>[#indTimeAllocation#]</td></tr>
                 <!--ET_BEGIN simultaneity--><tr><td style='font-weight:normal'>|Едновременност|*:</td><td>[#simultaneity#]</td></tr><!--ET_END simultaneity-->
                 </table>"));
@@ -926,14 +931,18 @@ class planning_Tasks extends core_Master
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
-        $dQuery->where("#taskId = {$rec->id} AND #productId = {$productId} AND #type = 'production' AND #state != 'rejected'");
+        $dQuery->where("#taskId = {$rec->id} AND #productId = {$productId} AND (#type = 'production' OR #type = 'scrap') AND #state != 'rejected'");
 
         $rec->totalWeight = $rec->totalQuantity = $rec->scrappedQuantity = 0;
         while($dRec = $dQuery->fetch()){
-            $quantity = $dRec->quantity / $rec->quantityInPack;
-            $rec->totalQuantity += $quantity;
-            $rec->totalWeight += $dRec->weight;
-            $rec->scrappedQuantity += $dRec->scrappedQuantity / $rec->quantityInPack;
+            if($dRec->type == 'production'){
+                $quantity = $dRec->quantity / $rec->quantityInPack;
+                $rec->totalQuantity += $quantity;
+                $rec->totalWeight += $dRec->weight;
+            } else {
+                $rec->scrappedQuantity += $dRec->quantity / $rec->quantityInPack;
+                $rec->totalWeight -= $dRec->weight;
+            }
         }
 
         // Изчисляваме колко % от зададеното количество е направено
@@ -1152,12 +1161,14 @@ class planning_Tasks extends core_Master
                                 $nRec->taskId = $rec->id;
                                 $nRec->packagingId = $p->packagingId;
                                 $nRec->quantityInPack = $p->quantityInPack;
-                                $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
+                                $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
 
+                                core_Users::forceSystemUser();
                                 planning_ProductionTaskProducts::save($nRec);
+                                core_Users::cancelSystemUser();
                             }
                         }
                     }
@@ -1167,7 +1178,9 @@ class planning_Tasks extends core_Master
                 $nRec->taskId = $rec->id;
                 $nRec->productId = $originRec->productId;
                 $nRec->type = 'production';
+                core_Users::forceSystemUser();
                 planning_ProductionTaskProducts::save($nRec);
+                core_Users::cancelSystemUser();
             }
         }
 
@@ -1255,8 +1268,7 @@ class planning_Tasks extends core_Master
             }
 
             if(empty($rec->systemId) && empty($rec->id)){
-                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,indPackagingId=normPackagingId");
-
+                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm");
                 foreach ($defFields as $fld => $val){
                     $form->setDefault($fld, $productionData[$val]);
                 }
@@ -1275,7 +1287,7 @@ class planning_Tasks extends core_Master
                 $fixedAssetOptions = $productionData['fixedAssets'];
             }
 
-            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees, true);
+            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
             if(countR($employeeOptions)){
                 $form->setSuggestions('employees',  array('' => '') + $employeeOptions);
             } else {
@@ -1390,6 +1402,10 @@ class planning_Tasks extends core_Master
                 $packs = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false)) + cat_products_Packagings::getOnlyPacks($productId4Form);
                 $form->setOptions('labelPackagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
+                if(isset($productionData) && array_key_exists($productionData['normPackagingId'], $packs)){
+                    $form->setDefault('indPackagingId', $productionData['normPackagingId']);
+                }
+
                 if($rec->isFinal != 'yes'){
                     if(array_key_exists($productionData['labelPackagingId'], $packs)){
                         $form->setDefault('labelPackagingId', $productionData['labelPackagingId']);
@@ -2537,6 +2553,7 @@ class planning_Tasks extends core_Master
     {
         $saveRecs = array();
 
+        $now = dt::now();
         if(isset($rec->wasteProductId)){
 
             // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
@@ -2558,7 +2575,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
+            $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdOn' => core_Users::getCurrent(), 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
             $saveRecs[] = $wasteRec;
         }
 
@@ -2571,7 +2588,7 @@ class planning_Tasks extends core_Master
                     if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
 
                     // Ще се създава запис за планираното действие за влагане
-                    $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'));
+                    $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => core_Users::SYSTEM_USER, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now, 'createdOn' => $now);
                     if($normRec = planning_AssetResources::getNormRec($rec->assetId, $actionId)){
                         $inputRec->indTime = $normRec->indTime;
                     }
@@ -2626,10 +2643,6 @@ class planning_Tasks extends core_Master
      */
     public static function getSaoItems($rec)
     {
-        if(empty($rec->originId)){
-            wp($rec, core_Users::getCurrent());
-        }
-
         $res = array();
         $query = self::getQuery();
         $query->where("#originId = '{$rec->originId}' AND #state != 'rejected'");

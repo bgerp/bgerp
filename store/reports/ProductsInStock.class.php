@@ -99,7 +99,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=3,columns=3,after=availability,silent');
 
-        $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Покажи по гупи артикули,after=orderBy,input=none,single=none');
+        $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Филтри->"Общо" по групи,after=orderBy,input=none,single=none');
 
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
         $fieldset->FNC('sumByGroup', 'blob', 'input=none,single=none');
@@ -310,10 +310,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
         }
 
-        //Ако е избран разширен вариант на справката добавяме резервираните и очаквните количества
+        //Ако е избран разширен вариант на справката добавяме резервираните и очакваните количества
         if ($rec->type == 'long') {
 
-            //Извличанве на всички артикули със запазени количества
+            //Извличане на всички артикули със запазени количества
             $prodQuery = store_Products::getQuery();
             if ($rec->products) {
                 $prodQuery->where("#productId = $rec->products");
@@ -414,8 +414,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $rec->totalProducts = (countR($recs));
 
+
+        //Разпределение по групи
         if ($rec->seeByGroups && $rec->type == 'short') {
-            //Разпределение по групи
+
             $sumByGroup = $quantityByMeasureGroup = array();
 
             foreach ($recs as $key => $val) {
@@ -427,6 +429,12 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                     $cln = clone $val;
 
                     if (!array_key_exists($gr, $sumByGroup)) {
+
+                        //филтър по групи
+                        if(isset($rec->group)){
+                            if(!in_array($gr,keylist::toArray($rec->group)))continue;
+                        }
+
                         $sumByGroup[$gr] = (object)array(
                             'amount' => $cln->amount,
                         );
@@ -541,11 +549,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         if (is_numeric($dRec->groupOne)){
 
-            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name').' : '.'Общо: '.'стойност '.$Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount).
-                             ' количества';
+            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name').' :: стойност: '.$Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount).' '.acc_Periods::getBaseCurrencyCode($rec->date).
+                             ';  количества: ';
+	    $bm = 0;
             foreach ($rec->sumByGroup['quantities'] as $val){
                 if($val->gr == $dRec->groupOne) {
-                    $row->groupOne .= ': '.$Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
+		    if($bm > 0) {
+			    $row->groupOne .= ' + ';
+		    }
+                    $row->groupOne .= $Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
+		    $bm = $bm + 1;
                 }
             }
         }else{

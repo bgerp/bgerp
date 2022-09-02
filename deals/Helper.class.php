@@ -805,7 +805,7 @@ abstract class deals_Helper
 
                 if($skip != true){
                     $iQuery = store_StockPlanning::getQuery();
-                    $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that}");
+                    $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that} AND #storeId IS NOT NULL");
                     $iQuery->show('quantityIn,quantityOut');
                     $iRec = $iQuery->fetch();
 
