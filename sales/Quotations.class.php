@@ -670,7 +670,7 @@ class sales_Quotations extends deals_QuotationMaster
         $count = countR($productsWithoutPrices);
         if ($count) {
             $imploded = implode(', ', $productsWithoutPrices);
-            $start = ($count == 1) ? 'артикулът' : 'артикулите';
+            $start = ($count == 1) ? 'артикула' : 'артикулите';
             $mid = ($count == 1) ? 'му' : 'им';
             $error = "На {$start}|* <b>{$imploded}</b> |трябва да {$mid} се въведе цена|*!";
             core_Statuses::newStatus($error, 'error');
