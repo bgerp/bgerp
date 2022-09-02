@@ -26,7 +26,10 @@
 					<!--ET_BEGIN showPreviousJobField-->
 					<div>|Показване на предишно задание в ПО|*: <b>[#showPreviousJobField#]</b></div>
 					<!--ET_END showPreviousJobField-->
-	                <!--ET_BEGIN nkid-->
+					<!--ET_BEGIN showSerialWarningOnDuplication-->
+					<div>|Предупреждение при дублиране на произв. номер в ПО|*: <b>[#showSerialWarningOnDuplication#]</b></div>
+					<!--ET_END showSerialWarningOnDuplication-->
+					<!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
 	                <!--ET_END nkid-->
 	                <!--ET_BEGIN employersCntAll-->

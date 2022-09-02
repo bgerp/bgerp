@@ -405,7 +405,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $rec->serial = $Driver->canonizeSerial($checkProductId, $rec->serial);
                         }
 
-                        $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
+                        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'showSerialWarningOnDuplication');
+                        $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
                         if($checkSerials4Warning == 'yes' && $rec->type == 'production' && planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #type != 'scrap' AND #taskId = {$rec->taskId} AND #state != 'rejected'", $rec->serial))){
                             $form->setWarning('serial', 'Производственият номер се повтаря в рамките на операцията');
                         }
@@ -592,18 +593,17 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $paramName = cat_Params::getVerbal($tareWeightParamId, 'typeExt');
-        if(isset($taskWeightSubtractValue)){
+        if($taskWeightSubtractValue === false || is_null($taskWeightSubtractValue)) return null;
 
-            // Ако параметъра е формула, се прави опит за изчислението ѝ
-            if(cat_Params::haveDriver($tareWeightParamId, 'cond_type_Formula')){
-                Mode::push('text', 'plain');
-                $taskWeightSubtractValue = cat_Params::toVerbal($tareWeightParamId, $taskClassId, $taskId, $taskWeightSubtractValue);
-                Mode::pop('text');
-                if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
-                    $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
-                    $msgType = 'warning';
-                    return $result;
-                }
+        // Ако параметъра е формула, се прави опит за изчислението ѝ
+        if(cat_Params::haveDriver($tareWeightParamId, 'cond_type_Formula')){
+            Mode::push('text', 'plain');
+            $taskWeightSubtractValue = cat_Params::toVerbal($tareWeightParamId, $taskClassId, $taskId, $taskWeightSubtractValue);
+            Mode::pop('text');
+            if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
+                $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
+                $msgType = 'warning';
+                return $result;
             }
         }
 
@@ -929,7 +929,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $masterRec = $data->masterData->rec;
 
         $recsBySerials = array();
-        $checkSerials4Warning = planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS');
+        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'showSerialWarningOnDuplication');
+        $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
         array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
 
         foreach ($rows as $id => $row) {
