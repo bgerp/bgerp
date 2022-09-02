@@ -592,18 +592,17 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $paramName = cat_Params::getVerbal($tareWeightParamId, 'typeExt');
-        if(isset($taskWeightSubtractValue)){
+        if($taskWeightSubtractValue === false || is_null($taskWeightSubtractValue)) return null;
 
-            // Ако параметъра е формула, се прави опит за изчислението ѝ
-            if(cat_Params::haveDriver($tareWeightParamId, 'cond_type_Formula')){
-                Mode::push('text', 'plain');
-                $taskWeightSubtractValue = cat_Params::toVerbal($tareWeightParamId, $taskClassId, $taskId, $taskWeightSubtractValue);
-                Mode::pop('text');
-                if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
-                    $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
-                    $msgType = 'warning';
-                    return $result;
-                }
+        // Ако параметъра е формула, се прави опит за изчислението ѝ
+        if(cat_Params::haveDriver($tareWeightParamId, 'cond_type_Formula')){
+            Mode::push('text', 'plain');
+            $taskWeightSubtractValue = cat_Params::toVerbal($tareWeightParamId, $taskClassId, $taskId, $taskWeightSubtractValue);
+            Mode::pop('text');
+            if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
+                $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
+                $msgType = 'warning';
+                return $result;
             }
         }
 
