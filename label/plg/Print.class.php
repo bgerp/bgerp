@@ -171,7 +171,7 @@ class label_plg_Print extends core_Plugin
                 core_Request::setProtected(array('classId, objectId'));
                 $res['url'] = array('label_Prints', 'add', 'classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'ret_url' => true);
                 $res['url'] = toUrl($res['url']);
-                core_Request::removeProtected('classId,objectId');
+                core_Request::removeProtected(array('classId,objectId'));
                 $res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на ". mb_strtolower($mvc->printLabelCaptionSingle). " от|* {$title} №{$rec->id}{$error}";
             }
         }
