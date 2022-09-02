@@ -209,7 +209,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
         'PLANNING_TASK_WEIGHT_SUBTRACT_PARAM_VALUE' => array('key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=От кой параметър да се приспада стойност (в килограми) при въвеждане на бруто тегло в ПО->Параметър,unit= в килограми (задължително!)'),
-        'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Да,no=Не)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
+        'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
     );
 
 
