@@ -3,7 +3,7 @@
 /**
  * Разрешени адреси за приемане на данни
  */
-defIfNot('ALLOWED_ADDRESES', '127.0.0.1, 120.0.1.1');
+defIfNot('ALLOWED_ADDRESSES', '127.0.0.1, 120.0.1.1');
 
 /**
  * class acc_Setup
