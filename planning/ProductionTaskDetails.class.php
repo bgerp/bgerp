@@ -928,7 +928,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $masterRec = $data->masterData->rec;
 
         $recsBySerials = array();
-        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'showSerialWarningOnDuplication');
+        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$masterRec->folderId}'", 'showSerialWarningOnDuplication');
         $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
         array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
 
