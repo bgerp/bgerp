@@ -262,8 +262,15 @@ class tesseract_Converter extends core_Manager
                     }
                 }
             }
-            
-            exec("convert -background white +matte -density {$density} {$pdfPathEsc} -depth 8 {$tiffPathEsc}");
+
+            $exec = "convert -background white +matte -density {$density} {$pdfPathEsc} -depth 8 {$tiffPathEsc}";
+
+            $timeLimit = fconv_Script::getTimeLimitScript();
+            if ($timeLimit) {
+                $exec = $timeLimit . ' ' . $exec;
+            }
+
+            exec($exec);
             
             $dir = dirname($pdfPath);
             
