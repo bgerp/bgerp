@@ -112,7 +112,7 @@ class rfid_Events extends core_Manager
     public  function act_add()
     {
         $card = Request::get('card', 'int');
-        $stamp = Request::get('stamp', 'int');
+        $stamp = Request::get('stamp', 'varchar');
         $term = Request::get('term', 'int');
         $secret = Request::get('secret', 'int');
         
