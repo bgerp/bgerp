@@ -163,14 +163,14 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         continue;
                     }
 
-                    if ($resArr[$cRec->folderId][$cRec->threadId]) {
+                    if ($resArr[$cRec->folderId][$cRec->threadId . '|' . $cRec->id]) {
 
                         continue;
                     }
 
-                    $resArr[$cRec->folderId][$cRec->threadId] = doc_Threads::fetch($cRec->threadId);
+                    $resArr[$cRec->folderId][$cRec->threadId . '|' . $cRec->id] = doc_Threads::fetch($cRec->threadId);
 
-                    $containerArr[$cRec->threadId][$cRec->id] = $cRec->id;
+                    $containerArr[$cRec->threadId . '|' . $cRec->id][$cRec->id] = $cRec->id;
 
                     if (!--$tCnt) {
                         break;
@@ -208,15 +208,17 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             
             foreach ($resArr as $fId => $tArr) {
                 $docRowArr = array();
-                foreach ($tArr as $tId => $tRec) {
+                foreach ($tArr as $tIdOrig => $tRec) {
+                    list($tId) = explode('|', $tIdOrig);
+
                     $tUnsighted = '';
 
                     $cQuery = doc_Containers::getQuery();
                     $cQuery->where(array("#threadId = '[#1#]'", $tId));
                     $cQuery->where("#state != 'rejected'");
 
-                    if (!empty($containerArr[$tId])) {
-                        $cQuery->in('id', $containerArr[$tId]);
+                    if (!empty($containerArr[$tIdOrig])) {
+                        $cQuery->in('id', $containerArr[$tIdOrig]);
                     }
 
                     // Вземаме последното вижда не нишката от текущия потребител
