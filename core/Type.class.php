@@ -68,16 +68,18 @@ class core_Type extends core_BaseClass
             
             return;
         }
-        
-        $value = self::escape($value);
-        
-        if ($this->params['truncate'] && mb_strlen($value) > $this->params['truncate']) {
-            $value = mb_substr($value, 0, $this->params['truncate']);
-            $value .= '...';
-        }
-        
-        if ($this->params['wordwrap'] && strlen($value)) {
-            $value = wordwrap($value, $this->params['wordwrap'], "<br />\n");
+
+        if (!Mode::is('text-export', 'csv')) {
+            $value = self::escape($value);
+
+            if ($this->params['truncate'] && mb_strlen($value) > $this->params['truncate']) {
+                $value = mb_substr($value, 0, $this->params['truncate']);
+                $value .= '...';
+            }
+
+            if ($this->params['wordwrap'] && strlen($value)) {
+                $value = wordwrap($value, $this->params['wordwrap'], "<br />\n");
+            }
         }
         
         return $value;
