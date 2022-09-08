@@ -731,7 +731,7 @@ class cat_products_Params extends doc_Detail
             } else {
                 $caption = "Параметри за планиране на|*: <b>{$plannedProductName}</b>->|{$name}|*";
             }
-            $form->FLD("paramcat{$pId}", 'double', "caption={$caption},before=indPackagingId");
+            $form->FLD("paramcat{$pId}", 'double', "caption={$caption},before=indPackagingId,class=w75");
 
             $ParamType = cat_Params::getTypeInstance($pId, $domainClassId, $objectId);
             $form->setFieldType("paramcat{$pId}", $ParamType);
