@@ -26,7 +26,7 @@ class hr_IndicatorNames extends core_Manager
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = 'Вид индикатори';
+    public $singleTitle = 'Вид индикатор';
 
 
     /**
