@@ -800,7 +800,7 @@ class sales_PrimeCostByDocument extends core_Manager
             }
         }
 
-        $rec = hr_IndicatorNames::force('Delta_new_products', __CLASS__, 5);
+        $rec = hr_IndicatorNames::force('Delta_new_products', __CLASS__, 'newDeltaProducts');
         if($rec->state != 'closed') {
             $result[$rec->id] = $rec->name;
         }
