@@ -37,7 +37,8 @@ class bgerp_plg_Export extends core_Plugin
         if ($mvc->haveRightFor('export') && self::getExportDrivers($mvc)) {
             $url = getCurrentUrl();
             $url['export'] = true;
-            
+            //$url['ret_url'] = $url;
+
             $data->toolbar->addBtn('Експорт', $url, 'ef_icon=img/16/export.png, row=2');
         }
     }
@@ -57,9 +58,10 @@ class bgerp_plg_Export extends core_Plugin
             $userId = core_Users::getCurrent();
             core_Cache::remove($mvc->className, "exportRecs{$userId}");
             core_Cache::set($mvc->className, "exportRecs{$userId}", $recs, 20);
-            
-            $retUrl = toUrl(array($mvc, 'list'), 'local');
-            
+
+            $retUrl = getCurrentUrl();
+            unset($retUrl['export']);
+
             redirect(array($mvc, 'export', 'ret_url' => $retUrl));
         }
     }
@@ -177,7 +179,7 @@ class bgerp_plg_Export extends core_Plugin
             }
             
             $form->toolbar->addSbBtn('Експорт', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/export.png');
-            $form->toolbar->addBtn('Отказ', array($mvc, 'list'), 'ef_icon = img/16/close-red.png');
+            $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
             
             $form = $form->renderHtml();
             
