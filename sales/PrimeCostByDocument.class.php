@@ -574,6 +574,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
         foreach($indicatorRecs as $iRec){
             if (!isset($iRec->dealerId))  continue;
+            if($iRec->isPublic != 'yes') continue;
 
             // Ако датата на последната продажба е в интервала между константите - няма да се начислява
             $lDate = $lastDateArr[$iRec->productId][$iRec->folderId];
