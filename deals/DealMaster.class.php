@@ -599,7 +599,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 break;
         }
 
-        $query->orWhere("#state = 'rejected'");
+        if(!Request::get('export')){
+            $query->orWhere("#state = 'rejected'");
+        }
     }
     
     
