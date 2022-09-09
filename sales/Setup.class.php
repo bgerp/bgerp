@@ -471,6 +471,7 @@ class sales_Setup extends core_ProtoSetup
                        sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_interface_FreeRegularDelivery,
                        sales_reports_PriceComparison';
     
+    
     /**
      * Настройки за Cron
      */
