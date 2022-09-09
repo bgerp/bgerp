@@ -13,20 +13,20 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Имена на показателi
+ * @title     Видове индикатори
  */
 class hr_IndicatorNames extends core_Manager
 {
     /**
      * Заглавие
      */
-    public $title = 'Имена на показател';
+    public $title = 'Видове индикатори';
     
     
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = 'Име на показател';
+    public $singleTitle = 'Вид индикатор';
 
 
     /**
