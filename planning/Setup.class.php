@@ -317,8 +317,12 @@ class planning_Setup extends core_ProtoSetup
      */
     public function manageConfigDescriptionForm(&$configForm)
     {
-        $paramOptions = cat_Params::getOptionsByDriverClass(array('cond_type_Double', 'cond_type_Int', 'cond_type_Formula'), 'typeExt');
-        $configForm->setOptions('PLANNING_TASK_WEIGHT_SUBTRACT_PARAM_VALUE', array('' => '') + $paramOptions);
+        $paramOptions = cat_Params::getOptionsByDriverClass(array('cond_type_Double', 'cond_type_Int', 'cond_type_Formula'), 'typeExt', true);
+        $exParamId = static::get('TASK_WEIGHT_SUBTRACT_PARAM_VALUE');
+        if(!array_key_exists($exParamId, $paramOptions)){
+            $paramOptions[$exParamId] = cat_Params::getVerbal($exParamId, 'typeExt');
+            $configForm->setOptions('PLANNING_TASK_WEIGHT_SUBTRACT_PARAM_VALUE', array('' => '') + $paramOptions);
+        }
     }
 
 

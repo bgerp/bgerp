@@ -291,8 +291,8 @@ class crm_Persons extends core_Master
     {
         // Име на лицето
         $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,export=Csv');
-        $this->FLD('name', 'varchar(255,ci)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv, translate=transliterate, class=focus');
-        $this->FNC('nameList', 'varchar', 'sortingLike=name, translate=transliterate');
+        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv, translate=transliterate, class=focus');
+        $this->FNC('nameList', 'varchar(autocomplete=off)', 'sortingLike=name, translate=transliterate');
         
         // Единен Граждански Номер
         $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv,silent');

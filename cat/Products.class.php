@@ -352,9 +352,9 @@ class cat_Products extends embed_Manager
     {
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
-        $this->FLD('code', 'varchar(32, ci)', 'caption=Код,remember=info,width=15em,focus');
-        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field,remember');
-        $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
+        $this->FLD('code', 'varchar(32, ci, autocomplete=off)', 'caption=Код,remember=info,width=15em,focus');
+        $this->FLD('name', 'varchar(autocomplete=off)', 'caption=Наименование,remember=info,width=100%, translate=field,remember');
+        $this->FLD('nameEn', 'varchar(autocomplete=off)', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes, passage)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,silent,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');

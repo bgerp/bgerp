@@ -198,6 +198,11 @@ class cat_products_Params extends doc_Detail
             if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
                 $form->setField('paramValue', 'input');
                 $form->setFieldType('paramValue', $Type);
+                $form->setField('paramId', 'class=w100');
+                if($Type instanceof type_Key2 || $Type instanceof type_Key){
+                    $form->setField('paramValue', 'class=w100');
+                }
+
                 $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
                 $form->setDefault('paramValue', $defaultValue);
                 if(isset($defaultValue)){
@@ -735,6 +740,9 @@ class cat_products_Params extends doc_Detail
 
             $ParamType = cat_Params::getTypeInstance($pId, $domainClassId, $objectId);
             $form->setFieldType("paramcat{$pId}", $ParamType);
+            if($ParamType instanceof type_Key2 || $ParamType instanceof type_Key){
+                $form->setField("paramcat{$pId}", 'class=w100');
+            }
 
             if (!empty($paramRec->suffix)) {
                 $suffix = cat_Params::getVerbal($paramRec, 'suffix');

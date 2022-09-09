@@ -333,7 +333,7 @@ class email_Setup extends core_ProtoSetup
             'action' => 'checkEmails',
             'period' => 1440,
             'offset' => 120,
-            'timeLimit' => 300
+            'timeLimit' => 1000
         ),
     );
     

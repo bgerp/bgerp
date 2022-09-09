@@ -93,6 +93,7 @@ class rfid_Events extends core_Manager
         $this->FLD('time', 'datetime', 'caption=Време');
         $this->FLD('action', 'varchar(16)', 'caption=Действие');
         $this->FLD('params', 'varchar(32)', 'caption=Други');
+        $this->FLD('remoteIp', 'Ip', 'caption=IP източник');
     }
     
     
@@ -111,13 +112,40 @@ class rfid_Events extends core_Manager
      */
     public  function act_add()
     {
+        $conf = core_Packs::getConfig('rfid');
+        
+        // Ако получаваме данни от неоторизирано IP ги игнорираме
+        $delimiters = [',', ';', '|'];
+        $newStr = str_replace($delimiters, $delimiters[0], $conf->ALLOWED_ADDRESSES);
+        
+        file_put_contents('rfid_debug.txt', $_SERVER['REMOTE_ADDR'] . "\n", FILE_APPEND);
+        
+        $allowedIPArr = explode($delimiters[0], $newStr);
+        if (false === array_search($_SERVER['REMOTE_ADDR'], $allowedIPArr) ) {
+            file_put_contents('rfid_debug.txt', "Невалидно ИП!" . "\n", FILE_APPEND);
+            shutdown();
+        }
+        
         $card = Request::get('card', 'int');
-        $stamp = Request::get('stamp', 'int');
+        $stamp = Request::get('stamp', 'varchar');
         $term = Request::get('term', 'int');
         $secret = Request::get('secret', 'int');
+        $readerId = Request::get('readerId', 'int');
+        $remoteIp = $_SERVER['REMOTE_ADDR'];
         
         clearstatcache('rfid_debug.txt');
         file_put_contents('rfid_debug.txt', $card . "|" . $stamp . "|" . $term . "|" . $secret . "\n", FILE_APPEND);
+        
+        $Readers = core_Cls::get('rfid_Readers');
+        
+        $rec = new stdClass();
+        $rec->card = $card;
+        $rec->stamp = $stamp;
+        $rec->params = $secret . "|" . $term;;
+        $rec->remoteIp = $remoteIp;
+        
+        $this->save($rec);
+        
         
         shutdown();
     }

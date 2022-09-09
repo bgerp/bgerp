@@ -556,7 +556,8 @@ class planning_Tasks extends core_Master
             }
 
             $row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
-            $row->productDescription = cat_Products::getAutoProductDesc($rec->productId, null, 'detailed', 'job');
+            $jobProductId = planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId');
+            $row->productDescription = cat_Products::getAutoProductDesc($jobProductId, null, 'detailed', 'job');
             $row->tId = $rec->id;
 
             if(core_Packs::isInstalled('batch')){

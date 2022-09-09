@@ -1051,7 +1051,7 @@ class planning_AssetResources extends core_Master
             }
 
             $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
-            $simultaneity = isset($taskRec->simultaneity) ? : $assetRec->simultaneity;
+            $simultaneity = isset($taskRec->simultaneity) ? $taskRec->simultaneity : $assetRec->simultaneity;
             $duration = round($indTime / $simultaneity);
         }
 

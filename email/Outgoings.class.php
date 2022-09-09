@@ -214,7 +214,7 @@ class email_Outgoings extends core_Master
      */
     public function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText,changable,tdClass=emailListTitle');
+        $this->FLD('subject', 'varchar(autocomplete=off)', 'caption=Относно,mandatory,width=100%,reduceText,changable,tdClass=emailListTitle');
         $this->FLD('body', 'richtext(rows=15,bucket=Postings,passage,oembed=none)', 'caption=Съобщение,mandatory,changable');
         
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');

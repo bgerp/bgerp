@@ -574,6 +574,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
         foreach($indicatorRecs as $iRec){
             if (!isset($iRec->dealerId))  continue;
+            if($iRec->isPublic != 'yes') continue;
 
             // Ако датата на последната продажба е в интервала между константите - няма да се начислява
             $lDate = $lastDateArr[$iRec->productId][$iRec->folderId];
@@ -800,7 +801,7 @@ class sales_PrimeCostByDocument extends core_Manager
             }
         }
 
-        $rec = hr_IndicatorNames::force('Delta_new_products', __CLASS__, 5);
+        $rec = hr_IndicatorNames::force('Delta_new_products', __CLASS__, 'newDeltaProducts');
         if($rec->state != 'closed') {
             $result[$rec->id] = $rec->name;
         }
