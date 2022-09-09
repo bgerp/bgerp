@@ -582,7 +582,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @param string|null $msgType - грешка или предупреждение или null ако няма
      * @return null|double         - приспаднатото тегло
      */
-    public static function subtractParamValueFromWeight($taskId, $productId, $originId, $weight, &$msg = null, &$msgType = null)
+    private static function subtractParamValueFromWeight($taskId, $productId, $originId, $weight, &$msg = null, &$msgType = null)
     {
         if(is_null($weight)) return;
 
@@ -595,7 +595,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $result = $weight;
 
         $errorMsgIfNegative = 'Грешка при приспадане на тарата';
-        $taskWeightSubtractValue = 0;
+        $taskWeightSubtractValue = null;
         $jobProductId = planning_Jobs::fetchField("#containerId = {$originId}", 'productId');
         if(!empty($centerRec->useTareFromParamId)){
             $taskClassId = planning_Tasks::getClassId();
@@ -1484,12 +1484,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($Driver = cat_Products::getDriver($productId)) {
                 $params['serial'] = $Driver->canonizeSerial($productId, $params['serial']);
             }
-
-            //@todo
-            //$serialInfo = self::fetchSerialInfo($params['serial'], $rec->taskId, $rec->type);
-
-            //$rec->serial = $params['serial'];
-            //$rec->serialType = $serialInfo['type'];
         }
 
         if($taskRec->labelType == 'scan' || $rec->type == 'input'){

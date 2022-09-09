@@ -350,11 +350,7 @@ class cat_products_Params extends doc_Detail
         
         if (!empty($paramId)) {
             $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
-
-            // Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт
-            $paramValue = ($paramValue) ? $paramValue : cat_Params::getDefaultValue($paramId, $classId, $productId);
             if ($verbal === true) {
-
                 $paramValue = cat_Params::toVerbal($paramId, $classId, $productId, $paramValue);
             }
             
