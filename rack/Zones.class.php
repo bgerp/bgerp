@@ -1045,12 +1045,8 @@ class rack_Zones extends core_Master
 
         core_Locks::release("PICKED_UP{$storeId}");
     }
-
-
-    function act_Test()
-    {
-        static::pickupOrder(26, 34);
-    }
+    
+    
     /**
      * Изтриване на чакащите движения към зоната
      *
