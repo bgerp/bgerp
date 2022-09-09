@@ -354,7 +354,7 @@ class cat_BomDetails extends doc_Detail
             $expr = strtr($expr, $params);
         }
 
-        $expr = preg_replace_callback("/(?<=[^a-z0-9а-я\_]|^)+(?'fncName'[a-z0-9\-\_]*)\([\'\"]?(?'paramA'.*?)[\'\"]?\s*\,\s*[\'\"]?(?'paramB'.*?)[\'\"]?\s*\,\s*[\'\"]?(?'paramC'.*?)[\'\"]?\s*\)/ui", array(get_called_class(), 'replaceFunctionsInFormula'), $expr);
+        $expr = preg_replace_callback("/(?<=[^a-z0-9а-я\_]|^)+(?'fncName'[a-z0-9\-\_]*)\(\s*[\'\"]?(?'paramA'.*?)[\'\"]?\s*\,\s*[\'\"]?(?'paramB'.*?)[\'\"]?\s*(\,\s*[\'\"]?(?'paramC'.*?)[\'\"]?\s*)*\)/ui", array(get_called_class(), 'replaceFunctionsInFormula'), $expr);
 
         if (str::prepareMathExpr($expr) === false) {
             $res = self::CALC_ERROR;
@@ -398,6 +398,15 @@ class cat_BomDetails extends doc_Detail
             }
             if(is_numeric($val)) {
                 $res = $val;
+            }
+        }  elseif($fncName == 'getproductparam') {
+            if(is_numeric($match['paramA'])){
+                try{
+                    $paramVal = cat_Products::getParams($match['paramA'], $match['paramB']);
+                    if(is_numeric($paramVal)) {
+                        $res = $paramVal;
+                    }
+                } catch(core_exception_Expect $e){}
             }
         }
 
