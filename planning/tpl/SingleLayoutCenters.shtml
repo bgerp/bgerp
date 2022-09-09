@@ -29,6 +29,14 @@
 					<!--ET_BEGIN showSerialWarningOnDuplication-->
 					<div>|Предупреждение при дублиране на произв. номер в ПО|*: <b>[#showSerialWarningOnDuplication#]</b></div>
 					<!--ET_END showSerialWarningOnDuplication-->
+
+					<!--ET_BEGIN useTareFromParamId-->
+					<div>|Откъде да се намира тарата за приспадане от теглото в ПО|*: <b>[#useTareFromParamId#]</b></div>
+					<!--ET_END useTareFromParamId-->
+					<!--ET_BEGIN useTareFromPackagings-->
+					<div>|Откъде да се намира тарата за приспадане от теглото в ПО|*: <b>[#useTareFromPackagings#]</b></div>
+					<!--ET_END useTareFromPackagings-->
+
 					<!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
 	                <!--ET_END nkid-->

@@ -181,6 +181,9 @@ class planning_Centers extends core_Master
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор, notNull,value=auto');
         $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
 
+        $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Откъде да се намира тарата за приспадане от теглото в ПО->Опаковки');
+        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Откъде да се намира тарата за приспадане от теглото в ПО->Параметър');
+
         $this->setDbUnique('name');
     }
 
@@ -194,8 +197,35 @@ class planning_Centers extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        $rec = &$form->rec;
         $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams);
         $form->setSuggestions("planningParams", $paramSuggestions);
+
+        $options = cat_UoM::getPackagingOptions();
+        $form->setSuggestions('useTareFromPackagings', $options);
+
+        // Достъпните за избор параметри
+        $paramOptions = cat_Params::getOptionsByDriverClass(array('cond_type_Double', 'cond_type_Int', 'cond_type_Formula'), 'typeExt', true);
+        if(isset($rec->useTareFromParamId)){
+            if(!array_key_exists($rec->useTareFromParamId, $paramOptions)){
+                $paramOptions[$rec->useTareFromParamId] = cat_Params::getVerbal($rec->useTareFromParamId, 'typeExt');
+            }
+        }
+        $form->setOptions('useTareFromParamId', array('' => '') + $paramOptions);
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if($form->isSubmitted()){
+            if(!empty($rec->useTareFromParamId) && !empty($rec->useTareFromPackagings)){
+                $form->setError('useTareFromParamId,useTareFromPackagings', 'Посочете само едното попълнено');
+            }
+        }
     }
 
 
