@@ -181,8 +181,8 @@ class planning_Centers extends core_Master
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор, notNull,value=auto');
         $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
 
-        $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Откъде да се намира тарата за приспадане от теглото в ПО->Опаковки');
-        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Откъде да се намира тарата за приспадане от теглото в ПО->Параметър');
+        $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Опаковки');
+        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър');
 
         $this->setDbUnique('name');
     }
@@ -223,7 +223,7 @@ class planning_Centers extends core_Master
         $rec = $form->rec;
         if($form->isSubmitted()){
             if(!empty($rec->useTareFromParamId) && !empty($rec->useTareFromPackagings)){
-                $form->setError('useTareFromParamId,useTareFromPackagings', 'Посочете само едното попълнено');
+                $form->setError('useTareFromParamId,useTareFromPackagings', 'Могат да бъдат избрани или само Опаковки, или само Параметър!');
             }
         }
     }

@@ -368,6 +368,8 @@ class planning_Jobs extends core_Master
             } else {
                 $form->setOptions('productId', array('' => '') + $products);
             }
+        } else {
+            $form->setFieldTypeParams('productId', array('notDriverId' => planning_interface_StepProductDriver::getClassId()));
         }
 
         // Ако има предишни задания зареждат се за избор

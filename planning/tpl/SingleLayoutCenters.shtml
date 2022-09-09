@@ -31,10 +31,10 @@
 					<!--ET_END showSerialWarningOnDuplication-->
 
 					<!--ET_BEGIN useTareFromParamId-->
-					<div>|Откъде да се намира тарата за приспадане от теглото в ПО|*: <b>[#useTareFromParamId#]</b></div>
+					<div>|Приспадане от теглото в ПО на Тара от Параметър|*: <b>[#useTareFromParamId#]</b></div>
 					<!--ET_END useTareFromParamId-->
 					<!--ET_BEGIN useTareFromPackagings-->
-					<div>|Откъде да се намира тарата за приспадане от теглото в ПО|*: <b>[#useTareFromPackagings#]</b></div>
+					<div>|Приспадане от теглото в ПО на Тара от Опаковки|*: <b>[#useTareFromPackagings#]</b></div>
 					<!--ET_END useTareFromPackagings-->
 
 					<!--ET_BEGIN nkid-->

@@ -1570,6 +1570,11 @@ class cat_Products extends embed_Manager
                 $query->where("#innerClass = {$params['driverId']}");
             }
 
+            if (isset($params['notDriverId'])) {
+                core_Statuses::newStatus($params['notDriverId']);
+                $query->where("#innerClass != {$params['notDriverId']}");
+            }
+
             // Ако има ограничение по ид-та
             if (isset($params['onlyIn'])) {
                 $query->in('id', $params['onlyIn']);
