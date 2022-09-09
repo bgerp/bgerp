@@ -740,10 +740,6 @@ class cat_products_Params extends doc_Detail
 
             $ParamType = cat_Params::getTypeInstance($pId, $domainClassId, $objectId);
             $form->setFieldType("paramcat{$pId}", $ParamType);
-            if($ParamType instanceof type_Key2 || $ParamType instanceof type_Key){
-                $form->setField("paramcat{$pId}", 'class=w100');
-            }
-
             if (!empty($paramRec->suffix)) {
                 $suffix = cat_Params::getVerbal($paramRec, 'suffix');
                 $form->setField("paramcat{$pId}", "unit={$suffix}");
