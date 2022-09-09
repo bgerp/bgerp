@@ -651,6 +651,7 @@ class cat_products_Params extends doc_Detail
      * @param int $productId
      * @param core_Form $form
      * @param int $planningStepProductId
+     *
      * @return void
      */
     public static function addProductParamsToForm($classId, $objectId, $productId, $planningStepProductId, &$form)
