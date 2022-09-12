@@ -354,7 +354,6 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setField('serial', 'input=none');
             }
         }
-        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr(keylist::merge($masterRec->employees, $rec->employees)) : planning_Hr::getByFolderId($masterRec->folderId, $rec->employees);
 
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr(keylist::toArray($selectedEmployeesByNowKeylist) + keylist::toArray($masterRec->employees)) : planning_Hr::getByFolderId($masterRec->folderId, $selectedEmployeesByNowKeylist);
 
