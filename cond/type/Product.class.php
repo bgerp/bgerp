@@ -24,7 +24,8 @@ class cond_type_Product extends cond_type_Varchar
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Конкретизиране->Групи,after=default,mandatory');
+        $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Конкретизиране->Групи,mandatory');
+        $fieldset->FLD('show', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване,mandatory');
     }
 
 
@@ -59,6 +60,22 @@ class cond_type_Product extends cond_type_Varchar
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
-        return cat_Products::getHyperlink($value, TRUE);
+        if($this->driverRec->show == 'info'){
+            Mode::push('text', 'plain');
+            $title = cat_Products::getVerbal($value, 'info');
+            Mode::pop('text');
+        }
+        if(empty($title)){
+            $title = cat_Products::getTitleById($value);
+        }
+
+        if(!Mode::is('text', 'plain')){
+            $singleUrlArray = cat_Products::getSingleUrlArray($value);
+            if(countR($singleUrlArray)){
+                $title = ht::createLink($title, $singleUrlArray);
+            }
+        }
+
+        return $title;
     }
 }
