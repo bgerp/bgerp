@@ -1132,13 +1132,14 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $data->query->orderBy('createdOn', 'DESC');
         if(Mode::is('getLinkedObj') || Mode::is('inlineDocument')) {
-            
+            unset($data->listFields['productId']);
             return ;
         }
 
         $data->listFilter->showFields .= 'search';
         $data->listFilter->setField('type', 'input=none');
         $data->listFilter->class = 'simpleForm';
+
         if (isset($data->masterMvc)) {
             $data->listFilter->showFields .= ",threadId";
             $data->showRejectedRows = true;

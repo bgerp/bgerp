@@ -198,9 +198,7 @@ class cat_products_Params extends doc_Detail
             if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
                 $form->setField('paramValue', 'input');
                 $form->setFieldType('paramValue', $Type);
-                $form->setField('paramId', 'class=w100');
-                $form->setField('paramValue', 'class=w100');
-
+            
                 $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
                 $form->setDefault('paramValue', $defaultValue);
                 if(isset($defaultValue)){
