@@ -212,7 +212,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeEnd,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd';
+    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeEnd,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd';
     
     
     /**
@@ -294,7 +294,8 @@ class planning_Tasks extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
-        $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо тегло,input=none');
+        $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Бруто,input=none');
+        $this->FLD('totalNetWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Нето,input=none');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано');
         $this->FLD('isFinal', 'enum(yes=Да,no=Не)', 'input=hidden,caption=Финална,silent');
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=К-во в мярка,input=none');
@@ -536,7 +537,6 @@ class planning_Tasks extends core_Master
             $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$durationUom},noSmart)")->toVerbal($expectedDuration);
         }
 
-
         $calcedDurationUom = ($rec->calcedDuration < 60) ? 'seconds' : (($rec->calcedDuration < 3600) ? 'minutes' : 'hours');
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
 
@@ -548,14 +548,18 @@ class planning_Tasks extends core_Master
             }
 
             if(isset($rec->assetId)){
-                if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $rec->assetId))){
+                if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $rec->assetId)) && !Mode::is('printing')){
                     if(!in_array($rec->state, array('draft', 'waiting', 'rejected'))){
                         $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
                     }
                 }
             }
 
-            $row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+            if(!Mode::is('printing')){
+                $row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+                $row->productDescriptionStyle = 'display: none;';
+            }
+
             $jobProductId = planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId');
             $row->productDescription = cat_Products::getAutoProductDesc($jobProductId, null, 'detailed', 'job');
             $row->tId = $rec->id;
@@ -638,7 +642,7 @@ class planning_Tasks extends core_Master
             }
 
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
-            if(planning_Tasks::haveRightFor('list')){
+            if(planning_Tasks::haveRightFor('list') && !Mode::is('printing')){
                 $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
             }
             if(isset($fields['-single']) && isset($rec->prevAssetId)){
@@ -830,19 +834,47 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
+        unset($resArr['ident']);
+        unset($resArr['versionAndDate']);
+        unset($resArr['createdBy']);
+        unset($resArr['createdOn']);
+
+        if(Mode::is('printing')){
+            $resArr['info'] = array('name' => tr('Операция'), 'val' => tr("|*<table>
+                <tr><td style='font-weight:normal'>№:</td><td>[#ident#]</td></tr>
+                <tr><td style='font-weight:normal'>|Създаване от|*:</td><td>[#createdBy#]</td></tr>
+                <tr><td style='font-weight:normal'>|Създаване на|*:</td><td>[#createdOn#]</td></tr>
+                </table>"));
+        }
+
         if($rec->showadditionalUom == 'no'){
             unset($row->totalWeight);
-        } elseif(empty($rec->totalWeight)) {
-            $row->totalWeight = "<span class='quiet'>N/A</span>";
+            unset($row->totalNetWeight);
+            unset($row->totalNetWeight);
+        } else {
+            if(empty($rec->weightDeviationWarning)){
+                $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
+                $row->weightDeviationWarning = "<span style='color:blue'>{$row->weightDeviationWarning}</span>";
+                $row->weightDeviationWarning = ht::createHint($row->weightDeviationWarning, 'По подразбиране', false);
+            }
+
+            $centerRec = planning_Centers::fetch("#folderId = {$rec->folderId}", 'useTareFromParamId,useTareFromPackagings');
+            $row->totalWeight = empty($rec->totalWeight) ? "<span class='quiet'>N/A</span>" : $row->totalWeight;
+            if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)) {
+                unset($row->totalNetWeight);
+            } else {
+                $row->totalNetWeight = empty($rec->totalNetWeight) ? "<span class='quiet'>N/A</span>" : $row->totalNetWeight;
+            }
         }
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if($canStore == 'yes'){
             $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table>
-                <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо тегло|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
+                <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо бруто|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
+                <!--ET_BEGIN totalNetWeight--><tr><td style='font-weight:normal'>|Общо нето|*:</td><td>[#totalNetWeight#]</td></tr><!--ET_END totalNetWeight-->
                 <tr><td style='font-weight:normal'>|Режим|*:</td><td>[#showadditionalUom#]</td></tr>
                 <!--ET_BEGIN weightDeviationNotice--><tr><td style='font-weight:normal'>|Отбелязване|*:</td><td>+/- [#weightDeviationNotice#]</td></tr><!--ET_END weightDeviationNotice-->
-                <tr><td style='font-weight:normal'>|Предупреждение|*:</td><td>+/- [#weightDeviationWarning#]</td></tr>
+                <!--ET_BEGIN weightDeviationWarning--><tr><td style='font-weight:normal'>|Предупреждение|*:</td><td>+/- [#weightDeviationWarning#]</td></tr><!--ET_END weightDeviationWarning-->
                 <!--ET_BEGIN weightDeviationAverageWarning--><tr><td style='font-weight:normal'>|Спрямо средното|*:</td><td>+/- [#weightDeviationAverageWarning#]</td></tr><!--ET_END weightDeviationAverageWarning-->
                 </table>"));
         }
@@ -871,13 +903,12 @@ class planning_Tasks extends core_Master
             }
         }
 
-        if(empty($rec->weightDeviationWarning)){
-            $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
-        }
-
         if(isset($rec->indPackagingId) && !empty($rec->indTime)){
             $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->indPackagingId})")->toVerbal($rec->indTime);
         }
+
+
+
     }
 
 
@@ -913,7 +944,7 @@ class planning_Tasks extends core_Master
     {
         $rec = $this->fetch($id);
         $originalProgress = $rec->progress;
-        $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId';
+        $updateFields = 'totalQuantity,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId';
 
         // Ако е записано в сесията, че е подменена машината да се подмени и в операцията
         if($newAssetId = Mode::get("newAsset{$rec->id}")){
@@ -934,15 +965,21 @@ class planning_Tasks extends core_Master
         $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
         $dQuery->where("#taskId = {$rec->id} AND #productId = {$productId} AND (#type = 'production' OR #type = 'scrap') AND #state != 'rejected'");
 
-        $rec->totalWeight = $rec->totalQuantity = $rec->scrappedQuantity = 0;
+        $rec->totalWeight = $rec->totalQuantity = $rec->scrappedQuantity = $rec->totalNetWeight = 0;
         while($dRec = $dQuery->fetch()){
             if($dRec->type == 'production'){
                 $quantity = $dRec->quantity / $rec->quantityInPack;
                 $rec->totalQuantity += $quantity;
                 $rec->totalWeight += $dRec->weight;
+                if(isset($dRec->netWeight)){
+                    $rec->totalNetWeight += $dRec->netWeight;
+                }
             } else {
                 $rec->scrappedQuantity += $dRec->quantity / $rec->quantityInPack;
                 $rec->totalWeight -= $dRec->weight;
+                if(isset($dRec->netWeight)){
+                    $rec->totalNetWeight -= $dRec->netWeight;
+                }
             }
         }
 
