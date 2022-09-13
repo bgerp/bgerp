@@ -118,8 +118,6 @@ class rfid_Events extends core_Manager
         $delimiters = [',', ';', '|'];
         $newStr = str_replace($delimiters, $delimiters[0], $conf->ALLOWED_ADDRESSES);
         
-        file_put_contents('rfid_debug.txt', $_SERVER['REMOTE_ADDR'] . "\n", FILE_APPEND);
-        
         $allowedIPArr = array_map('trim', explode($delimiters[0], $newStr));
         if (false === array_search($_SERVER['REMOTE_ADDR'], $allowedIPArr) ) {
             file_put_contents('rfid_debug.txt', "Невалидно ИП!" . "\n", FILE_APPEND);
@@ -134,9 +132,6 @@ class rfid_Events extends core_Manager
         $readerId = is_int($readerId)?$readerId:0;
         $remoteIp = $_SERVER['REMOTE_ADDR'];
         
-        clearstatcache('rfid_debug.txt');
-        file_put_contents('rfid_debug.txt', $card . "|" . $stamp . "|" . $term . "|" . $readerId . "\n", FILE_APPEND);
-        
         $Readers = cls::get('rfid_Readers');
         if (!$Readers->fetch($readerId)) $readerId = null;
         $rec = new stdClass();
@@ -148,7 +143,6 @@ class rfid_Events extends core_Manager
         $rec->remoteIp = $remoteIp;
         
         $this->save($rec);
-        
         
         shutdown();
     }
