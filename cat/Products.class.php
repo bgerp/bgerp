@@ -1375,8 +1375,11 @@ class cat_Products extends embed_Manager
                 price_Cache::invalidateProduct($rec->id);
             }
         }
-        
-        Mode::setPermanent('cat_LastProductCode', $rec->code);
+
+        // Записване в сесията само при създаване на нов артикул а не и при редакция
+        if($rec->_isCreated){
+            Mode::setPermanent('cat_LastProductCode', $rec->code);
+        }
         
         if (isset($rec->originId)) {
             doc_DocumentCache::cacheInvalidation($rec->originId);
