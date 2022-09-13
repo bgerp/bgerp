@@ -47,14 +47,16 @@ class label_plg_Print extends core_Plugin
                 $row->_rowTools->addLink($mvc->printLabelCaptionSingle, array($mvc, 'printperipherallabel', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/printer.png', 'title' => 'Разпечатване на ' . mb_strtolower($mvc->printLabelCaptionSingle), 'style' => 'position: relative; top: -2px;'), 'alwaysShow');
                 $alwaysShow = false;
             }
-            
-            $btnParams = self::getLabelBtnParams($mvc, $rec);
-            if (!empty($btnParams['url'])) {
-                core_RowToolbar::createIfNotExists($row->_rowTools);
-                $btnParams['attr'] = arr::make($btnParams['attr']);
-                $btnParams['attr']['style'] = 'position: relative; top: -2px;';
-                $alwaysShow = ($alwaysShow) ? 'alwaysShow' : null;
-                $row->_rowTools->addLink($mvc->printLabelCaptionPlural, $btnParams['url'], $btnParams['attr'], $alwaysShow);
+
+            if(($mvc instanceof core_Master && isset($fields['-single'])) || (!($mvc instanceof core_Master))){
+                $btnParams = self::getLabelBtnParams($mvc, $rec);
+                if (!empty($btnParams['url'])) {
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $btnParams['attr'] = arr::make($btnParams['attr']);
+                    $btnParams['attr']['style'] = 'position: relative; top: -2px;';
+                    $alwaysShow = ($alwaysShow) ? 'alwaysShow' : null;
+                    $row->_rowTools->addLink($mvc->printLabelCaptionPlural, $btnParams['url'], $btnParams['attr'], $alwaysShow);
+                }
             }
         }
     }
