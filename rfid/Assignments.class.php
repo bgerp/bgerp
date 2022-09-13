@@ -32,7 +32,7 @@ class rfid_Assignments extends embed_Manager
     /**
      * Титлата на обекта в единичен изглед
      */
-    public $singleTitle = 'Периферно устройство';
+    public $singleTitle = 'Притежател карта';
     
     
     /**
