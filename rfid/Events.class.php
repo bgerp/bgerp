@@ -79,7 +79,7 @@ class rfid_Events extends core_Manager
     /**
      * Необходими плъгини и външни мениджъри
      */
-    public $loadList = 'rfid_Tags,rfid_Readers,plg_RefreshRows,rfid_Wrapper,plg_Created';
+    public $loadList = 'rfid_Tags,rfid_Readers,plg_RefreshRows,rfid_Wrapper';
     
     
     /**
@@ -88,10 +88,10 @@ class rfid_Events extends core_Manager
     public function description()
     {
         // Обща информация
-        $this->FLD('tagId', 'key(mvc=rfid_Tags,select=rfid10d)', 'caption=Карта');
+        $this->FLD('tag', 'varchar(64)', 'caption=Rfid номер');
         $this->FLD('readerId', 'key(mvc=rfid_Readers,select=title)', 'caption=Четец');
         $this->FLD('time', 'datetime', 'caption=Време');
-        $this->FLD('action', 'varchar(16)', 'caption=Действие');
+        $this->FLD('addedOn', 'datetime', 'caption=Вкаран на');
         $this->FLD('params', 'varchar(32)', 'caption=Други');
         $this->FLD('remoteIp', 'Ip', 'caption=IP източник');
     }
@@ -120,7 +120,7 @@ class rfid_Events extends core_Manager
         
         file_put_contents('rfid_debug.txt', $_SERVER['REMOTE_ADDR'] . "\n", FILE_APPEND);
         
-        $allowedIPArr = explode($delimiters[0], $newStr);
+        $allowedIPArr = array_map('trim', explode($delimiters[0], $newStr));
         if (false === array_search($_SERVER['REMOTE_ADDR'], $allowedIPArr) ) {
             file_put_contents('rfid_debug.txt', "Невалидно ИП!" . "\n", FILE_APPEND);
             shutdown();
@@ -131,17 +131,20 @@ class rfid_Events extends core_Manager
         $term = Request::get('term', 'int');
         $secret = Request::get('secret', 'int');
         $readerId = Request::get('readerId', 'int');
+        $readerId = is_int($readerId)?$readerId:0;
         $remoteIp = $_SERVER['REMOTE_ADDR'];
         
         clearstatcache('rfid_debug.txt');
-        file_put_contents('rfid_debug.txt', $card . "|" . $stamp . "|" . $term . "|" . $secret . "\n", FILE_APPEND);
+        file_put_contents('rfid_debug.txt', $card . "|" . $stamp . "|" . $term . "|" . $readerId . "\n", FILE_APPEND);
         
-        $Readers = core_Cls::get('rfid_Readers');
-        
+        $Readers = cls::get('rfid_Readers');
+        if (!$Readers->fetch($readerId)) $readerId = null;
         $rec = new stdClass();
-        $rec->card = $card;
-        $rec->stamp = $stamp;
-        $rec->params = $secret . "|" . $term;;
+        $rec->readerId = $readerId;
+        $rec->tag = $card;
+        $rec->time = $stamp;
+        $rec->addedOn = date("Y-m-d H:i:s");
+        $rec->params = $secret . " | " . $term;;
         $rec->remoteIp = $remoteIp;
         
         $this->save($rec);
