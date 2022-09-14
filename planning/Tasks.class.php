@@ -2816,6 +2816,7 @@ class planning_Tasks extends core_Master
             planning_AssetResources::reOrderTasks($rememberedTaskRec->assetId);
             unset($this->reorderTasksInAssetId[$rememberedTaskRec->assetId]);
             $this->logWrite("Операцията е поставена от клипборда", $rememberedTaskRec->id);
+            core_Statuses::newStatus("|*#{$this->getHandle($rememberedTaskRec->id)} |е преместена след|* #{$this->getHandle($startAfterRec->id)}", 'notice', null, 180);
         }
 
         $res = array();
