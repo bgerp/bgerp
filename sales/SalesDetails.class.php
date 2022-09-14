@@ -271,7 +271,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * Изпълнява се преди клониране
      */
-    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    protected static function on_BeforeSaveClonedDetail11111($mvc, &$rec, $oldRec)
     {
         // Преди клониране клонира се и сумата на цената на транспорта
         $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
@@ -281,6 +281,8 @@ class sales_SalesDetails extends deals_DealDetail
             $rec->_transportExplained = $cRec->explain;
             $rec->syncFee = true;
         }
+
+        //
     }
     
     
@@ -289,6 +291,17 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        if($rec->_isClone){
+            sales_TransportValues::recalcTransport($mvc->getClassId(), $rec->id);
+            $cRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
+            if (isset($cRec)) {
+                $rec->fee = $cRec->fee;
+                $rec->deliveryTimeFromFee = $cRec->deliveryTime;
+                $rec->_transportExplained = $cRec->explain;
+                $rec->syncFee = true;
+            }
+        }
+
         // Синхронизиране на сумата на транспорта
         if ($rec->syncFee === true) {
             sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);

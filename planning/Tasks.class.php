@@ -618,6 +618,34 @@ class planning_Tasks extends core_Master
                 $row->employees = implode(', ', $employees);
             }
         } else {
+            if($mvc->haveRightFor('copy2clipboard', $rec)){
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $copyUrl = toUrl(array($mvc, 'copy2clipboard', $rec->id, 'ret_url' => true), 'local');
+                $row->_rowTools->addLink('Избор', '', "ef_icon=img/16/paper-clip.png,title=Запомняне на операцията в клипборда,data-url={$copyUrl},class=copy2clipboard");
+            }
+
+            // Ако може да се пейства операция от клипборда
+            $rememberedTaskRec = Mode::get('rememberedTask');
+            if(is_object($rememberedTaskRec)){
+
+                // Ако има предишна операция, ще може да се поставя след нея
+                if($startAfterId = $mvc->getPrevOrNextTask($rec)){
+                    if($mvc->haveRightFor('pastefromclipboard', (object)array('startAfter' => $startAfterId))){
+                        core_RowToolbar::createIfNotExists($row->_rowTools);
+                        $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'startAfter' => $startAfterId, 'ret_url' => true), 'local');;
+                        $row->_rowTools->addLink("Постави преди", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на|* #{$mvc->getHandle($rememberedTaskRec->id)} |преди|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=copy2clipboard");
+                    }
+                }
+
+                if($rememberedTaskRec->id != $rec->taskId){
+                    if($mvc->haveRightFor('pastefromclipboard', (object)array('startAfter' => $rec->id))){
+                        core_RowToolbar::createIfNotExists($row->_rowTools);
+                        $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'startAfter' => $rec->id, 'ret_url' => true), 'local');
+                        $row->_rowTools->addLink("Постави след", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на|* #{$mvc->getHandle($rememberedTaskRec->id)} |след|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=copy2clipboard");
+                    }
+                }
+            }
+
             $row->dueDate = $origin->getVerbal('dueDate');
             $jobPackQuantity = $origin->fetchField('packQuantity');
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);
@@ -657,7 +685,7 @@ class planning_Tasks extends core_Master
             if(isset($fields['-single']) && !in_array($rec->state, array('closed', 'rejected'))){
 
                 // Показва се след коя ще започне
-                $startAfter = $mvc->getStartAfter($rec);
+                $startAfter = $mvc->getPrevOrNextTask($rec);
                 if(isset($startAfter)){
                     $row->startAfter = $mvc->getHyperlink($startAfter, true);
                 } else {
@@ -1011,7 +1039,7 @@ class planning_Tasks extends core_Master
         // Ако има промяна в прогреса
         if($rec->progress != $originalProgress){
             $rec->orderByAssetId = null;
-            if($lastTaskWithProgressId = $this->getStartAfter($rec, true)){
+            if($lastTaskWithProgressId = $this->getPrevOrNextTask($rec, true)){
                 $orderByAssetId = $this->fetchField($lastTaskWithProgressId, 'orderByAssetId');
                 $rec->orderByAssetId = $orderByAssetId + 0.5;
             } else {
@@ -1167,6 +1195,30 @@ class planning_Tasks extends core_Master
         if($action == 'recalcindtime' && isset($rec)){
             if(!planning_ProductionTaskDetails::count("#taskId = {$rec->id}") || $rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'copy2clipboard'){
+            $requiredRoles = $mvc->getRequiredRoles('edit', $rec);
+        }
+
+        // След коя операция може да се пейстне запомнената в клипборда
+        if($action == 'pastefromclipboard'){
+            $requiredRoles = $mvc->getRequiredRoles('edit', $rec);
+            $rememberedTaskRec = Mode::get('rememberedTask');
+            if(!is_object($rememberedTaskRec)){
+                $requiredRoles = 'no_one';
+            }else {
+                if(isset($rec)){
+                    if(empty($rec->startAfter)){
+                        $requiredRoles = 'no_one';
+                    } else {
+                        $startAfterRec = $mvc->fetch($rec->startAfter);
+                        if($rememberedTaskRec->folderId != $startAfterRec->folderId || $rememberedTaskRec->id == $startAfterRec->id || empty($rememberedTaskRec->assetId) || empty($startAfterRec->assetId) || in_array($rememberedTaskRec, array('stopped', 'rejected'))){
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
             }
         }
     }
@@ -1563,7 +1615,7 @@ class planning_Tasks extends core_Master
                 $form->setField('startAfter', 'input');
                 if(countR($taskOptions)){
                     $form->setOptions('startAfter', array('' => '') + $taskOptions);
-                    $form->setDefault('startAfter', $mvc->getStartAfter($rec));
+                    $form->setDefault('startAfter', $mvc->getPrevOrNextTask($rec));
                 } else {
                     $form->setReadOnly('startAfter');
                 }
@@ -1587,28 +1639,32 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Изчисляване след коя задача ще се изпълни тази
+     * Изчисляване следващата или предишната операция от тази
      *
      * @param stdClass $rec
      * @param boolean $withProgress
+     * @param boolean $next
      * @return null|int
      */
-    private function getStartAfter($rec, $withProgress = false)
+    private function getPrevOrNextTask($rec, $withProgress = false, $next = true)
     {
         if(empty($rec->assetId)) return null;
 
         $query = planning_Tasks::getQuery();
         $query->where("#assetId = {$rec->assetId} AND #orderByAssetId IS NOT NULL");
-        $query->orderBy('orderByAssetId', 'DESC');
+        $dir = ($next) ? "DESC" : "ASC";
+        $query->orderBy('orderByAssetId', $dir);
         $query->show('id');
         $query->limit(1);
+
 
         if($withProgress){
             $query->where("#progress != 0");
         }
 
         if(isset($rec->id) && isset($rec->orderByAssetId)){
-            $query->where("#orderByAssetId < {$rec->orderByAssetId}");
+            $sign = ($next) ? "<" : ">";
+            $query->where("#orderByAssetId {$sign} {$rec->orderByAssetId}");
         }
 
         return $query->fetch()->id;
@@ -2357,7 +2413,10 @@ class planning_Tasks extends core_Master
         $mQuery->orderBy('modifiedOn', 'DESC');
         $mQuery->show('modifiedOn');
         $mQuery->limit(1);
-        $res = md5(trim($mQuery->fetch()->modifiedOn));
+
+        $rememberedTask = Mode::get('rememberedTask');
+        $rememberedTask = is_object($rememberedTask) ? $rememberedTask->id : '';
+        $res = md5(trim($mQuery->fetch()->modifiedOn) . $rememberedTask);
     }
 
 
@@ -2382,7 +2441,7 @@ class planning_Tasks extends core_Master
                 // Ако няма начало изчислява се да започне след последната
                 if($rec->state == 'active' && $rec->brState == 'pending'){
                     // При активиране от чернова - намърдва се най-накрая
-                    $rec->startAfter = $mvc->getStartAfter($rec);
+                    $rec->startAfter = $mvc->getPrevOrNextTask($rec);
                 } elseif($rec->state == 'rejected' || ($rec->state == 'closed' && in_array($rec->brState, array('stopped', 'active', 'wakeup')))){
 
                     // При оттегляне изчезва от номерацията
@@ -2390,11 +2449,11 @@ class planning_Tasks extends core_Master
                 } elseif(in_array($rec->state, array('pending', 'active', 'wakeup')) && in_array($rec->brState, array('rejected', 'closed'))){
 
                     // При възстановяване в намърдва се най-накрая
-                    $rec->startAfter = $mvc->getStartAfter($rec);
+                    $rec->startAfter = $mvc->getPrevOrNextTask($rec);
                 } elseif($rec->state == 'pending' && in_array($rec->brState, array('draft', 'waiting'))) {
 
                     // Ако става на заявка от чакащо/чернова
-                    $rec->startAfter = $mvc->getStartAfter($rec);
+                    $rec->startAfter = $mvc->getPrevOrNextTask($rec);
                 }
             }
 
@@ -2461,12 +2520,15 @@ class planning_Tasks extends core_Master
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         // Включване на драг и дроп ако има избрано оборудване
+        $tpl->push('planning/js/TaskCommon.js', 'JS');
+        jquery_Jquery::run($tpl, 'enableCopy2Clipboard();');
+        jquery_Jquery::runAfterAjax($tpl, 'enableCopy2Clipboard');
+
         if(isset($data->listFilter->rec->assetId)){
             if (!Request::get('ajax_mode')) {
                 jqueryui_Ui::enable($tpl);
                 $tpl->push('planning/js/Tasks.js', 'JS');
             }
-
             jquery_Jquery::run($tpl, 'listTasks();');
             jquery_Jquery::runAfterAjax($tpl, 'listTasks');
         }
@@ -2511,17 +2573,8 @@ class planning_Tasks extends core_Master
         planning_AssetResources::reOrderTasks($rec->assetId);
         unset($this->reorderTasksInAssetId[$rec->assetId]);
 
-        // Форсиране на опресняване на лист таблицата
-        $divId = Request::get('divId');
-        Request::push(array('id' => false));
-        $refreshUrl = array('Ctr' => 'planning_Tasks', 'Act' => 'ajaxrefreshrows', 'divId' => $divId, 'refreshUrl' => toUrl(getCurrentUrl(), 'local'));
-        $forwardRes = Request::forward($refreshUrl);
-
-        // Моментно показване на статусите
-        $hitTime = Request::get('hitTime', 'int');
-        $idleTime = Request::get('idleTime', 'int');
-        $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-        $res = array_merge($forwardRes, (array) $statusData);
+        $res = array();
+        $res = $this->returnAjaxSuccessResponse($res);
 
         return $res;
     }
@@ -2706,5 +2759,136 @@ class planning_Tasks extends core_Master
                 $tools->removeBtn("saodown{$rec->id}");
             }
         }
+    }
+
+
+    /**
+     * Екшън за поставяне на операция от клипборда
+     */
+    function act_pastefromclipboard()
+    {
+        $errorMsg = null;
+        if(!$this->haveRightFor('pastefromclipboard')){
+            $errorMsg = '|Нямате права|*!';
+        }
+        $startAfterId = Request::get('startAfter', 'int');
+        if(!$startAfterId){
+            $errorMsg = '|Невалиден запис|*!';
+        }
+
+        $rememberedTaskRec = Mode::get('rememberedTask');
+        $startAfterRec = $this->fetch($startAfterId);
+        if(!$this->haveRightFor('pastefromclipboard', (object)array('startAfter' => $startAfterRec->id))){
+            $errorMsg = '|Нямате права|*!';
+        }
+
+        if(!empty($errorMsg)){
+            core_Statuses::newStatus($errorMsg, 'error');
+        } else {
+            $updateFields = arr::make('orderByAssetId,modifiedOn,modifiedBy');
+
+            // Ако оборудването е различно - подменя се
+            $assetIsChanged = false;
+            if($rememberedTaskRec->assetId != $startAfterRec->assetId){
+                $assetIsChanged = true;
+                $rememberedTaskRec->prevAssetId = $rememberedTaskRec->assetId;
+                $rememberedTaskRec->assetId = $startAfterRec->assetId;
+                $updateFields[] = 'assetId';
+                $updateFields[] = 'prevAssetId';
+            }
+
+            // След коя операция ще започне тази
+            $rememberedTaskRec->startAfter = $startAfterRec->id;
+            $rememberedTaskRec->modifiedOn = dt::now();
+            $rememberedTaskRec->modifiedBy = core_Users::getCurrent();
+            $rememberedTaskRec->_isDragAndDrop = true;
+            $this->save($rememberedTaskRec, $updateFields);
+
+            // Ако е сменено оборудването се прави преподреждане на операциите от старото
+            if($assetIsChanged){
+                planning_AssetResources::reOrderTasks($rememberedTaskRec->prevAssetId);
+                unset($this->reorderTasksInAssetId[$rememberedTaskRec->prevAssetId]);
+                $this->logWrite("Сменено оборудване при поставяне от клипборда", $rememberedTaskRec->id);
+            }
+
+            // Преподреждане на операциите на новото оборудване
+            planning_AssetResources::reOrderTasks($rememberedTaskRec->assetId);
+            unset($this->reorderTasksInAssetId[$rememberedTaskRec->assetId]);
+            $this->logWrite("Операцията е поставена от клипборда", $rememberedTaskRec->id);
+        }
+
+        $res = array();
+        $res = $this->returnAjaxSuccessResponse($res);
+
+        return $res;
+    }
+
+
+    /**
+     * Запомняне на операцията в сесията
+     */
+    public function act_copy2clipboard()
+    {
+        // Проверка за права
+        $errorMsg = null;
+        if(!$this->haveRightFor('copy2clipboard')){
+            $errorMsg = '|Нямате права|*!';
+        }
+        $id = Request::get('id', 'int');
+        if(!$id){
+            $errorMsg = '|Невалиден запис|*!';
+        }
+
+        $rec = $this->fetch($id);
+        if(!$this->haveRightFor('copy2clipboard', $rec)){
+            $errorMsg = '|Нямате права|*!';
+        }
+
+        if(!empty($errorMsg)){
+            // Ако е имало грешки се показват
+            core_Statuses::newStatus($errorMsg, 'error');
+        } else {
+            // Ако е нямало избраната операция се записва в сесията
+            core_Statuses::newStatus("|*#{$this->getHandle($id)} |е запомнена в сесията", 'notice');
+            Mode::setPermanent('rememberedTask', $rec);
+        }
+
+        $res = array();
+        $res = $this->returnAjaxSuccessResponse($res);
+
+        return $res;
+    }
+
+
+    /**
+     * Какъв резултат да се върне при успешен ajax екшън
+     *
+     * @param array $res
+     * @param boolean $refreshTable
+     * @return mixed
+     */
+    private function returnAjaxSuccessResponse($res, $refreshTable = true)
+    {
+        // Затваря се контектстното меню ако е отворено
+        $resObj = new stdClass();
+        $resObj->func = 'closeContextMenu';
+        $res[] = $resObj;
+
+        // Форсиране на опресняване на лист таблицата
+        $forwardRes = array();
+        if($refreshTable){
+            $divId = Request::get('divId');
+            Request::push(array('id' => false));
+            $refreshUrl = array('Ctr' => 'planning_Tasks', 'Act' => 'ajaxrefreshrows', 'divId' => $divId, 'refreshUrl' => toUrl(getCurrentUrl(), 'local'));
+            $forwardRes = Request::forward($refreshUrl);
+        }
+
+        // Показване на статусите веднага
+        $hitTime = Request::get('hitTime', 'int');
+        $idleTime = Request::get('idleTime', 'int');
+        $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+        $res = array_merge($res, $forwardRes, (array) $statusData);
+
+        return $res;
     }
 }
