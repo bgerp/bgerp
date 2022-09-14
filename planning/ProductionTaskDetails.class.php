@@ -97,7 +97,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,netWeight=Нето (кг),weight=Бруто (кг),employees,fixedAsset,date=Дата,info=@';
+    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,netWeight=Нето (кг),weight=Бруто (кг),employees,fixedAsset=Оборудване,date=Дата,info=@';
     
     
     /**
@@ -850,7 +850,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
         $row->productId = cat_Products::getVerbal($rec->productId, 'name');
         $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
-        $row->productId = countR($singleUrl) ? ht::createLinkRef($row->productId, $singleUrl) : $row->productId;
+        $row->productId = (countR($singleUrl) && !Mode::is('printing')) ? ht::createLinkRef($row->productId, $singleUrl) : $row->productId;
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
 
         if($taskRec->productId != $foundRec->productId){
@@ -1130,8 +1130,10 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     public function prepareDetail_($data)
     {
-        $data->TabCaption = 'Прогрес';
-        $data->Tab = 'top';
+        if(!Mode::is('printing')){
+            $data->TabCaption = 'Прогрес';
+            $data->Tab = 'top';
+        }
         parent::prepareDetail_($data);
     }
     
