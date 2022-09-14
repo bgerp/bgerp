@@ -2523,6 +2523,7 @@ class planning_Tasks extends core_Master
         $tpl->push('planning/js/TaskCommon.js', 'JS');
         jquery_Jquery::run($tpl, 'enableCopy2Clipboard();');
         jquery_Jquery::runAfterAjax($tpl, 'enableCopy2Clipboard');
+        jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
 
         if(isset($data->listFilter->rec->assetId)){
             if (!Request::get('ajax_mode')) {
