@@ -2593,11 +2593,13 @@ div.alphabet.twoRows {
   margin-bottom: 5px; }
   .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
     font-size: 0.7em;
-    margin: 0 4px 0 0;
     padding: 5px 8px;
-    margin: 0 4px 0 0 !important;
+    margin: 0 -1px 0 0;
     cursor: pointer;
-    border: 1px solid #bbbbbb !important;
+    border-top: 1px solid #bbbbbb;
+    border-left: 1px solid #bbbbbb;
+    border-right: 1px solid #bbbbbb;
+    border-bottom: 1px solid #0066ff;
     font-size: 0.7em;
     text-decoration: none;
     white-space: nowrap;
@@ -2609,21 +2611,23 @@ div.alphabet.twoRows {
         /*
      * Fix bleeding
      */
-    border-radius: 5px !important;
+    border-radius: 0px !important;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) !important; }
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9); }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab a {
       color: #333333 !important; }
-    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
+    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover {
+      background: #ffffe9 !important; }
+      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover a {
+        color: #444444 !important; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      margin: 0 4px 0 0 !important;
+      box-shadow: 0 -5px 0 #0066ff !important;
+      border-left: 1px solid #0066ff !important;
+      border-right: 1px solid #0066ff !important;
+      border-bottom: none !important;
+      font-size: 0.8em !important;
       background: #ffffe9 !important;
-      padding: 5px 8px !important;
-      position: relative;
-      top: 1px;
-      top: -4px;
-      text-shadow: none; }
-      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover a,
+      padding: 5px 8px !important; }
       .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected a {
         color: #444444 !important; }
 
@@ -2795,7 +2799,8 @@ a.lang {
     border-style: outset;
     border: 1px solid #9999cc; }
 
-.narrow .richtext, .hyphen {
+.narrow .richtext,
+.hyphen {
   -webkit-hyphens: auto;
   -moz-hyphens: auto;
   -ms-hyphens: auto;
