@@ -2593,7 +2593,7 @@ div.alphabet.twoRows {
   margin-bottom: 5px; }
   .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
     font-size: 0.7em;
-    padding: 5px 8px;
+    padding: 6px 8px;
     margin: 0 -1px 0 0;
     cursor: pointer;
     border-top: 1px solid #bbbbbb;
@@ -2612,7 +2612,7 @@ div.alphabet.twoRows {
      * Fix bleeding
      */
     border-radius: 0px !important;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
+    box-shadow: 0 0px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9); }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab a {
       color: #333333 !important; }
@@ -2621,7 +2621,7 @@ div.alphabet.twoRows {
       .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover a {
         color: #444444 !important; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      box-shadow: 0 -5px 0 #0066ff !important;
+      box-shadow: 0 -4px 0 #0066ff !important;
       border-left: 1px solid #0066ff !important;
       border-right: 1px solid #0066ff !important;
       border-bottom: none !important;
