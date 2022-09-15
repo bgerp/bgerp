@@ -629,18 +629,18 @@ class planning_Tasks extends core_Master
             if(is_object($rememberedTaskRec)){
 
                 // Ако има предишна операция, ще може да се поставя след нея
-                if($startAfterId = $mvc->getPrevOrNextTask($rec)){
-                    if($mvc->haveRightFor('pastefromclipboard', (object)array('startAfter' => $startAfterId))){
+                if(!$mvc->getPrevOrNextTask($rec)){
+                    if($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'before'))){
                         core_RowToolbar::createIfNotExists($row->_rowTools);
-                        $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'startAfter' => $startAfterId, 'ret_url' => true), 'local');;
+                        $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'before', 'ret_url' => true), 'local');
                         $row->_rowTools->addLink("Постави преди", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на|* #{$mvc->getHandle($rememberedTaskRec->id)} |преди|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=copy2clipboard");
                     }
                 }
 
                 if($rememberedTaskRec->id != $rec->taskId){
-                    if($mvc->haveRightFor('pastefromclipboard', (object)array('startAfter' => $rec->id))){
+                    if($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'after'))){
                         core_RowToolbar::createIfNotExists($row->_rowTools);
-                        $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'startAfter' => $rec->id, 'ret_url' => true), 'local');
+                        $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'after', 'ret_url' => true), 'local');
                         $row->_rowTools->addLink("Постави след", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на|* #{$mvc->getHandle($rememberedTaskRec->id)} |след|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=copy2clipboard");
                     }
                 }
@@ -1210,11 +1210,11 @@ class planning_Tasks extends core_Master
                 $requiredRoles = 'no_one';
             }else {
                 if(isset($rec)){
-                    if(empty($rec->startAfter)){
+                    if(empty($rec->refTaskId)){
                         $requiredRoles = 'no_one';
                     } else {
-                        $startAfterRec = $mvc->fetch($rec->startAfter);
-                        if($rememberedTaskRec->folderId != $startAfterRec->folderId || $rememberedTaskRec->id == $startAfterRec->id || empty($rememberedTaskRec->assetId) || empty($startAfterRec->assetId) || in_array($rememberedTaskRec, array('stopped', 'rejected'))){
+                        $refTaskRec = $mvc->fetch($rec->refTaskId);
+                        if($rememberedTaskRec->folderId != $refTaskRec->folderId || $rememberedTaskRec->id == $refTaskRec->id || empty($rememberedTaskRec->assetId) || empty($refTaskRec->assetId) || in_array($rememberedTaskRec, array('stopped', 'rejected'))){
                             $requiredRoles = 'no_one';
                         }
                     }
@@ -2772,14 +2772,15 @@ class planning_Tasks extends core_Master
         if(!$this->haveRightFor('pastefromclipboard')){
             $errorMsg = '|Нямате права|*!';
         }
-        $startAfterId = Request::get('startAfter', 'int');
-        if(!$startAfterId){
+        $refTaskId = Request::get('refTaskId', 'int');
+        $place = Request::get('place', 'enum(after,before)');
+        if(!$refTaskId){
             $errorMsg = '|Невалиден запис|*!';
         }
 
         $rememberedTaskRec = Mode::get('rememberedTask');
-        $startAfterRec = $this->fetch($startAfterId);
-        if(!$this->haveRightFor('pastefromclipboard', (object)array('startAfter' => $startAfterRec->id))){
+        $refTaskRec = $this->fetch($refTaskId);
+        if(!$this->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $refTaskRec->id, 'place' => $place))){
             $errorMsg = '|Нямате права|*!';
         }
 
@@ -2788,18 +2789,24 @@ class planning_Tasks extends core_Master
         } else {
             $updateFields = arr::make('orderByAssetId,modifiedOn,modifiedBy');
 
+            if($place == 'after'){
+                $startAfterId = $refTaskRec->id;
+            } else {
+                $startAfterId = $this->getPrevOrNextTask($refTaskRec);
+            }
+
             // Ако оборудването е различно - подменя се
             $assetIsChanged = false;
-            if($rememberedTaskRec->assetId != $startAfterRec->assetId){
+            if($rememberedTaskRec->assetId != $refTaskRec->assetId){
                 $assetIsChanged = true;
                 $rememberedTaskRec->prevAssetId = $rememberedTaskRec->assetId;
-                $rememberedTaskRec->assetId = $startAfterRec->assetId;
+                $rememberedTaskRec->assetId = $refTaskRec->assetId;
                 $updateFields[] = 'assetId';
                 $updateFields[] = 'prevAssetId';
             }
 
             // След коя операция ще започне тази
-            $rememberedTaskRec->startAfter = $startAfterRec->id;
+            $rememberedTaskRec->startAfter = $startAfterId;
             $rememberedTaskRec->modifiedOn = dt::now();
             $rememberedTaskRec->modifiedBy = core_Users::getCurrent();
             $rememberedTaskRec->_isDragAndDrop = true;
