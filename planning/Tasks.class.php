@@ -2795,6 +2795,11 @@ class planning_Tasks extends core_Master
                 $startAfterId = $this->getPrevOrNextTask($refTaskRec);
             }
 
+            $msgPart = "|е преместена след|* #{$this->getHandle($startAfterId)}";
+            if(empty($startAfterId)){
+                $msgPart = "|е преместена преди|* #{$this->getHandle($refTaskRec->id)}";
+            }
+
             // Ако оборудването е различно - подменя се
             $assetIsChanged = false;
             if($rememberedTaskRec->assetId != $refTaskRec->assetId){
@@ -2823,7 +2828,7 @@ class planning_Tasks extends core_Master
             planning_AssetResources::reOrderTasks($rememberedTaskRec->assetId);
             unset($this->reorderTasksInAssetId[$rememberedTaskRec->assetId]);
             $this->logWrite("Операцията е поставена от клипборда", $rememberedTaskRec->id);
-            core_Statuses::newStatus("|*#{$this->getHandle($rememberedTaskRec->id)} |е преместена след|* #{$this->getHandle($startAfterId)}", 'notice', null, 180);
+            core_Statuses::newStatus("|*#{$this->getHandle($rememberedTaskRec->id)} {$msgPart}", 'notice', null, 180);
 
             Mode::setPermanent('rememberedTask', null);
         }
