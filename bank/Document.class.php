@@ -172,7 +172,7 @@ abstract class bank_Document extends deals_PaymentDocument
     protected function getFields(core_Mvc &$mvc)
     {
         $mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Платени,mandatory,silent');
+        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Платени,mandatory,silent');
         $mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
         $mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
         
@@ -182,7 +182,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $mvc->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
         $mvc->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');
         $mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=В->Сметка,silent,removeAndRefreshForm=currencyId|amount');
-        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
+        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
         
         $mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
