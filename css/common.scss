@@ -2834,7 +2834,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
     margin-bottom: 5px;
  	.tab {
 	    font-size: 0.7em;
-	    padding: 5px 8px;
+	    padding: 6px 8px;
 		margin: 0 -1px 0 0;
 		cursor: pointer;
 		
@@ -2854,7 +2854,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
 		transition: background-color .2s ease-out !important;
 		background-clip: padding-box; /* Fix bleeding */
 		border-radius: 0px !important;
-		box-shadow: 0 1px 0 rgba(0, 0, 0, .3),
+		box-shadow: 0 0px 0 rgba(0, 0, 0, .3),
 		0 1px 0 rgba(255, 255, 255, .3) inset !important;
 		text-shadow: 0 1px 0 rgba(255,255,255, .9);
 		a {
@@ -2867,7 +2867,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
 			}
 	    }
 		&.selected {
-			box-shadow: 0 -5px 0 #0066ff !important;
+			box-shadow: 0 -4px 0 #0066ff !important;
 	    	border-left: 1px solid #0066ff !important;
 			border-right: 1px solid #0066ff !important;
 			border-bottom: none !important;
