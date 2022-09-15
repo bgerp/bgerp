@@ -30,6 +30,9 @@
               
               <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
                   <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
+                  <!--ET_BEGIN subTitle-->
+                  <span style='font-weight:normal'>|Подзаглавие|*</span>: [#subTitle#]<br>
+                  <!--ET_END subTitle-->
                   <!--ET_BEGIN batch-->
                   <span style='font-weight:normal'>|Партида|*</span>: [#batch#]<br>
                   <!--ET_END batch-->

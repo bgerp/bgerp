@@ -336,6 +336,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
+        $this->FLD('subTitle', 'varchar(15)', 'caption=Допълнително->Подзаглавие,width=100%');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
 
@@ -755,7 +756,11 @@ class planning_Tasks extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = "Opr{$rec->id} - " . cls::get(get_called_class())->getStepTitle($rec->productId);
+        $me =  cls::get(get_called_class());
+        $title = "Opr{$rec->id} - {$me->getStepTitle($rec->productId)}";
+        if(!empty($rec->subTitle)){
+            $title .= ", {$me->getFieldType('subTitle')->toVerbal(mb_strtolower($rec->subTitle))}";
+        }
 
         return $title;
     }
