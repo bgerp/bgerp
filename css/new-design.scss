@@ -1366,18 +1366,23 @@ input[type="button"].more-btn {
 div.tab-control.alphabet div.tab-row .tab{
 	float: left;
 	background: #F5F5F5;
-    padding: 4px 5px;
+    padding: 6px 8px;
     min-width: 12px;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
-	border-radius: 4px;
-	margin: 5px 6px 3px 0;
+	border-bottom: 1px solid #0066ff;
+	border-radius: 0px;
+	margin: 0px -1px 0px 0;
 	text-shadow: #FFF 1px 1px 0;
 	-moz-box-shadow: 1px 1px rgba(0,0,0,0.2);
 	-webkit-box-shadow: 1px 1px rgba(0,0,0,0.2);
-	box-shadow: 1px 1px rgba(0,0,0,0.2);
+	box-shadow: 0px 0px rgba(0,0,0,0.2);
 	&.selected {
-	   top: -4px;
+		box-shadow: 0 -4px 0 #0066ff !important;
+		border-left: 1px solid #0066ff !important;
+		border-right: 1px solid #0066ff !important;
+		border-bottom: none !important;
+		font-size: 0.8em !important;
 	}
 	&:hover a{
         color: #111 !important;
