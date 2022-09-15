@@ -269,20 +269,29 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Изпълнява се преди клониране
+     * Изпълнява се преди клониране на детайла
      */
-    protected static function on_BeforeSaveClonedDetail11111($mvc, &$rec, $oldRec)
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
-        // Преди клониране клонира се и сумата на цената на транспорта
-        $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
-        if (isset($cRec)) {
-            $rec->fee = $cRec->fee;
-            $rec->deliveryTimeFromFee = $cRec->deliveryTime;
-            $rec->_transportExplained = $cRec->explain;
-            $rec->syncFee = true;
-        }
+        $masterRec = sales_Sales::fetch($rec->saleId);
 
-        //
+        // Прави се опит да се преизичсли наново цената
+        $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
+        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+        if (isset($policyInfo->price)) {
+
+            // Ако има нова цена подменя се
+            $rec->price = $policyInfo->price;
+            $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
+            $rec->discount = $policyInfo->discount;
+        } else {
+
+            // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
+            $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+            if (isset($cRec->fee) && $cRec->fee > 0) {
+                $rec->price -= $cRec->fee / $rec->quantity;
+            }
+        }
     }
     
     
@@ -292,13 +301,25 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if($rec->_isClone){
-            sales_TransportValues::recalcTransport($mvc->getClassId(), $rec->id);
-            $cRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
-            if (isset($cRec)) {
-                $rec->fee = $cRec->fee;
-                $rec->deliveryTimeFromFee = $cRec->deliveryTime;
-                $rec->_transportExplained = $cRec->explain;
-                $rec->syncFee = true;
+            $masterRec = $mvc->Master->fetch($rec->saleId);
+            if($masterRec->deliveryCalcTransport == 'yes'){
+
+                // След клониране се прави опит да се преизчисли транспорта
+                sales_TransportValues::recalcTransport($mvc->getClassId(), $rec->id);
+                $cRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
+                if (isset($cRec)) {
+                    // Ако може то той ще се запише
+                    $rec->fee = $cRec->fee;
+                    $rec->deliveryTimeFromFee = $cRec->deliveryTime;
+                    $rec->_transportExplained = $cRec->explain;
+                    $rec->syncFee = true;
+
+                    // Към новата или старата цена (без транспорт) се добавя този на новия изчислен транспорт
+                    if (isset($rec->fee) && $rec->fee > 0) {
+                        $rec->price += $rec->fee / $rec->quantity;
+                        $mvc->save_($rec, 'price');
+                    }
+                }
             }
         }
 
