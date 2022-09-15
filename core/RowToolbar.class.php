@@ -49,6 +49,7 @@ class core_RowToolbar extends core_BaseClass
         $btn->type = 'function';
         $btn->title = $title;
         $btn->fn = $function;
+
         $this->add($btn, $params, $moreParams);
     }
     
@@ -192,14 +193,23 @@ class core_RowToolbar extends core_BaseClass
             
             return;
         }
-        
+
+        $attr = array();
+
         setIfNot($showWithoutToolbar, 1);
         if (countR($this->links) <= $showWithoutToolbar) {
             $layout = new core_ET('<span>[#ROW_TOOLS#]</span>');
             foreach ($this->links as $linkObj) {
                 setIfNot($linkObj->attr['hint'], $linkObj->title);
                 $linkObj->attr['title'] = $linkObj->attr['title'];
+
+                if ($linkObj->fn) {
+                    $attr['onclick'] = $linkObj->fn;
+                    $attr['onMouseOver'] = "document.body.style.cursor = 'pointer';";
+                    $attr['onMouseLeave'] = "document.body.style.cursor = '';";
+                }
                 $btn = ht::createLink('', $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $linkObj->attr);
+
                 $layout->append($btn, 'ROW_TOOLS');
             }
         } else {
@@ -224,7 +234,13 @@ class core_RowToolbar extends core_BaseClass
                         $btnTitle = '';
                     }
                 }
-                
+
+                if ($linkObj->fn) {
+                    $attr['onclick'] = $linkObj->fn;
+                    $attr['onMouseOver'] = "document.body.style.cursor = 'pointer';";
+                    $attr['onMouseLeave'] = "document.body.style.cursor = '';";
+                }
+
                 $link = ht::createLink($btnTitle, $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $attr);
                 $layout->append($link, $placeholder);
             }

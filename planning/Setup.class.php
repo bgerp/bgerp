@@ -296,7 +296,19 @@ class planning_Setup extends core_ProtoSetup
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
-        
+
+        if (core_Packs::isInstalled('peripheral')) {
+            // Добавяне на етикет за производствена операция
+            core_Classes::add('peripheral_printer_Browser');
+            core_Users::forceSystemUser();
+            if (label_Templates::addFromFile('Разпечатване на прогрес на производствена операция', 'planning/tpl/DefaultTaskProgressLabelPrint.shtml', 'defaultPrintTaskRec', array('210', '297'), 'bg', planning_ProductionTaskDetails::getClassId(), peripheral_printer_Browser::getClassId())) {
+                $html = "<li class='green'>Обновен шаблон за етикети на прогреса на производствената операция";
+            } else {
+                $html = '<li>Пропуснато обновяване на шаблон за прогреса на производствената операция</li>';
+            }
+            core_Users::cancelSystemUser();
+        }
+
         return $html;
     }
 

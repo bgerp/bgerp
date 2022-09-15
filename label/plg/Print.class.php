@@ -44,7 +44,9 @@ class label_plg_Print extends core_Plugin
             // Ако има бутон за печат на бърз етикет, показва се
             if($mvc->haveRightFor('printperipherallabel', $rec)){
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink($mvc->printLabelCaptionSingle, array($mvc, 'printperipherallabel', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/printer.png', 'title' => 'Разпечатване на ' . mb_strtolower($mvc->printLabelCaptionSingle), 'style' => 'position: relative; top: -2px;'), 'alwaysShow');
+                $lUrl = toUrl(array($mvc, 'printperipherallabel', $rec->id), 'local');
+                $lUrl = urlencode($lUrl);
+                $row->_rowTools->addFnLink($mvc->printLabelCaptionSingle, "getEfae().process({url: '{$lUrl}'});", array('ef_icon' => 'img/16/printer.png', 'title' => 'Разпечатване на ' . mb_strtolower($mvc->printLabelCaptionSingle), 'style' => 'position: relative; top: -2px;'), 'alwaysShow');
                 $alwaysShow = false;
             }
 
@@ -77,9 +79,6 @@ class label_plg_Print extends core_Plugin
             expect($rec = $mvc->fetch($id));
             $mvc->requireRightFor('printperipherallabel', $rec);
             
-            $res = new core_ET('');
-            $res->append('<body><div class="fullScreenBg" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: block;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Разпечатва се етикет ...<br> Моля, изчакайте!</h3></div></body>');
-            
             // Ако има периферия за печат на етикети
             expect($deviceRec = peripheral_Devices::getDevice('peripheral_PrinterIntf'));
             $source = $mvc->getLabelSource($rec);
@@ -89,29 +88,26 @@ class label_plg_Print extends core_Plugin
             
             Request::setProtected('hash');
             $hash = str::addHash('fastlabel', 4);
-            $responseUrl = toUrl(array($mvc, 'printfastlabelresponse', $rec->id, 'ret_url' => getRetUrl(), 'hash' => $hash));
             Request::removeProtected('hash');
             
             // Прави се опит за печат от периферията
-            $interface = core_Cls::getInterface('escpos_PrinterIntf', $deviceRec->driverClass);
-            $js = $interface->getJS($deviceRec, $labelContent);
-            $js .= " function escPrintOnSuccess(res) {
-            if (res == 'OK') {
-                document.location = '{$responseUrl}&res=' + res;
-            } else {
-                    escPrintOnError(res);
-                }
-            }   
-            function escPrintOnError(res) {
-                if($.isPlainObject(res)){
-                    res = res.status  + '. ' +  res.statusText;
-                }
+            $interface = core_Cls::getInterface('peripheral_BrowserPrinterIntf', $deviceRec->driverClass);
 
-                document.location = '{$responseUrl}&type=error&res=' + res;
-            }";
-            
-            $res->append($js, 'SCRIPTS');
-            
+            $html = $interface->getHTML($deviceRec, $labelContent);
+            $js = $interface->getJS($deviceRec, $labelContent);
+            $js .= $interface->afterResultJS($deviceRec, $labelContent, array($mvc, 'printfastlabelresponse', $rec->id, 'ret_url' => getRetUrl(), 'hash' => $hash));
+
+            $js = minify_Js::process($js);
+
+            if (Request::get('ajax_mode')) {
+                // Добавяме резултата
+                $resObj = new stdClass();
+                $resObj->func = 'printPage';
+                $resObj->arg = array('html' => $html, 'js' => $js);
+
+                $res = array($resObj);
+            }
+
             return false;
         }
         
@@ -130,18 +126,40 @@ class label_plg_Print extends core_Plugin
             
             $msg = tr("Етикетът е разпечатан успешно|*!");
             $type = Request::get('type', 'varchar');
-            
+
+            $statusData = array();
+
+            $statusData['type'] = 'notice';
+            $statusData['timeOut'] = 1700;
+            $statusData['stayTime'] = 7000;
+            $statusData['isSticky'] = 0;
+
             if($type == 'error'){
                 $msg = $res;
                 $logMvc->logDebug($msg, $logId);
                 $msg = haveRole('debug') ? $msg : tr('Проблем при разпечатването|*!');
-                core_Statuses::newStatus($msg, 'error');
+                $statusData['type'] = 'error';
+                $statusData['isSticky'] = 1;
+            } elseif ($type == 'unknown') {
+                $logMvc->logWrite('Опит за разпечатване на бърз етикет', $logId);
+                $msg = tr("Отпечатването завърши|*!");
             } else {
                 $logMvc->logWrite('Разпечатване на бърз етикет', $logId);
-                core_Statuses::newStatus($msg);
             }
-            
-            followRetUrl();
+
+            $statusData['text'] = $msg;
+
+            $statusObj = new stdClass();
+            $statusObj->func = 'showToast';
+            $statusObj->arg = $statusData;
+
+            $afterPrint = new stdClass();
+            $afterPrint->func = 'afterPrintPage';
+            $afterPrint->arg = array('timeOut' => 700);
+
+            $res =  array($statusObj, $afterPrint);
+
+            return false;
         }
     }
     
@@ -247,7 +265,7 @@ class label_plg_Print extends core_Plugin
         }
         
         if($action == 'printperipherallabel' && isset($rec)){
-            $deviceRec = peripheral_Devices::getDevice('peripheral_PrinterIntf');
+            $deviceRec = peripheral_Devices::getDevice('peripheral_BrowserPrinterIntf');
             if(!$deviceRec){
                 $requiredRoles = 'no_one';
             } else {
