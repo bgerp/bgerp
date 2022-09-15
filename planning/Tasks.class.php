@@ -1214,7 +1214,7 @@ class planning_Tasks extends core_Master
                         $requiredRoles = 'no_one';
                     } else {
                         $refTaskRec = $mvc->fetch($rec->refTaskId);
-                        if($rememberedTaskRec->folderId != $refTaskRec->folderId || $rememberedTaskRec->id == $refTaskRec->id || empty($rememberedTaskRec->assetId) || empty($refTaskRec->assetId) || in_array($rememberedTaskRec, array('stopped', 'rejected'))){
+                        if($rememberedTaskRec->folderId != $refTaskRec->folderId || $rememberedTaskRec->id == $refTaskRec->id || empty($rememberedTaskRec->assetId) || empty($refTaskRec->assetId) || in_array($rememberedTaskRec, array('stopped', 'rejected')) || !in_array($refTaskRec->assetId, $rememberedTaskRec->_allowableAssets)){
                             $requiredRoles = 'no_one';
                         }
                     }
@@ -2823,7 +2823,7 @@ class planning_Tasks extends core_Master
             planning_AssetResources::reOrderTasks($rememberedTaskRec->assetId);
             unset($this->reorderTasksInAssetId[$rememberedTaskRec->assetId]);
             $this->logWrite("Операцията е поставена от клипборда", $rememberedTaskRec->id);
-            core_Statuses::newStatus("|*#{$this->getHandle($rememberedTaskRec->id)} |е преместена след|* #{$this->getHandle($startAfterRec->id)}", 'notice', null, 180);
+            core_Statuses::newStatus("|*#{$this->getHandle($rememberedTaskRec->id)} |е преместена след|* #{$this->getHandle($startAfterId)}", 'notice', null, 180);
 
             Mode::setPermanent('rememberedTask', null);
         }
@@ -2859,6 +2859,16 @@ class planning_Tasks extends core_Master
             // Ако е имало грешки се показват
             core_Statuses::newStatus($errorMsg, 'error');
         } else {
+            // Кеш на допустимите за избор оборудвания
+            $rec->_allowableAssets = array();
+            if($Driver = cat_Products::getDriver($rec->productId)) {
+                $productionData = $Driver->getProductionData($rec->productId);
+                if(is_array($productionData['fixedAssets'])){
+                    $rec->_allowableAssets = $productionData['fixedAssets'];
+                }
+            }
+            $rec->_allowableAssets = countR($rec->allowableAssets) ? $rec->allowableAssets : array_keys(planning_AssetResources::getByFolderId($rec->folderId, $rec->assetId, 'planning_Tasks', true));
+
             // Ако е нямало избраната операция се записва в сесията
             core_Statuses::newStatus("|*#{$this->getHandle($id)} |е запомнена в сесията", 'notice');
             Mode::setPermanent('rememberedTask', $rec);
