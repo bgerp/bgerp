@@ -92,7 +92,7 @@
                                             </tr>
                                             <!--ET_END debitAmount-->
                                             <tr>
-                                                <td class='quiet aright'>|Изравняване на сб-ст|*:</td>
+                                                <td class='quiet aright'>|Изравн. сб-ст|*:</td>
                                                 <td>[#equalizePrimeCost#]</td>
                                             </tr>
                                             <!--ET_BEGIN expenses-->
