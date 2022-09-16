@@ -626,7 +626,7 @@ class planning_Tasks extends core_Master
             if($mvc->haveRightFor('copy2clipboard', $rec)){
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $copyUrl = toUrl(array($mvc, 'copy2clipboard', $rec->id, 'ret_url' => true), 'local');
-                $row->_rowTools->addLink('Избор', '', "ef_icon=img/16/paper-clip.png,title=Запомняне на операцията в клипборда,data-url={$copyUrl},class=copy2clipboard");
+                $row->_rowTools->addLink('Избор', '', "ef_icon=img/16/copy16.png,title=Запомняне на операцията в клипборда,data-url={$copyUrl},class=copy2clipboard");
             }
 
             // Ако може да се пейства операция от клипборда
