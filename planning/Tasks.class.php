@@ -1649,9 +1649,11 @@ class planning_Tasks extends core_Master
 
     /**
      * Връща допустимите за етикетиране мерки/опаковки
-     * @param $selectedMeasureId
-     * @param $productId
-     * @return array
+     *
+     * @param int $selectedMeasureId - мярка на артикул
+     * @param int $productId         - ид на артикул
+     * @param int|null $exId         - ид на вече избрана мярка
+     * @return array $packs          - допустимите за избор опаковки + мярка "брой"(ако се поддържа)
      */
     public static function getAllowedLabelPackagingOptions($selectedMeasureId, $productId = null, $exId = null)
     {
