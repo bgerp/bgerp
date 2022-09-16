@@ -219,7 +219,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             return;
         }
 
-        $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+        $rec->packQuantity = core_Math::roundNumber($rec->quantity / $rec->quantityInPack);
     }
 
 

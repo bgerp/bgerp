@@ -438,7 +438,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $suggestions[] = $vBatch;
                 $tableRec['batch'][$i] = $vBatch;
                 if (array_key_exists($batch, $foundBatches)) {
-                    $tableRec['quantity'][$i] = $foundBatches[$batch] / $recInfo->quantityInPack;
+                    $tableRec['quantity'][$i] = core_Math::roundNumber($foundBatches[$batch] / $recInfo->quantityInPack);
                     $exTableRec['batch'][$j] = $vBatch;
                     $exTableRec['quantity'][$j] = $foundBatches[$batch];
                     $j++;
