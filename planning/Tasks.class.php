@@ -458,7 +458,7 @@ class planning_Tasks extends core_Master
 
         $row->productId = $mvc->getStepTitle($rec->productId);
         if(!empty($rec->subTitle)){
-            $row->productId .= " (<b>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</b>)";
+            $row->productId .= ", <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
         }
 
         if(!Mode::isReadOnly()){
