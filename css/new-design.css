@@ -1225,6 +1225,8 @@ div.tab-control.alphabet div.tab-row .tab {
   -webkit-border-radius: 10px;
   border-bottom: 1px solid #0066ff;
   border-radius: 0px;
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
   margin: 0px -1px 0px 0;
   text-shadow: white 1px 1px 0;
   -moz-box-shadow: 1px 1px rgba(0, 0, 0, 0.2);

@@ -2612,6 +2612,8 @@ div.alphabet.twoRows {
      * Fix bleeding
      */
     border-radius: 0px !important;
+    border-top-right-radius: 5px !important;
+    border-top-left-radius: 5px !important;
     box-shadow: 0 0px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9); }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab a {
