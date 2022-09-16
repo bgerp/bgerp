@@ -1498,7 +1498,7 @@ class planning_Tasks extends core_Master
             }
 
             if ($productRec->canStore == 'yes') {
-                $packs = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false)) + cat_products_Packagings::getOnlyPacks($productId4Form);
+                $packs = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId, $productId4Form, $rec->labelPackagingId);
                 $form->setOptions('labelPackagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
                 if(isset($productionData) && array_key_exists($productionData['normPackagingId'], $packs)){
@@ -1646,6 +1646,35 @@ class planning_Tasks extends core_Master
         }
     }
 
+
+    /**
+     * Връща допустимите за етикетиране мерки/опаковки
+     * @param $selectedMeasureId
+     * @param $productId
+     * @return array
+     */
+    public static function getAllowedLabelPackagingOptions($selectedMeasureId, $productId = null, $exId = null)
+    {
+        $packs = array();
+        if($selectedMeasureId == cat_UoM::fetchBySysId('pcs')->id){
+            $packs[$selectedMeasureId] = cat_UoM::getTitleById($selectedMeasureId, false);
+        }
+
+        if(isset($productId)){
+            $packs += cat_products_Packagings::getOnlyPacks($productId);
+        } else {
+            $packs += cat_UoM::getPackagingOptions();
+        }
+        if(isset($exId) && !array_key_exists($exId, $packs)){
+            $packs[$exId] = cat_UoM::getTitleById($exId, false);
+        }
+
+        if(countR($packs)){
+            $packs = array('' => '') + $packs;
+        }
+
+        return $packs;
+    }
 
     /**
      * Изчисляване следващата или предишната операция от тази

@@ -195,10 +195,8 @@ class planning_Steps extends core_Extender
             $form->setField("{$mvc->className}_labelPackagingId", 'input');
 
             // Ако артикула е съществуващ само наличните опаковки са достъпни
-            if(isset($rec->id)){
-                $packs = array('' => '') + cat_Products::getPacks($rec->id);
-                $form->setOptions("{$mvc->className}_labelPackagingId", array('' => '') + $packs);
-            }
+            $labelPacks = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId, $rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
+            $form->setOptions("{$mvc->className}_labelPackagingId", $labelPacks);
 
             // Ако има избрана опаковка за етикиране
             if(!empty($rec->{"{$mvc->className}_labelPackagingId"})){
@@ -266,7 +264,7 @@ class planning_Steps extends core_Extender
                         $form->setError("{$mvc->className}_labelQuantityInPack", 'Ако за етикиране е избрана основната мярка, то количеството не може да е различно от 1|*!');
                     }
                 } elseif(!isset($rec->id) || isset($rec->clonedFromId)){
-                    $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да е въвдено количество при добавяне на нова опаковка|*!');
+                    $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да е въведено количество при добавяне на нова опаковка|*!');
                 }
             }
         }
