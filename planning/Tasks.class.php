@@ -457,6 +457,10 @@ class planning_Tasks extends core_Master
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
 
         $row->productId = $mvc->getStepTitle($rec->productId);
+        if(!empty($rec->subTitle)){
+            $row->productId .= " (<b>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</b>)";
+        }
+
         if(!Mode::isReadOnly()){
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
         }
@@ -759,7 +763,7 @@ class planning_Tasks extends core_Master
         $me =  cls::get(get_called_class());
         $title = "Opr{$rec->id} - {$me->getStepTitle($rec->productId)}";
         if(!empty($rec->subTitle)){
-            $title .= ", <b>{$me->getFieldType('subTitle')->toVerbal(mb_strtolower($rec->subTitle))}</b>";
+            $title .= ", <b>{$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}</b>";
         }
 
         return $title;
