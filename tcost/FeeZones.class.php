@@ -53,12 +53,6 @@ class tcost_FeeZones extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,tcost';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,tcost';
@@ -534,5 +528,27 @@ class tcost_FeeZones extends core_Master
         $res = (is_array($zoneArr) && !empty($zoneArr['deliveryTime'])) ? $zoneArr['deliveryTime'] : null;
 
         return $res;
+    }
+
+
+    /**
+     * Сортиране по name
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->showFields = 'deliveryTermId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+
+        if($rec = $data->listFilter->rec){
+            if(isset($rec->deliveryTermId)){
+                $data->query->where("#deliveryTermId = {$rec->deliveryTermId}");
+            }
+        }
     }
 }

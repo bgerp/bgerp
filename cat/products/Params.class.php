@@ -198,6 +198,10 @@ class cat_products_Params extends doc_Detail
             if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
                 $form->setField('paramValue', 'input');
                 $form->setFieldType('paramValue', $Type);
+                if($Type instanceof type_Key2 || $Type instanceof type_Key){
+                    $form->setField('paramValue', 'class=w100');
+                }
+            
                 $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
                 $form->setDefault('paramValue', $defaultValue);
                 if(isset($defaultValue)){
@@ -347,11 +351,7 @@ class cat_products_Params extends doc_Detail
         
         if (!empty($paramId)) {
             $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
-
-            // Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт
-            $paramValue = ($paramValue) ? $paramValue : cat_Params::getDefaultValue($paramId, $classId, $productId);
             if ($verbal === true) {
-
                 $paramValue = cat_Params::toVerbal($paramId, $classId, $productId, $paramValue);
             }
             
@@ -652,6 +652,7 @@ class cat_products_Params extends doc_Detail
      * @param int $productId
      * @param core_Form $form
      * @param int $planningStepProductId
+     *
      * @return void
      */
     public static function addProductParamsToForm($classId, $objectId, $productId, $planningStepProductId, &$form)
@@ -735,6 +736,9 @@ class cat_products_Params extends doc_Detail
 
             $ParamType = cat_Params::getTypeInstance($pId, $domainClassId, $objectId);
             $form->setFieldType("paramcat{$pId}", $ParamType);
+            if($ParamType instanceof type_Key2 || $ParamType instanceof type_Key){
+                $form->setField("paramcat{$pId}", 'class=w100');
+            }
 
             if (!empty($paramRec->suffix)) {
                 $suffix = cat_Params::getVerbal($paramRec, 'suffix');

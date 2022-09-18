@@ -146,8 +146,8 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
 
-        $mvc->FNC('displayContragentClassId', 'enum(crm_Companies=Фирма,crm_Persons=Лице,newCompany=Нова фирма)', 'input,silent,removeAndRefreshForm=displayContragentId|selectInvoiceText,caption=Друг контрагент->Източник');
-        $mvc->FNC('displayContragentId', 'int', 'input=none,silent,removeAndRefreshForm=contragentName|contragentCountryId|contragentVatNo|contragentEori|uicNo|contragentPCode|additionalInfo|contragentPlace|contragentAddress,caption=Друг контрагент->Избор');
+        $mvc->FLD('displayContragentClassId', 'enum(crm_Companies=Фирма,crm_Persons=Лице,newCompany=Нова фирма)', 'input,silent,removeAndRefreshForm=displayContragentId|selectInvoiceText,caption=Друг контрагент->Източник');
+        $mvc->FLD('displayContragentId', 'int', 'input=none,silent,removeAndRefreshForm=contragentName|contragentCountryId|contragentVatNo|contragentEori|uicNo|contragentPCode|additionalInfo|contragentPlace|contragentAddress,caption=Друг контрагент->Избор');
 
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,silent');
         $mvc->FLD('contragentId', 'int', 'input=hidden,silent');
@@ -387,13 +387,12 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected function populateNoteFromInvoice(core_Form &$form, core_ObjectReference $origin)
     {
-        if ($this instanceof purchase_Invoices) {
-            $form->setField('displayContragentClassId', 'input=none');
-            $form->setField('displayContragentId', 'input=none');
-        }
-        
         $invArr = (array) $origin->fetch();
-        
+        if(!($this instanceof sales_Proformas)){
+            $form->setField('displayContragentClassId', 'input=hidden');
+            $form->setField('displayContragentId', 'input=hidden');
+        }
+
         // Трябва фактурата основание да не е ДИ или КИ
         expect($invArr['type'] == 'invoice');
         
@@ -441,7 +440,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $form->setField('deliveryPlaceId', 'input=none');
         $form->setField('displayRate', 'input=hidden');
         
-        foreach (array('contragentName', 'contragentEori', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress') as $name) {
+        foreach (array('contragentName', 'contragentEori', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'displayContragentClassId', 'displayContragentId') as $name) {
             if ($form->rec->{$name}) {
                 $form->setReadOnly($name);
             }
@@ -716,6 +715,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+
         $form->setDefault('date', dt::today());
         if (empty($form->rec->id)) {
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
@@ -727,8 +727,10 @@ abstract class deals_InvoiceMaster extends core_Master
         $form->setDefault('displayContragentClassId', 'crm_Companies');
         if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             if($form->cmd != 'refresh'){
-                $form->setField('displayContragentClassId', 'autohide=any');
-                $form->setField('displayContragentId', 'autohide=any');
+                if($mvc instanceof sales_Invoices){
+                    $form->setField('displayContragentClassId', 'autohide=any');
+                    $form->setField('displayContragentId', 'autohide=any');
+                }
             }
         } else {
             if (isset($rec->displayContragentClassId) && empty($rec->displayContragentId) && $rec->displayContragentClassId != 'newCompany') {
@@ -1118,6 +1120,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $cRec = (object) array('name' => $rec->contragentName, 'country' => $rec->contragentCountryId, 'vatId' => $rec->contragentVatNo, 'uicId' => $rec->uicNo, 'pCode' => $rec->contragentPCode, 'place' => $rec->contragentPlace, 'address' => $rec->contragentAddress);
                 crm_Companies::save($cRec);
                 core_Statuses::newStatus("Добавена е нова фирма|* '{$rec->contragentName}'");
+
+                $rec->displayContragentClassId = 'crm_Companies';
+                $rec->displayContragentId = $cRec->id;
             }
         }
     }
@@ -1243,8 +1248,8 @@ abstract class deals_InvoiceMaster extends core_Master
             if ($rec->originId && $rec->type != 'invoice') {
                 unset($row->deliveryPlaceId, $row->deliveryId);
             }
-            
-            if (doc_Folders::fetchCoverClassName($rec->folderId) == 'crm_Persons') {
+
+            if ($rec->displayContragentClassId == 'crm_Persons' || (doc_Folders::fetchCoverClassName($rec->folderId) == 'crm_Persons') && empty($rec->displayContragentId)) {
                 $row->contragentUicCaption = tr('|ЕГН|*');
             } else {
                 $row->contragentUicCaption = tr('ЕИК||TAX ID');

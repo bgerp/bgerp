@@ -585,14 +585,10 @@ class batch_Items extends core_Master
      */
     public static function getBatchQuantitiesInStore($productId, $storeId, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false)
     {
-        $date = (isset($date)) ? $date : dt::today();
         $res = array();
-        
+        $date = (isset($date)) ? $date : dt::today();
         $def = batch_Defs::getBatchDef($productId);
-        if (!$def) {
-            
-            return $res;
-        }
+        if (!$def) return $res;
         
         // Намират се всички движения в посочения интервал за дадения артикул в подадения склад
         $query = batch_Movements::getQuery();
@@ -647,7 +643,11 @@ class batch_Items extends core_Master
                 $res[$bRec->batch] = 0;
             }
         }
-        
+
+        foreach ($res as $b => $q){
+            $res[$b] = round($q, 5);
+        }
+
         // Намерените партиди се подават на партидната дефиниция, ако иска да ги преподреди
         $def->orderBatchesInStore($res, $storeId, $date);
         

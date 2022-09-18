@@ -29,9 +29,9 @@ class email_drivers_CheckEmails extends core_BaseClass
      */
     public static function addFields(&$mvc)
     {
-        $mvc->FLD('closeAfter', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Затваряне на нишката след->Дни, before=note, class=w100 clearSelect');
-        $mvc->FLD('rejectAfter', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Оттегляне на нишката след->Дни, before=note, class=w100 clearSelect');
-        $mvc->FLD('deleteAfter', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Изтриване на имейла след->Дни, before=note, class=w100 clearSelect');
+        $mvc->FLD('closeAfter', 'time(suggestions=Веднага|10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Затваряне на нишката след->Дни, before=note, class=w100 clearSelect');
+        $mvc->FLD('rejectAfter', 'time(suggestions=Веднага|10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Оттегляне на нишката след->Дни, before=note, class=w100 clearSelect');
+        $mvc->FLD('deleteAfter', 'time(suggestions=Веднага|10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Изтриване на имейла след->Дни, before=note, class=w100 clearSelect');
     }
 
 

@@ -246,7 +246,9 @@ class type_Time extends type_Varchar
             
             return;
         }
-        
+
+        $res = null;
+
         $v = abs($value);
         $restDays = ($v % core_DateTime::SECONDS_IN_MONTH);
         
@@ -398,7 +400,7 @@ class type_Time extends type_Varchar
             
             $res .= "{$secundes} " . tr('сек.');
         }
-        
-        return $res;
+
+        return isset($res) ? $res : $value;
     }
 }

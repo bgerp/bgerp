@@ -62,6 +62,12 @@ class peripheral_Setup extends core_ProtoSetup
     public $plugins = array(
             array('Избор на терминал', 'peripheral_TerminalChoicePlg', 'core_Users', 'private'),
     );
+
+
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'peripheral_printer_Browser';
     
     
     /**

@@ -308,8 +308,8 @@ class crm_Companies extends core_Master
     public function description()
     {
         // Име на фирмата
-        $this->FLD('name', 'varchar(255,ci)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv, translate=user|tr|transliterate');
-        $this->FNC('nameList', 'varchar', 'sortingLike=name');
+        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv, translate=user|tr|transliterate');
+        $this->FNC('nameList', 'varchar(autocomplete=off)', 'sortingLike=name');
         
         // Данъчен номер на фирмата
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent, class=focus');

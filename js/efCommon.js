@@ -4281,6 +4281,49 @@ function render_redirect(data) {
     document.location = url;
 }
 
+
+/**
+ * Скирва основната секция и показва само върнатия HTML резултат
+ *
+ * @param object data - Обект с необходимите стойности
+ * data.html - HTML, който да се замести
+ * data.js - стойност за render_js
+ */
+function render_printPage(data) {
+    getEfae().waitPeriodicAjaxCall = 100;
+
+    document.body.innerHTML = '<div id="origContentForHide">' + document.body.innerHTML + '</div>';
+    document.body.innerHTML += '<div id="contentForPrint">' + data.html + '</div>';
+
+    var hideElem = document.getElementById("origContentForHide");
+    hideElem.style.display = 'none';
+
+    render_js(data);
+}
+
+
+/**
+ * Оправя екрана след отпечатване
+ *
+ * @param object data - Обект с необходимите стойности
+ * data.timeOut - колко време да изчака преди това
+ */
+function render_afterPrintPage(data)
+{
+    if (!data.timeOut) {
+        data.timeOut = 1;
+    }
+
+    setTimeout(function() {
+        var bodyHTML = document.getElementById("origContentForHide").innerHTML;
+        document.body.innerHTML = bodyHTML;
+        document.body.style.cursor = '';
+
+        getEfae().waitPeriodicAjaxCall = 0;
+    }, data.timeOut);
+}
+
+
 var oldTitle;
 var oldIconPath;
 var isChanged = false;

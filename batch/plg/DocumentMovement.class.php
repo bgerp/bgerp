@@ -117,7 +117,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                         $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $bdRec->quantity;
                         foreach ($batchesArr as $batchValue){
                             $inStore = isset($quantitiesInStore[$batchValue]) ? $quantitiesInStore[$batchValue] : 0;
-                            if($quantity > $inStore){
+                            if(round($quantity, 5) > round($inStore, 5)){
                                 $productsWithNotExistingBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
                             }
                         }

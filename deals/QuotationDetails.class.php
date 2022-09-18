@@ -227,7 +227,11 @@ class deals_QuotationDetails extends doc_Detail
                 $form->rec->defQuantity = true;
                 $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
                 if (empty($rec->packQuantity)) {
-                    $form->setError('packQuantity', 'Не е въведено количество');
+                    if($rec->optional == 'yes'){
+                        $form->setDefault('packQuantity', 1);
+                    } else {
+                        $form->setError('packQuantity', 'Не е въведено количество');
+                    }
                 }
             }
 
@@ -434,6 +438,15 @@ class deals_QuotationDetails extends doc_Detail
             // Създава се специален индекс на записа productId|optional, така
             // резултатите са разделени по продукти и дали са опционални или не
             $pId = $pId . "|{$optional}|" . md5($rec->notes);
+
+            if($rec->optional == 'yes'){
+                if($rec->quantity == 1 || empty($rec->quantity)){
+                    unset($row->packQuantity);
+                    unset($row->packagingId);
+                    $row->packPrice .= " / " . tr(cat_UoM::getShortName($rec->packagingId));
+                    $row->amount .= " / " . tr(cat_UoM::getShortName($rec->packagingId));
+                }
+            }
 
             $newRows[$pId][] = $row;
         }

@@ -266,7 +266,9 @@ class cat_BomDetails extends doc_Detail
                     $form->setField('storeIn', 'input');
                     $form->setField('inputStores', 'input');
                     $form->setField('labelPackagingId', 'input');
-                    $packs = array('' => '') + cat_Products::getPacks($rec->resourceId);
+
+                    $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
+                    $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId);
                     $form->setOptions("labelPackagingId", $packs);
                 }
 
@@ -346,15 +348,16 @@ class cat_BomDetails extends doc_Detail
         $expr = preg_replace('/\$Начално\s*=\s*/iu', '1/$T*', $expr);
         $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
 
+        // Да не променяме логиката, не позволяваме на потребителя да въвежда тиражът ръчно
         if (is_array($params)) {
-            
-            // Да не променяме логиката, не позволяваме на потребителя да въвежда тиражът ръчно
             $expr = str_replace('1/$T*', '_TEMP_', $expr);
             $expr = str_replace('$T', '$Trr', $expr);
             $expr = str_replace('_TEMP_', '1/$T*', $expr);
             $expr = strtr($expr, $params);
         }
-        
+
+        $expr = preg_replace_callback("/(?<=[^a-z0-9а-я\_]|^)+(?'fncName'[a-z0-9\_]+)\(\s*[\'\"]?(?'paramA'.*?)[\'\"]?\s*\,\s*[\'\"]?(?'paramB'.*?)[\'\"]?\s*(\,\s*[\'\"]?(?'paramC'.*?)[\'\"]?\s*)*\)/ui", array(get_called_class(), 'replaceFunctionsInFormula'), $expr);
+
         if (str::prepareMathExpr($expr) === false) {
             $res = self::CALC_ERROR;
         } else {
@@ -367,8 +370,52 @@ class cat_BomDetails extends doc_Detail
         
         return $res;
     }
-    
-    
+
+
+    /**
+     * Callback ф-я за заместване на функции във формулата
+     */
+    private static function replaceFunctionsInFormula($match)
+    {
+        $res = $match[0];
+
+        $fncName = strtolower($match['fncName']);
+        if($fncName == 'select'){
+            if(!empty($match[0]) && !empty($match[1]) && !empty($match[2])){
+                if(cls::load($match['paramA'], true)){
+                    if(type_Int::isInt($match['paramB'])){
+                        try{
+                            $res = $match['paramA']::fetchField(trim($match['paramB']), $match['paramC']);
+                        } catch(core_exception_Expect $e){}
+                    }
+                }
+            }
+        } elseif($fncName == 'defifnot'){
+            $val = $match['paramA'];
+            if(!is_numeric($val)){
+                $val = $match['paramB'];
+                if(!is_numeric($val)) {
+                    $val = $match['paramC'];
+                }
+            }
+            if(is_numeric($val)) {
+                $res = $val;
+            }
+        }  elseif($fncName == 'getproductparam') {
+            if(is_numeric($match['paramA'])){
+                try{
+                    $paramVal = cat_Products::getParams($match['paramA'], $match['paramB']);
+                    if(is_numeric($paramVal)) {
+                        $res = $paramVal;
+                    }
+                } catch(core_exception_Expect $e){}
+            }
+        }
+
+        return $res;
+    }
+
+
     /**
      * Проверява за коректност израз и го форматира.
      */
