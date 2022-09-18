@@ -60,17 +60,17 @@ class core_RowToolbar extends core_BaseClass
     {
         $params = arr::combine($params, $moreParams);
         
-        if ($params['warning']) {
+        if (isset($params['warning'])) {
             $btn->warning = $params['warning'];
             unset($params['warning']);
         }
         
-        if ($params['error']) {
+        if (isset($params['error'])) {
             $btn->error = $params['error'];
             unset($params['error']);
         }
         
-        if ($params['order']) {
+        if (isset($params['order'])) {
             $btn->order = $params['order'];
             unset($params['order']);
         } elseif ($btn->error) {

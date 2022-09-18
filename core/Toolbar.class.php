@@ -89,7 +89,7 @@ class core_Toolbar extends core_BaseClass
         $params = arr::combine($params, $moreParams);
         
         // Ако е от частна мрежа сетваме грешката
-        if ($params['checkPrivateHost'] && !$params['error']) {
+        if (isset($params['checkPrivateHost']) && !isset($params['error'])) {
             if (core_App::checkCurrentHostIsPrivate()) {
                 if ($params['checkPrivateHost'] == 'warning') {
                     $params['warning'] = 'За правилна работа, bgERP трябва да е на публичен Интернет домейн';
@@ -100,22 +100,22 @@ class core_Toolbar extends core_BaseClass
             unset($params['checkPrivateHost']);
         }
         
-        if ($params['target']) {
+        if (isset($params['target'])) {
             $btn->newWindow = $params['target'];
             unset($params['target']);
         }
         
-        if ($params['warning']) {
+        if (isset($params['warning'])) {
             $btn->warning = $params['warning'];
             unset($params['warning']);
         }
         
-        if ($params['error']) {
+        if (isset($params['error'])) {
             $btn->error = $params['error'];
             unset($params['error']);
         }
         
-        if ($params['order']) {
+        if (isset($params['order'])) {
             $btn->order = $params['order'];
             unset($params['order']);
         } elseif ($btn->error) {
