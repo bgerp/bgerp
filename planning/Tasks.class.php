@@ -1500,7 +1500,9 @@ class planning_Tasks extends core_Master
             if ($productRec->canStore == 'yes') {
                 $packs = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId, $productId4Form, $rec->labelPackagingId);
                 $form->setOptions('labelPackagingId', array('' => '') + $packs);
-                $form->setOptions('indPackagingId', $packs);
+                $indPacks = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false)) + cat_products_Packagings::getOnlyPacks($productId4Form);
+
+                $form->setOptions('indPackagingId', $indPacks);
                 if(isset($productionData) && array_key_exists($productionData['normPackagingId'], $packs)){
                     $form->setDefault('indPackagingId', $productionData['normPackagingId']);
                 }
