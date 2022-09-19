@@ -466,25 +466,30 @@ abstract class embed_Manager extends core_Master
     
     
     /**
-     * Дали записа е с посочения драйвер
+     * Дали записа е с някой от посочените драйвери
      *
-     * @param mixed $id       - ид или запис
-     * @param mixed $driver - драйвер за който се проверява
+     * @param mixed $id             - ид или запис
+     * @param mixed $drivers        - един или няколко драйвера, които да има ембедъра
      * @param boolean $isInstanceOf - инстанция на драйвера, или да е конкретния драйвер
      * 
      * @return boolean      - дали записа е с търсения драйвер
      */
-    public static function haveDriver($id, $driver, $isInstanceOf = false)
+    public static function haveDriver($id, $drivers, $isInstanceOf = false)
     {
         $Driver = static::getDriver($id);
-        $check = cls::get($driver);
-        
-        if($isInstanceOf === true){
-            
-            return $Driver instanceof $check;
+        $drivers = arr::make($drivers);
+
+        foreach($drivers as $curDriver){
+            $check = cls::get($curDriver);
+
+            if($isInstanceOf === true) {
+                if($Driver instanceof $check) return true;
+            }
+
+            if($Driver->getClassId() == $check->getClassId()) return true;
         }
-        
-        return $Driver->getClassId() == $check->getClassId();
+
+        return false;
     }
     
     
@@ -510,5 +515,42 @@ abstract class embed_Manager extends core_Master
         parent::prepareSingle_($data);
         
         return $data;
+    }
+
+
+    /**
+     * Намира записите с посочените драйвери
+     *
+     * @param mixed $classes      - интерфейси, които да имплементира драйвера
+     * @param string $valueField  - кое поле ще се показва в опциите
+     * @param boolean $onlyActive - дали да са само активните записи или всички (само за моделите със състояние)
+     * @return array $res         - опции от намерените записи
+     */
+    public static function getOptionsByDriverClass($classes, $valueField = 'id', $onlyActive = false)
+    {
+        $res = $classesArrIds = array();
+
+        // Обръщане на класовете в ид-та
+        $me = cls::get(get_called_class());
+        $classes = arr::make($classes);
+        array_walk($classes, function($a) use (&$classesArrIds) {$classId = cls::get($a)->getClassId(); $classesArrIds[$classId] = $classId;});
+
+        // Подготвяне на заявката за извличане на опциите
+        $query = static::getQuery();
+        if($onlyActive){
+            if($me->getField('state', false)){
+                $query->where("#state != 'rejected' AND #state != 'closed'");
+            }
+        }
+        $query->in($me->driverClassField, $classesArrIds);
+        if($valueField == 'id'){
+            $query->show('id');
+        }
+
+        while($rec = $query->fetch()){
+            $res[$rec->id] = ($valueField == 'id') ? $rec->id : $me->getVerbal($rec, $valueField);
+        }
+
+        return $res;
     }
 }

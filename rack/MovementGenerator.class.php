@@ -293,6 +293,7 @@ class rack_MovementGenerator extends core_Manager
                 break;
             }
         }
+       
         if (!countR($moves)) {
             $zR = array_reverse($z, true);
             foreach ($fullPallets as $i => $pQ) {

@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджира динамичните параметри на продуктите
+ * Мениджър за продуктови параметри
  *
  *
  * @category  bgerp
@@ -74,7 +74,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,typeExt,order,driverClass=Тип,state,roles,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,createdOn,createdBy';
+    public $listFields = 'id,typeExt,order,driverClass=Вид,state,roles,valueType=Стойност,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,createdOn,createdBy';
     
     
     /**
@@ -89,6 +89,7 @@ class cat_Params extends bgerp_ProtoParam
     public function description()
     {
         parent::setFields($this);
+        $this->FLD('valueType', 'enum(optional=Опционална,mandatory=Задължителна,readonly=Само за четене)', 'caption=Задаване на стойности на параметъра->Избор,notNull,value=optional');
         $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Външни документи,notNull,value=yes,maxRadio=2');
         $this->FLD('showInTasks', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Пр. операции,notNull,value=no,maxRadio=2');
         $this->FLD('editInLabel', 'enum(yes=Да,no=Не)', 'caption=Показване на параметъра->Редакция в етикет,notNull,value=yes,maxRadio=2');
@@ -147,10 +148,14 @@ class cat_Params extends bgerp_ProtoParam
      */
     public static function getNormalizedName($rec, $upperCase = false, $lg = 'bg')
     {
-        $rec = cat_Params::fetchRec($rec, 'name,suffix');
-        
+        $rec = cat_Params::fetchRec($rec, 'name,suffix,group');
+
         core_Lg::push($lg);
         $name = tr($rec->name) . ((!empty($rec->suffix)) ? ' (' . tr($rec->suffix) . ')': '');
+        if(!empty($rec->group)) {
+            $group = tr($rec->group);
+            $name = "{$group} {$name}";
+        }
         $name = preg_replace('/\s+/', '_', $name);
         $name = str_replace('/', '_', $name);
         $name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
@@ -166,8 +171,7 @@ class cat_Params extends bgerp_ProtoParam
      *
      * @param array $params    - масив с параметри
      * @param bool  $upperCase - дали имената да са в долен или горен регистър
-     *
-     * @return array $arr        - масив
+     * @return array $arr      - масив
      */
     public static function getParamNameArr($params, $upperCase = false)
     {
@@ -194,7 +198,6 @@ class cat_Params extends bgerp_ProtoParam
      * Рендира блок с параметри за артикули
      *
      * @param array $paramArr
-     *
      * @return core_ET $tpl
      */
     public static function renderParamBlock($paramArr)
@@ -304,5 +307,85 @@ class cat_Params extends bgerp_ProtoParam
         }
         
         return $res;
+    }
+
+
+    /**
+     * Наличните опции за избор на параметри за производствените операции
+     *
+     * @param mixed $exParamIds - ид-та на съществуващите записи
+     * @return array $options
+     */
+    public static function getTaskParamOptions($exParamIds = null)
+    {
+        $options = array();
+        $taskParamIds = cat_Params::getTaskParamIds();
+        $exParamIds = is_array($exParamIds) ? $exParamIds : keylist::toArray($exParamIds);
+        $allowedParamIds = $taskParamIds + $exParamIds;
+        foreach ($allowedParamIds as $paramId){
+            $options[$paramId] = cat_Params::getVerbal($paramId, 'typeExt');
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Връща масив от подадените параметри обърнати в удобен вид за писане във формули
+     *
+     * @param array $params      - подадените параметри
+     * @param array $idToNameArr - масив с мапване на параметрите като ид-та към тези с имена
+     * @return array $res        - обърнати във вид удобен за използване във формули
+     */
+    public static function getFormulaParamMap($params, &$idToNameArr = array())
+    {
+        $strings = $ids = array();
+        $params = keylist::isKeylist($params) ? keylist::toArray($params) : $params;
+
+        if (is_array($params)) {
+            foreach ($params as $paramId => $value) {
+                if(cat_Params::haveDriver($paramId, 'cond_type_YesOrNo')){
+                    $value = ($value == 'yes') ? 1 : 0;
+                }
+                if (!is_numeric($value)) continue;
+                $normalizedName = cat_Params::getNormalizedName($paramId);
+
+                $key = '$' . $normalizedName;
+                $strings[$key] = $value;
+
+                $key1 = "#{$paramId}#";
+                $ids[$key1] = $value;
+                $idToNameArr[$key1] = $key;
+            }
+        }
+
+        $res = $strings + $ids;
+
+        return $res;
+    }
+
+
+    /**
+     * Масив с параметри върнати от `getFormulaParamMap($params)` обърнати в
+     * съджешчъни за формула
+     *
+     * @param array $map
+     * @return array $context
+     */
+    public static function formulaMapToSuggestions($map)
+    {
+        $context = array();
+        $scopeKeys = array_keys($map);
+        foreach ($scopeKeys as $v){
+            $k = $v;
+            if(strpos($k, "#") === 0){
+                $paramId = str_replace('#', '', $k);
+                $paramName = cat_Params::getNormalizedName($paramId);
+                $v = "{$v} ({$paramName})";
+            }
+            $context[$k] = (object) array('val' => $k, 'search' => $v, 'template' => $v);
+        }
+
+        return $context;
     }
 }

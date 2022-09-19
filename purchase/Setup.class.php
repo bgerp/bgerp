@@ -155,7 +155,7 @@ class purchase_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'PURCHASE_OVERDUE_CHECK_DELAY' => array('time', 'caption=Толеранс за просрочване на покупката->Време'),
-        'PURCHASE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на продажби в BGN / EUR->Дни'),
+        'PURCHASE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на покупки в BGN / EUR->Дни'),
         'PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
             'int(Min=0)',
             'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'

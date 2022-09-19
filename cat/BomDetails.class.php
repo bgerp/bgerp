@@ -150,7 +150,7 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
         $this->FLD('position', 'int(Min=0)', 'caption=Позиция,tdClass=leftCol');
-        $this->FLD('propQuantity', 'text(rows=2)', 'caption=Формула,tdClass=accCell,mandatory');
+        $this->FLD('propQuantity', 'text(rows=2, maxOptionsShowCount=20)', 'caption=Формула,tdClass=accCell,mandatory');
         $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
@@ -162,7 +162,7 @@ class cat_BomDetails extends doc_Detail
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate|labelType');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelType', 'enum(scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
@@ -345,16 +345,17 @@ class cat_BomDetails extends doc_Detail
     {
         $expr = preg_replace('/\$Начално\s*=\s*/iu', '1/$T*', $expr);
         $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
-        
+
+        // Да не променяме логиката, не позволяваме на потребителя да въвежда тиражът ръчно
         if (is_array($params)) {
-            
-            // Да не променяме логиката, не позволяваме на потребителя да въвежда тиражът ръчно
             $expr = str_replace('1/$T*', '_TEMP_', $expr);
             $expr = str_replace('$T', '$Trr', $expr);
             $expr = str_replace('_TEMP_', '1/$T*', $expr);
             $expr = strtr($expr, $params);
         }
-        
+
+        $expr = preg_replace_callback("/(?<=[^a-z0-9а-я\_]|^)+(?'fncName'[a-z0-9\_]+)\(\s*[\'\"]?(?'paramA'.*?)[\'\"]?\s*\,\s*[\'\"]?(?'paramB'.*?)[\'\"]?\s*(\,\s*[\'\"]?(?'paramC'.*?)[\'\"]?\s*)*\)/ui", array(get_called_class(), 'replaceFunctionsInFormula'), $expr);
+
         if (str::prepareMathExpr($expr) === false) {
             $res = self::CALC_ERROR;
         } else {
@@ -367,8 +368,52 @@ class cat_BomDetails extends doc_Detail
         
         return $res;
     }
-    
-    
+
+
+    /**
+     * Callback ф-я за заместване на функции във формулата
+     */
+    private static function replaceFunctionsInFormula($match)
+    {
+        $res = $match[0];
+
+        $fncName = strtolower($match['fncName']);
+        if($fncName == 'select'){
+            if(!empty($match[0]) && !empty($match[1]) && !empty($match[2])){
+                if(cls::load($match['paramA'], true)){
+                    if(type_Int::isInt($match['paramB'])){
+                        try{
+                            $res = $match['paramA']::fetchField(trim($match['paramB']), $match['paramC']);
+                        } catch(core_exception_Expect $e){}
+                    }
+                }
+            }
+        } elseif($fncName == 'defifnot'){
+            $val = $match['paramA'];
+            if(!is_numeric($val)){
+                $val = $match['paramB'];
+                if(!is_numeric($val)) {
+                    $val = $match['paramC'];
+                }
+            }
+            if(is_numeric($val)) {
+                $res = $val;
+            }
+        }  elseif($fncName == 'getproductparam') {
+            if(is_numeric($match['paramA'])){
+                try{
+                    $paramVal = cat_Products::getParams($match['paramA'], $match['paramB']);
+                    if(is_numeric($paramVal)) {
+                        $res = $paramVal;
+                    }
+                } catch(core_exception_Expect $e){}
+            }
+        }
+
+        return $res;
+    }
+
+
     /**
      * Проверява за коректност израз и го форматира.
      */
@@ -465,7 +510,7 @@ class cat_BomDetails extends doc_Detail
         // Ако има избран ресурс, добавяме му мярката до полетата за количества
         if (isset($rec->resourceId)) {
             $params = cat_Boms::getProductParams($masterProductId);
-            
+
             $path = $mvc->getProductPath($rec);
             foreach ($path as $pId) {
                 $newParams = cat_Boms::getProductParams($pId);
@@ -478,9 +523,7 @@ class cat_BomDetails extends doc_Detail
             $scope['$Начално='] = '$Начално=';
             
             $rec->params = $scope;
-
-            $context = array_keys($scope);
-            $context = array_combine($context, $context);
+            $context = cat_Params::formulaMapToSuggestions($scope);
             unset($context['$T']);
             $form->setSuggestions('propQuantity', $context);
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
@@ -1133,7 +1176,11 @@ class cat_BomDetails extends doc_Detail
     public function cloneDetails($fromBomId, $toBomId)
     {
         $fromBomRec = cat_Boms::fetchRec($fromBomId);
-        cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, null);
+        if($fromBomRec->state == 'template'){
+            $this->cloneDetailsFromBomId($fromBomId, $toBomId);
+        } else {
+            cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, null);
+        }
     }
     
     
@@ -1214,44 +1261,53 @@ class cat_BomDetails extends doc_Detail
         } else {
             $activeBom = cat_Products::getLastActiveBom($productId, 'sales');
         }
-        
+
         // Ако етапа има рецепта
         if ($activeBom) {
             if ($onlyIfQuantitiesAreEqual === true) {
-                if ($activeBom->quantity != $toBomRec->quantity) {
-                    
-                    return;
-                }
+                if ($activeBom->quantity != $toBomRec->quantity) return;
             }
-            
-            $outArr = static::getOrderedBomDetails($activeBom->id);
-            $cu = core_Users::getCurrent();
-            
-            // Копираме всеки запис
-            $map = array();
-            if (is_array($outArr)) {
-                foreach ($outArr as $dRec) {
-                    $oldId = $dRec->id;
-                    
-                    unset($dRec->id);
-                    $dRec->modidiedOn = dt::now();
-                    $dRec->modifiedBy = $cu;
-                    $dRec->bomId = $toBomId;
-                    if (empty($dRec->parentId)) {
-                        $dRec->parentId = $componentId;
-                    } else {
-                        $dRec->parentId = $map[$dRec->parentId];
-                    }
-                    
-                    // Добавяме записа
-                    $me->save_($dRec);
-                    $map[$oldId] = $dRec->id;
+
+            $me->cloneDetailsFromBomId($activeBom, $toBomRec, $componentId);
+        }
+    }
+
+
+    /**
+     * Помощна функция
+     */
+    private function cloneDetailsFromBomId($fromRec, $toRec, $componentId = null)
+    {
+        $fromRec = cat_Boms::fetchRec($fromRec);
+        $toRec = cat_Boms::fetchRec($toRec);
+
+        $outArr = static::getOrderedBomDetails($fromRec->id);
+        $cu = core_Users::getCurrent();
+
+        // Копираме всеки запис
+        $map = array();
+        if (is_array($outArr)) {
+            foreach ($outArr as $dRec) {
+                $oldId = $dRec->id;
+
+                unset($dRec->id);
+                $dRec->modidiedOn = dt::now();
+                $dRec->modifiedBy = $cu;
+                $dRec->bomId = $toRec->id;
+                if (empty($dRec->parentId)) {
+                    $dRec->parentId = $componentId;
+                } else {
+                    $dRec->parentId = $map[$dRec->parentId];
                 }
+
+                // Добавяме записа
+                $this->save_($dRec);
+                $map[$oldId] = $dRec->id;
             }
         }
     }
-    
-    
+
+
     /**
      * Подрежда записите от детайла на рецептата по етапи
      *

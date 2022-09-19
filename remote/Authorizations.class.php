@@ -123,7 +123,7 @@ class remote_Authorizations extends embed_Manager
      */
     public static function on_AfterPrepareEditform($mvc, $res, $data)
     {
-        $form = $data->form;
+        $form = $data->form; // bp($form);
         $rec = $form->rec;
         
         $form->setDefault('userId', core_Users::getCurrent());

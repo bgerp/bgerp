@@ -221,29 +221,8 @@ class rack_Products extends store_Products
         } elseif (preg_match("/^[0-9\,]+$/", $inIds)) {
             $pQuery->where("#id IN (${onlyIds})");
         }
-        
-        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
-       
-        if ($q) {
-            if ($q[0] == '"') {
-                $strict = true;
-            }
-            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
-            $q = mb_strtolower($q);
-            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
-            
-            $pBegin = type_Key2::getRegexPatterForSQLBegin();
-            foreach ($qArr as $w) {
-                $pQuery->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
-            }
-        }
-        
-        if ($limit) {
-            $pQuery->limit($limit);
-        }
-        
-        $pQuery->show('id,name,code,isPublic,nameEn');
-        
+
+        cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }

@@ -22,8 +22,16 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $listItemsPerPage = 30;
-    
-    
+
+
+    /**
+     * Максимален допустим брой записи на страница
+     *
+     * @var int
+     */
+    protected $maxListItemsPerPage = 100;
+
+
     /**
      * Полета от таблицата за скриване, ако са празни
      *
@@ -763,7 +771,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     protected static function on_AfterAddFields(frame2_driver_Proto $Driver, embed_Manager $Embedder, core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('listItemsPerPage', 'int(min=10,Max=100)', "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={$Driver->listItemsPerPage}");
+        $fieldset->FLD('listItemsPerPage', "int(min=10,Max={$Driver->maxListItemsPerPage})", "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={$Driver->listItemsPerPage}");
     }
     
     

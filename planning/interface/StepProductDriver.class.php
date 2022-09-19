@@ -199,6 +199,14 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         if (!empty($info)) {
             $data->row->info = core_Type::getByName('richtext')->toVerbal($info);
         }
+
+        $data->rec->photo =  cat_Products::getParams($data->rec->id, 'preview');
+        if ($data->rec->photo) {
+            $size = array(280, 150);
+            $Fancybox = cls::get('fancybox_Fancybox');
+            $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
+        }
+
         $tpl->placeObject($data->row);
 
         if ($data->noChange !== true || countR($data->params)) {

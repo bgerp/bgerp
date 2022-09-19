@@ -81,7 +81,7 @@ class cat_Boms extends core_Master
     /**
      * Кои полета да не бъдат презаписвани от шаблона
      */
-    public $fieldsNotToCopyFromTemplate = 'type';
+    public $fieldsNotToCopyFromTemplate = 'type,productId';
 
 
     /**
@@ -1133,27 +1133,14 @@ class cat_Boms extends core_Master
      * Връща допустимите параметри за формулите
      *
      * @param int $productId - запис
-     * @return array - допустимите параметри с техните стойностти
+     * @return array $res    - допустимите параметри с техните стойностти
      */
     public static function getProductParams($productId)
     {
-        $res = array();
         $params = cat_Products::getParams($productId);
-        
-        if (is_array($params)) {
-            foreach ($params as $paramId => $value) {
-                if (!is_numeric($value)) {
-                    continue;
-                }
-                $key = '$' . cat_Params::getNormalizedName($paramId);
-                $res[$key] = $value;
-            }
-        }
-        
-        if (countR($res)) {
-            
-            return array($productId => $res);
-        }
+        $res = cat_Params::getFormulaParamMap($params);
+
+        if (countR($res)) return array($productId => $res);
         
         return $res;
     }

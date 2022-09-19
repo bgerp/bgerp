@@ -179,11 +179,56 @@ class planning_Centers extends core_Master
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
         $this->FLD('mandatoryOperatorsInTasks', 'enum(auto=Автоматично,yes=Задължително,no=Опционално)', 'caption=Прогрес в ПО->Оператор(и), notNull,value=auto');
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор, notNull,value=auto');
+        $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
+
+        $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Опаковки');
+        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър');
 
         $this->setDbUnique('name');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+        $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams);
+        $form->setSuggestions("planningParams", $paramSuggestions);
+
+        $options = cat_UoM::getPackagingOptions();
+        $form->setSuggestions('useTareFromPackagings', $options);
+
+        // Достъпните за избор параметри
+        $paramOptions = cat_Params::getOptionsByDriverClass(array('cond_type_Double', 'cond_type_Int', 'cond_type_Formula'), 'typeExt', true);
+        if(isset($rec->useTareFromParamId)){
+            if(!array_key_exists($rec->useTareFromParamId, $paramOptions)){
+                $paramOptions[$rec->useTareFromParamId] = cat_Params::getVerbal($rec->useTareFromParamId, 'typeExt');
+            }
+        }
+        $form->setOptions('useTareFromParamId', array('' => '') + $paramOptions);
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if($form->isSubmitted()){
+            if(!empty($rec->useTareFromParamId) && !empty($rec->useTareFromPackagings)){
+                $form->setError('useTareFromParamId,useTareFromPackagings', 'Могат да бъдат избрани или само Опаковки, или само Параметър!');
+            }
+        }
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -213,6 +258,11 @@ class planning_Centers extends core_Master
         if($rec->showPreviousJobField == 'auto'){
             $row->showPreviousJobField = $mvc->getFieldType('showPreviousJobField')->toVerbal(planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK'));
             $row->showPreviousJobField = ht::createHint("<span style='color:blue'>{$row->showPreviousJobField}</span>", 'По подразбиране', 'notice', false);
+        }
+
+        if($rec->showSerialWarningOnDuplication == 'auto'){
+            $row->showSerialWarningOnDuplication = $mvc->getFieldType('showSerialWarningOnDuplication')->toVerbal(planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS'));
+            $row->showSerialWarningOnDuplication = ht::createHint("<span style='color:blue'>{$row->showSerialWarningOnDuplication}</span>", 'По подразбиране', 'notice', false);
         }
     }
     
@@ -377,65 +427,6 @@ class planning_Centers extends core_Master
                 $num = planning_Setup::get('UNDEFINED_CENTER_DISPLAY_NAME');
             }
         }
-    }
-
-
-    /**
-     * Производствени етапи в папката на центъра на дейност
-     *
-     * @param int $folderId   - ид на папка
-     * @param int|null $exId  - ид на предишно избран артикул
-     * @param bool $verbal    - само ид-та или имена на артикулите
-     * @return array $options - върнатите опции
-     */
-    public static function getPlanningStepOptionsByFolderId($folderId, $exId = null, $verbal = false)
-    {
-        $Cover = doc_Folders::getCover($folderId);
-        $finalSteps = $nonFinalSteps = array();
-        $sQuery = planning_Steps::getQuery();
-
-        // Извличат се ПЕ към този център на дейност
-        $productClassId = cat_Products::getClassId();
-        $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
-        while($sRec = $sQuery->fetch()){
-
-            // Разделят се дали са финални или междинни
-            if($Extended = planning_Steps::getExtended($sRec)){
-                if($sRec->isFinal == 'yes'){
-                    $finalSteps[$Extended->that] = ($verbal) ? $Extended->getTitleById(false) : $Extended->that;
-                } else {
-                    $nonFinalSteps[$Extended->that] = ($verbal) ? $Extended->getTitleById(false) : $Extended->that;
-                }
-            }
-        }
-
-        // Ако има съществуващо ид и то не е сред наличните добавям го в правилния масив
-        if(isset($exId)){
-            if(!array_key_exists($exId, $finalSteps) || !array_key_exists($exId, $nonFinalSteps)){
-                $isExIdFinal = planning_Steps::fetchField("#classId = {$productClassId} AND #objectId = {$exId}", 'isFinal');
-                $exIdVal = ($verbal) ? cat_Products::getTitleById($exId) : $exId;
-                if($isExIdFinal == 'no'){
-                    $nonFinalSteps[$exId] = $exIdVal;
-                } else {
-                    $finalSteps[$exId] = $exIdVal;
-                }
-            }
-        }
-
-        // Ако се показват вербални опции - слага се група на опциите и се обръщат имената на артикулите
-        if($verbal){
-            $options = array();
-	    if(countR($nonFinalSteps)){
-                $options += array('nfs' => (object) array('group' => true, 'title' => tr('Междинни етапи'))) + $nonFinalSteps;
-            }
-            if(countR($finalSteps)){
-                $options += array('fs' => (object) array('group' => true, 'title' => tr('Финални етапи'))) + $finalSteps;
-            }            
-        } else {
-            $options = $nonFinalSteps + $finalSteps;
-        }
-
-        return $options;
     }
     
     

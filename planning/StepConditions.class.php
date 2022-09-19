@@ -82,27 +82,13 @@ class planning_StepConditions extends core_Detail
      */
     public function description()
     {
-        $this->FLD('stepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'input=hidden,silent,mandatory,caption=Производствен етап');
-        $this->FLD('prevStepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'mandatory,caption=Предходен етап,tdClass=leftCol');
+        $this->FLD('stepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'input=hidden,silent,mandatory,caption=Производствен етап');
+        $this->FLD('prevStepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,caption=Предходен етап,tdClass=leftCol,class=w100');
         $this->FLD('delay', 'time', 'caption=Изчакване');
         $this->FLD('intersect', 'enum(yes=Да,no=Не)', 'caption=Застъпване,notNull,default=yes');
 
         $this->setDbIndex('prevStepId');
         $this->setDbUnique('stepId,prevStepId');
-    }
-
-
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = &$data->form;
-
-        $form->setFieldTypeParams('prevStepId', array('driverId' => planning_interface_StepProductDriver::getClassId()));
     }
 
 
@@ -315,17 +301,21 @@ class planning_StepConditions extends core_Detail
         $taskQuery->where("#state != 'rejected'");
         while($tRec = $taskQuery->fetch()){
             $timeStart = !empty($rec->timeStart) ? $rec->timeStart : "9999-99-{$tRec->id}";
-            $tasks[$tRec->originId][$tRec->productId] = array('id' => $tRec->id, 'progress' => $tRec->progress, 'timeStart' => $timeStart);
+            $tasks[$tRec->originId][$tRec->productId][$tRec->id] = array('id' => $tRec->id, 'progress' => $tRec->progress, 'timeStart' => $timeStart);
         }
 
+        // За всяка от посочените ОП се прави масив с предходните им ПО от същото задание
         foreach ($arr as $taskRec){
             $dependantArr[$taskRec->id] = array();
             if(array_key_exists($taskRec->productId, $conditions)){
                 foreach ($conditions[$taskRec->productId] as $stepId){
-                    if(isset($tasks[$taskRec->originId][$stepId])){
-                        $dependantArr[$taskRec->id][] = $tasks[$taskRec->originId][$stepId];
+                    if(array_key_exists($stepId, $tasks[$taskRec->originId])){
+                        foreach ($tasks[$taskRec->originId][$stepId] as $condTaskArr){
+                            $dependantArr[$taskRec->id][$condTaskArr['id']] = $condTaskArr;
+                        }
                     }
                 }
+
                 arr::sortObjects($dependantArr[$taskRec->id], 'timeStart', 'ASC');
             }
         }
@@ -362,7 +352,7 @@ class planning_StepConditions extends core_Detail
         $percent = $percent * 100;
         $percent = ($percent > 100) ? 100 : $percent;
         $style = "border:0.1px solid #eee;display:inline-block;width:{$width}px;height:{$height}px;background:linear-gradient(90deg, green 0%, green {$percent}%, red {$percent}%, red 100%)";
-        $title = "#" . planning_Tasks::getHandle($taskId);
+        $title = planning_Tasks::getTitleById($taskId) . " [" .planning_Tasks::getVerbal($taskId, 'state') . "]";
         $div = "<div style='{$style}' title='{$title}'></div>";
         if(planning_Tasks::haveRightFor('single', $taskId)){
             $div = ht::createLink($div, planning_Tasks::getSingleUrlArray($taskId));

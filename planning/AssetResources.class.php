@@ -1051,7 +1051,7 @@ class planning_AssetResources extends core_Master
             }
 
             $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
-            $simultaneity = isset($taskRec->simultaneity) ? : $assetRec->simultaneity;
+            $simultaneity = isset($taskRec->simultaneity) ? $taskRec->simultaneity : $assetRec->simultaneity;
             $duration = round($indTime / $simultaneity);
         }
 
@@ -1120,7 +1120,7 @@ class planning_AssetResources extends core_Master
         // Всички оборудвания, които са закачени към ПО
         $tQuery = planning_Tasks::getQuery();
         $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
-        $tQuery->where('#assetId IS NOT NULl');
+        $tQuery->where('#assetId IS NOT NULL');
         $tQuery->show('assetId,id,progress,orderByAssetId,indTime,indPackagingId,plannedQuantity,state,timeStart,timeDuration,simultaneity');
         $assetArr = array();
         while($tRec = $tQuery->fetch()){

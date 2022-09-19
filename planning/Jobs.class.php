@@ -368,6 +368,8 @@ class planning_Jobs extends core_Master
             } else {
                 $form->setOptions('productId', array('' => '') + $products);
             }
+        } else {
+            $form->setFieldTypeParams('productId', array('notDriverId' => planning_interface_StepProductDriver::getClassId()));
         }
 
         // Ако има предишни задания зареждат се за избор
@@ -1382,13 +1384,13 @@ class planning_Jobs extends core_Master
                     $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId, 'ret_url' => true);
                 }
 
-                $productionSteps = planning_Centers::getPlanningStepOptionsByFolderId($depFolderId);
-                if(!countR($productionSteps)) continue;
+                $productionStepCount = planning_Steps::getCountByCenterFolderId($depFolderId);
+                if(!$productionStepCount) continue;
 
                 $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, "title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png");
                 $dName = doc_Folders::recToVerbal($depFolderId)->title;
                 $trClass = ($readyOptions) ? 'newTaskBtn' : null;
-                $options[] = (object)array('DEFAULT_TASK_CAPTION' => $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1, 'DEFAULT_TASK_TR_CLASS' => $trClass);
+                $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('в') . " " . $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1, 'DEFAULT_TASK_TR_CLASS' => $trClass);
             }
         } else {
             $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Няма налични центрове'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => null, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);

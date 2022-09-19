@@ -352,9 +352,9 @@ class cat_Products extends embed_Manager
     {
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
-        $this->FLD('code', 'varchar(32, ci)', 'caption=Код,remember=info,width=15em,focus');
-        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field,remember');
-        $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
+        $this->FLD('code', 'varchar(32, ci, autocomplete=off)', 'caption=Код,remember=info,width=15em,focus');
+        $this->FLD('name', 'varchar(autocomplete=off)', 'caption=Наименование,remember=info,width=100%, translate=field,remember');
+        $this->FLD('nameEn', 'varchar(autocomplete=off)', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes, passage)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,silent,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
@@ -517,6 +517,7 @@ class cat_Products extends embed_Manager
                     // Ако има избрани мерки, оставяме от всички само тези които са посочени в корицата +
                     // вече избраната мярка ако има + дефолтната за драйвера
                     $categoryMeasures = keylist::toArray($CategoryRec->measures);
+
                     if (countR($categoryMeasures)) {
                         if (isset($rec->measureId)) {
                             $categoryMeasures[$rec->measureId] = $rec->measureId;
@@ -527,7 +528,7 @@ class cat_Products extends embed_Manager
                 }
             }
         }
-        
+
         // Ако артикула е създаден от източник
         if (isset($rec->originId) && $form->cmd != 'refresh') {
             $document = doc_Containers::getDocument($rec->originId);
@@ -551,9 +552,15 @@ class cat_Products extends embed_Manager
             $form->setDefault('measureId', $defaultUomId);
             $form->setField('measureId', 'input=hidden');
         } else {
-            if ($defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')) {
-                $measureOptions[$defMeasure] = cat_UoM::getTitleById($defMeasure, false);
-                $form->setDefault('measureId', $defMeasure);
+            if ($defMeasureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')) {
+                if(array_key_exists($defMeasureId, $measureOptions)){
+                    $form->setDefault('measureId', $defMeasureId);
+                } elseif(countR($measureOptions)) {
+                    $form->setDefault('measureId', key($measureOptions));
+                } else {
+                    $measureOptions[$defMeasureId] = cat_UoM::getTitleById($defMeasureId, false);
+                    $form->setDefault('measureId', $defMeasureId);
+                }
             }
             
             // Задаваме позволените мерки като опция
@@ -1572,6 +1579,11 @@ class cat_Products extends embed_Manager
             // Филтър по драйвер, ако има
             if (isset($params['driverId'])) {
                 $query->where("#innerClass = {$params['driverId']}");
+            }
+
+            if (isset($params['notDriverId'])) {
+                core_Statuses::newStatus($params['notDriverId']);
+                $query->where("#innerClass != {$params['notDriverId']}");
             }
 
             // Ако има ограничение по ид-та
@@ -4323,5 +4335,32 @@ class cat_Products extends embed_Manager
                 $searchKeywords .= ' ' . plg_Search::normalizeText($packRec->eanCode);
             }
         }
+    }
+
+
+    /**
+     * Помощна ф-я за добавяне на заявка за търсене към опциите използвани в key
+     */
+    public static function addSearchQueryToKey2SelectArr(&$query, $q, $limit)
+    {
+        $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
+
+        if ($q) {
+            $strict = ($q[0] == '"');
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = mb_strtolower($q);
+            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
+
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $query->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        $query->show('id,name,code,isPublic,nameEn');
     }
 }

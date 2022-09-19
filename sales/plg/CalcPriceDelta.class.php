@@ -40,7 +40,9 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $clone = clone $rec;
         $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
         $clone->folderId = (isset($clone->folderId)) ? $clone->folderId : $mvc->fetchField($clone->id, 'folderId');
-        
+        $clone->activatedOn = (isset($clone->activatedOn)) ? $clone->activatedOn : $mvc->fetchField($clone->id, 'activatedOn');
+        $clone->activatedOn = dt::addSecs(1, $clone->activatedOn);
+
         $save = $mvc->getDeltaRecs($clone);
         if(is_array($save)){
             foreach ($save as &$dRec) {
@@ -53,6 +55,9 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                     $dRec->id = $id;
                 }
             }
+
+            $productArr = arr::extractValuesFromArray($save, 'productId');
+            sales_LastSaleByContragents::updateDates($productArr,  $clone->folderId);
         }
         
         // Запис на делтите
@@ -131,11 +136,12 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 }
             }
         }
-        
-        $valior = $rec->{$mvc->valiorFld};
+
+        // да записвам вальора а да подавам активирането
+        $valior = $mvc->getValiorValue($rec);
         while ($dRec = $query->fetch()) {
             if ($mvc instanceof sales_Sales) {
-                
+
                 // Ако документа е продажба, изчислява се каква му е себестойноста
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId);
             } else {
@@ -192,7 +198,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             }
             
             // Изчисляване на цената по политика
-            $r = (object) array('valior' => $valior,
+            $r = (object) array('valior' => dt::verbal2mysql($valior),
                 'detailClassId' => $detailClassId,
                 'detailRecId' => $dRec->id,
                 'quantity' => $dRec->{$mvc->detailQuantityFld},
@@ -262,5 +268,35 @@ class sales_plg_CalcPriceDelta extends core_Plugin
     	    $deltaRec->state = $rec->state;
     	    cls::get('sales_PrimeCostByDocument')->save($deltaRec, 'state');
     	}
+    }
+
+
+    /**
+     * При оттегляне на документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        // При оттегляне на контиран/приключен документ се обновява кешираната дата
+        $rec = $mvc->fetchRec($id);
+        if (in_array($rec->brState, array('active', 'closed'))) {
+            sales_LastSaleByContragents::updateByMvc($mvc, $rec);
+        }
+    }
+
+
+    /**
+     * Реакция в счетоводния журнал при възстановяване на оттеглен счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+        // При възстановяване на контиран/приключен документ се обновява кешираната дата
+        $rec = $mvc->fetchRec($id);
+        if(in_array($rec->state, array('active', 'closed'))){
+            sales_LastSaleByContragents::updateByMvc($mvc, $rec);
+        }
     }
 }
