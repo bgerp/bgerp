@@ -1004,9 +1004,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                         // Показване на хинт ако има разминаване
                         $iconHint = ($deviation <= $deviationNotice) ? 'notice' : ((isset($deviationCritical) && $deviation >= $deviationCritical) ? 'img/16/red-warning.png' : ((isset($deviationWarning) ? 'warning' : null)));
                         if(isset($iconHint)){
-                            $hintMsg = ($deviation <= $deviationNotice) ? '' : ((isset($deviationCritical) && $deviation >= $deviationCritical) ? 'критично' : ((isset($deviationWarning) ? 'значително' : null)));
+                            $hintMsg = ($deviation <= $deviationNotice) ? '' : ((isset($deviationCritical) && $deviation >= $deviationCritical) ? 'критично ' : ((isset($deviationWarning) ? 'значително ' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($expectedNetWeight);
-                            $msg = tr("Има {$hintMsg} разминаване спрямо прогнозното нето от|*: {$expectedNetWeightVerbal}");
+                            $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето от|*: {$expectedNetWeightVerbal}");
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
                         }
                     }
