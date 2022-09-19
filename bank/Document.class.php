@@ -529,15 +529,23 @@ abstract class bank_Document extends deals_PaymentDocument
                 $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
                 
                 if ($rec->dealCurrencyId == $baseCurrencyId) {
-                    $rate = $rec->amountDeal / $rec->amount;
+                    if(!empty($rec->amount)){
+                        $rate = $rec->amountDeal / $rec->amount;
+                    }
                     $rateFromCurrencyId = $rec->dealCurrencyId;
                     $rateToCurrencyId = $rec->currencyId;
                 } else {
-                    $rate = $rec->amount / $rec->amountDeal;
+                    if(!empty($rec->amount)){
+                        $rate = $rec->amount / $rec->amountDeal;
+                    }
                     $rateFromCurrencyId = $rec->currencyId;
                     $rateToCurrencyId = $rec->dealCurrencyId;
                 }
-                $row->rate = cls::get('type_Double', array('params' => array('decimals' => 5)))->toVerbal($rate);
+                if(!empty($rate)){
+                    $row->rate = cls::get('type_Double', array('params' => array('decimals' => 5)))->toVerbal($rate);
+                } else {
+                    $row->rate = ht::createHint('', 'Има проблем при изчислението на курса', 'error');
+                }
                 $row->rateFromCurrencyId = currency_Currencies::getCodeById($rateFromCurrencyId);
                 $row->rateToCurrencyId = currency_Currencies::getCodeById($rateToCurrencyId);
 
