@@ -1002,9 +1002,17 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $deviation = abs(round(($expectedNetWeight - $rec->netWeight) / (($expectedNetWeight + $rec->netWeight) / 2), 2));
 
                         // Показване на хинт ако има разминаване
-                        $iconHint = ($deviation <= $deviationNotice) ? 'notice' : ((!empty($deviationCritical) && $deviation >= $deviationCritical) ? 'img/16/red-warning.png' : ((!empty($deviationWarning) ? 'warning' : null)));
+                        $iconHint = null;
+                        if(!empty($deviationCritical) && $deviation >= $deviationCritical){
+                            $iconHint = 'img/16/red-warning.png';
+                        } elseif($deviation >= $deviationWarning){
+                            $iconHint = 'warning';
+                        } elseif(!empty($deviationNotice) && $deviation >= $deviationNotice){
+                            $iconHint = 'notice';
+                        }
+
                         if(isset($iconHint)){
-                            $hintMsg = ($deviation <= $deviationNotice) ? '' : ((isset($deviationCritical) && $deviation >= $deviationCritical) ? 'критично ' : ((isset($deviationWarning) ? 'значително ' : null)));
+                            $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично ' : ($iconHint == 'warning' ? 'значително ' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($expectedNetWeight);
                             $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето от|*: {$expectedNetWeightVerbal}");
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
@@ -1555,8 +1563,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(!$form->gotErrors()){
                 $rec->netWeight = $form->rec->netWeight;
                 $rec->weight = $form->rec->weight;
-                $logMsg = "Промяна на тегло";
-                $statusMsg = 'Теглото е променено успешно|*!';
+                $logMsg = "Промяна на бруто";
+                $statusMsg = 'Брутото е променено*!';
                 $this->save_($rec, 'weight, netWeight');
                 planning_Tasks::logWrite($logMsg, $rec->taskId);
                 followRetUrl(null, $statusMsg);
