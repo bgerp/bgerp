@@ -455,7 +455,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $mandatoryOperatorsInTasks = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'mandatoryOperatorsInTasks');
                     $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR') : $mandatoryOperatorsInTasks;
                     if($mandatoryOperatorsInTasks == 'yes'){
-                       $form->setError('employees,otherEmployees', 'Избирането на оператор е задължително');
+                       $form->setError('employees,otherEmployees', 'Операторът е задължителен');
                     }
                 }
             }

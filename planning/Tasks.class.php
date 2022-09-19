@@ -667,7 +667,7 @@ class planning_Tasks extends core_Master
             }
             $row->simultaneity = core_Type::getByName('int')->toVerbal($assetSimultaneity);
             if($hintSimultaneity){
-                $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададена е в оборудването');
+                $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
             }
 
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
