@@ -1002,7 +1002,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $deviation = abs(round(($expectedNetWeight - $rec->netWeight) / (($expectedNetWeight + $rec->netWeight) / 2), 2));
 
                         // Показване на хинт ако има разминаване
-                        $iconHint = ($deviation <= $deviationNotice) ? 'notice' : ((isset($deviationCritical) && $deviation >= $deviationCritical) ? 'img/16/red-warning.png' : ((isset($deviationWarning) ? 'warning' : null)));
+                        $iconHint = ($deviation <= $deviationNotice) ? 'notice' : ((!empty($deviationCritical) && $deviation >= $deviationCritical) ? 'img/16/red-warning.png' : ((!empty($deviationWarning) ? 'warning' : null)));
                         if(isset($iconHint)){
                             $hintMsg = ($deviation <= $deviationNotice) ? '' : ((isset($deviationCritical) && $deviation >= $deviationCritical) ? 'критично ' : ((isset($deviationWarning) ? 'значително ' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($expectedNetWeight);
