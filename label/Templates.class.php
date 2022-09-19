@@ -748,7 +748,7 @@ class label_Templates extends core_Master
                         $type = 'caption';
                         $params = array();
                         if ($placeholder == 'PREVIEW') {
-                            $type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
+                            $type = 'image';
                             $params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
                         }
                         
