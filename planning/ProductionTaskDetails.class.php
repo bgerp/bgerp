@@ -956,13 +956,16 @@ class planning_ProductionTaskDetails extends doc_Detail
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
-        $weightWarningPercent = ($data->masterData->rec->weightDeviationWarning) ? $data->masterData->rec->weightDeviationWarning : planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING');
         $masterRec = $data->masterData->rec;
 
         $recsBySerials = array();
         $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$masterRec->folderId}'", 'showSerialWarningOnDuplication');
         $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
         array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
+
+        $deviationNotice = planning_Setup::get('TASK_NET_WEIGHT_NOTICE');
+        $deviationWarning = planning_Setup::get('TASK_NET_WEIGHT_WARNING');
+        $deviationCritical = planning_Setup::get('TASK_NET_WEIGHT_CRITICAL');
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
@@ -985,36 +988,26 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $row->weight = ht::createHint($row->weight, 'Брутото не е по-голямо от нетото|*!', 'noicon', false);
                 }
 
-                $weightQuantity = $rec->quantity;
-                if($rec->type == 'production'){
-                    $weightQuantity = $rec->quantity * $masterRec->quantityInPack;
-                }
-                $transportWeight = cat_Products::getTransportWeight($rec->productId, $weightQuantity);
-
-                if(!empty($transportWeight)){
-                    $deviation = abs(round(($transportWeight - $rec->weight) / (($transportWeight + $rec->weight) / 2), 2));
-                    $expectedWeightVerbal = core_Type::getByName('double(smartRound)')->toVerbal($transportWeight);
-
-                    // Показване на предупреждение или нотификация, ако има разминаване в теглото
-                    if($deviation > $weightWarningPercent){
-                        $row->weight = ht::createHint($row->weight, "Значително разминаване спрямо очакваното транспортно тегло от|* {$expectedWeightVerbal} |кг|*", 'warning', false);
-                    } elseif(!empty($masterRec->weightDeviationNotice) && $deviation > $masterRec->weightDeviationNotice){
-                        $row->weight = ht::createHint($row->weight, "Разминаване спрямо очакваното транспортно тегло от|* {$expectedWeightVerbal} |кг|*", 'notice', false);
+                // Има ли нето тегло
+                if(isset($rec->netWeight) && $rec->state != 'rejected'){
+                    $expectedSingleNetWeight = cat_Products::convertToUom($rec->productId, 'kg');
+                    $weightQuantity = $rec->quantity;
+                    if($rec->type == 'production'){
+                        $weightQuantity = $rec->quantity * $masterRec->quantityInPack;
                     }
-                }
 
-                // Ако има избрано отклонение спрямо средното тегло
-                if($masterRec->weightDeviationAverageWarning && $rec->state != 'rejected'){
+                    // Ако артикула има нето тегло
+                    if(isset($expectedSingleNetWeight)){
+                        $expectedNetWeight = $weightQuantity * $expectedSingleNetWeight;
+                        $deviation = abs(round(($expectedNetWeight - $rec->netWeight) / (($expectedNetWeight + $rec->netWeight) / 2), 2));
 
-                    // Колко е средното тегло досега
-                    if($average = self::getAverageWeight($rec->taskId, $rec->productId)){
-                        $singleWeight = $rec->weight / $rec->quantity;
-                        $deviation = abs(round(($average - $singleWeight) / (($average + $singleWeight) / 2), 2));
-
-                        // Има ли разминаване спрямо средното тегло
-                        if($deviation > $masterRec->weightDeviationAverageWarning){
-                            $expectedWeightVerbal = core_Type::getByName('double(smartRound)')->toVerbal($average * $rec->quantity);
-                            $row->weight = ht::createHint($row->weight, "Разминаване спрямо средното транспортно тегло в операцията от|* {$expectedWeightVerbal} |кг|*", 'error', false);
+                        // Показване на хинт ако има разминаване
+                        $iconHint = ($deviation <= $deviationNotice) ? 'notice' : ((isset($deviationCritical) && $deviation >= $deviationCritical) ? 'img/16/red-warning.png' : ((isset($deviationWarning) ? 'warning' : null)));
+                        if(isset($iconHint)){
+                            $hintMsg = ($deviation <= $deviationNotice) ? '' : ((isset($deviationCritical) && $deviation >= $deviationCritical) ? 'критично' : ((isset($deviationWarning) ? 'значително' : null)));
+                            $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($expectedNetWeight);
+                            $msg = tr("Има {$hintMsg} разминаване спрямо прогнозното нето от|*: {$expectedNetWeightVerbal}");
+                            $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
                         }
                     }
                 }
@@ -1525,37 +1518,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         cls::get(get_called_class())->save($rec);
         
         return $rec;
-    }
-    
-    
-    /**
-     * Колко е единичното средно тегло на артикула от операцията
-     * 
-     * @param int $taskId
-     * @param int $productId
-     * @return double|null $average
-     */
-    public static function getAverageWeight($taskId, $productId)
-    {
-        $average = null;
-        $arr = array();
-        $query = self::getQuery();
-        $query->where("#taskId = {$taskId} AND #productId = {$productId} AND #type = 'production' AND #state != 'rejected'");
-        while ($fRec = $query->fetch()){
-            $weight = $fRec->weight / $fRec->quantity;
-            $arr[] = max(array($weight / 10, 1));
-        }
-
-        sort($arr);
-        unset($arr[countR($arr) - 1]);
-        unset($arr[0]);
-        $sum = array_sum($arr);
-        $count = countR($arr);
-        if($count){
-            $average = round($sum / countR($arr), 4);
-        }
-
-        return $average;
     }
 
 

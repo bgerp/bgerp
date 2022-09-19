@@ -383,9 +383,6 @@ abstract class cat_ProductDriver extends core_BaseClass
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
-     *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
-     *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
-     *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
      *               o description                    - забележки
      *
      *               - array input        - масив отматериали за влагане

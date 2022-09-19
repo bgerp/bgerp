@@ -323,10 +323,6 @@ class planning_Tasks extends core_Master
         $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
         $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes,autohide');
-        $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-,autohide');
-        $this->FLD('weightDeviationWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Предупреждение,unit=+/-,autohide');
-        $this->FLD('weightDeviationAverageWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отклонение,unit=от средното +/-,autohide');
-
         $this->FLD('expectedTimeStart', 'datetime', 'caption=Планирани времена->Начало,input=none,tdClass=leftCol');
         $this->FLD('expectedTimeEnd', 'datetime', 'caption=Планирани времена->Край,input=none');
 
@@ -889,12 +885,6 @@ class planning_Tasks extends core_Master
             unset($row->totalNetWeight);
             unset($row->totalNetWeight);
         } else {
-            if(empty($rec->weightDeviationWarning)){
-                $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
-                $row->weightDeviationWarning = "<span style='color:blue'>{$row->weightDeviationWarning}</span>";
-                $row->weightDeviationWarning = ht::createHint($row->weightDeviationWarning, 'По подразбиране', false);
-            }
-
             $centerRec = planning_Centers::fetch("#folderId = {$rec->folderId}", 'useTareFromParamId,useTareFromPackagings');
             $row->totalWeight = empty($rec->totalWeight) ? "<span class='quiet'>N/A</span>" : $row->totalWeight;
             if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)) {
@@ -910,9 +900,6 @@ class planning_Tasks extends core_Master
                 <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо бруто|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
                 <!--ET_BEGIN totalNetWeight--><tr><td style='font-weight:normal'>|Общо нето|*:</td><td>[#totalNetWeight#]</td></tr><!--ET_END totalNetWeight-->
                 <tr><td style='font-weight:normal'>|Режим|*:</td><td>[#showadditionalUom#]</td></tr>
-                <!--ET_BEGIN weightDeviationNotice--><tr><td style='font-weight:normal'>|Отбелязване|*:</td><td>+/- [#weightDeviationNotice#]</td></tr><!--ET_END weightDeviationNotice-->
-                <!--ET_BEGIN weightDeviationWarning--><tr><td style='font-weight:normal'>|Предупреждение|*:</td><td>+/- [#weightDeviationWarning#]</td></tr><!--ET_END weightDeviationWarning-->
-                <!--ET_BEGIN weightDeviationAverageWarning--><tr><td style='font-weight:normal'>|Спрямо средното|*:</td><td>+/- [#weightDeviationAverageWarning#]</td></tr><!--ET_END weightDeviationAverageWarning-->
                 </table>"));
         }
 
@@ -1516,9 +1503,7 @@ class planning_Tasks extends core_Master
                 $form->setField('storeId', 'input');
                 $form->setField('labelPackagingId', 'input');
                 $form->setField('indPackagingId', 'input');
-
                 $defaultShowAdditionalUom = planning_Setup::get('TASK_WEIGHT_MODE');
-                $form->setField('weightDeviationWarning', "placeholder=" . core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING')));
                 $form->setDefault('showadditionalUom', $defaultShowAdditionalUom);
 
                 if($defaultShowAdditionalUom == $rec->showadditionalUom){
@@ -1526,9 +1511,6 @@ class planning_Tasks extends core_Master
                 }
             } else {
                 $form->setField('showadditionalUom', 'input=none');
-                $form->setField('weightDeviationNotice', 'input=none');
-                $form->setField('weightDeviationWarning', 'input=none');
-                $form->setField('weightDeviationAverageWarning', 'input=none');
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
 
