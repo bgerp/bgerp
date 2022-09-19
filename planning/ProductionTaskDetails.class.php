@@ -985,7 +985,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
                 if($rec->weight <= $rec->netWeight){
                     $row->weight = ht::createElement('span', array('style' => 'font-weight:bold;color:darkred;'), $row->weight);
-                    $row->weight = ht::createHint($row->weight, 'Брутото не е по-голямо от нетото|*!', 'noicon', false);
+                    $row->weight = ht::createHint($row->weight, 'Брутото трябва да е по-голямо от нетото|*!', 'noicon', false);
                 }
 
                 // Има ли нето тегло
@@ -1013,8 +1013,8 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                         if(isset($iconHint)){
                             $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично ' : ($iconHint == 'warning' ? 'значително ' : null)));
-                            $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($expectedNetWeight);
-                            $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето от|*: {$expectedNetWeightVerbal}");
+                            $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
+                            $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето|*: {$expectedNetWeightVerbal}");
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
                         }
                     }
