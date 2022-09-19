@@ -292,10 +292,14 @@ class label_Templates extends core_Master
         
         // Вземаме записа
         $rec = self::fetch($id);
-        
-        // Вкарваме CSS-а, като инлайн
-        $templateArrCss[$hash] = self::templateWithInlineCSS($template, $rec->css);
-        
+
+        $templateArrCss[$hash] = $template;
+
+        if ($rec->css) {
+            // Вкарваме CSS-а, като инлайн
+            $templateArrCss[$hash] = self::templateWithInlineCSS($template, $rec->css);
+        }
+
         return $templateArrCss[$hash];
     }
     
