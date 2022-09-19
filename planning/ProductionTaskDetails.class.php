@@ -1008,7 +1008,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                         } elseif($deviation > $deviationWarning){
                             $iconHint = 'warning';
                         } elseif(!empty($deviationNotice) && $deviation > $deviationNotice){
-                            $iconHint = 'notice';
+                            $iconHint = 'img/16/green-info.png';
                         }
 
                         if(isset($iconHint)){
