@@ -1170,6 +1170,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         } else {
             unset($data->listFields['_createdDate']);
 
+            $data->listFilter->view = 'horizontal';
             $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
             if(countR($assetInTasks)){
                 $data->listFilter->setOptions('fixedAsset', array('' => '') + $assetInTasks);
@@ -1215,6 +1216,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             } elseif($masterRec->state == 'closed'){
                 $howLong = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
                 if(dt::now() >= $howLong){
+                    $requiredRoles = 'no_one';
+                } elseif(!haveRole('taskPlanning,ceo')){
                     $requiredRoles = 'no_one';
                 }
             }
