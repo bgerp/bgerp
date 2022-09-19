@@ -1003,11 +1003,11 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                         // Показване на хинт ако има разминаване
                         $iconHint = null;
-                        if(!empty($deviationCritical) && $deviation >= $deviationCritical){
+                        if(!empty($deviationCritical) && $deviation > $deviationCritical){
                             $iconHint = 'img/16/red-warning.png';
-                        } elseif($deviation >= $deviationWarning){
+                        } elseif($deviation > $deviationWarning){
                             $iconHint = 'warning';
-                        } elseif(!empty($deviationNotice) && $deviation >= $deviationNotice){
+                        } elseif(!empty($deviationNotice) && $deviation > $deviationNotice){
                             $iconHint = 'notice';
                         }
 
@@ -1564,7 +1564,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $rec->netWeight = $form->rec->netWeight;
                 $rec->weight = $form->rec->weight;
                 $logMsg = "Промяна на бруто";
-                $statusMsg = 'Брутото е променено*!';
+                $statusMsg = 'Брутото е променено|*!';
                 $this->save_($rec, 'weight, netWeight');
                 planning_Tasks::logWrite($logMsg, $rec->taskId);
                 followRetUrl(null, $statusMsg);
