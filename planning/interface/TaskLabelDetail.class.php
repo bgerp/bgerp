@@ -111,7 +111,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $jRec = $Origin->fetch();
         $productId = ($rec->isFinal == 'yes') ? $jRec->productId : $rec->productId;
         $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $productId, $rec->type);
-        $productName = trim(cat_Products::getTitleById($productId));
+        $productName = trim(cat_Products::getVerbal($productId, 'name'));
 
         core_Lg::push('en');
         $quantity = $rec->quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
@@ -129,9 +129,10 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         }
 
         $reff = isset($jRec->saleId) ? sales_Sales::fetchField($jRec->saleId, 'reff') : null;
+        $code = cat_Products::getVerbal($productId, 'code');
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('PRODUCT_NAME' => $productName, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle());
+            $res = array('PRODUCT_NAME' => $productName, 'CODE' => $code, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle());
             if(!empty($batch)){
                 $res['BATCH'] = $batch;
             }

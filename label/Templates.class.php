@@ -782,7 +782,7 @@ class label_Templates extends core_Master
                        'defaultTplPriceListEan' => array('title' => 'Ценоразпис с EAN', 'path' => 'label/tpl/DefaultPricelistEAN.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
                        'defaultTplHrCodes' => array('title' => 'QR на служител', 'path' => 'label/tpl/DefaultHrCodes.shtml', 'lang' => 'bg', 'class' => 'planning_Hr', 'sizes' => array('64.5', '33.5')),
                        'defaultTplWorkCards' => array('title' => 'Стойности на раб. карти', 'path' => 'label/tpl/DefaultWorkCards.shtml', 'lang' => 'bg', 'class' => 'planning_WorkCards', 'sizes' => array('100', '72')),
-                       'defaultPrintTaskRec' => array('title' => 'Разпечатване на прогрес на производствена операция', 'path' => 'planning/tpl/DefaultTaskProgressLabelPrint.shtml', 'lang' => 'bg', 'class' => 'planning_ProductionTaskDetails', 'sizes' => array('210', '297'), 'peripheralDriverClass' => peripheral_printer_Browser::getClassId()),
+                       'defaultPrintTaskRec' => array('title' => 'Разпечатване на прогрес на производствена операция', 'path' => 'planning/tpl/DefaultTaskProgressLabelPrint.shtml', 'lang' => 'bg', 'class' => 'planning_ProductionTaskDetails', 'sizes' => array('210', '148'), 'peripheralDriverClass' => peripheral_printer_Browser::getClassId()),
             );
 
         core_Users::forceSystemUser();
