@@ -517,6 +517,7 @@ class cat_Products extends embed_Manager
                     // Ако има избрани мерки, оставяме от всички само тези които са посочени в корицата +
                     // вече избраната мярка ако има + дефолтната за драйвера
                     $categoryMeasures = keylist::toArray($CategoryRec->measures);
+
                     if (countR($categoryMeasures)) {
                         if (isset($rec->measureId)) {
                             $categoryMeasures[$rec->measureId] = $rec->measureId;
@@ -527,7 +528,7 @@ class cat_Products extends embed_Manager
                 }
             }
         }
-        
+
         // Ако артикула е създаден от източник
         if (isset($rec->originId) && $form->cmd != 'refresh') {
             $document = doc_Containers::getDocument($rec->originId);
@@ -551,9 +552,15 @@ class cat_Products extends embed_Manager
             $form->setDefault('measureId', $defaultUomId);
             $form->setField('measureId', 'input=hidden');
         } else {
-            if ($defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')) {
-                $measureOptions[$defMeasure] = cat_UoM::getTitleById($defMeasure, false);
-                $form->setDefault('measureId', $defMeasure);
+            if ($defMeasureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')) {
+                if(array_key_exists($defMeasureId, $measureOptions)){
+                    $form->setDefault('measureId', $defMeasureId);
+                } elseif(countR($measureOptions)) {
+                    $form->setDefault('measureId', key($measureOptions));
+                } else {
+                    $measureOptions[$defMeasureId] = cat_UoM::getTitleById($defMeasureId, false);
+                    $form->setDefault('measureId', $defMeasureId);
+                }
             }
             
             // Задаваме позволените мерки като опция
@@ -1375,8 +1382,11 @@ class cat_Products extends embed_Manager
                 price_Cache::invalidateProduct($rec->id);
             }
         }
-        
-        Mode::setPermanent('cat_LastProductCode', $rec->code);
+
+        // Записване в сесията само при създаване на нов артикул а не и при редакция
+        if($rec->_isCreated){
+            Mode::setPermanent('cat_LastProductCode', $rec->code);
+        }
         
         if (isset($rec->originId)) {
             doc_DocumentCache::cacheInvalidation($rec->originId);
@@ -3369,9 +3379,6 @@ class cat_Products extends embed_Manager
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
-     *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
-     *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
-     *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
      *               o description                    - забележки
      *               o labelPackagingId               - ид на опаковка за етикетиране
      *               o labelQuantityInPack            - к-во в опаковката

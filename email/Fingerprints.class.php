@@ -218,7 +218,9 @@ class email_Fingerprints extends core_Manager
         $rec = new stdClass();
         $rec->hash = self::getHeaderPartHash($headers);
         if (self::fetchField("#hash = '{$rec->hash}'", 'id')) {
-            
+
+            email_Fingerprints::saveMaxUID($accId, $uid);
+
             return false;
         }
         
@@ -236,8 +238,38 @@ class email_Fingerprints extends core_Manager
         
         return $rec->id;
     }
-    
-    
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Първичния ключ на направения запис
+     * @param stdClass     $rec     Всички полета, които току-що са били записани
+     * @param string|array $fields  Имена на полетата, които sa записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        $mvc->saveMaxUID($rec->accountId, $rec->uid);
+    }
+
+
+    /**
+     * Помощна функция за записване на maxUid
+     *
+     * @param integer $recaccId
+     * @param intege  $uid
+     */
+    public static function saveMaxUID($accId, $uid)
+    {
+        $maxUid = core_Permanent::get('IMAP_MAX_UID_' . $accId);
+        if ($uid && (!$maxUid || ($uid > $maxUid))) {
+            core_Permanent::set('IMAP_MAX_UID_' . $accId, $uid, 100);
+        }
+    }
+
+
     /**
      * Начално установяване
      */

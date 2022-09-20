@@ -61,5 +61,4 @@ function render_listTasks()
 {
     $('.loadingModal').remove();
     listTasks();
-    console.log('after');
 }

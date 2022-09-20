@@ -13,17 +13,7 @@
  *
  * @since     v 0.1
  */
-class escpos_PrinterIntf extends peripheral_PrinterIntf
+class escpos_PrinterIntf extends peripheral_BrowserPrinterIntf
 {
-    
-    /**
-     * Отпечатва подадени текст
-     * 
-     * @param stdClass $rec
-     * @param string $text
-     */
-    public function getJS($rec, $text)
-    {
-        return $this->class->getJS($rec, $text);
-    }
+
 }

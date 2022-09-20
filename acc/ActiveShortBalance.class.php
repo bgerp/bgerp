@@ -75,7 +75,7 @@ class acc_ActiveShortBalance
         core_App::setTimeLimit(600);
         
         // Изчисления баланс се кешира, само ако е указано
-        if ($params['cacheBalance'] !== false) {
+        if (isset($params['cacheBalance']) && $params['cacheBalance'] !== false) {
             
             // Подготвяме заявката към базата данни
             $jQuery = acc_JournalDetails::getQuery();

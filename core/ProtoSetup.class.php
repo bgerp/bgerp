@@ -601,4 +601,16 @@ class core_ProtoSetup
     {
         return null;
     }
+
+
+    /**
+     * След инпутване на формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function inputConfigDescriptionForm(&$configForm)
+    {
+        return null;
+    }
 }

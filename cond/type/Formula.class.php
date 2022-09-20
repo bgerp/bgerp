@@ -110,7 +110,26 @@ class cond_type_Formula extends cond_type_Text
      */
     public function getDefaultValue($rec, $domainClass = null, $domainId = null, $value = null)
     {
-        return $this->driverRec->formula;
+        $res = $this->driverRec->formula;
+        if(isset($domainClass) && isset($domainId)){
+            $Domain = cls::get($domainClass);
+
+            // Ако е към ПО
+            if($Domain instanceof planning_Tasks){
+                $productClassId = cat_Products::getClassId();
+                $taskRec = $Domain->fetch($domainId, 'productId,originId');
+
+                // Търси се има ли нова версия на формулата в артикула от заданието/етапа от операцията
+                $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+                $defaultValue = cat_products_Params::fetchField("#classId = {$productClassId} AND #productId = {$jobProductId} AND #paramId = {$rec->id}", 'paramValue');
+                if(!isset($defaultValue)){
+                    $defaultValue = cat_products_Params::fetchField("#classId = {$productClassId} AND #productId = {$taskRec->productId} AND #paramId = {$rec->id}", 'paramValue');
+                }
+                $res = isset($defaultValue) ? $defaultValue : $res;
+            }
+        }
+
+        return $res;
     }
 
 

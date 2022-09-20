@@ -2694,11 +2694,11 @@ div.alphabet.twoRows {
 		font-family: arial;
 		@include no-shadow();
 		display: inline;
-		margin: 1px -8px -1px 10px;
+		margin: 1px -11px -1px 10px;
 		float: left;
 		background: $gray3;
 		border: 1px solid $gray4;
-		border-bottom: none;
+		border-bottom: 1px solid #0066ff;
 		color: #999;
 		z-index: 1;
 		white-space: nowrap;
@@ -2723,11 +2723,8 @@ div.alphabet.twoRows {
 			background-color: $gray3 !important;
 		}
 		&.selected {
-			margin: 1px -8px -3px 10px;
+			margin: 1px -11px -1px 10px;
 			background: $history-bg !important;
-			border: 1px solid #ccc;
-			box-shadow: 0 -1px 1px rgba(0,0,0,0.2);
-			border-bottom: none;
 			z-index: 3;
 			padding: 0 0 1px !important;
 			top: 0;
@@ -2834,11 +2831,15 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
     margin-bottom: 5px;
  	.tab {
 	    font-size: 0.7em;
-	    margin: 0 4px 0 0;
-		padding: 5px 8px;
-		margin: 0 4px 0 0 !important;
+	    padding: 6px 8px;
+		margin: 0 -1px 0 0;
 		cursor: pointer;
-		border: 1px solid #bbb !important;
+		
+		border-top: 1px solid #bbb;
+		border-left: 1px solid #bbb;
+		border-right: 1px solid #bbb;
+		border-bottom: 1px solid #0066ff;
+		
 		font-size: 0.7em;
 		text-decoration: none;
 		white-space: nowrap;
@@ -2849,25 +2850,34 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
 		url(data:image/png;base64,iVBORw0KGg[...]QmCC) !important;
 		transition: background-color .2s ease-out !important;
 		background-clip: padding-box; /* Fix bleeding */
-		border-radius: 5px !important;
-		box-shadow: 0 1px 0 rgba(0, 0, 0, .3),
+		border-radius: 0px !important;
+		border-top-right-radius: 5px !important;
+		border-top-left-radius: 5px !important;
+		box-shadow: 0 0px 0 rgba(0, 0, 0, .3),
 		0 1px 0 rgba(255, 255, 255, .3) inset !important;
-		text-shadow: 0 1px 0 rgba(255,255,255, .9) !important;
+		text-shadow: 0 1px 0 rgba(255,255,255, .9);
 		a {
 			color: #333 !important;
 		}
-	    &:hover , &.selected {
-			margin: 0 4px 0 0 !important;
+	    &:hover {
 			background: #ffffe9 !important;
-			padding: 5px 8px !important;
-			position: relative;
-			top: 1px;
-			top: -4px;
-			text-shadow: none;
 			a {
 				color: #444 !important;
 			}
 	    }
+		&.selected {
+			box-shadow: 0 -4px 0 #0066ff !important;
+	    	border-left: 1px solid #0066ff !important;
+			border-right: 1px solid #0066ff !important;
+			border-bottom: none !important;
+			font-size: 0.8em !important;
+			
+			background: #ffffe9 !important;
+			padding: 5px 8px !important;
+			a {
+				color: #444 !important;
+			}
+		}
 	 }
 }
 

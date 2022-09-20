@@ -352,7 +352,7 @@ class batch_BatchesInDocuments extends core_Manager
         $recInfo->detailClassId = $detailClassId;
         $recInfo->detailRecId = $detailRecId;
         $storeId = $recInfo->operation[key($recInfo->operation)];
-        
+
         // Кои са наличните партиди към момента
         $batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date);
         foreach ($batches as $i => $v) {
@@ -361,7 +361,7 @@ class batch_BatchesInDocuments extends core_Manager
                 unset($batches[$i]);
             }
         }
-        
+
         // Кои са въведените партиди от документа
         $foundBatches = array();
         $dQuery = self::getQuery();
@@ -382,7 +382,7 @@ class batch_BatchesInDocuments extends core_Manager
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = 'Задаване на партидности в|* ' . $link;
-        $form->info = new core_ET(tr('Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#]</b>'));
+        $form->info = new core_ET(tr('Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#] [#packName#]</b>'));
         $form->info->replace(cat_Products::getHyperlink($recInfo->productId, true), 'productId');
         $form->info->replace(store_Stores::getHyperlink($storeId, true), 'storeId');
         $form->info->replace($packName, 'packName');
@@ -438,7 +438,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $suggestions[] = $vBatch;
                 $tableRec['batch'][$i] = $vBatch;
                 if (array_key_exists($batch, $foundBatches)) {
-                    $tableRec['quantity'][$i] = $foundBatches[$batch] / $recInfo->quantityInPack;
+                    $tableRec['quantity'][$i] = core_Math::roundNumber($foundBatches[$batch] / $recInfo->quantityInPack);
                     $exTableRec['batch'][$j] = $vBatch;
                     $exTableRec['quantity'][$j] = $foundBatches[$batch];
                     $j++;
@@ -554,13 +554,14 @@ class batch_BatchesInDocuments extends core_Manager
             }
             
             if ($form->cmd != 'updateQuantity') {
-                
                 // Не може да е разпределено по-голямо количество от допустимото
-                if ($total > ($recInfo->quantity / ($recInfo->quantityInPack))) {
-                    $form->setError('newArray', 'Общото количество е над допустимото');
+                $round = cat_UoM::fetchField($recInfo->packagingId, 'round');
+                $expectedTotal = round(($recInfo->quantity / ($recInfo->quantityInPack)), $round);
+                if (round($total, $round) > $expectedTotal) {
+                    $form->setError('newArray', "Общото количество е над допустимото|*: <b>{$expectedTotal}</b>");
                 }
             }
-            
+
             if (!$form->gotErrors()) {
                 $dRec = cls::get($detailClassId)->fetch($detailRecId);
                 $logMsg = 'Ръчна промяна на партидите на детайл';

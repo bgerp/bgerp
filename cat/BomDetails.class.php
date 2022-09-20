@@ -266,7 +266,9 @@ class cat_BomDetails extends doc_Detail
                     $form->setField('storeIn', 'input');
                     $form->setField('inputStores', 'input');
                     $form->setField('labelPackagingId', 'input');
-                    $packs = array('' => '') + cat_Products::getPacks($rec->resourceId);
+
+                    $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
+                    $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId);
                     $form->setOptions("labelPackagingId", $packs);
                 }
 
