@@ -51,7 +51,6 @@ class cat_type_Weight extends cat_type_Uom
                 $round = cat_UoM::fetchBySysId($this->params['unit'])->round;
                 $value = round($value, $round);
             }
-
         }
 
         $value = parent::toVerbal_($value);

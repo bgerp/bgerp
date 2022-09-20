@@ -63,13 +63,23 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
      */
     public function getDefaultLabelWithData($id, $templateId)
     {
-        $template = label_Templates::fetch($templateId);
-        $templateTpl = new core_ET($template->template);
-        
+        $templateTpl = label_Templates::addCssToTemplate($templateId);
+
         // Взимат се данните за бърз етикет
-        $labelData = $this->getLabelData($id, 1, false);
-        $content = $labelData[0];
-        $templateTpl->placeObject($content);
+        $allLabelData = $this->getLabelData($id, 1, false);
+
+        $placeArr = label_Templates::getPlaceholders($templateTpl);
+
+        foreach ($allLabelData as $allKey => $labelData) {
+            foreach ($labelData as $lKey => $lVal) {
+                $place = $placeArr[$lKey];
+                $newVal = label_TemplateFormats::getVerbalTemplate($templateId, $place, $lVal);
+                $allLabelData[$allKey][$lKey] = strlen($newVal) ? $newVal : $allLabelData[$allKey][$lKey];
+            }
+        }
+
+        $templateTpl = new ET($templateTpl);
+        $templateTpl->placeObject($allLabelData[0]);
         
         return $templateTpl->getContent();
     }

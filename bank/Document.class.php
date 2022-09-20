@@ -172,7 +172,7 @@ abstract class bank_Document extends deals_PaymentDocument
     protected function getFields(core_Mvc &$mvc)
     {
         $mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Платени,mandatory,silent');
+        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Платени,mandatory,silent');
         $mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
         $mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
         
@@ -182,7 +182,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $mvc->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
         $mvc->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');
         $mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=В->Сметка,silent,removeAndRefreshForm=currencyId|amount');
-        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
+        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
         
         $mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -529,15 +529,23 @@ abstract class bank_Document extends deals_PaymentDocument
                 $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
                 
                 if ($rec->dealCurrencyId == $baseCurrencyId) {
-                    $rate = $rec->amountDeal / $rec->amount;
+                    if(!empty($rec->amount)){
+                        $rate = $rec->amountDeal / $rec->amount;
+                    }
                     $rateFromCurrencyId = $rec->dealCurrencyId;
                     $rateToCurrencyId = $rec->currencyId;
                 } else {
-                    $rate = $rec->amount / $rec->amountDeal;
+                    if(!empty($rec->amount)){
+                        $rate = $rec->amount / $rec->amountDeal;
+                    }
                     $rateFromCurrencyId = $rec->currencyId;
                     $rateToCurrencyId = $rec->dealCurrencyId;
                 }
-                $row->rate = cls::get('type_Double', array('params' => array('decimals' => 5)))->toVerbal($rate);
+                if(!empty($rate)){
+                    $row->rate = cls::get('type_Double', array('params' => array('decimals' => 5)))->toVerbal($rate);
+                } else {
+                    $row->rate = ht::createHint('', 'Има проблем при изчислението на курса', 'error');
+                }
                 $row->rateFromCurrencyId = currency_Currencies::getCodeById($rateFromCurrencyId);
                 $row->rateToCurrencyId = currency_Currencies::getCodeById($rateToCurrencyId);
 

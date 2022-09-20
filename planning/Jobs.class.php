@@ -90,13 +90,13 @@ class planning_Jobs extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning, job';
+    public $canList = 'ceo, planning, job, production, taskWorker';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, planning, job';
+    public $canSingle = 'ceo, planning, job, production, taskWorker';
     
     
     /**

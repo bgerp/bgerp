@@ -87,6 +87,7 @@ class planning_StepConditions extends core_Detail
         $this->FLD('delay', 'time', 'caption=Изчакване');
         $this->FLD('intersect', 'enum(yes=Да,no=Не)', 'caption=Застъпване,notNull,default=yes');
 
+        $this->setDbIndex('stepId');
         $this->setDbIndex('prevStepId');
         $this->setDbUnique('stepId,prevStepId');
     }

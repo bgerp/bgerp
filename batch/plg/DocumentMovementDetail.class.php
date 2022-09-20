@@ -53,12 +53,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        if (isset($rec->id)) {
-            
+        if (isset($rec->id) && $data->action != 'clone') {
+
             return;
         }
         $form->FNC('batch', 'text', 'caption=Партида,after=productId,input=none');
-        
+
         // Задаване на типа на партидата на полето
         if (isset($rec->{$mvc->productFieldName})) {
             $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
@@ -138,7 +138,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        if (isset($rec->id)) {
+
+        if (isset($rec->id) && !$form->_cloneForm) {
             
             return;
         }

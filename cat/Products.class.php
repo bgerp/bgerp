@@ -1382,8 +1382,11 @@ class cat_Products extends embed_Manager
                 price_Cache::invalidateProduct($rec->id);
             }
         }
-        
-        Mode::setPermanent('cat_LastProductCode', $rec->code);
+
+        // Записване в сесията само при създаване на нов артикул а не и при редакция
+        if($rec->_isCreated){
+            Mode::setPermanent('cat_LastProductCode', $rec->code);
+        }
         
         if (isset($rec->originId)) {
             doc_DocumentCache::cacheInvalidation($rec->originId);
@@ -3376,9 +3379,6 @@ class cat_Products extends embed_Manager
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
-     *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
-     *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
-     *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
      *               o description                    - забележки
      *               o labelPackagingId               - ид на опаковка за етикетиране
      *               o labelQuantityInPack            - к-во в опаковката

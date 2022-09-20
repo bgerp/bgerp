@@ -2463,11 +2463,11 @@ div.alphabet.twoRows {
     -webkit-box-shadow: none;
     box-shadow: none;
     display: inline;
-    margin: 1px -8px -1px 10px;
+    margin: 1px -11px -1px 10px;
     float: left;
     background: #dddddd;
     border: 1px solid #bbbbbb;
-    border-bottom: none;
+    border-bottom: 1px solid #0066ff;
     color: #999999;
     z-index: 1;
     white-space: nowrap;
@@ -2492,11 +2492,8 @@ div.alphabet.twoRows {
     .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover span {
       background-color: #dddddd !important; }
     .single-thread .document .docStatistic div.alphabet div.tab-row .tab.selected {
-      margin: 1px -8px -3px 10px;
+      margin: 1px -11px -1px 10px;
       background: #fefec2 !important;
-      border: 1px solid #cccccc;
-      box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.2);
-      border-bottom: none;
       z-index: 3;
       padding: 0 0 1px !important;
       top: 0;
