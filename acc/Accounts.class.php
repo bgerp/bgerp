@@ -545,7 +545,7 @@ class acc_Accounts extends core_Manager
         while ($rec = $query->fetch($where)) {
             $title = $this->getRecTitle($rec, false);
             
-            if (isset($rec->isSynthetic)) {
+            if ($rec->isSynthetic != 0) {
                 $res[$rec->{$index}] = (object) array(
                     'title' => $title,
                     'group' => true
