@@ -1522,7 +1522,6 @@ class planning_Tasks extends core_Master
             if(isset($rec->labelPackagingId)){
                 $form->setField('labelQuantityInPack', 'input');
                 $form->setField('labelTemplate', 'input');
-                $form->setDefault('indPackagingId', $rec->labelPackagingId);
 
                 if($rec->isFinal != 'yes' && $rec->labelPackagingId == $productionData['labelPackagingId']){
                     $stepMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
@@ -1539,14 +1538,12 @@ class planning_Tasks extends core_Master
                 $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);
                 $form->setOptions('labelTemplate', $templateOptions);
                 $form->setDefault('labelTemplate', key($templateOptions));
-                $defaultIndPackagingId = $rec->labelPackagingId;
             } else {
                 $form->setField('labelTemplate', 'input=hidden');
-                $defaultIndPackagingId = $rec->measureId;
             }
 
             if(empty($rec->id)){
-                $form->setDefault('indPackagingId', $defaultIndPackagingId);
+                $form->setDefault('indPackagingId', $rec->measureId);
             }
 
             if ($rec->productId == $originRec->productId) {
