@@ -462,7 +462,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                $markFirst = 1;
+                  // Маркер за първи ред на нов артикул, за да могат да се
+                  // обединят редовете за един артикул при експорта
+          //      $markFirst = 1;
 
                 foreach ($dRec->documentsReserved as $docReserved) {
 
@@ -472,11 +474,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
 
-                    if ($markFirst == 1) {
-                        $dCloneRec->markFirst = true;
-                    } else {
-                        $dCloneRec->markFirst = false;
-                    }
+                    //Определя се първия ред за дадения артикул, за да не се отпечатва в следващите редове при експорта
+//                    if ($markFirst == 1) {
+//                        $dCloneRec->markFirst = true;
+//                    } else {
+//                        $dCloneRec->markFirst = false;
+//                    }
 
                     $dCloneRec->date = $docReserved->date;
 
@@ -506,11 +509,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $docRec = $docClassName::fetch($docExpected->sourceId);
 
-                    if ($markFirst == 1) {
-                        $dCloneRec->markFirst = true;
-                    } else {
-                        $dCloneRec->markFirst = false;
-                    }
+                      //Определя се първия ред за дадения артикул, за да не се отпечатва в следващите редове при експорта
+//                    if ($markFirst == 1) {
+//                        $dCloneRec->markFirst = true;
+//                    } else {
+//                        $dCloneRec->markFirst = false;
+//                    }
 
                     $dCloneRec->date = $docExpected->date;
 
@@ -553,21 +557,23 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
-        if ($dRec->markFirst) {
+        // Ако е първи ред за аретикула ще се експортират всичките колони
+        //след това кода и името на артикула се обединяват
+       // if ($dRec->markFirst) {
             $res->productId = $pRec->name;
             $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
             $res->quantity = $dRec->quantity;
             $res->free = $dRec->free;
             $res->expected = $dRec->expected;
             $res->reserved = $dRec->reserved;
-        } else {
-            $res->productId = '';
-            $res->code = '';
-            $res->quantity = '';
-            $res->free = '';
-            $res->expected = '';
-            $res->reserved = '';
-        }
+//        } else {
+//            $res->productId = '';
+//            $res->code = '';
+//            $res->quantity = '';
+//            $res->free = '';
+//            $res->expected = '';
+//            $res->reserved = '';
+//        }
 
 
         if ($dRec->measure) {
