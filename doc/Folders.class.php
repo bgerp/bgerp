@@ -484,10 +484,12 @@ class doc_Folders extends core_Master
 
             if($fields['-list']){
                 if($rec->coverClass == doc_UnsortedFolders::getClassId()){
-                    $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
-                    if(!empty($unsortedFolderContragentId)){
-                        $subTitle = doc_Folders::recToVerbal($unsortedFolderContragentId)->title;
-                        $row->title .= "<br><small style='padding-left:10px'>» {$subTitle}</small>";
+                    if ($rec->coverId) {
+                        $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
+                        if(!empty($unsortedFolderContragentId)){
+                            $subTitle = doc_Folders::recToVerbal($unsortedFolderContragentId)->title;
+                            $row->title .= "<br><small style='padding-left:10px'>» {$subTitle}</small>";
+                        }
                     }
                 }
             }
