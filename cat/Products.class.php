@@ -2895,7 +2895,7 @@ class cat_Products extends embed_Manager
 
             // Затваряне и на активните задания с произведено над 0.9 процента
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')) {
-                planning_Jobs::closeActiveJobs(planning_Setup::get($completeJobTolerance, $sd->id));
+                planning_Jobs::closeActiveJobs($completeJobTolerance, $sd->id);
             }
         }
 
