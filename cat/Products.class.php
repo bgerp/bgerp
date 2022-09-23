@@ -410,7 +410,8 @@ class cat_Products extends embed_Manager
                 if (!empty($lastDriver)) {
                     if (cls::load($lastDriver, true)) {
                         if (cls::get($lastDriver)->canSelectDriver()) {
-                            return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver));
+
+                            return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver, 'ret_url' => getRetUrl()));
                         }
                     }
                 }
