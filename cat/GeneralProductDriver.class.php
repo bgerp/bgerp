@@ -488,4 +488,25 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             }
         }
     }
+
+
+    /**
+     * Връща масив с файловете цитирани в артикула
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array           - масив от файл хендлъри и имена
+     */
+    public function getLinkedFiles($id)
+    {
+        $fhArr = array();
+        $rec = cat_Products::fetchRec($id);
+        if(!empty($rec->info)){
+            $fhArr += fileman_RichTextPlg::getFiles($rec->info);
+        }
+        if(!empty($rec->infoInt)){
+            $fhArr += fileman_RichTextPlg::getFiles($rec->infoInt);
+        }
+
+        return $fhArr;
+    }
 }

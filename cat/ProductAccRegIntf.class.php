@@ -317,4 +317,16 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
         return $this->class->getHash($rec);
     }
+
+
+    /**
+     * Връща масив с файловете цитирани в артикула
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array           - масив от файл хендлъри и имена
+     */
+    public function getLinkedFiles($id)
+    {
+        return $this->class->getLinkedFiles($id);
+    }
 }
