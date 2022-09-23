@@ -484,10 +484,12 @@ class doc_Folders extends core_Master
 
             if($fields['-list']){
                 if($rec->coverClass == doc_UnsortedFolders::getClassId()){
-                    $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
-                    if(!empty($unsortedFolderContragentId)){
-                        $subTitle = doc_Folders::recToVerbal($unsortedFolderContragentId)->title;
-                        $row->title .= "<br><small style='padding-left:10px'>» {$subTitle}</small>";
+                    if ($rec->coverId) {
+                        $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
+                        if(!empty($unsortedFolderContragentId)){
+                            $subTitle = doc_Folders::recToVerbal($unsortedFolderContragentId)->title;
+                            $row->title .= "<br><small style='padding-left:10px'>» {$subTitle}</small>";
+                        }
                     }
                 }
             }
@@ -510,14 +512,14 @@ class doc_Folders extends core_Master
         
         $attr = array();
         $attr['class'] = 'linkWithIcon';
-        
+
         if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
 
         $maxLenTitle = isset($limitLen) ? $limitLen : self::maxLenTitle;
         if (mb_strlen($title) > $maxLenTitle) {
-            $attr['title'] = $title;
+            $attr['title'] = '|*' . $rec->title;
             $title = str::limitLen($title, $maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
