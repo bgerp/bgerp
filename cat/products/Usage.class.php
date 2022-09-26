@@ -36,7 +36,7 @@ class cat_products_Usage extends core_Manager
         $data->isPublic = ($masterRec->isPublic == 'yes');
         $tabParam = $data->masterData->tabTopParam;
         $prepareTab = Request::get($tabParam);
-        
+
         $data->jobData = clone $data;
         $data->jobData->Jobs = cls::get('planning_Jobs');
         $this->prepareJobs($data->jobData);
@@ -58,8 +58,15 @@ class cat_products_Usage extends core_Manager
 
                 return;
             }
+
+            $countTasks = countR($data->taskData->rows);
+            if($data->masterData->rec->innerClass == planning_interface_StepProductDriver::getClassId() && !$countTasks){
+
+                return;
+            }
             $data->Tab = 'top';
-            $data->TabCaption =  countR($data->taskData->rows) ? 'Документи' : 'Задания';
+            $data->TabCaption =  $countTasks ? 'Документи' : 'Задания';
+
             if (!$prepareTab || $prepareTab != 'Usage') {
 
                 return;

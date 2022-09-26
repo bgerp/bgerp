@@ -305,11 +305,12 @@ class planning_Tasks extends core_Master
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
+        $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на тегло,notNull,value=yes,autohide');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
         }        
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
-        $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=common');
+        $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
@@ -322,11 +323,6 @@ class planning_Tasks extends core_Master
         $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
         $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
         $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
-        $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes,autohide');
-        $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-,autohide');
-        $this->FLD('weightDeviationWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Предупреждение,unit=+/-,autohide');
-        $this->FLD('weightDeviationAverageWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отклонение,unit=от средното +/-,autohide');
-
         $this->FLD('expectedTimeStart', 'datetime', 'caption=Планирани времена->Начало,input=none,tdClass=leftCol');
         $this->FLD('expectedTimeEnd', 'datetime', 'caption=Планирани времена->Край,input=none');
 
@@ -671,7 +667,7 @@ class planning_Tasks extends core_Master
             }
             $row->simultaneity = core_Type::getByName('int')->toVerbal($assetSimultaneity);
             if($hintSimultaneity){
-                $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададена е в оборудването');
+                $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
             }
 
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
@@ -889,12 +885,6 @@ class planning_Tasks extends core_Master
             unset($row->totalNetWeight);
             unset($row->totalNetWeight);
         } else {
-            if(empty($rec->weightDeviationWarning)){
-                $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
-                $row->weightDeviationWarning = "<span style='color:blue'>{$row->weightDeviationWarning}</span>";
-                $row->weightDeviationWarning = ht::createHint($row->weightDeviationWarning, 'По подразбиране', false);
-            }
-
             $centerRec = planning_Centers::fetch("#folderId = {$rec->folderId}", 'useTareFromParamId,useTareFromPackagings');
             $row->totalWeight = empty($rec->totalWeight) ? "<span class='quiet'>N/A</span>" : $row->totalWeight;
             if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)) {
@@ -910,9 +900,6 @@ class planning_Tasks extends core_Master
                 <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо бруто|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
                 <!--ET_BEGIN totalNetWeight--><tr><td style='font-weight:normal'>|Общо нето|*:</td><td>[#totalNetWeight#]</td></tr><!--ET_END totalNetWeight-->
                 <tr><td style='font-weight:normal'>|Режим|*:</td><td>[#showadditionalUom#]</td></tr>
-                <!--ET_BEGIN weightDeviationNotice--><tr><td style='font-weight:normal'>|Отбелязване|*:</td><td>+/- [#weightDeviationNotice#]</td></tr><!--ET_END weightDeviationNotice-->
-                <!--ET_BEGIN weightDeviationWarning--><tr><td style='font-weight:normal'>|Предупреждение|*:</td><td>+/- [#weightDeviationWarning#]</td></tr><!--ET_END weightDeviationWarning-->
-                <!--ET_BEGIN weightDeviationAverageWarning--><tr><td style='font-weight:normal'>|Спрямо средното|*:</td><td>+/- [#weightDeviationAverageWarning#]</td></tr><!--ET_END weightDeviationAverageWarning-->
                 </table>"));
         }
 
@@ -1500,7 +1487,9 @@ class planning_Tasks extends core_Master
             if ($productRec->canStore == 'yes') {
                 $packs = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId, $productId4Form, $rec->labelPackagingId);
                 $form->setOptions('labelPackagingId', array('' => '') + $packs);
-                $form->setOptions('indPackagingId', $packs);
+                $indPacks = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false)) + cat_products_Packagings::getOnlyPacks($productId4Form);
+
+                $form->setOptions('indPackagingId', $indPacks);
                 if(isset($productionData) && array_key_exists($productionData['normPackagingId'], $packs)){
                     $form->setDefault('indPackagingId', $productionData['normPackagingId']);
                 }
@@ -1514,9 +1503,7 @@ class planning_Tasks extends core_Master
                 $form->setField('storeId', 'input');
                 $form->setField('labelPackagingId', 'input');
                 $form->setField('indPackagingId', 'input');
-
                 $defaultShowAdditionalUom = planning_Setup::get('TASK_WEIGHT_MODE');
-                $form->setField('weightDeviationWarning', "placeholder=" . core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING')));
                 $form->setDefault('showadditionalUom', $defaultShowAdditionalUom);
 
                 if($defaultShowAdditionalUom == $rec->showadditionalUom){
@@ -1524,9 +1511,6 @@ class planning_Tasks extends core_Master
                 }
             } else {
                 $form->setField('showadditionalUom', 'input=none');
-                $form->setField('weightDeviationNotice', 'input=none');
-                $form->setField('weightDeviationWarning', 'input=none');
-                $form->setField('weightDeviationAverageWarning', 'input=none');
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
 
@@ -1538,7 +1522,6 @@ class planning_Tasks extends core_Master
             if(isset($rec->labelPackagingId)){
                 $form->setField('labelQuantityInPack', 'input');
                 $form->setField('labelTemplate', 'input');
-                $form->setDefault('indPackagingId', $rec->labelPackagingId);
 
                 if($rec->isFinal != 'yes' && $rec->labelPackagingId == $productionData['labelPackagingId']){
                     $stepMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
@@ -1555,14 +1538,12 @@ class planning_Tasks extends core_Master
                 $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);
                 $form->setOptions('labelTemplate', $templateOptions);
                 $form->setDefault('labelTemplate', key($templateOptions));
-                $defaultIndPackagingId = $rec->labelPackagingId;
             } else {
                 $form->setField('labelTemplate', 'input=hidden');
-                $defaultIndPackagingId = $rec->measureId;
             }
 
             if(empty($rec->id)){
-                $form->setDefault('indPackagingId', $defaultIndPackagingId);
+                $form->setDefault('indPackagingId', $rec->measureId);
             }
 
             if ($rec->productId == $originRec->productId) {

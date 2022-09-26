@@ -14,12 +14,6 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_WIDTH', 90);
 
 
 /**
- * Допустим толеранс на тегллото при ПО
- */
-defIfNot('PLANNING_TASK_WEIGHT_TOLERANCE_WARNING', 0.05);
-
-
-/**
  * Допустим толеранс за втората мярка в протокола за производство
  */
 defIfNot('PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING', 0.1);
@@ -134,6 +128,37 @@ defIfNot('PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS', 'yes');
 
 
 /**
+ * Показване на статус при разминаване на нетото в ПО->Отбелязване
+ */
+defIfNot('PLANNING_TASK_NET_WEIGHT_NOTICE', '');
+
+
+/**
+ * Показване на статус при разминаване на нетото в ПО->Предупреждение
+ */
+defIfNot('PLANNING_TASK_NET_WEIGHT_WARNING', 0.05);
+
+
+/**
+ * Показване на статус при разминаване на нетото в ПО->Критично
+ */
+defIfNot('PLANNING_TASK_NET_WEIGHT_CRITICAL', '');
+
+
+
+
+
+
+/**
+ * Показване на статус при разминаване на нетото в ПО->Критично
+ */
+defIfNot('PLANNING_TASK_WEIGHT_TOLERANCE_WARNING', '');
+
+
+
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -189,7 +214,6 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
         'PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Толеранс за разминаване между очакваното съответствие в протоколите за производство->Предупреждение'),
-        'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Отчитане на теглото в ПО->Предупреждение'),
         'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
 
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на Задание без нови контиращи документи->Повече от'),
@@ -203,6 +227,9 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
         'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
+        'PLANNING_TASK_NET_WEIGHT_NOTICE' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Отбелязване'),
+        'PLANNING_TASK_NET_WEIGHT_WARNING' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Предупреждение'),
+        'PLANNING_TASK_NET_WEIGHT_CRITICAL' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Критично'),
     );
 
 
@@ -297,19 +324,41 @@ class planning_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
 
-        if (core_Packs::isInstalled('peripheral')) {
-            // Добавяне на етикет за производствена операция
-            core_Classes::add('peripheral_printer_Browser');
-            core_Users::forceSystemUser();
-            if (label_Templates::addFromFile('Разпечатване на прогрес на производствена операция', 'planning/tpl/DefaultTaskProgressLabelPrint.shtml', 'defaultPrintTaskRec', array('210', '297'), 'bg', planning_ProductionTaskDetails::getClassId(), peripheral_printer_Browser::getClassId())) {
-                $html = "<li class='green'>Обновен шаблон за етикети на прогреса на производствената операция";
-            } else {
-                $html = '<li>Пропуснато обновяване на шаблон за прогреса на производствената операция</li>';
-            }
-            core_Users::cancelSystemUser();
-        }
-
         return $html;
+    }
+
+
+    /**
+     * След инпутване на формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function inputConfigDescriptionForm(&$configForm)
+    {
+        if($configForm->isSubmitted()){
+            $rec = $configForm->rec;
+            if(!empty($rec->PLANNING_TASK_NET_WEIGHT_NOTICE)){
+                if(isset($rec->PLANNING_TASK_NET_WEIGHT_WARNING)){
+                    if($rec->PLANNING_TASK_NET_WEIGHT_NOTICE >= $rec->PLANNING_TASK_NET_WEIGHT_WARNING){
+                        $configForm->setError('PLANNING_TASK_NET_WEIGHT_NOTICE,PLANNING_TASK_NET_WEIGHT_WARNING', 'Предупреждението трябва да е по-голямо от отбелязването');
+                    }
+                }
+                if(isset($rec->PLANNING_TASK_NET_WEIGHT_CRITICAL)){
+                    if($rec->PLANNING_TASK_NET_WEIGHT_NOTICE >= $rec->PLANNING_TASK_NET_WEIGHT_CRITICAL){
+                        $configForm->setError('PLANNING_TASK_NET_WEIGHT_NOTICE,PLANNING_TASK_NET_WEIGHT_CRITICAL', 'Критичното трябва да е по-голямо от отбелязването');
+                    }
+                }
+            }
+
+            if(!empty($rec->PLANNING_TASK_NET_WEIGHT_WARNING)){
+                if(isset($rec->PLANNING_TASK_NET_WEIGHT_CRITICAL)){
+                    if($rec->PLANNING_TASK_NET_WEIGHT_WARNING >= $rec->PLANNING_TASK_NET_WEIGHT_CRITICAL){
+                        $configForm->setError('PLANNING_TASK_NET_WEIGHT_WARNING,PLANNING_TASK_NET_WEIGHT_CRITICAL', 'Критичното трябва да е по-голямо от предупреждението');
+                    }
+                }
+            }
+        }
     }
 
 

@@ -245,7 +245,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_PACKAGING_AUTO_BARCODE_END' => array('gs1_TypeEan', 'caption=Автоматични баркодове на опаковките->Край'),
         'CAT_LABEL_RESERVE_COUNT' => array('percent(min=0,max=1)', 'caption=Печат на етикети на опаковки->Резерва'),
         'CAT_CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на стари нестандартни артикули->Неизползвани от'),
-        'CAT_CLOSE_UNUSED_PRIVATE_IN_ACTIVE_QUOTES_OLDER_THAN' => array('time', 'caption=Затваряне на стари нестандартни артикули->В активни оферти отпреди'),
+        'CAT_CLOSE_UNUSED_PRIVATE_IN_ACTIVE_QUOTES_OLDER_THAN' => array('time', 'caption=Затваряне на стари нестандартни артикули->В оферти отпреди'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на неизползвани стандартни артикули->Създадени преди'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Само в папките'),
 

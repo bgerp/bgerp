@@ -330,7 +330,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             if(isset($rec->packagingId)){
 
                 // Ако в заданието е оказано да се отчита във втора мярка
-                if($jobRec->secondMeasureId){
+                if($jobRec->secondMeasureId && $rec->productId == $jobRec->productId){
 
                     // Ако заданието е във втора мярка, и се произвежда в някоя от производните ѝ
                     if(array_key_exists($rec->packagingId, $secondMeasureDerivatives)){

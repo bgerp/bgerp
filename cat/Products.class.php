@@ -410,7 +410,8 @@ class cat_Products extends embed_Manager
                 if (!empty($lastDriver)) {
                     if (cls::load($lastDriver, true)) {
                         if (cls::get($lastDriver)->canSelectDriver()) {
-                            return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver));
+
+                            return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver, 'ret_url' => getRetUrl()));
                         }
                     }
                 }
@@ -1646,44 +1647,56 @@ class cat_Products extends embed_Manager
         $mArr = array();
 
         // Подготвяне на опциите
-        $showFields = 'isPublic,folderId,meta,id,code,name,nameEn,state,measureId,innerClass';
+        $showFields = 'isPublic,folderId,meta,id,code,name,nameEn,state,measureId,innerClass,info';
         if (isset($params['listId'])) {
             $showFields .= ",reff";
         }
         $query->show($showFields);
 
         while ($rec = $query->fetch()) {
-            $title = static::getRecTitle($rec, false);
-            if(!empty($rec->reff)){
-                $title = "[{$rec->reff}]  {$title}";
+            $title = null;
+            if($params['display'] == 'info'){
+                Mode::push('text', 'plain');
+                $info = cat_Products::getVerbal($rec->id, 'info');
+                Mode::pop('text');
+                if(!empty($info)){
+                    $title = $info;
+                }
             }
 
-            // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
-            $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
-            if(!is_numeric($onlyIds)){
-                if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
-                    $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
-                    if(isset($policyInfo->price)){
-                        $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
-                        $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
-                        $measureId = $rec->measureId;
+            if(empty($title)){
+                $title = static::getRecTitle($rec, false);
+                if(!empty($rec->reff)){
+                    $title = "[{$rec->reff}]  {$title}";
+                }
 
-                        if($showPrices == 'basePack'){
-                            if($packRec = cat_products_Packagings::fetch("#productId = {$rec->id} AND #isBase = 'yes'", 'packagingId,quantity')){
-                                $measureId = $packRec->packagingId;
-                                $price *= $packRec->quantity;
+                // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
+                $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
+                if(!is_numeric($onlyIds)){
+                    if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
+                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
+                        if(isset($policyInfo->price)){
+                            $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
+                            $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
+                            $measureId = $rec->measureId;
+
+                            if($showPrices == 'basePack'){
+                                if($packRec = cat_products_Packagings::fetch("#productId = {$rec->id} AND #isBase = 'yes'", 'packagingId,quantity')){
+                                    $measureId = $packRec->packagingId;
+                                    $price *= $packRec->quantity;
+                                }
                             }
-                        }
 
-                        Mode::push('text', 'plain');
-                        $priceVerbal = price_Lists::roundPrice($listId, $price, true);
-                        Mode::pop();
-                        $measureName = cat_UoM::getShortName($measureId);
-						
-						if ($params['priceData']['currencyId'] == 'BGN') {
-							$title .= " ...... {$priceVerbal} " . tr('лв') . "/{$measureName}";
-						} else
-							$title .= " ...... {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
+                            Mode::push('text', 'plain');
+                            $priceVerbal = price_Lists::roundPrice($listId, $price, true);
+                            Mode::pop();
+                            $measureName = cat_UoM::getShortName($measureId);
+
+                            if ($params['priceData']['currencyId'] == 'BGN') {
+                                $title .= " ...... {$priceVerbal} " . tr('лв') . "/{$measureName}";
+                            } else
+                                $title .= " ...... {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
+                        }
                     }
                 }
             }
@@ -2874,8 +2887,8 @@ class cat_Products extends embed_Manager
             $quoteQuery->EXT('qActivatedOn', 'sales_Quotations', "externalName=activatedOn,externalKey=quotationId");
             $quoteQuery->EXT('qDate', 'sales_Quotations', "externalName=date,externalKey=quotationId");
             $quoteQuery->EXT('qCreatedOn', 'sales_Quotations', "externalName=createdOn,externalKey=quotationId");
-            $quoteQuery->XPR('since', 'date', 'COALESCE(#qActivatedOn, #qDate,#qCreatedOn)');
-            $quoteQuery->where("#since >= '{$activeThen}' AND #state = 'active'");
+            $quoteQuery->XPR('since', 'date', 'COALESCE(#qActivatedOn, #qDate, #qCreatedOn)');
+            $quoteQuery->where("#since >= '{$activeThen}' AND #state != 'rejected'");
             $quoteQuery->in("productId", array_keys($saveArr));
             $quoteQuery->show('productId');
 
@@ -2894,7 +2907,7 @@ class cat_Products extends embed_Manager
 
             // Затваряне и на активните задания с произведено над 0.9 процента
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')) {
-                planning_Jobs::closeActiveJobs(planning_Setup::get($completeJobTolerance, $sd->id));
+                planning_Jobs::closeActiveJobs($completeJobTolerance, $sd->id);
             }
         }
 
@@ -3379,9 +3392,6 @@ class cat_Products extends embed_Manager
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
-     *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
-     *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
-     *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
      *               o description                    - забележки
      *               o labelPackagingId               - ид на опаковка за етикетиране
      *               o labelQuantityInPack            - к-во в опаковката

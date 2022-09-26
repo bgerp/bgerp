@@ -32,7 +32,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,packagingId=Количества->Мярка,storeId,indTime,totalTime,modified=Промяна';
+    public $listFields = 'type,productId,plannedQuantity=Количества->План.,limit=Количества->Макс.,totalQuantity=Количества->Изп.,packagingId=Количества->Мярка,storeId,indTime=Норма,totalTime,modified=Промяна';
     
     
     /**
@@ -179,11 +179,11 @@ class planning_ProductionTaskProducts extends core_Detail
             
             // Поле за бързо добавяне на прогрес, ако може
             if (empty($rec->id) && $rec->type != 'waste' && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
-                $caption = ($rec->type == 'input') ? 'Вложено' : 'Произведено';
-                $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
+                $caption = ($rec->type == 'input') ? 'Вложено' : 'Бърз Прогрес (на момента)->Произведено';
+                $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},after=indTime");
                 $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
                 if (countR($employees)) {
-                    $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=0)', 'caption=Оператори,after=inputedQuantity');
+                    $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=0)', 'caption=Бърз Прогрес (на момента)->Оператори,after=inputedQuantity');
                     $form->setSuggestions('employees', $employees);
                 }
             }
