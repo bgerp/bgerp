@@ -44,10 +44,7 @@ class cond_type_Product extends cond_type_Varchar
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)');
         $Type->params['groups'] = $this->driverRec->productGroups;
-
-        $this->driverRec->display = 'info';
-
-        if($this->driverRec->display != 'name'){
+        if(isset($this->driverRec->display) && $this->driverRec->display != 'name'){
             $Type->params['display'] = $this->driverRec->display;
         }
 
