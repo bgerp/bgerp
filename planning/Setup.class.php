@@ -128,34 +128,9 @@ defIfNot('PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS', 'yes');
 
 
 /**
- * Показване на статус при разминаване на нетото в ПО->Отбелязване
- */
-defIfNot('PLANNING_TASK_NET_WEIGHT_NOTICE', '');
-
-
-/**
  * Показване на статус при разминаване на нетото в ПО->Предупреждение
  */
 defIfNot('PLANNING_TASK_NET_WEIGHT_WARNING', 0.05);
-
-
-/**
- * Показване на статус при разминаване на нетото в ПО->Критично
- */
-defIfNot('PLANNING_TASK_NET_WEIGHT_CRITICAL', '');
-
-
-
-
-
-
-/**
- * Показване на статус при разминаване на нетото в ПО->Критично
- */
-defIfNot('PLANNING_TASK_WEIGHT_TOLERANCE_WARNING', '');
-
-
-
 
 
 /**
@@ -227,9 +202,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
         'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
-        'PLANNING_TASK_NET_WEIGHT_NOTICE' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Отбелязване'),
         'PLANNING_TASK_NET_WEIGHT_WARNING' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Предупреждение'),
-        'PLANNING_TASK_NET_WEIGHT_CRITICAL' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Критично'),
     );
 
 
@@ -325,40 +298,6 @@ class planning_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
 
         return $html;
-    }
-
-
-    /**
-     * След инпутване на формата за настройките
-     *
-     * @param core_Form $configForm
-     * @return void
-     */
-    public function inputConfigDescriptionForm(&$configForm)
-    {
-        if($configForm->isSubmitted()){
-            $rec = $configForm->rec;
-            if(!empty($rec->PLANNING_TASK_NET_WEIGHT_NOTICE)){
-                if(isset($rec->PLANNING_TASK_NET_WEIGHT_WARNING)){
-                    if($rec->PLANNING_TASK_NET_WEIGHT_NOTICE >= $rec->PLANNING_TASK_NET_WEIGHT_WARNING){
-                        $configForm->setError('PLANNING_TASK_NET_WEIGHT_NOTICE,PLANNING_TASK_NET_WEIGHT_WARNING', 'Предупреждението трябва да е по-голямо от отбелязването');
-                    }
-                }
-                if(isset($rec->PLANNING_TASK_NET_WEIGHT_CRITICAL)){
-                    if($rec->PLANNING_TASK_NET_WEIGHT_NOTICE >= $rec->PLANNING_TASK_NET_WEIGHT_CRITICAL){
-                        $configForm->setError('PLANNING_TASK_NET_WEIGHT_NOTICE,PLANNING_TASK_NET_WEIGHT_CRITICAL', 'Критичното трябва да е по-голямо от отбелязването');
-                    }
-                }
-            }
-
-            if(!empty($rec->PLANNING_TASK_NET_WEIGHT_WARNING)){
-                if(isset($rec->PLANNING_TASK_NET_WEIGHT_CRITICAL)){
-                    if($rec->PLANNING_TASK_NET_WEIGHT_WARNING >= $rec->PLANNING_TASK_NET_WEIGHT_CRITICAL){
-                        $configForm->setError('PLANNING_TASK_NET_WEIGHT_WARNING,PLANNING_TASK_NET_WEIGHT_CRITICAL', 'Критичното трябва да е по-голямо от предупреждението');
-                    }
-                }
-            }
-        }
     }
 
 

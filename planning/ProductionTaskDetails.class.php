@@ -963,9 +963,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
         array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
 
-        $deviationNotice = planning_Setup::get('TASK_NET_WEIGHT_NOTICE');
-        $deviationWarning = planning_Setup::get('TASK_NET_WEIGHT_WARNING');
-        $deviationCritical = planning_Setup::get('TASK_NET_WEIGHT_CRITICAL');
+        $eFields = planning_Tasks::getExpectedDeviations($masterRec);
+        $deviationNotice = $eFields['notice'];
+        $deviationWarning = $eFields['warning'];
+        $deviationCritical = $eFields['critical'];
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
@@ -1012,9 +1013,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
 
                         if(isset($iconHint)){
+                            $deviationVerbal = core_Type::getByName('percent')->toVerbal($deviation);
                             $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично ' : ($iconHint == 'warning' ? 'значително ' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
-                            $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето|*: {$expectedNetWeightVerbal}");
+                            $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето|*: {$expectedNetWeightVerbal} |с|* {$deviationVerbal}");
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
                         }
                     }
