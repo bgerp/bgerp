@@ -578,7 +578,7 @@ class eshop_Groups extends core_Master
                 $tpl = new ET(getFileContent('eshop/tpl/GroupButton.shtml'));
                 
                 if ($rec->icon) {
-                    $img = new thumb_Img($rec->icon, 400, 300, 'fileman');
+                    $img = new thumb_Img($rec->icon, 600, 450, 'fileman');
                     $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'img');
                 } else {
                     continue;
