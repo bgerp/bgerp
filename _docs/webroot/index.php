@@ -4,12 +4,6 @@
 // Шаблон за този файл има в директорията [_docs]
 @include(dirname(__FILE__) . '/index.cfg.php');
 
-// Проверяваме дали има htaccess файл. Ако няма - показваме грешка
-// Шаблон за този файл има в директорията [_docs]
-if (!file_exists(dirname(__FILE__) . '/.htaccess')) {
-    die('Error in index.php: <b>Missing .htaccess file</b>');
-}
-
 // Пътят до директорията на този файл
 DEFINE('EF_INDEX_PATH', str_replace('\\', '/', realpath(dirname(__FILE__))));
 
