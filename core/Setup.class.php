@@ -343,7 +343,7 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_AUTOHIDE_SHARED_USERS' => array('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
         
-        'EF_APP_TITLE' => array('varchar(16)', 'caption=Наименование на приложението->Име'),
+        'EF_APP_TITLE' => array('varchar(16)', 'caption=Наименование на приложението->Име, customizeBy=admin'),
         
         'CORE_SYSTEM_NICK' => array('varchar(16)', 'caption=Системен потребител->Ник'),
         
