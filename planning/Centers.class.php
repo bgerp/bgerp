@@ -187,6 +187,7 @@ class planning_Centers extends core_Master
         $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Отбелязване');
         $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Предупреждение');
         $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично');
+        $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Параметър за изчисляване на ед. тегло->Избор');
 
         $this->setDbUnique('name');
     }
@@ -216,6 +217,8 @@ class planning_Centers extends core_Master
             }
         }
         $form->setOptions('useTareFromParamId', array('' => '') + $paramOptions);
+        $form->setOptions('paramExpectedNetWeight', array('' => '') + $paramOptions);
+
         $form->setField("deviationNettoWarning", "placeholder=" . $mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING')));
     }
 

@@ -46,6 +46,9 @@
 					<!--ET_BEGIN deviationNettoCritical-->
 					<div>|Статус при разминаване на нетото в ПО: Критично|*: <b>[#deviationNettoCritical#]</b></div>
 					<!--ET_END deviationNettoCritical-->
+					<!--ET_BEGIN paramExpectedNetWeight-->
+					<div>|Параметър за единично тегло|*: <b>[#paramExpectedNetWeight#]</b></div>
+					<!--ET_END paramExpectedNetWeight-->
 
 					<!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
