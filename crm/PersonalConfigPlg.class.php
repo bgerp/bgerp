@@ -26,16 +26,16 @@ class crm_PersonalConfigPlg extends core_Plugin
     public function on_BeforeGetConfConst($mvc, &$value, $name)
     {
         $currUserId = core_Users::getCurrent();
-        
-        if (!$currUserId || ($currUserId <= 0)) {
+
+        if ($currUserId < 0) {
             
-            return ;
+//            return ;
         }
         
         $key = crm_Profiles::getSettingsKey();
         
         $valsArr = core_Settings::fetchKey($key, $currUserId);
-        
+
         if (isset($valsArr[$name])) {
             $value = $valsArr[$name];
         }
