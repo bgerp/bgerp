@@ -628,15 +628,11 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(isset($taskRec->labelPackagingId) && keylist::isIn($taskRec->labelPackagingId, $centerRec->useTareFromPackagings)){
                 $tareWeight = cat_products_Packagings::fetchField("#productId = {$jobProductId} AND #packagingId = {$taskRec->labelPackagingId}",'tareWeight');
                 $packName = cat_UoM::getShortName($taskRec->labelPackagingId);
-                if(!isset($tareWeight)) {
-                    $msg = "Избраната опаковка няма посочена тара|*: <b>{$packName}</b>";
-                    $msgType = 'warning';
-                    return $result;
+                if(isset($tareWeight)) {
+                    $taskWeightSubtractValue = $tareWeight;
+                    $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
+                    $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността на тарата от опаковката|* <b>{$packName}</b> : {$subtractTareWeightValVerbal}";
                 }
-
-                $taskWeightSubtractValue = $tareWeight;
-                $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
-                $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността на тарата от опаковката|* <b>{$packName}</b> : {$subtractTareWeightValVerbal}";
             }
         }
 
