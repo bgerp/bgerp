@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Продажби » Цени на нестандартни артикули
  */
-class sales_reports_PriceOfNonstandardProducts extends frame2_driver_TableData
+class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
 {
     /**
      * Кой може да избира драйвъра
@@ -58,7 +58,6 @@ class sales_reports_PriceOfNonstandardProducts extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('date', 'date(smartTime)', 'caption=Отчетен период->От,after=sellPriceToleranceUp,mandatory,single=none');
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Дилъри,placeholder=Всички,after=to');
 
     }
 
