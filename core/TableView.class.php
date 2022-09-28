@@ -176,7 +176,7 @@ class core_TableView extends core_BaseClass
                         $class .= ' ' . $this->mvc->fields[$place]->tdClass;
                     }
                     
-                    if ($colWithClass[$place]) {
+                    if (isset($colWithClass[$place])) {
                         $class .= " {$colWithClass[$place]}";
                     }
                     

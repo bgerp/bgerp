@@ -214,12 +214,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
 
-            return;
-        }
-
-        $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+        $rec->packQuantity = core_Math::roundNumber($rec->quantity / $rec->quantityInPack);
     }
 
 
@@ -281,7 +278,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
-                $originRec = $originDoc->fetch('productId,producedQuantity,measureId,isFinal');
+                $originRec = $originDoc->fetch();
                 $originPackId = ($originRec->isFinal == 'yes') ? $originRec->measureId : $info->measureId;
                 $form->setDefault('packagingId', $originPackId);
                 $toProduce = round($info->totalQuantity - $info->producedQuantity - $info->scrappedQuantity, 4);
@@ -333,9 +330,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             if(isset($rec->packagingId)){
 
                 // Ако в заданието е оказано да се отчита във втора мярка
-                if($jobRec->secondMeasureId){
+                if($jobRec->secondMeasureId && $rec->productId == $jobRec->productId){
 
-                    // Ако заданието е във втора мярка, и се произвежда в някоя от производните и
+                    // Ако заданието е във втора мярка, и се произвежда в някоя от производните ѝ
                     if(array_key_exists($rec->packagingId, $secondMeasureDerivatives)){
                         $additionalMeasures = array_diff_key($originalPacks, $secondMeasureDerivatives);
 
@@ -438,9 +435,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $additionalMeasureQuantity = cat_Uom::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $productInfo->productRec->measureId);
                     $rec->quantityInPack = $additionalMeasureQuantity / $rec->packQuantity;
                 } elseif($secondMeasureType == 'packaging'){
+                    $origin = doc_Containers::getDocument($rec->originId);
+                    $originRec = $origin->fetch();
 
                     // Ако втората мярка е опаковка, смята се колко е в основната мярка
                     $quantityInPack = ($productInfo->packagings[$rec->additionalMeasureId]) ? $productInfo->packagings[$rec->additionalMeasureId]->quantity : 1;
+                    if($origin->isInstanceOf('planning_Tasks')){
+                        if($originRec->labelPackagingId == $rec->additionalMeasureId){
+                            $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId);
+                        }
+                    }
+
                     $additionalMeasureQuantity = $rec->additionalMeasureQuantity * $quantityInPack;
                     $rec->quantityInPack = $additionalMeasureQuantity / $rec->packQuantity;
                 }
@@ -488,11 +493,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $expectedEquivalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $productRec->measureId, $rec->additionalMeasureId);
                 $additionalQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId,  $productRec->measureId);
             } else {
+                $originRec = $origin->fetch();
 
-                // Ако втората мярка е опаковка
                 $equivalentMeasureId = $rec->additionalMeasureId;
                 $addPackRec = cat_products_Packagings::getPack($rec->productId, $rec->additionalMeasureId);
                 $quantityInPack = is_object($addPackRec) ? $addPackRec->quantity : 1;
+
+                // Ако втората мярка е опаковка
+                if($origin->isInstanceOf('planning_Tasks')){
+                    if($originRec->labelPackagingId == $rec->additionalMeasureId){
+                        $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId);
+                    }
+                }
+
                 $expectedEquivalentQuantityInMeasure = $expectedQuantity / $quantityInPack;
                 $additionalQuantity = $rec->additionalMeasureQuantity * $quantityInPack;
             }

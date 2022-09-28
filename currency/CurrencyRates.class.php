@@ -575,11 +575,15 @@ class currency_CurrencyRates extends core_Detail
         
         $difference = 0;
         $minAmount = min($amountTo, $expectedAmount);
-        
-        if (!empty($minAmount)) {
-            $difference = round(abs($amountTo - $expectedAmount) / $minAmount * 100);
+
+        if (isset($minAmount)) {
+            if(empty($minAmount)){
+                $difference = 100;
+            } else {
+                $difference = round(abs($amountTo - $expectedAmount) / $minAmount * 100);
+            }
         }
-        
+
         if ($difference > $percent) {
             
             return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс";

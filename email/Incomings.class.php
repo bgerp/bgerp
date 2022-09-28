@@ -297,7 +297,7 @@ class email_Incomings extends core_Master
         
         // До коя секунда в бъдещето максимално да се теглят писма?
         $deadline = time() + $maxFetchingTime;
-        
+
         // Вземаме последователно сметките, подредени по случаен начин
         $accQuery = email_Accounts::getQuery();
         $accQuery->XPR('order', 'double', 'RAND()');
@@ -458,7 +458,7 @@ class email_Incomings extends core_Master
         } catch (core_Exception_Expect $exp) {
             $status = 'fetching error';
         }
-        
+
         //if(($i % 100) == 1 || ( ($i - $firstUnreadMsgNo) < 100)) {
         //    email_Accounts::logInfo("Fetching message {$i}", $accRec->id);
         //}
@@ -499,7 +499,15 @@ class email_Incomings extends core_Master
             $headers = $imapConn->getHeaders($msgNo);
             
             if (email_Fingerprints::fetchByHeaders($headers)) {
-                
+
+                // Кой е UID на писмото?
+                $uid = $imapConn->getUid($msgNo);
+
+                // Записа на имейл сметката, от където се тегли
+                $accId = $imapConn->accRec->id;
+
+                email_Fingerprints::saveMaxUID($accId, $uid);
+
                 return 'duplicated';
             }
             
@@ -702,18 +710,25 @@ class email_Incomings extends core_Master
             
             return;
         }
-        
+
+        $maxReadMsgNo = $maxUid = 0;
+
         if ($imapConn->accRec->protocol == 'imap') {
-            $query = email_Fingerprints::getQuery();
-            $query->XPR('maxUid', 'int', 'max(#uid)');
-            $query->show('maxUid');
-            $maxRec = $query->fetch("#accountId = {$imapConn->accRec->id}");
+            $maxUid = core_Permanent::get('IMAP_MAX_UID_' . $imapConn->accRec->id);
+            if (!$maxUid) {
+
+                $query = email_Fingerprints::getQuery();
+                $query->XPR('maxUid', 'int', 'max(#uid)');
+                $query->show('maxUid');
+                $query->limit(1);
+                $maxRec = $query->fetch("#accountId = {$imapConn->accRec->id}");
+
+                $maxUid = $maxRec->maxUid;
+            }
         }
-        
-        $maxReadMsgNo = 0;
-        
-        if ($maxRec->maxUid) {
-            $maxReadMsgNo = $imapConn->getMsgNo($maxRec->maxUid);
+
+        if ($maxUid) {
+            $maxReadMsgNo = $imapConn->getMsgNo($maxUid);
         }
         
         if ($maxReadMsgNo === 0) {
@@ -2346,7 +2361,7 @@ class email_Incomings extends core_Master
                 $mvc->makeRouterRules($rec);
             }
         }
-        
+
         // Ако се е прекъснало нормалното рутиране по нишка
         // Бием нотификация на създателя на документа
         if ($rec->originId) {

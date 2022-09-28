@@ -274,7 +274,7 @@ class acc_ReportDetails extends core_Manager
     private function getVerbalBalanceRec($dRec, $groupBy, $data)
     {
        $row = array();
-       $dRec->blPrice = (!empty($dRec->blQuantity)) ? $dRec->blAmount / $dRec->blQuantity : 0;
+       $dRec->blPrice = (abs($dRec->blQuantity)) ? $dRec->blAmount / $dRec->blQuantity : 0;
        
        // На коя позиция се намира, перото на мастъра
        $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);

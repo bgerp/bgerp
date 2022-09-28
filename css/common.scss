@@ -2694,11 +2694,11 @@ div.alphabet.twoRows {
 		font-family: arial;
 		@include no-shadow();
 		display: inline;
-		margin: 1px -8px -1px 10px;
+		margin: 1px -11px -1px 10px;
 		float: left;
 		background: $gray3;
 		border: 1px solid $gray4;
-		border-bottom: none;
+		border-bottom: 1px solid #0066ff;
 		color: #999;
 		z-index: 1;
 		white-space: nowrap;
@@ -2723,11 +2723,8 @@ div.alphabet.twoRows {
 			background-color: $gray3 !important;
 		}
 		&.selected {
-			margin: 1px -8px -3px 10px;
+			margin: 1px -11px -1px 10px;
 			background: $history-bg !important;
-			border: 1px solid #ccc;
-			box-shadow: 0 -1px 1px rgba(0,0,0,0.2);
-			border-bottom: none;
 			z-index: 3;
 			padding: 0 0 1px !important;
 			top: 0;

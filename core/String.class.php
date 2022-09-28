@@ -1003,7 +1003,7 @@ class core_String
         $wordsArr = arr::make($wordsArr);
         
         // Ако в масива има търсения стринг
-        if ($wordsArr[$string]) {
+        if (isset($wordsArr[$string])) {
             $percent = 100;
             
             return $string;

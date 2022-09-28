@@ -1092,7 +1092,8 @@ class core_Packs extends core_Manager
         $form->setHidden('pack', $rec->name);
         $setup->manageConfigDescriptionForm($form);
         $form->input();
-        
+        $setup->inputConfigDescriptionForm($form);
+
         $retUrl = getRetUrl();
         
         if (!$retUrl) {

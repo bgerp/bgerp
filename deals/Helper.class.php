@@ -2482,4 +2482,65 @@ abstract class deals_Helper
 
         return null;
     }
+
+
+    /**
+     * Помощна функция връщаща използваните файлове в един документ
+     *
+     * @param mixed $mvc                  - модел
+     * @param stdClass|int $rec           - запис
+     * @param array $masterRichtextFields - масив с полета от мастъра, където да се търсят файлове
+     * @param array $detailRichtextFields - масив с полета от детайла, където да се търсят файлове
+     * @return array $fhArr               - намерените файлове с ключ хендлъра им и стойност името
+     */
+    public static function getLinkedFilesInDocument($mvc, $rec, $masterRichtextFields = array(), $detailRichtextFields = array())
+    {
+        $fhArr = $showFields = array();
+        $Class = cls::get($mvc);
+        $rec = $Class->fetchRec($rec);
+
+        // Ако има зададени мастър полета в които да се търсят файлове, извличат се
+        $masterRichtextFields = arr::make($masterRichtextFields);
+        foreach ($masterRichtextFields as $masterRichTextField){
+            if(!empty($rec->{$masterRichTextField})){
+                $fhArr += fileman_RichTextPlg::getFiles($rec->{$masterRichTextField});
+            }
+        }
+
+        // Ако има детайл и има зададени полета от детайла, от които да се извличат файлове
+        if(isset($mvc->mainDetail)){
+            $detailRichtextFields = arr::make($detailRichtextFields);
+            $Detail = cls::get($mvc->mainDetail);
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            if(countR($detailRichtextFields)){
+                $showFields = $detailRichtextFields;
+            }
+            if(isset($Detail->productFld)){
+                $showFields[] = $Detail->productFld;
+            }
+            if(countR($showFields)){
+                $dQuery->show(implode(',', $showFields));
+
+                // Извличане на файлове от детайла
+                while($dRec = $dQuery->fetch()){
+                    foreach ($detailRichtextFields as $detField){
+                        if(!empty($dRec->{$detField})){
+                            $fhArr += fileman_RichTextPlg::getFiles($dRec->{$detField});
+                        }
+
+                        // Ако има артикул извличат се файловете от него
+                        if(isset($Detail->productFld)) {
+                            if($Driver = cat_Products::getDriver($dRec->{$Detail->productFld})){
+                                $fhArr += $Driver->getLinkedFiles($dRec->{$Detail->productFld});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Връщане на намерените файлове, ако има такива
+        return $fhArr;
+    }
 }

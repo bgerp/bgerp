@@ -30,7 +30,8 @@ class doc_RichTextPlg extends core_Plugin
      */
     public static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'(?'dsSign'\#)(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))(?'endDs'(\!)?)){1}/iu";
     
-    
+    public static $patternWiki = "/\\[(\\[|&#91;)#([a-z]{1,3})([0-9]{1,10})\\|([^\]]+)\\]\\]/ui";
+
     public static $identPattern = "/(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})(?'endDs'(\!)?))/i";
     
     
@@ -45,7 +46,9 @@ class doc_RichTextPlg extends core_Plugin
         $this->mvc = $mvc;
         
         if ($mvc->params['hndToLink'] != 'no') {
+ 
             //Ако намери съвпадение на регулярния израз изпълнява функцията
+            $html = preg_replace_callback(self::$patternWiki, array($this, '_catchWiki'), $html);
             $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
         }
         
@@ -57,7 +60,7 @@ class doc_RichTextPlg extends core_Plugin
     
     
     /**
-     * Обработваме елементите линковете, които сочат към докъментната система
+     * Обработваме елементите линковете, които сочат към документната система
      */
     public function on_BeforeCatchRichElements($rt, &$html)
     {
@@ -175,7 +178,7 @@ class doc_RichTextPlg extends core_Plugin
                 // Ако линка е в iframe да се отваря в родителския(главния) прозорец
                 $attr['target'] = '_parent';
             }
-            
+
             $href = ht::createLink($docName, $link, null, $attr);
             
             //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
@@ -189,6 +192,88 @@ class doc_RichTextPlg extends core_Plugin
         return  $res;
     }
     
+
+    /**
+     * Заменяме линковете от система с абсолютни URL' та
+     *
+     * @param array $match - Масив с откритите резултати
+     *
+     * @return string $res - Ресурса, който ще се замества
+     */
+    public function _catchWiki($match)
+    {   
+        $abbr = $match[2];
+        $docId = $match[3];
+        $docName = $match[4];
+
+        if (!$doc = doc_Containers::getDocumentByHandle($abbr . $docId)) {
+            
+            return $match[0];
+        }
+        
+        // Проверяваме дали имаме достъп до някакъв единичен изглед
+        // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
+        $singleUrl = $doc->getSingleUrlArray();
+        if (is_array($singleUrl) && !countR($singleUrl)) {
+            
+            // Ако масива е празен значи няма достъп потребителя да преглежда документа
+            return $match[0];
+        }
+        
+        // Подаваме името на файла на документа, ако иска да го промени
+        $doc->invoke('AfterGetDocNameInRichtext', array(&$docName, $match['id']));
+        
+        $mvc = $doc->instance;
+        $docRec = $doc->rec();
+        
+        //Създаваме линк към документа
+        $link = bgerp_L::getDocLink($docRec->containerId, doc_DocumentPlg::getMidPlace());
+        
+        //Уникален стринг
+        $place = $this->mvc->getPlace();
+        
+        //Ако сме в текстов режим
+        if (Mode::is('text', 'plain')) {
+            //Добавяме линк към системата
+            $this->mvc->_htmlBoard[$place] = "{$docName} ( ${link} )";
+        } else {
+            $attr = array();
+            
+            // Икона на линка
+            $attr['ef_icon'] = $doc->getIcon($doc->that);
+            
+            // Атрибути на линка
+            $attr['class'] = 'docLink';
+            
+            $attr['rel'] = 'nofollow';
+            
+            // Ако изпращаме или принтираме документа
+            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                
+                // Линка да се отваря на нова страница
+                $attr['target'] = '_blank';
+            } else {
+                // Ако линка е в iframe да се отваря в родителския(главния) прозорец
+                $attr['target'] = '_parent';
+            }
+            
+            if(!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))) {
+                $editUrl = toUrl(array($mvc, 'Edit', $docId));
+                $attr['ondblclick'] = "window.location = '{$editUrl}';";
+            }
+            $attr['onclick'] = "window.location = '{$link}';";
+            $href = ht::createLink($docName, '#', null, $attr);
+            
+            //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
+            $this->mvc->_htmlBoard[$place] = $href->getContent();
+        }
+        
+        //Стойността, която ще заместим в регулярния израз
+        //Добавяме символите отркити от регулярниярния израз, за да не се развали текста
+        $res = $match['begin'] . "[#{$place}#]";
+        
+        return  $res;
+    }
     
     /**
      * Парсира манипулатора

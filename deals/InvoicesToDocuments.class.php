@@ -139,14 +139,14 @@ class deals_InvoicesToDocuments extends core_Manager
             }
 
             if($Document instanceof deals_PaymentDocument){
-                $amountWarnings = array();
+                $amountWarnings = $amountErrors = array();
                 foreach ($invArr as $iRec){
                     $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
                     $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
+                    $Invoice = doc_Containers::getDocument($iRec->containerId);
+                    $iInst = $Invoice->getInstance();
 
-                    if($iRec->amount > $eAmount){
-                        $Invoice = doc_Containers::getDocument($iRec->containerId);
-                        $iInst = $Invoice->getInstance();
+                    if(abs($iRec->amount) > abs($eAmount)){
                         if ($iInst->fields['number']) {
                             $number = $iInst->getVerbal($Invoice->fetch(), 'number');
                         } else {
@@ -155,11 +155,19 @@ class deals_InvoicesToDocuments extends core_Manager
 
                         $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
                         $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
+                    } elseif($iRec->amount < 0){
+                        $invRec = $Invoice->fetch('type,dealValue');
+                        if($invRec->type == 'invoice' || $invRec->dealValue > 0){
+                            $amountErrors[] = "Към фактура или дебитно разпределената сума, трябва да е положителна";
+                        }
                     }
                 }
 
                 if(countR($amountWarnings)){
                     $form->setWarning('invoices,fromContainerId', implode("<li>", $amountWarnings));
+                }
+                if(countR($amountErrors)){
+                    $form->setError('invoices,fromContainerId', implode("<li>", $amountErrors));
                 }
             }
 
@@ -423,7 +431,12 @@ class deals_InvoicesToDocuments extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $Document = doc_Containers::getDocument($rec->containerId);
+
         $row->documentName = mb_strtolower($Document->singleTitle);
+        if($Document->isInstanceOf('deals_InvoiceMaster')){
+            $invoiceType = $Document->fetchField('type');
+            $row->documentName = ($invoiceType == 'invoice') ? tr('фактура') : (($invoiceType == 'dc_note' && $rec->amount <= 0) ? 'к-но известие' : 'д-но известие');
+        }
 
         if ($Document->getInstance()->getField('number', false)) {
             $row->containerId = $Document->getInstance()->getVerbal($Document->fetch(), 'number');
@@ -435,6 +448,7 @@ class deals_InvoicesToDocuments extends core_Manager
         }
 
         $row->documentContainerId = doc_Containers::getDocument($rec->documentContainerId)->getLink(0);
+        $row->amount = ht::styleNumber($row->amount, $rec->amount);
     }
 
 

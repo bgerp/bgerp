@@ -2865,4 +2865,18 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
     }
+
+
+    /**
+     * Връща файла, който се използва в документа
+     *
+     * @param object $rec
+     * @return array
+     */
+    public function getLinkedFiles($rec)
+    {
+        $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
+
+        return $files;
+    }
 }

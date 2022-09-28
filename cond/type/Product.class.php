@@ -26,6 +26,7 @@ class cond_type_Product extends cond_type_Varchar
     {
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Конкретизиране->Групи,mandatory');
         $fieldset->FLD('show', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване,mandatory');
+        $fieldset->FLD('display', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Избор,mandatory');
     }
 
 
@@ -43,6 +44,9 @@ class cond_type_Product extends cond_type_Varchar
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)');
         $Type->params['groups'] = $this->driverRec->productGroups;
+        if(isset($this->driverRec->display) && $this->driverRec->display != 'name'){
+            $Type->params['display'] = $this->driverRec->display;
+        }
 
         return $Type;
     }

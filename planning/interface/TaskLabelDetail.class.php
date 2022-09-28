@@ -63,13 +63,23 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
      */
     public function getDefaultLabelWithData($id, $templateId)
     {
-        $template = label_Templates::fetch($templateId);
-        $templateTpl = new core_ET($template->template);
-        
+        $templateTpl = label_Templates::addCssToTemplate($templateId);
+
         // Взимат се данните за бърз етикет
-        $labelData = $this->getLabelData($id, 1, false);
-        $content = $labelData[0];
-        $templateTpl->placeObject($content);
+        $allLabelData = $this->getLabelData($id, 1, false);
+
+        $placeArr = label_Templates::getPlaceholders($templateTpl);
+
+        foreach ($allLabelData as $allKey => $labelData) {
+            foreach ($labelData as $lKey => $lVal) {
+                $place = $placeArr[$lKey];
+                $newVal = label_TemplateFormats::getVerbalTemplate($templateId, $place, $lVal);
+                $allLabelData[$allKey][$lKey] = strlen($newVal) ? $newVal : $allLabelData[$allKey][$lKey];
+            }
+        }
+
+        $templateTpl = new ET($templateTpl);
+        $templateTpl->placeObject($allLabelData[0]);
         
         return $templateTpl->getContent();
     }
@@ -101,7 +111,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $jRec = $Origin->fetch();
         $productId = ($rec->isFinal == 'yes') ? $jRec->productId : $rec->productId;
         $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $productId, $rec->type);
-        $productName = trim(cat_Products::getTitleById($productId));
+        $productName = trim(cat_Products::getVerbal($productId, 'name'));
 
         core_Lg::push('en');
         $quantity = $rec->quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
@@ -119,9 +129,10 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         }
 
         $reff = isset($jRec->saleId) ? sales_Sales::fetchField($jRec->saleId, 'reff') : null;
+        $code = cat_Products::getVerbal($productId, 'code');
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('PRODUCT_NAME' => $productName, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle());
+            $res = array('PRODUCT_NAME' => $productName, 'CODE' => $code, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle());
             if(!empty($batch)){
                 $res['BATCH'] = $batch;
             }
