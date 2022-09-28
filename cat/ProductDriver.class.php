@@ -1019,4 +1019,16 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return array();
     }
+
+
+    /**
+     * Връща масив с файловете цитирани в артикула
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array           - масив от файл хендлъри и имена
+     */
+    public function getLinkedFiles($id)
+    {
+        return array();
+    }
 }

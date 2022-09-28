@@ -1367,4 +1367,18 @@ abstract class deals_QuotationMaster extends core_Master
 
         return Redirect($redirectUrl);
     }
+
+
+    /**
+     * Връща файла, който се използва в документа
+     *
+     * @param object $rec
+     * @return array
+     */
+    public function getLinkedFiles($rec)
+    {
+        $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'others', 'notes');
+
+        return $files;
+    }
 }
