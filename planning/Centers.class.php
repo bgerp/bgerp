@@ -184,6 +184,11 @@ class planning_Centers extends core_Master
         $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Опаковки');
         $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър');
 
+        $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Отбелязване');
+        $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Предупреждение');
+        $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично');
+        $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Параметър за изчисляване на ед. тегло->Избор');
+
         $this->setDbUnique('name');
     }
 
@@ -212,6 +217,9 @@ class planning_Centers extends core_Master
             }
         }
         $form->setOptions('useTareFromParamId', array('' => '') + $paramOptions);
+        $form->setOptions('paramExpectedNetWeight', array('' => '') + $paramOptions);
+
+        $form->setField("deviationNettoWarning", "placeholder=" . $mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING')));
     }
 
 
@@ -221,9 +229,47 @@ class planning_Centers extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
+        static::checkDeviationPercents($form);
         if($form->isSubmitted()){
             if(!empty($rec->useTareFromParamId) && !empty($rec->useTareFromPackagings)){
                 $form->setError('useTareFromParamId,useTareFromPackagings', 'Могат да бъдат избрани или само Опаковки, или само Параметър!');
+            }
+        }
+    }
+
+
+    /**
+     * Проверка на полетата за преудпреждения
+     *
+     * @param core_Form $form
+     * @param string $noticeField
+     * @param string $warningField
+     * @param string $criticalField
+     * @return void
+     */
+    public static function checkDeviationPercents($form, $noticeField = 'deviationNettoNotice', $warningField = 'deviationNettoWarning', $criticalField = 'deviationNettoCritical')
+    {
+        $rec = &$form->rec;
+        $warning = isset($rec->{$warningField}) ? $rec->{$warningField} : planning_Setup::get('TASK_NET_WEIGHT_WARNING');
+
+        if(!empty($rec->{$noticeField})){
+            if(isset($warning)){
+                if($rec->{$noticeField} >= $warning){
+                    $form->setError("{$noticeField},{$warningField}", 'Предупреждението трябва да е по-голямо от отбелязването');
+                }
+            }
+            if(isset($rec->{$criticalField})){
+                if($rec->{$noticeField} >= $rec->{$criticalField}){
+                    $form->setError("{$noticeField},{$criticalField}", 'Критичното трябва да е по-голямо от отбелязването');
+                }
+            }
+        }
+
+        if(!empty($warning)){
+            if(isset($rec->{$criticalField})){
+                if($warning >= $rec->{$criticalField}){
+                    $form->setError("{$warningField},{$criticalField}", 'Критичното трябва да е по-голямо от предупреждението');
+                }
             }
         }
     }
@@ -264,6 +310,8 @@ class planning_Centers extends core_Master
             $row->showSerialWarningOnDuplication = $mvc->getFieldType('showSerialWarningOnDuplication')->toVerbal(planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS'));
             $row->showSerialWarningOnDuplication = ht::createHint("<span style='color:blue'>{$row->showSerialWarningOnDuplication}</span>", 'По подразбиране', 'notice', false);
         }
+
+        $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span style='color:blue'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
     }
     
     

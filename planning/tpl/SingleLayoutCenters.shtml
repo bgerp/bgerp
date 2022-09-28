@@ -37,6 +37,19 @@
 					<div>|Приспадане от теглото в ПО на Тара от Опаковки|*: <b>[#useTareFromPackagings#]</b></div>
 					<!--ET_END useTareFromPackagings-->
 
+					<!--ET_BEGIN deviationNettoNotice-->
+					<div>|Статус при разминаване на нетото в ПО: Отбелязване|*: <b>[#deviationNettoNotice#]</b></div>
+					<!--ET_END deviationNettoNotice-->
+					<!--ET_BEGIN deviationNettoWarning-->
+					<div>|Статус при разминаване на нетото в ПО: Предупреждение|*: <b>[#deviationNettoWarning#]</b></div>
+					<!--ET_END deviationNettoWarning-->
+					<!--ET_BEGIN deviationNettoCritical-->
+					<div>|Статус при разминаване на нетото в ПО: Критично|*: <b>[#deviationNettoCritical#]</b></div>
+					<!--ET_END deviationNettoCritical-->
+					<!--ET_BEGIN paramExpectedNetWeight-->
+					<div>|Параметър за единично тегло|*: <b>[#paramExpectedNetWeight#]</b></div>
+					<!--ET_END paramExpectedNetWeight-->
+
 					<!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
 	                <!--ET_END nkid-->
