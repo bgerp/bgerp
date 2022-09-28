@@ -1124,6 +1124,8 @@ class planning_Tasks extends core_Master
         if ($action == 'reject' && isset($rec)) {
             if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")) {
                 $requiredRoles = 'no_one';
+            } elseif(!haveRole('task', $userId)){
+                $requiredRoles = 'no_one';
             }
         }
 

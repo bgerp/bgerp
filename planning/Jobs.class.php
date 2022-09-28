@@ -1095,6 +1095,12 @@ class planning_Jobs extends core_Master
                 $res = 'no_one';
             }
         }
+
+        if($action == 'reject' && isset($rec)){
+            if(!haveRole('job', $userId)){
+                $res = 'no_one';
+            }
+        }
     }
     
     
