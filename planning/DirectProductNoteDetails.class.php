@@ -45,13 +45,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,planning,store,production';
+    public $canEdit = 'ceo,production';
     
     
     /**
      * Кой има право да променя взаимно заменяемите артикули?
      */
-    public $canReplaceproduct = 'ceo,planning,store';
+    public $canReplaceproduct = 'ceo,production';
 
 
     /**
@@ -63,13 +63,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,planning,store,production';
+    public $canAdd = 'ceo,production';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,planning,store,production';
+    public $canDelete = 'ceo,production';
     
     /**
      * Кой може да го импортира артикули?

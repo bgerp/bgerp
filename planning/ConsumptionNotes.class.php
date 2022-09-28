@@ -49,37 +49,37 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Кой има право да чете?
      */
-    public $canConto = 'ceo,planning,store';
+    public $canConto = 'ceo,consumption';
     
     
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,planning,store';
+    public $canPending = 'ceo,consumption';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,planning,store';
+    public $canList = 'ceo,consumption';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,planning,store';
+    public $canSingle = 'ceo,consumption';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,planning,store';
+    public $canEdit = 'ceo,consumption';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,planning,store';
+    public $canAdd = 'ceo,consumption';
     
     
     /**

@@ -118,55 +118,55 @@ class planning_Tasks extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, taskWorker';
+    public $canList = 'ceo, taskSee';
 
 
     /**
      * Кой може да го добавя?
      */
-    public $canAdd = 'ceo, taskPlanning';
+    public $canAdd = 'ceo, task';
 
 
     /**
      * Кой може да ги създава от задания?
      */
-    public $canCreatejobtasks = 'ceo, taskPlanning';
+    public $canCreatejobtasks = 'ceo, task';
 
 
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,taskWorker';
+    public $canSingle = 'ceo, taskSee';
 
 
     /**
      * Кой може да преизчислява заработките на прогреса на операцията?
      */
-    public $canRecalcindtime = 'ceo,planningMaster';
+    public $canRecalcindtime = 'ceo,task';
 
 
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo, taskPlanning';
+    public $canActivate = 'ceo, task';
 
 
     /**
      * Кой може да го активира?
      */
-    public $canChangestate = 'ceo, taskWorker';
+    public $canChangestate = 'ceo, task';
     
     
     /**
      * Кой може да го редактира?
      */
-    public $canEdit = 'ceo, taskPlanning';
+    public $canEdit = 'ceo, task';
 
 
     /**
      * Кой може да го прави на заявка?
      */
-    public $canPending = 'ceo, taskPlanning';
+    public $canPending = 'ceo, task';
 
 
     /**

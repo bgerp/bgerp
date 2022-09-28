@@ -60,7 +60,7 @@ class planning_Centers extends core_Master
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, planning, job';
+    public $canSingle = 'ceo, planning, jobSee';
     
     
     /**

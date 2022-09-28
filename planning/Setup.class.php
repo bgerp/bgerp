@@ -250,6 +250,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::updateLabelType',
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
+        'migrate::removeOldRoles',
     );
     
     
@@ -257,12 +258,15 @@ class planning_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('production'),
+        array('jobSee'),
+        array('job', 'jobSee'),
+        array('taskSee'),
+        array('task', 'taskSee'),
         array('taskWorker'),
-        array('taskPlanning', 'taskWorker'),
-        array('planning', 'taskPlanning'),
+        array('consumption'),
+        array('production'),
+        array('planning'),
         array('planningMaster', 'planning'),
-        array('job')
     );
     
     
@@ -381,5 +385,18 @@ class planning_Setup extends core_ProtoSetup
     function deletePoints()
     {
         planning_Points::truncate();
+    }
+
+
+    /**
+     * Премахва стари роли
+     */
+    function removeOldRoles()
+    {
+        $remRoleId = core_Roles::fetchByName('taskPlanning');
+        if(!$remRoleId) return;
+
+        core_Roles::removeRoles(array($remRoleId));
+        core_Users::rebuildRoles();
     }
 }
