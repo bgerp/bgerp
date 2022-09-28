@@ -38,13 +38,13 @@
 					<!--ET_END useTareFromPackagings-->
 
 					<!--ET_BEGIN deviationNettoNotice-->
-					<div>|Статус при разминаване на нетото в ПО: Отбелязване|*: <b>[#deviationNettoNotice#]</b></div>
+					<div>|Разминаване на Нетото в ПО - Информация|*: <b>[#deviationNettoNotice#]</b></div>
 					<!--ET_END deviationNettoNotice-->
 					<!--ET_BEGIN deviationNettoWarning-->
-					<div>|Статус при разминаване на нетото в ПО: Предупреждение|*: <b>[#deviationNettoWarning#]</b></div>
+					<div>|Разминаване на Нетото в ПО - Предупреждение|*: <b>[#deviationNettoWarning#]</b></div>
 					<!--ET_END deviationNettoWarning-->
 					<!--ET_BEGIN deviationNettoCritical-->
-					<div>|Статус при разминаване на нетото в ПО: Критично|*: <b>[#deviationNettoCritical#]</b></div>
+					<div>|Разминаване на Нетото в ПО - Критично|*: <b>[#deviationNettoCritical#]</b></div>
 					<!--ET_END deviationNettoCritical-->
 					<!--ET_BEGIN paramExpectedNetWeight-->
 					<div>|Параметър за единично тегло|*: <b>[#paramExpectedNetWeight#]</b></div>
