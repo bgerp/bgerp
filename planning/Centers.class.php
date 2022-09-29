@@ -210,7 +210,7 @@ class planning_Centers extends core_Master
         $options = cat_UoM::getPackagingOptions();
         $form->setSuggestions('useTareFromPackagings', $options);
         $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
-        $kgDerivitives = cat_Uom::getSameTypeMeasures($kgMeasureId);
+        $kgDerivitives = cat_Uom::getSameTypeMeasures($kgMeasureId, false, false);
 
         if(isset($rec->useTareFromParamId)){
             $form->setField('useTareFromParamMeasureId', 'input');
