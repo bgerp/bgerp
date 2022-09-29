@@ -182,13 +182,13 @@ class planning_Centers extends core_Master
         $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
 
         $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Опаковки');
-        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър,silent,removeAndRefreshForm=useTareFromParamCoefficient');
-        $this->FLD('useTareFromParamCoefficient', 'double(Min=0,smartRound)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър(коеф.),placeholder=1,unit=|*/ |кг|*,input=hidden');
+        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър,silent,removeAndRefreshForm=useTareFromParamMeasureId');
+        $this->FLD('useTareFromParamMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър(мярка),input=hidden');
         $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Отбелязване');
         $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Предупреждение');
         $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично');
-        $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Параметър за изчисляване на ед. тегло->Избор,silent,removeAndRefreshForm=paramExpectedNetCoefficient');
-        $this->FLD('paramExpectedNetCoefficient', 'double(Min=0,smartRound)', 'caption=Параметър за изчисляване на ед. тегло->Коеф.,placeholder=1,unit=|*/ |кг|*,input=hidden');
+        $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Параметър за изчисляване на ед. тегло->Избор,silent,removeAndRefreshForm=paramExpectedNetMeasureId');
+        $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Параметър за изчисляване на ед. тегло->Мярка,input=hidden');
 
         $this->setDbUnique('name');
     }
@@ -209,15 +209,19 @@ class planning_Centers extends core_Master
 
         $options = cat_UoM::getPackagingOptions();
         $form->setSuggestions('useTareFromPackagings', $options);
+        $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
+        $kgDerivitives = cat_Uom::getSameTypeMeasures($kgMeasureId);
 
         if(isset($rec->useTareFromParamId)){
-            $form->setField('useTareFromParamCoefficient', 'input');
-            $form->setDefault('useTareFromParamCoefficient', 1);
+            $form->setField('useTareFromParamMeasureId', 'input');
+            $form->setOptions('useTareFromParamMeasureId', $kgDerivitives);
+            $form->setDefault('useTareFromParamMeasureId', $kgMeasureId);
         }
 
         if(isset($rec->paramExpectedNetWeight)){
-            $form->setField('paramExpectedNetCoefficient', 'input');
-            $form->setDefault('paramExpectedNetCoefficient', 1);
+            $form->setField('paramExpectedNetMeasureId', 'input');
+            $form->setOptions('paramExpectedNetMeasureId', $kgDerivitives);
+            $form->setDefault('paramExpectedNetMeasureId', $kgMeasureId);
         }
 
         // Достъпните за избор параметри
@@ -324,11 +328,12 @@ class planning_Centers extends core_Master
 
         $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span style='color:blue'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
 
-        if(isset($rec->useTareFromParamId) && isset($row->useTareFromParamCoefficient)){
-            $row->useTareFromParamId .= " " . tr("|*<span class='quiet'>[{$row->useTareFromParamCoefficient} |кг|*]</span>");
+        if(isset($rec->useTareFromParamId) && isset($row->useTareFromParamMeasureId)){
+            $row->useTareFromParamId = ht::createHint($row->useTareFromParamId, $row->useTareFromParamMeasureId);
         }
-        if(isset($rec->paramExpectedNetWeight) && isset($row->paramExpectedNetCoefficient)){
-            $row->paramExpectedNetWeight .= " " . tr("|*<span class='quiet'>[{$row->paramExpectedNetCoefficient} |кг|*]</span>");
+
+        if(isset($rec->paramExpectedNetWeight) && isset($row->paramExpectedNetMeasureId)){
+            $row->paramExpectedNetWeight = ht::createHint($row->paramExpectedNetWeight, $row->paramExpectedNetMeasureId);
         }
     }
     
