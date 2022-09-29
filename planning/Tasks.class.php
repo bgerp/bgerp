@@ -2966,6 +2966,10 @@ class planning_Tasks extends core_Master
      */
     public static function getExpectedDeviations($rec, $verbal = false)
     {
+        if(empty($rec->folderId)){
+            bp($rec);
+        }
+
         $res = array();
         $centerRec = planning_Centers::fetch("#folderId = {$rec->folderId}");
         $res['notice'] = !empty($rec->deviationNettoNotice) ? $rec->deviationNettoNotice : $centerRec->deviationNettoNotice;
