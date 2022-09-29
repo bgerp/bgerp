@@ -57,8 +57,10 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('date', 'date(smartTime)', 'caption=Отчетен период->От,after=sellPriceToleranceUp,mandatory,single=none');
-
+      //  $fieldset->FLD('date', 'date(smartTime)', 'caption=Към дата,after=title,single=none');
+        $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholder=Избери,after=title,removeAndRefreshForm,single=none,class=w100');
+        $fieldset->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,after=products,mandatory,single=none');
+        $fieldset->FLD('quantity', 'double', 'caption=Количество,after=measureId,mandatory,silent,refreshForm,single=none');
     }
 
 
@@ -75,6 +77,18 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
+        $query = cat_Products::getQuery();
+        $query->where("#isPublic != 'yes'");
+        $query->where("#folderId IS NOT NULL AND #folderId = $rec->folderId");
+        $suggestions = array();
+        while ($product = $query->fetch()) {
+                $suggestions[$product->id] = $product->name;
+        }
+
+        asort($suggestions);
+
+        $form->setSuggestions('products', $suggestions);
+
     }
 
 
@@ -89,7 +103,17 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
       $recs = array();
-bp('dgdfgfdgfhfghf');
+
+        $contragent = doc_Folders::fetch($rec->folderId);
+
+        $date = dt::today();
+
+        $listId = price_ListToCustomers::getListForCustomer($contragent->coverClass,$contragent->coverId,$date);
+
+        $price = price_ListRules::getPrice($listId, $rec->products, null, $date);
+
+        $defoltTransport = sales_TransportValues::calcDefaultTransportToClient($rec->products,$rec->quantity,$contragent->coverClass,$contragent->coverId);
+bp($contragent,$price,$defoltTransport,cat_Products::fetch($rec->products)->name,$rec);
 
         return $recs;
     }
