@@ -594,12 +594,13 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Към кой център е ПО-то
         $taskRec = planning_Tasks::fetch($taskId, 'folderId,labelPackagingId,productId');
-        $centerRec = planning_Centers::fetch("#folderId = {$taskRec->folderId}", 'useTareFromParamId,useTareFromPackagings');
+        $centerRec = planning_Centers::fetch("#folderId = {$taskRec->folderId}", 'useTareFromParamId,useTareFromPackagings,useTareFromParamCoefficient');
 
         // Ако няма настройки от къде да се приспада тарата не се прави нищо
         if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)) return null;
         $result = $weight;
 
+        $coefficient = isset($centerRec->useTareFromParamCoefficient) ? $centerRec->useTareFromParamCoefficient : 1;
         $errorMsgIfNegative = 'Грешка при приспадане на тарата';
         $taskWeightSubtractValue = null;
         $jobProductId = planning_Jobs::fetchField("#containerId = {$originId}", 'productId');
@@ -638,7 +639,8 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Приспадане и проверка
         $round = cat_UoM::fetchBySysId('kg')->round;
-        $result = $result - $taskWeightSubtractValue;
+        $result = $result - ($taskWeightSubtractValue * $coefficient);
+
         $result = round($result, $round);
         if($result <= 0){
             $msg = $errorMsgIfNegative;
@@ -950,7 +952,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listTableMvc->setField('weight', 'smartCenter');
 
             // Ако няма настройка за приспадане на тарата да не се показва колонката за нето
-            $centerRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight');
+            $centerRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetCoefficient');
             if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)){
                 unset($data->listFields['netWeight']);
             }
@@ -1010,6 +1012,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                                 if ($expectedSingleNetWeight === cat_BomDetails::CALC_ERROR) {
                                     $expectedSingleNetWeight = null;
                                 }
+                            }
+                            if(isset($centerRec->paramExpectedNetCoefficient) && isset($expectedSingleNetWeight)){
+                                $expectedSingleNetWeight *= $centerRec->paramExpectedNetCoefficient;
                             }
                         }
                     }
