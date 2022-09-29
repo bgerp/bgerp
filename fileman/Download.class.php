@@ -208,15 +208,10 @@ class fileman_Download extends core_Manager
         
         // Проверяваме или създаваме директорията
         core_Os::requireDir(EF_DOWNLOAD_DIR . '/' . $rec->prefix);
-        
-        // Генерираме пътя до файла (hard link) който ще се сваля
-        $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
-        
+
         // Създаваме хард-линк или копираме
-        if (!@copy($originalPath, $downloadPath)) {
-            error('@Не може да бъде копиран файла', $originalPath, $downloadPath);
-        }
-        
+        self::copyFile($originalPath, $rec->prefix, $rec->fileName);
+
         // Задаваме id-то на файла
         $rec->fileId = $fileId;
         
@@ -230,7 +225,61 @@ class fileman_Download extends core_Manager
         // Връщаме линка за сваляне
         return static::getSbfDownloadUrl($rec, true);
     }
-    
+
+
+    /**
+     * Помощна функция за копиране на файловете
+     * Ако файлът не съществува в `white-list` тогава ще се архивира и ще се сервира архива
+     *
+     * @param string$originalPath
+     * @param string $downloadPath
+     *
+     * @return bool
+     */
+    protected static function copyFile($originalPath, $prefix, &$fileName, $aExt = 'zip')
+    {
+        // Генерираме пътя до файла (hard link) който ще се сваля
+        $downloadPath = EF_DOWNLOAD_DIR . '/' . $prefix . '/' . $fileName;
+
+        $whiteLists = mb_strtolower(getFileContent('/fileman/data/white-list-extensions.txt'));
+        $whiteLists = str_replace(' ', '', $whiteLists);
+        $whiteListsArr = explode("\n", $whiteLists);
+        $whiteListsArr = arr::make($whiteListsArr, true);
+        unset($whiteListsArr['']);
+
+        $ext = fileman::getExt($fileName);
+
+        if (!$ext || !$whiteListsArr[$ext]) {
+
+            $tempPath = fileman::getTempPath();
+            $tFile = $tempPath . '/' . $fileName;
+
+            try {
+                @copy($originalPath, $tFile);
+
+                $fileName .= '.' . $aExt;
+                $downloadPath = $downloadPath . '.' . $aExt;
+
+                archive_Adapter::compressFile($tFile, $downloadPath);
+            } catch (Exception $e) {
+                fileman::deleteTempPath($tFile);
+                @unlink($tFile);
+                expect(false);
+            } catch (Throwable $t) {
+                fileman::deleteTempPath($tFile);
+                @unlink($tFile);
+                expect(false);
+            }
+
+            fileman::deleteTempPath($tFile);
+            @unlink($tFile);
+        } else {
+            if (!@copy($originalPath, $downloadPath)) {
+                error('@Не може да бъде копиран файла', $originalPath, $downloadPath);
+            }
+        }
+    }
+
     
     /**
      * @todo Чака за документация...
