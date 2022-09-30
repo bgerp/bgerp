@@ -48,7 +48,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'start,to,resultsOn,centre,assetResources,employees';
+    protected $changeableFields = 'start,to,resultsOn,centre,assetResources,employees,typeOfReport';
 
 
     /**
