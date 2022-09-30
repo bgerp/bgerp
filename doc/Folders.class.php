@@ -312,14 +312,20 @@ class doc_Folders extends core_Master
         // на модела ще се появят
         $data->listFilter->showFields = 'search,users,order';
         $data->listFilter->input('search,users,order', 'silent');
-        
+
+        $cu = core_Users::getCurrent();
+
         if (!$data->listFilter->rec->users) {
-            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+            $data->listFilter->rec->users = '|' . $cu . '|';
         }
         
         if (!$data->listFilter->rec->search) {
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+            $uArr = type_Keylist::toArray($data->listFilter->rec->users);
+
+            if ($uArr[$cu] && (countR($uArr) == 1)) {
+                $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+            }
             $data->title = 'Папките на |*<span class="green">' .
             $data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</span>';
         } else {
