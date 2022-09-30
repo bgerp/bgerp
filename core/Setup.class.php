@@ -351,7 +351,7 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_FIRST_ADMIN' => array('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
         
-        'CORE_LOGIN_INFO' => array('varchar', 'caption=Информация във формата за логване->Текст'),
+        'CORE_LOGIN_INFO' => array('varchar', 'caption=Информация във формата за логване->Текст, customizeBy=admin'),
         
         'EF_MAX_EXPORT_CNT' => array('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
         
