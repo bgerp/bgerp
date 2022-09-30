@@ -27,6 +27,7 @@ class cond_type_Product extends cond_type_Varchar
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Конкретизиране->Групи,mandatory');
         $fieldset->FLD('show', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване,mandatory');
         $fieldset->FLD('display', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Избор,mandatory');
+        $fieldset->FLD('orderBy', 'enum(idAsc=По артикул [нарастващ ред],idDesc=По артикул [намаляващ ред],codeAsc=По код [нарастващ ред],codeDesc=По код [намаляващ ред])', 'caption=Конкретизиране->Подредба,mandatory');
     }
 
 
@@ -47,6 +48,10 @@ class cond_type_Product extends cond_type_Varchar
         if(isset($this->driverRec->display) && $this->driverRec->display != 'name'){
             $Type->params['display'] = $this->driverRec->display;
         }
+
+        $orderBy = isset($this->driverRec->orderBy) ? $this->driverRec->orderBy : 'idAsc';
+        $orderByField = ($orderBy == 'idAsc') ? 'id=ASC' : (($orderBy == 'idDesc') ? 'id=DESC' : (($orderBy == 'codeAsc') ? 'code=ASC' : 'code=DESC'));
+        $Type->params['orderBy'] = $orderByField;
 
         return $Type;
     }
