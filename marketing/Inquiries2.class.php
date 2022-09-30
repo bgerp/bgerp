@@ -428,7 +428,12 @@ class marketing_Inquiries2 extends embed_Manager
             } else {
                 $form->setFieldTypeParams('proto', 'isPublic=yes,showTemplates');
             }
-            $form->setField('proto', 'input');
+
+            if(countR($form->getFieldType('proto')->getOptions())){
+                $form->setField('proto', 'input,class=w100');
+            } else {
+                $form->setField('proto', 'input=none');
+            }
         }
         
         if (cls::load($form->rec->innerClass, true)) {
