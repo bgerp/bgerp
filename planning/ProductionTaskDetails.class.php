@@ -981,6 +981,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $rec = $data->recs[$id];
 
             $masterRec = is_object($masterRec) ? $masterRec : planning_Tasks::fetch($rec->taskId);
+            $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
+
             $eFields = planning_Tasks::getExpectedDeviations($masterRec);
             $deviationNotice = $eFields['notice'];
             $deviationWarning = $eFields['warning'];
@@ -1006,8 +1008,12 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 // Има ли нето тегло
                 if(isset($rec->netWeight) && $rec->state != 'rejected'){
+
                     // Колко е очакваното нето тегло
-                    $expectedSingleNetWeight = cat_Products::convertToUom($rec->productId, 'kg');
+                    $expectedSingleNetWeight = null;
+                    if($rec->productId == $jobProductId){
+                        $expectedSingleNetWeight = cat_Products::convertToUom($rec->productId, 'kg');
+                    }
 
                     // Ако няма и има избран параметър за ед. тегло
                     if(empty($expectedSingleNetWeight)){
