@@ -54,7 +54,7 @@ class planning_Centers extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning, job';
+    public $canList = 'ceo, planning, jobSee';
     
     
     /**
@@ -549,5 +549,28 @@ class planning_Centers extends core_Master
     protected static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('#state');
+    }
+
+
+    /**
+     * Екшън редактиращ потребителя към първия му достъпен модел в пакета
+     */
+    function act_dispatch()
+    {
+        requireRole('ceo,planning,production,jobSee');
+
+        if(haveRole('production') || haveRole('ceo')){
+            redirect(array('planning_DirectProductionNote', 'list'));
+        } elseif(haveRole('consumption')){
+            redirect(array('planning_ConsumptionNotes', 'list'));
+        } elseif(haveRole('jobSee')){
+            redirect(array('planning_Jobs', 'list'));
+        } elseif(haveRole('task')){
+            redirect(array('planning_Tasks', 'list'));
+        } elseif(haveRole('planning')) {
+            redirect(array('planning_Centers', 'list'));
+        }
+
+        redirect(array('bgerp_Portal', 'show'), false, 'Нямате достъп до таб от менюто', 'warning');
     }
 }
