@@ -848,7 +848,7 @@ class frame2_Reports extends embed_Manager
         }
         
         // За модификация, потребителя трябва да има права и за драйвера
-        if (in_array($action, array('write')) && isset($rec->driverClass)) {
+        if (in_array($action, array('add', 'close', 'reject', 'restore')) && isset($rec->driverClass)) {
             if ($Driver = $mvc->getDriver($rec)) {
                 if (!$Driver->canSelectDriver($userId)) {
                     $requiredRoles = 'no_one';
