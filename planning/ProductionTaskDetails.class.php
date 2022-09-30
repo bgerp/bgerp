@@ -1010,10 +1010,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if(isset($rec->netWeight) && $rec->state != 'rejected'){
 
                     // Колко е очакваното нето тегло
-                    $expectedSingleNetWeight = null;
-                    if($rec->productId == $jobProductId){
-                        $expectedSingleNetWeight = cat_Products::convertToUom($rec->productId, 'kg');
-                    }
+                    $expectedSingleNetWeight = cat_Products::convertToUom($rec->productId, 'kg');
 
                     // Ако няма и има избран параметър за ед. тегло
                     if(empty($expectedSingleNetWeight)){

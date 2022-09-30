@@ -4241,28 +4241,27 @@ class cat_Products extends embed_Manager
             
             return $res;
         }
-        
-        // Ако артикула, има доп. мярка, която е от същата група като на $toUomId
-        $pQuery = cat_products_Packagings::getQuery();
-        $pQuery->where("#productId = {$productId}");
-        $pQuery->in('packagingId', array_keys($sameTypeMeasures));
-        $pQuery->orderBy('id', 'ASC');
-        $pQuery->show('quantity,packagingId');
-        while ($pRec = $pQuery->fetch()) {
-            
-            // Връща се отношението и за 1-ца към $toUomId
-            if ($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)) {
-                if(empty($pRec->quantity)) {
-                    wp($pRec);
-                    continue;
-                }
 
-                $res = $res / $pRec->quantity;
-                
-                return $res;
+        // Ако артикула не е произв. етап и има доп. мярка, която е от същата група като на $toUomId
+        if(!static::haveDriver('planning_interface_StepProductDriver')){
+            $pQuery = cat_products_Packagings::getQuery();
+            $pQuery->where("#productId = {$productId}");
+            $pQuery->in('packagingId', array_keys($sameTypeMeasures));
+            $pQuery->orderBy('id', 'ASC');
+            $pQuery->show('quantity,packagingId');
+            while ($pRec = $pQuery->fetch()) {
+
+                // Връща се отношението и за 1-ца към $toUomId
+                if ($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)) {
+                    if(!empty($pRec->quantity)) {
+                        $res = $res / $pRec->quantity;
+
+                        return $res;
+                    }
+                }
             }
         }
-        
+
         // Ако търсената мярка е от групата на килограмите
         $kgUom = cat_UoM::fetchBySysId('kg')->id;
         $kgUoms = cat_UoM::getSameTypeMeasures($kgUom);
