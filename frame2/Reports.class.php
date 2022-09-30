@@ -223,6 +223,12 @@ class frame2_Reports extends embed_Manager
 
 
     /**
+     * Минимален ранг на потребителите за редактиране на чужди справки
+     */
+    public $minRangForEditForeignDoc = 'executive';
+
+
+    /**
      * Описание на модела
      */
     public function description()
