@@ -1041,7 +1041,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     // Ако артикула има нето тегло
                     if(is_numeric($expectedSingleNetWeight)){
                         $expectedNetWeight = $weightQuantity * $expectedSingleNetWeight;
-                        $deviation = abs(round(($expectedNetWeight - $rec->netWeight) / (($expectedNetWeight + $rec->netWeight) / 2), 2));
+                        $deviation = abs(round(($expectedNetWeight - $rec->netWeight) / (($expectedNetWeight + $rec->netWeight) / 2), 4));
 
                         // Показване на хинт ако има разминаване
                         $iconHint = null;
@@ -1054,7 +1054,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
 
                         if(isset($iconHint)){
-                            $deviationVerbal = core_Type::getByName('percent')->toVerbal($deviation);
+                            $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviation);
                             $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично ' : ($iconHint == 'warning' ? 'значително ' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
                             $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето|*: {$expectedNetWeightVerbal} |с|* {$deviationVerbal}");
