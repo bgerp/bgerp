@@ -58,7 +58,9 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('products', 'varchar', 'caption=Артикули и количества->CSV Файл,placeholder=Избери,after=title,removeAndRefreshForm,single=none,class=w100');
+        //$fieldset->FLD('products', 'varchar', 'caption=Артикули и количества,placeholder=Избери,after=title,removeAndRefreshForm,single=none,class=w100');
+        $fieldset->FLD('products', 'text', 'caption=Артикули и количества,placeholder=Избери,after=title,removeAndRefreshForm,single=none,class=w100');
+
         $fieldset->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent,after=products');
 
 
@@ -78,9 +80,9 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $csv = '../bgerp/sales/reports/ProductsAndQuantities.csv';
+      //  $csv = '../bgerp/sales/reports/ProductsAndQuantities.csv';
 
-        $form->setDefault('products', $csv);
+       // $form->setDefault('products', $csv);
 
     }
 
@@ -123,14 +125,17 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
         $recs  = array();
 
 
-        $prodArr = file($rec->products);
 
+       // $prodArr = file($rec->products);
+
+        $prodArr =explode('#',$rec->products);
 
         //Ако няма артикули в папката на контрагента връща празен масив
       if (!$prodArr) return $recs;
 
 
         foreach ($prodArr as $product){
+            if ($product == '')continue;
 
         $productArr = explode(',',$product);
         $code =  ltrim($productArr[0], '#');
@@ -158,6 +163,7 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
             $currencyRate = currency_CurrencyRates::getRate(dt::today(),$currencyCode,null);
 
             $policyInfo = $Policy->getPriceInfo($contragent->coverClass, $contragent->coverId, $productId, null, $quantity,null, $currencyRate,null, $listId);
+
             $defoltTransport = sales_TransportValues::calcDefaultTransportToClient($productId,$quantity,$contragent->coverClass,$contragent->coverId);
 
             $price = $policyInfo->price + $defoltTransport['singleFee'];
