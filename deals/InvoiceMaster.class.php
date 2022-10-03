@@ -1785,14 +1785,11 @@ abstract class deals_InvoiceMaster extends core_Master
             $rec->number = $mvc->getVerbal($rec, 'number');
             
             $row = new stdClass();
+            Mode::push('text', 'plain');
             self::getVerbalInvoice($mvc, $rec, $row, $fields);
             $rec->dealValueWithoutDiscount = (!empty($rec->rate)) ? $rec->dealValueWithoutDiscount / $rec->rate : $rec->dealValueWithoutDiscount;
             $row->dealValueWithoutDiscount = $mvc->getFieldType('dealValueWithoutDiscount')->toVerbal($rec->dealValueWithoutDiscount);
-            
-            $rec->dealValue = strip_tags(str_replace('&nbsp;', '', $row->dealValueWithoutDiscount));
-            $rec->dealValue = strip_tags(str_replace('&nbsp;', '', $row->dealValue));
-            $rec->valueNoVat = strip_tags(str_replace('&nbsp;', '', $row->valueNoVat));
-            $rec->vatAmount = strip_tags(str_replace('&nbsp;', '', $row->vatAmount));
+            Mode::pop('text');
         }
     }
     
