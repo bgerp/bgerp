@@ -55,8 +55,10 @@ class cond_type_Product extends cond_type_Varchar
         $CType->params['orderBy'] = $orderByField;
 
         $Type = core_Type::getByName('key(mvc=cat_Products,select=name)');
+        $Type->params['maxRadio'] = isset($this->driverRec->maxRadio) ? $this->driverRec->maxRadio : 20;
         $options = $CType->getOptions();
-        if(empty($value)){
+        $optionsCount = countR($options);
+        if(empty($value) && $optionsCount > $Type->params['maxRadio']){
             $options = array('' => '') + $options;
         }
         $Type->options = $options;
@@ -66,8 +68,6 @@ class cond_type_Product extends cond_type_Varchar
                 unset($Type->options[$k]);
             }
         }
-
-        $Type->params['maxRadio'] = isset($this->driverRec->maxRadio) ? $this->driverRec->maxRadio : 20;
         $Type->params['select2MinItems'] = 1000000;
 
         return $Type;
