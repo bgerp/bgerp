@@ -433,7 +433,9 @@ class deals_InvoicesToDocuments extends core_Manager
         $Document = doc_Containers::getDocument($rec->containerId);
 
         $row->documentName = mb_strtolower($Document->singleTitle);
-        if($Document->isInstanceOf('deals_InvoiceMaster')){
+        if($Document->isInstanceOf('sales_Proformas')){
+            $row->documentName = tr('проформа фактура');
+        } elseif($Document->isInstanceOf('deals_InvoiceMaster')){
             $invoiceType = $Document->fetchField('type');
             $row->documentName = ($invoiceType == 'invoice') ? tr('фактура') : (($invoiceType == 'dc_note' && $rec->amount <= 0) ? 'к-но известие' : 'д-но известие');
         }
