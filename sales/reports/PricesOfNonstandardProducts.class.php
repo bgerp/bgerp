@@ -57,10 +57,11 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-      //  $fieldset->FLD('date', 'date(smartTime)', 'caption=Към дата,after=title,single=none');
-        $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholder=Избери,after=title,removeAndRefreshForm,single=none,class=w100');
-        $fieldset->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,after=products,mandatory,single=none');
-        $fieldset->FLD('quantity', 'double', 'caption=Количество,after=measureId,mandatory,silent,refreshForm,single=none');
+
+        $fieldset->FLD('products', 'varchar', 'caption=Артикули и количества->CSV Файл,placeholder=Избери,after=title,removeAndRefreshForm,single=none,class=w100');
+        $fieldset->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent,after=products');
+
+
     }
 
 
@@ -77,17 +78,34 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $query = cat_Products::getQuery();
-        $query->where("#isPublic != 'yes'");
-        $query->where("#folderId IS NOT NULL AND #folderId = $rec->folderId");
-        $suggestions = array();
-        while ($product = $query->fetch()) {
-                $suggestions[$product->id] = $product->name;
+        $csv = '../bgerp/sales/reports/ProductsAndQuantities.csv';
+
+        $form->setDefault('products', $csv);
+
+    }
+
+
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param core_Form $form
+     * @param stdClass $data
+     */
+    protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
+    {
+        $rec = $form->rec;
+
+
+
+        if ($form->isSubmitted()) {
+
+
+
+
         }
 
-        asort($suggestions);
-
-        $form->setSuggestions('products', $suggestions);
 
     }
 
@@ -102,19 +120,65 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-      $recs = array();
+        $recs  = array();
 
-        $contragent = doc_Folders::fetch($rec->folderId);
 
-        $date = dt::today();
+        $prodArr = file($rec->products);
 
-        $listId = price_ListToCustomers::getListForCustomer($contragent->coverClass,$contragent->coverId,$date);
 
-        $price = price_ListRules::getPrice($listId, $rec->products, null, $date);
+        //Ако няма артикули в папката на контрагента връща празен масив
+      if (!$prodArr) return $recs;
 
-        $defoltTransport = sales_TransportValues::calcDefaultTransportToClient($rec->products,$rec->quantity,$contragent->coverClass,$contragent->coverId);
-bp($contragent,$price,$defoltTransport,cat_Products::fetch($rec->products)->name,$rec);
 
+        foreach ($prodArr as $product){
+
+        $productArr = explode(',',$product);
+        $code =  ltrim($productArr[0], '#');
+
+
+            //Артикул
+            $productId = cat_Products::getByCode($code)->productId;
+
+            $prodRec = cat_Products::fetch($productId);
+
+            $quantity =$productArr[1];
+
+
+            //Намиране на цената за съответното количество
+            $contragent = doc_Folders::fetch($rec->folderId);
+
+            $date = dt::today();
+
+            $Policy = cls::get('price_ListToCustomers');
+
+            $listId = price_ListToCustomers::getListForCustomer($contragent->coverClass,$contragent->coverId,$date);
+
+            $currencyCode  = currency_Currencies::getCodeById($rec->currencyId);
+
+            $currencyRate = currency_CurrencyRates::getRate(dt::today(),$currencyCode,null);
+
+            $policyInfo = $Policy->getPriceInfo($contragent->coverClass, $contragent->coverId, $productId, null, $quantity,null, $currencyRate,null, $listId);
+            $defoltTransport = sales_TransportValues::calcDefaultTransportToClient($productId,$quantity,$contragent->coverClass,$contragent->coverId);
+
+            $price = $policyInfo->price + $defoltTransport['singleFee'];
+
+            $id = $productId.'|'.$quantity;
+
+          // добавяме в масива
+          if (!array_key_exists($id, $recs)) {
+              $recs[$id] = (object)array(
+
+                  'id' => $id,
+                  'product' => $productId,
+                  'prodName' => $prodRec->name,
+                  'measureId' => $prodRec->measureId,
+                  'quantity'=> $quantity,
+                  'price'=> $price,
+              );
+          }
+
+        }
+//bp($recs);
         return $recs;
     }
 
@@ -133,19 +197,18 @@ bp($contragent,$price,$defoltTransport,cat_Products::fetch($rec->products)->name
     {
         $fld = cls::get('core_FieldSet');
 
-        $fld->FLD('saleId', 'varchar', 'caption=Сделка');
-        if ($export === true) {
-            $fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=Папка');
-            $fld->FLD('code', 'varchar', 'caption=Код');
+        if ($export === false) {
+            $fld->FLD('product', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=productCell leftCol wrap');
+            $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
+            $fld->FLD('price', 'double(decimals=2)', 'caption=Цена,smartCenter');
+        }else{
+            $fld->FLD('product', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=productCell leftCol wrap');
+            $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
+            $fld->FLD('price', 'double(decimals=2)', 'caption=Цени->Продажна,smartCenter');
         }
-        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=productCell leftCol wrap');
-        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-        $fld->FLD('price', 'double', 'caption=Цени->Продажна,smartCenter');
-        $fld->FLD('selfPrice', 'double', 'caption=Цени->Себест-ст,smartCenter');
-        $fld->FLD('catPrice', 'double', 'caption=Цени->Политика,smartCenter');
-        $fld->FLD('deviationDownSelf', 'percent', 'caption=Отклонение->Под Себест-ст,tdClass=centered');
-        $fld->FLD('deviationCatPrice', 'percent', 'caption=Отклонение->Спрямо политика,tdClass=centered');
+
 
         return $fld;
     }
@@ -161,37 +224,10 @@ bp($contragent,$price,$defoltTransport,cat_Products::fetch($rec->products)->name
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        $Int = cls::get('type_Int');
 
         $row = new stdClass();
 
-        $marker = '';
-
-        if ($dRec->catPrice) {
-            $row->deviationCatPrice = self::getDeviationCatPrice($dRec);
-        }
-
-        if ($dRec->selfPriceDown) {
-            $row->deviationDownSelf = self::getDeviationDownSelf($dRec);
-        }
-
-        $Sale = doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
-        $handle = $Sale->getHandle();
-        $folder = ((sales_Sales::fetch($dRec->saleId)->folderId));
-        $folderLink = doc_Folders::recToVerbal(doc_Folders::fetch($folder))->title;
-        $singleUrl = $Sale->getUrlWithAccess($Sale->getInstance(), $Sale->that);
-
-        if (isset($dRec->saleId)) {
-            $row->saleId = "<div ><span class= 'state-{$Sale->fetchField('state')} document-handler' >" . ht::createLink(
-                    "#{$handle}",
-                    $singleUrl,
-                    false,
-                    "ef_icon={$Sale->singleIcon}"
-                ) . '</span>' . ' »  ' . "<span class= 'quiet small'>" .
-                $folderLink . '</span></div>';
-        }
-
-        $row->productId = cat_Products::getShortHyperlink($dRec->productId);
+        $row->product = cat_Products::getShortHyperlink($dRec->product);
 
         if (isset($dRec->quantity)) {
             $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
@@ -201,16 +237,8 @@ bp($contragent,$price,$defoltTransport,cat_Products::fetch($rec->products)->name
             $row->price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
         }
 
-        if (isset($dRec->measure)) {
-            $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
-        }
-
-        if (isset($dRec->selfPrice)) {
-            $row->selfPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->selfPrice);
-        }
-
-        if (isset($dRec->catPrice)) {
-            $row->catPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->catPrice);
+        if (isset($dRec->measureId)) {
+            $row->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
         }
 
         return $row;
@@ -236,12 +264,137 @@ bp($contragent,$price,$defoltTransport,cat_Products::fetch($rec->products)->name
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param embed_Manager $Embedder
+     * @param core_ET $tpl
+     * @param stdClass $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+
+        $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+                                <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+                                    <div class='small'>
+                                       <!--ET_BEGIN folderId--><div>|Контрагент|*: [#folderId#]</div><!--ET_END folderId-->
+                                       <!--ET_BEGIN currencyId--><div>|Валута|*: [#currencyId#]</div><!--ET_END currencyId-->                                       
+                                    </div>
+                                
+                                 </fieldset><!--ET_END BLOCK-->"));
+
+
+
+        if (isset($data->rec->currencyId)) {
+            $fieldTpl->append('<b>' . currency_Currencies::fetch($data->rec->currencyId)->code . '</b>', 'currencyId');
+        }
+
+        if (isset($data->rec->folderId)) {
+            $fieldTpl->append('<b>' . doc_Folders::fetch($data->rec->folderId)->title . '</b>', 'folderId');
+        }
+
+
+        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+    }
+
+    /**
+     * Промяна на стойностите min и max
+     *
+     */
+    public function act_EditQuantity()
+    {
+
+        expect($recId = Request::get('recId', 'int'));
+        expect($productId = Request::get('productId', 'int'));
+        expect($id = Request::get('rowId'));
+
+        $rec = frame2_Reports::fetch($recId);
+
+        $details = $rec->prodQuantities;
+
+
+if ($details){
+
+    $quantity = $details[$id]['quantity'];
+    $price = $details[$id]['price'];
+
+}else{
+    $quantity = 0;
+    $price = 0;
+}
+
+        $form = cls::get('core_Form');
+
+        $form->title = "Редактиране на  |* ' " . ' ' . cat_Products::getHyperlink($productId) . "' ||*";
+
+        $volOldquantity = $quantity;
+        $volOldprice = $price;
+
+        $form->FLD('volNewQuantity', 'double', 'caption=Въведи количество,input,silent');
+
+        $form->FLD('volNewPrice', 'double', 'caption=Въведи max,input=none,silent');
+
+        $form->setDefault('volNewQuantity', $volOldquantity);
+        $form->setDefault('volNewPrice', $volOldprice);
+
+        $mRec = $form->input();
+
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        if ($form->isSubmitted()) {
+
+            //Намиране на цената за съответното количество
+            $contragent = doc_Folders::fetch($rec->folderId);
+
+            $date = dt::today();
+
+            $Policy = cls::get('price_ListToCustomers');
+
+            $listId = price_ListToCustomers::getListForCustomer($contragent->coverClass,$contragent->coverId,$date);
+
+            $policyInfo = $Policy->getPriceInfo($contragent->coverClass, $contragent->coverId, $productId, null, $form->rec->volNewQuantity,null, 1,null, $listId);
+            $defoltTransport = sales_TransportValues::calcDefaultTransportToClient($productId,$form->rec->volNewQuantity,$contragent->coverClass,$contragent->coverId);
+
+            $volNewPrice = $policyInfo->price + $defoltTransport['singleFee'];
+
+            $form->rec->volNewPrice = $volNewPrice;
+
+            $idNew = $productId.'|'.$form->rec->volNewQuantity;
+
+
+            $details[$idNew]['quantity'] = $mRec->volNewQuantity;
+            $details[$idNew]['price'] = $mRec->$volNewPrice;
+
+            $rec->prodQuantities = $details;
+
+            $oldRowRec = $rec->data->recs[$id];
+
+            $oldRowRec->id = $idNew;
+            $oldRowRec->quantity = $form->rec->volNewQuantity;
+            $oldRowRec->price = $form->rec->volNewPrice;
+
+
+
+            $rec->data->recs[$idNew] = $oldRowRec;
+
+
+
+            if (array_key_exists($id,$details)){
+                unset($details[$id]);
+            }
+
+            unset($rec->data->recs[$id]);
+
+
+
+            frame2_Reports::save($rec);
+
+
+            frame2_Reports::refresh($rec);
+
+            return new Redirect(getRetUrl());
+        }
+
+        return $form->renderHtml();
 
 
     }
@@ -258,6 +411,6 @@ bp($contragent,$price,$defoltTransport,cat_Products::fetch($rec->products)->name
     {
         $res = arr::make($res);
 
-        $res['external']['selfPriceTolerance'] = true;
+      //  $res['external']['selfPriceTolerance'] = true;
     }
 }
