@@ -58,11 +58,9 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        //$fieldset->FLD('products', 'varchar', 'caption=Артикули и количества,placeholder=Избери,after=title,removeAndRefreshForm,single=none,class=w100');
-        $fieldset->FLD('products', 'text', 'caption=Артикули и количества,placeholder=Избери,after=title,removeAndRefreshForm,single=none,class=w100');
+        $fieldset->FLD('products', 'fileman_FileType(bucket=reportsFiles)', 'caption=Артикули и количества,placeholder=Избери,after=title,removeAndRefreshForm,single=none,class=w100');
 
         $fieldset->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent,after=products');
-
 
     }
 
@@ -80,9 +78,7 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-      //  $csv = '../bgerp/sales/reports/ProductsAndQuantities.csv';
 
-       // $form->setDefault('products', $csv);
 
     }
 
@@ -99,15 +95,10 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
     {
         $rec = $form->rec;
 
-
-
         if ($form->isSubmitted()) {
 
 
-
-
         }
-
 
     }
 
@@ -124,18 +115,21 @@ class sales_reports_PricesOfNonstandardProducts extends frame2_driver_TableData
     {
         $recs  = array();
 
+        $fRec = fileman_Files::fetchByFh($rec->products);
+        expect($fRec, 'Липсва файл за импортиране');
 
+        $path = fileman_Data::getGoodFilePath($fRec->dataId);
 
-       // $prodArr = file($rec->products);
+        $prodArr =  file($path);
 
-        $prodArr =explode('#',$rec->products);
 
         //Ако няма артикули в папката на контрагента връща празен масив
-      if (!$prodArr) return $recs;
 
+        if (!$prodArr) return $recs;
 
         foreach ($prodArr as $product){
-            if ($product == '')continue;
+
+        if ($product == '')continue;
 
         $productArr = explode(',',$product);
         $code =  ltrim($productArr[0], '#');
