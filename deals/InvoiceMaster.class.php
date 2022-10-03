@@ -1775,21 +1775,18 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_BeforeExportCsv($mvc, &$recs)
     {
-        if (!$recs) {
-            return ;
-        }
+        if (!$recs) return ;
         
         $fields = $mvc->selectFields();
         $fields['-list'] = true;
         foreach ($recs as &$rec) {
             $rec->number = $mvc->getVerbal($rec, 'number');
-            
-            $row = new stdClass();
-            Mode::push('text', 'plain');
-            self::getVerbalInvoice($mvc, $rec, $row, $fields);
+            $rec->dealValue = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
+            $rec->dealValue = (!empty($rec->rate)) ? $rec->dealValue / $rec->rate : $rec->dealValue;
+            $rec->valueNoVat = $rec->dealValue - $rec->discountAmount;
+            $rec->valueNoVat = (!empty($rec->rate)) ? $rec->valueNoVat / $rec->rate : $rec->valueNoVat;
+            $rec->vatAmount = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
             $rec->dealValueWithoutDiscount = (!empty($rec->rate)) ? $rec->dealValueWithoutDiscount / $rec->rate : $rec->dealValueWithoutDiscount;
-            $row->dealValueWithoutDiscount = $mvc->getFieldType('dealValueWithoutDiscount')->toVerbal($rec->dealValueWithoutDiscount);
-            Mode::pop('text');
         }
     }
     
