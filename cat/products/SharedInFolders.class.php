@@ -182,7 +182,7 @@ class cat_products_SharedInFolders extends core_Manager
         
         $data->recs = $data->rows = array();
         if ($data->isProto !== true && $masterRec->isPublic != 'yes') {
-            $data->recs[$masterRec->folderId] = (object) array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id);
+            $data->recs[$masterRec->folderId] = (object) array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id, '_isLive' => true);
         }
         $query = self::getQuery();
         $query->where("#productId = {$masterRec->id}");
@@ -193,6 +193,10 @@ class cat_products_SharedInFolders extends core_Manager
         foreach ($data->recs as $id => $rec) {
             $row = static::recToVerbal($rec);
             $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
+            if($rec->_isLive){
+                $row->folderId = ht::createHint($row->folderId, 'Артикулът е създаден в папката и по подразбиране е споделен в нея');
+                unset($row->tools);
+            }
             $data->rows[$id] = $row;
         }
         
@@ -217,7 +221,10 @@ class cat_products_SharedInFolders extends core_Manager
         $pRec->isPublic = ($pRec->isPublic == 'yes') ? 'no' : 'yes';
         $title = ($pRec->isPublic == 'yes') ? 'стандартен' : 'нестандартен';
         cls::get('cat_Products')->save($pRec, 'isPublic');
-        
+        if($pRec->isPublic == 'yes'){
+            static::delete("#productId = {$productId}");
+        }
+
         return followRetUrl(array('cat_Products', 'single', $productId), " Артикулът вече е {$title}");
     }
     
@@ -252,11 +259,6 @@ class cat_products_SharedInFolders extends core_Manager
                     $tpl->append('<div><b>' . tr('Артикулът е стандартен и е достъпен само в изброените папки.') . '</b></div>', 'content');
                 } else {
                     $tpl->append('<div><b>' . tr('Артикулът е стандартен и е достъпен във всички папки.') . '</b></div>', 'content');
-                }
-
-                $folderCover = doc_Folders::fetchCoverClassName($data->masterData->rec->folderId);
-                if (cls::haveInterface('crm_ContragentAccRegIntf', $folderCover)) {
-                    $tpl->append("<div style='margin-bottom:5px'><i><small>" . tr('Като частен е бил споделен в папките на:') . '</small></i></div>', 'content');
                 }
             }
         }
