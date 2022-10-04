@@ -56,13 +56,21 @@ class cond_type_Product extends cond_type_Varchar
 
         $Type = core_Type::getByName('key(mvc=cat_Products,select=name)');
         $Type->params['maxRadio'] = isset($this->driverRec->maxRadio) ? $this->driverRec->maxRadio : 20;
+        if(isset($this->driverRec->maxRadio)){
+            $Type->params['columns'] = 2;
+        }
+
         $options = $CType->getOptions();
         $optionsCount = countR($options);
-        if(empty($value) && $optionsCount > $Type->params['maxRadio']){
+        $willShowAsRadio = ($optionsCount <= $Type->params['maxRadio']);
+        if(empty($value) && !$willShowAsRadio){
             $options = array('' => '') + $options;
         }
-        $Type->options = $options;
+        if($willShowAsRadio){
+            $Type->params['columns'] = 2;
+        }
 
+        $Type->options = $options;
         foreach ($Type->options as $k => $v){
             if(is_object($v)){
                 unset($Type->options[$k]);
