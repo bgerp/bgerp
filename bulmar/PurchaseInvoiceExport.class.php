@@ -226,9 +226,9 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         
         $vat = round($rec->vatAmount, 2);
         $nRec->vat = $sign * $vat;
-        $nRec->productsAmount = $sign * round($byProducts, 2);
-        $nRec->otherServiceAmount = $sign * round($byOtherService, 2);
-        $nRec->transportAmount = $sign * round($byTransport, 2);
+        $nRec->_productsAmount = $sign * round($byProducts, 2);
+        $nRec->_otherServiceAmount = $sign * round($byOtherService, 2);
+        $nRec->_transportAmount = $sign * round($byTransport, 2);
 
         $nRec->amount = $sign * (round($baseAmount, 2) + round($rec->vatAmount, 2));
         $nRec->baseAmount = $sign * round($baseAmount, 2);
@@ -252,19 +252,16 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         }
 
 
-        $t = $nRec->productsAmount + $nRec->otherServiceAmount + $nRec->transportAmount;
-        if(round($t, 2) != round($nRec->baseAmount, 2)){
-            if(!empty($nRec->productsAmount)){
-                $nRec->productsAmount = $nRec->baseAmount - $nRec->otherServiceAmount - $nRec->transportAmount;
-            }
+        if(!empty($nRec->_productsAmount)){
+            $nRec->productsAmount = $nRec->baseAmount - $nRec->_otherServiceAmount - $nRec->_transportAmount;
+        }
 
-            if(!empty($nRec->transportAmount) && empty($nRec->otherServiceAmount)){
-                $nRec->transportAmount = $nRec->baseAmount - $nRec->otherServiceAmount - $nRec->productsAmount;
-            }
+        if(!empty($nRec->_transportAmount) && empty($nRec->_otherServiceAmount)){
+            $nRec->transportAmount = $nRec->baseAmount - $nRec->_otherServiceAmount - $nRec->_productsAmount;
+        }
 
-            if(!empty($nRec->otherServiceAmount)){
-                $nRec->otherServiceAmount = $nRec->baseAmount - $nRec->productsAmount;
-            }
+        if(!empty($nRec->_otherServiceAmount)){
+            $nRec->otherServiceAmount = $nRec->baseAmount - $nRec->_productsAmount;
         }
         
         return $nRec;
