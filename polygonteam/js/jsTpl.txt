@@ -8,6 +8,10 @@ window.onblur = function () {
 	isTabActive = false;
 };
 
+window.onload = function () {
+	isTabActive = true;
+};
+
 function readScale() {
     if ($("[name=[#_weight#]]").length && $("[name=[#_weight#]]").attr('type') != 'hidden') {
         $('<input>', {type: 'hidden', name: '[#_liveWeight#]',}).appendTo("form");
