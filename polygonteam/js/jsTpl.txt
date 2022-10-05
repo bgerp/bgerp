@@ -23,7 +23,6 @@ function readScale() {
                    type: "GET",
                    url: '[#protocol#]://[#user#]:[#pass#]@[#hostName#]/?RelayOutputs=2,3&DigitalInputs=3,4&CounterInputs=2,1&An%20alogInputs=4,5,6&ElectronicScales=1',
                    crossDomain: true,
-			       timeout: 3000,
            }).done(function(res) {
                     xmlDoc = $.parseXML(res),
                     unit = $(xmlDoc).find("Name:contains(ElectronicScale1)").siblings('Unit').text();
