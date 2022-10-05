@@ -377,7 +377,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     }
 
                     //Попълваме масива с количствата по различните видове етикетирания(производство, влагане, отпадък)
-                    if($clone->type == 'production'){
+                    if($clone->type == 'production' && $tRec->type == 'scrap'){
                         $typesQuantities->production += $clone->labelQuantity;
                     }elseif ($clone->type == 'waste'){
                         $typesQuantities->waste += $clone->labelQuantity;
@@ -469,6 +469,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if ($export === false) {
 
             if ($rec->typeOfReport == 'full') {
+                $fld->FLD('total', 'varchar', 'caption=@Total,tdClass=rightCol');
                 $fld->FLD('jobs', 'varchar', 'caption=Задание');
                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
                 $fld->FLD('article', 'varchar', 'caption=Артикул');
@@ -509,6 +510,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     }
 
                 }
+
                 $fld->FLD('jobs', 'varchar', 'caption=Задание');
                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
                 $fld->FLD('article', 'varchar', 'caption=Артикул');
@@ -555,10 +557,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row = new stdClass();
 
         if($dRec->total){
-            $row->labelQuantity = '';
-                $row->labelQuantity .= 'Произведено '.$dRec->production."</br>";
-                $row->labelQuantity .= 'Вложено '.$dRec->input."</br>";
-                $row->labelQuantity .= 'Отпадък '.$dRec->waste."</br>";
+            $row->total = '';
+                $row->total .= 'Произведено '.$dRec->production." ; ";
+                $row->total .= 'Вложено '.$dRec->input." ; ";
+                $row->total .= 'Отпадък '.$dRec->waste;
             return $row;
         }
 
