@@ -145,7 +145,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('STEP_PRODUCT_NAME' => $stepProductName, 'STEP_PRODUCT_CODE' => $stepProductCode,'JOB_PRODUCT_NAME' => $jobProductName, 'JOB_PRODUCT_CODE' => $jobProductCode, 'QR_CODE' => $singleUrl, 'PRODUCT_NAME' => $productName, 'CODE' => $productCode, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle(), 'WEIGHT' => $nettWeight);
+            $res = array('STEP_PRODUCT_NAME' => $stepProductName, 'STEP_PRODUCT_CODE' => $stepProductCode,'JOB_PRODUCT_NAME' => $jobProductName, 'JOB_PRODUCT_CODE' => $jobProductCode, 'QR_CODE' => $singleUrl, 'PRODUCT_NAME' => $productName, 'CODE' => $productCode, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle(), 'NETT_WEIGHT' => $nettWeight);
             if(!empty($batch)){
                 $res['BATCH'] = $BatchDef->toVerbal($batch);
             }
