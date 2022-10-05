@@ -189,7 +189,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $query->in('fixedAsset', $assetArr);
         }
 
-        $indTimeSumArr = array();
+        $indTimeSumArr =  array();
+        $typesQuantities = (object)array(
+
+            'total' => 'total',
+            'production' => 0,
+            'input' => 0,
+            'waste' => 0,
+        );
+
         while ($tRec = $query->fetch()) {
             $id = self::breakdownBy($tRec, $rec);
 
@@ -368,6 +376,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         $indTimeSum = 0;
                     }
 
+                    //Попълваме масива с количствата по различните видове етикетирания(производство, влагане, отпадък)
+                    if($clone->type == 'production'){
+                        $typesQuantities->production += $clone->labelQuantity;
+                    }elseif ($clone->type == 'waste'){
+                        $typesQuantities->waste += $clone->labelQuantity;
+                    }elseif ($clone->type == 'input'){
+                        $typesQuantities->input += 1;
+                    }
+
                     $indTimeSum = $clone->indTimeSum;
 
                     $clone = clone $val;
@@ -426,6 +443,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $rec->indTimeSumArr = $indTimeSumArr;
 
+        //Ако резбивката е по артикули, справката е подробна добавям първи рез със
+        //сумарните ко.личества по дености
+        if ($rec->typeOfReport == 'full' && $rec->resultsOn == 'arts'){
+            array_unshift($recs, $typesQuantities);
+        }
+
         return $recs;
     }
 
@@ -444,6 +467,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         if ($export === false) {
+
             if ($rec->typeOfReport == 'full') {
                 $fld->FLD('jobs', 'varchar', 'caption=Задание');
                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
@@ -483,6 +507,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     if ($rec->resultsOn == 'usersMachines' || $rec->resultsOn == 'machines') {
                         $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
                     }
+
                 }
                 $fld->FLD('jobs', 'varchar', 'caption=Задание');
                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
@@ -504,7 +529,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
             $fld->FLD('labelQuantity', 'double(decimals=2)', 'caption=Етикет->кол,tdClass=centered');
-
+            $fld->FLD('total', 'varchar', 'caption=@ТОТАЛ');
         }
 
         return $fld;
@@ -528,6 +553,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
 
         $row = new stdClass();
+
+        if($dRec->total){
+            $row->labelQuantity = '';
+                $row->labelQuantity .= 'Произведено '.$dRec->production."</br>";
+                $row->labelQuantity .= 'Вложено '.$dRec->input."</br>";
+                $row->labelQuantity .= 'Отпадък '.$dRec->waste."</br>";
+            return $row;
+        }
 
         if ($dRec->originId) {
             $Job = doc_Containers::getDocument($dRec->originId);
