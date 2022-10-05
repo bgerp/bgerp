@@ -220,7 +220,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
             } elseif (($byOtherService == 0  && $byTransport == 0) && $byProducts != 0) {
                 $nRec->reason = 'Покупка на стоки';
             } else {
-                $nRec->reason = 'Покупка';
+                $nRec->reason = 'Покупка на стоки';
             }
         }
         
@@ -250,7 +250,6 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         if ($rec->paymentType == 'cash') {
             $nRec->amountPaid = $nRec->amount;
         }
-
 
         if(!empty($nRec->_productsAmount)){
             $nRec->productsAmount = $nRec->baseAmount - $nRec->_otherServiceAmount - $nRec->_transportAmount;
@@ -310,7 +309,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
                     $debitAcc =  "{$static->downpaymentAcc}|AN|$|";
                 }
 
-                $operationId = !empty($nRec->productsAmount) ? $data->static->purchaseProductsOperation : $data->static->purchaseServiceOperation;
+                $operationId = !empty($rec->productsAmount) ? $data->static->purchaseProductsOperation : $data->static->purchaseServiceOperation;
                 $row = "{$rec->num}|1|{$operationId}|";
 
                 if(!empty($rec->productsAmount)){
