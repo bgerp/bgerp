@@ -2632,23 +2632,25 @@ class email_Outgoings extends core_Master
         }
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
-        
+
         if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active' || $data->rec->state == 'pending')) {
             $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
-            $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
-            $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
-            if (!$notifyUserId) {
-                $notifyUserId = $data->rec->activatedBy;
-            }
-            $data->row->notifyUser = crm_Profiles::createLink($notifyUserId);
-            
-            if ($mvc->haveRightFor('close', $data->rec)) {
-                $data->row->removeNotify = ht::createLink(
-                    '',
-                    array($mvc, 'close', $data->rec->id, 'ret_url' => true),
-                    tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
-                                                            array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => 'Премахване на изчакването за отговор')
-                );
+            if ($notifyDate > dt::now()) {
+                $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
+                $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
+                if (!$notifyUserId) {
+                    $notifyUserId = $data->rec->activatedBy;
+                }
+                $data->row->notifyUser = crm_Profiles::createLink($notifyUserId);
+
+                if ($mvc->haveRightFor('close', $data->rec)) {
+                    $data->row->removeNotify = ht::createLink(
+                        '',
+                        array($mvc, 'close', $data->rec->id, 'ret_url' => true),
+                        tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
+                                                                array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => 'Премахване на изчакването за отговор')
+                    );
+                }
             }
         }
         
@@ -2878,9 +2880,10 @@ class email_Outgoings extends core_Master
         
         // Вземаме всички чакащи или събудени имейли
         $query = static::getQuery();
-        $query->where("#state = 'waiting'");
-        $query->orWhere("#state = 'wakeup'");
-        
+        $query->where("#state = 'wakeup'");
+        $query->orWhere("#state = 'waiting'");
+        $query->orWhere("#waiting > 0 AND (#state = 'waiting' OR #state = 'active' OR #state = 'pending')");
+
         while ($rec = $query->fetch()) {
             
             // Дали да се записва
@@ -2931,7 +2934,7 @@ class email_Outgoings extends core_Master
                     self::logWrite('Събуждане', $rec->id);
                 }
             }
-            
+
             // Ако е вдигнат флага, записваме
             if ($flagSave) {
                 if (static::save($nRec, $saveFiedsArr)) {
