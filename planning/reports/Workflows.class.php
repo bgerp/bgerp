@@ -377,7 +377,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     }
 
                     //Попълваме масива с количствата по различните видове етикетирания(производство, влагане, отпадък)
-                    if($clone->type == 'production' && $tRec->type == 'scrap'){
+                    if($clone->type == 'production' && $clone->type == 'scrap'){
                         $typesQuantities->production += $clone->labelQuantity;
                     }elseif ($clone->type == 'waste'){
                         $typesQuantities->waste += $clone->labelQuantity;
