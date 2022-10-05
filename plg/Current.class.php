@@ -159,7 +159,9 @@ class plg_Current extends core_Plugin
                 if ($rec->choice && ($form->isSubmitted() || countR($opt) == 1)) {
                     if ($mvc->haveRightFor('select')) {
                         $rec = $mvc->fetch($rec->choice);
+                        Mode::push('getPublicDomain', false);
                         $mvc->selectCurrent($rec);
+                        Mode::pop('getPublicDomain');
                         $res = new Redirect(getRetUrl());
                         
                         return false;
@@ -192,10 +194,10 @@ class plg_Current extends core_Plugin
             expect(is_numeric($rec), $rec);
             expect($rec = $mvc->fetch($rec));
         }
-        
+
         // Кой е текущия обект
         $curId = $mvc->getCurrent('id', false);
-        
+
         // Ако текущия обект е различен от избрания, избира се новия
         if ($curId != $rec->id) {
             self::setCurrent($mvc, $res, $rec);

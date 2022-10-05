@@ -28,6 +28,21 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected $sortableListFields = 'employees';
 
+    /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields  ;
+
+
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО';
+
 
     /**
      * Брой записи на страница
@@ -48,7 +63,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'start,to,resultsOn,centre,assetResources,employees';
+    protected $changeableFields = 'start,to,resultsOn,centre,assetResources,employees,typeOfReport';
 
 
     /**
@@ -290,6 +305,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         if (countR($recs)) {
             arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
+        }
+        if ($rec->typeOfReport == 'short') {
+            $this->summaryListFields = 'labelQuantity';
         }
 
         //Когато е избран тип на справката - ПОДРОБНА

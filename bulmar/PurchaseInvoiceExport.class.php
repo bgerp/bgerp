@@ -68,7 +68,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
         
-        $form->info = tr('Ще се експортират само входящите фактури за покупка на стоки от контрагенти от "България"');
+        $form->info = tr('Ще се експортират само входящите фактури за покупка от български контрагенти');
         $form->info = "<div class='richtext-message richtext-info'>{$form->info}</div>";
     }
     
@@ -146,7 +146,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
     private function prepareRec($rec, $count)
     {
         $nRec = new stdClass();
-        
+
         // Пропускат се фактурите за контрагенти извън 'България'
         if(isset($rec->contragentCountryId)){
             $bgId =   drdata_Countries::getIdByName('Bulgaria');
@@ -180,30 +180,29 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
             $baseAmount += abs($rec->dpAmount);
         }
         
-        $byProducts = $byServices = 0;
+        $byProducts = $byOtherService = $byTransport = 0;
         $dQuery = purchase_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
         
         $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
-        
+        $transProductIds = keylist::toArray(sales_Setup::get('TRANSPORT_PRODUCTS_ID'));
+
         while ($dRec = $dQuery->fetch()) {
             if (empty($this->cache[$dRec->productId])) {
                 $this->cache[$dRec->productId] = cat_Products::fetch($dRec->productId, 'canStore');
             }
            
             $dRec->amount = round($dRec->packPrice * $dRec->quantity, $vatDecimals);
-            
+
             if ($this->cache[$dRec->productId]->canStore == 'no') {
-                $byServices += $dRec->amount * (1 - $dRec->discount);
+                if(in_array($dRec->productId, $transProductIds)){
+                    $byTransport += $dRec->amount * (1 - $dRec->discount);
+                } else {
+                    $byOtherService += $dRec->amount * (1 - $dRec->discount);
+                }
             } else {
                 $byProducts += $dRec->amount * (1 - $dRec->discount);
             }
-        }
-       
-        // Пропускат се фактурите в които има услуги
-        if(!empty($byServices)){
-            
-            return null;
         }
         
         if ($rec->type != 'invoice') {
@@ -216,19 +215,21 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
                 $nRec->downpaymentChanged = $rec->changeAmount;
             }
         } else {
-            if ($byServices != 0 && $byProducts == 0) {
-                $nRec->reason = 'Покупка на услуги';
-            } elseif ($byServices == 0 && $byProducts != 0) {
+            if (($byOtherService != 0  || $byTransport != 0) && $byProducts == 0) {
+                $nRec->reason = 'Услуга';
+            } elseif (($byOtherService == 0  && $byTransport == 0) && $byProducts != 0) {
                 $nRec->reason = 'Покупка на стоки';
             } else {
-                $nRec->reason = 'Покупка';
+                $nRec->reason = 'Покупка на стоки';
             }
         }
         
         $vat = round($rec->vatAmount, 2);
         $nRec->vat = $sign * $vat;
-        $nRec->productsAmount = $sign * round($byProducts, 2);
-        $nRec->servicesAmount = $sign * round($byServices, 2);
+        $nRec->_productsAmount = $sign * round($byProducts, 2);
+        $nRec->_otherServiceAmount = $sign * round($byOtherService, 2);
+        $nRec->_transportAmount = $sign * round($byTransport, 2);
+
         $nRec->amount = $sign * (round($baseAmount, 2) + round($rec->vatAmount, 2));
         $nRec->baseAmount = $sign * round($baseAmount, 2);
         
@@ -249,16 +250,17 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         if ($rec->paymentType == 'cash') {
             $nRec->amountPaid = $nRec->amount;
         }
-        
-        if(round($nRec->productsAmount + $nRec->servicesAmount, 2) != round($nRec->baseAmount, 2)){
-            if(empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
-                $nRec->servicesAmount = $nRec->baseAmount;
-            } elseif(!empty($nRec->productsAmount) && empty($nRec->servicesAmount)){
-                $nRec->productsAmount = $nRec->baseAmount;
-            } elseif(!empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
-                $nRec->servicesAmount = $nRec->baseAmount - $nRec->productsAmount;
-                $nRec->productsAmount = $nRec->baseAmount - $nRec->servicesAmount;
-            }
+
+        if(!empty($nRec->_productsAmount)){
+            $nRec->productsAmount = $nRec->baseAmount - $nRec->_otherServiceAmount - $nRec->_transportAmount;
+        }
+
+        if(!empty($nRec->_transportAmount) && empty($nRec->_otherServiceAmount)){
+            $nRec->transportAmount = $nRec->baseAmount - $nRec->_otherServiceAmount - $nRec->_productsAmount;
+        }
+
+        if(!empty($nRec->_otherServiceAmount)){
+            $nRec->otherServiceAmount = $nRec->baseAmount - $nRec->_productsAmount;
         }
         
         return $nRec;
@@ -273,6 +275,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         $static = $data->static;
         $content = 'Text Export To BMScety V2.0' . "\r\n";
         $content .= "BULSTAT={$static->OWN_COMPANY_BULSTAT}" . "\r\n";
+
 
         // Добавяме информацията за фактурите
         foreach ($data->recs as $rec) {
@@ -305,9 +308,24 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
                 if($rec->downpaymentChanged){
                     $debitAcc =  "{$static->downpaymentAcc}|AN|$|";
                 }
-                
-                
-                $line .= "{$rec->num}|1|{$static->purchaseProductsOperation}|{$debitAcc}{$rec->baseAmount}||{$static->debitPurchaseVat}|||{$rec->vat}||{$creditAcc}|PN|$|{$rec->amount}||" . "\r\n";
+
+                $operationId = !empty($rec->productsAmount) ? $data->static->purchaseProductsOperation : $data->static->purchaseServiceOperation;
+                $row = "{$rec->num}|1|{$operationId}|";
+
+                if(!empty($rec->productsAmount)){
+                    $row .= "{$debitAcc}{$rec->productsAmount}||";
+                }
+
+                if(!empty($rec->transportAmount) && empty($rec->otherServiceAmount)){
+                    $row .= "{$static->debitPurchaseService}|{$static->debitTransServiceAnal}||{$rec->transportAmount}||";
+                }
+
+                if(!empty($rec->otherServiceAmount)){
+                    $row .= "{$static->debitPurchaseService}|{$static->debitOtherServiceAnal}||{$rec->otherServiceAmount}||";
+                }
+
+                $row .= "{$static->debitPurchaseVat}|||{$rec->vat}||{$creditAcc}|PN|$|{$rec->amount}||" . "\r\n";
+                $line .= $row;
             }
             
             $line .= "{$rec->num}|1|POK|{$rec->reason}|1||||{$rec->baseAmount}|{$rec->vat}|||||||||||||" . "\r\n";
@@ -358,6 +376,10 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
 
         $staticData->debitConnectedPersons = $conf->BULMAR_PURINV_DEBIT_CONNECTED_PERSONS;
         $staticData->creditConnectedPersons = $conf->BULMAR_PURINV_CREDIT_CONNECTED_PERSONS;
+
+        $staticData->debitTransServiceAnal = $conf->BULMAR_PURINV_TRANS_SERVICE_ANAL;
+        $staticData->debitOtherServiceAnal = $conf->BULMAR_PURINV_OTHER_SERVICE_ANAL;
+
         $myCompany = crm_Companies::fetchOwnCompany();
         
         $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;

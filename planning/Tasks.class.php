@@ -118,55 +118,55 @@ class planning_Tasks extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, taskWorker';
+    public $canList = 'ceo, taskSee';
 
 
     /**
      * Кой може да го добавя?
      */
-    public $canAdd = 'ceo, taskPlanning';
+    public $canAdd = 'ceo, task';
 
 
     /**
      * Кой може да ги създава от задания?
      */
-    public $canCreatejobtasks = 'ceo, taskPlanning';
+    public $canCreatejobtasks = 'ceo, task';
 
 
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,taskWorker';
+    public $canSingle = 'ceo, taskSee';
 
 
     /**
      * Кой може да преизчислява заработките на прогреса на операцията?
      */
-    public $canRecalcindtime = 'ceo,planningMaster';
+    public $canRecalcindtime = 'ceo,task';
 
 
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo, taskPlanning';
+    public $canActivate = 'ceo, task';
 
 
     /**
      * Кой може да го активира?
      */
-    public $canChangestate = 'ceo, taskWorker';
+    public $canChangestate = 'ceo, task';
     
     
     /**
      * Кой може да го редактира?
      */
-    public $canEdit = 'ceo, taskPlanning';
+    public $canEdit = 'ceo, task';
 
 
     /**
      * Кой може да го прави на заявка?
      */
-    public $canPending = 'ceo, taskPlanning';
+    public $canPending = 'ceo, task';
 
 
     /**
@@ -332,6 +332,11 @@ class planning_Tasks extends core_Master
 
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
+
+        $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Прагове при разминаване на Нетото в прогреса->Информация,autohide');
+        $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Прагове при разминаване на Нетото в прогреса->Предупреждение,autohide');
+        $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Прагове при разминаване на Нетото в прогреса->Критично,autohide');
+
         $this->FLD('subTitle', 'varchar(20)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
@@ -543,6 +548,11 @@ class planning_Tasks extends core_Master
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
+            $eFields = static::getExpectedDeviations($rec, true);
+            $row->deviationNettoNotice = $eFields['notice'];
+            $row->deviationNettoWarning = $eFields['warning'];
+            $row->deviationNettoCritical = $eFields['critical'];
+
             $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true);
             if(is_array($dependentTasks[$rec->id])){
                 $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
@@ -789,6 +799,7 @@ class planning_Tasks extends core_Master
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->title = cat_Products::getTitleById($rec->productId);
 
+            planning_Centers::checkDeviationPercents($form);
             if(in_array($form->cmd, array('save_pending', 'save_pending_new'))){
                 if(empty($rec->indTime) && empty($rec->timeDuration)){
                     $form->setError('timeDuration,indTime', "На операцията трябва да може да ѝ се изчисли продължителността|*!");
@@ -899,6 +910,11 @@ class planning_Tasks extends core_Master
             $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table>
                 <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо бруто|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
                 <!--ET_BEGIN totalNetWeight--><tr><td style='font-weight:normal'>|Общо нето|*:</td><td>[#totalNetWeight#]</td></tr><!--ET_END totalNetWeight-->
+                
+                <!--ET_BEGIN deviationNettoNotice--><tr><td style='font-weight:normal'>|Отбелязване|*:</td><td>[#deviationNettoNotice#]</td></tr><!--ET_END deviationNettoNotice-->
+                <!--ET_BEGIN deviationNettoWarning--><tr><td style='font-weight:normal'>|Предупреждение|*:</td><td>[#deviationNettoWarning#]</td></tr><!--ET_END deviationNettoWarning-->
+                <!--ET_BEGIN deviationNettoCritical--><tr><td style='font-weight:normal'>|Критично|*:</td><td>[#deviationNettoCritical#]</td></tr><!--ET_END deviationNettoCritical-->
+                
                 <tr><td style='font-weight:normal'>|Режим|*:</td><td>[#showadditionalUom#]</td></tr>
                 </table>"));
         }
@@ -1108,6 +1124,8 @@ class planning_Tasks extends core_Master
         if ($action == 'reject' && isset($rec)) {
             if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")) {
                 $requiredRoles = 'no_one';
+            } elseif(!haveRole('task', $userId)){
+                $requiredRoles = 'no_one';
             }
         }
 
@@ -1307,6 +1325,7 @@ class planning_Tasks extends core_Master
             }
         }
         $form->setFieldTypeParams('productId', array('centerFolderId' => $rec->folderId));
+        $form->setField("deviationNettoWarning", "placeholder=" . $mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING')));
 
         // За произвеждане може да се избере само артикула от заданието
         try{
@@ -2935,6 +2954,42 @@ class planning_Tasks extends core_Master
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         $res = array_merge($res, $forwardRes, (array) $statusData);
+
+        return $res;
+    }
+
+
+    /**
+     * Помощен масив за връщане на очакваните стойности на предупрежденията
+     *
+     * @param stdClass $rec
+     * @param boolean $verbal
+     * @return array $res
+     */
+    public static function getExpectedDeviations($rec, $verbal = false)
+    {
+        $res = array();
+        $centerRec = planning_Centers::fetch("#folderId = {$rec->folderId}");
+        $res['notice'] = !empty($rec->deviationNettoNotice) ? $rec->deviationNettoNotice : $centerRec->deviationNettoNotice;
+        if($verbal && isset($res['notice'])){
+            $res['notice'] = core_Type::getByName('percent')->toVerbal($res['notice']);
+            $res['notice'] = !empty($rec->deviationNettoNotice) ?  $res['notice'] : ht::createHint("<span style='color:blue'>{$res['notice']}</span>", 'От центъра на дейност', 'notice', false);
+        }
+
+        $res['critical'] = !empty($rec->deviationNettoCritical) ? $rec->deviationNettoCritical : $centerRec->deviationNettoCritical;
+        if($verbal && isset($res['critical'])){
+            $res['critical'] = core_Type::getByName('percent')->toVerbal($res['critical']);
+            $res['critical'] = !empty($rec->deviationNettoCritical) ?  $res['critical'] : ht::createHint("<span style='color:blue'>{$res['critical']}</span>", 'От центъра на дейност', 'notice', false);
+        }
+
+        $res['warning'] = !empty($rec->deviationNettoWarning) ? $rec->deviationNettoWarning : (($centerRec->deviationNettoWarning) ? $centerRec->deviationNettoWarning : planning_Setup::get('TASK_NET_WEIGHT_WARNING'));
+        if($verbal && isset($res['warning'])){
+            $res['warning'] = core_Type::getByName('percent')->toVerbal($res['warning']);
+            $hint = !empty($rec->deviationNettoWarning) ?  null : (($centerRec->deviationNettoWarning) ? 'От центъра на дейност' : 'От настройката по подразбиране');
+            if($hint){
+                $res['warning'] = ht::createHint("<span style='color:blue'>{$res['warning']}</span>", $hint, 'notice', false);
+            }
+        }
 
         return $res;
     }

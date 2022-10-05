@@ -54,13 +54,13 @@ class planning_Centers extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning, job';
+    public $canList = 'ceo, planning, jobSee';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, planning, job';
+    public $canSingle = 'ceo, planning, jobSee';
     
     
     /**
@@ -182,7 +182,13 @@ class planning_Centers extends core_Master
         $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
 
         $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Опаковки');
-        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър');
+        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър,silent,removeAndRefreshForm=useTareFromParamMeasureId');
+        $this->FLD('useTareFromParamMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър(мярка),input=hidden');
+        $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Отбелязване');
+        $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Предупреждение');
+        $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично');
+        $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Параметър за изчисляване на ед. тегло->Избор,silent,removeAndRefreshForm=paramExpectedNetMeasureId');
+        $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Параметър за изчисляване на ед. тегло->Мярка,input=hidden');
 
         $this->setDbUnique('name');
     }
@@ -203,6 +209,20 @@ class planning_Centers extends core_Master
 
         $options = cat_UoM::getPackagingOptions();
         $form->setSuggestions('useTareFromPackagings', $options);
+        $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
+        $kgDerivitives = cat_Uom::getSameTypeMeasures($kgMeasureId, false, false);
+
+        if(isset($rec->useTareFromParamId)){
+            $form->setField('useTareFromParamMeasureId', 'input');
+            $form->setOptions('useTareFromParamMeasureId', $kgDerivitives);
+            $form->setDefault('useTareFromParamMeasureId', $kgMeasureId);
+        }
+
+        if(isset($rec->paramExpectedNetWeight)){
+            $form->setField('paramExpectedNetMeasureId', 'input');
+            $form->setOptions('paramExpectedNetMeasureId', $kgDerivitives);
+            $form->setDefault('paramExpectedNetMeasureId', $kgMeasureId);
+        }
 
         // Достъпните за избор параметри
         $paramOptions = cat_Params::getOptionsByDriverClass(array('cond_type_Double', 'cond_type_Int', 'cond_type_Formula'), 'typeExt', true);
@@ -212,6 +232,9 @@ class planning_Centers extends core_Master
             }
         }
         $form->setOptions('useTareFromParamId', array('' => '') + $paramOptions);
+        $form->setOptions('paramExpectedNetWeight', array('' => '') + $paramOptions);
+
+        $form->setField("deviationNettoWarning", "placeholder=" . $mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING')));
     }
 
 
@@ -221,9 +244,47 @@ class planning_Centers extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
+        static::checkDeviationPercents($form);
         if($form->isSubmitted()){
             if(!empty($rec->useTareFromParamId) && !empty($rec->useTareFromPackagings)){
                 $form->setError('useTareFromParamId,useTareFromPackagings', 'Могат да бъдат избрани или само Опаковки, или само Параметър!');
+            }
+        }
+    }
+
+
+    /**
+     * Проверка на полетата за преудпреждения
+     *
+     * @param core_Form $form
+     * @param string $noticeField
+     * @param string $warningField
+     * @param string $criticalField
+     * @return void
+     */
+    public static function checkDeviationPercents($form, $noticeField = 'deviationNettoNotice', $warningField = 'deviationNettoWarning', $criticalField = 'deviationNettoCritical')
+    {
+        $rec = &$form->rec;
+        $warning = isset($rec->{$warningField}) ? $rec->{$warningField} : planning_Setup::get('TASK_NET_WEIGHT_WARNING');
+
+        if(!empty($rec->{$noticeField})){
+            if(isset($warning)){
+                if($rec->{$noticeField} >= $warning){
+                    $form->setError("{$noticeField},{$warningField}", 'Предупреждението трябва да е по-голямо от отбелязването');
+                }
+            }
+            if(isset($rec->{$criticalField})){
+                if($rec->{$noticeField} >= $rec->{$criticalField}){
+                    $form->setError("{$noticeField},{$criticalField}", 'Критичното трябва да е по-голямо от отбелязването');
+                }
+            }
+        }
+
+        if(!empty($warning)){
+            if(isset($rec->{$criticalField})){
+                if($warning >= $rec->{$criticalField}){
+                    $form->setError("{$warningField},{$criticalField}", 'Критичното трябва да е по-голямо от предупреждението');
+                }
             }
         }
     }
@@ -263,6 +324,16 @@ class planning_Centers extends core_Master
         if($rec->showSerialWarningOnDuplication == 'auto'){
             $row->showSerialWarningOnDuplication = $mvc->getFieldType('showSerialWarningOnDuplication')->toVerbal(planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS'));
             $row->showSerialWarningOnDuplication = ht::createHint("<span style='color:blue'>{$row->showSerialWarningOnDuplication}</span>", 'По подразбиране', 'notice', false);
+        }
+
+        $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span style='color:blue'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
+
+        if(isset($rec->useTareFromParamId) && isset($row->useTareFromParamMeasureId)){
+            $row->useTareFromParamId = ht::createHint($row->useTareFromParamId, $row->useTareFromParamMeasureId);
+        }
+
+        if(isset($rec->paramExpectedNetWeight) && isset($row->paramExpectedNetMeasureId)){
+            $row->paramExpectedNetWeight = ht::createHint($row->paramExpectedNetWeight, $row->paramExpectedNetMeasureId);
         }
     }
     
@@ -478,5 +549,28 @@ class planning_Centers extends core_Master
     protected static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('#state');
+    }
+
+
+    /**
+     * Екшън редактиращ потребителя към първия му достъпен модел в пакета
+     */
+    function act_dispatch()
+    {
+        requireRole('ceo,planning,production,jobSee');
+
+        if(haveRole('production') || haveRole('ceo')){
+            redirect(array('planning_DirectProductionNote', 'list'));
+        } elseif(haveRole('consumption')){
+            redirect(array('planning_ConsumptionNotes', 'list'));
+        } elseif(haveRole('jobSee')){
+            redirect(array('planning_Jobs', 'list'));
+        } elseif(haveRole('task')){
+            redirect(array('planning_Tasks', 'list'));
+        } elseif(haveRole('planning')) {
+            redirect(array('planning_Centers', 'list'));
+        }
+
+        redirect(array('bgerp_Portal', 'show'), false, 'Нямате достъп до таб от менюто', 'warning');
     }
 }

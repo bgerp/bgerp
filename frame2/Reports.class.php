@@ -223,6 +223,12 @@ class frame2_Reports extends embed_Manager
 
 
     /**
+     * Минимален ранг на потребителите за редактиране на чужди справки
+     */
+    public $minRangForEditForeignDoc = 'executive';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -281,7 +287,7 @@ class frame2_Reports extends embed_Manager
         if ($rec->id && $rec->changeFields) {
             $cu = core_Users::getCurrent();
             // И потребителя не е създател на документа
-            if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+            if ($rec->createdBy != $cu) {
                 $changeable = type_Set::toArray($rec->changeFields);
                 $fF = $this->filterDateFrom ? $this->filterDateFrom : 'from';
                 $fT = $this->filterDateTo ? $this->filterDateTo : 'to';
@@ -340,7 +346,7 @@ class frame2_Reports extends embed_Manager
                     $cu = core_Users::getCurrent();
                     
                     // И потребителя не е създател на документа
-                    if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+                    if ($rec->createdBy != $cu) {
                         
                         // Скриват се всички полета, които не са упоменати като променяеми
                         $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
@@ -848,7 +854,7 @@ class frame2_Reports extends embed_Manager
         }
         
         // За модификация, потребителя трябва да има права и за драйвера
-        if (in_array($action, array('write')) && isset($rec->driverClass)) {
+        if (in_array($action, array('add', 'close', 'reject', 'restore')) && isset($rec->driverClass)) {
             if ($Driver = $mvc->getDriver($rec)) {
                 if (!$Driver->canSelectDriver($userId)) {
                     $requiredRoles = 'no_one';
@@ -871,7 +877,7 @@ class frame2_Reports extends embed_Manager
                 
                 // Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
                 if (isset($userId) && !haveRole('ceo', $userId)) {
-                    if (!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && countR($changeAbleFields)) || (core_Users::compareRangs($userId, $createdBy) > 0 && $mvc->haveRightFor('single', $rec)))) {
+                    if (!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && countR($changeAbleFields)) || ($mvc->haveRightFor('single', $rec)))) {
                         $requiredRoles = 'no_one';
                     }
                 }

@@ -90,13 +90,13 @@ class planning_Jobs extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning, job, production, taskWorker';
+    public $canList = 'ceo, jobSee';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, planning, job, production, taskWorker';
+    public $canSingle = 'ceo, jobSee';
     
     
     /**
@@ -1092,6 +1092,12 @@ class planning_Jobs extends core_Master
         
         if ($action == 'close' && $rec) {
             if ($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped') {
+                $res = 'no_one';
+            }
+        }
+
+        if($action == 'reject' && isset($rec)){
+            if(!haveRole('job', $userId)){
                 $res = 'no_one';
             }
         }

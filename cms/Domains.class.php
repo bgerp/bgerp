@@ -246,12 +246,14 @@ class cms_Domains extends core_Embedder
     /**
      * Връща id към текущия домейн
      */
-    public static function getPublicDomain($part = null, $lang = null)
+    public static function getPublicDomain($part = null, $lang = null, $getCurrentDomainId = true)
     {
         $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
-        
-        $domainId = cms_Domains::getCurrent('id', false);
-        
+
+        if ($getCurrentDomainId) {
+            $domainId = cms_Domains::getCurrent('id', false);
+        }
+
         if ($domainId && (!isset($domainRec) || ($domainRec->id != $domainId))) {
             self::setPublicDomain($domainId);
             $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
@@ -301,6 +303,24 @@ class cms_Domains extends core_Embedder
         }
         
         return $domainRec;
+    }
+
+
+    /**
+     * Връща указаната част (по подразбиране - id-то) на текущия за сесията запис
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param string   $part   поле от модела-домакин
+     * @param bool|int $bForce Дали да редирект към мениджъра ако не е избран текущ обект. Ако е int и няма избран мениджър, автоматично се избира
+     */
+    public static function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = true)
+    {
+        if (!isset($res)) {
+            if (Mode::get('getPublicDomain') !== false) {
+                $res = $mvc->getPublicDomain($part, null, false);
+            }
+        }
     }
     
     
