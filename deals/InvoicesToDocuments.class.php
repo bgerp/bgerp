@@ -177,13 +177,12 @@ class deals_InvoicesToDocuments extends core_Manager
                 }
 
                 $summed = arr::sumValuesArray($invArr, 'amount');
-                $fieldTotalAmount = $form->getFieldTypeParam('invoices', 'totalAmount');
 
-                if(isset($fieldTotalAmount)){
+                if(isset($paymentData->amount)){
                     if($summed < 0){
                         $form->setError('invoices,fromContainerId', "Общата сума не може да е отрицателна");
-                    } elseif($summed > $fieldTotalAmount){
-                        $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($fieldTotalAmount);
+                    } elseif($summed > $paymentData->amount){
+                        $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($paymentData->amount);
                         $currencyCode = currency_Currencies::getCodeById($form->getFieldTypeParam('invoices', 'currencyId'));
                         $form->setError('invoices,fromContainerId', "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> {$currencyCode}");
                     }
