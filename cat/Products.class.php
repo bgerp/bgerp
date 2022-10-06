@@ -1612,10 +1612,23 @@ class cat_Products extends embed_Manager
         }
 
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id, ' ', #id))");
-        $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
-        $query->orderBy('isPublic', $direction);
-        if (!trim($q)) {
-            $query->orderBy('createdOn', 'DESC');
+        $query->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
+
+        if(isset($params['orderBy'])){
+            list($orderByField, $orderByDir) = explode('=', $params['orderBy']);
+            if($orderByField == 'code'){
+                $orderByField = 'codeExp';
+            } else {
+                $orderByField = 'id';
+            }
+
+            $query->orderBy($orderByField, $orderByDir);
+        } else {
+            $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
+            $query->orderBy('isPublic', $direction);
+            if (!trim($q)) {
+                $query->orderBy('createdOn', 'DESC');
+            }
         }
 
         if ($q) {
@@ -1725,17 +1738,19 @@ class cat_Products extends embed_Manager
             });
         }
 
-        // Подредба по азбучен ред
-        if ($q) {
-            if (!empty($products)) {
-                asort($products);
-            }
-            if (!empty($private)) {
-                asort($private);
-            }
+        if(!isset($params['orderBy'])) {
+            // Подредба по азбучен ред
+            if ($q) {
+                if (!empty($products)) {
+                    asort($products);
+                }
+                if (!empty($private)) {
+                    asort($private);
+                }
 
-            if (!empty($templates)) {
-                asort($templates);
+                if (!empty($templates)) {
+                    asort($templates);
+                }
             }
         }
 
@@ -1783,7 +1798,9 @@ class cat_Products extends embed_Manager
 
         // Частните артикули излизат преди публичните
         if (countR($private)) {
-            krsort($private);
+            if(!isset($params['orderBy'])) {
+                krsort($private);
+            }
             if (!isset($onlyIds)) {
                 $private = array('pr' => (object) array('group' => true, 'title' => tr('Нестандартни'))) + $private;
             }
@@ -4241,28 +4258,27 @@ class cat_Products extends embed_Manager
             
             return $res;
         }
-        
-        // Ако артикула, има доп. мярка, която е от същата група като на $toUomId
-        $pQuery = cat_products_Packagings::getQuery();
-        $pQuery->where("#productId = {$productId}");
-        $pQuery->in('packagingId', array_keys($sameTypeMeasures));
-        $pQuery->orderBy('id', 'ASC');
-        $pQuery->show('quantity,packagingId');
-        while ($pRec = $pQuery->fetch()) {
-            
-            // Връща се отношението и за 1-ца към $toUomId
-            if ($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)) {
-                if(empty($pRec->quantity)) {
-                    wp($pRec);
-                    continue;
-                }
 
-                $res = $res / $pRec->quantity;
-                
-                return $res;
+        // Ако артикула не е произв. етап и има доп. мярка, която е от същата група като на $toUomId
+        if(!static::haveDriver($productId, 'planning_interface_StepProductDriver')){
+            $pQuery = cat_products_Packagings::getQuery();
+            $pQuery->where("#productId = {$productId}");
+            $pQuery->in('packagingId', array_keys($sameTypeMeasures));
+            $pQuery->orderBy('id', 'ASC');
+            $pQuery->show('quantity,packagingId');
+            while ($pRec = $pQuery->fetch()) {
+
+                // Връща се отношението и за 1-ца към $toUomId
+                if ($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)) {
+                    if(!empty($pRec->quantity)) {
+                        $res = $res / $pRec->quantity;
+
+                        return $res;
+                    }
+                }
             }
         }
-        
+
         // Ако търсената мярка е от групата на килограмите
         $kgUom = cat_UoM::fetchBySysId('kg')->id;
         $kgUoms = cat_UoM::getSameTypeMeasures($kgUom);

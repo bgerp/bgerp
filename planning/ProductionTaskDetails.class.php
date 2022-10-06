@@ -79,7 +79,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кой има право да листва?
      */
-    public $canList = 'taskWorker,ceo';
+    public $canList = 'taskWorker,task,ceo';
 
 
     /**
@@ -562,10 +562,20 @@ class planning_ProductionTaskDetails extends doc_Detail
     }
 
 
+    /**
+     * Помощна ф-я намираща стойността на подаден параметър първо от ПО, после артикула от заданието и накрая артикула от етапа
+     *
+     * @param $taskId
+     * @param $paramId
+     * @param $jobProductId
+     * @param $taskProductId
+     * @return array|mixed|null
+     */
     private static function getParamValue($taskId, $paramId, $jobProductId, $taskProductId)
     {
         $taskClassId = planning_Tasks::getClassId();
         $taskWeightSubtractValue = cat_products_Params::fetchField("#paramId = {$paramId} AND #classId = {$taskClassId} AND #productId = {$taskId}", 'paramValue');
+
         if(!isset($taskWeightSubtractValue)){
             $taskWeightSubtractValue = cat_Products::getParams($jobProductId, $paramId);
         }
@@ -594,12 +604,13 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Към кой център е ПО-то
         $taskRec = planning_Tasks::fetch($taskId, 'folderId,labelPackagingId,productId');
-        $centerRec = planning_Centers::fetch("#folderId = {$taskRec->folderId}", 'useTareFromParamId,useTareFromPackagings');
+        $centerRec = planning_Centers::fetch("#folderId = {$taskRec->folderId}", 'useTareFromParamId,useTareFromPackagings,useTareFromParamMeasureId');
 
         // Ако няма настройки от къде да се приспада тарата не се прави нищо
         if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)) return null;
         $result = $weight;
 
+        $tareMeasureId = isset($centerRec->useTareFromParamMeasureId) ? $centerRec->useTareFromParamMeasureId : cat_UoM::fetchBySysId('kg')->id;
         $errorMsgIfNegative = 'Грешка при приспадане на тарата';
         $taskWeightSubtractValue = null;
         $jobProductId = planning_Jobs::fetchField("#containerId = {$originId}", 'productId');
@@ -628,22 +639,20 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(isset($taskRec->labelPackagingId) && keylist::isIn($taskRec->labelPackagingId, $centerRec->useTareFromPackagings)){
                 $tareWeight = cat_products_Packagings::fetchField("#productId = {$jobProductId} AND #packagingId = {$taskRec->labelPackagingId}",'tareWeight');
                 $packName = cat_UoM::getShortName($taskRec->labelPackagingId);
-                if(!isset($tareWeight)) {
-                    $msg = "Избраната опаковка няма посочена тара|*: <b>{$packName}</b>";
-                    $msgType = 'warning';
-                    return $result;
+                if(isset($tareWeight)) {
+                    $taskWeightSubtractValue = $tareWeight;
+                    $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
+                    $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността на тарата от опаковката|* <b>{$packName}</b> : {$subtractTareWeightValVerbal}";
                 }
-
-                $taskWeightSubtractValue = $tareWeight;
-                $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
-                $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността на тарата от опаковката|* <b>{$packName}</b> : {$subtractTareWeightValVerbal}";
             }
         }
 
         // Приспадане и проверка
-        $round = cat_UoM::fetchBySysId('kg')->round;
+        $kgMeasureRec = cat_UoM::fetchBySysId('kg');
+        $taskWeightSubtractValue = cat_UoM::convertValue($taskWeightSubtractValue, $tareMeasureId, $kgMeasureRec->id);
         $result = $result - $taskWeightSubtractValue;
-        $result = round($result, $round);
+
+        $result = round($result, $kgMeasureRec->round);
         if($result <= 0){
             $msg = $errorMsgIfNegative;
             $msgType = 'error';
@@ -954,7 +963,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listTableMvc->setField('weight', 'smartCenter');
 
             // Ако няма настройка за приспадане на тарата да не се показва колонката за нето
-            $centerRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight');
+            $centerRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
             if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)){
                 unset($data->listFields['netWeight']);
             }
@@ -963,20 +972,21 @@ class planning_ProductionTaskDetails extends doc_Detail
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
-        $masterRec = $data->masterData->rec;
-
         $recsBySerials = array();
         $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$masterRec->folderId}'", 'showSerialWarningOnDuplication');
         $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
         array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
 
-        $eFields = planning_Tasks::getExpectedDeviations($masterRec);
-        $deviationNotice = $eFields['notice'];
-        $deviationWarning = $eFields['warning'];
-        $deviationCritical = $eFields['critical'];
-
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
+
+            $masterRec = is_object($masterRec) ? $masterRec : planning_Tasks::fetch($rec->taskId);
+            $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
+
+            $eFields = planning_Tasks::getExpectedDeviations($masterRec);
+            $deviationNotice = $eFields['notice'];
+            $deviationWarning = $eFields['warning'];
+            $deviationCritical = $eFields['critical'];
             $row->quantity = "<b>{$row->quantity}</b> {$row->measureId}";
 
             if($id == $lastRecId){
@@ -998,13 +1008,14 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 // Има ли нето тегло
                 if(isset($rec->netWeight) && $rec->state != 'rejected'){
+
                     // Колко е очакваното нето тегло
                     $expectedSingleNetWeight = cat_Products::convertToUom($rec->productId, 'kg');
 
                     // Ако няма и има избран параметър за ед. тегло
                     if(empty($expectedSingleNetWeight)){
                         if(isset($centerRec->paramExpectedNetWeight)){
-                            $expectedSingleNetWeight = static::getParamValue($rec->id, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $rec->productId);
+                            $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $rec->productId);
 
                             // Ако параметъра е формула, се прави опит за изчислението ѝ
                             if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
@@ -1015,6 +1026,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                                     $expectedSingleNetWeight = null;
                                 }
                             }
+                            if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
+                                $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
+                                $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
+                            }
                         }
                     }
 
@@ -1024,9 +1039,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
 
                     // Ако артикула има нето тегло
-                    if(isset($expectedSingleNetWeight)){
+                    if(is_numeric($expectedSingleNetWeight)){
                         $expectedNetWeight = $weightQuantity * $expectedSingleNetWeight;
-                        $deviation = abs(round(($expectedNetWeight - $rec->netWeight) / (($expectedNetWeight + $rec->netWeight) / 2), 2));
+                        $deviation = abs(round(($expectedNetWeight - $rec->netWeight) / (($expectedNetWeight + $rec->netWeight) / 2), 4));
 
                         // Показване на хинт ако има разминаване
                         $iconHint = null;
@@ -1039,7 +1054,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
 
                         if(isset($iconHint)){
-                            $deviationVerbal = core_Type::getByName('percent')->toVerbal($deviation);
+                            $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviation);
                             $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично ' : ($iconHint == 'warning' ? 'значително ' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
                             $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето|*: {$expectedNetWeightVerbal} |с|* {$deviationVerbal}");

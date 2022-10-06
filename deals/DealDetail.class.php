@@ -309,9 +309,7 @@ abstract class deals_DealDetail extends doc_Detail
             if (!isset($rec->packQuantity)) {
                 $rec->defQuantity = true;
                 $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
-                if (empty($rec->packQuantity)) {
-                    $form->setError('packQuantity', 'Не е въведено количество');
-                }
+                $form->setError('packQuantity', 'Не е въведено количество');
             }
             
             // Проверка на к-то

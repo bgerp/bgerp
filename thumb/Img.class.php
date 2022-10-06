@@ -687,8 +687,8 @@ class thumb_Img
         setIfNot($attr['src'], $this->getUrl());
         
         $this->getSize();
-        setIfNot($attr['width'], $this->scaledWidth);
-        setIfNot($attr['height'], $this->scaledHeight);
+        setIfNot($attr['width'], $attr['imgWidth'], $this->scaledWidth);
+        setIfNot($attr['height'], $attr['imgHeight'], $this->scaledHeight);
         
         if ((log_Browsers::isRetina() && $this->size2x) || (Mode::get('screenWidth') > 1024)) {
             // За случаите, когато имаме дисплей с по-висока плътност

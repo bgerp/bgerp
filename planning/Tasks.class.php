@@ -118,55 +118,55 @@ class planning_Tasks extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, taskWorker';
+    public $canList = 'ceo, taskSee';
 
 
     /**
      * Кой може да го добавя?
      */
-    public $canAdd = 'ceo, taskPlanning';
+    public $canAdd = 'ceo, task';
 
 
     /**
      * Кой може да ги създава от задания?
      */
-    public $canCreatejobtasks = 'ceo, taskPlanning';
+    public $canCreatejobtasks = 'ceo, task';
 
 
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,taskWorker';
+    public $canSingle = 'ceo, taskSee';
 
 
     /**
      * Кой може да преизчислява заработките на прогреса на операцията?
      */
-    public $canRecalcindtime = 'ceo,planningMaster';
+    public $canRecalcindtime = 'ceo,task';
 
 
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo, taskPlanning';
+    public $canActivate = 'ceo, task';
 
 
     /**
      * Кой може да го активира?
      */
-    public $canChangestate = 'ceo, taskWorker';
+    public $canChangestate = 'ceo, task';
     
     
     /**
      * Кой може да го редактира?
      */
-    public $canEdit = 'ceo, taskPlanning';
+    public $canEdit = 'ceo, task';
 
 
     /**
      * Кой може да го прави на заявка?
      */
-    public $canPending = 'ceo, taskPlanning';
+    public $canPending = 'ceo, task';
 
 
     /**
@@ -333,9 +333,9 @@ class planning_Tasks extends core_Master
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
 
-        $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Отбелязване,autohide');
-        $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Предупреждение,autohide');
-        $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично,autohide');
+        $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Прагове при разминаване на Нетото в прогреса->Информация,autohide');
+        $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Прагове при разминаване на Нетото в прогреса->Предупреждение,autohide');
+        $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Прагове при разминаване на Нетото в прогреса->Критично,autohide');
 
         $this->FLD('subTitle', 'varchar(20)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
@@ -1123,6 +1123,8 @@ class planning_Tasks extends core_Master
         // Ако има прогрес, операцията не може да се оттегля
         if ($action == 'reject' && isset($rec)) {
             if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")) {
+                $requiredRoles = 'no_one';
+            } elseif(!haveRole('task', $userId)){
                 $requiredRoles = 'no_one';
             }
         }

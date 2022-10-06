@@ -317,7 +317,9 @@ class cms_Domains extends core_Embedder
     public static function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = true)
     {
         if (!isset($res)) {
-            $res = $mvc->getPublicDomain('id', null, false);
+            if (Mode::get('getPublicDomain') !== false) {
+                $res = $mvc->getPublicDomain($part, null, false);
+            }
         }
     }
     
