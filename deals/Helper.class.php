@@ -1371,6 +1371,9 @@ abstract class deals_Helper
                 if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
                     // Изчисляване на стойността на ддс-то
                     $vat = acc_Periods::fetchByDate()->vatRate;
+                    if(isset($rec->dpVatGroupId)){
+                        $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
+                    }
                     if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
                         $vat = 0;
                     }

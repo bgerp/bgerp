@@ -29,6 +29,7 @@ class deals_plg_DpInvoice extends core_Plugin
             
             // Операция с авансовото плащане начисляване/намаляване
             $mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
+            $mvc->FLD('dpVatGroupId', 'key(allowEmpty,mvc=acc_VatGroups,select=title)', "silent,caption=Аванс->ДДС група,autohide,after=amountDeducted,placeholder=Автоматично,input=none");
             $mvc->FLD('dpReason', 'richtext(rows=2)', 'caption=Аванс->Пояснение,after=amountDeducted,autohide,input=none');
         }
     }
@@ -67,6 +68,10 @@ class deals_plg_DpInvoice extends core_Plugin
         
         $form->FNC('amountAccrued', 'double', "caption=Аванс->Начисляване,input,autohide,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
         $form->FNC('amountDeducted', 'double', "caption=Аванс->Приспадане,input,autohide,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
+        if (in_array($rec->vatRate, array('yes', 'separate'))) {
+            $form->setField('dpVatGroupId', 'input');
+        }
+
         $form->setField('dpReason', 'input');
         
         if (empty($form->rec->id)) {
@@ -90,6 +95,9 @@ class deals_plg_DpInvoice extends core_Plugin
         if (isset($rec->dpAmount)) {
             $dpAmount = $rec->dpAmount / $rec->rate;
             $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+            if(isset($rec->dpVatGroupId)){
+                $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
+            }
             if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
                 $vat = 0;
             }
@@ -157,21 +165,30 @@ class deals_plg_DpInvoice extends core_Plugin
         // Договореното до момента
         $agreedDp = $form->dealInfo->get('agreedDownpayment');
         $actualDp = $form->dealInfo->get('downpayment');
-        $invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
-        $deductedDp = $form->dealInfo->get('downpaymentDeducted');
-        
         $downpayment = (empty($actualDp)) ? null : $actualDp;
-        
         $flag = true;
-        
+
+        $dpByVats = $form->dealInfo->get('downpaymentAccruedByVats');
+        if(countR($dpByVats)){
+            $form->setField('dpVatGroupId','removeAndRefreshForm=amountAccrued|amountDeducted');
+            $form->setDefault('dpVatGroupId', key($dpByVats));
+            $invoicedDp = $dpByVats[$form->rec->dpVatGroupId];
+
+            $dpDeductedByVats = $form->dealInfo->get('downpaymentDeductedByVats');
+            $deductedDp = $dpDeductedByVats[$form->rec->dpVatGroupId];
+        } else {
+            $invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
+            $deductedDp = $form->dealInfo->get('downpaymentDeducted');
+        }
+
         // Ако е проформа
         if ($mvc instanceof sales_Proformas) {
             $accruedProformaRec = sales_Proformas::fetch("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'accrued'");
             $hasDeductedProforma = sales_Proformas::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'deducted'");
-            
+
             // Ако има проформа за аванс и няма таква за приспадане, тази приспада
             if ((!empty($accruedProformaRec) && empty($hasDeductedProforma)) || !empty($actualDp)) {
-                
+
                 //$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
                 $dpAmount = round($actualDp, 6);
                 $dpOperation = 'deducted';
@@ -184,11 +201,10 @@ class deals_plg_DpInvoice extends core_Plugin
                 }
             }
         }
-        
+
         if ($flag === true) {
             if (!isset($downpayment)) {
                 $dpOperation = 'none';
-                
                 if (isset($invoicedDp) && ($invoicedDp - $deductedDp) > 0) {
                     $dpAmount = $invoicedDp - $deductedDp;
                     $dpOperation = 'deducted';
@@ -203,7 +219,7 @@ class deals_plg_DpInvoice extends core_Plugin
                         $dpOperation = 'accrued';
                     }
                 } else {
-                    
+
                     // Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
                     $dpAmount = $invoicedDp - $deductedDp;
                     $dpOperation = 'deducted';
@@ -284,7 +300,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $changeAct = (core_Request::get('Act') == 'changefields');
             
             $rec = &$form->rec;
-            
+
             $agreedDp = $form->dealInfo->get('agreedDownpayment');
             $actualDp = $form->dealInfo->get('downpayment');
             $invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
@@ -301,7 +317,13 @@ class deals_plg_DpInvoice extends core_Plugin
                 
                 return;
             }
-            
+
+            if(!empty($rec->dpVatGroupId) && (empty($rec->amountAccrued) && empty($rec->amountDeducted))){
+                $form->setError('dpVatGroupId,amountAccrued,amountDeducted', 'Не може да е попълнена ДДС група на аванса, без да е въведен аванс');
+
+                return;
+            }
+
             $rec->dpAmount = ($rec->amountAccrued) ? $rec->amountAccrued : $rec->amountDeducted;
             $rec->dpOperation = 'none';
             $warningUnit = ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') ? 'без ДДС' : 'с ДДС';
@@ -345,10 +367,33 @@ class deals_plg_DpInvoice extends core_Plugin
                     $rec->dpAmount *= -1;
                 }
             }
-            
-            $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
-            if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
+
+
+            if (!in_array($rec->vatRate, array('yes', 'separate'))) {
                 $vat = 0;
+                unset($rec->dpVatGroupId);
+            } else {
+                $expectedDpVatGroupId = null;
+                if(!empty($rec->amountAccrued) || !empty($rec->amountDeducted)){
+                    $expectedDpVatGroupId = self::getDefaultDpVatGroupId($mvc, $rec);
+                }
+
+                $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+                if(empty($rec->id)){
+                    if(isset($expectedDpVatGroupId) && isset($rec->dpVatGroupId) && $rec->dpVatGroupId != $expectedDpVatGroupId){
+                        if($rec->dpOperation != 'deducted'){
+                            $form->setWarning('dpVatGroupId', "ДДС групата на аванса е различна от очакваната|*: <b>" . acc_VatGroups::getTitleById($expectedDpVatGroupId) . "</b>");
+                        }
+                    }
+
+                    if(empty($rec->dpVatGroupId) && isset($expectedDpVatGroupId)){
+                        $rec->dpVatGroupId = $expectedDpVatGroupId;
+                    }
+                }
+
+                if(isset($rec->dpVatGroupId)){
+                    $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
+                }
             }
             
             if (!is_null($rec->dpAmount)) {
@@ -357,25 +402,49 @@ class deals_plg_DpInvoice extends core_Plugin
                     $rec->dpAmount /= 1 + $vat;
                 }
             }
-            
+
             // Обновяваме данните на мастър-записа при редакция
             if (isset($rec->id)) {
                 $mvc->updateMaster($rec, false);
             }
         }
     }
-    
-    
+
+
     /**
-     * Помощна ф-я връщаща сумата на аванса без ддс
+     * Каква е очакваната ДДС група на аванса
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return int
      */
-    private static function getDpWithoutVat($downpayment, $rec)
+    private static function getDefaultDpVatGroupId($mvc, $rec)
     {
-        $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
-        
-        $vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($downpayment) * $vat / (1 + $vat) : 0;
-        
-        return  $downpayment - $vatAmount;
+        if($origin = $mvc::getOrigin($rec)){
+            if(isset($origin->mainDetail)){
+                $Detail = cls::get($origin->mainDetail);
+                if(isset($Detail->productFld)){
+                    $valior = $origin->fetchField($origin->valiorFld);
+                    $originVatGroups = array();
+                    $dQuery = $Detail->getQuery();
+                    $dQuery->where("#{$Detail->masterKey} = {$origin->that}");
+                    $dQuery->show($Detail->productFld);
+
+                    // Към коя ДДС група е артикула от ориджина
+                    while($dRec = $dQuery->fetch()){
+                        $grId = cat_products_VatGroups::getCurrentGroup($dRec->{$Detail->productFld}, $valior)->id;
+                        if(isset($grId)){
+                            $originVatGroups[$grId] = $grId;
+                        }
+                    }
+
+                    // Ако всички артикули от ориджина са от 1 - група, тя ще е за аванса
+                    if(countR($originVatGroups) == 1) return key($originVatGroups);
+                }
+            }
+        }
+
+        return acc_VatGroups::getDefaultIdByDate($rec->date);
     }
     
     
@@ -568,7 +637,7 @@ class deals_plg_DpInvoice extends core_Plugin
             return;
         }
         $total = &$mvc->Master->_total;
-        
+
         // Ако няма детайли, инстанцираме обекта
         if (!$total) {
             $total = (object) array('amount' => 0, 'vat' => 0, 'discount' => 0);
@@ -576,10 +645,14 @@ class deals_plg_DpInvoice extends core_Plugin
         
         // Колко е ддс-то
         $vat = acc_Periods::fetchByDate($masterRec->date)->vatRate;
+        if(isset($masterRec->dpVatGroupId)){
+            $vat = acc_VatGroups::fetchField($masterRec->dpVatGroupId, 'vat');
+        }
+
         if ($masterRec->vatRate != 'yes' && $masterRec->vatRate != 'separate') {
             $vat = 0;
         }
-        
+
         // Закръгляне на сумите
         $dpVat = $masterRec->dpAmount * $vat / $masterRec->rate;
         $dpAmount = $masterRec->dpAmount / $masterRec->rate;
@@ -587,12 +660,12 @@ class deals_plg_DpInvoice extends core_Plugin
         // Добавяне на авансовите данни в тотала
         $total->vat += $dpVat;
         $total->amount += $dpAmount;
-        
-        if (isset($total->vats["{$vat}"])) {
+
+        if(!isset($total->vats["{$vat}"])){
+            $total->vats["{$vat}"] = (object) array('amount' => $dpVat, 'sum' => $masterRec->dpAmount / $masterRec->rate);
+        } else {
             $total->vats["{$vat}"]->amount += $dpVat;
             $total->vats["{$vat}"]->sum += $masterRec->dpAmount / $masterRec->rate;
-        } else {
-            $total->vats = array("{$vat}" => (object) array('amount' => $dpVat, 'sum' => $masterRec->dpAmount / $masterRec->rate));
         }
     }
 }

@@ -307,7 +307,6 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         $Detail->calculateAmount($recs, $rec);
-        
         $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
         
         $rec->dealValue = $this->_total->amount * $rate;
@@ -398,6 +397,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         if ($invArr['type'] != 'dc_note') {
             $cache = $this->getInvoiceDetailedInfo($form->rec->originId);
+
             if (countR($cache->vats) == 1) {
                 $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
                 $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
@@ -962,7 +962,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 if (empty($rec->changeAmount) && !empty($rec->dcReason)) {
                     $form->setError('changeAmount,dcReason', 'Не може да се зададе основание за увеличение/намаление ако не е посочена сума');
                 }
-                
+
                 if (!empty($rec->changeAmountVat)) {
                     $vat = $rec->changeAmountVat;
                 } else {
@@ -1232,12 +1232,12 @@ abstract class deals_InvoiceMaster extends core_Master
                             if(!Mode::isReadOnly()){$row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
                             }
 
-                            $row->vatReason = ht::createHint($row->vatReason, 'Основанието е определено автоматично. Ще бъде записано при активиранеЮ*!', 'notice', false);
+                            $row->vatReason = ht::createHint($row->vatReason, 'Основанието е определено автоматично. Ще бъде записано при активиране|*!', 'notice', false);
                         }
                     } else {
                         $bgId = drdata_Countries::getIdByName('Bulgaria');
                         if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
-                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС№ трябва да е посочено основаниеЮ*!', 'error');
+                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС№ трябва да е посочено основание|*!', 'error');
                         }
                     }
                 }
@@ -1415,21 +1415,27 @@ abstract class deals_InvoiceMaster extends core_Master
         $total = ($rec->type == 'credit_note') ? -1 * $total : $total;
         $dueDate = null;
         setIfNot($dueDate, $rec->dueDate, $rec->date);
-        
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
         $aggregator->sum('invoicedAmount', $total);
         $aggregator->setIfNot('invoicedValior', $rec->date);
         
         if (isset($rec->dpAmount)) {
+            $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+            if(isset($rec->dpVatGroupId)){
+                $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
+            }
+            $dpVatId = isset($rec->dpVatGroupId) ? $rec->dpVatGroupId : acc_VatGroups::getDefaultIdByDate($rec->date);
             if ($rec->dpOperation == 'accrued') {
                 $aggregator->sum('downpaymentInvoiced', $total);
+
+                $aggregator->sumByArrIndex('downpaymentAccruedByVats', $total, $dpVatId);
             } elseif ($rec->dpOperation == 'deducted') {
-                $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
-                
+
                 // Колко е приспаднатото плащане с ддс
                 $deducted = abs($rec->dpAmount);
                 $vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($deducted) * $vat : 0;
                 $aggregator->sum('downpaymentDeducted', $deducted + $vatAmount);
+                $aggregator->sumByArrIndex('downpaymentDeductedByVats', $deducted + $vatAmount, $dpVatId);
             }
         } else {
             
@@ -1504,7 +1510,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $Detail = $this->mainDetail;
         $query = $Detail::getQuery();
         $vatRate = $document->fetchField('vatRate');
-        $dpAmount = $document->fetch('dpAmount');
+        $docRec = $document->fetch('dpAmount,dpVatGroupId');
 
         $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
         $query->orderBy('id', 'ASC');
@@ -1531,8 +1537,9 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         if (!countR($cache)) {
-            if (isset($dpAmount)) {
-                $v = ($vatRate == 'yes' || $vatRate == 'separate') ? 0.2 : 0;
+            if (isset($docRec->dpAmount)) {
+                $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
+                $v = ($vatRate == 'yes' || $vatRate == 'separate') ? $vRate : 0;
                 $vats["{$v}"] = $v;
             }
         }
