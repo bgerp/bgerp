@@ -42,3 +42,4 @@ tar
 tgz
 zip
 dae
+csv
