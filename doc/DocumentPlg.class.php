@@ -4752,7 +4752,9 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetchRec($rec);
         if (!isset($res)) {
             if ($mvc->visibleForPartners) {
-                $res = true;
+                if ($rec->visibleForPartners != 'no') {
+                    $res = true;
+                }
             }
         }
     }
