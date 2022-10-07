@@ -68,14 +68,14 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $data->form->setField('visibleForPartners', 'autohide');
                     }
                 }
+
+                if (!$rec->originId && $mvc->visibleForPartners && core_Users::isPowerUser()) {
+                    $data->form->setDefault('visibleForPartners', 'yes');
+                }
             }
         }
         
         $data->form->setField('visibleForPartners', 'changable=ifInput');
-
-        if ($mvc->visibleForPartners && core_Users::isPowerUser()) {
-            $data->form->setDefault('visibleForPartners', 'yes');
-        }
 
         // Сетваме стойността, ако не е зададена
         if (!$rec->id && !$rec->visibleForPartners) {
