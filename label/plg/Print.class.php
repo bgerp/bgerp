@@ -46,7 +46,14 @@ class label_plg_Print extends core_Plugin
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $lUrl = toUrl(array($mvc, 'printperipherallabel', $rec->id), 'local');
                 $lUrl = urlencode($lUrl);
-                $row->_rowTools->addFnLink($mvc->printLabelCaptionSingle, "getEfae().process({url: '{$lUrl}'});", array('ef_icon' => 'img/16/printer.png', 'title' => 'Разпечатване на ' . mb_strtolower($mvc->printLabelCaptionSingle), 'style' => 'position: relative; top: -2px;'), 'alwaysShow');
+
+                $attr = array('ef_icon' => 'img/16/printer.png', 'title' => 'Разпечатване на ' . mb_strtolower($mvc->printLabelCaptionSingle), 'style' => 'position: relative; top: -2px;');
+                if ($printedByNow = core_Permanent::get("printPeripheral{$mvc->className}_{$rec->id}")) {
+                    $attr['alwaysShowCaption'] = "<span class='green'>({$printedByNow})</span>";
+                } else {
+                    $attr['alwaysShowCaption'] = "<span class='quiet'>(0)</span>";
+                }
+                $row->_rowTools->addFnLink($mvc->printLabelCaptionSingle, "getEfae().process({url: '{$lUrl}'});", $attr, 'alwaysShow');
                 $alwaysShow = false;
             }
 
@@ -100,6 +107,14 @@ class label_plg_Print extends core_Plugin
             $js = minify_Js::process($js);
 
             if (Request::get('ajax_mode')) {
+                if ($printedByNow = core_Permanent::get("printPeripheral{$mvc->className}_{$rec->id}")) {
+                    $printedByNow += 1;
+                } else {
+                    $printedByNow = 1;
+                }
+                core_Permanent::set("printPeripheral{$mvc->className}_{$rec->id}", $printedByNow, 60);
+
+                core_Statuses::newStatus($printedByNow);
                 // Добавяме резултата
                 $resObj = new stdClass();
                 $resObj->func = 'printPage';
@@ -123,7 +138,13 @@ class label_plg_Print extends core_Plugin
             expect($res = Request::get('res', 'varchar'));
             $logMvc = ($mvc instanceof core_Detail) ? $mvc->Master : $mvc;
             $logId = ($mvc instanceof core_Detail) ? $rec->{$mvc->masterKey} : $rec->id;
-            
+
+            $lRec = $logMvc->fetch($logId);
+            if ($lRec->threadId) {
+//                $logMvc->touchRec($logId);
+                doc_ThreadRefreshPlg::checkHash($lRec->threadId, array(), true);
+            }
+
             $msg = tr("Етикетът е разпечатан успешно|*!");
             $type = Request::get('type', 'varchar');
 

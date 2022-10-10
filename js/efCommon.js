@@ -4320,6 +4320,12 @@ function render_afterPrintPage(data)
         document.body.style.cursor = '';
 
         getEfae().waitPeriodicAjaxCall = 0;
+
+        // Пускаме всички `AJAX` заявки след обновяване на страницата
+        for (var lt in getEfae().lastTimeArr) {
+            getEfae().lastTimeArr[lt] = 10000000;
+        }
+        getEfae().process(getEfae().getSubscribed());
     }, data.timeOut);
 }
 
