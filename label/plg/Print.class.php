@@ -123,7 +123,13 @@ class label_plg_Print extends core_Plugin
             expect($res = Request::get('res', 'varchar'));
             $logMvc = ($mvc instanceof core_Detail) ? $mvc->Master : $mvc;
             $logId = ($mvc instanceof core_Detail) ? $rec->{$mvc->masterKey} : $rec->id;
-            
+
+            $lRec = $logMvc->fetch($logId);
+            if ($lRec->threadId) {
+//                $logMvc->touchRec($logId);
+                doc_ThreadRefreshPlg::checkHash($lRec->threadId, array(), true);
+            }
+
             $msg = tr("Етикетът е разпечатан успешно|*!");
             $type = Request::get('type', 'varchar');
 
