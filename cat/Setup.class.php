@@ -330,7 +330,7 @@ class cat_Setup extends core_ProtoSetup
     public static function checkProductCode($code, &$msg)
     {
         if (preg_match('/^art[0-9]+$/ui', $code)) {
-            $msg = 'Полето може да започва с|*: <b>Art*</b>!';
+            $msg = 'Полето не може да започва с|* <b>Art</b> |и последвано от цифри|*!';
             return false;
         }
 
