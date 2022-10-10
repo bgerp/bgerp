@@ -292,7 +292,7 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent,silent');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Бруто,input=none');
         $this->FLD('totalNetWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Нето,input=none');
@@ -309,7 +309,7 @@ class planning_Tasks extends core_Master
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
         }        
-        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
+        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
@@ -1360,6 +1360,20 @@ class planning_Tasks extends core_Master
             $form->setField('labelType', 'input');
             $form->setField('measureId', 'input');
 
+            $eQuery = static::getQuery();
+            $eQuery->where("#id != '{$rec->id}' AND #productId = {$rec->productId}");
+            $eQuery->show('indPackagingId,indTimeAllocation,indTime');
+            $eQuery->orderBy('id', 'DESC');
+            $lastTask4Step = $eQuery->fetch();
+            if($lastTask4Step){
+                foreach (array('indPackagingId', 'indTimeAllocation', 'indTime') as $exFld){
+                    if(!empty($lastTask4Step->{$fld})){
+                         $form->setDefault($exFld, $lastTask4Step->{$fld});
+                    }
+                }
+            }
+
+
             if(core_Packs::isInstalled('batch')){
                 if(batch_Defs::getBatchDef($originRec->productId)){
                     $form->setField('followBatchesForFinalProduct', 'input');
@@ -1531,6 +1545,21 @@ class planning_Tasks extends core_Master
             } else {
                 $form->setField('showadditionalUom', 'input=none');
                 $form->setDefault('indPackagingId', $rec->measureId);
+            }
+
+            // Нормата да се взима от последната ПО за този етап, ако не е дошла от някъде
+            $eQuery = static::getQuery();
+            $eQuery->where("#id != '{$rec->id}' AND #productId = {$rec->productId} AND #state NOT IN ('draft', 'rejected')");
+            $eQuery->show('indPackagingId,indTimeAllocation,indTime');
+            $eQuery->orderBy('id', 'DESC');
+            $lastTask4Step = $eQuery->fetch();
+
+            if($lastTask4Step){
+                foreach (array('indPackagingId', 'indTimeAllocation', 'indTime') as $exFld){
+                    if(!empty($lastTask4Step->{$exFld})){
+                        $form->setDefault($exFld, $lastTask4Step->{$exFld});
+                    }
+                }
             }
 
             if($measuresCount == 1){

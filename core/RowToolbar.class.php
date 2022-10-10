@@ -231,7 +231,11 @@ class core_RowToolbar extends core_BaseClass
                 } else {
                     $placeholder = 'ALWAYS_SHOW';
                     if (isset($attr['ef_icon'])) {
-                        $btnTitle = '';
+                        if(empty($attr['alwaysShowCaption'])){
+                            $btnTitle = '';
+                        } else {
+                            $btnTitle = $attr['alwaysShowCaption'];
+                        }
                     }
                 }
 

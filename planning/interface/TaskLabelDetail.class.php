@@ -136,16 +136,27 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         }
 
         $singleUrl = toUrl(array('planning_Tasks', 'single', $rec->taskId), 'absolute');
-        $saleId = null;
+        $saleId = $clientName = null;
         if(isset($jRec->saleId)){
             $saleId = "#" . sales_Sales::getHandle($jRec->saleId);
-            $reff = sales_Sales::fetchField($jRec->saleId, 'reff');
-            $reff = !empty($reff) ? $reff : null;
+            $saleRec = sales_Sales::fetch($jRec->saleId, 'reff, contragentClassId,contragentId');
+            $reff = !empty($saleRec->reff) ? $saleRec->reff : null;
+            $clientName = cls::get($saleRec->contragentClassId)->getVerbal($saleRec->contragentId, 'name');
         }
+
+        $notes = !empty($rec->notes) ? core_Type::getByName('richtext')->toHtml($rec->notes) : null;
+        $params = self::getTaskParamData($rec->taskId, $rec->productId);
+
+        $createdBy = core_Users::getVerbal($rec->createdBy, 'names');
+        $currentUser = core_Users::getVerbal(core_Users::getCurrent(), 'names');
+        $employees = implode(',', planning_Hr::getPersonsCodesArr(keylist::toArray($rec->employees)));
+
+        $Driver = cat_Products::getDriver($rec->productId);
+        $additionalFields = (is_object($Driver)) ? $Driver->getAdditionalLabelData($rec->productId, $this->class) : array();
 
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('STEP_PRODUCT_NAME' => $stepProductName, 'STEP_PRODUCT_CODE' => $stepProductCode,'JOB_PRODUCT_NAME' => $jobProductName, 'JOB_PRODUCT_CODE' => $jobProductCode, 'QR_CODE' => $singleUrl, 'PRODUCT_NAME' => $productName, 'CODE' => $productCode, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle(), 'NETT_WEIGHT' => $nettWeight);
+            $res = array('EMPLOYEES' => $employees, 'CURRENT_USER' => $currentUser, 'CREATED_BY' => $createdBy, 'STEP_PRODUCT_NAME' => $stepProductName, 'STEP_PRODUCT_CODE' => $stepProductCode,'JOB_PRODUCT_NAME' => $jobProductName, 'JOB_PRODUCT_CODE' => $jobProductCode, 'QR_CODE' => $singleUrl, 'PRODUCT_NAME' => $productName, 'CODE' => $productCode, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle(), 'NETT_WEIGHT' => $nettWeight, 'NOTES' => $notes);
             if(!empty($batch)){
                 $res['BATCH'] = $BatchDef->toVerbal($batch);
             }
@@ -156,6 +167,18 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
             if(!empty($saleId)){
                 $res['SALE_ID'] = $saleId;
+                $res['CLIENT_NAME'] = $clientName;
+            }
+
+            if (countR($params)) {
+                $res = array_merge($res, $params);
+            }
+
+            // Допълване на параметрите с тези от драйвера, само за тези за които вече няма дефолтна стойност
+            foreach ($additionalFields as $addFieldName => $addFieldValue){
+                if(!array_key_exists($addFieldName, $res)){
+                    $res[$addFieldName] = $addFieldValue;
+                }
             }
 
             $arr[] = $res;
