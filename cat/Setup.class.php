@@ -329,9 +329,8 @@ class cat_Setup extends core_ProtoSetup
      */
     public static function checkProductCode($code, &$msg)
     {
-        if(strpos(strtolower($code), 'art') === 0){
-            $msg = 'Полето може да започва с|*: <b>Art</b>!';
-
+        if (preg_match('/^art[0-9]+$/ui', $code)) {
+            $msg = 'Полето може да започва с|*: <b>Art*</b>!';
             return false;
         }
 
