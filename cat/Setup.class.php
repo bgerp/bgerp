@@ -329,9 +329,13 @@ class cat_Setup extends core_ProtoSetup
      */
     public static function checkProductCode($code, &$msg)
     {
-        $productCodeType = static::get('PRODUCT_CODE_TYPE');
+        if (preg_match('/^art[0-9]+$/ui', $code)) {
+            $msg = 'Полето не може да започва с|* <b>Art</b> |и последвано от цифри|*!';
+            return false;
+        }
 
         $res = true;
+        $productCodeType = static::get('PRODUCT_CODE_TYPE');
         switch($productCodeType) {
             case 'default':
                 if (preg_match('/[^0-9a-z\- _]/iu', $code)) {

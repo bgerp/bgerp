@@ -153,8 +153,13 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
     public function getProductionData($productId)
     {
         $rec = planning_Steps::getRec('cat_Products', $productId);
+        $measureId = cat_Products::fetchField($productId, 'measureId');
+        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent);
+        if(!empty($rec->norm)){
+            $res['norm'] = $rec->norm;
+            $res['normPackagingId'] = $measureId;
+        }
 
-        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'norm' => $rec->norm, 'normPackagingId' => cat_Products::fetchField($productId, 'measureId'), 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent);
         $res['fixedAssets'] = !empty($rec->fixedAssets) ? keylist::toArray($rec->fixedAssets) : null;
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();

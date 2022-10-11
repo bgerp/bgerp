@@ -108,15 +108,21 @@ class deals_InvoicesToDocuments extends core_Manager
                     $a = core_Type::getByName('double')->fromVerbal($a);
                 }
 
-                if(countR($iData['containerId']) == 1 && empty($iData['amount'][0])){
-                    $iRec = doc_Containers::getDocument($iData['containerId'][0])->fetch();
+                foreach ($iData['containerId'] as $k => $v){
+                    if(empty($iData['amount'][$k])){
+                        $iRec = doc_Containers::getDocument($iData['containerId'][$k])->fetch();
 
-                    $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
-                    $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
-                    $vAmount = round($vAmount, 2);
+                        $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+                        if($iRec->type == 'dc_note' && $iRec->totalValue < 0){
+                            $expectedAmountToPayData->amount = -1 * $expectedAmountToPayData->amount;
+                        }
 
-                    $defAmount = min($paymentData->amount, $vAmount);
-                    $iData['amount'][0] = $defAmount;
+                        $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
+                        $vAmount = round($vAmount, 2);
+
+                        $defAmount = min($paymentData->amount, $vAmount);
+                        $iData['amount'][$k] = $defAmount;
+                    }
                 }
 
                 $fRec->invoices = @json_encode($iData);
@@ -169,9 +175,22 @@ class deals_InvoicesToDocuments extends core_Manager
                 if(countR($amountErrors)){
                     $form->setError('invoices,fromContainerId', implode("<li>", $amountErrors));
                 }
+
+                $summed = arr::sumValuesArray($invArr, 'amount');
+
+                if(isset($paymentData->amount)){
+                    if($summed < 0){
+                        $form->setError('invoices,fromContainerId', "Общата сума не може да е отрицателна");
+                    } elseif($summed > $paymentData->amount){
+                        $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($paymentData->amount);
+                        $currencyCode = currency_Currencies::getCodeById($form->getFieldTypeParam('invoices', 'currencyId'));
+                        $form->setError('invoices,fromContainerId', "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> {$currencyCode}");
+                    }
+                }
             }
 
             if(!$form->gotErrors()){
+
                 $newArr = array();
                 foreach ($invArr as $obj){
                     $newArr[] = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $obj->containerId, 'amount' => $obj->amount);
@@ -336,12 +355,6 @@ class deals_InvoicesToDocuments extends core_Manager
                     $totalAmount += $amount;
                 }
             }
-        }
-
-        if(!empty($totalAmount) && round($totalAmount, 2) > round($Type->params['totalAmount'], 2)){
-            $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($Type->params['totalAmount']);
-            $currencyCode = currency_Currencies::getCodeById($Type->params['currencyId']);
-            $error[] = "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> {$currencyCode}";
         }
 
         if (countR($error)) {

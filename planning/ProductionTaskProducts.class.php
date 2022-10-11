@@ -50,31 +50,31 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'taskPlanning, ceo';
+    public $canEdit = 'task, ceo';
     
     
     /**
      * Кой има право да променя взаимно заменяемите артикули?
      */
-    public $canReplaceproduct = 'taskPlanning, ceo';
+    public $canReplaceproduct = 'task, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'taskPlanning, ceo';
+    public $canAdd = 'task, ceo';
     
     
     /**
      * Кой има право да добавя артикули към активна операция?
      */
-    public $canAddtoactive = 'taskPlanning, ceo';
+    public $canAddtoactive = 'task, ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'taskPlanning,ceo';
+    public $canDelete = 'task,ceo';
     
     
     /**

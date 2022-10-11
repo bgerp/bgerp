@@ -1612,10 +1612,23 @@ class cat_Products extends embed_Manager
         }
 
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id, ' ', #id))");
-        $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
-        $query->orderBy('isPublic', $direction);
-        if (!trim($q)) {
-            $query->orderBy('createdOn', 'DESC');
+        $query->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
+
+        if(isset($params['orderBy'])){
+            list($orderByField, $orderByDir) = explode('=', $params['orderBy']);
+            if($orderByField == 'code'){
+                $orderByField = 'codeExp';
+            } else {
+                $orderByField = 'id';
+            }
+
+            $query->orderBy($orderByField, $orderByDir);
+        } else {
+            $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
+            $query->orderBy('isPublic', $direction);
+            if (!trim($q)) {
+                $query->orderBy('createdOn', 'DESC');
+            }
         }
 
         if ($q) {
@@ -1725,17 +1738,19 @@ class cat_Products extends embed_Manager
             });
         }
 
-        // Подредба по азбучен ред
-        if ($q) {
-            if (!empty($products)) {
-                asort($products);
-            }
-            if (!empty($private)) {
-                asort($private);
-            }
+        if(!isset($params['orderBy'])) {
+            // Подредба по азбучен ред
+            if ($q) {
+                if (!empty($products)) {
+                    asort($products);
+                }
+                if (!empty($private)) {
+                    asort($private);
+                }
 
-            if (!empty($templates)) {
-                asort($templates);
+                if (!empty($templates)) {
+                    asort($templates);
+                }
             }
         }
 
@@ -1783,7 +1798,9 @@ class cat_Products extends embed_Manager
 
         // Частните артикули излизат преди публичните
         if (countR($private)) {
-            krsort($private);
+            if(!isset($params['orderBy'])) {
+                krsort($private);
+            }
             if (!isset($onlyIds)) {
                 $private = array('pr' => (object) array('group' => true, 'title' => tr('Нестандартни'))) + $private;
             }
