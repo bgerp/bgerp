@@ -158,6 +158,7 @@ class cat_Params extends bgerp_ProtoParam
         }
         $name = preg_replace('/\s+/', '_', $name);
         $name = str_replace('/', '_', $name);
+        $name = str_replace('.', '_', $name);
         $name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
         core_Lg::pop();
         
