@@ -1547,21 +1547,6 @@ class planning_Tasks extends core_Master
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
 
-            // Нормата да се взима от последната ПО за този етап, ако не е дошла от някъде
-            $eQuery = static::getQuery();
-            $eQuery->where("#id != '{$rec->id}' AND #productId = {$rec->productId} AND #state NOT IN ('draft', 'rejected')");
-            $eQuery->show('indPackagingId,indTimeAllocation,indTime');
-            $eQuery->orderBy('id', 'DESC');
-            $lastTask4Step = $eQuery->fetch();
-
-            if($lastTask4Step){
-                foreach (array('indPackagingId', 'indTimeAllocation', 'indTime') as $exFld){
-                    if(!empty($lastTask4Step->{$exFld})){
-                        $form->setDefault($exFld, $lastTask4Step->{$exFld});
-                    }
-                }
-            }
-
             if($measuresCount == 1){
                 $measureShort = cat_UoM::getShortName($rec->measureId);
                 $form->setField('plannedQuantity', "unit={$measureShort}");
