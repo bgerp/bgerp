@@ -80,7 +80,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $templateTpl = new ET($templateTpl);
         $templateTpl->placeObject($allLabelData[0]);
-        wp($allLabelData, $templateTpl);
+
         return $templateTpl->getContent();
     }
 
