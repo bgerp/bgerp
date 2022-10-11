@@ -64,13 +64,13 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,consumption';
+    public $canList = 'ceo,consumption,store';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,consumption';
+    public $canSingle = 'ceo,consumption,store';
     
     
     /**
@@ -140,7 +140,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,consumption';
+    public $canPending = 'ceo,consumption,store';
     
     
     /**

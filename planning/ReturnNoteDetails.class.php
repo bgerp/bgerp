@@ -71,13 +71,13 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да променя взаимно заменяемите артикули?
      */
-    public $canReplaceproduct = 'ceo,consumption';
+    public $canReplaceproduct = 'ceo,consumption,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,consumption';
+    public $canAdd = 'ceo,consumption,store';
     
     
     /**
