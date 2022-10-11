@@ -76,7 +76,7 @@ class planning_Jobs extends core_Master
     /**
      * Кой може да променя състоянието?
      */
-    public $canChangestate = 'ceo, job';
+    public $canChangestate = 'ceo, job, production';
     
     
     /**
