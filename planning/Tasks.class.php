@@ -1362,11 +1362,11 @@ class planning_Tasks extends core_Master
 
             $eQuery = static::getQuery();
             $eQuery->where("#id != '{$rec->id}' AND #productId = {$rec->productId}");
-            $eQuery->show('indPackagingId,indTimeAllocation,indTime');
+            $eQuery->show('indPackagingId,indTimeAllocation');
             $eQuery->orderBy('id', 'DESC');
             $lastTask4Step = $eQuery->fetch();
             if($lastTask4Step){
-                foreach (array('indPackagingId', 'indTimeAllocation', 'indTime') as $exFld){
+                foreach (array('indPackagingId', 'indTimeAllocation') as $exFld){
                     if(!empty($lastTask4Step->{$fld})){
                          $form->setDefault($exFld, $lastTask4Step->{$fld});
                     }
