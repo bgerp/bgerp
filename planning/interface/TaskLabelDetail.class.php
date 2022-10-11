@@ -185,8 +185,6 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         }
         $resArr[$key] = $arr;
 
-        wp($params, $resArr, $rec, $jRec->productId);
-
         return $resArr[$key];
     }
 
