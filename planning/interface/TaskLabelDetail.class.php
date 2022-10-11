@@ -149,7 +149,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $createdBy = core_Users::getVerbal($rec->createdBy, 'names');
         $currentUser = core_Users::getVerbal(core_Users::getCurrent(), 'names');
-        $employees = implode(',', planning_Hr::getPersonsCodesArr(keylist::toArray($rec->employees)));
+        $employees = implode(', ', planning_Hr::getPersonsCodesArr(keylist::toArray($rec->employees)));
 
         $Driver = cat_Products::getDriver($rec->productId);
         $additionalFields = (is_object($Driver)) ? $Driver->getAdditionalLabelData($rec->productId, $this->class) : array();
