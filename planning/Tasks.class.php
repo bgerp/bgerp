@@ -152,9 +152,9 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Кой може да го активира?
+     * Кой може да променя състоянието?
      */
-    public $canChangestate = 'ceo, task';
+    public $canChangestate = 'ceo, taskWorker';
     
     
     /**
