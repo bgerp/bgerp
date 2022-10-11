@@ -827,6 +827,7 @@ abstract class deals_DealDetail extends doc_Detail
     private function areTheDetailsDifferent($master1Id, $master2Id)
     {
         $arr1 = $arr2 = array();
+        $unsetFields = arr::make($this->fieldsNotToClone, true);
 
         // Обикаля детайлите
         foreach (range(1, 2) as $i){
@@ -838,6 +839,9 @@ abstract class deals_DealDetail extends doc_Detail
 
             // Нормализира ги за сравнение
             while($dRec = $dQuery->fetch()){
+                foreach ($unsetFields as $fld){
+                    unset($dRec->{$fld});
+                }
                 $dRec->_batches = array();
                 if(core_Packs::isInstalled('batch')) {
                     if ($bRec = batch_BatchesInDocuments::fetch("#detailClassId = {$this->getClassId()} AND #detailRecId = {$dRec->id}")) {
@@ -870,6 +874,7 @@ abstract class deals_DealDetail extends doc_Detail
         $now = dt::now();
         $cu = core_Users::getCurrent();
         $classId = $this->getClassId();
+        $unsetFields = arr::make($this->fieldsNotToClone, true);
 
         // Копиране на детайлите
         $oQuery = $this->getQuery();
@@ -881,6 +886,9 @@ abstract class deals_DealDetail extends doc_Detail
             $cloneRec->{$this->masterKey} = $masterId;
             $cloneRec->createdOn = $now;
             $cloneRec->createdBy = $cu;
+            foreach ($unsetFields as $fld){
+                unset($cloneRec->{$fld});
+            }
             $this->save($cloneRec);
 
             // Ако има партиди към редовете, клонират се и те

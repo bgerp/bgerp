@@ -66,7 +66,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,production';
+    public $canEdit = 'ceo,production,store';
 
 
     /**
