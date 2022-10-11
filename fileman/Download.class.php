@@ -242,8 +242,11 @@ class fileman_Download extends core_Manager
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $prefix . '/' . $fileName;
 
         $whiteLists = mb_strtolower(getFileContent('/fileman/data/white-list-extensions.txt'));
-        $whiteLists = str_replace(' ', '', $whiteLists);
-        $whiteListsArr = explode("\n", $whiteLists);
+        //$whiteLists = str_replace(' ', '', $whiteLists);
+        //$whiteListsArr = explode("\n", $whiteLists);
+
+        $whiteListsArr = preg_split('/[\s]+/', $whiteLists);
+
         $whiteListsArr = arr::make($whiteListsArr, true);
         unset($whiteListsArr['']);
 
