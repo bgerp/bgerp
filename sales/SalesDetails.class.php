@@ -144,8 +144,16 @@ class sales_SalesDetails extends deals_DealDetail
      * Какви мета данни да изискват продуктите, които да се показват
      */
     public $metaProducts = 'canSell';
-    
-    
+
+
+    /**
+     * Кой може клонира артикулите от оригиналния клониран договор?
+     *
+     * @var string|array
+     */
+    public $canCopydetailsfromcloned = 'ceo, sales';
+
+
     /**
      * Описание на модела (таблицата)
      */

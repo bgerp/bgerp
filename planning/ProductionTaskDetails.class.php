@@ -1262,7 +1262,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $howLong = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
                 if(dt::now() >= $howLong){
                     $requiredRoles = 'no_one';
-                } elseif(!haveRole('taskPlanning,ceo')){
+                } elseif(!haveRole('taskWorker,ceo')){
                     $requiredRoles = 'no_one';
                 }
             }
