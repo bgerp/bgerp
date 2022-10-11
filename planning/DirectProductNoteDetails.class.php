@@ -45,7 +45,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,production';
+    public $canEdit = 'ceo,production,store';
     
     
     /**
