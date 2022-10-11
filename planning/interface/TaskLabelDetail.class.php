@@ -145,7 +145,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         }
 
         $notes = !empty($rec->notes) ? core_Type::getByName('richtext')->toHtml($rec->notes) : null;
-        $params = self::getTaskParamData($rec->taskId, $rec->productId);
+        $params = self::getTaskParamData($rec->taskId, $jRec->productId);
 
         $createdBy = core_Users::getVerbal($rec->createdBy, 'names');
         $currentUser = core_Users::getVerbal(core_Users::getCurrent(), 'names');
