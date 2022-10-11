@@ -299,7 +299,7 @@ class label_Templates extends core_Master
             // Вкарваме CSS-а, като инлайн
             $templateArrCss[$hash] = self::templateWithInlineCSS($template, $rec->css);
         }
-bp($templateArrCss[$hash], $template);
+
         return $templateArrCss[$hash];
     }
     
