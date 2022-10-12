@@ -2009,7 +2009,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $res[$id]->_groups = cat_Products::fetchField($id, 'groups');
         }
-        //bp($res);
+
         return $res;
     }
     
