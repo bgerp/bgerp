@@ -762,7 +762,7 @@ class sales_Quotations extends deals_QuotationMaster
         $dQuery->show("productId,term,quantity,quotationId");
 
         while ($dRec = $dQuery->fetch()) {
-            $term = (!isset($term)) ? cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity) : $dRec->term;
+            $term = (!isset($dRec->term)) ? cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity) : $dRec->term;
             if (isset($term)) {
                 $maxDeliveryTime = max($maxDeliveryTime, $term);
             }
