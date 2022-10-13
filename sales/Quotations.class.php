@@ -746,12 +746,25 @@ class sales_Quotations extends deals_QuotationMaster
     {
         $rec = $this->fetchRec($id);
 
+        $defaultDeliveryTime = null;
+
+        // Ако доставката е с явен транспорт, намира се максималния срок на доставка до мястото
+        if($rec->deliveryCalcTransport == 'no'){
+            $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
+            if(is_object($Calculator)){
+                $locationId = isset($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+                $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
+                $deliveryParams = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode']);
+                $defaultDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryParams);
+            }
+        }
+
         // Колко е максималният срок за доставка от детайлите
         $Detail = cls::get($this->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #optional = 'no'");
         $dQuery->show("productId,term,quantity,quotationId");
-        $maxDeliveryTime = deals_Helper::calcMaxDeliveryTime($this, $rec, $Detail, $dQuery);
+        $maxDeliveryTime = deals_Helper::calcMaxDeliveryTime($this, $rec, $Detail, $dQuery, $defaultDeliveryTime);
 
         return $maxDeliveryTime;
     }
