@@ -79,7 +79,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,consumption';
+    public $canAdd = 'ceo,consumption,store';
     
     
     /**
