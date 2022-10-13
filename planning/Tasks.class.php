@@ -1233,6 +1233,12 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        if (($action == 'stop' || $action == 'wakeup' || $action == 'activateagain' || $action == 'activate') && isset($rec)) {
+            if(!haveRole('ceo,task', $userId)){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 
 
