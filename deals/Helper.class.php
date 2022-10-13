@@ -2548,18 +2548,19 @@ abstract class deals_Helper
     /**
      * Помощна ф-я намираща максималния срок за доставка от детайлите
      *
-     * @param core_Mvc $masterMvc        - модел на мастъра
-     * @param mixed $masterId            - ид/запис на мастъра
-     * @param core_Mvc $Detail           - детайла
-     * @param core_Query $dQuery         - заявка към детайлите
-     * @param string $productFieldName   - името на полето с ид-то на артикула
-     * @param string $termFieldName      - името на полето със записания срок
-     * @param string $quantityFld        - името на полето с к-то
-     * @param string $storeFieldName     - името на полето за склада
+     * @param core_Mvc $masterMvc           - модел на мастъра
+     * @param mixed $masterId               - ид/запис на мастъра
+     * @param core_Mvc $Detail              - детайла
+     * @param core_Query $dQuery            - заявка към детайлите
+     * @param int|null $defaultDeliveryTime - дефолтно време за доставка
+     * @param string $productFieldName      - името на полето с ид-то на артикула
+     * @param string $termFieldName         - името на полето със записания срок
+     * @param string $quantityFld           - името на полето с к-то
+     * @param string $storeFieldName        - името на полето за склада
      *
      * @return int|null $maxDeliveryTime - максималния срок за доставка от детайлите
      */
-    public static function calcMaxDeliveryTime($masterMvc, $masterId, $Detail, core_Query $dQuery, $productFieldName = 'productId', $termFieldName = 'term', $quantityFld = 'quantity', $storeFieldName = null)
+    public static function calcMaxDeliveryTime($masterMvc, $masterId, $Detail, core_Query $dQuery, $defaultDeliveryTime = null, $productFieldName = 'productId', $termFieldName = 'term', $quantityFld = 'quantity', $storeFieldName = null)
     {
         $deliveryTimes = array();
         $masterRec = $masterMvc->fetchRec($masterId);
@@ -2580,6 +2581,10 @@ abstract class deals_Helper
                     // Ако има изчислена доставка и за нея има срок на доставка добавя се
                     if ($deliveryTime = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id)->deliveryTime) {
                         $term += $deliveryTime;
+                    } elseif($defaultDeliveryTime){
+
+                        // Ако няма за реда, но има дефолтна изчислява се тя
+                        $term += $defaultDeliveryTime;
                     }
                 }
             }

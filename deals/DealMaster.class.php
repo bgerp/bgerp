@@ -1339,12 +1339,24 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $rec = $this->fetchRec($id);
 
+        // Ако доставката е с явен транспорт, намира се максималния срок на доставка до мястото
+        $defaultDeliveryTime = null;
+        if($rec->deliveryCalcTransport == 'no'){
+            $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
+            if(is_object($Calculator)){
+                $logisticData = $this->getLogisticData($rec);
+                $deliveryData = is_array($rec->deliveryData) ? $rec->deliveryData : array();
+                $deliveryData += array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
+                $defaultDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryData);
+            }
+        }
+
         // Колко е максималният срок за доставка от детайлите
         $Detail = cls::get($this->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
         $dQuery->show("productId,term,quantity,{$Detail->masterKey}");
-        $maxDeliveryTime = deals_Helper::calcMaxDeliveryTime($this, $rec, $Detail, $dQuery, 'productId', 'term', 'quantity', 'shipmentStoreId');
+        $maxDeliveryTime = deals_Helper::calcMaxDeliveryTime($this, $rec, $Detail, $dQuery, $defaultDeliveryTime, 'productId', 'term', 'quantity', 'shipmentStoreId');
 
         return $maxDeliveryTime;
     }
