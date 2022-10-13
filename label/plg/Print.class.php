@@ -112,7 +112,7 @@ class label_plg_Print extends core_Plugin
                 } else {
                     $printedByNow = 1;
                 }
-                core_Permanent::set("printPeripheral{$mvc->className}_{$rec->id}", $printedByNow, 60);
+                core_Permanent::set("printPeripheral{$mvc->className}_{$rec->id}", $printedByNow, 129600);
 
                 // Добавяме резултата
                 $resObj = new stdClass();

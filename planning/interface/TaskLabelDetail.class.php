@@ -119,9 +119,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $stepProductName = trim(cat_Products::getVerbal($taskRec->productId, 'name'));
         $stepProductCode = cat_Products::getVerbal($taskRec->productId, 'code');
-
-        $productId = ($rec->isFinal == 'yes') ? $jRec->productId : $rec->productId;
-        $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $productId, $rec->type);
+        $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
 
         $quantity = $rec->quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
         $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->weight) : null;
@@ -129,7 +127,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $batch = null;
         $date = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
-        if($BatchDef = batch_Defs::getBatchDef($productId)){
+        if($BatchDef = batch_Defs::getBatchDef($jRec->productId)){
             if(!empty($rec->batch)){
                 $batch = $rec->batch;
             }

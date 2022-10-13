@@ -1935,6 +1935,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $Policy = cls::get('price_ListToCustomers');
         $listId = pos_Points::getSettings($rec->pointId, 'policyId');
+        $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
 
         if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
             $listId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
@@ -1994,15 +1995,21 @@ class pos_Terminal extends peripheral_Terminal
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, null,2));
             }
-            
-            if ((isset($stock) && $stock <= 0)) {
-                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0, 2));
-                $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
+
+            if (isset($stock)) {
+                if($showExactQuantities == 'yes'){
+                    $stockInPack = $stock / $perPack;
+                    $stockInPackVerbal = core_Type::getByName('double(smartRound)')->toVerbal($stockInPack);
+                    $res[$id]->measureId = $stockInPackVerbal . " <i>" . cat_UoM::getSmartName($packId, $stockInPack) . "</i>";
+                    $res[$id]->measureId = ht::styleNumber($res[$id]->measureId, $stockInPack);
+                } elseif($stock <= 0) {
+                    $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
+                }
             }
             
             $res[$id]->_groups = cat_Products::fetchField($id, 'groups');
         }
-        
+
         return $res;
     }
     

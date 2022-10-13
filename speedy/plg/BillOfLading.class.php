@@ -358,7 +358,7 @@ class speedy_plg_BillOfLading extends core_Plugin
                 }
 
                 $paymentType = $firstDocument->fetchField('paymentMethodId');
-                $amountCod = ($documentRec->chargeVat == 'separate') ? $documentRec->amountDelivered + $documentRec->amountDeliveredVat : $documentRec->amountDelivered;
+                $amountCod = $documentRec->amountDelivered;
             }
         }
         
