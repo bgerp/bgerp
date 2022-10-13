@@ -28,7 +28,8 @@ class cond_type_Product extends cond_type_Varchar
         $fieldset->FLD('show', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване,mandatory');
         $fieldset->FLD('display', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Избор,mandatory');
         $fieldset->FLD('orderBy', 'enum(idAsc=По артикул [нарастващ ред],idDesc=По артикул [намаляващ ред],codeAsc=По код [нарастващ ред],codeDesc=По код [намаляващ ред])', 'caption=Конкретизиране->Подредба,mandatory');
-        $fieldset->FLD('maxRadio', 'int(Min=0)', 'caption=Конкретизиране->Радио бутон,mandatory');
+        $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутон,mandatory');
+        $fieldset->FLD('columns', 'int(Min=0)', 'caption=Конкретизиране->Радио бутон (колони),placeholder=2');
     }
 
 
@@ -54,21 +55,19 @@ class cond_type_Product extends cond_type_Varchar
         $orderByField = ($orderBy == 'idAsc') ? 'id=ASC' : (($orderBy == 'idDesc') ? 'id=DESC' : (($orderBy == 'codeAsc') ? 'code=ASC' : 'code=DESC'));
         $CType->params['orderBy'] = $orderByField;
 
-        $Type = core_Type::getByName('key(mvc=cat_Products,select=name)');
-        $Type->params['maxRadio'] = isset($this->driverRec->maxRadio) ? $this->driverRec->maxRadio : 20;
-        if(isset($this->driverRec->maxRadio)){
-            $Type->params['columns'] = 2;
-        }
+        // Ако няма зададени радио бутони - ще се показва като key2
+        if(empty($this->driverRec->maxRadio)) return $CType;
 
+        // Ако има зададен брой радио бутони, но опциите са над тях - ще се показва като key2
         $options = $CType->getOptions();
         $optionsCount = countR($options);
-        $willShowAsRadio = ($optionsCount <= $Type->params['maxRadio']);
-        if(empty($value) && !$willShowAsRadio){
-            $options = array('' => '') + $options;
-        }
-        if($willShowAsRadio){
-            $Type->params['columns'] = 2;
-        }
+        if($optionsCount > $this->driverRec->maxRadio) return $CType;
+
+        // Ако има радио бутони ще се показва като селект
+        $Type = core_Type::getByName('key(mvc=cat_Products,select=name)');
+        $Type->params['maxRadio'] = isset($this->driverRec->maxRadio) ? $this->driverRec->maxRadio : 20;
+        $columns = isset($this->driverRec->columns) ? $this->driverRec->columns : 2;
+        $Type->params['columns'] = $columns;
 
         $Type->options = $options;
         foreach ($Type->options as $k => $v){
@@ -102,7 +101,6 @@ class cond_type_Product extends cond_type_Varchar
         if(empty($title)){
             $title = cat_Products::getTitleById($value);
         }
-
         if(!Mode::is('text', 'plain')){
             $singleUrlArray = cat_Products::getSingleUrlArray($value);
             if(countR($singleUrlArray)){

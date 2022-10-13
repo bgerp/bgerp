@@ -134,7 +134,7 @@ class doc_TplManager extends core_Master
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         $this->FLD('content', 'html', 'caption=Текст->Широк,column=none, width=100%,mandatory');
         $this->FLD('narrowContent', 'html', 'caption=Текст->Мобилен,column=none, width=100%');
-        $this->FLD('path', 'varchar', 'caption=Файл,column=none, width=100%');
+        $this->FLD('path', 'varchar', 'caption=Файл, width=100%,input=none');
         $this->FLD('originId', 'key(mvc=doc_TplManager)', 'input=hidden,silent');
         $this->FLD('hash', 'varchar', 'input=none');
         $this->FLD('hashNarrow', 'varchar', 'input=none');
@@ -668,6 +668,10 @@ class doc_TplManager extends core_Master
     {
         if(isset($rec->originId)){
             $row->originId = static::getHyperlink($rec->originId, true);
+        }
+
+        if(doc_TplManager::haveRightFor('list')){
+            $row->docClassId = ht::createLink($row->docClassId, array('doc_TplManager', 'list', 'docClassId' => $rec->docClassId));
         }
     }
 }

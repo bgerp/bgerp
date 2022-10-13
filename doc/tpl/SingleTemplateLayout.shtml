@@ -21,12 +21,18 @@
             <td class="title-style" style='width:150px'>|Език|*</td>
             <td> [#lang#]</td>
         </tr>
-        
+        <!--ET_BEGIN printCount-->
         <tr>
             <td class="title-style" style='width:150px'>|Копия при печат|*</td>
             <td> [#printCount#]</td>
         </tr>
-        
+        <!--ET_END printCount-->
+        <!--ET_BEGIN printCount-->
+        <tr>
+            <td class="title-style" style='width:150px'>|Файл|*</td>
+            <td> [#path#]</td>
+        </tr>
+        <!--ET_END printCount-->
         <tr>
             <td class="title-style" style='width:150px'>|Видимост|*</td>
             <td> [#state#]</td>
