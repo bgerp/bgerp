@@ -2543,4 +2543,65 @@ abstract class deals_Helper
         // Връщане на намерените файлове, ако има такива
         return $fhArr;
     }
+
+
+    /**
+     * Помощна ф-я намираща максималния срок за доставка от детайлите
+     *
+     * @param core_Mvc $masterMvc        - модел на мастъра
+     * @param mixed $masterId            - ид/запис на мастъра
+     * @param core_Mvc $Detail           - детайла
+     * @param core_Query $dQuery         - заявка към детайлите
+     * @param string $productFieldName   - името на полето с ид-то на артикула
+     * @param string $termFieldName      - името на полето със записания срок
+     * @param string $quantityFld        - името на полето с к-то
+     * @param string $storeFieldName     - името на полето за склада
+     *
+     * @return int|null $maxDeliveryTime - максималния срок за доставка от детайлите
+     */
+    public static function calcMaxDeliveryTime($masterMvc, $masterId, $Detail, core_Query $dQuery, $productFieldName = 'productId', $termFieldName = 'term', $quantityFld = 'quantity', $storeFieldName = null)
+    {
+        $deliveryTimes = array();
+        $masterRec = $masterMvc->fetchRec($masterId);
+
+        // Обиколка на детайлите
+        while ($dRec = $dQuery->fetch()) {
+            $term = null;
+
+            // Ако има ръчно въведен срок - него
+            if(isset($dRec->{$termFieldName})){
+                $term = $dRec->{$termFieldName};
+            } else {
+
+                // Ако няма се търси производствения срок на артикула за нужното к-во
+                if($productDeliveryTime = cat_Products::getDeliveryTime($dRec->{$productFieldName}, $dRec->{$quantityFld})){
+                    $term = $productDeliveryTime;
+
+                    // Ако има изчислена доставка и за нея има срок на доставка добавя се
+                    if ($deliveryTime = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id)->deliveryTime) {
+                        $term += $deliveryTime;
+                    }
+                }
+            }
+
+            if (isset($term)) {
+                $deliveryTimes[] = $term;
+            }
+        }
+
+        $maxDeliveryTime = null;
+        if(countR($deliveryTimes)){
+
+            // Взима се най-големия срок за доставка от детайлите
+            $maxDeliveryTime = max($deliveryTimes);
+
+            // Към тях се добавя нужното време за подготовка от склада (ако има)
+            $defaultShipmentTime = store_Stores::getShipmentPreparationTime($masterRec->{$storeFieldName});
+            if(!empty($defaultShipmentTime)){
+                $maxDeliveryTime += $defaultShipmentTime;
+            }
+        }
+
+        return $maxDeliveryTime;
+    }
 }
