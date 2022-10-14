@@ -1041,15 +1041,15 @@ class planning_ProductionTaskDetails extends doc_Detail
                     // Ако артикула има нето тегло
                     if(is_numeric($expectedSingleNetWeight)){
                         $expectedNetWeight = $weightQuantity * $expectedSingleNetWeight;
-                        $deviation = abs(round(($expectedNetWeight - $rec->netWeight) / (($expectedNetWeight + $rec->netWeight) / 2), 4));
+                        $deviation = round(($rec->netWeight - $expectedNetWeight) / $expectedNetWeight, 4);
 
                         // Показване на хинт ако има разминаване
                         $iconHint = null;
-                        if(!empty($deviationCritical) && $deviation > $deviationCritical){
+                        if(!empty($deviationCritical) && abs($deviation) > $deviationCritical){
                             $iconHint = 'img/16/red-warning.png';
-                        } elseif($deviation > $deviationWarning){
+                        } elseif(abs($deviation) > $deviationWarning){
                             $iconHint = 'warning';
-                        } elseif(!empty($deviationNotice) && $deviation > $deviationNotice){
+                        } elseif(!empty($deviationNotice) && abs($deviation) > $deviationNotice){
                             $iconHint = 'img/16/green-info.png';
                         }
 
@@ -1262,7 +1262,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $howLong = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
                 if(dt::now() >= $howLong){
                     $requiredRoles = 'no_one';
-                } elseif(!haveRole('taskPlanning,ceo')){
+                } elseif(!haveRole('taskWorker,ceo')){
                     $requiredRoles = 'no_one';
                 }
             }

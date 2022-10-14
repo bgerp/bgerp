@@ -54,19 +54,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,production';
+    public $canList = 'ceo,production,store';
 
 
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,production';
+    public $canSingle = 'ceo,production,store';
 
 
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,production';
+    public $canEdit = 'ceo,production,store';
 
 
     /**
@@ -90,7 +90,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,production';
+    public $canPending = 'ceo,production,store';
 
 
     /**

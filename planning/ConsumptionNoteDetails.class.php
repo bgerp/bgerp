@@ -51,19 +51,19 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,consumption';
+    public $canEdit = 'ceo,consumption,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,consumption';
+    public $canAdd = 'ceo,consumption,store';
     
     
     /**
      * Кой има право да подменя артикула?
      */
-    public $canReplaceproduct = 'ceo,consumption';
+    public $canReplaceproduct = 'ceo,consumption,store';
     
     
     /**

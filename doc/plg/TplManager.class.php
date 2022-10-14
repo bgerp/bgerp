@@ -326,7 +326,7 @@ class doc_plg_TplManager extends core_Plugin
         }
         
         // Ако има скриптов клас за шаблона, подаваме му данните
-        if ($Script = doc_TplManager::getTplScriptClass($data->rec->template)) {
+        if ($Script = doc_TplManager::getTplScriptClass($data->rec->template, $data->rec->createdOn)) {
             $Script->beforePrepareMasterData($mvc, $data);
         }
     }
@@ -363,7 +363,7 @@ class doc_plg_TplManager extends core_Plugin
             }
             
             // Ако има скриптов клас за шаблона, подаваме му данните
-            if ($Script = doc_TplManager::getTplScriptClass($data->rec->template)) {
+            if ($Script = doc_TplManager::getTplScriptClass($data->rec->template, $data->rec->createdOn)) {
                 $Script->modifyMasterData($mvc, $data);
             }
         }

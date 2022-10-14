@@ -82,7 +82,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
 
-        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,maxRadio=4,columns=4,after=typeOfReport,single=none');
+        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
 
         $fieldset->FNC('indTimeSumArr', 'blob', 'caption=Времена,input=none,single=none');
     }
@@ -142,7 +142,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $recs = array();
+        $recs = array(); $quantitiesByMeasure = array();
 
         $query = planning_ProductionTaskDetails::getQuery();
 
@@ -177,7 +177,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         //Филтър по служители
-        if ($rec->employees) {
+        if ($rec->employees && $rec->resultsOn != 'arts') {
             $query->likeKeylist('employees', $rec->employees);
         }
 
@@ -196,6 +196,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             'production' => 0,
             'input' => 0,
             'waste' => 0,
+            'quantitiesByMeasure' => array(),
         );
 
         while ($tRec = $query->fetch()) {
@@ -340,7 +341,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 foreach ($arr as $k => $v) {
                     unset($id);
 
-                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees))) {
+                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees)) && $rec->resultsOn != 'arts' ) {
                         continue;
                     }
 
@@ -384,6 +385,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     } elseif ($clone->type == 'input') {
                         $typesQuantities->input += 1;
                     }
+
+                    if (!array_key_exists($clone->measureId,$quantitiesByMeasure)){
+                        $quantitiesByMeasure[$clone->measureId] = $clone->quantity;
+                    }else{
+                        $quantitiesByMeasure[$clone->measureId] += $clone->quantity;
+                    }
+
 
                     $indTimeSum = $clone->indTimeSum;
 
@@ -442,6 +450,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         $rec->indTimeSumArr = $indTimeSumArr;
+        $typesQuantities->quantitiesByMeasure = $quantitiesByMeasure;
 
         //Ако резбивката е по артикули, справката е подробна добавям първи рез със
         //сумарните ко.личества по дености
@@ -469,7 +478,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if ($export === false) {
 
             if ($rec->typeOfReport == 'full') {
-                $fld->FLD('total', 'varchar', 'caption=@Total,tdClass=rightCol');
+                if($rec->resultsOn == 'arts'){
+                    $fld->FLD('total', 'varchar', 'caption=@Total,tdClass=leftCol');
+                }
+
                 $fld->FLD('jobs', 'varchar', 'caption=Задание');
                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
                 $fld->FLD('article', 'varchar', 'caption=Артикул');
@@ -558,9 +570,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         if ($dRec->total) {
             $row->total = '';
-            $row->total .= 'Произведено ' . $dRec->production . " ; ";
+            $row->total .= 'Етикетирано ' . $dRec->production . " ; ";
             $row->total .= 'Вложено ' . $dRec->input . " ; ";
             $row->total .= 'Отпадък ' . $dRec->waste;
+            $row->total .= "</br>".'Произведено: ';
+            foreach ($dRec->quantitiesByMeasure as $meas => $q){
+
+                $row->total .= cat_UoM::fetch($meas)->name.' - '.$q. " ; ";
+
+            }
             return $row;
         }
 
@@ -683,7 +701,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $fieldTpl->append('<b>' . $empText . '</b>', 'employees');
                 }
             } else {
-                if (isset($data->rec->employees)) {
+                if (isset($data->rec->employees) && ($data->rec->resultsOn != 'arts')) {
                     $marker = 0;
                     foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
                         $marker++;

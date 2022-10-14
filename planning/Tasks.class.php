@@ -152,9 +152,9 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Кой може да го активира?
+     * Кой може да променя състоянието?
      */
-    public $canChangestate = 'ceo, task';
+    public $canChangestate = 'ceo, taskWorker';
     
     
     /**
@@ -292,7 +292,7 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent,silent');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Бруто,input=none');
         $this->FLD('totalNetWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Нето,input=none');
@@ -309,7 +309,7 @@ class planning_Tasks extends core_Master
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
         }        
-        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
+        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
@@ -333,9 +333,9 @@ class planning_Tasks extends core_Master
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
 
-        $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Прагове при разминаване на Нетото в прогреса->Информация,autohide');
-        $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Прагове при разминаване на Нетото в прогреса->Предупреждение,autohide');
-        $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Прагове при разминаване на Нетото в прогреса->Критично,autohide');
+        $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
+        $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
+        $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Прагове при разминаване на нетото в прогреса->Критично,autohide');
 
         $this->FLD('subTitle', 'varchar(20)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
@@ -910,14 +910,12 @@ class planning_Tasks extends core_Master
             $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table>
                 <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо бруто|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
                 <!--ET_BEGIN totalNetWeight--><tr><td style='font-weight:normal'>|Общо нето|*:</td><td>[#totalNetWeight#]</td></tr><!--ET_END totalNetWeight-->
-                
-                <!--ET_BEGIN deviationNettoNotice--><tr><td style='font-weight:normal'>|Отбелязване|*:</td><td>[#deviationNettoNotice#]</td></tr><!--ET_END deviationNettoNotice-->
-                <!--ET_BEGIN deviationNettoWarning--><tr><td style='font-weight:normal'>|Предупреждение|*:</td><td>[#deviationNettoWarning#]</td></tr><!--ET_END deviationNettoWarning-->
-                <!--ET_BEGIN deviationNettoCritical--><tr><td style='font-weight:normal'>|Критично|*:</td><td>[#deviationNettoCritical#]</td></tr><!--ET_END deviationNettoCritical-->
-                
+                <!--ET_BEGIN notifications--><tr><td style='font-weight:normal'>|Прагове|*:</td><td>[#notifications#]</td></tr><!--ET_END notifications-->
                 <tr><td style='font-weight:normal'>|Режим|*:</td><td>[#showadditionalUom#]</td></tr>
                 </table>"));
         }
+
+        $row->notifications = implode(' ', array($row->deviationNettoNotice, $row->deviationNettoWarning, $row->deviationNettoCritical));
 
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table>
                 <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
@@ -1235,6 +1233,12 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        if (($action == 'stop' || $action == 'wakeup' || $action == 'activateagain' || $action == 'activate') && isset($rec)) {
+            if(!haveRole('ceo,task', $userId)){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 
 
@@ -1325,7 +1329,15 @@ class planning_Tasks extends core_Master
             }
         }
         $form->setFieldTypeParams('productId', array('centerFolderId' => $rec->folderId));
-        $form->setField("deviationNettoWarning", "placeholder=" . $mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING')));
+        $centerRec = planning_Centers::fetch("#folderId = {$rec->folderId}");
+        if(!empty($centerRec->deviationNettoNotice)){
+            $form->setField("deviationNettoNotice", "placeholder=" . $mvc->getFieldType('deviationNettoNotice')->toVerbal($centerRec->deviationNettoNotice));
+        }
+        if(!empty($centerRec->deviationNettoCritical)){
+            $form->setField("deviationNettoCritical", "placeholder=" . $mvc->getFieldType('deviationNettoCritical')->toVerbal($centerRec->deviationNettoCritical));
+        }
+        $placeholderNetWarning = !empty($centerRec->deviationNettoWarning) ? $centerRec->deviationNettoWarning : planning_Setup::get('TASK_NET_WEIGHT_WARNING');
+        $form->setField("deviationNettoWarning", "placeholder=" . $mvc->getFieldType('deviationNettoWarning')->toVerbal($placeholderNetWarning));
 
         // За произвеждане може да се избере само артикула от заданието
         try{
@@ -1362,11 +1374,11 @@ class planning_Tasks extends core_Master
 
             $eQuery = static::getQuery();
             $eQuery->where("#id != '{$rec->id}' AND #productId = {$rec->productId}");
-            $eQuery->show('indPackagingId,indTimeAllocation,indTime');
+            $eQuery->show('indPackagingId,indTimeAllocation');
             $eQuery->orderBy('id', 'DESC');
             $lastTask4Step = $eQuery->fetch();
             if($lastTask4Step){
-                foreach (array('indPackagingId', 'indTimeAllocation', 'indTime') as $exFld){
+                foreach (array('indPackagingId', 'indTimeAllocation') as $exFld){
                     if(!empty($lastTask4Step->{$fld})){
                          $form->setDefault($exFld, $lastTask4Step->{$fld});
                     }
@@ -1545,21 +1557,6 @@ class planning_Tasks extends core_Master
             } else {
                 $form->setField('showadditionalUom', 'input=none');
                 $form->setDefault('indPackagingId', $rec->measureId);
-            }
-
-            // Нормата да се взима от последната ПО за този етап, ако не е дошла от някъде
-            $eQuery = static::getQuery();
-            $eQuery->where("#id != '{$rec->id}' AND #productId = {$rec->productId} AND #state NOT IN ('draft', 'rejected')");
-            $eQuery->show('indPackagingId,indTimeAllocation,indTime');
-            $eQuery->orderBy('id', 'DESC');
-            $lastTask4Step = $eQuery->fetch();
-
-            if($lastTask4Step){
-                foreach (array('indPackagingId', 'indTimeAllocation', 'indTime') as $exFld){
-                    if(!empty($lastTask4Step->{$exFld})){
-                        $form->setDefault($exFld, $lastTask4Step->{$exFld});
-                    }
-                }
             }
 
             if($measuresCount == 1){
@@ -3002,22 +2999,25 @@ class planning_Tasks extends core_Master
         $res['notice'] = !empty($rec->deviationNettoNotice) ? $rec->deviationNettoNotice : $centerRec->deviationNettoNotice;
         if($verbal && isset($res['notice'])){
             $res['notice'] = core_Type::getByName('percent')->toVerbal($res['notice']);
-            $res['notice'] = !empty($rec->deviationNettoNotice) ?  $res['notice'] : ht::createHint("<span style='color:blue'>{$res['notice']}</span>", 'От центъра на дейност', 'notice', false);
+            $res['notice'] = !empty($rec->deviationNettoNotice) ?  $res['notice'] : "<span style='color:blue'>{$res['notice']}</span>";
+            $noticeHint = !empty($rec->deviationNettoNotice) ? 'Информация' : 'Информация (от центъра на дейност)';
+            $res['notice'] = ht::createHint($res['notice'], $noticeHint, 'img/16/green-info.png', false);
         }
 
         $res['critical'] = !empty($rec->deviationNettoCritical) ? $rec->deviationNettoCritical : $centerRec->deviationNettoCritical;
         if($verbal && isset($res['critical'])){
             $res['critical'] = core_Type::getByName('percent')->toVerbal($res['critical']);
-            $res['critical'] = !empty($rec->deviationNettoCritical) ?  $res['critical'] : ht::createHint("<span style='color:blue'>{$res['critical']}</span>", 'От центъра на дейност', 'notice', false);
+            $res['critical'] = !empty($rec->deviationNettoCritical) ?  $res['critical'] : "<span style='color:blue'>{$res['critical']}</span>";
+            $criticalHint = !empty($rec->deviationNettoNotice) ? 'Критично' : 'Критично (от центъра на дейност)';
+            $res['critical'] = ht::createHint($res['critical'], $criticalHint, 'img/16/red-warning.png', false);
         }
 
         $res['warning'] = !empty($rec->deviationNettoWarning) ? $rec->deviationNettoWarning : (($centerRec->deviationNettoWarning) ? $centerRec->deviationNettoWarning : planning_Setup::get('TASK_NET_WEIGHT_WARNING'));
         if($verbal && isset($res['warning'])){
             $res['warning'] = core_Type::getByName('percent')->toVerbal($res['warning']);
-            $hint = !empty($rec->deviationNettoWarning) ?  null : (($centerRec->deviationNettoWarning) ? 'От центъра на дейност' : 'От настройката по подразбиране');
-            if($hint){
-                $res['warning'] = ht::createHint("<span style='color:blue'>{$res['warning']}</span>", $hint, 'notice', false);
-            }
+            $res['warning'] = !empty($rec->deviationNettoWarning) ?  $res['warning'] : "<span style='color:blue'>{$res['warning']}</span>";
+            $warningHint = !empty($rec->deviationNettoWarning) ?  'Предупреждение' : (($centerRec->deviationNettoWarning) ? 'Предупреждение (от центъра на дейност)' : 'Предупреждение (от настройката по подразбиране)');
+            $res['warning'] = ht::createHint($res['warning'], $warningHint, 'warning', false);
         }
 
         return $res;

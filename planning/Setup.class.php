@@ -261,10 +261,10 @@ class planning_Setup extends core_ProtoSetup
         array('jobSee'),
         array('job', 'jobSee'),
         array('taskSee'),
-        array('task', 'taskSee'),
         array('taskWorker', 'taskSee'),
-        array('consumption'),
-        array('production'),
+        array('task', 'taskWorker'),        
+        array('consumption', 'jobSee, taskSee'),
+        array('production', 'jobSee, taskSee'),
         array('planning'),
         array('planningMaster', 'planning'),
     );

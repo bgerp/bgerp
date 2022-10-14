@@ -146,7 +146,7 @@ class store_Setup extends core_ProtoSetup
     public $defClasses = 'store_reports_Documents,store_reports_ChangeQuantity,store_reports_ProductAvailableQuantity,
                           store_iface_ImportShippedProducts,store_reports_DeficitInStores,store_reports_UnfulfilledQuantities,
                           store_reports_ArticlesDepended,store_reports_ProductsInStock,store_reports_UnrealisticPricesAndWeights,
-                          store_reports_ProductAvailableQuantity1,store_reports_JobsHorizons';
+                          store_reports_ProductAvailableQuantity1,store_reports_JobsHorizons,store_tpl_SingleLayoutPackagingListGrouped,store_tpl_SingleLayoutShipmentOrderEuro,store_tpl_SingleLayoutShipmentOrderMetro';
     
     
     /**

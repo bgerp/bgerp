@@ -140,7 +140,12 @@
                 <td>[#maxRadio#]</td>
             </tr>
             <!--ET_END maxRadio-->
-
+            <!--ET_BEGIN columns-->
+            <tr>
+                <td class="title-style">|Колони|*</td>
+                <td>[#columns#]</td>
+            </tr>
+            <!--ET_END columns-->
             <!--ET_BEGIN display-->
             <tr>
                 <td class="title-style">|Избор|*</td>

@@ -148,7 +148,7 @@ abstract class deals_DealDetail extends doc_Detail
                 $requiredRoles = 'no_one';
             }
         }
-        
+
         if ($action == 'importlisted' && isset($rec)) {
             if ($requiredRoles != 'no_one') {
                 if (isset($rec)) {
@@ -174,6 +174,16 @@ abstract class deals_DealDetail extends doc_Detail
                 $requiredRoles = 'no_one';
             }
         }
+
+        // Да се показва ли бутона за клониране от оригинала
+        if($action == 'copydetailsfromcloned' && isset($rec)){
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'clonedFromId,state');
+            if(empty($masterRec->clonedFromId) || $masterRec->state != 'draft'){
+                $requiredRoles = 'no_one';
+            } elseif(!$mvc->areTheDetailsDifferent($rec->{$mvc->masterKey}, $masterRec->clonedFromId)){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -182,12 +192,8 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (empty($data->recs)) {
-            
-            return;
-        }
+        if (empty($data->recs)) return;
         $recs = &$data->recs;
-        
         deals_Helper::fillRecs($mvc->Master, $recs, $data->masterData->rec);
     }
     
@@ -307,9 +313,11 @@ abstract class deals_DealDetail extends doc_Detail
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
             if (!isset($rec->packQuantity)) {
-                $rec->defQuantity = true;
-                $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
-                $form->setError('packQuantity', 'Не е въведено количество');
+                $defaultPackQuantity = (isset($rec->_moq)) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
+                $form->setDefault('packQuantity', $defaultPackQuantity);
+                if(empty($defaultPackQuantity)){
+                    $form->setError('packQuantity', 'Не е въведено количество');
+                }
             }
             
             // Проверка на к-то
@@ -440,6 +448,11 @@ abstract class deals_DealDetail extends doc_Detail
         
         if ($mvc->haveRightFor('importlisted', (object) array("{$mvc->masterKey}" => $data->masterId))) {
             $data->toolbar->addBtn('Списък', array($mvc, 'importlisted', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => true), "id=btnAddImp-{$data->masterId},order=14,title=Добавяне на артикули от списък", 'ef_icon = img/16/shopping.png');
+        }
+
+        if ($mvc->haveRightFor('copydetailsfromcloned', (object) array("{$mvc->masterKey}" => $data->masterId))) {
+            $clonedFromHandle = $data->masterMvc->getHandle($data->masterData->rec->clonedFromId);
+            $data->toolbar->addBtn("От|* #{$clonedFromHandle}", array($mvc, 'copydetailsfromcloned', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => true), "id=btnCloneImp-{$data->masterId},order=22,warning222222222222=Наистина ли желаете да копирате 1:1 артикулите и техните цени от клонирания документ?,title=Налични са разлики (актуализирани цени или други) спрямо клонирания договор! Копиране 1:1 от оригинал?", 'ef_icon = img/16/shopping.png');
         }
     }
     
@@ -803,5 +816,94 @@ abstract class deals_DealDetail extends doc_Detail
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $form->setDefault("quantityInPack{$lId}", $quantityInPack);
         }
+    }
+
+
+    /**
+     * Помощна ф-я сравняваща има ли разлика между детайлите на две сделки
+     *
+     * @param int $master1Id
+     * @param int $master2Id
+     * @return bool
+     */
+    private function areTheDetailsDifferent($master1Id, $master2Id)
+    {
+        $arr1 = $arr2 = array();
+        $unsetFields = arr::make($this->fieldsNotToClone, true);
+
+        // Обикаля детайлите
+        foreach (range(1, 2) as $i){
+            $masterVal = ${"master{$i}Id"};
+            $arr = &${"arr{$i}"};
+            $dQuery = $this->getQuery();
+            $dQuery->where("#{$this->masterKey} = {$masterVal}");
+            $dQuery->orderBy('id', 'ASC');
+
+            // Нормализира ги за сравнение
+            while($dRec = $dQuery->fetch()){
+                foreach ($unsetFields as $fld){
+                    unset($dRec->{$fld});
+                }
+                $dRec->_batches = array();
+                if(core_Packs::isInstalled('batch')) {
+                    if ($bRec = batch_BatchesInDocuments::fetch("#detailClassId = {$this->getClassId()} AND #detailRecId = {$dRec->id}")) {
+                        unset($bRec->containerId, $bRec->id, $bRec->detailRecId);
+                        $dRec->_batches[] = $bRec;
+                    }
+                }
+                unset($dRec->id, $dRec->{$this->masterKey}, $dRec->createdOn, $dRec->createdBy);
+                $arr[] = $dRec;
+            }
+        }
+
+        return md5(serialize($arr1)) != md5(serialize($arr2));
+    }
+
+
+    /**
+     * Екшън клониращ детайлите от клонирания документ в клонинга
+     */
+    public function act_copydetailsfromcloned()
+    {
+        // Проверка на права
+        $this->requireRightFor('copydetailsfromcloned');
+        expect($masterId = Request::get($this->masterKey, 'int'));
+        expect($masterRec = $this->Master->fetch($masterId));
+        $this->requireRightFor('copydetailsfromcloned', (object)array($this->masterKey => $masterId));
+
+        // Изтриване на текущите записи
+        $this->delete("#{$this->masterKey} = {$masterId}");
+        $now = dt::now();
+        $cu = core_Users::getCurrent();
+        $classId = $this->getClassId();
+        $unsetFields = arr::make($this->fieldsNotToClone, true);
+
+        // Копиране на детайлите
+        $oQuery = $this->getQuery();
+        $oQuery->where("#{$this->masterKey} = {$masterRec->clonedFromId}");
+        $oQuery->orderBy('id', 'ASC');
+        while($oRec = $oQuery->fetch()){
+            $cloneRec = clone $oRec;
+            unset($cloneRec->id);
+            $cloneRec->{$this->masterKey} = $masterId;
+            $cloneRec->createdOn = $now;
+            $cloneRec->createdBy = $cu;
+            foreach ($unsetFields as $fld){
+                unset($cloneRec->{$fld});
+            }
+            $this->save($cloneRec);
+
+            // Ако има партиди към редовете, клонират се и те
+            if(core_Packs::isInstalled('batch')){
+                if($bRec = batch_BatchesInDocuments::fetch("#detailClassId = {$classId} AND #detailRecId = {$oRec->id}")){
+                    unset($bRec->id);
+                    $bRec->detailRecId = $cloneRec->id;
+                    $bRec->containerId = $masterRec->containerId;
+                    batch_BatchesInDocuments::save($bRec);
+                }
+            }
+        }
+
+        followRetUrl(null, 'Оригиналните редове са прехвърлени успешно|*!');
     }
 }

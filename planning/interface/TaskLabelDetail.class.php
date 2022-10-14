@@ -80,7 +80,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $templateTpl = new ET($templateTpl);
         $templateTpl->placeObject($allLabelData[0]);
-        
+
         return $templateTpl->getContent();
     }
 
@@ -119,9 +119,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $stepProductName = trim(cat_Products::getVerbal($taskRec->productId, 'name'));
         $stepProductCode = cat_Products::getVerbal($taskRec->productId, 'code');
-
-        $productId = ($rec->isFinal == 'yes') ? $jRec->productId : $rec->productId;
-        $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $productId, $rec->type);
+        $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
 
         $quantity = $rec->quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
         $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->weight) : null;
@@ -129,7 +127,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $batch = null;
         $date = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
-        if($BatchDef = batch_Defs::getBatchDef($productId)){
+        if($BatchDef = batch_Defs::getBatchDef($jRec->productId)){
             if(!empty($rec->batch)){
                 $batch = $rec->batch;
             }
@@ -145,11 +143,11 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         }
 
         $notes = !empty($rec->notes) ? core_Type::getByName('richtext')->toHtml($rec->notes) : null;
-        $params = self::getTaskParamData($rec->taskId, $rec->productId);
+        $params = self::getTaskParamData($rec->taskId, $jRec->productId);
 
         $createdBy = core_Users::getVerbal($rec->createdBy, 'names');
         $currentUser = core_Users::getVerbal(core_Users::getCurrent(), 'names');
-        $employees = implode(',', planning_Hr::getPersonsCodesArr(keylist::toArray($rec->employees)));
+        $employees = implode(', ', planning_Hr::getPersonsCodesArr(keylist::toArray($rec->employees)));
 
         $Driver = cat_Products::getDriver($rec->productId);
         $additionalFields = (is_object($Driver)) ? $Driver->getAdditionalLabelData($rec->productId, $this->class) : array();

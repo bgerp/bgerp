@@ -241,15 +241,11 @@ class fileman_Download extends core_Manager
         // Генерираме пътя до файла (hard link) който ще се сваля
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $prefix . '/' . $fileName;
 
-        $whiteLists = mb_strtolower(getFileContent('/fileman/data/white-list-extensions.txt'));
-        $whiteLists = str_replace(' ', '', $whiteLists);
-        $whiteListsArr = explode("\n", $whiteLists);
-        $whiteListsArr = arr::make($whiteListsArr, true);
-        unset($whiteListsArr['']);
+        include_once(getFullPath('fileman/data/white-list-extensions.inc.php'));
 
         $ext = fileman::getExt($fileName);
 
-        if (!$ext || !$whiteListsArr[$ext]) {
+        if (!$ext || !in_array($ext, WHITE_LIST_EXTENSIONS)) {
 
             $tempPath = fileman::getTempPath();
             $tFile = $tempPath . '/' . $fileName;
