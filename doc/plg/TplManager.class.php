@@ -586,4 +586,16 @@ class doc_plg_TplManager extends core_Plugin
             $res = $templatePrintCount;
         }
     }
+
+
+    /**
+     * Функция, която прихваща след активирането на документа
+     * Ако офертата е базирана на чернова  артикула, активираме и нея
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        if ($Script = doc_TplManager::getTplScriptClass($rec->template, $rec->createdOn)) {
+            $Script->afterActivation($mvc, $rec);
+        }
+    }
 }

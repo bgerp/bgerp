@@ -138,4 +138,13 @@ abstract class doc_TplScript
 
         return false;
     }
+
+
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public function afterActivation($mvc, &$rec)
+    {
+
+    }
 }
