@@ -13,10 +13,17 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @title     Обработвач на шаблона за ЕН за митница
  */
 class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 {
-    
+
+    /**
+     * Към шаблоните на кой документ да може да се избира
+     */
+    public $addToClassTemplate = 'store_ShipmentOrders';
+
+
     /**
      * Константа за празен тарифен номер
      */
