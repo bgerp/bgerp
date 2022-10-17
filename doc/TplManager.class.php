@@ -16,7 +16,7 @@
  * @package   doc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -414,7 +414,7 @@ class doc_TplManager extends core_Master
      * Връща всички активни шаблони за посочения мениджър
      *
      * @param int $classId - ид на клас
-     *
+     * @param string|null $lang - език, null за текущия
      * @return array $options - опции за шаблоните на документа
      */
     public static function getTemplates($classId, $lang = null)
@@ -439,15 +439,18 @@ class doc_TplManager extends core_Master
         
         return $options;
     }
-    
-    
+
+
     /**
-     * Добавя шаблон
+     * Добавя шаблони от масив
      *
-     * @param mixed $object  - Обект или масив
-     * @param int   $added   - брой добавени шаблони
-     * @param int   $updated - брой обновени шаблони
-     * @param int   $skipped - брой пропуснати шаблони
+     * @param core_Mvc $mvc
+     * @param array $tplArr
+     * @param int $added
+     * @param int $updated
+     * @param int $skipped
+     * @return string $res
+     * @throws core_exception_Expect
      */
     public static function addOnce($mvc, $tplArr, &$added = 0, &$updated = 0, &$skipped = 0)
     {
@@ -598,8 +601,8 @@ class doc_TplManager extends core_Master
      * Връща скриптовия клас на шаблона (ако има)
      *
      * @param int $templateId - ид на шаблона
-     *
-     * @return mixed $Script/False - заредения клас, или FALSE ако не може да се зареди
+     * @param date|null $date - от коя дата
+     * @return doc_TplScript|false $Script/false - заредения клас, или false ако не може да се зареди
      */
     public static function getTplScriptClass($templateId, $date = null)
     {
@@ -611,7 +614,6 @@ class doc_TplManager extends core_Master
         
         // Намираме пътя на файла генерирал шаблона
         $templateRec = doc_TplManager::fetch($templateId);
-        if (!$templateRec->path) return false;
         $date = isset($date) ? $date : dt::now();
 
         // Ако има ръчно избран обработвач - зарежда се той
@@ -625,24 +627,26 @@ class doc_TplManager extends core_Master
             }
         }
 
-        // Ако физически съществува този файл
+        // Ако шаблона има съответстващ файл в директорията
+        if (!$templateRec->path) return false;
+
+        // Ако в директорията има файл със същото име но с разширение .class.php се зарежда той
         $filePath = str_replace('.shtml', '.class.php', $templateRec->path);
         if (getFullPath($filePath)) {
             $supposedClassname = str_replace('/', '_', $filePath);
             $supposedClassname = str_replace('.class.php', '', $supposedClassname);
-            
-            // Прави се опит да се зареди, ако може и ер наследник на 'doc_TplScript'
-            if (cls::load($supposedClassname, true) && is_subclass_of($supposedClassname, 'doc_TplScript')) {
+
+            // Прави се опит да се зареди и е от подадения интерфейс
+            if (cls::load($supposedClassname, true) &&  cls::haveInterface('doc_TplScriptIntf', $supposedClassname)) {
                 
-                // Зареждаме го
+                // Зарежда се
                 $Script = cls::get($supposedClassname);
-                
-                // Връщаме заредения клас
+
                 return $Script;
             }
         }
         
-        // Ако не е открит такъв файл
+        // Ако не е открит такъв файл - нищо
         return false;
     }
     
@@ -684,6 +688,7 @@ class doc_TplManager extends core_Master
         
         return $res;
     }
+
 
     /**
      * След преобразуване на записа в четим за хора вид
