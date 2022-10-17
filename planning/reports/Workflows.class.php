@@ -19,7 +19,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,planning,hrMaster';
+    public $canSelectDriver = 'ceo,task,hrMaster';
 
     /**
      * Кои полета от листовия изглед да може да се сортират
