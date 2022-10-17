@@ -791,7 +791,7 @@ class planning_Tasks extends core_Master
                 $productId = doc_Containers::getDocument($rec->originId)->fetchField('productId');
                 if($otherTaskId = planning_Tasks::fetchField("#originId = {$rec->originId} AND #state != 'rejected' AND #isFinal = 'yes' AND #productId != {$rec->productId}")) {
                     $otherTaskLink = planning_Tasks::getHyperlink($otherTaskId, true);
-                    $form->setError('productId', "По заданието вече има операция за друг финален етап|*: {$otherTaskLink}");
+                    $form->setWarning('productId', "По заданието вече има операция за друг финален етап|*: {$otherTaskLink}");
                 }
             }
 
