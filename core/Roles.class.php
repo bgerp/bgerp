@@ -300,15 +300,18 @@ class core_Roles extends core_Manager
         $rolesArr = arr::make($roles);
         
         $Roles = cls::get('core_Roles');
-        
+
+        $keylistArr = array();
+
         foreach ($rolesArr as $role) {
             $id = $Roles->fetchByName($role);
-            expect($id, $role);
+
+            expect($id || ($role == 'no_one'), $role);
             $keylistArr[$id] = $id;
         }
-        
+
         $keylist = keylist::fromArray($keylistArr);
-        
+
         return $keylist;
     }
     
