@@ -333,9 +333,9 @@ class planning_Tasks extends core_Master
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
 
-        $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
-        $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
-        $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Прагове при разминаване на нетото в прогреса->Критично,autohide');
+        $this->FLD('deviationNettoNotice', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
+        $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRoun)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
+        $this->FLD('deviationNettoCritical', 'percent(Min=0,smartRoun)', 'caption=Прагове при разминаване на нетото в прогреса->Критично,autohide');
 
         $this->FLD('subTitle', 'varchar(20)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
@@ -2998,7 +2998,7 @@ class planning_Tasks extends core_Master
         $centerRec = planning_Centers::fetch("#folderId = {$rec->folderId}");
         $res['notice'] = !empty($rec->deviationNettoNotice) ? $rec->deviationNettoNotice : $centerRec->deviationNettoNotice;
         if($verbal && isset($res['notice'])){
-            $res['notice'] = core_Type::getByName('percent')->toVerbal($res['notice']);
+            $res['notice'] = core_Type::getByName('percent(smartRound)')->toVerbal($res['notice']);
             $res['notice'] = !empty($rec->deviationNettoNotice) ?  $res['notice'] : "<span style='color:blue'>{$res['notice']}</span>";
             $noticeHint = !empty($rec->deviationNettoNotice) ? 'Информация' : 'Информация (от центъра на дейност)';
             $res['notice'] = ht::createHint($res['notice'], $noticeHint, 'img/16/green-info.png', false);
@@ -3006,7 +3006,7 @@ class planning_Tasks extends core_Master
 
         $res['critical'] = !empty($rec->deviationNettoCritical) ? $rec->deviationNettoCritical : $centerRec->deviationNettoCritical;
         if($verbal && isset($res['critical'])){
-            $res['critical'] = core_Type::getByName('percent')->toVerbal($res['critical']);
+            $res['critical'] = core_Type::getByName('percent(smartRound)')->toVerbal($res['critical']);
             $res['critical'] = !empty($rec->deviationNettoCritical) ?  $res['critical'] : "<span style='color:blue'>{$res['critical']}</span>";
             $criticalHint = !empty($rec->deviationNettoNotice) ? 'Критично' : 'Критично (от центъра на дейност)';
             $res['critical'] = ht::createHint($res['critical'], $criticalHint, 'img/16/red-warning.png', false);
@@ -3014,7 +3014,7 @@ class planning_Tasks extends core_Master
 
         $res['warning'] = !empty($rec->deviationNettoWarning) ? $rec->deviationNettoWarning : (($centerRec->deviationNettoWarning) ? $centerRec->deviationNettoWarning : planning_Setup::get('TASK_NET_WEIGHT_WARNING'));
         if($verbal && isset($res['warning'])){
-            $res['warning'] = core_Type::getByName('percent')->toVerbal($res['warning']);
+            $res['warning'] = core_Type::getByName('percent(smartRound)')->toVerbal($res['warning']);
             $res['warning'] = !empty($rec->deviationNettoWarning) ?  $res['warning'] : "<span style='color:blue'>{$res['warning']}</span>";
             $warningHint = !empty($rec->deviationNettoWarning) ?  'Предупреждение' : (($centerRec->deviationNettoWarning) ? 'Предупреждение (от центъра на дейност)' : 'Предупреждение (от настройката по подразбиране)');
             $res['warning'] = ht::createHint($res['warning'], $warningHint, 'warning', false);
