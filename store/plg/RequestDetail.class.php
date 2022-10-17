@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -180,7 +180,13 @@ class store_plg_RequestDetail extends core_Plugin
     protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if (self::isApplicant($mvc->Master, $data->masterRec) && isset($data->form->rec->id)) {
-            $data->form->toolbar->addSbBtn('Поръчано', 'requested', 'id=btnReq,order=9.99981', 'ef_icon = img/16/save_and_new.png');
+            $data->form->toolbar->addSbBtn('Поръчано', 'requested', 'id=btnReq,ef_icon=img/16/save_and_new.png');
+        }
+
+        foreach (array('saveAndNew' => 1, 'save' => 2, 'btnReq' => 3, 'cancel' => 4) as $btn => $order){
+            if($data->form->toolbar->haveButton($btn)){
+                $data->form->toolbar->setBtnOrder($btn, $order);
+            }
         }
     }
     

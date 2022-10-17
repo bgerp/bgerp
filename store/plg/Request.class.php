@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -62,20 +62,13 @@ class store_plg_Request extends core_Plugin
      */
     public static function on_BeforeGetDetailsToCloneAndChange($mvc, &$res, $rec, &$Detail = null)
     {
-        if (!$rec->clonedFromId) {
-            
-            return;
-        }
-        if ($rec->state != 'active') {
-            
-            return;
-        }
+        if (!$rec->clonedFromId) return;
+
+        if ($rec->state != 'active') return;
+
         core_Request::setProtected('showDiff');
         $showDiff = Request::get('showDiff', 'int');
-        if (empty($showDiff)) {
-            
-            return;
-        }
+        if (empty($showDiff)) return;
         
         $Detail = cls::get($mvc->mainDetail);
         $arr = $Detail->getUndeliveredDetails($rec->clonedFromId);
