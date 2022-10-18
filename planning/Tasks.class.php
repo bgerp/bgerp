@@ -883,8 +883,8 @@ class planning_Tasks extends core_Master
         unset($resArr['createdBy']);
         unset($resArr['createdOn']);
 
-        $display = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected')) ? 'block' : 'none';
-        $toggleClass = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected')) ? 'show-btn' : '';
+        $display = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) ? 'block' : 'none';
+        $toggleClass = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) ? 'show-btn' : '';
 
         if(Mode::is('printing')){
             $display = true;
