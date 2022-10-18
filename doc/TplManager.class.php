@@ -637,12 +637,14 @@ class doc_TplManager extends core_Master
             $supposedClassname = str_replace('.class.php', '', $supposedClassname);
 
             // Прави се опит да се зареди и е от подадения интерфейс
-            if (cls::load($supposedClassname, true) &&  cls::haveInterface('doc_TplScriptIntf', $supposedClassname)) {
+            if (cls::load($supposedClassname, true)) {
                 
                 // Зарежда се
-                $Script = cls::get($supposedClassname);
+               $Script = cls::get($supposedClassname);
+               if($Script instanceof doc_TplScript){
 
-                return $Script;
+                   return $Script;
+               }
             }
         }
         
