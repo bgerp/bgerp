@@ -390,7 +390,7 @@ class email_Setup extends core_ProtoSetup
         
         'EMAIL_AUTO_FILL_EMAILS_FROM_TO' => array('int', 'caption=Автоматично попълване на полето имейл от->До, customizeBy=powerUser, unit=бр.'),
         
-        'EMAIL_RESTRICT_ROUTE' => array('enum(yes=Да, no=Не)', 'caption=Ограничаване на рутурането по папки->Избор'),
+        'EMAIL_RESTRICT_ROUTE' => array('enum(yes=Да, no=Не)', 'caption=Ограничаване на рутирането по папки->Избор'),
         
         'EMAIL_OUTGOING_HEADER_TEXT' => array('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На български, customizeBy=powerUser'),
         
