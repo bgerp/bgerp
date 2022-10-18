@@ -883,8 +883,12 @@ class planning_Tasks extends core_Master
         unset($resArr['createdBy']);
         unset($resArr['createdOn']);
 
+        $display = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected')) ? 'block' : 'none';
+        $toggleClass = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected')) ? 'show-btn' : '';
+
         if(Mode::is('printing')){
-            $resArr['info'] = array('name' => tr('Операция'), 'val' => tr("|*<table>
+            $display = true;
+            $resArr['info'] = array('name' => tr('Операция'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>№:</td><td>[#ident#]</td></tr>
                 <tr><td style='font-weight:normal'>|Създаване от|*:</td><td>[#createdBy#]</td></tr>
                 <tr><td style='font-weight:normal'>|Създаване на|*:</td><td>[#createdOn#]</td></tr>
@@ -907,7 +911,7 @@ class planning_Tasks extends core_Master
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if($canStore == 'yes'){
-            $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table>
+            $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо бруто|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
                 <!--ET_BEGIN totalNetWeight--><tr><td style='font-weight:normal'>|Общо нето|*:</td><td>[#totalNetWeight#]</td></tr><!--ET_END totalNetWeight-->
                 <!--ET_BEGIN notifications--><tr><td colspan='2'>[#notifications#]</td></tr><!--ET_END notifications-->
@@ -917,7 +921,7 @@ class planning_Tasks extends core_Master
 
         $row->notifications = implode(' ', array($row->deviationNettoNotice, $row->deviationNettoWarning, $row->deviationNettoCritical));
 
-        $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table>
+        $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#labelPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#labelQuantityInPack#]</td></tr>
@@ -927,13 +931,20 @@ class planning_Tasks extends core_Master
                 <!--ET_END printCount-->
                 </table>"));
 
-        $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table>
+        $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|Норма|*:</td><td>[#indTime#]</td></tr>
                 <tr><td style='font-weight:normal'>|Мярка|*:</td><td>[#indPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|Разпределяне|*:</td><td>[#indTimeAllocation#]</td></tr>
                 <!--ET_BEGIN simultaneity--><tr><td style='font-weight:normal'>|Едновременност|*:</td><td>[#simultaneity#]</td></tr><!--ET_END simultaneity-->
                 </table>"));
 
+        if(!Mode::is('printing')){
+            $toggleBtnJs = "javascript:toggleDisplayByClass('btnShowHeaderInfo', 'docHeaderVal')";
+            $hideBtn = ht::createLink('', $toggleBtnJs, false, array('id' => 'btnShowHeaderInfo', 'class' => "more-btn {$toggleClass}", 'title' => tr('Показване/Скриване на настройките на операцията')));
+            $hideBtn = $hideBtn->getContent();
+            $resArr['toggle'] = array('name' => "<div style='float:right'>{$hideBtn}</div>", 'val' => tr(""));
+        }
+        
         if(core_Packs::isInstalled('batch')){
             $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
             if($batchTpl instanceof core_ET){
@@ -944,9 +955,6 @@ class planning_Tasks extends core_Master
         if(isset($rec->indPackagingId) && !empty($rec->indTime)){
             $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->indPackagingId})")->toVerbal($rec->indTime);
         }
-
-
-
     }
 
 
