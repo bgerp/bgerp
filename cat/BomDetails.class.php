@@ -407,6 +407,8 @@ class cat_BomDetails extends doc_Detail
                     $paramVal = cat_Products::getParams($match['paramA'], $match['paramB']);
                     if(is_numeric($paramVal)) {
                         $res = $paramVal;
+                    } elseif(is_numeric($match['paramC'])){
+                        $res = $match['paramC'];
                     }
                 } catch(core_exception_Expect $e){}
             }
