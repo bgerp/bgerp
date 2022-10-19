@@ -36,7 +36,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
      */
     private static function getCachedCostObject($detail, $rec, $date, $doCache = false)
     {
-        $cachedRec = core_Permanent::get("bomcost|{$detail->getClassId()}|{$rec->id}");
+        $cachedRec = doc_TplManagerHandlerCache::get($detail, $rec->id, 'bomcost');
 
         if(!isset($cachedRec)){
             $cachedRec = (object)array();
@@ -53,7 +53,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
                 if(!$doCache){
                     $cachedRec->_isLive = true;
                 } else {
-                    core_Permanent::set("bomcost|{$detail->getClassId()}|{$rec->id}", $cachedRec, core_Permanent::IMMORTAL_VALUE);
+                    doc_TplManagerHandlerCache::set($detail, $rec->id, 'bomcost', $cachedRec);
                 }
             }
         }
