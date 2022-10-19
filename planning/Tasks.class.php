@@ -629,7 +629,7 @@ class planning_Tasks extends core_Master
                 $row->employees = implode(', ', $employees);
             }
         } else {
-            if($mvc->haveRightFor('copy2clipboard', $rec)){
+            if($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])){
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $copyUrl = toUrl(array($mvc, 'copy2clipboard', $rec->id, 'ret_url' => true), 'local');
                 $row->_rowTools->addLink('Избор', '', "ef_icon=img/16/copy16.png,title=Запомняне на операцията в клипборда,data-url={$copyUrl},class=copy2clipboard");
@@ -641,7 +641,7 @@ class planning_Tasks extends core_Master
 
                 // Ако има предишна операция, ще може да се поставя след нея
                 if(!$mvc->getPrevOrNextTask($rec)){
-                    if($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'before'))){
+                    if($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'before')) && !isset($fields['-detail'])){
                         core_RowToolbar::createIfNotExists($row->_rowTools);
                         $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'before', 'ret_url' => true), 'local');
                         $row->_rowTools->addLink("Постави преди", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на|* #{$mvc->getHandle($rememberedTaskRec->id)} |преди|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=copy2clipboard");
@@ -649,7 +649,7 @@ class planning_Tasks extends core_Master
                 }
 
                 if($rememberedTaskRec->id != $rec->taskId){
-                    if($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'after'))){
+                    if($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'after')) && !isset($fields['-detail'])){
                         core_RowToolbar::createIfNotExists($row->_rowTools);
                         $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'after', 'ret_url' => true), 'local');
                         $row->_rowTools->addLink("Постави след", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на|* #{$mvc->getHandle($rememberedTaskRec->id)} |след|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=copy2clipboard");
