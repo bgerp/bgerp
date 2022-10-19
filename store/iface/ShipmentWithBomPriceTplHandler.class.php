@@ -73,7 +73,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
     {
         // Ако няма редове или не е във вътрешен режим
         if (!countR($data->rows)) return;
-        if(Mode::is('printing') || Mode::is('text', 'xhtml')) return;
+        if(Mode::is('printing') || (Mode::is('text', 'xhtml') && !Mode::is('docView'))) return;
 
         // Добавяне на колонката за цена по рецепта
         $data->listTableMvc->FNC('_amountBom', 'double(smartRound)');
