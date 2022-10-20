@@ -2561,6 +2561,32 @@ class planning_Tasks extends core_Master
                 $mvc->recalcProducedDetailIndTime[$rec->id] = (object)array('id' => $rec->id, 'productId' => $product4Task);
             }
         }
+
+        if($rec->state == 'pending' && in_array($rec->brState, array('draft', 'waiting'))){
+            if($Driver = cat_Products::getDriver($rec->productId)){
+                $saveRecs = array();
+                $pData = $Driver->getProductionData($rec->productId);
+
+                // Ако има планиращи действия
+                if(is_array($pData['actions'])){
+                    foreach ($pData['actions'] as $actionId){
+                        if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
+
+                        // Ще се създава запис за планираното действие за влагане
+                        $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => core_Users::SYSTEM_USER, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now, 'createdOn' => $now);
+                        if($normRec = planning_AssetResources::getNormRec($rec->assetId, $actionId)){
+                            $inputRec->indTime = $normRec->indTime;
+                        }
+                        $saveRecs[] = $inputRec;
+                    }
+                }
+
+                if(countR($saveRecs)){
+                    cls::get('planning_ProductionTaskProducts')->saveArray($saveRecs);
+                    core_Statuses::newStatus('Добавени са планираните действия за операцията|*!');
+                }
+            }
+        }
     }
 
 
@@ -2689,10 +2715,15 @@ class planning_Tasks extends core_Master
         if(in_array($rec->state, array('waiting', 'pending'))) {
             // Определяне на сътоянието при запис
             $rec->state == 'pending';
+            if(empty($rec->brState)){
+                $rec->brState = 'draft';
+            }
             if((empty($rec->timeDuration) && empty($rec->assetId))){
+                $rec->brState = ($rec->state == 'pending') ? 'pending' : $rec->brState;
                 $rec->state = 'waiting';
                 core_Statuses::newStatus('Операцията няма избрано оборудване или продължителност. Преминава в чакащо състояние докато не се уточнят|*!');
             }
+
             $rec->state =  (empty($rec->timeDuration) && empty($rec->assetId)) ? 'waiting' : 'pending';
         }
 
@@ -2742,26 +2773,6 @@ class planning_Tasks extends core_Master
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdOn' => core_Users::getCurrent(), 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
             $saveRecs[] = $wasteRec;
-        }
-
-        if($Driver = cat_Products::getDriver($rec->productId)){
-            $pData = $Driver->getProductionData($rec->productId);
-
-            // Ако има планиращи действия
-            if(is_array($pData['actions'])){
-                foreach ($pData['actions'] as $actionId){
-                    if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
-
-                    // Ще се създава запис за планираното действие за влагане
-                    $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => core_Users::SYSTEM_USER, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now, 'createdOn' => $now);
-                    if($normRec = planning_AssetResources::getNormRec($rec->assetId, $actionId)){
-                        $inputRec->indTime = $normRec->indTime;
-                    }
-                    $saveRecs[] = $inputRec;
-                }
-
-                core_Statuses::newStatus('Добавени са планираните действия за операцията|*!');
-            }
         }
 
         if(countR($saveRecs)){
