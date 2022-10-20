@@ -328,10 +328,9 @@ class deals_plg_DpInvoice extends core_Plugin
             $rec->dpAmount = ($rec->amountAccrued) ? $rec->amountAccrued : $rec->amountDeducted;
             $rec->dpOperation = 'none';
             $warningUnit = ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') ? 'без ДДС' : 'с ДДС';
-            
+
             if (isset($rec->amountAccrued)) {
                 $rec->dpOperation = 'accrued';
-
                 if (empty($actualDp) && (!empty($invoicedDp) && !empty($deductedDp) && $invoicedDp == $deductedDp)) {
                     $downpayment = $actualDp;
                 } else {
@@ -419,7 +418,7 @@ class deals_plg_DpInvoice extends core_Plugin
      * @param stdClass $rec
      * @return int
      */
-    private static function getDefaultDpVatGroupId($mvc, $rec)
+    protected static function getDefaultDpVatGroupId($mvc, $rec)
     {
         if($origin = $mvc::getOrigin($rec)){
             if(isset($origin->mainDetail)){

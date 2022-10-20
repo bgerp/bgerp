@@ -963,20 +963,23 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setError('changeAmount,dcReason', 'Не може да се зададе основание за увеличение/намаление ако не е посочена сума');
                 }
 
+                $origin = doc_Containers::getDocument($rec->originId);
+                $originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date,dpVatGroupId');
+
                 if (!empty($rec->changeAmountVat)) {
                     $vat = $rec->changeAmountVat;
                 } else {
-                    // Изчисляване на стойността на ддс-то
-                    $vat = acc_Periods::fetchByDate()->vatRate;
+                    if ($originRec->dpOperation == 'accrued' && isset($originRec->dpVatGroupId)){
+                        $vat = acc_VatGroups::fetchField($originRec->dpVatGroupId, 'vat');
+                    } else {
+                        $vat = acc_Periods::fetchByDate()->vatRate;
+                    }
 
                     // Ако не трябва да се начислява ддс, не начисляваме
                     if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
                         $vat = 0;
                     }
                 }
-
-                $origin = doc_Containers::getDocument($rec->originId);
-                $originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date');
                 
                 if ($rec->date < $originRec->date) {
                     $oDate = dt::mysql2verbal($originRec->date, 'd.m.Y');
