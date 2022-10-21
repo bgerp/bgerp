@@ -409,13 +409,23 @@ class cat_BomDetails extends doc_Detail
                 $res = $val;
             }
         }  elseif($fncName == 'getproductparam') {
-            if(is_numeric($match['paramA'])){
+
+            if(strlen($match['paramA'])){
                 try{
-                    $paramVal = cat_Products::getParams($match['paramA'], $match['paramB']);
-                    if(is_numeric($paramVal)) {
+                    $exploded = explode("|", $match['paramA']);
+                    if(is_numeric($exploded[0]) && is_numeric($exploded[1])){
+                        $paramVal = cat_Products::getParams($exploded[0], $exploded[1]);
+                        if(is_numeric($paramVal)) {
+                            if(!empty($exploded[2])){
+                                $paramVal .= $exploded[2];
+                            }
+                        } else {
+                            $paramVal = $match['paramB'];
+                        }
+                    }
+
+                    if(isset($paramVal)){
                         $res = $paramVal;
-                    } elseif(is_numeric($match['paramC'])){
-                        $res = $match['paramC'];
                     }
                 } catch(core_exception_Expect $e){}
             }
