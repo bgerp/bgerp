@@ -142,7 +142,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $recs = array(); $quantitiesByMeasure = array();
+        $recs = array();
+        $quantitiesByMeasure = array();
 
         $query = planning_ProductionTaskDetails::getQuery();
 
@@ -341,7 +342,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 foreach ($arr as $k => $v) {
                     unset($id);
 
-                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees)) && $rec->resultsOn != 'arts' ) {
+                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees)) && $rec->resultsOn != 'arts') {
                         continue;
                     }
 
@@ -386,9 +387,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         $typesQuantities->input += 1;
                     }
 
-                    if (!array_key_exists($clone->measureId,$quantitiesByMeasure)){
+                    if (!array_key_exists($clone->measureId, $quantitiesByMeasure)) {
                         $quantitiesByMeasure[$clone->measureId] = $clone->quantity;
-                    }else{
+                    } else {
                         $quantitiesByMeasure[$clone->measureId] += $clone->quantity;
                     }
 
@@ -478,7 +479,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if ($export === false) {
 
             if ($rec->typeOfReport == 'full') {
-                if($rec->resultsOn == 'arts'){
+                if ($rec->resultsOn == 'arts') {
                     $fld->FLD('total', 'varchar', 'caption=@Total,tdClass=leftCol');
                 }
 
@@ -573,12 +574,16 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $row->total .= 'Етикетирано ' . $dRec->production . " ; ";
             $row->total .= 'Вложено ' . $dRec->input . " ; ";
             $row->total .= 'Отпадък ' . $dRec->waste;
-            $row->total .= "</br>".'Произведено: ';
-            foreach ($dRec->quantitiesByMeasure as $meas => $q){
+            $row->total .= "</br>" . 'Произведено: ';
+            if(is_array($dRec->quantitiesByMeasure)){
+                foreach ($dRec->quantitiesByMeasure as $meas => $q) {
 
-                $row->total .= cat_UoM::fetch($meas)->name.' - '.$q. " ; ";
+                    $row->total .= cat_UoM::fetch($meas)->name . ' - ' . $q . " ; ";
 
+                }
             }
+
+
             return $row;
         }
 
