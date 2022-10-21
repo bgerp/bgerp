@@ -392,12 +392,19 @@ class cat_BomDetails extends doc_Detail
             }
         } elseif($fncName == 'defifnot'){
             $val = $match['paramA'];
-            if(!is_numeric($val)){
+            $evalSuccess = null;
+            $val = str::calcMathExpr($val, $evalSuccess);
+            if(!is_numeric($val) || $evalSuccess === false){
                 $val = $match['paramB'];
-                if(!is_numeric($val)) {
+                $evalSuccess = null;
+                $val = str::calcMathExpr($val, $evalSuccess);
+                if(!is_numeric($val) || $evalSuccess === false) {
                     $val = $match['paramC'];
+                    $evalSuccess = null;
+                    $val = str::calcMathExpr($val, $evalSuccess);
                 }
             }
+
             if(is_numeric($val)) {
                 $res = $val;
             }
