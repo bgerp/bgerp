@@ -45,13 +45,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,production';
+    public $canEdit = 'ceo,production,store';
     
     
     /**
      * Кой има право да променя взаимно заменяемите артикули?
      */
-    public $canReplaceproduct = 'ceo,production';
+    public $canReplaceproduct = 'ceo,production,store';
 
 
     /**
@@ -63,7 +63,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,production';
+    public $canAdd = 'ceo,production,store';
     
     
     /**
@@ -131,6 +131,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'input') ? 'материал' : 'отнесен разход');
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : null);
+        $form->setFieldType('packQuantity', 'double(Min=0)');
 
         $productOptions = $expenseItemIdOptions = array();
         if($rec->type == 'allocated'){

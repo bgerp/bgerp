@@ -232,7 +232,7 @@ class planning_interface_TaskLabel
         // Вербализират се
         $res = array();
         foreach ($paramRecs as $pId => $pVal){
-            $ParamType = cat_Params::getTypeInstance($pId, $taskClassId, $productId, $pVal);
+            $ParamType = cat_Params::getTypeInstance($pId, $taskClassId, $taskId, $pVal);
             if($ParamType instanceof fileman_FileType){
                 $paramValue = $pVal;
             } else {

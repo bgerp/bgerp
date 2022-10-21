@@ -98,6 +98,11 @@ class core_Permanent extends core_Manager
     
     /**
      * Записва обект в постоянния кеш
+     *
+     * @param string $key   - ключ
+     * @param mixed $data   - данни
+     * @param int $lifetime - минути живот (self::IMMORTAL_VALUE да стои завинаги)
+     * @return int
      */
     public static function set($key, $data, $lifetime = 1)
     {

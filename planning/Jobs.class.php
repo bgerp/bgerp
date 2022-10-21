@@ -76,7 +76,7 @@ class planning_Jobs extends core_Master
     /**
      * Кой може да променя състоянието?
      */
-    public $canChangestate = 'ceo, job';
+    public $canChangestate = 'ceo, job, production';
     
     
     /**
@@ -1097,7 +1097,7 @@ class planning_Jobs extends core_Master
         }
 
         if($action == 'reject' && isset($rec)){
-            if(!haveRole('job', $userId)){
+            if(!haveRole('job,ceo', $userId)){
                 $res = 'no_one';
             }
         }

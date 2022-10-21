@@ -114,13 +114,17 @@ class core_Roles extends core_Manager
         
         if (isset($inherit)) {
             $rec->inheritInput = $Roles->getRolesAsKeylist($inherit);
+        } else {
+            $rec->inheritInput = '';
         }
         
         $exRec = $Roles->fetch(array("#role = '[#1#]'", $rec->role));
-        
+
         if ($exRec) {
             $rec->id = $exRec->id;
-            $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput), keylist::toArray($exRec->inheritInput)));
+            if ($exRec->createdBy != -1) {
+                $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput), keylist::toArray($exRec->inheritInput)));
+            }
         }
         
         $Roles->save($rec);
@@ -296,15 +300,18 @@ class core_Roles extends core_Manager
         $rolesArr = arr::make($roles);
         
         $Roles = cls::get('core_Roles');
-        
+
+        $keylistArr = array();
+
         foreach ($rolesArr as $role) {
             $id = $Roles->fetchByName($role);
-            expect($id, $role);
+
+            expect($id || ($role == 'no_one'), $role);
             $keylistArr[$id] = $id;
         }
-        
+
         $keylist = keylist::fromArray($keylistArr);
-        
+
         return $keylist;
     }
     

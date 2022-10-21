@@ -36,7 +36,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
@@ -55,31 +55,31 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,consumption';
+    public $canPending = 'ceo,consumption,store';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,consumption';
+    public $canList = 'ceo,consumption,store';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,consumption';
+    public $canSingle = 'ceo,consumption,store';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,consumption';
+    public $canEdit = 'ceo,consumption,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,consumption';
+    public $canAdd = 'ceo,consumption,store';
     
     
     /**

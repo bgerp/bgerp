@@ -437,7 +437,7 @@ class cat_products_Params extends doc_Detail
         if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)) {
             if (isset($rec->classId)) {
                 if ($rec->classId == planning_Tasks::getClassId()) {
-                    $requiredRoles = 'taskPlanning,ceo';
+                    $requiredRoles = 'task,ceo';
                 } elseif ($rec->classId == marketing_Inquiries2::getClassId()) {
                     $requiredRoles = 'marketing,ceo';
                 } elseif ($rec->classId == cat_Products::getClassId()) {

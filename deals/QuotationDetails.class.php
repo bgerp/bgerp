@@ -445,8 +445,8 @@ class deals_QuotationDetails extends doc_Detail
                     unset($row->packagingId);
                     $row->packPrice = currency_Currencies::decorate($row->packPrice, $data->masterData->rec->currencyId);
                     $row->amount = currency_Currencies::decorate($row->amount, $data->masterData->rec->currencyId);
-                    $row->packPrice .= " / " . tr(cat_UoM::getShortName($rec->packagingId));
-                    $row->amount .= " / " . tr(cat_UoM::getShortName($rec->packagingId));
+                    $row->packPrice .= "/" . tr(cat_UoM::getShortName($rec->packagingId));
+                    $row->amount .= "/" . tr(cat_UoM::getShortName($rec->packagingId));
                 }
             }
 

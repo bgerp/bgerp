@@ -19,7 +19,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,planning,hrMaster';
+    public $canSelectDriver = 'ceo,task,hrMaster';
 
     /**
      * Кои полета от листовия изглед да може да се сортират
@@ -142,7 +142,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $recs = array();
+        $recs = array(); $quantitiesByMeasure = array();
 
         $query = planning_ProductionTaskDetails::getQuery();
 
@@ -196,6 +196,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             'production' => 0,
             'input' => 0,
             'waste' => 0,
+            'quantitiesByMeasure' => array(),
         );
 
         while ($tRec = $query->fetch()) {
@@ -385,6 +386,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         $typesQuantities->input += 1;
                     }
 
+                    if (!array_key_exists($clone->measureId,$quantitiesByMeasure)){
+                        $quantitiesByMeasure[$clone->measureId] = $clone->quantity;
+                    }else{
+                        $quantitiesByMeasure[$clone->measureId] += $clone->quantity;
+                    }
+
+
                     $indTimeSum = $clone->indTimeSum;
 
                     $clone = clone $val;
@@ -442,6 +450,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         $rec->indTimeSumArr = $indTimeSumArr;
+        $typesQuantities->quantitiesByMeasure = $quantitiesByMeasure;
 
         //Ако резбивката е по артикули, справката е подробна добавям първи рез със
         //сумарните ко.личества по дености
@@ -470,7 +479,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             if ($rec->typeOfReport == 'full') {
                 if($rec->resultsOn == 'arts'){
-                    $fld->FLD('total', 'varchar', 'caption=@Total,tdClass=rightCol');
+                    $fld->FLD('total', 'varchar', 'caption=@Total,tdClass=leftCol');
                 }
 
                 $fld->FLD('jobs', 'varchar', 'caption=Задание');
@@ -561,9 +570,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         if ($dRec->total) {
             $row->total = '';
-            $row->total .= 'Произведено ' . $dRec->production . " ; ";
+            $row->total .= 'Етикетирано ' . $dRec->production . " ; ";
             $row->total .= 'Вложено ' . $dRec->input . " ; ";
             $row->total .= 'Отпадък ' . $dRec->waste;
+            $row->total .= "</br>".'Произведено: ';
+            foreach ($dRec->quantitiesByMeasure as $meas => $q){
+
+                $row->total .= cat_UoM::fetch($meas)->name.' - '.$q. " ; ";
+
+            }
             return $row;
         }
 

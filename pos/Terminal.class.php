@@ -208,7 +208,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? null : cls::get($rec->contragentClass)->getHyperlink($rec->contragentObjectId);
-        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getLink($rec->transferedIn, 0, array('ef_icon' => false)) : $contragentName;
+        $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : $contragentName;
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
         $logoTpl = new core_ET("[#img#] [#APP_NAME#]");
@@ -1935,6 +1935,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $Policy = cls::get('price_ListToCustomers');
         $listId = pos_Points::getSettings($rec->pointId, 'policyId');
+        $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
 
         if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
             $listId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
@@ -1994,15 +1995,21 @@ class pos_Terminal extends peripheral_Terminal
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, null,2));
             }
-            
-            if ((isset($stock) && $stock <= 0)) {
-                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0, 2));
-                $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
+
+            if (isset($stock)) {
+                if($showExactQuantities == 'yes'){
+                    $stockInPack = $stock / $perPack;
+                    $stockInPackVerbal = core_Type::getByName('double(smartRound)')->toVerbal($stockInPack);
+                    $res[$id]->measureId = $stockInPackVerbal . " <i>" . cat_UoM::getSmartName($packId, $stockInPack) . "</i>";
+                    $res[$id]->measureId = ht::styleNumber($res[$id]->measureId, $stockInPack);
+                } elseif($stock <= 0) {
+                    $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
+                }
             }
             
             $res[$id]->_groups = cat_Products::fetchField($id, 'groups');
         }
-        
+
         return $res;
     }
     
@@ -2076,7 +2083,7 @@ class pos_Terminal extends peripheral_Terminal
         if(in_array($rec->_selectedReceiptFilter, array('draft', 'waiting', 'closed', 'rejected'))){
             $query->where("#state = '{$rec->_selectedReceiptFilter}'");
         } elseif($rec->_selectedReceiptFilter == 'transfered'){
-            $query->where("#transferedIn IS NOT NULL");
+            $query->where("#transferredIn IS NOT NULL");
         } elseif($rec->_selectedReceiptFilter == 'paid'){
             $query->where("#paid IS NOT NULL AND #paid != 0 AND (#state != 'closed' && #state != 'rejected')");
         }

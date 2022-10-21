@@ -353,16 +353,18 @@ class label_Templates extends core_Master
         
         // Вземаме пакета
         $conf = core_Packs::getConfig('csstoinline');
-        
+
         // Класа
         $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
         
         // Инстанция на класа
         $inst = cls::get($CssToInline);
-        
+
         // Стартираме процеса
         $template = $inst->convert($template, $css);
-        
+
+        $template = html_entity_decode($template);
+
         // Вземамема само шаблона, без допълнителните добавки
         $template = str::cut($template, '<div id="begin">', '<div id="end">');
         

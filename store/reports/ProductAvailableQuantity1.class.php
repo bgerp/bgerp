@@ -227,7 +227,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             $productId = $recProduct->productId;
 
-            if ($rec->typeOfQuantity == 'free') {
+            if ($rec->typeOfQuantity == 'free' && $recProduct->storeId) {
 
                 // Гледаме разполагаемото количество
                 $date = ($rec->date) ? $rec->date : dt::today();
@@ -264,6 +264,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 }
 
                 $code = ($recProduct->code) ?: 'Art' . $productId;
+
+
                 $recs[$productId] = (object)array(
                     'measure' => $recProduct->measureId,
                     'productId' => $productId,

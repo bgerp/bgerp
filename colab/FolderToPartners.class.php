@@ -874,7 +874,7 @@ class colab_FolderToPartners extends core_Manager
                         }
                     }
 
-                    $Class->logDebug($msg, $objectId);
+                    $Class->logDebug($msg, $objectId, 20);
                 }
             }
             

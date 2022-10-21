@@ -129,8 +129,16 @@ class purchase_PurchasesDetails extends deals_DealDetail
      * Да се показва ли вашия номер
      */
     public $showReffCode = true;
-    
-    
+
+
+    /**
+     * Кой може клонира артикулите от оригиналния клониран договор?
+     *
+     * @var string|array
+     */
+    public $canCopydetailsfromcloned = 'ceo, purchase';
+
+
     /**
      * Описание на модела (таблицата)
      */

@@ -127,7 +127,7 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни');
         $mvc->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
 
-        $mvc->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData,input=hidden');
+        $mvc->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
         $mvc->FLD('person', 'varchar', 'caption=Име, changable, class=contactData,after=reff');
         $mvc->FLD('email', 'varchar', 'caption=Имейл, changable, class=contactData,after=person');
         $mvc->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Тел., changable, class=contactData,after=email');
