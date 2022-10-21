@@ -28,7 +28,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'createdBy,createdOn';
+    public $fieldsNotToClone = 'createdBy,createdOn,requestedQuantity';
     
     
     /**
@@ -58,10 +58,10 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
-        $mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
+        $mvc->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
-        $mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
+        $mvc->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
         $mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
 
@@ -86,7 +86,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
      */
     public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (!isset($rec->quantity) || !isset($rec->quantityInPack)) {
             
             return;
         }
@@ -219,6 +219,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
         
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        if (empty($rec->quantity) && !Mode::isReadOnly()) {
+            $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
+        }
     }
     
     /**

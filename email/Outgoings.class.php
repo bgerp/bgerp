@@ -2408,11 +2408,11 @@ class email_Outgoings extends core_Master
         
         // Вземаме данните за нашата фирма
         $companyRec = crm_Companies::fetch($companyId);
-        
+
         $footerData = array();
         
         // Името на компанията
-        $footerData['company'] = transliterate(tr($companyRec->name));
+        $footerData['company'] = crm_Companies::getVerbal($companyRec, 'name');
         
         // Името на потребителя
         $footerData['name'] = transliterate($personRec->name);

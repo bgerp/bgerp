@@ -27,6 +27,18 @@
 abstract class doc_TplScript
 {
     /**
+     * Към шаблоните на кой документ да може да се избира
+     */
+    public $addToClassTemplate;
+
+
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'doc_TplScriptIntf';
+    
+    
+    /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
     public function _Singleton()
@@ -107,5 +119,32 @@ abstract class doc_TplScript
     public function beforePrepareDetailListRows(core_Mvc $detail, &$data)
     {
         
+    }
+
+
+    /**
+     * Може ли да се добавя към шаблон за текущия клас
+     *
+     * @param int $classId
+     * @return boolean
+     */
+    public function canAddToClass($classId)
+    {
+        if(isset($this->addToClassTemplate)){
+            $class = cls::get($this->addToClassTemplate);
+
+            return $class->getClassId() == $classId;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public function afterActivation($mvc, &$rec)
+    {
+
     }
 }

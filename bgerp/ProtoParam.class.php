@@ -349,7 +349,6 @@ abstract class bgerp_ProtoParam extends embed_Manager
         // Подготовка на записа на параметъра
         $typeName = $type;
         if(strpos($type, 'cond_type_') === false){
-            expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file', 'html')), $type);
             $typeName = "cond_type_{$type}";
         }
         

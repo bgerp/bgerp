@@ -50,7 +50,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      *
      * var string|array
      */
-    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,store_plg_RequestDetail,
+    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering,store_plg_RequestDetail, plg_SaveAndNew, doc_plg_HidePrices,
                         plg_AlignDecimals2,deals_plg_ImportDealDetailProduct, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
                         ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,acc_plg_ExpenseAllocation,cat_plg_CreateProductFromDocument,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     

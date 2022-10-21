@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,7 +38,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2,
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, store_plg_RequestDetail, plg_RowNumbering, plg_AlignDecimals2,
                         planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes,import2_Plugin';
     
     

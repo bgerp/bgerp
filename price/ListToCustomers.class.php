@@ -420,16 +420,19 @@ class price_ListToCustomers extends core_Manager
         $rec = new stdClass();
         $isFirstCall = true;
         $validFrom = null;
-        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, $validFrom, $isFirstCall, $rate, $chargeVat);
-        
+        $discountIncluded = null;
+        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, $validFrom, $isFirstCall, $rate, $chargeVat, $discountIncluded);
+
         $listRec = price_Lists::fetch($listId);
-        
-        // Ако е избрано да се връща отстъпката спрямо друга политика
-        if (!empty($listRec->discountCompared)) {
-            
+        if(isset($discountIncluded)){
+            // Начислява се отстъпката към цената за да може после обратно да се сметне правилно
+            $rec->price /= (1 - $discountIncluded);
+            $rec->discount = $discountIncluded;
+        } elseif (!empty($listRec->discountCompared)) {
+
             // Намираме цената по тази политика и намираме колко % е отстъпката/надценката
             $comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime, $isFirstCall, $rate, $chargeVat);
-            
+
             if ($comparePrice && isset($rec->price)) {
                 $disc = ($rec->price - $comparePrice) / $comparePrice;
                 $discount = round(-1 * $disc, 4);
@@ -446,7 +449,7 @@ class price_ListToCustomers extends core_Manager
                 }
             }
         }
-        
+       // bp($rec, $discountIncluded);
         return $rec;
     }
     

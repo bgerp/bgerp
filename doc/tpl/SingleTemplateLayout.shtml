@@ -27,12 +27,18 @@
             <td> [#printCount#]</td>
         </tr>
         <!--ET_END printCount-->
-        <!--ET_BEGIN printCount-->
+        <!--ET_BEGIN path-->
         <tr>
             <td class="title-style" style='width:150px'>|Файл|*</td>
             <td> [#path#]</td>
         </tr>
-        <!--ET_END printCount-->
+        <!--ET_END path-->
+        <!--ET_BEGIN handler-->
+        <tr>
+            <td class="title-style" style='width:150px'>|Обработвач|*</td>
+            <td> [#handler#]</td>
+        </tr>
+        <!--ET_END handler-->
         <tr>
             <td class="title-style" style='width:150px'>|Видимост|*</td>
             <td> [#state#]</td>

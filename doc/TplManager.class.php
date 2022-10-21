@@ -16,7 +16,7 @@
  * @package   doc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -130,7 +130,7 @@ class doc_TplManager extends core_Master
     public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, width=100%');
-        $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ, width=100%,mandatory,silent');
+        $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ, width=100%,mandatory,silent,removeAndRefreshForm=handler|handlerInEffectOn');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         $this->FLD('content', 'html', 'caption=Текст->Широк,column=none, width=100%,mandatory');
         $this->FLD('narrowContent', 'html', 'caption=Текст->Мобилен,column=none, width=100%');
@@ -138,10 +138,12 @@ class doc_TplManager extends core_Master
         $this->FLD('originId', 'key(mvc=doc_TplManager)', 'input=hidden,silent');
         $this->FLD('hash', 'varchar', 'input=none');
         $this->FLD('hashNarrow', 'varchar', 'input=none');
-        $this->FLD('printCount', 'int(min=0)', 'caption=Брой копия при печат,placeholder=По подразбиране');
+        $this->FLD('printCount', 'int(min=0)', 'caption=Допълнително->Брой копия при печат,placeholder=По подразбиране');
         
         // Полета които ще се показват в съответния мениджър и неговите детайли
-        $this->FLD('toggleFields', 'blob(serialize,compress)', 'caption=Полета за скриване,input=none');
+        $this->FLD('toggleFields', 'blob(serialize,compress)', 'caption=Допълнително->Полета за скриване,input=none');
+        $this->FLD('handler', 'class(interface=doc_TplScriptIntf,select=title,allowEmpty)', 'caption=Допълнително->Обработвач,input=none,placeholder=Автоматично');
+        $this->FLD('handlerInEffectOn', 'datetime(format=smartTime)', 'caption=Допълнително->Обработвач (в сила от),input=none');
 
         $this->setDbUnique('name');
         $this->setDbIndex('docClassId');
@@ -217,6 +219,19 @@ class doc_TplManager extends core_Master
                 $form->setField($fld, 'input=none');
             }
         }
+
+        $handlers = core_Classes::getOptionsByInterface('doc_TplScriptIntf', 'title');
+        foreach ($handlers as $handlerKey => $handlerVal){
+            if(!cls::get($handlerKey)->canAddToClass($rec->docClassId)){
+                unset($handlers[$handlerKey]);
+            }
+        }
+
+        if(countR($handlers)){
+            $form->setField('handler', 'input');
+            $form->setField('handlerInEffectOn', 'input');
+            $form->setOptions('handler', array('' => '') + $handlers);
+        }
     }
     
     
@@ -280,22 +295,23 @@ class doc_TplManager extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            
+            $rec = &$form->rec;
+
             // Проверка дали избрания клас поддържа 'doc_plg_TplManager'
-            $plugins = cls::get($form->rec->docClassId)->getPlugins();
+            $plugins = cls::get($rec->docClassId)->getPlugins();
             if (empty($plugins['doc_plg_TplManager'])) {
                 $form->setError('docClassId', "Избрания клас трябва да поддържа 'doc_plg_TplManager'!");
             }
             
             // Ако шаблона е клонинг
-            if ($originId = $form->rec->originId) {
+            if ($originId = $rec->originId) {
                 $origin = static::fetch($originId);
                 $new = preg_replace("/\s+/", '', $form->rec->content);
                 $old = preg_replace("/\s+/", '', $origin->content);
                 
                 // Ако клонинга е за същия документ като ориджина, и няма промяна
                 // в съдържанието се слага предупреждение
-                if (empty($form->rec->id) && $origin->docClassId == $form->rec->docClassId && $new == $old) {
+                if (empty($rec->id) && $origin->docClassId == $rec->docClassId && $new == $old) {
                     $form->setWarning('content', 'Клонирания шаблон е със същото съдържание като оригинала!');
                 }
             }
@@ -304,6 +320,14 @@ class doc_TplManager extends core_Master
             $tempFlds = $form->selectFields('#tempFld');
             if (countR($tempFlds)) {
                 $mvc->prepareDataFld($form, $tempFlds);
+            }
+
+            if(empty($rec->handler)){
+                unset($rec->handlerInEffectOn);
+            } else {
+                if(empty($rec->handlerInEffectOn)){
+                    $rec->handlerInEffectOn = dt::now();
+                }
             }
         }
     }
@@ -390,7 +414,7 @@ class doc_TplManager extends core_Master
      * Връща всички активни шаблони за посочения мениджър
      *
      * @param int $classId - ид на клас
-     *
+     * @param string|null $lang - език, null за текущия
      * @return array $options - опции за шаблоните на документа
      */
     public static function getTemplates($classId, $lang = null)
@@ -415,15 +439,18 @@ class doc_TplManager extends core_Master
         
         return $options;
     }
-    
-    
+
+
     /**
-     * Добавя шаблон
+     * Добавя шаблони от масив
      *
-     * @param mixed $object  - Обект или масив
-     * @param int   $added   - брой добавени шаблони
-     * @param int   $updated - брой обновени шаблони
-     * @param int   $skipped - брой пропуснати шаблони
+     * @param core_Mvc $mvc
+     * @param array $tplArr
+     * @param int $added
+     * @param int $updated
+     * @param int $skipped
+     * @return string $res
+     * @throws core_exception_Expect
      */
     public static function addOnce($mvc, $tplArr, &$added = 0, &$updated = 0, &$skipped = 0)
     {
@@ -574,51 +601,54 @@ class doc_TplManager extends core_Master
      * Връща скриптовия клас на шаблона (ако има)
      *
      * @param int $templateId - ид на шаблона
-     *
-     * @return mixed $Script/False - заредения клас, или FALSE ако не може да се зареди
+     * @param date|null $date - от коя дата
+     * @return doc_TplScript|false $Script/false - заредения клас, или false ако не може да се зареди
      */
-    public static function getTplScriptClass($templateId)
+    public static function getTplScriptClass($templateId, $date = null)
     {
         // Ако няма шаблон
-        if (!$templateId) {
-            
-            return false;
-        }
+        if (!$templateId) return false;
         
         // Ако има кеширан в хита резултат за скрипта, връща се той
-        if (isset(static::$cacheScripts[$templateId])) {
-            
-            return static::$cacheScripts[$templateId];
-        }
+        if (isset(static::$cacheScripts[$templateId])) return static::$cacheScripts[$templateId];
         
         // Намираме пътя на файла генерирал шаблона
-        $filePath = doc_TplManager::fetchField($templateId, 'path');
-        
-        if (!$filePath) {
-            
-            return false;
+        $templateRec = doc_TplManager::fetch($templateId);
+        $date = isset($date) ? $date : dt::now();
+
+        // Ако има ръчно избран обработвач - зарежда се той
+        if(isset($templateRec->handler)){
+            if (cls::load($templateRec->handler, true)){
+                if($date >= $templateRec->handlerInEffectOn){
+                    $Script = cls::get($templateRec->handler);
+
+                    return $Script;
+                }
+            }
         }
-        
-        $filePath = str_replace('.shtml', '.class.php', $filePath);
-        
-        // Ако физически съществува този файл
+
+        // Ако шаблона има съответстващ файл в директорията
+        if (!$templateRec->path) return false;
+
+        // Ако в директорията има файл със същото име но с разширение .class.php се зарежда той
+        $filePath = str_replace('.shtml', '.class.php', $templateRec->path);
         if (getFullPath($filePath)) {
             $supposedClassname = str_replace('/', '_', $filePath);
             $supposedClassname = str_replace('.class.php', '', $supposedClassname);
-            
-            // Опитваме се да го заредим.
-            // Трябва и да е наследник на 'doc_TplScript'
-            if (cls::load($supposedClassname, true) && is_subclass_of($supposedClassname, 'doc_TplScript')) {
+
+            // Прави се опит да се зареди и е от подадения интерфейс
+            if (cls::load($supposedClassname, true)) {
                 
-                // Зареждаме го
-                $Script = cls::get($supposedClassname);
-                
-                // Връщаме заредения клас
-                return $Script;
+                // Зарежда се
+               $Script = cls::get($supposedClassname);
+               if($Script instanceof doc_TplScript){
+
+                   return $Script;
+               }
             }
         }
         
-        // Ако не е открит такъв файл
+        // Ако не е открит такъв файл - нищо
         return false;
     }
     
@@ -661,6 +691,7 @@ class doc_TplManager extends core_Master
         return $res;
     }
 
+
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -672,6 +703,10 @@ class doc_TplManager extends core_Master
 
         if(doc_TplManager::haveRightFor('list')){
             $row->docClassId = ht::createLink($row->docClassId, array('doc_TplManager', 'list', 'docClassId' => $rec->docClassId));
+        }
+
+        if(isset($rec->handler)){
+            $row->handler .= " ({$row->handlerInEffectOn})";
         }
     }
 }
