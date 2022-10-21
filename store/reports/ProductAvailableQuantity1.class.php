@@ -347,7 +347,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 arr::sortObjects($recs, 'quantity', 'desc');
             }
         }
-bp($recs);
+
         return $recs;
     }
 
