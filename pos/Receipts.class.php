@@ -182,7 +182,7 @@ class pos_Receipts extends core_Master
         $this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
         $this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ)', 'caption=Статус, input=none');
-        $this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
+        $this->FLD('transferredIn', 'key(mvc=sales_Sales)', 'input=none,oldFieldName=transferedIn');
         $this->FLD('revertId', 'int', 'input=none,caption=Сторнира');
         $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторнирано, input=none');
         $this->FNC('productCount', 'int', 'caption=Артикули');
@@ -305,8 +305,8 @@ class pos_Receipts extends core_Master
             $row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), true);
             $row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-            if ($rec->transferedIn) {
-                $row->transferedIn = sales_Sales::getHyperlink($rec->transferedIn, true);
+            if ($rec->transferredIn) {
+                $row->transferredIn = sales_Sales::getHyperlink($rec->transferredIn, true);
             }
            
             if ($rec->state == 'closed' || $rec->state == 'rejected') {
@@ -358,7 +358,7 @@ class pos_Receipts extends core_Master
             $row->REVERT_CAPTION = tr("Сторно");
             $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : (!Mode::is('printing') ? ht::createHint(' ', 'Произволна сторнираща бележка', 'warning') : null);
         } elseif($rec->state != 'draft') {
-            if(isset($rec->transferedIn)){
+            if(isset($rec->transferredIn)){
                 $row->revertId = tr('Прехвърлена');
             } else {
                 $row->revertId = $row->state;
@@ -624,7 +624,7 @@ class pos_Receipts extends core_Master
         }
         
         // Отбелязваме къде е прехвърлена рецептата
-        $rec->transferedIn = $sId;
+        $rec->transferredIn = $sId;
         $rec->state = 'closed';
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);

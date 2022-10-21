@@ -156,4 +156,23 @@ class acc_VatGroups extends core_Manager
     {
         return self::fetchField(array("#sysId = '[#1#]'", $sysId));
     }
+
+
+    /**
+     * Връща дефолтната ДДС група за датата, ако има няколко със същия процент - връща първата
+     *
+     * @param date|null $date
+     * @return null|int - ид на ддс група
+     */
+    public static function getDefaultIdByDate($date = null)
+    {
+        $periodRec = acc_Periods::fetchByDate($date);
+        if(!is_object($periodRec)) return null;
+
+        $query = static::getQuery();
+        $query->where("#vat = {$periodRec->vatRate}");
+        $query->orderBy('id', 'ASC');
+
+        return $query->fetch()->id;
+    }
 }

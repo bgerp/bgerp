@@ -274,6 +274,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_LinkedTemplates',
         'doc_FolderResources',
         'doc_LinkedLast',
+        'doc_TplManagerHandlerCache',
         'migrate::foldersRepairSerchKeywords2124',
         'migrate::showFiles2152',
     );
