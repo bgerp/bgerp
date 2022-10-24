@@ -54,13 +54,13 @@ class planning_Centers extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning, job';
+    public $canList = 'ceo, planning, jobSee';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, planning, job';
+    public $canSingle = 'ceo, planning, jobSee';
     
     
     /**
@@ -182,12 +182,13 @@ class planning_Centers extends core_Master
         $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
 
         $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Опаковки');
-        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър');
-
+        $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър,silent,removeAndRefreshForm=useTareFromParamMeasureId');
+        $this->FLD('useTareFromParamMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър(мярка),input=hidden');
         $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Отбелязване');
         $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Предупреждение');
         $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично');
-        $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Параметър за изчисляване на ед. тегло->Избор');
+        $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Параметър за изчисляване на ед. тегло->Избор,silent,removeAndRefreshForm=paramExpectedNetMeasureId');
+        $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Параметър за изчисляване на ед. тегло->Мярка,input=hidden');
 
         $this->setDbUnique('name');
     }
@@ -208,6 +209,20 @@ class planning_Centers extends core_Master
 
         $options = cat_UoM::getPackagingOptions();
         $form->setSuggestions('useTareFromPackagings', $options);
+        $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
+        $kgDerivitives = cat_Uom::getSameTypeMeasures($kgMeasureId, false, false);
+
+        if(isset($rec->useTareFromParamId)){
+            $form->setField('useTareFromParamMeasureId', 'input');
+            $form->setOptions('useTareFromParamMeasureId', $kgDerivitives);
+            $form->setDefault('useTareFromParamMeasureId', $kgMeasureId);
+        }
+
+        if(isset($rec->paramExpectedNetWeight)){
+            $form->setField('paramExpectedNetMeasureId', 'input');
+            $form->setOptions('paramExpectedNetMeasureId', $kgDerivitives);
+            $form->setDefault('paramExpectedNetMeasureId', $kgMeasureId);
+        }
 
         // Достъпните за избор параметри
         $paramOptions = cat_Params::getOptionsByDriverClass(array('cond_type_Double', 'cond_type_Int', 'cond_type_Formula'), 'typeExt', true);
@@ -312,6 +327,14 @@ class planning_Centers extends core_Master
         }
 
         $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span style='color:blue'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
+
+        if(isset($rec->useTareFromParamId) && isset($row->useTareFromParamMeasureId)){
+            $row->useTareFromParamId = ht::createHint($row->useTareFromParamId, $row->useTareFromParamMeasureId);
+        }
+
+        if(isset($rec->paramExpectedNetWeight) && isset($row->paramExpectedNetMeasureId)){
+            $row->paramExpectedNetWeight = ht::createHint($row->paramExpectedNetWeight, $row->paramExpectedNetMeasureId);
+        }
     }
     
     
@@ -526,5 +549,28 @@ class planning_Centers extends core_Master
     protected static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('#state');
+    }
+
+
+    /**
+     * Екшън редактиращ потребителя към първия му достъпен модел в пакета
+     */
+    function act_dispatch()
+    {
+        requireRole('ceo,planning,production,jobSee');
+
+        if(haveRole('production') || haveRole('ceo')){
+            redirect(array('planning_DirectProductionNote', 'list'));
+        } elseif(haveRole('consumption')){
+            redirect(array('planning_ConsumptionNotes', 'list'));
+        } elseif(haveRole('jobSee')){
+            redirect(array('planning_Jobs', 'list'));
+        } elseif(haveRole('task')){
+            redirect(array('planning_Tasks', 'list'));
+        } elseif(haveRole('planning')) {
+            redirect(array('planning_Centers', 'list'));
+        }
+
+        redirect(array('bgerp_Portal', 'show'), false, 'Нямате достъп до таб от менюто', 'warning');
     }
 }

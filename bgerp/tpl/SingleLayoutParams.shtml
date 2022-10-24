@@ -122,6 +122,36 @@
                 <td>[#productGroups#]</td>
             </tr>
             <!--ET_END productGroups-->
+            <!--ET_BEGIN show-->
+            <tr>
+                <td class="title-style">|Показване|*</td>
+                <td>[#show#]</td>
+            </tr>
+            <!--ET_END show-->
+            <!--ET_BEGIN orderBy-->
+            <tr>
+                <td class="title-style">|Подредба|*</td>
+                <td>[#orderBy#]</td>
+            </tr>
+            <!--ET_END orderBy-->
+            <!--ET_BEGIN maxRadio-->
+            <tr>
+                <td class="title-style">|Радио бутон|*</td>
+                <td>[#maxRadio#]</td>
+            </tr>
+            <!--ET_END maxRadio-->
+            <!--ET_BEGIN columns-->
+            <tr>
+                <td class="title-style">|Колони|*</td>
+                <td>[#columns#]</td>
+            </tr>
+            <!--ET_END columns-->
+            <!--ET_BEGIN display-->
+            <tr>
+                <td class="title-style">|Избор|*</td>
+                <td>[#display#]</td>
+            </tr>
+            <!--ET_END display-->
             <!--ET_BEGIN rows-->
             <tr>
                 <td class="title-style">|Редове|*</td>

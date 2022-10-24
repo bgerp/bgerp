@@ -172,6 +172,7 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->fetchFieldsBeforeDelete .= 'containerId';
 
         setIfNot($mvc->addSubTitleToList, false);
+        setIfNot($mvc->minRangForEditForeignDoc, 'officer');
     }
     
     
@@ -2829,7 +2830,7 @@ class doc_DocumentPlg extends core_Plugin
                     $rec = $mvc->fetch($rec->id);
                 }
                 if ($userId && $userId != $rec->createdBy) {
-                    $requiredRoles = 'officer';
+                    $requiredRoles = $mvc->minRangForEditForeignDoc;
                 }
             }
         }
@@ -4751,7 +4752,9 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetchRec($rec);
         if (!isset($res)) {
             if ($mvc->visibleForPartners) {
-                $res = true;
+                if ($rec->visibleForPartners != 'no') {
+                    $res = true;
+                }
             }
         }
     }

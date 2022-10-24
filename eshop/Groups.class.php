@@ -523,7 +523,7 @@ class eshop_Groups extends core_Master
         } else {
             $row->name = $this->getVerbal($rec, 'name');
             if ($rec->image) {
-                $row->image = fancybox_Fancybox::getImage($rec->image, array(840, 840), array(1200, 1200), $row->name);
+                $row->image = fancybox_Fancybox::getImage($rec->image, array(960, 960), array(1200, 1200), $row->name);
             }
 
             $row->description = $this->getVerbal($rec, 'info');

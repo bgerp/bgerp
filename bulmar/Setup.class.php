@@ -106,7 +106,7 @@ defIfNot('BULMAR_PURINV_DEBIT_PURCHASE_PRODUCTS', 'D304');
 /**
  * Дебитна сметка за засклаждане на услуги
  */
-defIfNot('BULMAR_PURINV_DEBIT_PURCHASE_SERVICES', 'D304');
+defIfNot('BULMAR_PURINV_DEBIT_PURCHASE_SERVICES', 'D602');
 
 
 /**
@@ -242,6 +242,18 @@ defIfNot('BULMAR_SELECTED_ACCOUNTS', '');
 
 
 /**
+ * Експорт на вх. ф-ри аналитичност за транс. услуга
+ */
+defIfNot('BULMAR_PURINV_TRANS_SERVICE_ANAL', 19);
+
+
+/**
+ * Експорт на вх. ф-ри аналитичност за други услуги
+ */
+defIfNot('BULMAR_PURINV_OTHER_SERVICE_ANAL', 6);
+
+
+/**
  * class bulmar_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -321,6 +333,9 @@ class bulmar_Setup extends core_ProtoSetup
 
         'BULMAR_PURINV_DEBIT_CONNECTED_PERSONS' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Дебитна сметка за свързани фирми'),
         'BULMAR_PURINV_CREDIT_CONNECTED_PERSONS' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Кредитна сметка за свързани фирми'),
+
+        'BULMAR_PURINV_TRANS_SERVICE_ANAL' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Аналит. за транс. услуга'),
+        'BULMAR_PURINV_OTHER_SERVICE_ANAL' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Аналит. за други услуга'),
 
         'BULMAR_BANK_DOCUMENT_FOLDER' => array('double', 'caption=Експорт на Приходни и разходни банкови документи->Папка'),
         'BULMAR_BANK_DOCUMENT_OPERATION_TYPE' => array('int', 'caption=Експорт на Приходни и разходни банкови документи->Операция №'),

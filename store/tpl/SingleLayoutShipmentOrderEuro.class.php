@@ -13,9 +13,16 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @title     Обработвач на шаблона за ЕН с цени в евро
  */
 class store_tpl_SingleLayoutShipmentOrderEuro extends doc_TplScript
 {
+    /**
+     * Към шаблоните на кой документ да може да се избира
+     */
+    public $addToClassTemplate = 'store_ShipmentOrders';
+
+
     /**
      * Метод който подава данните на мастъра за обработка на скрипта
      *

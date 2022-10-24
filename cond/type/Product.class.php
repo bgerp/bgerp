@@ -27,6 +27,9 @@ class cond_type_Product extends cond_type_Varchar
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Конкретизиране->Групи,mandatory');
         $fieldset->FLD('show', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване,mandatory');
         $fieldset->FLD('display', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Избор,mandatory');
+        $fieldset->FLD('orderBy', 'enum(idAsc=По артикул [нарастващ ред],idDesc=По артикул [намаляващ ред],codeAsc=По код [нарастващ ред],codeDesc=По код [намаляващ ред])', 'caption=Конкретизиране->Подредба,mandatory');
+        $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутон,mandatory');
+        $fieldset->FLD('columns', 'int(Min=0)', 'caption=Конкретизиране->Радио бутон (колони),placeholder=2');
     }
 
 
@@ -42,11 +45,37 @@ class cond_type_Product extends cond_type_Varchar
      */
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
-        $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)');
-        $Type->params['groups'] = $this->driverRec->productGroups;
+        $CType = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
+        $CType->params['groups'] = $this->driverRec->productGroups;
         if(isset($this->driverRec->display) && $this->driverRec->display != 'name'){
-            $Type->params['display'] = $this->driverRec->display;
+            $CType->params['display'] = $this->driverRec->display;
         }
+
+        $orderBy = isset($this->driverRec->orderBy) ? $this->driverRec->orderBy : 'idAsc';
+        $orderByField = ($orderBy == 'idAsc') ? 'id=ASC' : (($orderBy == 'idDesc') ? 'id=DESC' : (($orderBy == 'codeAsc') ? 'code=ASC' : 'code=DESC'));
+        $CType->params['orderBy'] = $orderByField;
+
+        // Ако няма зададени радио бутони - ще се показва като key2
+        if(empty($this->driverRec->maxRadio)) return $CType;
+
+        // Ако има зададен брой радио бутони, но опциите са над тях - ще се показва като key2
+        $options = $CType->getOptions();
+        $optionsCount = countR($options);
+        if($optionsCount > $this->driverRec->maxRadio) return $CType;
+
+        // Ако има радио бутони ще се показва като селект
+        $Type = core_Type::getByName('key(mvc=cat_Products,select=name)');
+        $Type->params['maxRadio'] = isset($this->driverRec->maxRadio) ? $this->driverRec->maxRadio : 20;
+        $columns = isset($this->driverRec->columns) ? $this->driverRec->columns : 2;
+        $Type->params['columns'] = $columns;
+
+        $Type->options = $options;
+        foreach ($Type->options as $k => $v){
+            if(is_object($v)){
+                unset($Type->options[$k]);
+            }
+        }
+        $Type->params['select2MinItems'] = 1000000;
 
         return $Type;
     }
@@ -72,7 +101,6 @@ class cond_type_Product extends cond_type_Varchar
         if(empty($title)){
             $title = cat_Products::getTitleById($value);
         }
-
         if(!Mode::is('text', 'plain')){
             $singleUrlArray = cat_Products::getSingleUrlArray($value);
             if(countR($singleUrlArray)){

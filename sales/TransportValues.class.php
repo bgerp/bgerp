@@ -565,13 +565,13 @@ class sales_TransportValues extends core_Manager
     {
         //  Ако изрично е забранено начисляване не се начислява
         if($params['deliveryCalcTransport'] == 'no' || empty($productId)) {
-            
+
             return;
         }
         
         // Ако може да се изчислява скрит транспорт
         if ($params['deliveryCalcTransport'] != 'yes' || !cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
-           
+
             return;
         }
 
@@ -866,5 +866,60 @@ class sales_TransportValues extends core_Manager
                 $Detail->Master->logWrite('Преизчисляване на сумата за транспорт  на артикул', $detailRec->{$Detail->masterKey});
             }
         }
+    }
+
+
+    /**
+     * Помощна ф-я изчисляваща дефолтния транспорт на даден артикул за даден клиент
+     *
+     * @param int $productId          - ид на артикул
+     * @param double $quantity        - к-во
+     * @param string $contragentClass - клас на контрагент
+     * @param int $contragentId       - ид на контрагент
+     * @param null|int $packagingId   - ид на опаковка или null за основната мярка
+     * @param null|int $folderId      - ид на папка
+     * @param $deliveryData           - масив с данни за доставка, ако ги няма се изчисляват автоматично
+     *          ['deliveryTermId']    - ид на условие на доставка, ако е null взима дефолтното за папката/клиента
+     *          ['locationId']        - ид на клиентска локация, null ще вземе от визитката на клиента
+     *          ['countryId']         - ид на държава, ако има подадена локация не ни трябва
+     *          ['pCode']             - пкод, ако има подадена локация не ни трябва
+     *
+     * @return null|array $feeArr           - информация за цената на транспорта или NULL, ако няма
+     *                     ['totalFee']     - обща сума на целия транспорт, в основна валута без ДДС
+     *                     ['singleFee']    - цената от транспорта за 1-ца от артикула, в основна валута без ДДС
+     *                     ['deliveryTime'] - срок на доставка / ако има
+     *                     ['explain']      - обяснение на транспорта
+     */
+    public static function calcDefaultTransportToClient($productId, $quantity, $contragentClass, $contragentId, $packagingId = null, $folderId = null, $deliveryData = array())
+    {
+        $Driver = cat_Products::getDriver($productId);
+        if(!is_object($Driver)) return;
+
+        if (!$Driver->canCalcTransportFee($productId)) return;
+
+        // Ако няма зададено условие на доставка взима от папката/контрагента
+        if(!isset($deliveryData['deliveryTermId'])){
+            if(isset($folderId)){
+                $deliveryData['deliveryTermId'] = cond_plg_DefaultValues::getDefaultValue('sales_Quotations', $folderId, 'deliveryTermId');
+            } else {
+                $deliveryData['deliveryTermId'] = cond_Parameters::getParameter($contragentClass, $contragentId, 'deliveryTermSale');
+            }
+        }
+
+        if(empty($deliveryData['deliveryTermId'])) return;
+
+        $TransportCostDriver = cond_DeliveryTerms::getTransportCalculator($deliveryData['deliveryTermId']);
+        if (!is_object($TransportCostDriver)) return;
+
+        // Изчисляване на дефолтния транспорт
+        $countryId = $deliveryData['countryId'];
+        $pCode = $deliveryData['pCode'];
+        $locationId = $deliveryData['locationId'];
+        $deliveryData['deliveryCalcTransport'] = 'yes';
+        $packagingId = isset($packagingId) ? $packagingId : cat_Products::fetchField($productId, 'measureId');
+
+        $feeArr = self::getCostArray($deliveryData['deliveryTermId'], $contragentClass, $contragentId, $productId, $packagingId, $quantity, $locationId, $countryId, $pCode, $deliveryData);
+
+        return $feeArr;
     }
 }

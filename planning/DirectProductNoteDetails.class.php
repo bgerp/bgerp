@@ -45,15 +45,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,planning,store,production';
+    public $canEdit = 'ceo,production,store';
     
     
     /**
      * Кой има право да променя взаимно заменяемите артикули?
      */
-    public $canReplaceproduct = 'ceo,planning,store';
-    
-    
+    public $canReplaceproduct = 'ceo,production,store';
+
+
     /**
      * Може ли да се импортират цени
      */
@@ -63,13 +63,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,planning,store,production';
+    public $canAdd = 'ceo,production,store';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,planning,store,production';
+    public $canDelete = 'ceo,production';
     
     /**
      * Кой може да го импортира артикули?
@@ -131,7 +131,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'input') ? 'материал' : 'отнесен разход');
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : null);
-        
+        $form->setFieldType('packQuantity', 'double(Min=0)');
+
         $productOptions = $expenseItemIdOptions = array();
         if($rec->type == 'allocated'){
             $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);

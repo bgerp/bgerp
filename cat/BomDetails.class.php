@@ -392,21 +392,32 @@ class cat_BomDetails extends doc_Detail
             }
         } elseif($fncName == 'defifnot'){
             $val = $match['paramA'];
-            if(!is_numeric($val)){
+            $evalSuccess = null;
+            $val = str::calcMathExpr($val, $evalSuccess);
+            if(!is_numeric($val) || $evalSuccess === false){
                 $val = $match['paramB'];
-                if(!is_numeric($val)) {
+                $evalSuccess = null;
+                $val = str::calcMathExpr($val, $evalSuccess);
+                if(!is_numeric($val) || $evalSuccess === false) {
                     $val = $match['paramC'];
+                    $evalSuccess = null;
+                    $val = str::calcMathExpr($val, $evalSuccess);
                 }
             }
+
             if(is_numeric($val)) {
                 $res = $val;
             }
         }  elseif($fncName == 'getproductparam') {
+
             if(is_numeric($match['paramA'])){
                 try{
                     $paramVal = cat_Products::getParams($match['paramA'], $match['paramB']);
+
                     if(is_numeric($paramVal)) {
                         $res = $paramVal;
+                    } elseif(strlen($match['paramC'])){
+                        $res = $match['paramC'];
                     }
                 } catch(core_exception_Expect $e){}
             }

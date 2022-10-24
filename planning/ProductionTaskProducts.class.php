@@ -50,31 +50,31 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'taskPlanning, ceo';
+    public $canEdit = 'task, ceo';
     
     
     /**
      * Кой има право да променя взаимно заменяемите артикули?
      */
-    public $canReplaceproduct = 'taskPlanning, ceo';
+    public $canReplaceproduct = 'task, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'taskPlanning, ceo';
+    public $canAdd = 'task, ceo';
     
     
     /**
      * Кой има право да добавя артикули към активна операция?
      */
-    public $canAddtoactive = 'taskPlanning, ceo';
+    public $canAddtoactive = 'task, ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'taskPlanning,ceo';
+    public $canDelete = 'task,ceo';
     
     
     /**
@@ -295,7 +295,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if(isset($rec->indTime)){
             $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($rec->indTime);
         } else {
-            $row->indTime = "<span class='quiet'>n/a</span>";
+            $row->indTime = "<span class='quiet'>N/A</span>";
         }
 
         if(isset($rec->plannedQuantity)){
@@ -305,7 +305,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 $row->totalQuantity = ht::createHint($row->totalQuantity, 'Изпълнено е повече от планираното', 'warning', false);
             }
         } else {
-            $row->plannedQuantity = "<span class='quiet'>n/a</span>";
+            $row->plannedQuantity = "<span class='quiet'>N/A</span>";
         }
 
         $row->modified = $mvc->getVerbal($rec, 'modifiedOn') . " " . tr('от') . " "  . crm_Profiles::createLink($rec->modifiedBy);

@@ -250,6 +250,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::updateLabelType',
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
+        'migrate::removeOldRoles',
     );
     
     
@@ -257,12 +258,16 @@ class planning_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('production'),
-        array('taskWorker'),
-        array('taskPlanning', 'taskWorker'),
-        array('planning', 'taskPlanning'),
+        array('jobSee'),
+        array('job', 'jobSee'),
+        array('taskSee'),
+        array('taskWorker', 'taskSee'),
+        array('taskPostProduction', 'taskWorker'),
+        array('task', 'taskPostProduction'),
+        array('consumption', 'jobSee, taskSee'),
+        array('production', 'jobSee, taskSee'),
+        array('planning'),
         array('planningMaster', 'planning'),
-        array('job')
     );
     
     
@@ -270,7 +275,7 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.21, 'Производство', 'Планиране', 'planning_DirectProductionNote', 'list', 'ceo,planning,store,production'),
+        array(3.21, 'Производство', 'Планиране', 'planning_Centers', 'dispatch', 'ceo,planning,production,jobSee'),
     );
     
     
@@ -381,5 +386,18 @@ class planning_Setup extends core_ProtoSetup
     function deletePoints()
     {
         planning_Points::truncate();
+    }
+
+
+    /**
+     * Премахва стари роли
+     */
+    function removeOldRoles()
+    {
+        $remRoleId = core_Roles::fetchByName('taskPlanning');
+        if(!$remRoleId) return;
+
+        core_Roles::removeRoles(array($remRoleId));
+        core_Users::rebuildRoles();
     }
 }

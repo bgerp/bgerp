@@ -326,7 +326,7 @@ class doc_plg_TplManager extends core_Plugin
         }
         
         // Ако има скриптов клас за шаблона, подаваме му данните
-        if ($Script = doc_TplManager::getTplScriptClass($data->rec->template)) {
+        if ($Script = doc_TplManager::getTplScriptClass($data->rec->template, $data->rec->createdOn)) {
             $Script->beforePrepareMasterData($mvc, $data);
         }
     }
@@ -363,7 +363,7 @@ class doc_plg_TplManager extends core_Plugin
             }
             
             // Ако има скриптов клас за шаблона, подаваме му данните
-            if ($Script = doc_TplManager::getTplScriptClass($data->rec->template)) {
+            if ($Script = doc_TplManager::getTplScriptClass($data->rec->template, $data->rec->createdOn)) {
                 $Script->modifyMasterData($mvc, $data);
             }
         }
@@ -584,6 +584,18 @@ class doc_plg_TplManager extends core_Plugin
         $rec = $mvc->fetchRec($id);
         if($templatePrintCount = doc_TplManager::fetchField($rec->template, 'printCount')){
             $res = $templatePrintCount;
+        }
+    }
+
+
+    /**
+     * Функция, която прихваща след активирането на документа
+     * Ако офертата е базирана на чернова  артикула, активираме и нея
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        if ($Script = doc_TplManager::getTplScriptClass($rec->template, $rec->createdOn)) {
+            $Script->afterActivation($mvc, $rec);
         }
     }
 }

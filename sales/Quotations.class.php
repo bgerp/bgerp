@@ -737,36 +737,34 @@ class sales_Quotations extends deals_QuotationMaster
 
 
     /**
-     * Най-големия срок на доставка
+     * Колко е максималния срок на доставка
      *
      * @param int|stdClass $id
      * @return int|NULL
      */
     protected function calcDeliveryTime($id)
     {
-        $maxDeliveryTime = null;
         $rec = $this->fetchRec($id);
 
-        // Добавяне на срока за транспорт към локацията
-        $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
-        if(is_object($Calculator)){
-            $locationId = isset($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
-            $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
-            $deliveryParams = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode']);
-            $maxDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryParams);
+        $defaultDeliveryTime = null;
+
+        // Ако доставката е с явен транспорт, намира се максималния срок на доставка до мястото
+        if($rec->deliveryCalcTransport == 'no'){
+            $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
+            if(is_object($Calculator)){
+                $locationId = isset($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+                $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
+                $deliveryParams = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode']);
+                $defaultDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryParams);
+            }
         }
 
+        // Колко е максималният срок за доставка от детайлите
         $Detail = cls::get($this->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #optional = 'no'");
         $dQuery->show("productId,term,quantity,quotationId");
-
-        while ($dRec = $dQuery->fetch()) {
-            $term = (!isset($term)) ? cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity) : $dRec->term;
-            if (isset($term)) {
-                $maxDeliveryTime = max($maxDeliveryTime, $term);
-            }
-        }
+        $maxDeliveryTime = deals_Helper::calcMaxDeliveryTime($this, $rec, $Detail, $dQuery, $defaultDeliveryTime);
 
         return $maxDeliveryTime;
     }

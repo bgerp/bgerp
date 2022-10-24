@@ -69,7 +69,7 @@ class planning_AssetResources extends core_Master
     /**
      * Кой има право да форсира преизчисляването на времето?
      */
-    public $canRecalctime = 'ceo, taskPlanning, debug';
+    public $canRecalctime = 'ceo, task, debug';
 
 
     /**

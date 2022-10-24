@@ -149,7 +149,7 @@ class planning_interface_TaskLabel
         Mode::pop('text');
 
         // Продуктови параметри, като тези от операцията са с приоритет
-        $params = $this->getTaskParamData($rec->id, $productId);
+        $params = self::getTaskParamData($rec->id, $productId);
         $Driver = cat_Products::getDriver($productId);
         $additionalFields = (is_object($Driver)) ? $Driver->getAdditionalLabelData($productId, $this->class) : array();
 
@@ -209,7 +209,7 @@ class planning_interface_TaskLabel
      * @param $productId
      * @return array
      */
-    protected function getTaskParamData($taskId, $productId)
+    public static function getTaskParamData($taskId, $productId)
     {
         // Кои продуктови параметри са предефинирани в операцията
         $paramRecs = array();
@@ -232,7 +232,7 @@ class planning_interface_TaskLabel
         // Вербализират се
         $res = array();
         foreach ($paramRecs as $pId => $pVal){
-            $ParamType = cat_Params::getTypeInstance($pId, $taskClassId, $productId, $pVal);
+            $ParamType = cat_Params::getTypeInstance($pId, $taskClassId, $taskId, $pVal);
             if($ParamType instanceof fileman_FileType){
                 $paramValue = $pVal;
             } else {

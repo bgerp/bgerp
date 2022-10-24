@@ -1330,42 +1330,33 @@ abstract class deals_DealMaster extends deals_DealBase
 
 
     /**
-     * Най-големия срок на доставка
+     * Колко е максималният срок на доставка
      *
      * @param int|stdClass $id
      * @return int|NULL
      */
     public function calcDeliveryTime($id)
     {
-        $maxDeliveryTime = null;
         $rec = $this->fetchRec($id);
 
-        // Колко е най-големия срок за доставка до адреса
-        $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
-        if(is_object($Calculator)){
-            $logisticData = $this->getLogisticData($rec);
-            $deliveryData = is_array($rec->deliveryData) ? $rec->deliveryData : array();
-            $deliveryData += array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
-            $maxDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryData);
+        // Ако доставката е с явен транспорт, намира се максималния срок на доставка до мястото
+        $defaultDeliveryTime = null;
+        if($rec->deliveryCalcTransport == 'no'){
+            $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
+            if(is_object($Calculator)){
+                $logisticData = $this->getLogisticData($rec);
+                $deliveryData = is_array($rec->deliveryData) ? $rec->deliveryData : array();
+                $deliveryData += array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
+                $defaultDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryData);
+            }
         }
 
-        // Гледа се най-големия срок за доставка от артикулите
+        // Колко е максималният срок за доставка от детайлите
         $Detail = cls::get($this->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
         $dQuery->show("productId,term,quantity,{$Detail->masterKey}");
-        while ($dRec = $dQuery->fetch()) {
-            $term = isset($dRec->term) ? $dRec->term : cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity);
-            if (isset($term)) {
-                $maxDeliveryTime = max($maxDeliveryTime, $term);
-            }
-        }
-
-        // Към най-големия срок се добавят дните за подготовка от склада, ако няма склад - колкото е настроено глобално
-        $defaultShipmentTime = store_Stores::getShipmentPreparationTime($rec->shipmentStoreId);
-        if(!empty($defaultShipmentTime)){
-            $maxDeliveryTime += $defaultShipmentTime;
-        }
+        $maxDeliveryTime = deals_Helper::calcMaxDeliveryTime($this, $rec, $Detail, $dQuery, $defaultDeliveryTime, 'productId', 'term', 'quantity', 'shipmentStoreId');
 
         return $maxDeliveryTime;
     }

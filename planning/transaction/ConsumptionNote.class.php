@@ -72,6 +72,8 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
         }
 
         foreach ($details as $dRec) {
+            if(empty($dRec->quantity)) continue;
+
             $prodRec = cat_Products::fetch($dRec->productId, 'canStore,fixedAsset');
             $productsArr[$dRec->productId] = $dRec->productId;
             $debitArr = null;

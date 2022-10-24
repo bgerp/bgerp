@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -180,7 +180,13 @@ class store_plg_RequestDetail extends core_Plugin
     protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if (self::isApplicant($mvc->Master, $data->masterRec) && isset($data->form->rec->id)) {
-            $data->form->toolbar->addSbBtn('Поръчано', 'requested', 'id=btnReq,order=9.99981', 'ef_icon = img/16/save_and_new.png');
+            $data->form->toolbar->addSbBtn('Поръчано', 'requested', "id=btnReq,ef_icon=img/16/save_and_new.png,title=Запис на посоченото количество като поръчано");
+        }
+
+        foreach (array('saveAndNew' => 1, 'save' => 2, 'btnReq' => 3, 'cancel' => 4) as $btn => $order){
+            if($data->form->toolbar->haveButton($btn)){
+                $data->form->toolbar->setBtnOrder($btn, $order);
+            }
         }
     }
     
@@ -191,9 +197,13 @@ class store_plg_RequestDetail extends core_Plugin
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
+            if(empty($form->rec->{$mvc->packQuantityFld})){
+                $form->setWarning($mvc->packQuantityFld, "Въведено е количество|* <b>0</b>?");
+            }
+
+
+            // Ако е натиснат бутона за 'Поръчано', дига се флаг
             if ($form->cmd == 'requested') {
-                
-                // Ако е натиснат бутона за 'Поръчано', дига се флаг
                 $form->rec->updateRequested = true;
             }
         }
