@@ -757,7 +757,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
     /**
      * Кой може да избере драйвера
-     * ceo, planning+officer
+     * ceo, task+officer
      */
     public function canSelectDriver($userId = null)
     {
@@ -766,7 +766,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             return true;
         }
 
-        if (!haveRole('ceo', $userId) && haveRole('planning', $userId)) {
+        if (!haveRole('ceo', $userId) && haveRole('task', $userId)) {
             if (haveRole('officer', $userId)) {
 
                 return true;
