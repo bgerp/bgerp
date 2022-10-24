@@ -323,7 +323,7 @@ class doc_TplManager extends core_Master
             }
 
             if(empty($rec->handler)){
-                unset($rec->handlerInEffectOn);
+                $rec->handlerInEffectOn = null;
             } else {
                 if(empty($rec->handlerInEffectOn)){
                     $rec->handlerInEffectOn = dt::now();
