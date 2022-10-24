@@ -300,7 +300,7 @@ class doc_TplManager extends core_Master
             // Проверка дали избрания клас поддържа 'doc_plg_TplManager'
             $plugins = cls::get($rec->docClassId)->getPlugins();
             if (empty($plugins['doc_plg_TplManager'])) {
-                $form->setError('docClassId', "Избрания клас трябва да поддържа 'doc_plg_TplManager'!");
+                $form->setError('docClassId', "Избрания документ не поддържа 'doc_plg_TplManager'!");
             }
             
             // Ако шаблона е клонинг
