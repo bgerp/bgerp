@@ -342,7 +342,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 foreach ($arr as $k => $v) {
                     unset($id);
 
-                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees)) && $rec->resultsOn != 'arts') {
+                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees)) && $rec->resultsOn != 'arts' && $rec->resultsOn != 'machines') {
                         continue;
                     }
 
@@ -455,7 +455,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Ако резбивката е по артикули, справката е подробна добавям първи рез със
         //сумарните ко.личества по дености
-        if ($rec->typeOfReport == 'full' && $rec->resultsOn == 'arts') {
+        if ($rec->typeOfReport == 'full' && ($rec->resultsOn == 'arts' || $rec->resultsOn == 'machines')) {
             array_unshift($recs, $typesQuantities);
         }
 
@@ -479,7 +479,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if ($export === false) {
 
             if ($rec->typeOfReport == 'full') {
-                if ($rec->resultsOn == 'arts') {
+                if ($rec->resultsOn == 'arts' || $rec->resultsOn == 'machines') {
                     $fld->FLD('total', 'varchar', 'caption=@Total,tdClass=leftCol');
                 }
 
