@@ -419,7 +419,13 @@ class cat_BomDetails extends doc_Detail
                     } elseif(strlen($match['paramC'])){
                         $res = $match['paramC'];
                     }
-                } catch(core_exception_Expect $e){}
+                } catch(core_exception_Expect $e){
+                    if (strlen($match['paramC'])) {
+                        $res = $match['paramC'];
+                    }
+                }
+            } elseif (strlen($match['paramC'])) {
+                $res = $match['paramC'];
             }
         }
 

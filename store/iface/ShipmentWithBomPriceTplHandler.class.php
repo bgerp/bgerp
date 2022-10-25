@@ -77,7 +77,12 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
 
         // Добавяне на колонката за цена по рецепта
         $data->listTableMvc->FNC('_amountBom', 'double(smartRound)');
-        arr::placeInAssocArray($data->listFields, '_amountBom=Рецепта', 'amount');
+        if( array_key_exists('amount', $data->listFields)){
+            arr::placeInAssocArray($data->listFields, '_amountBom=Рецепта', 'amount');
+        } else {
+            arr::placeInAssocArray($data->listFields, '_amountBom=Рецепта', null, 'packQuantity');
+        }
+
         $date = isset($data->masterData->rec->valior) ? $data->masterData->rec->valior : dt::today();
 
         // За всеки запис
