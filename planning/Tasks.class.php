@@ -887,7 +887,6 @@ class planning_Tasks extends core_Master
         $toggleClass = (in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) || haveRole('task')) ? 'show-btn' : '';
 
         if(Mode::is('printing')){
-            $display = true;
             $resArr['info'] = array('name' => tr('Операция'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>№:</td><td>[#ident#]</td></tr>
                 <tr><td style='font-weight:normal'>|Създаване от|*:</td><td>[#createdBy#]</td></tr>
