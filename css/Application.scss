@@ -3665,8 +3665,10 @@ fieldset.sharing-history {
 .externalPage {
 	font-family:Verdana,Helvetica,Arial,Sans-serif;
 }
-.wide .externalPage{
+
+.wide .externalPage {
 	font-size: 16px;
+	font-size: calc(16px +  min(4px, max(0px, (20 - 16) * (calc(100vw - 800px) / (1900 - 800)))));
 }
 
 .narrow  .externalPage #cmsTop {
@@ -3860,7 +3862,7 @@ fieldset.sharing-history {
 #all {
 	border: solid 1px #777;
 	border-bottom: solid 1px #000;
-	max-width: 1400px;
+	max-width: 80em;
 	display: block;
 	margin: 0 auto;
 	#searchform {
