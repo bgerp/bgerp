@@ -883,11 +883,10 @@ class planning_Tasks extends core_Master
         unset($resArr['createdBy']);
         unset($resArr['createdOn']);
 
-        $display = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) ? 'block' : 'none';
-        $toggleClass = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) ? 'show-btn' : '';
+        $display = (in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) || haveRole('task')) ? 'block' : 'none';
+        $toggleClass = (in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) || haveRole('task')) ? 'show-btn' : '';
 
         if(Mode::is('printing')){
-            $display = true;
             $resArr['info'] = array('name' => tr('Операция'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>№:</td><td>[#ident#]</td></tr>
                 <tr><td style='font-weight:normal'>|Създаване от|*:</td><td>[#createdBy#]</td></tr>
@@ -2569,11 +2568,12 @@ class planning_Tasks extends core_Master
 
                 // Ако има планиращи действия
                 if(is_array($pData['actions'])){
+                    $now = dt::now();
                     foreach ($pData['actions'] as $actionId){
                         if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
 
                         // Ще се създава запис за планираното действие за влагане
-                        $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => core_Users::SYSTEM_USER, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now, 'createdOn' => $now);
+                        $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => $now, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now);
                         if($normRec = planning_AssetResources::getNormRec($rec->assetId, $actionId)){
                             $inputRec->indTime = $normRec->indTime;
                         }
