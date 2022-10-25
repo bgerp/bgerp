@@ -62,6 +62,12 @@ defIfNot('COLAB_PARTNER_REGISTRATION_LINK_LIFETIME', '604800');
 
 
 /**
+ * Валидност на линка за регистрация
+ */
+defIfNot('COLAB_SHARE_USERS_FROM_FOLDER', 'yes');
+
+
+/**
  * Клас 'colab_Setup'
  *
  * Исталиране/деинсталиране на colab
@@ -111,6 +117,8 @@ class colab_Setup extends core_ProtoSetup
         'COLAB_CREATABLE_DOCUMENTS_LIST' => array('keylist(mvc=core_Classes,select=name)', 'caption=Кои документи могат да се създават от партньори->Документи,optionsFunc=colab_Setup::getDocumentOptions'),
         'COLAB_DEFAULT_ROLES_FOR_NEW_PARTNER' => array('keylist(mvc=core_Roles,select=name)', 'caption=Регистриране на нов партньор->Роли,optionsFunc=colab_Setup::getExternalRoles'),
         'COLAB_PARTNER_REGISTRATION_LINK_LIFETIME' => array('time', 'caption=Регистриране на нов партньор->Валидност (линк)'),
+
+        'COLAB_SHARE_USERS_FROM_FOLDER' => array('enum(yes=Да,no=Не)', 'caption=Възможност за споделяне на потребители от колаборатори->Избор'),
 
         'COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_BG' => array('richtext(rows=3)', 'caption=Email за регистрация на нов партньор към папка на фирма->BG'),
         'COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_EN' => array('richtext(rows=3)', 'caption=Email за регистрация на нов партньор към папка на фирма->EN'),
