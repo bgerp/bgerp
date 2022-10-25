@@ -41,7 +41,6 @@ class cat_products_Usage extends core_Manager
         $data->jobData->Jobs = cls::get('planning_Jobs');
         $this->prepareJobs($data->jobData);
 
-
         if(haveRole('ceo,planning,jobSee')){
             $data->taskData = clone $data;
             $data->taskData->_useMasterField = 'productId';
@@ -316,7 +315,7 @@ class cat_products_Usage extends core_Manager
             $data->notManifacturable = true;
         }
         
-        if (!haveRole('ceo,planning,job') || ($data->notManifacturable === true && !countR($data->rows)) || $masterRec->state == 'template' || $masterRec->brState == 'template') {
+        if (!haveRole('ceo,planning,jobSee') || ($data->notManifacturable === true && !countR($data->rows)) || $masterRec->state == 'template' || $masterRec->brState == 'template') {
             $data->hide = true;
             
             return;
