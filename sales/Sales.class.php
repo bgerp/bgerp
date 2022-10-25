@@ -1310,6 +1310,9 @@ class sales_Sales extends deals_DealMaster
         }
         
         if (isset($fields['-single'])) {
+            if($receiptId = pos_Receipts::fetchField("#transferredIn = {$rec->id}")){
+                $row->receiptId = pos_Receipts::getHyperlink($receiptId, true);
+            }
 
             // Показване на дефолт дали цените ще са видими
             if(empty($rec->visiblePricesByAllInThread) && in_array($rec->state, array('draft', 'pending'))){
@@ -1318,8 +1321,6 @@ class sales_Sales extends deals_DealMaster
             }
 
             $row->visiblePricesByAllInThread = ht::createHint("", "Цени и суми в нишката|*: |{$row->visiblePricesByAllInThread}|*");
-
-
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
