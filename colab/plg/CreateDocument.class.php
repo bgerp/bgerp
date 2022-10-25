@@ -86,7 +86,11 @@ class colab_plg_CreateDocument extends core_Plugin
         // Контракторите да не могат да споделят потребители
         if (core_Users::haveRole('partner')) {
             if ($mvc->getField('sharedUsers', false)) {
-                $data->form->fields['sharedUsers']->type->params['roles'] = 'no_one';
+                if (colab_Setup::get('SHARE_USERS_FROM_FOLDER') == 'yes') {
+                    $data->form->fields['sharedUsers']->type->params['roles'] = 'no_one';
+                } else {
+                    $data->form->setField('sharedUsers', 'input=none');
+                }
             }
         }
     }
