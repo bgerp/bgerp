@@ -42,7 +42,7 @@ class cat_products_Usage extends core_Manager
         $this->prepareJobs($data->jobData);
 
 
-        if(haveRole('ceo,planning,job')){
+        if(haveRole('ceo,planning,jobSee')){
             $data->taskData = clone $data;
             $data->taskData->_useMasterField = 'productId';
             $this->prepareDocuments('planning_Tasks', 'planning_ProductionTaskProducts', $data->taskData);
@@ -54,7 +54,7 @@ class cat_products_Usage extends core_Manager
 
                 return;
             }
-            if (!haveRole('ceo,planning,job')) {
+            if (!haveRole('ceo,planning,jobSee')) {
 
                 return;
             }
