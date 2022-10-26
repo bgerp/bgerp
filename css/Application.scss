@@ -3668,7 +3668,7 @@ fieldset.sharing-history {
 
 .wide .externalPage {
 	font-size: 16px;
-	font-size: calc(16px +  min(4px, max(0px, (20 - 16) * (calc(100vw - 800px) / (1900 - 800)))));
+	font-size: unquote("calc(16px +  min(4px, max(0px, (20 - 16) * (calc(100vw - 800px) / (1900 - 800)))))"); 
 }
 
 .narrow  .externalPage #cmsTop {
