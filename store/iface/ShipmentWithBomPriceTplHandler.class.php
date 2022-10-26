@@ -174,8 +174,15 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
         if (!countR($data->store_ShipmentOrderDetails->recs)) return;
         if(Mode::is('printing') || (Mode::is('text', 'xhtml') && !Mode::is('docView'))) return;
 
-        $amountBoms = arr::sumValuesArray($data->store_ShipmentOrderDetails->recs, '_amountBom');
-        $amountBase = arr::sumValuesArray($data->store_ShipmentOrderDetails->recs, '_amountBase');
+        $amountBoms = $amountBase = 0;
+        foreach ($data->store_ShipmentOrderDetails->recs as $rec){
+            if(isset($rec->_amountBom)){
+                $amountBoms += $rec->_amountBom;
+            }
+            if(isset($rec->_amountBase)){
+                $amountBase += $rec->_amountBase;
+            }
+        }
 
         $date = isset($data->masterData->rec->valior) ? $data->masterData->rec->valior : dt::today();
         $baseCurrencyId = acc_Periods::getBaseCurrencyCode($date);
