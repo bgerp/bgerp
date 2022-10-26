@@ -38,8 +38,8 @@ class doc_TplManager extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools';
-    
+    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
+
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
@@ -125,6 +125,12 @@ class doc_TplManager extends core_Master
 
 
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'name, docClassId, lang, content, narrowContent';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -132,8 +138,8 @@ class doc_TplManager extends core_Master
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, width=100%');
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ, width=100%,mandatory,silent,removeAndRefreshForm=handler|handlerInEffectOn');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
-        $this->FLD('content', 'html', 'caption=Текст->Широк,column=none, width=100%,mandatory');
-        $this->FLD('narrowContent', 'html', 'caption=Текст->Мобилен,column=none, width=100%');
+        $this->FLD('content', 'html(tinyEditor=no)', 'caption=Текст->Широк,column=none, width=100%,mandatory');
+        $this->FLD('narrowContent', 'html(tinyEditor=no)', 'caption=Текст->Мобилен,column=none, width=100%');
         $this->FLD('path', 'varchar', 'caption=Файл, width=100%,input=none');
         $this->FLD('originId', 'key(mvc=doc_TplManager)', 'input=hidden,silent');
         $this->FLD('hash', 'varchar', 'input=none');
@@ -163,7 +169,7 @@ class doc_TplManager extends core_Master
 
         $data->listFilter->setOptions('docClassId', static::getClassesWithTemplates());
         $data->listFilter->setField('docClassId', "placeholder=Всички документи,silent");
-        $data->listFilter->showFields = 'docClassId';
+        $data->listFilter->showFields = 'docClassId, search';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
@@ -174,8 +180,8 @@ class doc_TplManager extends core_Master
                 $data->query->where("#docClassId = {$data->listFilter->rec->docClassId}");
             }
         }
-        
-        $data->query->orderBy('name');
+
+        $data->query->orderBy('modifiedOn', 'DESC');
     }
     
     
