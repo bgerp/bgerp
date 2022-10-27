@@ -459,6 +459,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
             array_unshift($recs, $typesQuantities);
         }
 
+        if (!is_null($recs)) {
+            arr::sortObjects($recs, 'taskId', 'asc');
+        }
+
         return $recs;
     }
 
