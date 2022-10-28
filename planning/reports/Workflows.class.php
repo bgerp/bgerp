@@ -26,7 +26,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'employees';
+    protected $sortableListFields;
 
     /**
      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
@@ -42,6 +42,17 @@ class planning_reports_Workflows extends frame2_driver_TableData
      * @var int
      */
     protected $summaryRowCaption = 'ОБЩО';
+
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    protected $groupByField;
+
+
+    /**
+     * По-кое поле да се групират данните след групиране, вътре в групата
+     */
+    protected $subGroupFieldOrder;
 
 
     /**
@@ -217,7 +228,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
 
                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,indTimeAllocation,labelPackagingId,indTime,indPackagingId,totalQuantity,originId');
-
+;
                 $quantity = $tRec->quantity;
                 $weight = round($tRec->weight, 3);
                 $crapQuantity = 0;
@@ -323,7 +334,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
             if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+
                 $this->groupByField = 'employees';
+                $this->subGroupFieldOrder = 'taskId';
             }
 
             //Разпределяне по работници,или по машини
@@ -460,7 +473,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         if (!is_null($recs)) {
-            arr::sortObjects($recs, 'taskId', 'asc');
+          //  arr::sortObjects($recs, 'taskId', 'asc');
         }
 
         return $recs;
