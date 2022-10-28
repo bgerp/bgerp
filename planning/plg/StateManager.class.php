@@ -584,7 +584,7 @@ class planning_plg_StateManager extends core_Plugin
     /**
      * Преди запис на документ
      */
-    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         if(empty($rec->id)){
             $rec->lastChangeStateOn = dt::now();
