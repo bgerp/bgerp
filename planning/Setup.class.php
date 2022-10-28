@@ -251,6 +251,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
         'migrate::removeOldRoles',
+        'migrate::updateLastChangedOnState',
     );
     
     
@@ -399,5 +400,28 @@ class planning_Setup extends core_ProtoSetup
 
         core_Roles::removeRoles(array($remRoleId));
         core_Users::rebuildRoles();
+    }
+
+
+    /**
+     * Задаване на стойности на полетата за последна промяна на състоянията
+     */
+    function updateLastChangedOnState()
+    {
+        foreach (array('planning_Jobs', 'planning_Tasks') as $class){
+            $Class = cls::get($class);
+            $Class->setupMvc();
+            if($Class->count()){
+                $tableName = $Class->dbTableName;
+                $lastChangeStateOnColName = str::phpToMysqlName('lastChangeStateOn');
+                $modifiedOnColName = str::phpToMysqlName('modifiedOn');
+
+                $lastChangeStateByColName = str::phpToMysqlName('lastChangeStateBy');
+                $modifiedByColName = str::phpToMysqlName('modifiedBy');
+
+                $query = "UPDATE {$tableName} SET {$lastChangeStateOnColName} = {$modifiedOnColName}, {$lastChangeStateByColName} = {$modifiedByColName}";
+                $Class->db->query($query);
+            }
+        }
     }
 }
