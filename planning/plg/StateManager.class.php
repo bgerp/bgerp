@@ -157,7 +157,7 @@ class planning_plg_StateManager extends core_Plugin
         if ($mvc->haveRightFor('activateAgain', $rec)) {
             $warning = $mvc->getChangeStateWarning($rec, null);
             
-            $attr = array('ef_icon' => 'img/16/control_play.png', 'title' => 'Активиране на документа','warning' => $warning, 'order' => 30);
+            $attr = array('ef_icon' => 'img/16/control_play.png', 'title' => 'Пускане на документа','warning' => $warning, 'order' => 30);
             if (isset($mvc->demandReasonChangeState, $mvc->demandReasonChangeState['activateAgain'])) {
                 unset($attr['warning']);
             }
