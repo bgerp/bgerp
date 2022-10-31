@@ -84,13 +84,14 @@ class cat_products_VatGroups extends core_Detail
         if ($form->isSubmitted()) {
             $today = dt::today();
             $validFrom = ($rec->validFrom) ? $rec->validFrom : $today;
+
             if ($validFrom < $today) {
                 $form->setError('validFrom', 'Групата не може да се сменя с минала дата');
             } elseif($validFrom == $today){
                 $form->setWarning('validFrom', 'Ще се отрази на вече създадените документи с този и следващи вальори|*!');
             }
 
-            if(static::fetchField("#productId = {$rec->productId} AND #validFrom = '{$rec->validFrom}'")){
+            if(static::fetchField("#productId = {$rec->productId} AND #validFrom = '{$validFrom}'")){
                 $form->setError('validFrom', 'Има вече зададена ДДС група за тази дата');
             }
 
