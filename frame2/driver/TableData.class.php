@@ -441,13 +441,13 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
             // Сортират се допълнително ако е указано
             $groupedArr += $subArr;
+
             $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
+            if ($groupField && $subGroupFieldOrder){
+                arr::sortObjects($groupedArr, 'taskId', 'asc');
+            }
             $newRecs += $groupedArr;
         }
-        if ($subGroupFieldOrder){
-            arr::sortObjects($newRecs, 'taskId', 'asc');
-        }
-
         return $newRecs;
     }
     
