@@ -447,7 +447,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
             //Сортира се вътре във всяка група по втори показател $subGroupFieldOrder ако не е null
             if ($groupField && $subGroupFieldOrder){
-                arr::sortObjects($groupedArr, 'taskId', 'asc');
+                arr::sortObjects($groupedArr, $subGroupFieldOrder, 'asc');
             }
 
             $newRecs += $groupedArr;
