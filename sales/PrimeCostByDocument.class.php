@@ -643,8 +643,8 @@ class sales_PrimeCostByDocument extends core_Manager
             $sign = ($masters[$iRec->containerId][2] == 'yes') ? -1 : 1;
             $value = round($sign * $iRec->delta, 2);
 
-            $pGroup = $productGroups[$iRec->productId];
-            $cGroups = $clientGroups[$iRec->folderId];
+            $pGroup = is_array($productGroups[$iRec->productId]) ? $productGroups[$iRec->productId] : array();
+            $cGroups = is_array($clientGroups[$iRec->folderId]) ? $clientGroups[$iRec->folderId] : array();
 
             // За всяка от клиентските групи, която е от посочените ще се натрупва отделен индикатор
             if($intersectedClientGroups = array_intersect_key($cGroups, $crmGroupMap)){
