@@ -46,7 +46,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField;
+    protected $groupByField = 'sdfsd';
 
 
     /**
@@ -334,9 +334,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
             if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
-
-                $this->groupByField = 'employees';
                 $this->subGroupFieldOrder = 'taskId';
+                $this->groupByField = 'employees';
+
             }
 
             //Разпределяне по работници,или по машини
@@ -466,14 +466,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $rec->indTimeSumArr = $indTimeSumArr;
         $typesQuantities->quantitiesByMeasure = $quantitiesByMeasure;
 
-        //Ако резбивката е по артикули, справката е подробна добавям първи рез със
+        //Ако резбивката е по артикули, справката е подробна добавям първи ред със
         //сумарните ко.личества по дености
         if ($rec->typeOfReport == 'full' && ($rec->resultsOn == 'arts' || $rec->resultsOn == 'machines')) {
             array_unshift($recs, $typesQuantities);
-        }
-
-        if (!is_null($recs)) {
-          //  arr::sortObjects($recs, 'taskId', 'asc');
         }
 
         return $recs;
