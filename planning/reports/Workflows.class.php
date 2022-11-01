@@ -333,8 +333,16 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
-            if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+
+            if ($rec->resultsOn == 'users') {
                 $this->subGroupFieldOrder = 'taskId';
+                $this->groupByField = 'employees';
+
+            }
+
+            if ($rec->resultsOn == 'usersMachines') {
+
+                $this->subGroupFieldOrder = 'assetResources';
                 $this->groupByField = 'employees';
 
             }
