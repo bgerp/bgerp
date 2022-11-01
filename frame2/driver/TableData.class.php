@@ -423,6 +423,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @param string $groupField
      * @param string|null $sortFld
      * @param string|null $sortDirection
+     * @param string|null $subGroupFieldOrder
      * 
      * @return array $newRecs
      */
@@ -443,11 +444,15 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $groupedArr += $subArr;
 
             $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
+
+            //Сортира се вътре във всяка група по втори показател $subGroupFieldOrder ако не е null
             if ($groupField && $subGroupFieldOrder){
-                arr::sortObjects($groupedArr, 'taskId', 'asc');
+                arr::sortObjects($groupedArr, $subGroupFieldOrder, 'asc');
             }
+
             $newRecs += $groupedArr;
         }
+
         return $newRecs;
     }
     
