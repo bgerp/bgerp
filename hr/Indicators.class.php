@@ -63,8 +63,8 @@ class hr_Indicators extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'date, docId=Документ, personId, indicatorId, value';
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -213,7 +213,10 @@ class hr_Indicators extends core_Manager
         
         // Масив със записи на счетоводни периоди, които връщаме
         $periods = array();
-        
+
+        // Еднократно кеширане на формулите за индикаторите
+        hr_IndicatorFormulas::cacheAll();
+
         // Намираме всички класове съдържащи интерфейса
         if(is_array($sources) && countR($sources)){
             $docArr = $sources;
@@ -281,7 +284,7 @@ class hr_Indicators extends core_Manager
                                                 #personId = {$rec->personId}"));
                     
                     $persons[$rec->personId] = $rec->personId;
-                    
+
                     if ($exRec) {
                         $rec->id = $exRec->id;
                         $forClean[$key][$rec->id] = $rec->id;
@@ -291,7 +294,10 @@ class hr_Indicators extends core_Manager
                             continue;
                         }
                     }
-                    
+
+                    // Преизчисляване на стойността през формула, ако има зададена за индикатора
+                    $rec->value = static::calcIfFormula($rec->indicatorId, $rec->value, true);
+
                     // Ако имаме уникален запис го записваме
                     self::save($rec);
                     $forClean[$key][$rec->id] = $rec->id;
@@ -784,5 +790,52 @@ class hr_Indicators extends core_Manager
             $ref = &$result[$key];
             $ref->value += $value;
         }
+    }
+
+
+    /**
+     * Изчисляване на формулата на индикатора,
+     * ако няма или върне грешка оставя стойността непроменена
+     *
+     * @param int $indicatorId
+     * @param int $v
+     * @param boolean $useCache
+     * @return double $res
+     * @throws Exception
+     */
+    public static function calcIfFormula($indicatorId, $v, $useCache = false)
+    {
+        $res = $v;
+        // Имали формула за индикатора
+        if($useCache){
+            $formula = hr_IndicatorFormulas::$cachedFormulas[$indicatorId];
+        } else {
+            $formula = hr_IndicatorFormulas::fetchField("#indicatorId = {$indicatorId}", 'formula');
+        }
+
+        if(empty($formula)) return $v;
+
+        // Заместване на стойността във формулата
+        $expr = strtr($formula, array(hr_IndicatorFormulas::VALUE_VARIABLE => $v));
+
+        if (str::prepareMathExpr($expr) === false) {
+
+            // лог при грешка и връщане на стойността непроменена
+            hr_Indicators::logWarning("Грешка при изчисление на формула: IND{$indicatorId} VAL{$v} '{$formula}'");
+
+            return $res;
+        } else {
+            // опит за изчисление на формулата
+            $success = null;
+            $res = str::calcMathExpr($expr, $success);
+
+            // Ако формулата не е изчислена, логване и връщане на стойността непроменена
+            if ($success === false) {
+                $res = $v;
+                hr_Indicators::logWarning("Грешка при изчисление на формула: IND{$indicatorId} VAL{$v} '{$formula}'");
+            }
+        }
+
+        return $res;
     }
 }
