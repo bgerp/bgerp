@@ -189,7 +189,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
         'PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Толеранс за разминаване между очакваното съответствие в протоколите за производство->Предупреждение'),
-        'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
+        'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено)', 'caption=Отчитане на теглото в ПО->Режим'),
 
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на Задание без нови контиращи документи->Повече от'),
         'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на Задание без нови контиращи документи->И Заскладено над,callOnChange=planning_Setup::setJobAutoClose'),
@@ -252,6 +252,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::changeCentreFieldToKeylistInWorkflows',
         'migrate::removeOldRoles',
         'migrate::updateLastChangedOnState',
+        'migrate::updateTasks1',
     );
     
     
@@ -423,5 +424,19 @@ class planning_Setup extends core_ProtoSetup
                 $Class->db->query($query);
             }
         }
+    }
+
+
+    /**
+     * Миграция на ПО
+     */
+    public function updateTasks1()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        if(!$Tasks->count()) return;
+
+        $colName = str::phpToMysqlName('showadditionalUom');
+        $query = "UPDATE {$Tasks->dbTableName} SET {$colName} = 'yes' WHERE {$colName} = 'mandatory'";
+        $Tasks->db->query($query);
     }
 }

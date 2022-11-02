@@ -372,7 +372,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if ($rec->type == 'production') {
             if ($masterRec->showadditionalUom == 'no') {
                 $form->setField('weight', 'input=none');
-            } elseif ($masterRec->showadditionalUom == 'mandatory') {
+            } else {
                 $form->setField('weight', 'mandatory');
             }
         } elseif ($rec->type != 'scrap') {
@@ -515,7 +515,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 if ($rec->type == 'production') {
-                    $mvc->checkFromForNetWeight($masterRec, $form);
+                    $mvc->checkFormForNetWeight($masterRec, $form);
                 }
 
                 if (!$form->gotErrors()) {
@@ -618,7 +618,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if(!empty($centerRec->useTareFromParamId)){
             $taskWeightSubtractValue = static::getParamValue($taskId, $centerRec->useTareFromParamId, $jobProductId, $taskRec->productId);
             $paramName = cat_Params::getVerbal($centerRec->useTareFromParamId, 'typeExt');
-            if($taskWeightSubtractValue === false || is_null($taskWeightSubtractValue)) return null;
+            if($taskWeightSubtractValue === false || is_null($taskWeightSubtractValue)) return $result;
 
             // Ако параметъра е формула, се прави опит за изчислението ѝ
             if(cat_Params::haveDriver($centerRec->useTareFromParamId, 'cond_type_Formula')){
@@ -628,6 +628,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
                     $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
                     $msgType = 'warning';
+
                     return $result;
                 }
             }
@@ -1545,7 +1546,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             expect(!empty($rec->fixedAsset), 'Задължително трябва да е избрано оборудване');
         }
         
-        if($taskRec->showadditionalUom == 'mandatory' && $rec->type == 'production' && $rec->productId == $taskRec->productId){
+        if($taskRec->showadditionalUom != 'no' && $rec->type == 'production' && $rec->productId == $taskRec->productId){
             expect($rec->weight, 'Теглото е задължително');
         }
 
@@ -1611,7 +1612,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Запис на бракуваното количество
         if($form->isSubmitted()){
-            $this->checkFromForNetWeight($masterRec, $form);
+            $this->checkFormForNetWeight($masterRec, $form);
 
             if(!$form->gotErrors()){
                 $rec->netWeight = $form->rec->netWeight;
@@ -1641,7 +1642,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @param core_Form $form
      * @return void
      */
-    private function checkFromForNetWeight($masterRec, &$form)
+    private function checkFormForNetWeight($masterRec, &$form)
     {
         // Опит за приспадане на параметър от стойността на теглото
         $rec = $form->rec;
@@ -1652,6 +1653,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if($rec->productId == $jobProductId || $rec->productId == $masterRec->productId){
             $weightMsg = $weightMsgType = null;
             $rec->netWeight = static::subtractParamValueFromWeight($rec->taskId, $rec->productId, $masterRec->originId, $rec->weight, $weightMsg, $weightMsgType);
+
             if($weightMsgType == 'warning'){
                 $form->setWarning('weight', $weightMsg);
             } elseif($weightMsgType == 'error'){
