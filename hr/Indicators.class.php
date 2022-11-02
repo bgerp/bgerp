@@ -285,6 +285,9 @@ class hr_Indicators extends core_Manager
                     
                     $persons[$rec->personId] = $rec->personId;
 
+                    // Преизчисляване на стойността през формула, ако има зададена за индикатора
+                    $rec->value = static::calcIfFormula($rec->indicatorId, $rec->value, true);
+
                     if ($exRec) {
                         $rec->id = $exRec->id;
                         $forClean[$key][$rec->id] = $rec->id;
@@ -294,9 +297,6 @@ class hr_Indicators extends core_Manager
                             continue;
                         }
                     }
-
-                    // Преизчисляване на стойността през формула, ако има зададена за индикатора
-                    $rec->value = static::calcIfFormula($rec->indicatorId, $rec->value, true);
 
                     // Ако имаме уникален запис го записваме
                     self::save($rec);
