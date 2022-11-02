@@ -1004,8 +1004,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $row->netWeight = "<span class='quiet'>n/a</span>";
                 }
                 if($rec->weight <= $rec->netWeight){
-                    $row->weight = ht::createElement('span', array('style' => 'font-weight:bold;color:darkred;'), $row->weight);
-                    $row->weight = ht::createHint($row->weight, 'Брутото трябва да е по-голямо от нетото|*!', 'noicon', false);
+                    if($rec->state != 'rejected'){
+                        $row->weight = ht::createElement('span', array('style' => 'font-weight:bold;color:darkred;'), $row->weight);
+                        $row->weight = ht::createHint($row->weight, 'Брутото трябва да е по-голямо от нетото|*!', 'noicon', false);
+                    }
                 }
 
                 // Има ли нето тегло
