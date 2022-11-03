@@ -177,7 +177,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 // Ако няма последна покупна цена и не се обновява запис в текущата покупка
                 if(isset($rec->productId)){
                     if (!isset($policyInfo->price)) {
-                        $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика (2)';
+                        $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
                         $form->setError('packPrice', $errorMsg);
                     } else {
 
