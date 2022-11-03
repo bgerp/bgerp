@@ -981,7 +981,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
-            $masterRec = is_object($masterRec) ? $masterRec : planning_Tasks::fetch($rec->taskId);
+            $masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : planning_Tasks::fetch($rec->taskId);
 
             $eFields = planning_Tasks::getExpectedDeviations($masterRec);
             $deviationNotice = $eFields['notice'];
