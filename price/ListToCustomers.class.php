@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -81,8 +81,14 @@ class price_ListToCustomers extends core_Manager
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
+
+
+    /**
+     * Съобщение, което да се покаже на потребителя, ако няма намерена цена
+     */
+    public $notFoundPriceErrorMsg = "Артикулът няма цена в избраната ценова политика. Въведете цена|*!";
+
+
     /**
      * Описание на модела (таблицата)
      */
