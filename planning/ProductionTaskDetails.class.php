@@ -975,15 +975,13 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (!countR($rows)) return;
 
         $recsBySerials = array();
-        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$masterRec->folderId}'", 'showSerialWarningOnDuplication');
+        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$data->masterData->rec->folderId}'", 'showSerialWarningOnDuplication');
         $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
         array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
-
             $masterRec = is_object($masterRec) ? $masterRec : planning_Tasks::fetch($rec->taskId);
-            $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
 
             $eFields = planning_Tasks::getExpectedDeviations($masterRec);
             $deviationNotice = $eFields['notice'];
