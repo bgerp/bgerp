@@ -974,10 +974,22 @@ class planning_ProductionTaskDetails extends doc_Detail
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
-        $recsBySerials = array();
+        $recsBySerials = $producedSerials = array();
         $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$data->masterData->rec->folderId}'", 'showSerialWarningOnDuplication');
         $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
-        array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
+        array_walk($data->recs, function($a) use (&$recsBySerials, &$producedSerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}if($a->type == 'production' && !empty($a->serial)) {$producedSerials[$a->serial] = $a->serial;};});
+
+        // Проверка в кои задания са използвани серийните номера
+        $groupedSerialsByJobs = array();
+        if(countR($producedSerials)){
+            $query = static::getQuery();
+            $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+            $query->in('serial', $producedSerials);
+            $query->show('originId,serial');
+            while($tdRec = $query->fetch()){
+                $groupedSerialsByJobs[$tdRec->serial][$tdRec->originId] = $tdRec->originId;
+            }
+        }
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
@@ -1083,11 +1095,29 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $row->serial = self::getLink($rec->taskId, $rec->serial);
             }
 
+            $styleWithBorder = false;
             if($checkSerials4Warning == 'yes' && $rec->type != 'scrap'){
                 if($recsBySerials[$rec->serial] > 1){
-                    $row->serial = ht::createElement('span', array('class' => 'warning-balloon'), $row->serial);
+                    $styleWithBorder = true;
                     $row->serial = ht::createHint($row->serial, 'Номера се повтаря в операцията|*!', 'notice');
                 }
+            }
+
+            // Ако номера се среща в повече от едно задание да се визуализира предупреждение
+            if(is_array($groupedSerialsByJobs[$rec->serial]) && countR($groupedSerialsByJobs[$rec->serial]) > 1){
+                $copyArr = $groupedSerialsByJobs[$rec->serial];
+                unset($copyArr[$masterRec->originId]);
+                $otherJobStr = array();
+                foreach ($copyArr as $jobContainerId){
+                    $otherJobStr[] = "#" . doc_Containers::getDocument($jobContainerId)->getHandle();
+                }
+                $msg = "Номерът се среща и следните задания|*: " . implode(',', $otherJobStr);
+                $row->serial = ht::createHint($row->serial, "$msg", 'warning');
+                $styleWithBorder = true;
+            }
+
+            if($styleWithBorder){
+                $row->serial = ht::createElement('span', array('class' => 'warning-balloon'), $row->serial);
             }
         }
 
@@ -1100,7 +1130,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
 
-        if($masterRec->showadditionalUom == 'no'){
+        if(isset($masterRec) && $masterRec->showadditionalUom == 'no'){
             unset($data->listFields['weight']);
             unset($data->listFields['netWeight']);
         }
