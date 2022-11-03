@@ -26,7 +26,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Продукт';
+    public $singleTitle = 'Артикул';
     
     
     /**
