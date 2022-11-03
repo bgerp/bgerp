@@ -346,7 +346,7 @@ class frame2_Reports extends embed_Manager
                     $cu = core_Users::getCurrent();
                     
                     // И потребителя не е създател на документа
-                    if ($rec->createdBy != $cu) {
+                    if ($rec->createdBy != $cu && !haveRole('ceo')) {
                         
                         // Скриват се всички полета, които не са упоменати като променяеми
                         $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
