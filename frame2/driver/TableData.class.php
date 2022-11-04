@@ -430,10 +430,18 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null,$subGroupFieldOrder)
     {
         $newRecs = array();
+
+
+        $timeLimit = countR($recs) * 0.05;
+
+        if ($timeLimit >= 30) {
+            core_App::setTimeLimit($timeLimit);
+        }
+
         foreach ($recs as $i => $r) {
             
             // Извличане на тези записи от със същата стойност за групиране
-            $groupedArr = array($i => $r);
+            $groupedArr = array($i => $r);bp();
             $subArr = array_filter($recs, function ($a) use ($r, $groupField) {
                 return ($a->{$groupField} == $r->{$groupField});
             });
