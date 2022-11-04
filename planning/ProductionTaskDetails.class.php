@@ -1287,8 +1287,9 @@ class planning_ProductionTaskDetails extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (in_array($action, array('add', 'edit', 'delete', 'reject', 'fix')) && isset($rec->taskId)) {
-            $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state');
-            if(in_array($masterRec->state, array('rejected', 'draft', 'waiting', 'stopped'))){
+            $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state,originId');
+            $originState = doc_Containers::getDocument($masterRec->originId)->fetchField('state');
+            if(in_array($masterRec->state, array('rejected', 'draft', 'waiting', 'stopped')) || in_array($originState, array('rejected', 'draft', 'stopped', 'closed'))){
                 $requiredRoles = 'no_one';
             } elseif($masterRec->state == 'closed'){
                 $howLong = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
