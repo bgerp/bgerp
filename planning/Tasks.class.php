@@ -2002,9 +2002,10 @@ class planning_Tasks extends core_Master
         $tQuery->where("#originId = {$jobRec->containerId} AND (#productId = {$jobRec->productId} OR #isFinal = 'yes')");
         $tQuery->where("#state != 'rejected' AND #state != 'pending'");
         $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack,showadditionalUom,totalNetWeight,totalWeight');
+
         while($tRec = $tQuery->fetch()){
             // Ако заданието е в мярка производна на кг и ПО е в мярка различна от кг, то ще се взима реалното нето тегло
-            if(array_key_exists($jobRec->measureId, $kgDerivitives) && !array_key_exists($tRec->measureId, $kgDerivitives)){
+            if(array_key_exists($jobRec->packagingId, $kgDerivitives) && !array_key_exists($tRec->measureId, $kgDerivitives)){
                 if($tRec->showadditionalUom == 'yes'){
                     $sum += $tRec->totalNetWeight;
                     continue;
