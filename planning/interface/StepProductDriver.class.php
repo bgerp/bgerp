@@ -149,6 +149,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          string      ['wasteProductId']       - ид на отпадък
      *          string      ['wasteStart']           - начално количество отпадък
      *          string      ['wastePercent']         - процент отпадък
+     *          string      ['calcWeightMode']       - изчисляване на тегло или не
      */
     public function getProductionData($productId)
     {
@@ -164,6 +165,8 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
         $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();
+        $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
+
         $res['isFinal'] = $rec->isFinal;
         $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
         if($rec->canStore == 'yes'){

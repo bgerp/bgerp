@@ -8,7 +8,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -42,6 +42,17 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             'valior' => $rec->date,   // датата на ордера
             'entries' => array(),
         );
+
+        if($rec->type != 'dc_note'){
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($receiptId = pos_Receipts::fetchField("#transferredIn = {$firstDoc->that}")) {
+                if(pos_Reports::getReportReceiptIsIn($receiptId)){
+
+                    // Ако ф-та е към договор към приключена пос бележка с отчет да не прави контировка
+                    return $result;
+                }
+            }
+        }
 
         if (Mode::get('saveTransaction')) {
             $productArr = array();

@@ -185,17 +185,20 @@ class planning_ProductionTaskDetails extends doc_Detail
         $masterRec = planning_Tasks::fetch($rec->taskId);
 
         // Кои оператори са въведени досега
-        $lastEmployees = null;
-        $selectedEmployeesByNowKeylist = '';
-        $query = $mvc->getQuery();
-        $query->where("#taskId = {$rec->taskId} AND #employees IS NOT NULL");
-        $query->orderBy('id', 'ASC');
-        $query->show('employees');
-        while ($dRec = $query->fetch()) {
-            $selectedEmployeesByNowKeylist = keylist::merge($selectedEmployeesByNowKeylist, $dRec->employees);
-            $lastEmployees = $dRec->employees;
+        $defaultFillLastUser = planning_Setup::get('TASK_PROGRESS_OPERATOR');
+        if(in_array($defaultFillLastUser, array('lastAndOptional', 'lastAndMandatory'))){
+            $lastEmployees = null;
+            $selectedEmployeesByNowKeylist = '';
+            $query = $mvc->getQuery();
+            $query->where("#taskId = {$rec->taskId} AND #employees IS NOT NULL");
+            $query->orderBy('id', 'ASC');
+            $query->show('employees');
+            while ($dRec = $query->fetch()) {
+                $selectedEmployeesByNowKeylist = keylist::merge($selectedEmployeesByNowKeylist, $dRec->employees);
+                $lastEmployees = $dRec->employees;
+            }
+            $form->setDefault('employees', $lastEmployees);
         }
-        $form->setDefault('employees', $lastEmployees);
 
         // Ако в мастъра са посочени машини, задават се като опции
         if (isset($masterRec->assetId)) {
@@ -372,7 +375,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if ($rec->type == 'production') {
             if ($masterRec->showadditionalUom == 'no') {
                 $form->setField('weight', 'input=none');
-            } elseif ($masterRec->showadditionalUom == 'mandatory') {
+            } else {
                 $form->setField('weight', 'mandatory');
             }
         } elseif ($rec->type != 'scrap') {
@@ -454,8 +457,8 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if (empty($rec->employees) && empty($rec->otherEmployees)) {
                     $mandatoryOperatorsInTasks = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'mandatoryOperatorsInTasks');
-                    $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR') : $mandatoryOperatorsInTasks;
-                    if ($mandatoryOperatorsInTasks == 'yes') {
+                    $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_OPERATOR') : $mandatoryOperatorsInTasks;
+                    if (in_array($mandatoryOperatorsInTasks, array('emptyAndMandatory', 'lastAndMandatory'))) {
                         $form->setError('employees,otherEmployees', 'Операторът е задължителен');
                     }
                 }
@@ -515,7 +518,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 if ($rec->type == 'production') {
-                    $mvc->checkFromForNetWeight($masterRec, $form);
+                    $mvc->checkFormForNetWeight($masterRec, $form);
                 }
 
                 if (!$form->gotErrors()) {
@@ -618,7 +621,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if(!empty($centerRec->useTareFromParamId)){
             $taskWeightSubtractValue = static::getParamValue($taskId, $centerRec->useTareFromParamId, $jobProductId, $taskRec->productId);
             $paramName = cat_Params::getVerbal($centerRec->useTareFromParamId, 'typeExt');
-            if($taskWeightSubtractValue === false || is_null($taskWeightSubtractValue)) return null;
+            if($taskWeightSubtractValue === false || is_null($taskWeightSubtractValue)) return $result;
 
             // Ако параметъра е формула, се прави опит за изчислението ѝ
             if(cat_Params::haveDriver($centerRec->useTareFromParamId, 'cond_type_Formula')){
@@ -628,6 +631,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
                     $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
                     $msgType = 'warning';
+
                     return $result;
                 }
             }
@@ -973,16 +977,26 @@ class planning_ProductionTaskDetails extends doc_Detail
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
-        $recsBySerials = array();
-        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$masterRec->folderId}'", 'showSerialWarningOnDuplication');
+        $recsBySerials = $producedSerials = array();
+        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$data->masterData->rec->folderId}'", 'showSerialWarningOnDuplication');
         $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
-        array_walk($data->recs, function($a) use (&$recsBySerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}});
+        array_walk($data->recs, function($a) use (&$recsBySerials, &$producedSerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}if($a->type == 'production' && !empty($a->serial)) {$producedSerials[$a->serial] = $a->serial;};});
+
+        // Проверка в кои задания са използвани серийните номера
+        $groupedSerialsByJobs = array();
+        if(countR($producedSerials)){
+            $query = static::getQuery();
+            $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+            $query->in('serial', $producedSerials);
+            $query->show('originId,serial');
+            while($tdRec = $query->fetch()){
+                $groupedSerialsByJobs[$tdRec->serial][$tdRec->originId] = $tdRec->originId;
+            }
+        }
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
-
-            $masterRec = is_object($masterRec) ? $masterRec : planning_Tasks::fetch($rec->taskId);
-            $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
+            $masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : planning_Tasks::fetch($rec->taskId);
 
             $eFields = planning_Tasks::getExpectedDeviations($masterRec);
             $deviationNotice = $eFields['notice'];
@@ -1003,8 +1017,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $row->netWeight = "<span class='quiet'>n/a</span>";
                 }
                 if($rec->weight <= $rec->netWeight){
-                    $row->weight = ht::createElement('span', array('style' => 'font-weight:bold;color:darkred;'), $row->weight);
-                    $row->weight = ht::createHint($row->weight, 'Брутото трябва да е по-голямо от нетото|*!', 'noicon', false);
+                    if($rec->state != 'rejected'){
+                        $row->weight = ht::createElement('span', array('style' => 'font-weight:bold;color:darkred;'), $row->weight);
+                        $row->weight = ht::createHint($row->weight, 'Брутото трябва да е по-голямо от нетото|*!', 'noicon', false);
+                    }
                 }
 
                 // Има ли нето тегло
@@ -1082,11 +1098,29 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $row->serial = self::getLink($rec->taskId, $rec->serial);
             }
 
+            $styleWithBorder = false;
             if($checkSerials4Warning == 'yes' && $rec->type != 'scrap'){
                 if($recsBySerials[$rec->serial] > 1){
-                    $row->serial = ht::createElement('span', array('class' => 'warning-balloon'), $row->serial);
+                    $styleWithBorder = true;
                     $row->serial = ht::createHint($row->serial, 'Номера се повтаря в операцията|*!', 'notice');
                 }
+            }
+
+            // Ако номера се среща в повече от едно задание да се визуализира предупреждение
+            if(is_array($groupedSerialsByJobs[$rec->serial]) && countR($groupedSerialsByJobs[$rec->serial]) > 1){
+                $copyArr = $groupedSerialsByJobs[$rec->serial];
+                unset($copyArr[$masterRec->originId]);
+                $otherJobStr = array();
+                foreach ($copyArr as $jobContainerId){
+                    $otherJobStr[] = "#" . doc_Containers::getDocument($jobContainerId)->getHandle();
+                }
+                $msg = "Номерът се среща и следните задания|*: " . implode(',', $otherJobStr);
+                $row->serial = ht::createHint($row->serial, "$msg", 'warning');
+                $styleWithBorder = true;
+            }
+
+            if($styleWithBorder){
+                $row->serial = ht::createElement('span', array('class' => 'warning-balloon'), $row->serial);
             }
         }
 
@@ -1099,7 +1133,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
 
-        if($masterRec->showadditionalUom == 'no'){
+        if(isset($masterRec) && $masterRec->showadditionalUom == 'no'){
             unset($data->listFields['weight']);
             unset($data->listFields['netWeight']);
         }
@@ -1256,8 +1290,9 @@ class planning_ProductionTaskDetails extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (in_array($action, array('add', 'edit', 'delete', 'reject', 'fix')) && isset($rec->taskId)) {
-            $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state');
-            if(in_array($masterRec->state, array('rejected', 'draft', 'waiting'))){
+            $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state,originId');
+            $originState = doc_Containers::getDocument($masterRec->originId)->fetchField('state');
+            if(in_array($masterRec->state, array('rejected', 'draft', 'waiting', 'stopped')) || in_array($originState, array('rejected', 'draft', 'stopped', 'closed'))){
                 $requiredRoles = 'no_one';
             } elseif($masterRec->state == 'closed'){
                 $howLong = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
@@ -1545,7 +1580,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             expect(!empty($rec->fixedAsset), 'Задължително трябва да е избрано оборудване');
         }
         
-        if($taskRec->showadditionalUom == 'mandatory' && $rec->type == 'production' && $rec->productId == $taskRec->productId){
+        if($taskRec->showadditionalUom != 'no' && $rec->type == 'production' && $rec->productId == $taskRec->productId){
             expect($rec->weight, 'Теглото е задължително');
         }
 
@@ -1611,7 +1646,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Запис на бракуваното количество
         if($form->isSubmitted()){
-            $this->checkFromForNetWeight($masterRec, $form);
+            $this->checkFormForNetWeight($masterRec, $form);
 
             if(!$form->gotErrors()){
                 $rec->netWeight = $form->rec->netWeight;
@@ -1641,7 +1676,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @param core_Form $form
      * @return void
      */
-    private function checkFromForNetWeight($masterRec, &$form)
+    private function checkFormForNetWeight($masterRec, &$form)
     {
         // Опит за приспадане на параметър от стойността на теглото
         $rec = $form->rec;
@@ -1652,6 +1687,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if($rec->productId == $jobProductId || $rec->productId == $masterRec->productId){
             $weightMsg = $weightMsgType = null;
             $rec->netWeight = static::subtractParamValueFromWeight($rec->taskId, $rec->productId, $masterRec->originId, $rec->weight, $weightMsg, $weightMsgType);
+
             if($weightMsgType == 'warning'){
                 $form->setWarning('weight', $weightMsg);
             } elseif($weightMsgType == 'error'){

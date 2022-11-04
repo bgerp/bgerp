@@ -538,6 +538,7 @@ class store_StockPlanning extends core_Manager
     public static function getRecs($productId, $stores, $toDate, $field = null)
     {
         $end = (strlen($toDate) == 10) ? "{$toDate} 23:59:59" : $toDate;
+        $end = (empty($end)) ? '0000-00-00' : $end;
         $query = static::getQuery();
         $query->where("#productId = {$productId} AND #date <= '{$end}'");
         if(isset($stores)){

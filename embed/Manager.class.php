@@ -476,17 +476,17 @@ abstract class embed_Manager extends core_Master
      */
     public static function haveDriver($id, $drivers, $isInstanceOf = false)
     {
-        $Driver = static::getDriver($id);
-        $drivers = arr::make($drivers);
+        if($Driver = static::getDriver($id)){
+            $drivers = arr::make($drivers);
 
-        foreach($drivers as $curDriver){
-            $check = cls::get($curDriver);
+            foreach($drivers as $curDriver){
+                $check = cls::get($curDriver);
+                if($isInstanceOf === true) {
+                    if($Driver instanceof $check) return true;
+                }
 
-            if($isInstanceOf === true) {
-                if($Driver instanceof $check) return true;
+                if($Driver->getClassId() == $check->getClassId()) return true;
             }
-
-            if($Driver->getClassId() == $check->getClassId()) return true;
         }
 
         return false;

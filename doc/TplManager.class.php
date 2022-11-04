@@ -38,8 +38,8 @@ class doc_TplManager extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools';
-    
+    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
+
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
@@ -125,6 +125,12 @@ class doc_TplManager extends core_Master
 
 
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'name, docClassId, lang, content, narrowContent';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -163,7 +169,7 @@ class doc_TplManager extends core_Master
 
         $data->listFilter->setOptions('docClassId', static::getClassesWithTemplates());
         $data->listFilter->setField('docClassId', "placeholder=Всички документи,silent");
-        $data->listFilter->showFields = 'docClassId';
+        $data->listFilter->showFields = 'docClassId, search';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
@@ -174,8 +180,8 @@ class doc_TplManager extends core_Master
                 $data->query->where("#docClassId = {$data->listFilter->rec->docClassId}");
             }
         }
-        
-        $data->query->orderBy('name');
+
+        $data->query->orderBy('modifiedOn', 'DESC');
     }
     
     

@@ -248,6 +248,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $form->setDefault('storeId', $storeId);
         $form->setOptions('productId', $productOptions);
         $form->setDefault('productId', key($productOptions));
+        $kgDerivitives = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
 
         if(isset($rec->productId)){
             if($rec->productId != $jobRec->productId){
@@ -267,9 +268,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $originPackId = $originRec->packagingId;
                 $form->setDefault('jobQuantity', $originRec->quantity);
                 $quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
+
                 $quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
                 if ($quantityToStore > 0) {
-                    $form->setDefault('packQuantity', round($quantityToStore / $originRec->quantityInPack, 5));
+                    $defQuantity = $quantityToStore;
+                    if(!array_key_exists($originPackId, $kgDerivitives)){
+                        $defQuantity = round($quantityToStore / $originRec->quantityInPack, 5);
+                    }
+                    $form->setDefault('packQuantity', $defQuantity);
                 }
             } else {
                 // Ако задачата е за крайния артикул записваме к-то му от заданието

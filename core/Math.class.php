@@ -45,9 +45,9 @@ class core_Math
         if (round($number, 10)) {
             $r = log10(abs($number));
         }
-        
+
         // Плаваща, лимитирана от долу прецизност
-        $precision = max($fractionalLen, round($significantDigits - $r));
+        $precision = max($fractionalLen, floor($significantDigits - $r));
         
         // Закръгляваме
         $number = round($number, $precision);

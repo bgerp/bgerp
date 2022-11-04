@@ -265,7 +265,8 @@ abstract class deals_DealBase extends core_Master
         }
         $dealQuery->where("#state = 'active'");
         $dealQuery->where("#closedDocuments = ''");
-        
+        $dealQuery->orderBy('id', 'ASC');
+
         while ($dealRec = $dealQuery->fetch()) {
             $title = $this->getRecTitle($dealRec, false) . ' / ' . (($this->valiorFld) ? $this->getVerbal($dealRec, $this->valiorFld) : '');
             $docs[$dealRec->id] = $title;
