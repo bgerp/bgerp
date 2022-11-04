@@ -86,11 +86,10 @@ class planning_interface_HrLabelImpl
     {
         $rec = $this->class->fetchRec($id);
         $name = crm_Persons::getVerbal($rec->personId, 'name');
-        $singleUrl = toUrl(array('crm_Persons', 'single', $rec->personId), 'absolute');
-        
+
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('QR_CODE' => $singleUrl, 'HR_CODE' => $rec->code, 'NAME' => $name);
+            $res = array('QR_CODE' => $rec->code, 'HR_CODE' => $rec->code, 'NAME' => $name);
             $arr[] = $res;
         }
        

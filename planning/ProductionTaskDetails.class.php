@@ -185,17 +185,20 @@ class planning_ProductionTaskDetails extends doc_Detail
         $masterRec = planning_Tasks::fetch($rec->taskId);
 
         // Кои оператори са въведени досега
-        $lastEmployees = null;
-        $selectedEmployeesByNowKeylist = '';
-        $query = $mvc->getQuery();
-        $query->where("#taskId = {$rec->taskId} AND #employees IS NOT NULL");
-        $query->orderBy('id', 'ASC');
-        $query->show('employees');
-        while ($dRec = $query->fetch()) {
-            $selectedEmployeesByNowKeylist = keylist::merge($selectedEmployeesByNowKeylist, $dRec->employees);
-            $lastEmployees = $dRec->employees;
+        $defaultFillLastUser = planning_Setup::get('TASK_PROGRESS_OPERATOR');
+        if(in_array($defaultFillLastUser, array('lastAndOptional', 'lastAndMandatory'))){
+            $lastEmployees = null;
+            $selectedEmployeesByNowKeylist = '';
+            $query = $mvc->getQuery();
+            $query->where("#taskId = {$rec->taskId} AND #employees IS NOT NULL");
+            $query->orderBy('id', 'ASC');
+            $query->show('employees');
+            while ($dRec = $query->fetch()) {
+                $selectedEmployeesByNowKeylist = keylist::merge($selectedEmployeesByNowKeylist, $dRec->employees);
+                $lastEmployees = $dRec->employees;
+            }
+            $form->setDefault('employees', $lastEmployees);
         }
-        $form->setDefault('employees', $lastEmployees);
 
         // Ако в мастъра са посочени машини, задават се като опции
         if (isset($masterRec->assetId)) {
@@ -454,8 +457,8 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if (empty($rec->employees) && empty($rec->otherEmployees)) {
                     $mandatoryOperatorsInTasks = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'mandatoryOperatorsInTasks');
-                    $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR') : $mandatoryOperatorsInTasks;
-                    if ($mandatoryOperatorsInTasks == 'yes') {
+                    $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_OPERATOR') : $mandatoryOperatorsInTasks;
+                    if (in_array($mandatoryOperatorsInTasks, array('emptyAndMandatory', 'lastAndMandatory'))) {
                         $form->setError('employees,otherEmployees', 'Операторът е задължителен');
                     }
                 }

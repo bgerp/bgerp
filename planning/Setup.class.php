@@ -110,12 +110,6 @@ defIfNot('PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK', 'yes');
 
 
 /**
- * Задължителен избор за оператор в ПО
- */
-defIfNot('PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR', 'yes');
-
-
-/**
  * Колко време след приключване на ПО може да се въвежда прогрес по нея
  */
 defIfNot('PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE', 60 * 60 * 24 * 5);
@@ -131,6 +125,12 @@ defIfNot('PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS', 'yes');
  * Показване на статус при разминаване на нетото в ПО->Предупреждение
  */
 defIfNot('PLANNING_TASK_NET_WEIGHT_WARNING', 0.05);
+
+
+/**
+ * Задаване на оператори в прогреса на ПО
+ */
+defIfNot('PLANNING_TASK_PROGRESS_OPERATOR', 'lastAndMandatory');
 
 
 /**
@@ -190,7 +190,6 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
         'PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Толеранс за разминаване между очакваното съответствие в протоколите за производство->Предупреждение'),
         'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено)', 'caption=Отчитане на теглото в ПО->Режим'),
-
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на Задание без нови контиращи документи->Повече от'),
         'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на Задание без нови контиращи документи->И Заскладено над,callOnChange=planning_Setup::setJobAutoClose'),
         'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
@@ -198,7 +197,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
         'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
-        'PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR' => array('enum(yes=Задължително,no=Опционално)', 'caption=Въвеждане на прогрес в ПО->Оператор(и)'),
+        'PLANNING_TASK_PROGRESS_OPERATOR' => array('enum(lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално))', 'caption=Задаване на оператори в прогреса на ПО->Оператори'),
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
         'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
@@ -253,6 +252,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::removeOldRoles',
         'migrate::updateLastChangedOnState',
         'migrate::updateTasks1',
+        'migrate::updateCenters2244',
     );
     
     
@@ -438,5 +438,19 @@ class planning_Setup extends core_ProtoSetup
         $colName = str::phpToMysqlName('showadditionalUom');
         $query = "UPDATE {$Tasks->dbTableName} SET {$colName} = 'yes' WHERE {$colName} = 'mandatory'";
         $Tasks->db->query($query);
+    }
+
+
+    /**
+     * Миграция на центровете на дейност
+     */
+    public function updateCenters2244()
+    {
+        $Centers = cls::get('planning_Centers');
+        if(!$Centers->count()) return;
+
+        $colName = str::phpToMysqlName('mandatoryOperatorsInTasks');
+        $query = "UPDATE {$Centers->dbTableName} SET {$colName} = 'lastAndMandatory' WHERE {$colName} = 'yes'";
+        $Centers->db->query($query);
     }
 }
