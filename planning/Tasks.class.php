@@ -184,7 +184,7 @@ class planning_Tasks extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn,dueDate';
+    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn,dueDate,lastChangeStateOn';
     
     
     /**
@@ -292,7 +292,7 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation,silent');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Бруто,input=none');
         $this->FLD('totalNetWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Нето,input=none');
@@ -305,7 +305,7 @@ class planning_Tasks extends core_Master
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
-        $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на тегло,notNull,value=yes,autohide');
+        $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено)', 'caption=Отчитане на тегло,notNull,value=yes,autohide');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
         }        
@@ -883,11 +883,10 @@ class planning_Tasks extends core_Master
         unset($resArr['createdBy']);
         unset($resArr['createdOn']);
 
-        $display = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) ? 'block' : 'none';
-        $toggleClass = in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) ? 'show-btn' : '';
+        $display = (in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) || haveRole('task')) ? 'block' : 'none';
+        $toggleClass = (in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) || haveRole('task')) ? 'show-btn' : '';
 
         if(Mode::is('printing')){
-            $display = true;
             $resArr['info'] = array('name' => tr('Операция'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>№:</td><td>[#ident#]</td></tr>
                 <tr><td style='font-weight:normal'>|Създаване от|*:</td><td>[#createdBy#]</td></tr>
@@ -917,9 +916,11 @@ class planning_Tasks extends core_Master
                 <!--ET_BEGIN notifications--><tr><td colspan='2'>[#notifications#]</td></tr><!--ET_END notifications-->
                 <tr><td style='font-weight:normal'>|Режим|*:</td><td>[#showadditionalUom#]</td></tr>
                 </table>"));
-        }
 
-        $row->notifications = implode(' ', array($row->deviationNettoNotice, $row->deviationNettoWarning, $row->deviationNettoCritical));
+            if($rec->showadditionalUom == 'yes'){
+                $row->notifications = implode(' ', array($row->deviationNettoNotice, $row->deviationNettoWarning, $row->deviationNettoCritical));
+            }
+        }
 
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
@@ -1406,7 +1407,7 @@ class planning_Tasks extends core_Master
             }
 
             if(empty($rec->systemId) && empty($rec->id)){
-                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm");
+                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode");
                 foreach ($defFields as $fld => $val){
                     $form->setDefault($fld, $productionData[$val]);
                 }
@@ -1555,12 +1556,6 @@ class planning_Tasks extends core_Master
                 $form->setField('storeId', 'input');
                 $form->setField('labelPackagingId', 'input');
                 $form->setField('indPackagingId', 'input');
-                $defaultShowAdditionalUom = planning_Setup::get('TASK_WEIGHT_MODE');
-                $form->setDefault('showadditionalUom', $defaultShowAdditionalUom);
-
-                if($defaultShowAdditionalUom == $rec->showadditionalUom){
-                    $form->setField('showadditionalUom', 'autohide=any');
-                }
             } else {
                 $form->setField('showadditionalUom', 'input=none');
                 $form->setDefault('indPackagingId', $rec->measureId);
@@ -1669,12 +1664,18 @@ class planning_Tasks extends core_Master
 
         if (isset($rec->id)) {
             $form->setReadOnly('productId');
-            if($data->action != 'clone' && planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
-                $form->setReadOnly('labelPackagingId');
-                if($form->getFieldParam('labelQuantityInPack', 'input') != 'hidden'){
-                    $form->setReadOnly('labelQuantityInPack');
+            if($data->action != 'clone'){
+                if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
+                    $form->setReadOnly('labelPackagingId');
+                    if($form->getFieldParam('labelQuantityInPack', 'input') != 'hidden'){
+                        $form->setReadOnly('labelQuantityInPack');
+                    }
+                    $form->setReadOnly('measureId');
                 }
-                $form->setReadOnly('measureId');
+
+                if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")){
+                    $form->setReadOnly('showadditionalUom');
+                }
             }
         }
     }
@@ -1994,13 +1995,23 @@ class planning_Tasks extends core_Master
     public static function getProducedQuantityForJob($jobId)
     {
         $jobRec = planning_Jobs::fetchRec($jobId);
+        $kgDerivitives = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
 
         $sum = 0;
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#originId = {$jobRec->containerId} AND (#productId = {$jobRec->productId} OR #isFinal = 'yes')");
         $tQuery->where("#state != 'rejected' AND #state != 'pending'");
-        $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack');
+        $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack,showadditionalUom,totalNetWeight,totalWeight');
+
         while($tRec = $tQuery->fetch()){
+            // Ако заданието е в мярка производна на кг и ПО е в мярка различна от кг, то ще се взима реалното нето тегло
+            if(array_key_exists($jobRec->packagingId, $kgDerivitives) && !array_key_exists($tRec->measureId, $kgDerivitives)){
+                if($tRec->showadditionalUom == 'yes'){
+                    $sum += $tRec->totalNetWeight;
+                    continue;
+                }
+            }
+
             $sumRec = ($tRec->totalQuantity - $tRec->scrappedQuantity) * $tRec->quantityInPack;
             if($pQuantity = cat_products_Packagings::getPack($jobRec->productId, $jobRec->packagingId, 'quantity')){
                 $tRec->quantityInPack = $pQuantity;

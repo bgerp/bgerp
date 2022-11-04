@@ -330,7 +330,16 @@ class sales_Invoices extends deals_InvoiceMaster
         
         parent::prepareInvoiceForm($mvc, $data);
         if(empty($rec->id)){
-            $form->setDefault('importProducts', 'shippedNotInvoiced');
+            $defaultImportProducts = 'shippedNotInvoiced';
+
+            // Ако договора е към приключена ПОС бележка включена в ПОС отчет по дефолт ще са всички артикули от договора
+            if($receiptId = pos_Receipts::fetchField("#transferredIn = {$firstDoc->that}")){
+                $reportId = pos_Reports::getReportReceiptIsIn($receiptId);
+                if(isset($reportId)){
+                    $defaultImportProducts = 'onlyFromDeal';
+                }
+            }
+            $form->setDefault('importProducts', $defaultImportProducts);
         }
 
         if(!empty($form->rec->contragentVatNo)){

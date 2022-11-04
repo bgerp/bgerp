@@ -307,6 +307,11 @@ class core_Roles extends core_Manager
             $id = $Roles->fetchByName($role);
 
             expect($id || ($role == 'no_one'), $role);
+
+            if (!isset($id)) {
+                $id = -1;
+            }
+
             $keylistArr[$id] = $id;
         }
 

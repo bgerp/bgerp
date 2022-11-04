@@ -83,7 +83,7 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,consumption';
+    public $canDelete = 'ceo,consumption,store';
     
     
     /**

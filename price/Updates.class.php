@@ -67,8 +67,14 @@ class price_Updates extends core_Manager
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
+
+
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id, objectId, type';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -827,15 +833,58 @@ class price_Updates extends core_Manager
 
         return $tpl;
     }
-    
-    
+
+
     /**
-     * Изпълнява се след създаване на нов запис
+     * Преди запис на документ
      */
-    protected static function on_AfterCreate($mvc, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->updateMode == 'manual') {
-            $mvc->savePrimeCost($rec);
+        if(empty($rec->id)){
+            $rec->_isCreated = true;
         }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        $action = 'edit';
+        if($rec->_isCreated){
+            $action = 'add';
+            if ($rec->updateMode == 'manual') {
+                $mvc->savePrimeCost($rec);
+            }
+        }
+        $mvc->notifyObject4Change($action, $rec);
+    }
+
+
+    /**
+     * Преди изтриване се обновяват свойствата на перата
+     */
+    protected static function on_AfterDelete($mvc, &$res, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            $mvc->notifyObject4Change('delete', $rec);
+        }
+    }
+
+
+    /**
+     * Нотифициране на обекта, чието правило ще се модифицира
+     *
+     * @param string $action
+     * @param stdClass $rec
+     * @return void
+     */
+    private function notifyObject4Change($action, $rec)
+    {
+        // Записва в лога на обекта
+        $msg = ($action == 'add') ? 'Създаване' : (($action == 'delete') ? 'Изтриване' : 'Редактиране');
+        $className = ($rec->type == 'category') ? 'cat_Categories' : (($rec->type == 'product') ? 'cat_Products' : 'cat_Groups');
+        $className::logWrite("{$msg} на правило за себестойност", $rec->objectId);
     }
 }

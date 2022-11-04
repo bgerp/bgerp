@@ -247,6 +247,7 @@ class planning_Hr extends core_Master
     public function prepareData_(&$data)
     {
         $rec = self::fetch("#personId = {$data->masterId}");
+
         if (!empty($rec)) {
             $data->rec = $rec;
             $data->row = self::recToVerbal($rec);
@@ -285,7 +286,7 @@ class planning_Hr extends core_Master
 
         $tpl->placeObject($data->row);
         
-        if ($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId}")) {
+        if ($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId} AND #state = 'active'")) {
             $tpl->append(hr_EmployeeContracts::getHyperlink($eRec->id, true), 'contract');
             $tpl->append(hr_Positions::getHyperlink($eRec->positionId), 'positionId');
         }

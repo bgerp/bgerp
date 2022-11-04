@@ -86,6 +86,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField;
+
+    /**
+     * По-кое поле да се групират данните след групиране, вътре в групата
+     */
+    protected $subGroupFieldOrder;
     
     
     /**
@@ -147,6 +152,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data = new stdClass();
         $data->recs = $this->prepareRecs($rec, $data);
         setIfNot($data->groupByField, $this->groupByField);
+        setIfNot($data->subGroupFieldOrder, $this->subGroupFieldOrder);
         setIfNot($data->groupedFieldOnNewRow, $this->groupedFieldOnNewRow);
         setIfNot($data->summaryListFields, $this->summaryListFields);
         setIfNot($data->summaryRowCaption, $this->summaryRowCaption);
@@ -322,10 +328,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $sortDirectionArr  = explode('|', $sortDirection);
             $sortFld = !empty($sortDirectionArr[0]) ? $sortDirectionArr[0] : null;
             $sortDirection = !empty($sortDirectionArr[1]) ? $sortDirectionArr[1] : null;
-            
+
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
-                $data->recs = $this->orderByGroupField($data->recs, $data->groupByField, $sortFld, $sortDirection);
+                $data->recs = $this->orderByGroupField($data->recs, $data->groupByField, $sortFld, $sortDirection,$data->subGroupFieldOrder);
             } else {
                 $this->sortRecsByDirection($data->recs, $sortFld, $sortDirection);
             }
@@ -417,12 +423,22 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @param string $groupField
      * @param string|null $sortFld
      * @param string|null $sortDirection
+     * @param string|null $subGroupFieldOrder
      * 
      * @return array $newRecs
      */
-    private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null)
+    private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null,$subGroupFieldOrder)
     {
         $newRecs = array();
+
+        if ($recs) {
+            $timeLimit = countR($recs) * 0.05;
+            
+            if ($timeLimit >= 30) {
+                core_App::setTimeLimit($timeLimit);
+            }
+        }
+
         foreach ($recs as $i => $r) {
             
             // Извличане на тези записи от със същата стойност за групиране
@@ -430,13 +446,22 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $subArr = array_filter($recs, function ($a) use ($r, $groupField) {
                 return ($a->{$groupField} == $r->{$groupField});
             });
-            
+
+
+
             // Сортират се допълнително ако е указано
             $groupedArr += $subArr;
+
             $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
+
+            //Сортира се вътре във всяка група по втори показател $subGroupFieldOrder ако не е null
+            if ($groupField && $subGroupFieldOrder){
+                arr::sortObjects($groupedArr, $subGroupFieldOrder, 'asc');
+            }
+
             $newRecs += $groupedArr;
         }
-       
+
         return $newRecs;
     }
     

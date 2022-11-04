@@ -139,7 +139,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             }
             
             if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct')) {
-                $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (3)');
+                $form->setError('packPrice', 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!');
             }
             
             // Проверка на цената

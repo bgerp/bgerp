@@ -30,7 +30,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      *
      * @var string
      */
-    public $singleTitle = 'Продукт';
+    public $singleTitle = 'Артикул';
     
     
     /**
