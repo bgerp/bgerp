@@ -610,8 +610,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
                 
                 if (!$policyInfo) {
+                    $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                     $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
-                    $Policy = cls::get('price_ListToCustomers');
                     $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
                 }
                 
