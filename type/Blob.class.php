@@ -195,7 +195,9 @@ class type_Blob extends core_Type
         if (is_scalar($value)) {
             // Ако е указано - декомпресираме
             if ($value !== null && $value !== '' && $this->params['compress']) {
-                $valueUnCompr = @gzuncompress($value);
+                $size = $this->getDbFieldSize();
+                $size = (!$size) ? 65536 : $size;
+                $valueUnCompr = @gzuncompress($value, $size);
                 
                 // Ако компресирането е било успешно
                 if ($valueUnCompr !== false) {
