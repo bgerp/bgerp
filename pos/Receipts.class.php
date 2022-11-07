@@ -310,23 +310,9 @@ class pos_Receipts extends core_Master
             }
            
             if ($rec->state == 'closed' || $rec->state == 'rejected') {
-                $reportQuery = pos_Reports::getQuery();
-                $reportQuery->where("#state = 'active' || #state = 'closed'");
-                $reportQuery->show('details');
-                
-                // Опитваме се да намерим репорта в който е приключена бележката
-                //@TODO не е много оптимално защото търсим в блоб поле...
-                while ($rRec = $reportQuery->fetch()) {
-                    $id = $rec->id;
-                    $found = array_filter($rRec->details['receipts'], function ($e) use (&$id) {
-                        
-                        return $e->id == $id;
-                    });
-                    
-                    if ($found) {
-                        $row->inReport = pos_Reports::getLink($rRec->id, 0);
-                        break;
-                    }
+                $isIn = pos_Reports::getReportReceiptIsIn($rec->id);
+                if(isset($isIn)){
+                    $row->inReport = pos_Reports::getLink($isIn, 0);
                 }
             }
         }
@@ -547,7 +533,7 @@ class pos_Receipts extends core_Master
         // Можем да контираме бележки само когато те са чернови и платената
         // сума е по-голяма или равна на общата или общата сума е <= 0
         if ($action == 'close' && isset($rec->id)) {
-            if ($rec->total == 0 || round($rec->paid, 2) < round($rec->total, 2)) {
+            if ($rec->total == 0 || round($rec->paid, 2) < round($rec->total, 2) || $rec->state != 'draft') {
                 $res = 'no_one';
             }
         }
@@ -561,13 +547,13 @@ class pos_Receipts extends core_Master
         
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
-            if (empty($rec->id) || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
+            if(empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || !in_array($rec->state, array('draft', 'closed', 'waiting'))){
                 $res = 'no_one';
             }
         }
         
         if($action == 'setcontragent' && isset($rec)){
-            if(!$mvc->haveRightFor('terminal', $rec)){
+            if(!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn)){
                 $res = 'no_one';
             }
         }
@@ -603,8 +589,7 @@ class pos_Receipts extends core_Master
         // Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
         $posRec = pos_Points::fetch($rec->pointId);
         $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id, 'deliveryLocationId' => $rec->contragentLocationId);
-        $products = $this->getProducts($rec->id);
-        
+
         // Опитваме се да създадем чернова на нова продажба породена от бележката
         if ($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)) {
             sales_Sales::logWrite('Прехвърлена от POS продажба', $sId);
@@ -623,12 +608,24 @@ class pos_Receipts extends core_Master
             }
         }
         
-        // Отбелязваме къде е прехвърлена рецептата
+        // Отбелязване къде е прехвърлена бележката
         $rec->transferredIn = $sId;
+        $isBeingClosed = ($rec->state != 'closed');
         $rec->state = 'closed';
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
-        core_Statuses::newStatus("|Бележка|* №{$rec->id} |е затворена|*");
+        if($isBeingClosed){
+            core_Statuses::newStatus("|Бележка|* №{$rec->id} |е затворена|*");
+        } else {
+            // Продажбата се активира, ако ПОС бележката е приключена
+            $saleRec = sales_Sales::fetchRec($sId);
+            $saleRec->contoActions = 'activate';
+            $saleRec->isContable = 'activate';
+            sales_Sales::save($saleRec);
+            sales_Sales::conto($saleRec->id);
+            cls::get('sales_Sales')->updateMaster($saleRec->id);
+            sales_Sales::logWrite('Активиране на прехвърлена от POS продажба', $sId);
+        }
         
         // Споделяме потребителя към нишката на създадената продажба
         $cu = core_Users::getCurrent();
@@ -637,7 +634,7 @@ class pos_Receipts extends core_Master
         Mode::setPermanent("currentOperation{$rec->id}", 'receipts');
         Mode::setPermanent("currentSearchString{$rec->id}", null);
         
-        // Редирект към новата бележка
+        // Редирект към новата продажба
         return new Redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
     }
     

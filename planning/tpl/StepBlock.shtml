@@ -48,6 +48,12 @@
 			<td>[#planning_Steps_showPreviousJobField#]</td>
 		</tr>
 		<!--ET_END planning_Steps_showPreviousJobField-->
+		<!--ET_BEGIN planning_Steps_calcWeightMode-->
+		<tr>
+			<td class='quiet nowrap'>|Изчисляване на тегло|*:</td>
+			<td>[#planning_Steps_calcWeightMode#]</td>
+		</tr>
+		<!--ET_END planning_Steps_calcWeightMode-->
 
 		<!--ET_BEGIN PARAMS-->
 		<tr>

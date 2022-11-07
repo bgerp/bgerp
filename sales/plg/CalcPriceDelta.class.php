@@ -143,7 +143,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             if ($mvc instanceof sales_Sales) {
 
                 // Ако документа е продажба, изчислява се каква му е себестойноста
-                $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId);
+                $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId, $dRec->notes);
             } else {
                 $primeCost = null;
                 

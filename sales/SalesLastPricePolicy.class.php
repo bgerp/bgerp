@@ -11,7 +11,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -29,6 +29,12 @@ class sales_SalesLastPricePolicy extends core_Mvc
      * Интерфейс за ценова политика
      */
     public $interfaces = 'price_PolicyIntf';
+
+
+    /**
+     * Съобщение, което да се покаже на потребителя, ако няма намерена цена
+     */
+    public $notFoundPriceErrorMsg = "Артикулът не е продаван досега на клиента. Въведете цена|*!";
 
 
     /**

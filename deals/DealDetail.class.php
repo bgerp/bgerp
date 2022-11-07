@@ -340,9 +340,9 @@ abstract class deals_DealDetail extends doc_Detail
                 if ($rec->productId) {
                     $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
                     $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
-                   // bp($policyInfo, $masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+
                     if (!isset($policyInfo->price)) {
-                        $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
+                        $form->setError('packPrice', $Policy->notFoundPriceErrorMsg);
                     } else {
                         
                         // Ако се обновява запис се взима цената от него, ако не от политиката

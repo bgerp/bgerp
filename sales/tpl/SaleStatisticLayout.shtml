@@ -65,6 +65,9 @@
                   <!--ET_BEGIN clonedFromId-->
                   <span style='font-weight:normal'>|Клонирано от|*</span>: [#clonedFromId#]<br>
                   <!--ET_END clonedFromId-->
+                  <!--ET_BEGIN receiptId-->
+                  <span style='font-weight:normal'>|Бележка|*</span>: [#receiptId#]<br>
+                  <!--ET_END receiptId-->
               </td>
            </tr>
            <tr>

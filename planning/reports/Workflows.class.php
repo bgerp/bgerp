@@ -26,7 +26,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'employees';
+    protected $sortableListFields;
 
     /**
      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
@@ -42,6 +42,17 @@ class planning_reports_Workflows extends frame2_driver_TableData
      * @var int
      */
     protected $summaryRowCaption = 'ОБЩО';
+
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    protected $groupByField = 'sdfsd';
+
+
+    /**
+     * По-кое поле да се групират данните след групиране, вътре в групата
+     */
+    protected $subGroupFieldOrder;
 
 
     /**
@@ -63,7 +74,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'start,to,resultsOn,centre,assetResources,employees,typeOfReport';
+    protected $changeableFields = 'start,to,resultsOn,centre,assetResources,typeOfReport';
 
 
     /**
@@ -217,7 +228,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
 
                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,indTimeAllocation,labelPackagingId,indTime,indPackagingId,totalQuantity,originId');
-
+;
                 $quantity = $tRec->quantity;
                 $weight = round($tRec->weight, 3);
                 $crapQuantity = 0;
@@ -322,8 +333,18 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
-            if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+
+            if ($rec->resultsOn == 'users') {
+                $this->subGroupFieldOrder = 'taskId';
                 $this->groupByField = 'employees';
+
+            }
+
+            if ($rec->resultsOn == 'usersMachines') {
+
+                $this->subGroupFieldOrder = 'assetResources';
+                $this->groupByField = 'employees';
+
             }
 
             //Разпределяне по работници,или по машини
@@ -342,7 +363,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 foreach ($arr as $k => $v) {
                     unset($id);
 
-                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees)) && $rec->resultsOn != 'arts') {
+                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees)) && $rec->resultsOn != 'arts' && $rec->resultsOn != 'machines') {
                         continue;
                     }
 
@@ -453,9 +474,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $rec->indTimeSumArr = $indTimeSumArr;
         $typesQuantities->quantitiesByMeasure = $quantitiesByMeasure;
 
-        //Ако резбивката е по артикули, справката е подробна добавям първи рез със
+        //Ако резбивката е по артикули, справката е подробна добавям първи ред със
         //сумарните ко.личества по дености
-        if ($rec->typeOfReport == 'full' && $rec->resultsOn == 'arts') {
+        if ($rec->typeOfReport == 'full' && ($rec->resultsOn == 'arts' || $rec->resultsOn == 'machines')) {
             array_unshift($recs, $typesQuantities);
         }
 
@@ -479,7 +500,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if ($export === false) {
 
             if ($rec->typeOfReport == 'full') {
-                if ($rec->resultsOn == 'arts') {
+                if ($rec->resultsOn == 'arts' || $rec->resultsOn == 'machines') {
                     $fld->FLD('total', 'varchar', 'caption=@Total,tdClass=leftCol');
                 }
 
@@ -757,7 +778,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
     /**
      * Кой може да избере драйвера
-     * ceo, planning+officer
+     * ceo, task+officer
      */
     public function canSelectDriver($userId = null)
     {
@@ -766,7 +787,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             return true;
         }
 
-        if (!haveRole('ceo', $userId) && haveRole('planning', $userId)) {
+        if (!haveRole('ceo', $userId) && haveRole('task', $userId)) {
             if (haveRole('officer', $userId)) {
 
                 return true;

@@ -138,7 +138,7 @@ class planning_Jobs extends core_Master
     /**
      * Поле за дата по което ще филтрираме
      */
-    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn,activatedOn';
+    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn,lastChangeStateOn,activatedOn';
     
     
     /**
@@ -581,6 +581,13 @@ class planning_Jobs extends core_Master
                     case 'dueDate':
                         $data->query->orderBy('dueDate', 'ASC');
                         $data->query->where("#state = 'active'");
+                        break;
+                    case 'lastChangeStateOn':
+                        $data->query->orderBy('lastChangeStateOn', 'DESC');
+                        $data->listFields['lastChangeStateOn'] = 'Промяна състояние||State change->На';
+                        $data->listFields['lastChangeStateBy'] = 'Промяна състояние||State change->От||By';
+                        unset($data->listFields['modifiedOn']);
+                        unset($data->listFields['modifiedBy']);
                         break;
                     case 'activatedOn':
                         unset($data->listFields['activatedOn']);

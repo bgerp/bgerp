@@ -1014,6 +1014,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      *          string      ['wasteProductId']       - ид на отпадък
      *          string      ['wasteStart']           - начално количество отпадък
      *          string      ['wastePercent']         - процент отпадък
+     *          string      ['calcWeightMode']       - изчисляване на тегло или не
      */
     public function getProductionData($productId)
     {

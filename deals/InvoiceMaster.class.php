@@ -969,7 +969,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 if (!empty($rec->changeAmountVat)) {
                     $vat = $rec->changeAmountVat;
                 } else {
-                    if ($originRec->dpOperation == 'accrued' && isset($originRec->dpVatGroupId)){
+                    if (($originRec->dpOperation == 'accrued' || $originRec->dpOperation == 'deducted') && isset($originRec->dpVatGroupId)){
                         $vat = acc_VatGroups::fetchField($originRec->dpVatGroupId, 'vat');
                     } else {
                         $vat = acc_Periods::fetchByDate()->vatRate;
@@ -1712,9 +1712,10 @@ abstract class deals_InvoiceMaster extends core_Master
         $query = $Detail->getQuery();
         $query->where("#{$Detail->masterKey} = '{$rec->id}'");
         $query->orderBy('id', 'ASC');
+        $isProforma = ($this instanceof sales_Proformas);
 
         while ($dRec = $query->fetch()) {
-            if(!empty($dRec->discount)){
+            if(!empty($dRec->discount) && (!$isProforma)){
                 $dRec->price = $dRec->price * (1 - $dRec->discount);
                 $dRec->amount = $dRec->price * $dRec->quantity;
                 $dRec->packPrice = $dRec->price * $dRec->quantityInPack;
