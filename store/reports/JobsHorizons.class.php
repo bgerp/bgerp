@@ -44,7 +44,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'debug';
+    public $canSelectDriver = 'ceo,store,debug';
 
     /**
      * Плъгини за зареждане
