@@ -933,18 +933,18 @@ class planning_Tasks extends core_Master
                 <!--ET_BEGIN simultaneity--><tr><td style='font-weight:normal'>|Едновременност|*:</td><td>[#simultaneity#]</td></tr><!--ET_END simultaneity-->
                 </table>"));
 
-        if(!Mode::is('printing')){
-            $toggleBtnJs = "javascript:toggleDisplayByClass('btnShowHeaderInfo', 'docHeaderVal')";
-            $hideBtn = ht::createLink('', $toggleBtnJs, false, array('id' => 'btnShowHeaderInfo', 'class' => "more-btn {$toggleClass}", 'title' => tr('Показване/Скриване на настройките на операцията')));
-            $hideBtn = $hideBtn->getContent();
-            $resArr['toggle'] = array('name' => "<div style='float:right'>{$hideBtn}</div>", 'val' => tr(""));
-        }
-        
         if(core_Packs::isInstalled('batch')){
             $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
             if($batchTpl instanceof core_ET){
                 $resArr['batches'] = array('name' => tr('Партиди'), 'val' => $batchTpl->getContent());
             }
+        }
+
+        if(!Mode::is('printing')){
+            $toggleBtnJs = "javascript:toggleDisplayByClass('btnShowHeaderInfo', 'docHeaderVal')";
+            $hideBtn = ht::createLink('', $toggleBtnJs, false, array('id' => 'btnShowHeaderInfo', 'class' => "more-btn {$toggleClass}", 'title' => tr('Показване/Скриване на настройките на операцията')));
+            $hideBtn = $hideBtn->getContent();
+            $resArr['toggle'] = array('name' => "<div style='float:right'>{$hideBtn}</div>", 'val' => tr(""));
         }
 
         if(isset($rec->indPackagingId) && !empty($rec->indTime)){
