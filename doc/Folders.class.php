@@ -2016,7 +2016,8 @@ class doc_Folders extends core_Master
         $form->setDefault('personalEmailIncoming', 'default');
         $form->setDefault('newThread', 'default');
         $form->setDefault('newDoc', 'default');
-        
+        $form->setDefault('shareMaxCnt', 10);
+
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
         
