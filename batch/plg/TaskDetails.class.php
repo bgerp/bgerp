@@ -219,7 +219,7 @@ class batch_plg_TaskDetails extends core_Plugin
             $batchesSummary[$dRec->batch]['produced'] += $dRec->quantity / $masterRec->quantityInPack;
         }
 
-        $tpl = new core_ET("<table>[#ROWS#]</table>");
+        $tpl = new core_ET("<table class='docHeaderVal'>[#ROWS#]</table>");
         $block = new core_ET("<tr ><td><span style='font-weight:normal'><!--ET_BEGIN label-->[#label#]: <!--ET_END label-->[#batch#]</span></td><td>[#produced#] <i style='font-weight:normal'>([#planned#])</i></td>");
         foreach ($batchesSummary as $arr){
             $arr['planned'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['planned']) . " " . cat_UoM::getShortName($masterRec->measureId);
