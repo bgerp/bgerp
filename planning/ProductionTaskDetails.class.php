@@ -1292,7 +1292,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (in_array($action, array('add', 'edit', 'delete', 'reject', 'fix')) && isset($rec->taskId)) {
             $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state,originId');
             $originState = doc_Containers::getDocument($masterRec->originId)->fetchField('state');
-            if(in_array($masterRec->state, array('rejected', 'draft', 'waiting', 'stopped')) || in_array($originState, array('rejected', 'draft', 'stopped', 'closed'))){
+            if(in_array($masterRec->state, array('rejected', 'draft', 'waiting', 'stopped')) || in_array($originState, array('rejected', 'draft', 'stopped'))){
                 $requiredRoles = 'no_one';
             } elseif($masterRec->state == 'closed'){
                 $howLong = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);

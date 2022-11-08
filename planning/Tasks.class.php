@@ -277,7 +277,7 @@ class planning_Tasks extends core_Master
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'dependantProgress';
+    public $hideListFieldsIfEmpty = 'dependantProgress,dependantProgress';
 
 
     /**
