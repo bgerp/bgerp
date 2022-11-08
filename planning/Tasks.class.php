@@ -275,12 +275,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = 'dependantProgress,dependantProgress';
-
-
-    /**
      * Да се показват ли бъдещи периоди в лист изгледа
      */
     public $filterFutureOptions = true;
@@ -2480,6 +2474,8 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, 'dependantProgress');
     }
 
 
