@@ -203,13 +203,24 @@ class core_RowToolbar extends core_BaseClass
                 setIfNot($linkObj->attr['hint'], $linkObj->title);
                 $linkObj->attr['title'] = $linkObj->attr['title'];
 
+                $btnTitle = '';
+
                 if ($linkObj->fn) {
                     $attr = (array) $linkObj->attr;
                     $attr['onclick'] = $linkObj->fn;
                     $attr['onMouseOver'] = "document.body.style.cursor = 'pointer';";
                     $attr['onMouseLeave'] = "document.body.style.cursor = '';";
+
+                    if (isset($attr['ef_icon'])) {
+                        if(empty($attr['alwaysShowCaption'])){
+                            $btnTitle = '';
+                        } else {
+                            $btnTitle = $attr['alwaysShowCaption'];
+                            unset($attr['alwaysShowCaption']);
+                        }
+                    }
                 }
-                $btn = ht::createLink('', $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $attr);
+                $btn = ht::createLink($btnTitle, $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $attr);
 
                 $layout->append($btn, 'ROW_TOOLS');
             }
@@ -236,6 +247,7 @@ class core_RowToolbar extends core_BaseClass
                             $btnTitle = '';
                         } else {
                             $btnTitle = $attr['alwaysShowCaption'];
+                            unset($attr['alwaysShowCaption']);
                         }
                     }
                 }
