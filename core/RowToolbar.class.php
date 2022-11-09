@@ -204,11 +204,12 @@ class core_RowToolbar extends core_BaseClass
                 $linkObj->attr['title'] = $linkObj->attr['title'];
 
                 if ($linkObj->fn) {
+                    $attr = (array) $linkObj->attr;
                     $attr['onclick'] = $linkObj->fn;
                     $attr['onMouseOver'] = "document.body.style.cursor = 'pointer';";
                     $attr['onMouseLeave'] = "document.body.style.cursor = '';";
                 }
-                $btn = ht::createLink('', $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $linkObj->attr);
+                $btn = ht::createLink('', $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $attr);
 
                 $layout->append($btn, 'ROW_TOOLS');
             }
@@ -220,7 +221,7 @@ class core_RowToolbar extends core_BaseClass
             
             // Сортираме бутоните
             arr::sortObjects($this->links);
-            
+
             foreach ($this->links as $id => $linkObj) {
                 $attr = $linkObj->attr;
                 ht::setUniqId($attr);
