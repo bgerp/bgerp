@@ -82,7 +82,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         $query->where("#documentId = {$data->masterId}");
         $restAmount = $data->masterData->rec->amount;
         $toCurrencyCode = currency_Currencies::getCodeById($data->masterData->rec->currencyId);
-        $canSeePrices = doc_plg_HidePrices::canSeePriceFields($data->masterData->rec);
+        $canSeePrices = doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec);
 
         // Извличане на записите
         $data->recs = $data->rows = array();

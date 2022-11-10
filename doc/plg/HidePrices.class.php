@@ -65,19 +65,32 @@ class doc_plg_HidePrices extends core_Plugin
     /**
      * Дали потребителя може да вижда чувствителната информация
      */
-    public static function canSeePriceFields($rec)
+    public static function canSeePriceFields($mvc, $rec)
     {
         // Ако има изброените роли, може да вижда цените
-        if (haveRole('ceo,seePrice')) {
-            
-            return true;
+        $mvc = cls::get($mvc);
+        if($mvc instanceof deals_PaymentDocument){
+            if(haveRole('ceo,seePrice')) return true;
+        } elseif($mvc instanceof sales_Quotations){
+            if(haveRole('ceo,seePriceSale')) return true;
+        } elseif($mvc instanceof purchase_Quotations){
+            if(haveRole('ceo,seePricePurchase')) return true;
+        }elseif(isset($rec->threadId)){
+            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDocument->isInstanceOf('sales_Sales')){
+                    if(haveRole('ceo,seePriceSale')) return true;
+                } elseif($firstDocument->isInstanceOf('purchase_Purchases')){
+                    if(haveRole('ceo,seePricePurchase')) return true;
+                }
+            }
+
+            $threadRec = doc_Threads::fetch($rec->threadId);
         }
-        
+
         // Ако е контрактор, и е инсталиран пакета за контрактови и имаме тред
-        if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab') && $rec->threadId) {
+        if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab') && isset($threadRec)) {
             
             // Ако контрактора може да види треда от външната част, то може и да види цялата ценова информация
-            $threadRec = doc_Threads::fetch($rec->threadId);
             if (colab_Threads::haveRightFor('single', $threadRec)) {
                 
                 return true;
@@ -94,13 +107,11 @@ class doc_plg_HidePrices extends core_Plugin
         }
 
         // Ако документа е нишка на продажба и тя е с видими цени да се показват
-        if(isset($rec->threadId)){
-            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
-                if($firstDocument->isInstanceOf('sales_Sales')){
-                    $visiblePricesByAllInThread = $firstDocument->fetchField('visiblePricesByAllInThread');
+        if(isset($firstDocument)){
+            if($firstDocument->isInstanceOf('sales_Sales')){
+                $visiblePricesByAllInThread = $firstDocument->fetchField('visiblePricesByAllInThread');
 
-                    return ($visiblePricesByAllInThread == 'yes');
-                }
+                return ($visiblePricesByAllInThread == 'yes');
             }
         }
 
@@ -115,7 +126,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if (self::canSeePriceFields($data->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($mvc, $data->rec) || $data->dontHidePrices === true) {
             
             return;
         }
@@ -129,7 +140,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
-        if (self::canSeePriceFields($data->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($mvc, $data->rec) || $data->dontHidePrices === true) {
             
             return;
         }
@@ -145,7 +156,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
-        if (self::canSeePriceFields($data->masterData->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($data->masterMvc, $data->masterData->rec) || $data->dontHidePrices === true) {
             
             return;
         }
@@ -212,8 +223,8 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if (self::canSeePriceFields($data->masterRec)){
-            
+        if (isset($mvc->Master) && self::canSeePriceFields($mvc->Master, $data->masterRec)){
+
             return;
         }
         

@@ -198,7 +198,7 @@ class crm_ext_ContragentInfo extends core_manager
             }
         }
 
-        if(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+        if(!doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
             foreach (array('purchasesTotal' => 'totalPurchaseAmount', 'totalDeals' => 'totalDealsAmount', 'overdueDeals' => 'overdueDealsAmount') as $k => $v){
                 if (isset($cInfo->{$k})) {
                     $row->{$v} = doc_plg_HidePrices::getBuriedElement();

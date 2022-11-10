@@ -518,9 +518,10 @@ class sales_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
+        array('seePriceSale', 'seePrice'),
         array(
             'sales',
-            'invoicer,seePrice,dec'
+            'invoicer,seePrice,dec,seePriceSale'
         ),
         array(
             'salesMaster',
