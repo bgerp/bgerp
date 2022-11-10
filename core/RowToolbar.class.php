@@ -204,9 +204,9 @@ class core_RowToolbar extends core_BaseClass
                 $linkObj->attr['title'] = $linkObj->attr['title'];
 
                 $btnTitle = '';
+                $attr = (array) $linkObj->attr;
 
                 if ($linkObj->fn) {
-                    $attr = (array) $linkObj->attr;
                     $attr['onclick'] = $linkObj->fn;
                     $attr['onMouseOver'] = "document.body.style.cursor = 'pointer';";
                     $attr['onMouseLeave'] = "document.body.style.cursor = '';";
