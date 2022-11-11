@@ -584,11 +584,18 @@ class planning_Tasks extends core_Master
                 if(empty($rec->labelQuantityInPack)){
                     $labelProductId = ($rec->isFinal == 'yes') ? $origin->fetchField('productId') : $rec->productId;
                     $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId);
+                    $expectedLabelQuantityInPack = $quantityInPackDefault;
                     $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                     $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
                     $row->labelQuantityInPack = $quantityInPackDefault;
                 } else {
                     $row->labelQuantityInPack .= " {$row->measureId}";
+                    $expectedLabelQuantityInPack = $rec->labelQuantityInPack;
+                }
+
+                if(cat_UoM::fetchField($rec->labelPackagingId, 'type') != 'uom'){
+                    $expectedLabelPacks = core_Type::getByName('double(smartRound)')->toVerbal($rec->plannedQuantity / $expectedLabelQuantityInPack);
+                    $row->labelPackagingId .= ", {$expectedLabelPacks} " . tr('бр');
                 }
             }
 
@@ -611,6 +618,9 @@ class planning_Tasks extends core_Master
             }
 
             $row->originId = $origin->getHyperlink(true);
+            $originState = $origin->fetchField('state');
+            $row->originId = ht::createElement("span", array('style' => 'font-size:1em', 'class' => "state-{$originState} document-handler"), $row->originId);
+
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
                 $row->wasteStart = isset($row->wasteStart) ? $row->wasteStart : 'n/a';

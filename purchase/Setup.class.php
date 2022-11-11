@@ -184,7 +184,7 @@ class purchase_Setup extends core_ProtoSetup
      */
     public $roles = array(
         array('seePricePurchase', 'seePrice'),
-        array('purchase', 'invoicer,seePrice'),
+        array('purchase', 'invoicer'),
         array('purchaseMaster', 'purchase'),
     );
     
