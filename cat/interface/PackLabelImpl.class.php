@@ -21,16 +21,16 @@ class cat_interface_PackLabelImpl
      * Инстанция на класа
      */
     public $class;
-    
-    
+
+
     /**
      * Връща наименованието на етикета
      *
      * @param int $id
-     *
+     * @param string $series
      * @return string
      */
-    public function getLabelName($id)
+    public function getLabelName($id, $series = 'label')
     {
         $rec = $this->class->fetchRec($id);
         $productName = cat_Products::getTitleById($rec->productId);
@@ -39,10 +39,13 @@ class cat_interface_PackLabelImpl
         
         return $labelName;
     }
-    
-    
+
+
     /**
      * Връща масив с данните за плейсхолдерите
+     *
+     * @param int|NULL $objId
+     * @param string $series
      *
      * @return array
      *               Ключа е името на плейсхолдера и стойностите са обект:
@@ -53,7 +56,7 @@ class cat_interface_PackLabelImpl
      *               importance -> (int|double) - тежест/важност на плейсхолдера
      *               example -> (string) - примерна стойност
      */
-    public function getLabelPlaceholders($objId = null)
+    public function getLabelPlaceholders($objId = null, $series = 'label')
     {
         $placeholders = array();
         $placeholders['JOB'] = (object) array('type' => 'text');
@@ -79,7 +82,7 @@ class cat_interface_PackLabelImpl
             $rec = $this->class->fetch($objId);
             $notEditableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
 
-            $labelData = $this->getLabelData($objId, 1, true);
+            $labelData = $this->getLabelData($objId, 1, true, null, $series);
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
                     if (!array_key_exists($key, $placeholders)) {
@@ -116,18 +119,20 @@ class cat_interface_PackLabelImpl
         
         return $jQuery->fetch();
     }
-    
-    
+
+
     /**
      * Връща масив с всички данни за етикетите
      *
      * @param int  $id
      * @param int  $cnt
      * @param bool $onlyPreview
+     * @param stdClass $lRec
+     * @param string $series
      *
-     * @return array - масив от масиви с ключ плейсхолдера и стойността
+     * @return array - масив от масив с ключ плейсхолдера и стойността
      */
-    public function getLabelData($id, $cnt, $onlyPreview = false)
+    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null, $series = 'label')
     {
         static $resArr = array();
         $lg = core_Lg::getCurrent();
@@ -235,19 +240,17 @@ class cat_interface_PackLabelImpl
         
         return $resArr[$key];
     }
-    
-    
+
+
     /**
      * Броя на етикетите, които могат да се отпечатат
      *
-     * @param int    $id
-     * @param string $allowSkip
+     * @param int $id
+     * @param string $series
      *
      * @return int
-     *
-     * @see label_SequenceIntf
      */
-    public function getLabelEstimatedCnt($id)
+    public function getLabelEstimatedCnt($id, $series = 'label')
     {
         $rec = cat_products_Packagings::fetchRec($id);
         
@@ -298,9 +301,10 @@ class cat_interface_PackLabelImpl
      * Кой е дефолтния шаблон за печат към обекта
      *
      * @param $id
+     * @param string $series
      * @return int|null
      */
-    public function getDefaultLabelTemplateId($id)
+    public function getDefaultLabelTemplateId($id, $series = 'label')
     {
         return null;
     }

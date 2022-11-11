@@ -271,7 +271,7 @@ class label_TemplateFormats extends core_Detail
         
         // Вземаме данните от предишния запис
         $dataArr = $data->form->rec->formatParams;
-        
+
         // Обхождаме масива
         foreach ((array) $dataArr as $fieldName => $value) {
             
@@ -307,7 +307,7 @@ class label_TemplateFormats extends core_Detail
             
             if ($mRec->classId) {
                 $intfInst = cls::getInterface('label_SequenceIntf', $mRec->classId);
-                $labelDataArr = $intfInst->getLabelPlaceholders(null);
+                $labelDataArr = $intfInst->getLabelPlaceholders(null, $data->masterRec->series);
                 
                 foreach ($labelDataArr as $lName => $v) {
                     $unset = false;

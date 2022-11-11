@@ -59,13 +59,15 @@ class label_plg_Print extends core_Plugin
             }
 
             if(($mvc instanceof core_Master && isset($fields['-single'])) || (!($mvc instanceof core_Master))){
-                $btnParams = self::getLabelBtnParams($mvc, $rec);
-                if (!empty($btnParams['url'])) {
-                    core_RowToolbar::createIfNotExists($row->_rowTools);
-                    $btnParams['attr'] = arr::make($btnParams['attr']);
-                    $btnParams['attr']['style'] = 'position: relative; top: -2px;';
-                    $alwaysShow = ($alwaysShow) ? 'alwaysShow' : null;
-                    $row->_rowTools->addLink($mvc->printLabelCaptionPlural, $btnParams['url'], $btnParams['attr'], $alwaysShow);
+                $btnsArr = self::getLabelBtnParams($mvc, $rec);
+                foreach ($btnsArr as $btnArr){
+                    if (!empty($btnArr['url'])) {
+                        core_RowToolbar::createIfNotExists($row->_rowTools);
+                        $btnArr['attr'] = arr::make($btnArr['attr']);
+                        $btnArr['attr']['style'] = 'position: relative; top: -2px;';
+                        $alwaysShow = ($alwaysShow) ? 'alwaysShow' : null;
+                        $row->_rowTools->addLink($btnArr['caption'], $btnArr['url'], $btnArr['attr'], $alwaysShow);
+                    }
                 }
             }
         }
@@ -201,26 +203,28 @@ class label_plg_Print extends core_Plugin
      */
     private static function getLabelBtnParams($mvc, $rec)
     {
-        $res = array('url' => null, 'attr' => '');
-        
-        if ($mvc->haveRightFor('printlabel', $rec)) {
-            $templates = $mvc->getLabelTemplates($rec, false);
-            
-            $title = tr($mvc->title);
-            $title = mb_strtolower($title);
-            
-            $error = (!countR($templates)) ? ",error=Няма наличен шаблон за етикети от|* \"{$title}\"" : '';
-            $source = $mvc->getLabelSource($rec);
-            
-            if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id']))) {
-                core_Request::setProtected(array('classId, objectId'));
-                $res['url'] = array('label_Prints', 'add', 'classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'ret_url' => true);
-                $res['url'] = toUrl($res['url']);
-                core_Request::removeProtected(array('classId,objectId'));
-                $res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на ". mb_strtolower($mvc->printLabelCaptionSingle). " от|* {$title} №{$rec->id}{$error}";
+        $series = $mvc->getLabelSeries($rec);
+        $title = tr($mvc->title);
+        $title = mb_strtolower($title);
+        $source = $mvc->getLabelSource($rec);
+
+        $res = array();
+        foreach ($series as $series => $caption){
+            $res[$series] = array('url' => null, 'attr' => '', 'caption' => $caption);
+            if ($mvc->haveRightFor('printlabel', $rec)) {
+                $templates = $mvc->getLabelTemplates($rec, false, $series);
+                $error = (!countR($templates)) ? ",error=Няма наличен шаблон за етикети от|* \"{$title}\" (|серия|*: {$series})" : '';
+
+                if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series))) {
+                    core_Request::setProtected(array('classId,objectId,series'));
+                    $res[$series]['url'] = array('label_Prints', 'add', 'classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series, 'ret_url' => true);
+                    $res[$series]['url'] = toUrl($res[$series]['url']);
+                    core_Request::removeProtected(array('classId,objectId,series'));
+                    $res[$series]['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на ". mb_strtolower($mvc->printLabelCaptionSingle). " от|* {$title} №{$rec->id}{$error}";
+                }
             }
         }
-        
+
         return $res;
     }
     
@@ -242,17 +246,34 @@ class label_plg_Print extends core_Plugin
             $res = array('class' => $mvc, 'id' => $rec->id);
         }
     }
-    
-    
+
+
+    /**
+     * Връща наличните серии за етикети от източника
+     *
+     * @param $mvc
+     * @param $res
+     * @param $rec
+     * @return void
+     */
+    public static function on_AfterGetLabelSeries($mvc, &$res, $rec)
+    {
+        // По дефолт е текущия клас
+        if(!isset($res)){
+            $res = array('label' => $mvc->printLabelCaptionPlural);
+        }
+    }
+
+
     /**
      * Параметрите на бутона за етикетиране
      *
      * @return array $res - наличните шаблони за етикети
      */
-    public static function on_AfterGetLabelTemplates($mvc, &$res, $rec)
+    public static function on_AfterGetLabelTemplates($mvc, &$res, $rec, $ignoreWithPeripheralDriver = true, $series = 'label')
     {
         if(!isset($res)){
-            $res = label_Templates::getTemplatesByClass($mvc);
+            $res = label_Templates::getTemplatesByClass($mvc, $ignoreWithPeripheralDriver, $series);
         }
     }
     
@@ -265,9 +286,11 @@ class label_plg_Print extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        $btnParams = self::getLabelBtnParams($mvc, $data->rec);
-        if (!empty($btnParams['url'])) {
-            $data->toolbar->addBtn($mvc->printLabelCaptionPlural, $btnParams['url'], null, $btnParams['attr']);
+        $btnsArr = self::getLabelBtnParams($mvc, $data->rec);
+        foreach ($btnsArr as $btnArr){
+            if (!empty($btnArr['url'])) {
+                $data->toolbar->addBtn($btnArr['caption'], $btnArr['url'], null, $btnArr['attr']);
+            }
         }
     }
     

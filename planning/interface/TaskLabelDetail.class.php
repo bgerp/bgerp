@@ -21,10 +21,10 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
      * Връща наименованието на етикета
      *
      * @param int $id
-     *
+     * @param string $series
      * @return string
      */
-    public function getLabelName($id)
+    public function getLabelName($id, $series = 'label')
     {
         $rec = $this->class->fetchRec($id);
         $labelName = planning_Tasks::getTitleById($rec->taskId);
@@ -66,7 +66,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $templateTpl = label_Templates::addCssToTemplate($templateId);
 
         // Взимат се данните за бърз етикет
-        $allLabelData = $this->getLabelData($id, 1, false);
+        $allLabelData = $this->getLabelData($id, 1, false, null, $series);
 
         $placeArr = label_Templates::getPlaceholders($templateTpl);
 
@@ -91,10 +91,12 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
      * @param int  $id
      * @param int  $cnt
      * @param bool $onlyPreview
+     * @param stdClass $lRec
+     * @param string $series
      *
-     * @return array - масив от масиви с ключ плейсхолдера и стойността
+     * @return array - масив от масив с ключ плейсхолдера и стойността
      */
-    public function getLabelData($id, $cnt, $onlyPreview = false)
+    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null, $series = 'label')
     {
         static $resArr = array();
         $lg = core_Lg::getCurrent();
@@ -191,9 +193,10 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
      * Кой е дефолтния шаблон за печат към обекта
      *
      * @param $id
+     * @param string $series
      * @return int|null
      */
-    public function getDefaultLabelTemplateId($id)
+    public function getDefaultLabelTemplateId($id, $series = 'label')
     {
         return null;
     }
