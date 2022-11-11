@@ -618,6 +618,9 @@ class planning_Tasks extends core_Master
             }
 
             $row->originId = $origin->getHyperlink(true);
+            $originState = $origin->fetchField('state');
+            $row->originId = ht::createElement("span", array('style' => 'font-size:1em', 'class' => "state-{$originState} document-handler"), $row->originId);
+
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
                 $row->wasteStart = isset($row->wasteStart) ? $row->wasteStart : 'n/a';
