@@ -183,12 +183,13 @@ class frame2_ReportIntf extends embed_DriverIntf
      * Връща шаблоните за етикети към драйвера
      *
      * @param mixed $id
+     * @param string $series - серии
      *
      * @return array - достъпни шаблони
      */
-    public function getLabelTemplates($id)
+    public function getLabelTemplates($id, $series = 'label')
     {
-        return $this->class->getLabelTemplates($id);
+        return $this->class->getLabelTemplates($id, $series);
     }
     
     

@@ -256,7 +256,7 @@ class label_plg_Print extends core_Plugin
      * @param $rec
      * @return void
      */
-    public static function on_AfterGetLabelSeries($mvc, &$res, $rec)
+    public static function on_AfterGetLabelSeries($mvc, &$res, $rec = null)
     {
         // По дефолт е текущия клас
         if(!isset($res)){

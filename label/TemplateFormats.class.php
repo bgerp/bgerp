@@ -299,7 +299,7 @@ class label_TemplateFormats extends core_Detail
             
             // Масив с плейсхолдерите
             $placesArr = $Master->getPlaceHolders($template);
-            
+
             // Ключовете и стойностите да са равни
             $placesArr = arr::make($placesArr, true);
             
@@ -308,7 +308,7 @@ class label_TemplateFormats extends core_Detail
             if ($mRec->classId) {
                 $intfInst = cls::getInterface('label_SequenceIntf', $mRec->classId);
                 $labelDataArr = $intfInst->getLabelPlaceholders(null, $data->masterRec->series);
-                
+
                 foreach ($labelDataArr as $lName => $v) {
                     $unset = false;
                     if ($v->type == 'text') {
@@ -333,7 +333,7 @@ class label_TemplateFormats extends core_Detail
             
             // Вземаме плейсхолдерите, за които има запис
             $savedPlacesArr = (array) static::getAddededPlaceHolders($masterId);
-            
+
             // Вземаме неизползваните
             $diffArr = array_diff($placesArr, $savedPlacesArr);
             

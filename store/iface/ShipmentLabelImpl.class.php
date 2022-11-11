@@ -69,9 +69,6 @@ class store_iface_ShipmentLabelImpl
             $placeholders['QUANTITY_IN_PACK'] = (object) array('type' => 'text', 'hidden' => TRUE);
             $placeholders['NOTES'] = (object) array('type' => 'text', 'hidden' => TRUE);
             $placeholders['PACKAGING_ID'] = (object) array('type' => 'text', 'hidden' => TRUE);
-            $placeholders['PRICE'] = (object) array('type' => 'text', 'hidden' => TRUE);
-            $placeholders['AMOUNT'] = (object) array('type' => 'text', 'hidden' => TRUE);
-            $placeholders['CURRENCY_ID'] = (object) array('type' => 'text', 'hidden' => TRUE);
             $placeholders['BATCH'] = (object) array('type' => 'text', 'hidden' => TRUE);
         } else {
             $placeholders['NOMER'] = (object) array('type' => 'text');
@@ -108,7 +105,8 @@ class store_iface_ShipmentLabelImpl
         $rec = $this->class->fetchRec($id);
 
         if($series == 'detail'){
-            $count = store_ShipmentOrderDetails::count("#shipmentId = {$rec->id}");
+            $recs = $this->getDetailLabelRecs($rec);
+            $count = countR($recs);
         } else {
             $count = 0;
             $transUnits = is_array($rec->transUnitsInput) ? $rec->transUnitsInput : (is_array($rec->transUnits) ? $rec->transUnits : array());
@@ -119,6 +117,59 @@ class store_iface_ShipmentLabelImpl
         }
 
         return $count;
+    }
+
+    private function getDetailLabelRecs($rec)
+    {
+        $dQuery = store_ShipmentOrderDetails::getQuery();
+        $dQuery->where("#shipmentId = {$rec->id}");
+        $dQuery->orderBy('id', 'ASC');
+        $dRecs = $dQuery->fetchAll();
+
+        $batches = array();
+        if(core_Packs::isInstalled('batch')){
+            $bQuery = batch_BatchesInDocuments::getQuery();
+            $bQuery->where("#containerId = {$rec->containerId}");
+            while($bRec = $bQuery->fetch()){
+                $batches["{$bRec->detailClassId}|{$bRec->detailRecId}"][$bRec->id] = $bRec;
+            }
+        }
+
+        $recs = array();
+        $detailClassId = store_ShipmentOrderDetails::getClassId();
+        foreach ($dRecs as $dRec){
+            if(array_key_exists("{$detailClassId}|{$dRec->id}", $batches)){
+                $rest = $dRec->quantity;
+                foreach ($batches["{$detailClassId}|{$dRec->id}"] as $b){
+                    $clone = clone $dRec;
+                    $clone->batch = $b->batch;
+                    $clone->quantity = $b->quantity;
+                    $clone->packQuantity = ($clone->quantity / $b->quantityInPack);
+                    $clone->packPrice = $b->quantityInPack * $dRec->price;
+                    $clone->amount = $clone->quantity * $clone->price;
+
+                    $rest -= $b->quantity;
+                    $recs[] = $clone;
+                }
+
+                if($rest > 0){
+                    $clone = clone $dRec;
+                    $clone->quantity = $rest;
+                    $clone->packQuantity = ($clone->quantity / $clone->quantityInPack);
+                    $clone->packPrice = $clone->quantityInPack * $clone->price;
+                    $clone->amount = $clone->quantity * $clone->price;
+                    $recs[] = $clone;
+                }
+            } else {
+                $recs[] = $dRec;
+            }
+        }
+
+        $recs = array_values($recs);
+        array_unshift($recs, null);
+        unset($recs[0]);
+
+        return $recs;
     }
 
 
@@ -147,36 +198,24 @@ class store_iface_ShipmentLabelImpl
         $rec = $this->class->fetchRec($id);
 
         if($series == 'detail'){
-            $dQuery = store_ShipmentOrderDetails::getQuery();
-            $dQuery->where("#shipmentId = {$rec->id}");
-            $dQuery->orderBy('id', 'ASC');
-            $dRecs = $dQuery->fetchAll();
-            $dRecs = array_values($dRecs);
-            array_unshift($dRecs, null);
-            unset($dRecs[0]);
 
             $handler = "#" . store_ShipmentOrders::getHandle($rec->id);
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             $docReff = $firstDoc->fetchField('reff');
             $saleHandler = $firstDoc->getHandle();
 
-            if(core_Packs::isInstalled('batch')){
-
-            }
-
+            $recs = $this->getDetailLabelRecs($rec);
             $arr = array();
             for ($i = 1; $i <= $cnt; $i++) {
-                $dRec = $dRecs[$i];
+                $dRec = $recs[$i];
+                if(!is_object($dRec))  continue;
+
                 $code = cat_Products::fetchField($dRec->productId, 'code');
                 $code = !empty($code) ? $code : "Art{$dRec->productId}";
                 $name = trim(cat_Products::getVerbal($dRec->productId, 'name'));
                 $measureId = cat_UoM::getShortName(cat_Products::fetchField($dRec->productId, 'measureId'));
-                $vat = cat_Products::getVat($dRec->productId, $rec->valior);
 
-                $displayPrice = deals_Helper::getDisplayPrice($dRec->packPrice, $vat, $rec->currencyRate, $rec->chargeVat);
                 Mode::push('text', 'plain');
-                $price = core_Type::getByName('double(smartRound)')->toVerbal($displayPrice);
-                $amount = core_Type::getByName('double(smartRound)')->toVerbal($displayPrice * $dRec->packQuantity);
                 $quantity = core_Type::getByName('double(smartRound)')->toVerbal($dRec->packQuantity);
                 $quantityInPack = core_Type::getByName('double(smartRound)')->toVerbal($dRec->quantityInPack);
                 Mode::pop('text');
@@ -186,13 +225,20 @@ class store_iface_ShipmentLabelImpl
                              'SHIPMENT_ID' => $handler,
                              'SALE_ID' => "#" . $saleHandler,
                              'MEASURE_ID' => $measureId,
-                             'PRICE' => $price,
                              'PACKAGING_ID' => cat_UoM::getSmartName($dRec->packagingId),
-                             'AMOUNT' => $amount,
                              'QUANTITY' => $quantity,
                              'QUANTITY_IN_PACK' => $quantityInPack,
-                             'CURRENCY_ID' => $rec->currencyId,
                 );
+
+                if(!empty($dRec->batch)){
+                    if($BatchDef = batch_Defs::getBatchDef($dRec->productId)){
+                        Mode::push('text', 'plain');
+                        $res['BATCH'] = $BatchDef->toVerbal($dRec->batch);
+                        Mode::pop('text');
+                    }
+                } else {
+                    $res['BATCH'] = '';
+                }
 
                 if(!empty($dRec->notes)){
                     Mode::push('text', 'plain');

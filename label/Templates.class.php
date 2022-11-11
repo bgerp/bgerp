@@ -158,7 +158,7 @@ class label_Templates extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
-        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник->Клас');
+        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник->Клас,silent,removeAndRefreshForm=series');
         $this->FLD('peripheralDriverClassId', 'class(interface=peripheral_PrinterIntf, select=title, allowEmpty)', 'caption=Източник->Периферия');
         
         $this->FLD('template', 'html(tinyEditor=no)', 'caption=Шаблон->HTML');
@@ -166,7 +166,7 @@ class label_Templates extends core_Master
         $this->FLD('sysId', 'varchar', 'input=none');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         $this->FLD('rendererClassId', 'class(interface=label_TemplateRendererIntf, select=title, allowEmpty)', 'caption=Източник->Рендер');
-        $this->FLD('series', 'varchar', 'caption=Серии,notNull,value=label');
+        $this->FLD('series', 'varchar', 'caption=Серии,notNull,value=label,mandatory');
 
         $this->setDbUnique('sysId');
         $this->setDbIndex('classId');
@@ -386,6 +386,11 @@ class label_Templates extends core_Master
         if(isset($rec->clonedFromId)){
             $row->clonedFromId = static::getHyperlink($rec->clonedFromId, true);
         }
+
+        if(isset($rec->classId)){
+            $series = cls::get($rec->classId)->getLabelSeries();
+            $row->series = $series[$rec->series];
+        }
     }
     
     
@@ -503,9 +508,18 @@ class label_Templates extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Добавяме всички възжможни избори за медия
+        $form = $data->form;
+        $rec = $form->rec;
         $sizesArr = label_Media::getAllSizes();
         $sizesArr = array('' => '') + $sizesArr;
         $data->form->setSuggestions('sizes', $sizesArr);
+
+        if(isset($rec->classId)){
+            $series = cls::get($rec->classId)->getLabelSeries();
+            $form->setOptions('series', $series);
+        } else {
+            $form->setField('series', 'input=hidden');
+        }
     }
     
     
