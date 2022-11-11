@@ -584,11 +584,18 @@ class planning_Tasks extends core_Master
                 if(empty($rec->labelQuantityInPack)){
                     $labelProductId = ($rec->isFinal == 'yes') ? $origin->fetchField('productId') : $rec->productId;
                     $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId);
+                    $expectedLabelQuantityInPack = $quantityInPackDefault;
                     $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                     $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
                     $row->labelQuantityInPack = $quantityInPackDefault;
                 } else {
                     $row->labelQuantityInPack .= " {$row->measureId}";
+                    $expectedLabelQuantityInPack = $rec->labelQuantityInPack;
+                }
+
+                if(cat_UoM::fetchField($rec->labelPackagingId, 'type') != 'uom'){
+                    $expectedLabelPacks = core_Type::getByName('double(smartRound)')->toVerbal($rec->plannedQuantity / $expectedLabelQuantityInPack);
+                    $row->labelPackagingId .= ", {$expectedLabelPacks} " . tr('бр');
                 }
             }
 
