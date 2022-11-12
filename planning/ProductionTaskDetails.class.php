@@ -1058,7 +1058,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     // Ако артикула има нето тегло
                     if(is_numeric($expectedSingleNetWeight)){
                         $expectedNetWeight = $weightQuantity * $expectedSingleNetWeight;
-                        $deviation = round(($rec->netWeight - $expectedNetWeight) / $expectedNetWeight, 4);
+                        $deviation = round(($rec->netWeight - $expectedNetWeight) / ($expectedNetWeight + 0.00001), 4);
 
                         // Показване на хинт ако има разминаване
                         $iconHint = null;
