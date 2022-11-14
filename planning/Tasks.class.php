@@ -595,7 +595,7 @@ class planning_Tasks extends core_Master
 
                 if(cat_UoM::fetchField($rec->labelPackagingId, 'type') != 'uom'){
                     $expectedLabelPacks = core_Type::getByName('double(smartRound)')->toVerbal($rec->plannedQuantity / $expectedLabelQuantityInPack);
-                    $row->labelPackagingId .= ", {$expectedLabelPacks} " . tr('бр');
+                    $row->labelPackagingId .= ", {$expectedLabelPacks} " . tr('бр.');
                 }
             }
 
@@ -1135,7 +1135,7 @@ class planning_Tasks extends core_Master
         if ($action == 'reject' && isset($rec)) {
             if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")) {
                 $requiredRoles = 'no_one';
-            } elseif(!haveRole('task', $userId)){
+            } elseif(!haveRole('task,ceo', $userId)){
                 $requiredRoles = 'no_one';
             }
         }
