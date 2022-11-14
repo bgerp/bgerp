@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,6 +25,9 @@ class cond_type_Enum extends cond_type_abstract_Proto
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('options', 'text', 'caption=Конкретизиране->Опции,before=default,mandatory');
+        $fieldset->FLD('orderBy', 'enum(no=Без,ascKey=Възходящ [ключ],ascVal=Възходящо [стойност],descKey=Низходящо [ключ], descVal=Низходящо [стойност])', 'caption=Конкретизиране->Подредба,mandatory');
+        $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутон,mandatory');
+        $fieldset->FLD('columns', 'int(Min=0)', 'caption=Конкретизиране->Радио бутон (колони),placeholder=2');
     }
     
     
@@ -50,7 +53,30 @@ class cond_type_Enum extends cond_type_abstract_Proto
                 $Type->options[$value] = $value;
             }
         }
-        
+
+        $orderBy = isset($this->driverRec->orderBy) ? $this->driverRec->orderBy : 'no';
+        switch($orderBy){
+            case 'ascKey':
+                ksort($Type->options, SORT_STRING);
+                break;
+            case 'ascVal':
+                asort($Type->options, SORT_STRING);
+                break;
+            case 'descKey':
+                krsort($Type->options, SORT_STRING);
+                break;
+            case 'descVal':
+                arsort($Type->options, SORT_STRING);
+                break;
+            default:
+                break;
+        }
+
+        $maxRadio = isset($this->driverRec->maxRadio) ? $this->driverRec->maxRadio : 20;
+        $columns = isset($this->driverRec->columns) ? $this->driverRec->columns : 2;
+        $Type->params['maxRadio'] = $maxRadio;
+        $Type->params['columns'] = $columns;
+
         return $Type;
     }
 }
