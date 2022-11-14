@@ -824,12 +824,13 @@ abstract class deals_DealBase extends core_Master
         $form = cls::get('core_Form');
         $form->title = '|Преизчисляване на курса на|* ' . $this->getFormTitleLink($rec);
         $form->info = tr("Стар курс|*: <b>{$rec->currencyRate}</b>");
+        $form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
 
         if($averageRate =  $this->getAverageRateInThread($rec)){
             $form->info .= "<br>" . tr("Среден курс|*: <b>{$averageRate}</b>");
+            $form->setDefault('newRate', $averageRate);
         }
 
-        $form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
         $form->input();
         
         if ($form->isSubmitted()) {
