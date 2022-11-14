@@ -822,11 +822,11 @@ class label_Templates extends core_Master
      * Извлича шаблоните към класа
      * 
      * @param mixed $class
-     * @param boolean $ignoreWithPeripheralDriver
      * @param string $series
+     * @param boolean $ignoreWithPeripheralDriver
      * @return array $res
      */
-    public static function getTemplatesByClass($class, $ignoreWithPeripheralDriver = true, $series = 'label')
+    public static function getTemplatesByClass($class, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
         $Class = cls::get($class);
         $tQuery = label_Templates::getQuery();

@@ -192,8 +192,19 @@ class frame2_ReportIntf extends embed_DriverIntf
     {
         return $this->class->getLabelTemplates($id, $series, $ignoreWithPeripheralDriver);
     }
-    
-    
+
+
+    /**
+     * Връща достъпните серии за шаблони
+     *
+     * @param int|null $id - ид на запис
+     * @return array  - достъпни шаблони
+     */
+    public function getLabelSeries($id = null)
+    {
+        return $this->class->getLabelSeries($id);
+    }
+
     /**
      * Може ли справката да бъде изпращана по имейл
      *

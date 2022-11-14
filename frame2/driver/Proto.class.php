@@ -224,10 +224,22 @@ abstract class frame2_driver_Proto extends core_BaseClass
      */
     public function getLabelTemplates($id, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
-        return label_Templates::getTemplatesByClass($this, $ignoreWithPeripheralDriver, $series);
+        return label_Templates::getTemplatesByClass($this, $series, $ignoreWithPeripheralDriver);
     }
-    
-    
+
+
+    /**
+     * Връща достъпните серии за шаблони
+     *
+     * @param int|null $id - ид на запис
+     * @return array  - достъпни шаблони
+     */
+    public function getLabelSeries($id = null)
+    {
+        return array('label' => cls::get('frame2_Reports')->printLabelCaptionPlural);
+    }
+
+
     /**
      * Може ли справката да бъде изпращана по имейл
      *

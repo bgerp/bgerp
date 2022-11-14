@@ -249,7 +249,7 @@ class label_Prints extends core_Master
         
         // Определяме най-добрия шаблон
         if (!empty($labelDataArr)) {
-            $templatesArr = cls::get($classId)->getLabelTemplates($objId, true, $rec->series);
+            $templatesArr = cls::get($classId)->getLabelTemplates($objId, $rec->series, true);
 
             if (!countR($templatesArr)) {
                 
