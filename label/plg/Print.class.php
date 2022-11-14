@@ -212,15 +212,15 @@ class label_plg_Print extends core_Plugin
         foreach ($series as $series => $caption){
             $res[$series] = array('url' => null, 'attr' => '', 'caption' => $caption);
             if ($mvc->haveRightFor('printlabel', $rec)) {
-                $templates = $mvc->getLabelTemplates($rec, false, $series);
-                $error = (!countR($templates)) ? ",error=Няма наличен шаблон за етикети от|* \"{$title}\" (|серия|*: {$series})" : '';
-
-                if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series))) {
-                    core_Request::setProtected(array('classId,objectId,series'));
-                    $res[$series]['url'] = array('label_Prints', 'add', 'classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series, 'ret_url' => true);
-                    $res[$series]['url'] = toUrl($res[$series]['url']);
-                    core_Request::removeProtected(array('classId,objectId,series'));
-                    $res[$series]['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на ". mb_strtolower($mvc->printLabelCaptionSingle). " от|* {$title} №{$rec->id}{$error}";
+                $templates = $mvc->getLabelTemplates($rec, $series, false);
+                if(countR($templates)){
+                    if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series))) {
+                        core_Request::setProtected(array('classId,objectId,series'));
+                        $res[$series]['url'] = array('label_Prints', 'add', 'classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series, 'ret_url' => true);
+                        $res[$series]['url'] = toUrl($res[$series]['url']);
+                        core_Request::removeProtected(array('classId,objectId,series'));
+                        $res[$series]['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на ". mb_strtolower($mvc->printLabelCaptionSingle). " от|* {$title} №{$rec->id}{$error}";
+                    }
                 }
             }
         }
@@ -270,10 +270,10 @@ class label_plg_Print extends core_Plugin
      *
      * @return array $res - наличните шаблони за етикети
      */
-    public static function on_AfterGetLabelTemplates($mvc, &$res, $rec, $ignoreWithPeripheralDriver = true, $series = 'label')
+    public static function on_AfterGetLabelTemplates($mvc, &$res, $rec, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
         if(!isset($res)){
-            $res = label_Templates::getTemplatesByClass($mvc, $ignoreWithPeripheralDriver, $series);
+            $res = label_Templates::getTemplatesByClass($mvc, $series, $ignoreWithPeripheralDriver);
         }
     }
     

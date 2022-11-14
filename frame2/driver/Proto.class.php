@@ -218,12 +218,13 @@ abstract class frame2_driver_Proto extends core_BaseClass
      *
      * @param mixed $id
      * @param string $series - серии
+     * @param boolean $ignoreWithPeripheralDriver - да се избира ли периферния драйвер
      *
      * @return array - достъпни шаблони
      */
-    public function getLabelTemplates($id, $series = 'label')
+    public function getLabelTemplates($id, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
-        return label_Templates::getTemplatesByClass($this, $series);
+        return label_Templates::getTemplatesByClass($this, $ignoreWithPeripheralDriver, $series);
     }
     
     

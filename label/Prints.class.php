@@ -955,7 +955,7 @@ class label_Prints extends core_Master
         
         if ($action == 'add' && $rec && $requiredRoles != 'no_one') {
             if ($rec->classId && $rec->objectId) {
-                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId)) {
+                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId, false, $rec->series)) {
                     $requiredRoles = 'no_one';
                 }
             }

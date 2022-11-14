@@ -184,12 +184,13 @@ class frame2_ReportIntf extends embed_DriverIntf
      *
      * @param mixed $id
      * @param string $series - серии
+     * @param boolean $ignoreWithPeripheralDriver - да се избира ли периферния драйвер
      *
      * @return array - достъпни шаблони
      */
-    public function getLabelTemplates($id, $series = 'label')
+    public function getLabelTemplates($id, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
-        return $this->class->getLabelTemplates($id, $series);
+        return $this->class->getLabelTemplates($id, $series, $ignoreWithPeripheralDriver);
     }
     
     
