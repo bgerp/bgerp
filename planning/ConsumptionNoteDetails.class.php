@@ -38,7 +38,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, store_plg_RequestDetail, plg_RowNumbering, plg_AlignDecimals2,
+    public $loadList = 'plg_RowTools2, store_plg_RequestDetail, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2,
                         planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes,import2_Plugin';
     
     
