@@ -594,7 +594,7 @@ class planning_Tasks extends core_Master
                 }
 
                 if(cat_UoM::fetchField($rec->labelPackagingId, 'type') != 'uom'){
-                    $expectedLabelPacks = core_Type::getByName('double(smartRound)')->toVerbal($rec->plannedQuantity / $expectedLabelQuantityInPack);
+                    $expectedLabelPacks = core_Type::getByName('double(smartRound,maxDecimals=1)')->toVerbal($rec->plannedQuantity / $expectedLabelQuantityInPack);
                     $row->labelPackagingId .= ", {$expectedLabelPacks} " . tr('бр.');
                 }
             }
