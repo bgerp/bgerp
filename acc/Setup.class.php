@@ -349,7 +349,7 @@ class acc_Setup extends core_ProtoSetup
         ),
         array(
             'accMaster',
-            'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'
+            'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal, seePriceSale, seePricePurchase'
         ),
         array(
             'repAll'

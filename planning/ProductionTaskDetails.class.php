@@ -79,7 +79,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кой има право да листва?
      */
-    public $canList = 'taskWorker,ceo';
+    public $canList = 'taskSee,ceo';
 
 
     /**

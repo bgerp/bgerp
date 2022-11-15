@@ -939,4 +939,48 @@ abstract class deals_DealBase extends core_Master
 
         return null;
     }
+
+
+    /**
+     * Осреднява валутните курсове на сделките при нужда
+     *
+     * @param null|date $timeline - времева рамка
+     * @return null;
+     */
+    public function recalcDealsWithCurrencies($timeline = null)
+    {
+        // Кога последно е преизчисляван баланса
+        $lastBalanceRec = acc_Balances::getLastBalance();
+        $lastCalculate = (empty($lastBalanceRec->lastCalculate)) ? '0000-00-00' : $lastBalanceRec->lastCalculate;
+        if(empty($timeline)){
+            $timeline = core_Permanent::get("{$this->className}|recalcedRates");
+        }
+        $timeline = (empty($timeline)) ? '0000-00-00' : $timeline;
+
+        // Търсят се перата на тези сделки, които са активни не са в Евро или Лева
+        // и перото им е бутано преди промяната на баланса и са бутани след последното минаване на крон процеса
+        $iQuery = acc_Items::getQuery();
+        $iQuery->where("#classId = {$this->getClassId()} AND #state = 'active'");
+        $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
+        $iQuery->where("#currencyId != 'BGN' AND #currencyId != 'EUR' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
+        $iQuery->where("#lastUseOn >= '{$timeline}'");
+        $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+        if(!countR($dealIds)) return;
+
+        // Ако има намерени сделки
+        $query = $this->getQuery();
+        $query->in('id', $dealIds);
+        while($rec = $query->fetch()){
+
+            // Осредняване на курса
+            if($averageRate =  $this->getAverageRateInThread($rec)){
+                if(round($averageRate, 5) != round($rec->currencyRate, 5)){
+                    $this->recalcDocumentsWithNewRate($rec, $averageRate);
+                }
+            }
+        }
+
+        // Запис в постоянния кеш кога последно е минал процеса
+        core_Permanent::set("{$this->className}|recalcedRates", dt::now(), core_Permanent::IMMORTAL_VALUE);
+    }
 }

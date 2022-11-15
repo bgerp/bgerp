@@ -10,6 +10,11 @@ define ("OUT", "\x1B\x69\x61\x00\x1B\x40\x1B\x69\x4C\x01\x1b\x28\43\x02\x00\xFC\
 
 header('Access-Control-Allow-Origin: *');
 
+if ($_SERVER["REQUEST_METHOD"] != 'GET') {
+    
+    exit;
+}
+
 // Опитва се да вземе входните данни от GET заявка. Ако няма такива използва дефинираните константи. Ако има дефинирано DEVICE - се позлва с приоритет
 if (($conf = unserialize(gzuncompress(base64_decode($_GET['DATA'])))) === FALSE || empty((array)$conf)) {
     $res = "err: Непарсируеми или липсващи данни.";

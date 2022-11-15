@@ -2016,4 +2016,13 @@ class sales_Sales extends deals_DealMaster
 
         return $deliveryDate;
     }
+
+
+    /**
+     * Осреднява валутните курсове на сделките при нужда
+     */
+    public function cron_RecalcCurrencySalesRate()
+    {
+        $this->recalcDealsWithCurrencies();
+    }
 }
