@@ -388,8 +388,12 @@ class label_Templates extends core_Master
         }
 
         if(isset($rec->classId)){
-            $series = cls::get($rec->classId)->getLabelSeries();
-            $row->series = $series[$rec->series];
+            if(cls::haveInterface('label_SequenceIntf', $rec->classId)){
+                $series = cls::get($rec->classId)->getLabelSeries();
+                $row->series = $series[$rec->series];
+            } else {
+                $row->classId = ht::createHint($row->classId, "Източникът не поддържа вече интерфейса|*: 'label_SequenceIntf'", 'error');
+            }
         }
     }
     
