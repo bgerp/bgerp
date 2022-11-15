@@ -177,7 +177,7 @@ class planning_Centers extends core_Master
         $this->FLD('employmentOccupied', 'int', 'caption=Служители->Назначени, input=none');
         $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty=true)', 'caption=Работен график->Разписание,mandatory');
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
-        $this->FLD('mandatoryOperatorsInTasks', 'enum(auto=Автоматично,lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално))', 'caption=Прогрес в ПО->Оператор(и), notNull,value=auto');
+        $this->FLD('mandatoryOperatorsInTasks', 'enum(auto=Автоматично,lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално), current=Текущ оператор)', 'caption=Прогрес в ПО->Оператор(и), notNull,value=auto');
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор, notNull,value=auto');
         $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
 
