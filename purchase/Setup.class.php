@@ -207,6 +207,16 @@ class purchase_Setup extends core_ProtoSetup
             'period' => 1440,
             'timeLimit' => 360
         ),
+
+        array(
+            'systemId' => 'Recalc Currency Purchase Rate',
+            'description' => 'Осредняване на валутните курсове на покупките',
+            'controller' => 'purchase_Purchases',
+            'action' => 'RecalcCurrencyRate',
+            'offset' => 20,
+            'period' => 180,
+            'timeLimit' => 180,
+        ),
     );
 
 

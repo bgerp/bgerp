@@ -2870,4 +2870,13 @@ abstract class deals_DealMaster extends deals_DealBase
 
         return $files;
     }
+
+
+    /**
+     * Осреднява валутните курсове на сделките при нужда
+     */
+    public function cron_RecalcCurrencyRate()
+    {
+        $this->recalcDealsWithCurrencies();
+    }
 }

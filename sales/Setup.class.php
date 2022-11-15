@@ -515,7 +515,7 @@ class sales_Setup extends core_ProtoSetup
             'systemId' => 'Recalc Currency Sales Rate',
             'description' => 'Осредняване на валутните курсове на продажбите',
             'controller' => 'sales_Sales',
-            'action' => 'RecalcCurrencySalesRate',
+            'action' => 'RecalcCurrencyRate',
             'offset' => 10,
             'period' => 120,
             'timeLimit' => 150,
