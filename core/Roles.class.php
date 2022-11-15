@@ -114,17 +114,13 @@ class core_Roles extends core_Manager
         
         if (isset($inherit)) {
             $rec->inheritInput = $Roles->getRolesAsKeylist($inherit);
-        } else {
-            $rec->inheritInput = '';
         }
         
         $exRec = $Roles->fetch(array("#role = '[#1#]'", $rec->role));
 
         if ($exRec) {
             $rec->id = $exRec->id;
-            if ($exRec->createdBy != -1) {
-                $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput), keylist::toArray($exRec->inheritInput)));
-            }
+            $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput), keylist::toArray($exRec->inheritInput)));
         }
         
         $Roles->save($rec);

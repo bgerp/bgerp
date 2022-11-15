@@ -664,7 +664,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
             $data->row = (object) ((array) $data->row + (array) $data->summary);
             $data->row->vatAmount = $data->summary->vatAmount;
-        } elseif(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+        } elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $data->row->value = doc_plg_HidePrices::getBuriedElement();
         }
     }

@@ -549,7 +549,7 @@ abstract class bank_Document extends deals_PaymentDocument
                 $row->rateFromCurrencyId = currency_Currencies::getCodeById($rateFromCurrencyId);
                 $row->rateToCurrencyId = currency_Currencies::getCodeById($rateToCurrencyId);
 
-                if(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+                if(!doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
                     $row->amountDeal = doc_plg_HidePrices::getBuriedElement();
                     $row->rate = doc_plg_HidePrices::getBuriedElement();
                 }

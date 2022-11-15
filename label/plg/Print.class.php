@@ -23,7 +23,7 @@ class label_plg_Print extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         setIfNot($mvc->canPrintlabel, 'label, admin, ceo');
-        setIfNot($mvc->canPrintPeripheralLabel, 'label, admin, ceo');
+        setIfNot($mvc->canPrintperipherallabel, 'label, admin, ceo');
         setIfNot($mvc->printLabelCaptionPlural, 'Етикети');
         setIfNot($mvc->printLabelCaptionSingle, 'Етикет');
     }
@@ -53,6 +53,7 @@ class label_plg_Print extends core_Plugin
                 } else {
                     $attr['alwaysShowCaption'] = "<span class='quiet'>(0)</span>";
                 }
+
                 $row->_rowTools->addFnLink($mvc->printLabelCaptionSingle, "getEfae().process({url: '{$lUrl}'});", $attr, 'alwaysShow');
                 $alwaysShow = false;
             }
@@ -107,12 +108,6 @@ class label_plg_Print extends core_Plugin
             $js = minify_Js::process($js);
 
             if (Request::get('ajax_mode')) {
-                if ($printedByNow = core_Permanent::get("printPeripheral{$mvc->className}_{$rec->id}")) {
-                    $printedByNow += 1;
-                } else {
-                    $printedByNow = 1;
-                }
-                core_Permanent::set("printPeripheral{$mvc->className}_{$rec->id}", $printedByNow, 129600);
 
                 // Добавяме резултата
                 $resObj = new stdClass();
@@ -140,7 +135,6 @@ class label_plg_Print extends core_Plugin
 
             $lRec = $logMvc->fetch($logId);
             if ($lRec->threadId) {
-//                $logMvc->touchRec($logId);
                 doc_ThreadRefreshPlg::checkHash($lRec->threadId, array(), true);
             }
 
@@ -154,17 +148,28 @@ class label_plg_Print extends core_Plugin
             $statusData['stayTime'] = 7000;
             $statusData['isSticky'] = 0;
 
+            $cacheSuccess = true;
             if($type == 'error'){
                 $msg = $res;
                 $logMvc->logDebug($msg, $logId);
                 $msg = haveRole('debug') ? $msg : tr('Проблем при разпечатването|*!');
                 $statusData['type'] = 'error';
                 $statusData['isSticky'] = 1;
+                $cacheSuccess = false;
             } elseif ($type == 'unknown') {
                 $logMvc->logWrite('Опит за разпечатване на бърз етикет', $logId);
                 $msg = tr("Отпечатването завърши|*!");
             } else {
                 $logMvc->logWrite('Разпечатване на бърз етикет', $logId);
+            }
+
+            if($cacheSuccess){
+                if ($printedByNow = core_Permanent::get("printPeripheral{$mvc->className}_{$rec->id}")) {
+                    $printedByNow += 1;
+                } else {
+                    $printedByNow = 1;
+                }
+                core_Permanent::set("printPeripheral{$mvc->className}_{$rec->id}", $printedByNow, 129600);
             }
 
             $statusData['text'] = $msg;

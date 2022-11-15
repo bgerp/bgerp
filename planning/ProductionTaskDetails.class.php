@@ -79,7 +79,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кой има право да листва?
      */
-    public $canList = 'taskWorker,ceo';
+    public $canList = 'taskSee,ceo';
 
 
     /**
@@ -1058,7 +1058,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     // Ако артикула има нето тегло
                     if(is_numeric($expectedSingleNetWeight)){
                         $expectedNetWeight = $weightQuantity * $expectedSingleNetWeight;
-                        $deviation = round(($rec->netWeight - $expectedNetWeight) / $expectedNetWeight, 4);
+                        $deviation = !empty($expectedNetWeight) ? round(($rec->netWeight - $expectedNetWeight) / $expectedNetWeight, 4) : 1;
 
                         // Показване на хинт ако има разминаване
                         $iconHint = null;

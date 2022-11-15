@@ -183,7 +183,8 @@ class purchase_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('purchase', 'invoicer,seePrice'),
+        array('seePricePurchase', 'seePrice'),
+        array('purchase', 'invoicer'),
         array('purchaseMaster', 'purchase'),
     );
     
