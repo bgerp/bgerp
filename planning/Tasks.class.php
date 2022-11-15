@@ -586,7 +586,7 @@ class planning_Tasks extends core_Master
                     $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId, $rec->id);
                     $expectedLabelQuantityInPack = $quantityInPackDefault;
                     $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
-                    $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
+                    $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'Средно от въведения прогрес или от опаковката/мярката на артикула');
                     $row->labelQuantityInPack = $quantityInPackDefault;
                 } else {
                     $row->labelQuantityInPack .= " {$row->measureId}";
