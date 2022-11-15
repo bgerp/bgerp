@@ -56,7 +56,6 @@ class label_Setup extends core_ProtoSetup
         'label_Counters',
         'label_CounterItems',
         'label_Prints',
-        'migrate::deleteOldTemplates2246',
     );
     
     
@@ -90,23 +89,5 @@ class label_Setup extends core_ProtoSetup
         core_Interfaces::add('label_TemplateRendererIntf');
 
         return $html;
-    }
-
-
-    /**
-     * Миграция за изтриване на стари шаблони
-     */
-    public function deleteOldTemplates2246()
-    {
-        $jobClassId = planning_Jobs::getClassId();
-        if(isset($jobClassId)){
-            $tQuery = label_Templates::getQuery();
-            $tQuery->where("#classId = {$jobClassId}");
-            while($tRec = $tQuery->fetch()){
-                label_TemplateFormats::delete("#templateId = '{$tRec->id}'");
-                label_Templates::delete($tRec->id);
-                label_Prints::delete("#templateId = '{$tRec->id}'");
-            }
-        }
     }
 }
