@@ -214,7 +214,7 @@ class purchase_Setup extends core_ProtoSetup
             'controller' => 'purchase_Purchases',
             'action' => 'RecalcCurrencyRate',
             'offset' => 20,
-            'period' => 180,
+            'period' => 60,
             'timeLimit' => 180,
         ),
     );
