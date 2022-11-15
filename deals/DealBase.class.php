@@ -985,7 +985,7 @@ abstract class deals_DealBase extends core_Master
 
         // Запис в постоянния кеш кога последно е минал процеса
         if($isSuccessFull){
-            core_Permanent::set("{$this->className}|recalcedRates", dt::now(), core_Permanent::IMMORTAL_VALUE);
+            core_Permanent::set("{$this->className}|recalcedRates", dt::now(), core_Permanent::FOREVER_VALUE);
         }
     }
 }

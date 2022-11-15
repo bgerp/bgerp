@@ -80,7 +80,7 @@ class core_Permanent extends core_Manager
     /**
      * Стойност, при която кеша няма да бъде автоматично изтрит
      */
-    const IMMORTAL_VALUE = 0;
+    const FOREVER_VALUE = 0;
     
     
     /**
@@ -101,7 +101,7 @@ class core_Permanent extends core_Manager
      *
      * @param string $key   - ключ
      * @param mixed $data   - данни
-     * @param int $lifetime - минути живот (self::IMMORTAL_VALUE да стои завинаги)
+     * @param int $lifetime - минути живот (self::FOREVER_VALUE да стои завинаги)
      * @return int
      */
     public static function set($key, $data, $lifetime = 1)
@@ -112,7 +112,7 @@ class core_Permanent extends core_Manager
         expect(!is_null($data));
         
         // Колко е живота на кеша (освен ако не е завинаги)
-        if($lifetime != self::IMMORTAL_VALUE){
+        if($lifetime != self::FOREVER_VALUE){
             $lifetime = time() + ($lifetime * 60);
         }
         
@@ -156,7 +156,7 @@ class core_Permanent extends core_Manager
         }
         
         // Ако живота е изтекъл се изтрива записа, вместо да се връща-
-        if ($rec->lifetime != self::IMMORTAL_VALUE && $rec->lifetime < time()) {
+        if ($rec->lifetime != self::FOREVER_VALUE && $rec->lifetime < time()) {
             self::delete($rec->id);
             Debug::log("PERMANENT_CACHE::delete {$key} - expired");
             
@@ -215,7 +215,7 @@ class core_Permanent extends core_Manager
      */
     public function cron_DeleteExpiredPermData()
     {
-        $deletedRecs = $this->delete("#lifetime != '" . self::IMMORTAL_VALUE . "' AND #lifetime < " . time());
+        $deletedRecs = $this->delete("#lifetime != '" . self::FOREVER_VALUE . "' AND #lifetime < " . time());
         $msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> постоянни записа с изтекъл срок бяха изтрити";
         
         return $msg;
@@ -227,7 +227,7 @@ class core_Permanent extends core_Manager
      */
     protected static function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
-        if($rec->lifetime == self::IMMORTAL_VALUE){
+        if($rec->lifetime == self::FOREVER_VALUE){
             $row->lifetime = tr("Без лимит");
         }
     }

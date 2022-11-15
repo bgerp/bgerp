@@ -216,7 +216,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         }
 
         $lastCalcedDebitTime = is_object($lastBalance) ? $lastBalance->lastCalculate : dt::now();
-        core_Permanent::set('lastCalcedDebitTime', $lastCalcedDebitTime, core_Permanent::IMMORTAL_VALUE);
+        core_Permanent::set('lastCalcedDebitTime', $lastCalcedDebitTime, core_Permanent::FOREVER_VALUE);
         log_System::logDebug("AVG SAVED TIME {$lastCalcedDebitTime}");
 
         return $debitRecs;
