@@ -122,8 +122,10 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
 
         $quantity = $rec->quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
-        $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->weight) : null;
-        $nettWeight = (!empty($rec->netWeight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->netWeight) : null;
+        Mode::push('text', 'plain');
+        $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($rec->weight) : null;
+        $nettWeight = (!empty($rec->netWeight)) ? core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($rec->netWeight) : null;
+        Mode::pop('text');
 
         $batch = null;
         $date = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
