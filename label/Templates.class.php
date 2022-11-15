@@ -166,7 +166,7 @@ class label_Templates extends core_Master
         $this->FLD('sysId', 'varchar', 'input=none');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         $this->FLD('rendererClassId', 'class(interface=label_TemplateRendererIntf, select=title, allowEmpty)', 'caption=Източник->Рендер');
-        $this->FLD('series', 'varchar', 'caption=Серии,notNull,value=label,mandatory');
+        $this->FLD('series', 'varchar', 'caption=Серия,notNull,value=label,mandatory');
 
         $this->setDbUnique('sysId');
         $this->setDbIndex('classId');

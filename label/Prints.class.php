@@ -171,7 +171,7 @@ class label_Prints extends core_Master
         $this->FLD('classId', 'class(interface=label_SequenceIntf)', 'caption=Клас, silent, input=hidden');
         $this->FLD('objectId', 'int', 'caption=Обект, title=Обект, silent, input=hidden');
 
-        $this->FLD('series', 'varchar', 'caption=Серии,notNull,value=label,input=hidden,silent');
+        $this->FLD('series', 'varchar', 'caption=Серия,notNull,value=label,input=hidden,silent');
 
         $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
         
