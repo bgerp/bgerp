@@ -183,7 +183,7 @@ class purchase_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('seePricePurchase', 'seePrice'),
+        array('seePricePurchase'),
         array('purchase', 'invoicer'),
         array('purchaseMaster', 'purchase'),
     );
@@ -206,6 +206,16 @@ class purchase_Setup extends core_ProtoSetup
             'action' => 'CloseQuotations',
             'period' => 1440,
             'timeLimit' => 360
+        ),
+
+        array(
+            'systemId' => 'Recalc Currency Purchase Rate',
+            'description' => 'Осредняване на валутните курсове на покупките',
+            'controller' => 'purchase_Purchases',
+            'action' => 'RecalcCurrencyRate',
+            'offset' => 20,
+            'period' => 60,
+            'timeLimit' => 180,
         ),
     );
 

@@ -57,16 +57,16 @@ class cond_type_Enum extends cond_type_abstract_Proto
         $orderBy = isset($this->driverRec->orderBy) ? $this->driverRec->orderBy : 'no';
         switch($orderBy){
             case 'ascKey':
-                ksort($Type->options, SORT_STRING);
+                ksort($Type->options, SORT_NATURAL);
                 break;
             case 'ascVal':
-                asort($Type->options, SORT_STRING);
+                asort($Type->options, SORT_NATURAL);
                 break;
             case 'descKey':
-                krsort($Type->options, SORT_STRING);
+                krsort($Type->options, SORT_NATURAL);
                 break;
             case 'descVal':
-                arsort($Type->options, SORT_STRING);
+                arsort($Type->options, SORT_NATURAL);
                 break;
             default:
                 break;

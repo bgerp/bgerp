@@ -515,7 +515,7 @@ class sales_Setup extends core_ProtoSetup
             'systemId' => 'Recalc Currency Sales Rate',
             'description' => 'Осредняване на валутните курсове на продажбите',
             'controller' => 'sales_Sales',
-            'action' => 'RecalcCurrencySalesRate',
+            'action' => 'RecalcCurrencyRate',
             'offset' => 10,
             'period' => 120,
             'timeLimit' => 150,
@@ -527,7 +527,7 @@ class sales_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('seePriceSale', 'seePrice'),
+        array('seePriceSale'),
         array(
             'sales',
             'invoicer,seePrice,dec,seePriceSale'
