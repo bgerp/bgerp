@@ -583,10 +583,10 @@ class planning_Tasks extends core_Master
             } else {
                 if(empty($rec->labelQuantityInPack)){
                     $labelProductId = ($rec->isFinal == 'yes') ? $origin->fetchField('productId') : $rec->productId;
-                    $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId);
+                    $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId, $rec->id);
                     $expectedLabelQuantityInPack = $quantityInPackDefault;
                     $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
-                    $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
+                    $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'Средно от въведения прогрес или от опаковката/мярката на артикула');
                     $row->labelQuantityInPack = $quantityInPackDefault;
                 } else {
                     $row->labelQuantityInPack .= " {$row->measureId}";
@@ -594,7 +594,7 @@ class planning_Tasks extends core_Master
                 }
 
                 if(cat_UoM::fetchField($rec->labelPackagingId, 'type') != 'uom'){
-                    $expectedLabelPacks = core_Type::getByName('double(smartRound)')->toVerbal($rec->plannedQuantity / $expectedLabelQuantityInPack);
+                    $expectedLabelPacks = core_Type::getByName('double(smartRound,maxDecimals=1)')->toVerbal($rec->plannedQuantity / $expectedLabelQuantityInPack);
                     $row->labelPackagingId .= ", {$expectedLabelPacks} " . tr('бр.');
                 }
             }
@@ -618,8 +618,8 @@ class planning_Tasks extends core_Master
             }
 
             $row->originId = $origin->getHyperlink(true);
-            $originState = $origin->fetchField('state');
-            $row->originId = ht::createElement("span", array('style' => 'font-size:1em', 'class' => "state-{$originState} document-handler"), $row->originId);
+            $row->jobState = $origin->fetchField('state');
+            //$row->originId = ht::createElement("span", array('style' => '', 'class' => "state-{$originState} document-handler"), $row->originId);
 
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
@@ -726,13 +726,33 @@ class planning_Tasks extends core_Master
      * @param int $productId
      * @param int $measureId
      * @param int $labelPackagingId
+     * @param int|null $taskId
      * @return float|int $quantityInPackDefault
      */
-    public static function getDefaultQuantityInLabelPackagingId($productId, $measureId, $labelPackagingId)
+    public static function getDefaultQuantityInLabelPackagingId($productId, $measureId, $labelPackagingId, $taskId = null)
     {
+        $productMeasureId = cat_Products::fetchField($productId, 'measureId');
+        if(isset($taskId)){
+
+            // Показване на средното к-во в опаковка от реалните данни
+            $taskRec = planning_Tasks::fetch($taskId);
+            $dQuery = planning_ProductionTaskDetails::getQuery();
+            $dQuery->where("#taskId = {$taskId} AND #productId = {$productId} AND #type='production' AND #state != 'rejected'");
+            $dRecs = array();
+            while($dRec = $dQuery->fetch()){
+                $dRecs[$dRec->serial] += $dRec->quantity;
+            }
+            $detailsCount = countR($dRecs);
+            if($detailsCount){
+                $round = cat_UoM::fetchField($measureId, 'round');
+                $res = round((array_sum($dRecs) / $detailsCount) / $taskRec->quantityInPack, $round);
+
+                return $res;
+            }
+        }
+
         $packRec = cat_products_Packagings::getPack($productId, $labelPackagingId);
         $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
-        $productMeasureId = cat_Products::fetchField($productId, 'measureId');
 
         if($productMeasureId != $measureId){
             $packRec1 = cat_products_Packagings::getPack($productId, $measureId);
@@ -1397,7 +1417,6 @@ class planning_Tasks extends core_Master
                 }
             }
 
-
             if(core_Packs::isInstalled('batch')){
                 if(batch_Defs::getBatchDef($originRec->productId)){
                     $form->setField('followBatchesForFinalProduct', 'input');
@@ -1575,15 +1594,17 @@ class planning_Tasks extends core_Master
                 $form->setField('labelTemplate', 'input');
 
                 if($rec->isFinal != 'yes' && $rec->labelPackagingId == $productionData['labelPackagingId']){
-                    $stepMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
-                    $stepSimilarMeasures = cat_UoM::getSameTypeMeasures($stepMeasureId);
-                    if(array_key_exists($productRec->measureId, $stepSimilarMeasures)){
-                        $productionData['labelQuantityInPack'] = cat_UoM::convertValue($productionData['labelQuantityInPack'], $stepMeasureId, $productRec->measureId);
+                    if(empty($rec->id)){
+                        $stepMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
+                        $stepSimilarMeasures = cat_UoM::getSameTypeMeasures($stepMeasureId);
+                        if(array_key_exists($productRec->measureId, $stepSimilarMeasures)){
+                            $productionData['labelQuantityInPack'] = cat_UoM::convertValue($productionData['labelQuantityInPack'], $stepMeasureId, $productRec->measureId);
+                        }
+                        $form->setDefault('labelQuantityInPack', $productionData['labelQuantityInPack']);
                     }
-                    $form->setDefault('labelQuantityInPack', $productionData['labelQuantityInPack']);
                 }
 
-                $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($productId4Form, $rec->measureId, $rec->labelPackagingId);
+                $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($productId4Form, $rec->measureId, $rec->labelPackagingId, $rec->id);
                 $form->setField('labelQuantityInPack', "placeholder={$quantityInPackDefault}");
 
                 $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);

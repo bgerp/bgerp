@@ -449,7 +449,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $quantityInPack = ($productInfo->packagings[$rec->additionalMeasureId]) ? $productInfo->packagings[$rec->additionalMeasureId]->quantity : 1;
                     if($origin->isInstanceOf('planning_Tasks')){
                         if($originRec->labelPackagingId == $rec->additionalMeasureId){
-                            $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId);
+                            $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId, $originRec->id);
                         }
                     }
 
@@ -509,7 +509,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 // Ако втората мярка е опаковка
                 if($origin->isInstanceOf('planning_Tasks')){
                     if($originRec->labelPackagingId == $rec->additionalMeasureId){
-                        $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId);
+                        $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId, $originRec->id);
                     }
                 }
 
