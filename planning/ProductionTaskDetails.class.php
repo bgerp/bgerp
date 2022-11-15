@@ -375,7 +375,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if(array_key_exists($personId, $employees)){
                     $form->setDefault('employees', keylist::addKey('', $personId));
                 } else {
-                    $form->setDefault('otherEmployees', keylist::addKey('', $personId));
+                    if(planning_Hr::fetchField("#personId = {$personId}")){
+                        $form->setDefault('otherEmployees', keylist::addKey('', $personId));
+                    }
                 }
             }
         }
