@@ -75,7 +75,7 @@ class doc_plg_HidePrices extends core_Plugin
             if(haveRole('ceo,seePriceSale')) return true;
         } elseif($mvc instanceof purchase_Quotations){
             if(haveRole('ceo,seePricePurchase')) return true;
-        }elseif(isset($rec->threadId)){
+        } elseif(isset($rec->threadId)){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 if($firstDocument->isInstanceOf('sales_Sales')){
                     if(haveRole('ceo,seePriceSale')) return true;
@@ -83,16 +83,18 @@ class doc_plg_HidePrices extends core_Plugin
                     if(haveRole('ceo,seePricePurchase')) return true;
                 }
             }
+        }
 
+        if(isset($rec->threadId)){
             $threadRec = doc_Threads::fetch($rec->threadId);
         }
 
         // Ако е контрактор, и е инсталиран пакета за контрактови и имаме тред
         if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab') && isset($threadRec)) {
-            
+
             // Ако контрактора може да види треда от външната част, то може и да види цялата ценова информация
             if (colab_Threads::haveRightFor('single', $threadRec)) {
-                
+
                 return true;
             }
         }
