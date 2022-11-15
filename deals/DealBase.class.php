@@ -965,9 +965,11 @@ abstract class deals_DealBase extends core_Master
         $iQuery->where("#currencyId != 'BGN' AND #currencyId != 'EUR' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
         $iQuery->where("#lastUseOn >= '{$timeline}'");
         $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+
         if(!countR($dealIds)) return;
 
         // Ако има намерени сделки
+        $isSuccessFull = false;
         $query = $this->getQuery();
         $query->in('id', $dealIds);
         while($rec = $query->fetch()){
@@ -976,11 +978,14 @@ abstract class deals_DealBase extends core_Master
             if($averageRate =  $this->getAverageRateInThread($rec)){
                 if(round($averageRate, 5) != round($rec->currencyRate, 5)){
                     $this->recalcDocumentsWithNewRate($rec, $averageRate);
+                    $isSuccessFull = true;
                 }
             }
         }
 
         // Запис в постоянния кеш кога последно е минал процеса
-        core_Permanent::set("{$this->className}|recalcedRates", dt::now(), core_Permanent::IMMORTAL_VALUE);
+        if($isSuccessFull){
+            core_Permanent::set("{$this->className}|recalcedRates", dt::now(), core_Permanent::IMMORTAL_VALUE);
+        }
     }
 }
