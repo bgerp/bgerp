@@ -185,8 +185,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $masterRec = planning_Tasks::fetch($rec->taskId);
 
         // Кои оператори са въведени досега
-        $defaultFillLastUser = planning_Setup::get('TASK_PROGRESS_OPERATOR');
-        if(in_array($defaultFillLastUser, array('lastAndOptional', 'lastAndMandatory'))){
+        $defaultFillUser = planning_Setup::get('TASK_PROGRESS_OPERATOR');
+        if(in_array($defaultFillUser, array('lastAndOptional', 'lastAndMandatory'))){
             $lastEmployees = null;
             $selectedEmployeesByNowKeylist = '';
             $query = $mvc->getQuery();
@@ -368,6 +368,15 @@ class planning_ProductionTaskDetails extends doc_Detail
             $form->setField('employees', 'input');
             if (countR($employees) == 1) {
                 $form->setDefault('employees', keylist::addKey('', planning_Hr::getPersonIdByCode(key($employees))));
+            }
+
+            if($defaultFillUser == 'current'){
+                $personId = crm_Profiles::getPersonByUser(core_Users::getCurrent());
+                if(array_key_exists($personId, $employees)){
+                    $form->setDefault('employees', keylist::addKey('', $personId));
+                } else {
+                    $form->setDefault('otherEmployees', keylist::addKey('', $personId));
+                }
             }
         }
 
