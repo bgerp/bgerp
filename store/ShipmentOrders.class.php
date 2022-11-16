@@ -884,4 +884,16 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         return $loadingDate;
     }
+
+
+    /**
+     * Връща наличните серии за етикети от източника
+     *
+     * @param null|stdClass $rec
+     * @return array
+     */
+    public function getLabelSeries($rec = null)
+    {
+        return array('label' => $this->printLabelCaptionPlural, 'detail' => 'Артикули');
+    }
 }

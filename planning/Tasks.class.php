@@ -2382,11 +2382,14 @@ class planning_Tasks extends core_Master
     /**
      * Параметрите на бутона за етикетиране
      */
-    protected static function on_AfterGetLabelTemplates($mvc, &$res, $rec)
+    protected static function on_AfterGetLabelTemplates($mvc, &$res, $rec, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
         $rec = $mvc->fetchRec($rec);
         if(isset($rec->labelTemplate) && !array_key_exists($rec->labelTemplate, $res)){
-            $res[$rec->labelTemplate] = label_Templates::fetch($rec->labelTemplate);
+            $templateSeries = label_Templates::fetchField($rec->labelTemplate, 'series');
+            if($templateSeries == $series){
+                $res[$rec->labelTemplate] = label_Templates::fetch($rec->labelTemplate);
+            }
         }
     }
 
