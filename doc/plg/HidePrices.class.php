@@ -69,7 +69,7 @@ class doc_plg_HidePrices extends core_Plugin
     {
         // Ако има изброените роли, може да вижда цените
         $mvc = cls::get($mvc);
-        if(($mvc instanceof deals_PaymentDocument) || ($mvc instanceof crm_Persons) || ($mvc instanceof findeals_AdvanceReports)){
+        if(($mvc instanceof deals_PaymentDocument) || ($mvc instanceof crm_Persons)){
             if(haveRole('ceo,seePrice')) return true;
         } elseif($mvc instanceof sales_Quotations){
             if(haveRole('ceo,seePriceSale')) return true;
@@ -81,6 +81,8 @@ class doc_plg_HidePrices extends core_Plugin
                     if(haveRole('ceo,seePriceSale')) return true;
                 } elseif($firstDocument->isInstanceOf('purchase_Purchases')){
                     if(haveRole('ceo,seePricePurchase')) return true;
+                } elseif($firstDocument->isInstanceOf('findeals_Deals')){
+                    if(haveRole('ceo,seePrice')) return true;
                 }
             }
         }
