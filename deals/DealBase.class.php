@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -83,6 +83,7 @@ abstract class deals_DealBase extends core_Master
         }
         $mvc->FLD('closedOn', 'datetime', 'input=none');
         $mvc->FLD('closeWith', "key(mvc={$mvc->className},allowEmpty)", 'caption=Приключена със,input=none');
+        $mvc->FLD('lastAutoRecalcRate', 'datetime(format=smartTime)', 'input=none');
     }
     
     
@@ -944,48 +945,47 @@ abstract class deals_DealBase extends core_Master
     /**
      * Осреднява валутните курсове на сделките при нужда
      *
-     * @param null|date $timeline - времева рамка
-     * @return null;
+     * @return void;
      */
-    public function recalcDealsWithCurrencies($timeline = null)
+    public function recalcDealsWithCurrencies()
     {
         // Кога последно е преизчисляван баланса
         $lastBalanceRec = acc_Balances::getLastBalance();
         $lastCalculate = (empty($lastBalanceRec->lastCalculate)) ? '0000-00-00' : $lastBalanceRec->lastCalculate;
-        if(empty($timeline)){
-            $timeline = core_Permanent::get("{$this->className}|recalcedRates");
-        }
-        $timeline = (empty($timeline)) ? '0000-00-00' : $timeline;
 
         // Търсят се перата на тези сделки, които са активни не са в Евро или Лева
-        // и перото им е бутано преди промяната на баланса и са бутани след последното минаване на крон процеса
+        // и перото им е бутано преди промяната на баланса и са използвани след последното преизчисляване
         $iQuery = acc_Items::getQuery();
         $iQuery->where("#classId = {$this->getClassId()} AND #state = 'active'");
         $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
+        $iQuery->EXT('lastAutoRecalcRate', $this->className, 'externalName=lastAutoRecalcRate,externalKey=objectId');
+        $iQuery->XPR('lastAutoRecalcRateCalc', 'double', "COALESCE(#lastAutoRecalcRate, '0000-00-00 00:00:00')");
         $iQuery->where("#currencyId != 'BGN' AND #currencyId != 'EUR' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
-        $iQuery->where("#lastUseOn >= '{$timeline}'");
-        $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+        $iQuery->where("#lastUseOn >= #lastAutoRecalcRateCalc");
 
+        $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
         if(!countR($dealIds)) return;
 
         // Ако има намерени сделки
-        $isSuccessFull = false;
+        $now = dt::now();
         $query = $this->getQuery();
         $query->in('id', $dealIds);
+        $updateRecs = array();
         while($rec = $query->fetch()){
 
             // Осредняване на курса
             if($averageRate =  $this->getAverageRateInThread($rec)){
                 if(round($averageRate, 5) != round($rec->currencyRate, 5)){
                     $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                    $isSuccessFull = true;
                 }
+                $rec->lastAutoRecalcRate = $now;
+                $updateRecs[$rec->id] = $rec;
             }
         }
 
-        // Запис в постоянния кеш кога последно е минал процеса
-        if($isSuccessFull){
-            core_Permanent::set("{$this->className}|recalcedRates", dt::now(), core_Permanent::FOREVER_VALUE);
+        // Обновяване на сделките кога последно е осреднен курса
+        if(countR($updateRecs)){
+            $this->saveArray($updateRecs, 'id,lastAutoRecalcRate');
         }
     }
 }

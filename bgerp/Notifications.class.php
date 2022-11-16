@@ -360,7 +360,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Връща текста на активното съобщение, ако има такова
      */
-    public static function getActiveMsgFor($urlArr, $userId)
+    public static function getActiveMsgFor($urlArr, $userId, &$customUrl = null)
     {
         $url = toUrl($urlArr, 'local', false);
         
@@ -379,7 +379,9 @@ class bgerp_Notifications extends core_Manager
         $query->limit(1);
         
         if ($rec = $query->fetch()) {
-            
+
+            $customUrl = $rec->customUrl;
+
             return $rec->msg;
         }
     }

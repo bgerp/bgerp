@@ -734,6 +734,7 @@ abstract class store_DocumentMaster extends core_Master
      * 		string|NULL   ['fromAddress']         - адрес за натоварване
      *  	string|NULL   ['fromCompany']         - фирма
      *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromPersonPhones']    - телефон на лицето
      *      string|NULL   ['fromLocationId']      - лице
      *      string|NULL   ['fromAddressInfo']     - особености
      *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
@@ -798,7 +799,15 @@ abstract class store_DocumentMaster extends core_Master
         $res["{$ownPart}Company"] = $ownCompany->name;
         $toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
         $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
-        
+
+        if($res["{$ownPart}Person"]){
+            $personId = crm_Profiles::getPersonByUser($toPersonId);
+            $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+            if(!empty($buzPhones)){
+                $res["{$ownPart}PersonPhones"] = $buzPhones;
+            }
+        }
+
         // Подготвяне на данните за натоварване
         $res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
         $res["{$contrPart}Company"] = $contragentData->company;

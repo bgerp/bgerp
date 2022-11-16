@@ -81,6 +81,8 @@ class doc_plg_HidePrices extends core_Plugin
                     if(haveRole('ceo,seePriceSale')) return true;
                 } elseif($firstDocument->isInstanceOf('purchase_Purchases')){
                     if(haveRole('ceo,seePricePurchase')) return true;
+                } elseif($firstDocument->isInstanceOf('findeals_Deals')){
+                    if(haveRole('ceo,seePrice')) return true;
                 }
             }
         }
