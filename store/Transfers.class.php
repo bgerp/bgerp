@@ -508,6 +508,7 @@ class store_Transfers extends core_Master
      * 		string|NULL   ['fromAddress']         - адрес за натоварване
      *  	string|NULL   ['fromCompany']         - фирма
      *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromPersonPhones']    - телефон на лицето
      *      string|NULL   ['fromLocationId']      - лице
      *      string|NULL   ['fromAddressInfo']     - особености
      *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
