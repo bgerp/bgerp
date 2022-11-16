@@ -1113,7 +1113,15 @@ class doc_Containers extends core_Manager
             
             return;
         }
-        
+
+        $uActiveMsgArr = $customUrlArr =  array();
+
+        // Кой линк да се използва за изичстване на нотификация
+        $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+
+        // Къде да сочи линка при натискане на нотификацията
+        $customUrl = array($docMvc, 'single', $rec->docId);
+
         // Ако няма да се споделя, а ще се добавя или променя
         if ($action != 'сподели') {
             
@@ -1201,13 +1209,30 @@ class doc_Containers extends core_Manager
                 }
             }
         }
-        
+
         // Ако няма потребители за нотифирциране
         if (!$usersArr) {
             
             return ;
         }
-        
+
+        // Линка да сочи до първия документ, който е споделен, но не е видян
+        foreach ($usersArr as $uId) {
+            $customUrlFromLast = null;
+            $activeMsg = bgerp_Notifications::getActiveMsgFor($url, $uId, $customUrlFromLast);
+
+            if ($activeMsg && mb_strpos($activeMsg, ' |сподели|* ') !== false) {
+                if ($customUrlFromLast) {
+                    $customUrlFromLast = parseLocalUrl($customUrlFromLast, false);
+                    if ($customUrlFromLast) {
+                        $customUrlArr[$uId] = $customUrlFromLast;
+
+                        $uActiveMsgArr[$uId] = $activeMsg;
+                    }
+                }
+            }
+        }
+
         static $threadTitleArr = array();
         
         // Броя на потребителите, които ще се показват в съобщението на нотификацията
@@ -1235,12 +1260,6 @@ class doc_Containers extends core_Manager
             // Определяме заглавието и добавяме в масива
             $threadTitleArr[$rec->threadId] = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, false), doc_Threads::maxLenTitle);
         }
-        
-        // Кой линк да се използва за изичстване на нотификация
-        $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-        
-        // Къде да сочи линка при натискане на нотификацията
-        $customUrl = array($docMvc, 'single', $rec->docId);
         
         // Обхождаме масива с всички потребители, които ще имат съответната нотификация
         foreach ((array) $usersArr as $userId) {
@@ -1385,9 +1404,26 @@ class doc_Containers extends core_Manager
             } else {
                 $messageN = $message;
             }
-            
+
+            $customUrlNew = $customUrl;
+
+            if ($uActiveMsgArr[$userId]) {
+
+                $eArr = explode('". ', $uActiveMsgArr[$userId]);
+
+                if ($eArr && countR($eArr) > 1) {
+                    $delim = '". ';
+                } else {
+                    $delim = '. ';
+                }
+
+                $messageN = $eArr[0] . $delim . $messageN;
+
+                $customUrlNew = $customUrlArr[$userId];
+            }
+
             // Нотифицираме потребителя
-            bgerp_Notifications::add($messageN, $url, $userId, $priority, $customUrl);
+            bgerp_Notifications::add($messageN, $url, $userId, $priority, $customUrlNew);
             
             // Добавяме в масива, за да не се нотифицара повече
             $notifiedUsersArr[$userId] = $userId;
