@@ -160,7 +160,7 @@ class label_Templates extends core_Master
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник->Клас,silent,removeAndRefreshForm=series');
-        $this->FLD('series', 'varchar', 'caption=Източник->Серия,notNull,value=label,mandatory');
+        $this->FLD('series', 'varchar', 'caption=Източник->Серия,notNull,value=label');
 
         $this->FLD('template', 'html(tinyEditor=no)', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
@@ -522,6 +522,7 @@ class label_Templates extends core_Master
         if(isset($rec->classId)){
             $series = cls::get($rec->classId)->getLabelSeries();
             $form->setOptions('series', $series);
+            $form->setDefault('series', key($series));
         } else {
             $form->setField('series', 'input=hidden');
         }
