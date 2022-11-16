@@ -158,15 +158,16 @@ class label_Templates extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
+        $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник->Клас,silent,removeAndRefreshForm=series');
-        $this->FLD('peripheralDriverClassId', 'class(interface=peripheral_PrinterIntf, select=title, allowEmpty)', 'caption=Източник->Периферия');
-        
+        $this->FLD('series', 'varchar', 'caption=Източник->Серия,notNull,value=label,mandatory');
+
         $this->FLD('template', 'html(tinyEditor=no)', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
         $this->FLD('sysId', 'varchar', 'input=none');
-        $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
-        $this->FLD('rendererClassId', 'class(interface=label_TemplateRendererIntf, select=title, allowEmpty)', 'caption=Източник->Рендер');
-        $this->FLD('series', 'varchar', 'caption=Серия,notNull,value=label,mandatory');
+
+        $this->FLD('peripheralDriverClassId', 'class(interface=peripheral_PrinterIntf, select=title, allowEmpty)', 'caption=Допълнително->Периферия,autohide');
+        $this->FLD('rendererClassId', 'class(interface=label_TemplateRendererIntf, select=title, allowEmpty)', 'caption=Допълнително->Обработвач,autohide');
 
         $this->setDbUnique('sysId');
         $this->setDbIndex('classId');
