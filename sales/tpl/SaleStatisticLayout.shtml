@@ -68,6 +68,9 @@
                   <!--ET_BEGIN receiptId-->
                   <span style='font-weight:normal'>|Бележка|*</span>: [#receiptId#]<br>
                   <!--ET_END receiptId-->
+                  <!--ET_BEGIN lastAutoRecalcRate-->
+                  <span style='font-weight:normal'>|Авт. осредняване на курсове|*</span>: [#lastAutoRecalcRate#]<br>
+                  <!--ET_END lastAutoRecalcRate-->
               </td>
            </tr>
            <tr>
