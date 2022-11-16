@@ -171,7 +171,9 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
         if($rec->canStore == 'yes'){
             $res['labelPackagingId'] = $rec->labelPackagingId;
-            $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+            if($rec->labelTransferQuantityInPack == 'yes'){
+                $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+            }
             $res['labelType'] = $rec->labelType;
             $res['labelTemplate'] = $rec->labelTemplate;
         }
