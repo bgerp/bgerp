@@ -122,7 +122,7 @@ class eshop_plg_ProductSync extends core_Plugin
 
             // Запомняне при клониране дали този артикул да се добавя към ешопа или не
             if(isset($rec->cloneToEshop)){
-                core_Permanent::set("addToEshopAfterClone{$rec->id}", $rec->cloneToEshop, core_Permanent::IMMORTAL_VALUE);
+                core_Permanent::set("addToEshopAfterClone{$rec->id}", $rec->cloneToEshop, core_Permanent::FOREVER_VALUE);
             }
         }
     }

@@ -238,7 +238,7 @@ class sales_SalesDetails extends deals_DealDetail
                 deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
             }
             
-            if (core_Users::haveRole('ceo,seePrice,seePriceSale') && isset($row->packPrice)) {
+            if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice)) {
                $hintField = isset($data->listFields['packPrice']) ? 'packPrice' : 'amount';
                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
                

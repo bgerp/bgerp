@@ -283,6 +283,12 @@ class acc_Setup extends core_ProtoSetup
             'seePrice'
         ),
         array(
+            'seePriceSale'
+        ),
+        array(
+            'seePricePurchase'
+        ),
+        array(
             'invoicer'
         ),
         array(

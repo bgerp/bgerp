@@ -21,10 +21,10 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
      * Връща наименованието на етикета
      *
      * @param int $id
-     *
+     * @param string $series
      * @return string
      */
-    public function getLabelName($id)
+    public function getLabelName($id, $series = 'label')
     {
         $rec = $this->class->fetchRec($id);
         $labelName = planning_Tasks::getTitleById($rec->taskId);
@@ -66,7 +66,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $templateTpl = label_Templates::addCssToTemplate($templateId);
 
         // Взимат се данните за бърз етикет
-        $allLabelData = $this->getLabelData($id, 1, false);
+        $allLabelData = $this->getLabelData($id, 1, false, null, $series);
 
         $placeArr = label_Templates::getPlaceholders($templateTpl);
 
@@ -91,10 +91,12 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
      * @param int  $id
      * @param int  $cnt
      * @param bool $onlyPreview
+     * @param stdClass $lRec
+     * @param string $series
      *
-     * @return array - масив от масиви с ключ плейсхолдера и стойността
+     * @return array - масив от масив с ключ плейсхолдера и стойността
      */
-    public function getLabelData($id, $cnt, $onlyPreview = false)
+    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null, $series = 'label')
     {
         static $resArr = array();
         $lg = core_Lg::getCurrent();
@@ -107,6 +109,17 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         }
 
         expect($rec = planning_ProductionTaskDetails::fetchRec($id));
+
+        // Ако има със същия сериен номер да се третират като един запис
+        $dQuery = planning_ProductionTaskDetails::getQuery();
+        $dQuery->where("#type = '{$rec->type}' AND #serial = {$rec->serial} AND #id != {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+            $rec->employees = keylist::merge($rec->employees, $dRec->employees);
+            $rec->quantity += $dRec->quantity;
+            $rec->weight += $dRec->weight;
+            $rec->netWeight += $dRec->netWeight;
+        }
+
         $taskRec = planning_Tasks::fetch($rec->taskId);
         $Origin = doc_Containers::getDocument($taskRec->originId);
         $jRec = $Origin->fetch();
@@ -153,7 +166,6 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $Driver = cat_Products::getDriver($rec->productId);
         $additionalFields = (is_object($Driver)) ? $Driver->getAdditionalLabelData($rec->productId, $this->class) : array();
-
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
             $res = array('EMPLOYEES' => $employees, 'CURRENT_USER' => $currentUser, 'CREATED_BY' => $createdBy, 'STEP_PRODUCT_NAME' => $stepProductName, 'STEP_PRODUCT_CODE' => $stepProductCode,'JOB_PRODUCT_NAME' => $jobProductName, 'JOB_PRODUCT_CODE' => $jobProductCode, 'QR_CODE' => $singleUrl, 'PRODUCT_NAME' => $productName, 'CODE' => $productCode, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle(), 'NETT_WEIGHT' => $nettWeight, 'NOTES' => $notes);
@@ -193,9 +205,10 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
      * Кой е дефолтния шаблон за печат към обекта
      *
      * @param $id
+     * @param string $series
      * @return int|null
      */
-    public function getDefaultLabelTemplateId($id)
+    public function getDefaultLabelTemplateId($id, $series = 'label')
     {
         return null;
     }

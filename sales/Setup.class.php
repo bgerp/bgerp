@@ -468,7 +468,7 @@ class sales_Setup extends core_ProtoSetup
     public $defClasses = 'sales_SalesLastPricePolicy, 
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,
-                       sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_interface_FreeRegularDelivery,
+                       sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_reports_SalesByCreators,sales_interface_FreeRegularDelivery,
                        sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_InvoiceAccView';
     
     
@@ -515,7 +515,7 @@ class sales_Setup extends core_ProtoSetup
             'systemId' => 'Recalc Currency Sales Rate',
             'description' => 'Осредняване на валутните курсове на продажбите',
             'controller' => 'sales_Sales',
-            'action' => 'RecalcCurrencySalesRate',
+            'action' => 'RecalcCurrencyRate',
             'offset' => 10,
             'period' => 120,
             'timeLimit' => 150,
@@ -527,7 +527,6 @@ class sales_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('seePriceSale', 'seePrice'),
         array(
             'sales',
             'invoicer,seePrice,dec,seePriceSale'
