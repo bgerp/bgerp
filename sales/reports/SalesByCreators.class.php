@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @title     Продажби » Продажби по създател
  */
-class sales_reports_SalesByCteators extends frame2_driver_TableData
+class sales_reports_SalesByCreators extends frame2_driver_TableData
 {
     /**
      * Кой може да избира драйвъра
