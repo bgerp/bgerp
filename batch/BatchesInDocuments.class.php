@@ -609,24 +609,27 @@ class batch_BatchesInDocuments extends core_Manager
         }
         
         // Добавяне на бутони
-        $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-        
-        $attr = arr::make('warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
-        $attr['onclick'] = "$(this.form).find('.batch-quantity-fields').val('');";
+        $form->toolbar->addSbBtn('Промяна', 'save', 'id=btnSave,ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->setBtnOrder('btnSave', 1);
 
         if(!($Detail instanceof planning_Jobs)){
-            $form->toolbar->addSbBtn('Това е количеството', 'updateQuantity', 'ef_icon = img/16/disk.png,title = Обновяване на количеството');
+            $form->toolbar->addSbBtn('Това е количеството', 'updateQuantity', 'id=updateQuantity,ef_icon = img/16/disk.png,title = Обновяване на количеството');
+            $form->toolbar->setBtnOrder('updateQuantity', 2);
         }
 
         $operation = key($recInfo->operation);
         if ($operation == 'out') {
+            $attr = arr::make('id=btnAuto,warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
+            $attr['onclick'] = "$(this.form).find('.batch-quantity-fields').val('');";
             $form->toolbar->addSbBtn('Автоматично', 'auto', $attr);
+            $form->toolbar->setBtnOrder('btnSave', 3);
         }
         
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=back,ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $form->toolbar->setBtnOrder('back', 50);
         $tpl = $this->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);
-        
+
         // Рендиране на формата
         return $tpl;
     }
