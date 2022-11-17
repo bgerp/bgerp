@@ -125,6 +125,12 @@
 			<td>[#planning_Steps_labelQuantityInPack#]</td>
 		</tr>
 		<!--ET_END planning_Steps_labelQuantityInPack-->
+		<!--ET_BEGIN planning_Steps_labelTransferQuantityInPack-->
+		<tr>
+			<td class='quiet'>|К-во|*:</td>
+			<td>[#planning_Steps_labelTransferQuantityInPack#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelTransferQuantityInPack-->
 
 		<!--ET_BEGIN planning_Steps_labelType-->
 		<tr>

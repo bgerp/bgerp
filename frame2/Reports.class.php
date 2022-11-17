@@ -1218,16 +1218,18 @@ class frame2_Reports extends embed_Manager
     /**
      * Кои са достъпните шаблони за печат на етикети
      * 
-     * @param int $id     - ид на обекта
-     * @return array $res - списък със шаблоните
+     * @param int $id                             - ид на обекта
+     * @param string $series                      - серии
+     * @param boolean $ignoreWithPeripheralDriver - да се избира ли периферния драйвер
+     * @return array $res                         - списък със шаблоните
      */
-    public function getLabelTemplates($id)
+    public function getLabelTemplates($id, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
         $res = array();
         
         // Проверка има ли шаблон за драйвера
         if($Driver = static::getDriver($id)){
-            $res = $Driver->getLabelTemplates($id);
+            $res = $Driver->getLabelTemplates($id, $series, $ignoreWithPeripheralDriver);
         }
         
         return $res;

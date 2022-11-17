@@ -29,7 +29,7 @@
               <td class = 'nowrap'>[#producedQuantity#]</td>
               
               <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
-                  <div style='font-size: 1em;' class="state-[#jobState#] document-handler">
+                  <div style='font-size: 1em;width:99%' class="state-[#jobState#] document-handler">
                       <div><span style='font-weight:normal'>|Задание|*</span>: [#originId#]</div>
                       <!--ET_BEGIN batch-->
                         <div><span style='font-weight:normal'>|Партида|*</span>: [#batch#]</div>

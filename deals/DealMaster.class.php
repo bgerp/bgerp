@@ -2347,6 +2347,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		string|NULL   ['fromAddress']         - адрес за натоварване
      *  	string|NULL   ['fromCompany']         - фирма
      *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromPersonPhones']    - телефон на лицето
      *      string|NULL   ['fromLocationId']      - лице
      *      string|NULL   ['fromAddressInfo']     - особености
      *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
@@ -2413,6 +2414,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $res["{$ownPart}Company"] = $ownCompany->name;
         $personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
         $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_users::fetchField($personId, 'names');
+        if($res["{$ownPart}Person"]){
+            $personId = crm_Profiles::getPersonByUser($personId);
+            $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+            if(!empty($buzPhones)){
+                $res["{$ownPart}PersonPhones"] = $buzPhones;
+            }
+        }
+
         $res["{$contrPart}Country"] = $contragentCountry;
         $res["{$contrPart}Company"] = $contragentData->company;
         
@@ -2869,5 +2878,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
 
         return $files;
+    }
+
+
+    /**
+     * Осреднява валутните курсове на сделките при нужда
+     */
+    public function cron_RecalcCurrencyRate()
+    {
+        $this->recalcDealsWithCurrencies();
     }
 }
