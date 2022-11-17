@@ -819,7 +819,10 @@ class label_Templates extends core_Master
         
         $class = ($modified > 0) ? ' class="green"' : '';
         $res = "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
-        
+
+        //@todo да се махне след рилийз
+        $res .= cls::get('label_Setup')->callMigrate('closeTemplates2246', 'label');
+
         return $res;
     }
     
