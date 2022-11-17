@@ -29,25 +29,71 @@ class batch_definitions_SaleReff extends batch_definitions_Varchar
      */
     public function getAutoValue($documentClass, $id, $storeId, $date = null)
     {
-        $batch = null;
+        $batch = $this->getDefaultBatchName($documentClass, $id);
 
-        $Class = cls::get($documentClass);
-        if($threadId = $Class->fetchField($id, 'threadId')){
+        if(!empty($batch)) return $batch;
 
+        return null;
+    }
+
+
+    /**
+     * Разпределя количество към наличните партиди в даден склад към дадена дата
+     *
+     * @param array  $quantities - масив с наличните партиди и количества
+     * @param string $mvc        - клас на обект, към който да се разпределят
+     * @param string $id         - ид на обект, към който да се разпределят
+     *
+     * @return array $quantities - масив с филтрираните наличните партиди и количества
+     */
+    public function filterBatches($quantities, $mvc, $id)
+    {
+        // От наличните партиди се оставят само тези отговарящи на вашия реф на документа
+        $batchName = $this->getDefaultBatchName($mvc, $id);
+        if(!empty($batchName) &&array_key_exists($batchName, $quantities)){
+
+            return array($batchName => $quantities[$batchName]);
+        }
+
+        return array();
+    }
+
+
+    /**
+     * Дефолтната стойност на партидата
+     *
+     * @param mixed $class
+     * @param int $id
+     * @return null $reff
+     */
+    private function getDefaultBatchName($class, $id)
+    {
+        $reff = null;
+
+        // Намира нишката (ако има такава)
+        $Class = cls::get($class);
+        if($Class instanceof core_Detail){
+            $Master = cls::get($Class->Master);
+            $masterId = $Class->fetchField($id, $Class->masterKey);
+            $threadId = $Master->fetchField($masterId, 'threadId');
+        } else {
+            $threadId = $Class->fetchField($id, 'threadId');
+        }
+
+        // От нишката търси вашия реф на сделката
+        if(isset($threadId)){
             if($firstDoc = doc_Threads::getFirstDocument($threadId)){
                 if($firstDoc->isInstanceOf('deals_DealMaster')){
-                    $batch = $firstDoc->fetchField('reff');
+                    $reff = $firstDoc->fetchField('reff');
                 } elseif($firstDoc->isInstanceOf('planning_Jobs')){
                     $saleId = $firstDoc->fetchField('saleId');
                     if(isset($saleId)){
-                        $batch = sales_Sales::fetchField($saleId, 'reff');
+                        $reff = sales_Sales::fetchField($saleId, 'reff');
                     }
                 }
             }
         }
 
-        if(!empty($batch)) return $batch;
-
-        return null;
+        return $reff;
     }
 }
