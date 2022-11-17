@@ -62,7 +62,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        $fieldset->FLD('creators', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,mandatory,after=to');
+        $fieldset->FLD('creators', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Създател,single=none,mandatory,after=to');
         $fieldset->FLD('seeDelta', 'set(yes = )', 'caption=Делти,after=articleType,single=none');
         $fieldset->FLD('see', 'set(sales=Сделки, articles=Артикули)', 'caption=Покажи,maxRadio=2,after=articleType,single=none,silent');
     }
@@ -134,7 +134,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
         $query->where("#state != 'rejected'");
 
         $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
-bp();
+
         if (isset($rec->creators)) {
             if ((min(array_keys(keylist::toArray($rec->creators))) >= 1)) {
                 $creators = keylist::toArray($rec->creators);
