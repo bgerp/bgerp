@@ -15,8 +15,15 @@
  * @since     v 0.1
  * @title Ваш реф на сделка
  */
-class batch_definitions_SaleReff extends batch_definitions_Varchar
+class batch_definitions_DealReff extends batch_definitions_Varchar
 {
+
+    /**
+     * Старо име на класа
+     */
+    public $oldClassName = 'batch_definitions_SaleReff';
+
+
     /**
      * Връща автоматичния партиден номер според класа
      *
