@@ -1439,16 +1439,20 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-        
+
         // Изтриваме досегашните детайли на сделката
         $Detail = $mvc->mainDetail;
         $Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
         $details = deals_Helper::normalizeProducts($details);
-        
+
         if (countR($details)) {
             foreach ($details as &$det1) {
                 $det1->{$mvc->{$Detail}->masterKey} = $rec->id;
                 $Detail::save($det1);
+
+                if(isset($rec->shipmentStoreId) && is_array($det1->batches) && core_Packs::isInstalled('batch')){
+                    batch_BatchesInDocuments::saveBatches($Detail, $det1->id, $det1->batches);
+                }
             }
         }
         
