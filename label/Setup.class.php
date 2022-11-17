@@ -90,4 +90,18 @@ class label_Setup extends core_ProtoSetup
 
         return $html;
     }
+
+
+    /**
+     * Миграция на етикети
+     */
+    public function closeTemplates2246()
+    {
+        $labelRec = label_Templates::fetch("#sysId = 'defaultTplShipmentOrderDetail'");
+        if(is_object($labelRec)){
+            $labelRec->state = 'closed';
+            $labelRec->exState = 'active';
+            label_Templates::save($labelRec);
+        }
+    }
 }
