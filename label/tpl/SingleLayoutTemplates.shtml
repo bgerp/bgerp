@@ -24,7 +24,7 @@
     <div style="padding:1px"><span class="quiet">|Клонирано от|*: </span> [#clonedFromId#]</div>
     <!--ET_END clonedFromId-->
     <!--ET_BEGIN rendererClassId-->
-    <div style="padding:1px"><span class="quiet">|Рендер|*: </span> [#rendererClassId#]</div>
+    <div style="padding:1px"><span class="quiet">|Обработвач|*: </span> [#rendererClassId#]</div>
     <!--ET_END rendererClassId-->
     <br>
     [#DETAILS#]
