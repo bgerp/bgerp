@@ -43,7 +43,7 @@ class cat_Boms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ,productId=За артикул,type,state,createdOn,createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ,productId=За артикул,state,createdOn,createdBy,modifiedOn,modifiedBy';
     
     
     /**
