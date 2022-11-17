@@ -119,6 +119,10 @@ class store_iface_ShipmentLabelImpl
         return $count;
     }
 
+
+    /**
+     * Връща детайлни записи
+     */
     private function getDetailLabelRecs($rec)
     {
         $dQuery = store_ShipmentOrderDetails::getQuery();
@@ -213,18 +217,20 @@ class store_iface_ShipmentLabelImpl
                 $code = cat_Products::fetchField($dRec->productId, 'code');
                 $code = !empty($code) ? $code : "Art{$dRec->productId}";
                 $name = trim(cat_Products::getVerbal($dRec->productId, 'name'));
-                $measureId = cat_UoM::getShortName(cat_Products::fetchField($dRec->productId, 'measureId'));
+                $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
+                $quantityInPack = cat_UoM::round($measureId, $dRec->quantityInPack);
+                $measureName = cat_UoM::getShortName($measureId);
 
                 Mode::push('text', 'plain');
                 $quantity = core_Type::getByName('double(smartRound)')->toVerbal($dRec->packQuantity);
-                $quantityInPack = core_Type::getByName('double(smartRound)')->toVerbal($dRec->quantityInPack);
+                $quantityInPack = core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack);
                 Mode::pop('text');
 
                 $res = array('CODE' => $code,
                              'PRODUCT_NAME' => $name,
                              'SHIPMENT_ID' => $handler,
                              'SALE_ID' => "#" . $saleHandler,
-                             'MEASURE_ID' => $measureId,
+                             'MEASURE_ID' => $measureName,
                              'PACKAGING_ID' => cat_UoM::getSmartName($dRec->packagingId),
                              'QUANTITY' => $quantity,
                              'QUANTITY_IN_PACK' => $quantityInPack,
