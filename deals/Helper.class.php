@@ -725,8 +725,6 @@ abstract class deals_Helper
                             }
                             
                             $sign = ($parameter == 'arrays') ? 1 : -1;
-                            
-                            //@TODO да може да е -
                             $d->quantity += $sign * $p->quantity;
                             $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
 

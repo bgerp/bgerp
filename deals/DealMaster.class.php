@@ -1448,6 +1448,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (countR($details)) {
             foreach ($details as &$det1) {
                 $det1->{$mvc->{$Detail}->masterKey} = $rec->id;
+                $det1->_clonedWithBatches = true;
                 $Detail::save($det1);
 
                 if(isset($rec->shipmentStoreId) && is_array($det1->batches) && core_Packs::isInstalled('batch')){
