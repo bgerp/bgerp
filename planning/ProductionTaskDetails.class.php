@@ -299,6 +299,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
             if ($rec->type == 'production' && $masterRec->labelType == 'scan') {
                 $form->setField('serial', 'mandatory');
+            } elseif($rec->type == 'production' && $masterRec->labelType == 'print'){
+                $form->setField('serial', 'input=none');
             } elseif ($rec->type == 'input') {
                 $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
                 if (countR($availableSerialsToInput)) {
