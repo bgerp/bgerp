@@ -75,6 +75,8 @@ class doc_plg_HidePrices extends core_Plugin
             if(haveRole('ceo,seePriceSale')) return true;
         } elseif($mvc instanceof purchase_Quotations){
             if(haveRole('ceo,seePricePurchase')) return true;
+        } elseif($mvc instanceof findeals_AdvanceReports){
+            if(haveRole('ceo,pettyCashReport')) return true;
         } elseif(isset($rec->threadId)){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 if($firstDocument->isInstanceOf('sales_Sales')){
