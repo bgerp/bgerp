@@ -253,4 +253,17 @@ class doc_plg_HidePrices extends core_Plugin
             }
         }
     }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'exportdoc' && isset($rec)){
+            if(!static::canSeePriceFields($mvc, $rec)){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
 }
