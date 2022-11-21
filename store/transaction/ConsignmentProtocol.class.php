@@ -158,15 +158,23 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             );
 
             if($creditAccId == '3232'){
-                $amount = $amount = round($recRec->amount * $rate, 2);
+                $amount = round($recRec->amount * $rate, 2);
                 $entry['amount'] = $amount;
             }
 
             $entries[] = $entry;
         }
-        
+
+
+        $sendProductsArr = arr::extractValuesFromArray($sendArr, 'productId');
+        $receivedProductsArr = arr::extractValuesFromArray($receivedArr, 'productId');
+
         if (Mode::get('saveTransaction')) {
-            if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canStore,canSell', 'generic', 'трябва да са складируеми и продаваеми и да не са генерични')){
+            if($redirectError = deals_Helper::getContoRedirectError($sendProductsArr, 'canStore,canSell', 'generic', 'трябва да са складируеми и продаваеми и да не са генерични')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+
+            if($redirectError = deals_Helper::getContoRedirectError($receivedProductsArr, 'canBuy,canSell', 'generic', 'трябва да са складируеми и купуваеми и да не са генерични')){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
