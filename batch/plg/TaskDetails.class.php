@@ -50,7 +50,6 @@ class batch_plg_TaskDetails extends core_Plugin
         $form->setField('batch', 'input,unit=|*<small>|на|* ' . cat_Products::getTitleById($jobProductId) . "</small>");
         $batchClassType = $BatchClass->getBatchClassType();
 
-
         $form->setFieldType('batch', $batchClassType);
         if (isset($BatchClass->fieldPlaceholder)) {
             $form->setField('batch', "placeholder={$BatchClass->fieldPlaceholder}");
@@ -59,7 +58,9 @@ class batch_plg_TaskDetails extends core_Plugin
         // Ако има само позволени опции само тях
         $rec->_jobProductId = $jobProductId;
         $allowedOptions = $mvc->getAllowedInBatches($rec);
+
         if(is_array($allowedOptions)){
+            unset($allowedOptions['']);
             $form->setOptions('batch', array('' => '') + $allowedOptions);
             if(countR($allowedOptions) == 1){
                 $form->setDefault('batch', key($allowedOptions));
@@ -218,7 +219,7 @@ class batch_plg_TaskDetails extends core_Plugin
             $batchesSummary[$dRec->batch]['produced'] += $dRec->quantity / $masterRec->quantityInPack;
         }
 
-        $tpl = new core_ET("<table>[#ROWS#]</table>");
+        $tpl = new core_ET("<table class='docHeaderVal'>[#ROWS#]</table>");
         $block = new core_ET("<tr ><td><span style='font-weight:normal'><!--ET_BEGIN label-->[#label#]: <!--ET_END label-->[#batch#]</span></td><td>[#produced#] <i style='font-weight:normal'>([#planned#])</i></td>");
         foreach ($batchesSummary as $arr){
             $arr['planned'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['planned']) . " " . cat_UoM::getShortName($masterRec->measureId);

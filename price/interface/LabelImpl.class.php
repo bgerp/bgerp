@@ -21,12 +21,13 @@ class price_interface_LabelImpl
      * Инстанция на класа
      */
     public $class;
-    
-    
+
+
     /**
      * Връща масив с данните за плейсхолдерите
      *
      * @param int|NULL $objId
+     * @param string $series
      *
      * @return array
      *               Ключа е името на плейсхолдера и стойностите са обект:
@@ -37,7 +38,7 @@ class price_interface_LabelImpl
      *               importance -> (int|double) - тежест/важност на плейсхолдера
      *               example -> (string) - примерна стойност
      */
-    public function getLabelPlaceholders($objId = null)
+    public function getLabelPlaceholders($objId = null, $series = 'label')
     {
         $placeholders = array();
         $placeholders['EAN'] = (object) array('type' => 'text', 'hidden' => true);
@@ -53,18 +54,20 @@ class price_interface_LabelImpl
 
         return $placeholders;
     }
-    
-    
+
+
     /**
      * Връща масив с всички данни за етикетите
      *
      * @param int  $id
      * @param int  $cnt
      * @param bool $onlyPreview
+     * @param stdClass $lRec
+     * @param string $series
      *
      * @return array - масив от масив с ключ плейсхолдера и стойността
      */
-    public function getLabelData($id, $cnt, $onlyPreview = false)
+    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null, $series = 'label')
     {
         $resArr = array();
         $rec = frame2_Reports::fetchRec($id);
@@ -111,16 +114,17 @@ class price_interface_LabelImpl
         
         return $resArr;
     }
-    
-    
+
+
     /**
      * Броя на етикетите, които могат да се отпечатат
      *
      * @param int $id
+     * @param string $series
      *
      * @return int
      */
-    public function getLabelEstimatedCnt($id)
+    public function getLabelEstimatedCnt($id, $series = 'label')
     {
         $rec = frame2_Reports::fetchRec($id);
         
@@ -136,16 +140,16 @@ class price_interface_LabelImpl
         
         return $count;
     }
-    
-    
+
+
     /**
      * Връща наименованието на етикета
      *
      * @param int $id
-     *
+     * @param string $series
      * @return string
      */
-    public function getLabelName($id)
+    public function getLabelName($id, $series = 'label')
     {
         $rec = frame2_Reports::fetchRec($id);
         
@@ -186,9 +190,10 @@ class price_interface_LabelImpl
      * Кой е дефолтния шаблон за печат към обекта
      *
      * @param $id
+     * @param string $series
      * @return int|null
      */
-    public function getDefaultLabelTemplateId($id)
+    public function getDefaultLabelTemplateId($id, $series = 'label')
     {
         return null;
     }

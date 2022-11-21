@@ -643,8 +643,8 @@ class sales_PrimeCostByDocument extends core_Manager
             $sign = ($masters[$iRec->containerId][2] == 'yes') ? -1 : 1;
             $value = round($sign * $iRec->delta, 2);
 
-            $pGroup = $productGroups[$iRec->productId];
-            $cGroups = $clientGroups[$iRec->folderId];
+            $pGroup = is_array($productGroups[$iRec->productId]) ? $productGroups[$iRec->productId] : array();
+            $cGroups = is_array($clientGroups[$iRec->folderId]) ? $clientGroups[$iRec->folderId] : array();
 
             // За всяка от клиентските групи, която е от посочените ще се натрупва отделен индикатор
             if($intersectedClientGroups = array_intersect_key($cGroups, $crmGroupMap)){
@@ -1013,10 +1013,11 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param float    $quantity
      * @param stdClass $saleRec
      * @param int      $deltaListId
+     * @param string   $notes
      *
      * @return NULL|float $primeCost
      */
-    public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $deltaListId)
+    public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $deltaListId, $notes = null)
     {
         $productRec = cat_Products::fetch($productId, 'isPublic,code');
 
@@ -1041,8 +1042,13 @@ class sales_PrimeCostByDocument extends core_Manager
                 $query = self::getQuery();
                 $query->where("#productId = {$productId} AND #containerId = {$closedSaleContainerId}");
                 $query->where("#primeCost IS NOT NULL");
-                $query->show('quantity,primeCost');
+                $query->show('quantity,primeCost,detailClassId,detailRecId');
+
                 while ($cRec = $query->fetch()) {
+                    $cNotes = cls::get($cRec->detailClassId)->fetchField($cRec->detailRecId, 'notes');
+                    if(!empty($notes) && $cNotes != $notes) continue;
+                    if(empty($notes) && !empty($cNotes)) continue;
+
                     $totalDealAmount += $cRec->quantity * $cRec->primeCost;
                     $totalQuantity += $cRec->quantity;
                 }

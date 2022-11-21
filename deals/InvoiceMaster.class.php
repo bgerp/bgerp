@@ -664,7 +664,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
             $data->row = (object) ((array) $data->row + (array) $data->summary);
             $data->row->vatAmount = $data->summary->vatAmount;
-        } elseif(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+        } elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $data->row->value = doc_plg_HidePrices::getBuriedElement();
         }
     }
@@ -1712,9 +1712,10 @@ abstract class deals_InvoiceMaster extends core_Master
         $query = $Detail->getQuery();
         $query->where("#{$Detail->masterKey} = '{$rec->id}'");
         $query->orderBy('id', 'ASC');
+        $isProforma = ($this instanceof sales_Proformas);
 
         while ($dRec = $query->fetch()) {
-            if(!empty($dRec->discount)){
+            if(!empty($dRec->discount) && (!$isProforma)){
                 $dRec->price = $dRec->price * (1 - $dRec->discount);
                 $dRec->amount = $dRec->price * $dRec->quantity;
                 $dRec->packPrice = $dRec->price * $dRec->quantityInPack;

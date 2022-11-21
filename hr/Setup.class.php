@@ -97,6 +97,7 @@ class hr_Setup extends core_ProtoSetup
         'hr_WorkPreffDetails',
         'hr_ScheduleDetails',
         'hr_Schedules',
+        'hr_IndicatorFormulas',
     );
     
     

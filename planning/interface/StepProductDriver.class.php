@@ -149,6 +149,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          string      ['wasteProductId']       - ид на отпадък
      *          string      ['wasteStart']           - начално количество отпадък
      *          string      ['wastePercent']         - процент отпадък
+     *          string      ['calcWeightMode']       - изчисляване на тегло или не
      */
     public function getProductionData($productId)
     {
@@ -164,11 +165,15 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
         $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();
+        $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
+
         $res['isFinal'] = $rec->isFinal;
         $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
         if($rec->canStore == 'yes'){
             $res['labelPackagingId'] = $rec->labelPackagingId;
-            $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+            if($rec->labelTransferQuantityInPack != 'no'){
+                $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+            }
             $res['labelType'] = $rec->labelType;
             $res['labelTemplate'] = $rec->labelTemplate;
         }
@@ -284,11 +289,10 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      */
     public static function on_AfterGetRequiredRoles(cat_ProductDriver $Driver, cat_Products $Embedder, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'editplanned' && isset($rec)){
-            if(empty($rec->planning_Steps_fixedAssets)){
+        if($action == 'editplanned'){
+            $requiredRoles = $Embedder->getRequiredRoles('edit', $rec, $userId);
+            if(isset($rec) && empty($rec->planning_Steps_fixedAssets)){
                 $requiredRoles = 'no_one';
-            } else {
-                $requiredRoles = $Embedder->getRequiredRoles('edit', $rec, $userId);
             }
         }
     }

@@ -92,14 +92,14 @@ class escpos_driver_TD2120 extends core_BaseClass
      */
     public function getWidth($font = null)
     {
-        $width = 22;
+        $width = 28;
         
         if ($font == 'f') {
-            $width = 27;
+            $width = 37;
         }
         
         if ($font == 'F') {
-            $width = 11;
+            $width = 20;
         }
         
         return $width;

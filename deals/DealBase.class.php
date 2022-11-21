@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -83,6 +83,7 @@ abstract class deals_DealBase extends core_Master
         }
         $mvc->FLD('closedOn', 'datetime', 'input=none');
         $mvc->FLD('closeWith', "key(mvc={$mvc->className},allowEmpty)", 'caption=Приключена със,input=none');
+        $mvc->FLD('lastAutoRecalcRate', 'datetime(format=smartTime)', 'input=none');
     }
     
     
@@ -265,7 +266,8 @@ abstract class deals_DealBase extends core_Master
         }
         $dealQuery->where("#state = 'active'");
         $dealQuery->where("#closedDocuments = ''");
-        
+        $dealQuery->orderBy('id', 'ASC');
+
         while ($dealRec = $dealQuery->fetch()) {
             $title = $this->getRecTitle($dealRec, false) . ' / ' . (($this->valiorFld) ? $this->getVerbal($dealRec, $this->valiorFld) : '');
             $docs[$dealRec->id] = $title;
@@ -822,13 +824,14 @@ abstract class deals_DealBase extends core_Master
         
         $form = cls::get('core_Form');
         $form->title = '|Преизчисляване на курса на|* ' . $this->getFormTitleLink($rec);
-        $form->info = tr("Стар курс|*: <b>{$rec->currencyRate}</b>");
+        $form->info = "<div style='margin-left:7px'>" . tr("Стар курс|*: <i style='color:green'>{$rec->currencyRate}</i>") . "</div>";
+        $form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
 
         if($averageRate =  $this->getAverageRateInThread($rec)){
-            $form->info .= "<br>" . tr("Среден курс|*: <b>{$averageRate}</b>");
+            $form->info .= "<div style='margin-left:7px'>" . tr("Среден курс|*: <i style='color:green'>{$averageRate}</i>") . "</div>";
+            $form->setDefault('newRate', $averageRate);
         }
 
-        $form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
         $form->input();
         
         if ($form->isSubmitted()) {
@@ -936,5 +939,53 @@ abstract class deals_DealBase extends core_Master
         }
 
         return null;
+    }
+
+
+    /**
+     * Осреднява валутните курсове на сделките при нужда
+     *
+     * @return void;
+     */
+    public function recalcDealsWithCurrencies()
+    {
+        // Кога последно е преизчисляван баланса
+        $lastBalanceRec = acc_Balances::getLastBalance();
+        $lastCalculate = (empty($lastBalanceRec->lastCalculate)) ? '0000-00-00' : $lastBalanceRec->lastCalculate;
+
+        // Търсят се перата на тези сделки, които са активни не са в Евро или Лева
+        // и перото им е бутано преди промяната на баланса и са използвани след последното преизчисляване
+        $iQuery = acc_Items::getQuery();
+        $iQuery->where("#classId = {$this->getClassId()} AND #state = 'active'");
+        $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
+        $iQuery->EXT('lastAutoRecalcRate', $this->className, 'externalName=lastAutoRecalcRate,externalKey=objectId');
+        $iQuery->XPR('lastAutoRecalcRateCalc', 'double', "COALESCE(#lastAutoRecalcRate, '0000-00-00 00:00:00')");
+        $iQuery->where("#currencyId != 'BGN' AND #currencyId != 'EUR' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
+        $iQuery->where("#lastUseOn >= #lastAutoRecalcRateCalc");
+
+        $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+        if(!countR($dealIds)) return;
+
+        // Ако има намерени сделки
+        $now = dt::now();
+        $query = $this->getQuery();
+        $query->in('id', $dealIds);
+        $updateRecs = array();
+        while($rec = $query->fetch()){
+
+            // Осредняване на курса
+            if($averageRate =  $this->getAverageRateInThread($rec)){
+                if(round($averageRate, 5) != round($rec->currencyRate, 5)){
+                    $this->recalcDocumentsWithNewRate($rec, $averageRate);
+                }
+                $rec->lastAutoRecalcRate = $now;
+                $updateRecs[$rec->id] = $rec;
+            }
+        }
+
+        // Обновяване на сделките кога последно е осреднен курса
+        if(countR($updateRecs)){
+            $this->saveArray($updateRecs, 'id,lastAutoRecalcRate');
+        }
     }
 }

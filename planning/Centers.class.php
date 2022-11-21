@@ -177,7 +177,7 @@ class planning_Centers extends core_Master
         $this->FLD('employmentOccupied', 'int', 'caption=Служители->Назначени, input=none');
         $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty=true)', 'caption=Работен график->Разписание,mandatory');
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
-        $this->FLD('mandatoryOperatorsInTasks', 'enum(auto=Автоматично,yes=Задължително,no=Опционално)', 'caption=Прогрес в ПО->Оператор(и), notNull,value=auto');
+        $this->FLD('mandatoryOperatorsInTasks', 'enum(auto=Автоматично,lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално), current=Текущ оператор)', 'caption=Прогрес в ПО->Оператор(и), notNull,value=auto');
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор, notNull,value=auto');
         $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
 
@@ -187,8 +187,8 @@ class planning_Centers extends core_Master
         $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Отбелязване');
         $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Предупреждение');
         $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично');
-        $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Параметър за изчисляване на ед. тегло->Избор,silent,removeAndRefreshForm=paramExpectedNetMeasureId');
-        $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Параметър за изчисляване на ед. тегло->Мярка,input=hidden');
+        $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Параметър,silent,removeAndRefreshForm=paramExpectedNetMeasureId', "unit= |по количеството от Прогреса|*");
+        $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Мярка,input=hidden');
 
         $this->setDbUnique('name');
     }
@@ -312,7 +312,7 @@ class planning_Centers extends core_Master
         }
 
         if($rec->mandatoryOperatorsInTasks == 'auto'){
-            $row->mandatoryOperatorsInTasks = $mvc->getFieldType('mandatoryOperatorsInTasks')->toVerbal(planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR'));
+            $row->mandatoryOperatorsInTasks = $mvc->getFieldType('mandatoryOperatorsInTasks')->toVerbal(planning_Setup::get('TASK_PROGRESS_OPERATOR'));
             $row->mandatoryOperatorsInTasks = ht::createHint("<span style='color:blue'>{$row->mandatoryOperatorsInTasks}</span>", 'По подразбиране', 'notice', false);
         }
 

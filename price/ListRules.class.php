@@ -491,6 +491,7 @@ class price_ListRules extends core_Detail
                 $form->getField('targetPrice')->unit .= ($masterRec->vat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
                  break;
             case 'value':
+                $form->setFieldType('discount', core_Type::getByName('percent(Min=0)'));
                 $form->setField('discount', 'caption=Отстъпка');
                 $form->setField('groupId,calculation,targetPrice', 'input=none');
                 $data->singleTitle = 'правило за продуктова цена';
