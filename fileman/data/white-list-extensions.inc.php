@@ -10,4 +10,4 @@ const WHITE_LIST_EXTENSIONS = array('pdf', 'dwg', 'dxf', 'doc', 'docx', 'ods', '
                                     'jpg', 'png', 'ogv', 'mp4', 'webm', 'flv', 'wav', 'mp3',
                                     'oga', 'ogg', 'aac', 'txt', '7z', 'gz', 'gzip', 'rar',
                                     'tar', 'tgz', 'zip', 'dae', 'csv', 'svg', 'jpeg', 'ppf',
-                                    'webm', 'webp', 'mov');
+                                    'webm', 'webp', 'mov', 'qt');
