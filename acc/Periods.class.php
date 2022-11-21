@@ -851,10 +851,4 @@ class acc_Periods extends core_Manager
 
         return $date;
     }
-
-
-    function act_Test()
-    {
-        cls::get('acc_Setup')->updatePriceRoles2247();
-    }
 }
