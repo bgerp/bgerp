@@ -53,13 +53,8 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     /**
      * Какви мета данни да изискват продуктите, които да се показват
      */
-    public $metaProducts = 'canSell,canStore';
+    public $metaProducts = 'canBuy,canStore';
 
-
-    /**
-     * Какви мета данни да изискват чуждите продуктите, които да се показват
-     */
-    public $metaOthersProducts = 'canBuy,canStore';
 
     /**
      * Кой има право да добавя?
@@ -130,7 +125,6 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
         $params = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic');
         if($masterRec->productType == 'other'){
             $params['isPublic'] = 'no';
-            $params['hasProperties'] = $mvc->metaOthersProducts;
         }
 
         $data->form->setFieldTypeParams('productId', $params);

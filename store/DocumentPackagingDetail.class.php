@@ -221,12 +221,10 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         $Cover = doc_Folders::getCover($masterRec->folderId);
         $form->setDefault('productType', 'ours');
 
-        $params = array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'hasProperties' => 'canSell,canStore', 'groups' => $groupId, 'hasnotProperties' => 'generic');
+        $params = array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'groups' => $groupId, 'hasnotProperties' => 'generic');
+        $params['hasProperties'] = ($form->rec->type == 'in') ? 'canBuy,canStore' : 'canSell,canStore';
         if($form->rec->productType == 'other'){
             $params['isPublic'] = 'no';
-            if($form->rec->productType == 'other'){
-                $params['hasProperties'] = 'canBuy,canStore';
-            }
         }
 
         $data->form->setFieldTypeParams('productId', $params);
