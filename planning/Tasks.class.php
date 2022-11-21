@@ -736,18 +736,20 @@ class planning_Tasks extends core_Master
 
             // Показване на средното к-во в опаковка от реалните данни
             $taskRec = planning_Tasks::fetch($taskId);
-            $dQuery = planning_ProductionTaskDetails::getQuery();
-            $dQuery->where("#taskId = {$taskId} AND #productId = {$productId} AND #type='production' AND #state != 'rejected'");
-            $dRecs = array();
-            while($dRec = $dQuery->fetch()){
-                $dRecs[$dRec->serial] += $dRec->quantity;
-            }
-            $detailsCount = countR($dRecs);
-            if($detailsCount){
-                $round = cat_UoM::fetchField($measureId, 'round');
-                $res = round((array_sum($dRecs) / $detailsCount) / $taskRec->quantityInPack, $round);
+            if($taskRec->isFinal != 'yes'){
+                $dQuery = planning_ProductionTaskDetails::getQuery();
+                $dQuery->where("#taskId = {$taskId} AND #productId = {$productId} AND #type='production' AND #state != 'rejected'");
+                $dRecs = array();
+                while($dRec = $dQuery->fetch()){
+                    $dRecs[$dRec->serial] += $dRec->quantity;
+                }
+                $detailsCount = countR($dRecs);
+                if($detailsCount){
+                    $round = cat_UoM::fetchField($measureId, 'round');
+                    $res = round((array_sum($dRecs) / $detailsCount) / $taskRec->quantityInPack, $round);
 
-                return $res;
+                    return $res;
+                }
             }
         }
 
