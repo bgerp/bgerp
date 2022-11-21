@@ -1386,8 +1386,8 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
             if(($taskRec->isFinal == 'yes' && $rec->productId == $jobProductId) || $rec->productId == $taskRec->productId){
-
-                if(cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom'){
+                $isMeasureUom = (cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom');
+                if($isMeasureUom){
                     if($taskRec->indPackagingId == $taskRec->measureId){
                         $quantity /= $taskRec->quantityInPack;
                     }
@@ -1395,7 +1395,11 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if($taskRec->measureId != $taskRec->indPackagingId){
                     if(!empty($taskRec->labelQuantityInPack)){
-                        $quantity = ($quantity / $taskRec->labelQuantityInPack);
+                        $indQuantityInPack = $taskRec->labelQuantityInPack;
+                        if($isMeasureUom){
+                            $indQuantityInPack = $indQuantityInPack * $taskRec->quantityInPack;
+                        }
+                        $quantity = ($quantity / $indQuantityInPack);
                     } elseif ($indQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->indPackagingId, 'quantity')) {
                         $quantity = ($quantity / $indQuantityInPack);
                     }
