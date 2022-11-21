@@ -5834,6 +5834,32 @@ function syncServiceWorker() {
     }
 }
 
+function checkVatAndTriger(name) {
+	const vatRegex = new RegExp('^[a-z]{2}[0-9]{6,15}$', 'i');
+	const uicRegex = RegExp('^[0-9]{9,13}$');
+	
+	let target = null;
+
+	name.value = name.value.trim();
+
+	if(vatRegex.test(name.value)) {
+		target = document.getElementsByName("vatId")[0];
+	} else {
+		if (uicRegex.test(name.value)) {
+			target = document.getElementsByName("uicId")[0];
+		}
+	}
+ 
+	if(target != null) {
+
+		target.value = name.value;
+		name.value = '';
+		const e = new Event("change");
+		target.dispatchEvent(e);
+	}
+}
+
+
 /**
  * smartresize - намалява събитията на on resize
  */
