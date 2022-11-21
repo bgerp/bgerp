@@ -308,7 +308,7 @@ class crm_Companies extends core_Master
     public function description()
     {
         // Име на фирмата
-        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv, translate=user|tr|transliterate', array('placeholder' => 'Наименование, VAT ID или ЕАН||Company name or VAT ID'));
+        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv, translate=user|tr|transliterate', array('placeholder' => 'Наименование (ЕИК/ДДС № за автоматично попълване)||Company name (VAT ID for feching VIES DB)'));
         $this->FNC('nameList', 'varchar(autocomplete=off)', 'sortingLike=name');
         
         // Данъчен номер на фирмата
