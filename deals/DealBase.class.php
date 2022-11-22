@@ -868,8 +868,15 @@ abstract class deals_DealBase extends core_Master
                 $rec->currencyRate = $newRate;
                 $this->save($rec);
                 if ($rec->state == 'active') {
-                    acc_Journal::deleteTransaction($this->getClassId(), $rec->id);
+                    $deletedRec = null;
+                    acc_Journal::deleteTransaction($this->getClassId(), $rec->id, $deletedRec);
+                    if(is_object($deletedRec)){
+                        Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                    }
                     acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
+                    if(is_object($deletedRec)){
+                        Mode::pop('recontoWithCreatedOnDate');
+                    }
                 }
             } else {
                 deals_Helper::recalcRate($this, $rec->id, $newRate);

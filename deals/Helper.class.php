@@ -1394,10 +1394,18 @@ abstract class deals_Helper
         if ($updateMaster) {
             $masterMvc->updateMaster_($rec);
         }
-        
+
         if ($rec->state == 'active') {
-            acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id);
+
+            $deletedRec = null;
+            acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id, $deletedRec);
+            if(is_object($deletedRec)){
+                Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+            }
             acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
+            if(is_object($deletedRec)){
+                Mode::pop('recontoWithCreatedOnDate');
+            }
             $logMsg = 'Реконтиране след промяна на курса';
         }
 
