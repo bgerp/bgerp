@@ -55,14 +55,12 @@ class batch_definitions_DealReff extends batch_definitions_Varchar
      */
     public function filterBatches($quantities, $mvc, $id)
     {
-        // От наличните партиди се оставят само тези отговарящи на вашия реф на документа
         $batchName = $this->getDefaultBatchName($mvc, $id);
-        if(!empty($batchName) &&array_key_exists($batchName, $quantities)){
+        if(!empty($batchName)){
 
-            return array($batchName => $quantities[$batchName]);
+            // Ще се приема че винаги е налична
+            return array($batchName => 10000000000);
         }
-
-        return array();
     }
 
 
