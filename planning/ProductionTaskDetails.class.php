@@ -558,6 +558,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
                     }
 
+                    if(static::fetchField("#type = 'production' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #weight = {$rec->weight} AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}'")){
+                        $form->setError('serial,weight,quantity,employees', "Има вече същия прогрес с тези данни|*!");
+                    }
+
                     $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
                     if (isset($info->indTime)) {
                         $rec->norm = $info->indTime;
