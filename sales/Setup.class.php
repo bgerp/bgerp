@@ -246,6 +246,12 @@ defIfNot('SALES_DELTA_NEW_PRODUCT_FROM', 12 * dt::SECONDS_IN_MONTH);
 
 
 /**
+ * На колко време да се рекалкулират валутните продажби
+ */
+defIfNot('SALES_RECALC_PRICE_IN_CURRENCY_INTERVAL', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -420,6 +426,7 @@ class sales_Setup extends core_ProtoSetup
 
         'SALES_DELTA_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->От,unit=назад'),
         'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
+        'SALES_RECALC_PRICE_IN_CURRENCY_INTERVAL' => array('int(min=60)', 'caption=На колко време да се рекалкулират валутните продажби->Минути,placeholder=Изключено'),
     );
     
     
@@ -510,15 +517,6 @@ class sales_Setup extends core_ProtoSetup
             'offset' => 190,
             'period' => 1440,
             'timeLimit' => 500
-        ),
-        array(
-            'systemId' => 'Recalc Currency Sales Rate',
-            'description' => 'Осредняване на валутните курсове на продажбите',
-            'controller' => 'sales_Sales',
-            'action' => 'RecalcCurrencyRate',
-            'offset' => 10,
-            'period' => 120,
-            'timeLimit' => 150,
         ),
     );
     
@@ -629,7 +627,16 @@ class sales_Setup extends core_ProtoSetup
                 $res .= "<li style='color:green'>Добавени са дефолтни артикули за транспорт</b></li>";
             }
         }
-        
+
+        $params = array('systemId'    => 'Recalc Currency Sales Rate',
+                        'description' => 'Осредняване на валутните курсове на продажбите',
+                        'controller'  => 'sales_Sales',
+                        'action'    => 'RecalcCurrencyRate',
+                        'interval'    => static::get('RECALC_PRICE_IN_CURRENCY_INTERVAL'),
+        );
+
+        $res .= deals_Setup::syncCronSettings($params);
+
         return $res;
     }
 }
