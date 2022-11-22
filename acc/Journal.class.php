@@ -458,7 +458,7 @@ class acc_Journal extends core_Master
     /**
      * Изтриване на транзакция
      */
-    public static function deleteTransaction($docClassId, $docId)
+    public static function deleteTransaction($docClassId, $docId, &$deletedRec = null)
     {
         $docClassId = cls::get($docClassId)->getClassId();
         $query = static::getQuery();
@@ -467,7 +467,7 @@ class acc_Journal extends core_Master
         // Изтриваме всички записи направени в журнала от документа
         while ($rec = $query->fetch()) {
             acc_JournalDetails::delete("#journalId = {$rec->id}");
-            
+            $deletedRec = $rec;
             static::delete($rec->id);
             
             // Инвалидираме балансите, които се променят от този вальор
