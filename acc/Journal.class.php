@@ -453,10 +453,15 @@ class acc_Journal extends core_Master
         
         return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
     }
-    
-    
+
+
     /**
-     * Изтриване на транзакция
+     * Изтриване на транзакцията
+     *
+     * @param mixed $docClassId         - документ
+     * @param int $docId                - ид на документ
+     * @param stdClass|null $deletedRec - изтрития запис
+     * @return array
      */
     public static function deleteTransaction($docClassId, $docId, &$deletedRec = null)
     {
