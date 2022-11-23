@@ -1060,9 +1060,13 @@ class planning_ProductionTaskDetails extends doc_Detail
                                     $expectedSingleNetWeight = null;
                                 }
                             }
+
                             if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
                                 $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
                                 $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
+                                if($rec->type == 'production'){
+                                    $expectedSingleNetWeight = $expectedSingleNetWeight / $masterRec->quantityInPack;
+                                }
                             }
                         }
                     }
