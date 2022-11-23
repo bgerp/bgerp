@@ -26,7 +26,7 @@ class planning_type_ProductionRate extends type_Varchar
     /**
      * Разрешените опции
      */
-    private static $allowedRates = array('secsPer1'   => '|секунди за|* |[#measureId#]|*',
+    private static $allowedRates = array('secsPer1'   => '|сек. за|* |[#measureId#]|*',
                                          'minPer1'    => '|минути за|* |[#measureId#]|*',
                                          'minPer10'   => '|минути за|* 10 |[#measureId#]|*',
                                          'minPer100'  => '|минути за|* 100 |[#measureId#]|*',
@@ -128,6 +128,7 @@ class planning_type_ProductionRate extends type_Varchar
     {
         $measureId = null;
         setIfNot($measureId, $this->params['measureId'], cat_UoM::fetchBySysId(static::$defaultMeasureId)->id);
+        $measureName = cat_UoM::getVerbal($measureId, 'name');
 
         // Кои са разрешените опции (от константите + избраната вече в посочената стойност)
         $parsedValues = $this->parseValue($value);
@@ -138,7 +139,7 @@ class planning_type_ProductionRate extends type_Varchar
         $options = array();
         foreach ($allowedOptions as $aRate => $aCaption){
             $num = in_array($aRate, array('secsPer1', 'minPer1')) ? 1 : 2;
-            $pluralOrSingularMeasureName = cat_UoM::getSmartName($measureId, $num);
+            $pluralOrSingularMeasureName = str::getPlural($num, $measureName, true);
             $aCaption = str_replace('[#measureId#]', $pluralOrSingularMeasureName, $aCaption);
             $options[$aRate] = tr($aCaption);
         }
