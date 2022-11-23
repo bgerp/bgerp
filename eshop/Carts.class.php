@@ -986,8 +986,11 @@ class eshop_Carts extends core_Master
             if ($dRec->haveVat == 'yes') {
                 $price /= 1 + $dRec->vat;
             }
-            
+
+            Mode::push('text', 'plain');
             $paramsText = eshop_CartDetails::getUniqueParamsAsText($dRec->eshopProductId, $dRec->productId, true);
+            Mode::pop('text');
+
             $notes = (!empty($paramsText)) ? $paramsText : null;
             
             $price = currency_CurrencyRates::convertAmount($price, null, $dRec->currencyId);
@@ -1019,7 +1022,7 @@ class eshop_Carts extends core_Master
             eshop_Carts::logDebug("Продажбата #Sal{$saleId} към онлайн поръчка, става на заявка", $rec->id);
         }
         
-        self::activate($rec, $saleRec->id);
+        //self::activate($rec, $saleRec->id);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
         if ($sendEmailIfNecessary === true) {
