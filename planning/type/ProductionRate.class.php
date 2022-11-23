@@ -27,13 +27,13 @@ class planning_type_ProductionRate extends type_Varchar
      * Разрешените опции
      */
     private static $allowedRates = array('secsPer1'   => '|сек. за|* |[#measureId#]|*',
-                                         'minPer1'    => '|минути за|* |[#measureId#]|*',
-                                         'minPer10'   => '|минути за|* 10 |[#measureId#]|*',
-                                         'minPer100'  => '|минути за|* 100 |[#measureId#]|*',
-                                         'minPer1000' => '|минути за|* 1000 |[#measureId#]|*',
-                                         'per1Hour'   => '|[#measureId#]|* |за|* 1 |час|*',
-                                         'per1Min'    => '|[#measureId#]|* |за|* 1 |минута|*',
-                                         'per8Hour'   => '|[#measureId#]|* |за|* 8 |часа|*',);
+                                         'minPer1'    => '|мин. за|* |[#measureId#]|*',
+                                         'minPer10'   => '|мин. за|* 10 |[#measureId#]|*',
+                                         'minPer100'  => '|мин. за|* 100 |[#measureId#]|*',
+                                         'minPer1000' => '|мин. за|* 1000 |[#measureId#]|*',
+                                         'per1Hour'   => '|[#measureId#]|* |за|* 1 |ч|*',
+                                         'per1Min'    => '|[#measureId#]|* |за|* 1 |мин.|*',
+                                         'per8Hour'   => '|[#measureId#]|* |за|* 8 |час|*',);
 
 
     /**
@@ -128,7 +128,6 @@ class planning_type_ProductionRate extends type_Varchar
     {
         $measureId = null;
         setIfNot($measureId, $this->params['measureId'], cat_UoM::fetchBySysId(static::$defaultMeasureId)->id);
-        $measureName = cat_UoM::getVerbal($measureId, 'name');
 
         // Кои са разрешените опции (от константите + избраната вече в посочената стойност)
         $parsedValues = $this->parseValue($value);
@@ -139,7 +138,7 @@ class planning_type_ProductionRate extends type_Varchar
         $options = array();
         foreach ($allowedOptions as $aRate => $aCaption){
             $num = in_array($aRate, array('secsPer1', 'minPer1')) ? 1 : 2;
-            $pluralOrSingularMeasureName = str::getPlural($num, $measureName, true);
+            $pluralOrSingularMeasureName = cat_UoM::getSmartName($measureId, $num);
             $aCaption = str_replace('[#measureId#]', $pluralOrSingularMeasureName, $aCaption);
             $options[$aRate] = tr($aCaption);
         }
