@@ -411,6 +411,14 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (isset($rec->productId)) {
                 $productRec = cat_Products::fetch($rec->productId, 'canStore,generic');
 
+                if(!empty($rec->weight)){
+                    $maxBrutWeight = planning_Setup::get('TASK_PROGRESS_MAX_BRUT_WEIGHT');
+                    if($rec->weight > $maxBrutWeight){
+                        $maxNetWeightVerbal = core_Type::getByName('int')->toVerbal($maxBrutWeight);
+                        $form->setError('weight', "Теглото е над максималното допустимо от|*: <b>{$maxNetWeightVerbal} |кг|*</b>");
+                    }
+                }
+
                 if (!empty($rec->serial)) {
                     $rec->serial = plg_Search::normalizeText($rec->serial);
                     if (!empty($rec->serial)) {
