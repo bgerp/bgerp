@@ -547,7 +547,7 @@ class hr_Indicators extends core_Manager
             $indicatorVerbal = $this->getFieldType('indicatorId')->toVerbal($iId);
             $value = array_key_exists($iId, $data->IData->summaryRecs) ? $data->IData->summaryRecs[$iId]->value : 0;
             $context['$' . $indicatorVerbal] = $value;
-            $data->IData->summaryRows[$iId] = (object) array('indicatorId' => $indicatorVerbal, 'value' => core_Type::getByName('double(smartRound)')->toVerbal($value));
+            $data->IData->summaryRows[$iId] = (object) array('indicatorId' => $indicatorVerbal, 'value' => core_Type::getByName('double(smartRound,maxDecimals=2)')->toVerbal($value));
         }
         
         if (!empty($contractRec->salaryBase)) {
