@@ -32,13 +32,13 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,plannedQuantity=Количества->План.,limit=Количества->Макс.,totalQuantity=Количества->Изп.,packagingId=Количества->Мярка,storeId,indTime=Норма,totalTime,modified=Промяна';
+    public $listFields = 'type,productId,plannedQuantity=Количества->План.,limit=Количества->Макс.,totalQuantity=Количества->Изп.,packagingId=Количества->Мярка,totalWeight=Количества->Тегло,storeId,indTime=Норма->Ед.,totalTime=Норма->Общо,modified=Промяна';
     
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'indTime,totalTime,limit,storeId';
+    public $hideListFieldsIfEmpty = 'indTime,totalTime,totalWeight,limit,storeId';
     
     
     /**
@@ -123,9 +123,10 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('quantityInPack', 'double', 'mandatory,input=none');
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull');
         $this->FLD('limit', 'double(min=0)', 'caption=Макс. к-во,input=none');
-        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма->Единична');
+        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма');
         $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,input=none');
-        
+        $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо тегло,input=none');
+
         $this->setDbUnique('taskId,productId');
         $this->setDbIndex('taskId,productId,type');
     }
@@ -179,7 +180,7 @@ class planning_ProductionTaskProducts extends core_Detail
             
             // Поле за бързо добавяне на прогрес, ако може
             if (empty($rec->id) && $rec->type != 'waste' && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
-                $caption = ($rec->type == 'input') ? 'Вложено' : 'Бърз Прогрес (на момента)->Произведено';
+                $caption = ($rec->type == 'input') ? 'Бърз Прогрес (на момента)->Вложено' : 'Бърз Прогрес (на момента)->Произведено';
                 $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},after=indTime");
                 $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
                 if (countR($employees)) {
@@ -365,7 +366,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $updateFields .= ',totalTime';
         }
 
-        $rec->totalQuantity = $rec->totalTime = 0;
+        $rec->totalQuantity = $rec->totalTime = $rec->totalWeight = 0;
         $query = planning_ProductionTaskDetails::getQuery();
         $query->where("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}' AND #state != 'rejected'");
 
@@ -375,6 +376,10 @@ class planning_ProductionTaskProducts extends core_Detail
                 $rec->totalTime += $normInSecs;
             }
 
+            if($rec->type == 'production' && !empty($dRec->weight)){
+                $rec->totalWeight += $dRec->weight;
+                $updateFields .= ',totalWeight';
+            }
             $rec->totalQuantity += $dRec->quantity;
         }
 
