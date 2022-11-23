@@ -564,7 +564,9 @@ class hr_Indicators extends core_Manager
             $data->IData->salary = core_type::getByName('double(decimals=2)')->toVerbal($data->IData->salary);
             $data->IData->salary = ht::styleIfNegative($data->IData->salary, $data->IData->salary);
             $data->IData->salary =  currency_Currencies::decorate($data->IData->salary);
-            $data->IData->salary = ht::createHint($data->IData->salary, '|*' . $formula, 'notice', true, 'width=12px,height=12px');
+            if(haveRole('ceo,hr')){
+                $data->IData->salary = ht::createHint($data->IData->salary, '|*' . $formula, 'notice', true, 'width=12px,height=12px');
+            }
             if ($success === false) {
                 $data->IData->salary = ht::styleIfNegative(tr('Грешка в калкулацията'), -1);
             }
