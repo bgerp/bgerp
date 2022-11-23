@@ -1049,6 +1049,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $expectedSingleNetWeight = cat_Products::convertToUom($rec->productId, 'kg');
 
                     // Ако няма и има избран параметър за ед. тегло
+                    $convertAgain = true;
                     if(empty($expectedSingleNetWeight)){
                         if(isset($centerRec->paramExpectedNetWeight)){
                             $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $rec->productId);
@@ -1071,10 +1072,15 @@ class planning_ProductionTaskDetails extends doc_Detail
                                 }
                             }
                         }
+                    } else {
+                        if($rec->type == 'production'){
+                            $expectedSingleNetWeight = $expectedSingleNetWeight * $masterRec->quantityInPack;
+                            $convertAgain = false;
+                        }
                     }
 
                     $weightQuantity = $rec->quantity;
-                    if($rec->type == 'production'){
+                    if($rec->type == 'production' && $convertAgain){
                         $weightQuantity = $rec->quantity * $masterRec->quantityInPack;
                     }
 
