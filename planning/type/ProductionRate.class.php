@@ -26,14 +26,14 @@ class planning_type_ProductionRate extends type_Varchar
     /**
      * Разрешените опции
      */
-    private static $allowedRates = array('secsPer1'   => '|сек. за|* |[#measureId#]|*',
-                                         'minPer1'    => '|мин. за|* |[#measureId#]|*',
-                                         'minPer10'   => '|мин. за|* 10 |[#measureId#]|*',
-                                         'minPer100'  => '|мин. за|* 100 |[#measureId#]|*',
-                                         'minPer1000' => '|мин. за|* 1000 |[#measureId#]|*',
-                                         'per1Hour'   => '|[#measureId#]|* |за|* 1 |ч|*',
-                                         'per1Min'    => '|[#measureId#]|* |за|* 1 |мин.|*',
-                                         'per8Hour'   => '|[#measureId#]|* |за|* 8 |час|*',);
+    private static $allowedRates = array('secsPer1'   => '|секунди за|* |[#measureId#]|*',
+                                         'minPer1'    => '|минути за|* |[#measureId#]|*',
+                                         'minPer10'   => '|минути за|* 10 |[#measureId#]|*',
+                                         'minPer100'  => '|минути за|* 100 |[#measureId#]|*',
+                                         'minPer1000' => '|минути за|* 1000 |[#measureId#]|*',
+                                         'per1Hour'   => '|[#measureId#]|* |за|* 1 |час|*',
+                                         'per1Min'    => '|[#measureId#]|* |за|* 1 |минута|*',
+                                         'per8Hour'   => '|[#measureId#]|* |за|* 8 |часа|*',);
 
 
     /**
