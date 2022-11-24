@@ -620,7 +620,6 @@ class planning_Tasks extends core_Master
 
             $row->originId = $origin->getHyperlink(true);
             $row->jobState = $origin->fetchField('state');
-            //$row->originId = ht::createElement("span", array('style' => '', 'class' => "state-{$originState} document-handler"), $row->originId);
 
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
@@ -632,6 +631,22 @@ class planning_Tasks extends core_Master
             if(!empty($rec->employees)){
                 $employees = planning_Hr::getPersonsCodesArr($rec->employees, true);
                 $row->employees = implode(', ', $employees);
+            }
+
+            if($rec->isFinal == 'yes'){
+                $compareMeasureId = cat_Products::fetchField($jobProductId, 'measureId');
+                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobProductId, $rec->measureId)->quantity;
+            } else {
+                $compareMeasureId = cat_Products::fetchField($jobProductId, 'measureId');
+                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobProductId, $rec->measureId)->quantity;
+            }
+
+            // Ако има разминаване с очакваното к-во в опаковка да се покаже
+            if($rec->quantityInPack != $expectedMeasureQuantityInPack){
+                $dUoms = cat_UoM::getShortName($rec->measureId) . "/" . cat_UoM::getShortName($compareMeasureId);
+                $quantityInPackVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantityInPack);
+                $diffMsg = "Отношението на |{$dUoms}|* се разминава със записаното при създаването на Операцията|*: {$quantityInPackVerbal}! |Приключете операцията и създайте нова (без да клонирате!), за да продължите с актуалното количество!";
+                $row->plannedQuantity = ht::createHint($row->plannedQuantity, $diffMsg, 'img/16/red-warning.png', false);
             }
         } else {
             if($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])){
