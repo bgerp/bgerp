@@ -225,11 +225,9 @@ class batch_plg_TaskDetails extends core_Plugin
         }
 
         $plannedByNow = arr::sumValuesArray($batchesSummary, 'planned');
-        if(countR($plannedByNow)){
-            $withoutBatch = ($jobRec->quantity / $masterRec->quantityInPack) - $plannedByNow;
-            if($withoutBatch > 0){
-                $batchesSummary[null] = array('planned' => $withoutBatch, 'produced' => 0, 'batch' => null);
-            }
+        $withoutBatch = ($jobRec->quantity / $masterRec->quantityInPack) - $plannedByNow;
+        if($withoutBatch > 0){
+            $batchesSummary[null] = array('planned' => $withoutBatch, 'produced' => 0, 'batch' => null);
         }
 
         $tpl = new core_ET("<table class='docHeaderVal'>[#ROWS#]</table>");
