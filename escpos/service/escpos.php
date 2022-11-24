@@ -32,16 +32,20 @@ if (empty($conf->DEVICE) && empty($conf->IP_ADDRESS)) { // ще ги вземе�
 if (!empty($conf->OUT)) {
 	// Ако има дефинирано DEVICE - се позлва с приоритет
 	if (!empty($conf->DEVICE)) {
-		$fp = @fopen($conf->DEVICE, "w");
-
-		if (!$fp) {
-			$res = "err: " . (error_get_last()['message']);
-		} else {
-			fwrite($fp, $conf->OUT);
-			fclose($fp);
-//			$res = "Device: OK";
-			$res = "OK";
-		}
+	    if (file_exists($conf->DEVICE)) {
+    	    $fp = @fopen($conf->DEVICE, "w");
+    
+    		if (!$fp) {
+    			$res = "err: " . (error_get_last()['message']);
+    		} else {
+    			fwrite($fp, $conf->OUT);
+    			fclose($fp);
+    			$res = "OK";
+    		}
+	    } else {
+	        
+	        $res = "Невалиден порт!";
+	    }
 	} elseif (!empty($conf->IP_ADDRESS) && !empty($conf->PORT)) { 	// Ако няма дефинирано DEVICE опитваме да го пратим на IP
 			$fp = fsockopen($conf->IP_ADDRESS, $conf->PORT, $errno, $errstr, 10);
 			if (!$fp) {
@@ -49,7 +53,7 @@ if (!empty($conf->OUT)) {
 			} else {
 				fwrite($fp, $conf->OUT);
 				fclose($fp);
-//				$res = "Socket: OK";
+
 				$res = "OK";
 			}
 		} else {

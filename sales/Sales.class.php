@@ -760,7 +760,10 @@ class sales_Sales extends deals_DealMaster
                 $bQuery->where("#detailClassId = {$detailId}");
                 $bQuery->where("#detailRecId = {$dRec->id}");
                 $bQuery->where("#productId = {$dRec->productId}");
-                $p->batches = $bQuery->fetchAll();
+                $batches = $bQuery->fetchAll();
+                if(countR($batches)){
+                    $p->batches = $batches;
+                }
             }
             
             if ($tRec = sales_TransportValues::get(sales_Sales::getClassId(), $rec->id, $dRec->id)) {
@@ -793,7 +796,7 @@ class sales_Sales extends deals_DealMaster
                 $result->push('shippedPacks', $arr, $index);
             }
         }
-        
+
         $result->set('dealProducts', $agreed);
         $agreed = deals_Helper::normalizeProducts(array($agreed2));
         $result->set('products', $agreed);

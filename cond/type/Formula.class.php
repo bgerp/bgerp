@@ -89,7 +89,7 @@ class cond_type_Formula extends cond_type_Text
                         }
                     }
                 }
-            } while($hasChange || $tries <= 5);
+            } while($hasChange || $tries <= 50);
         }
 
         return $params;
