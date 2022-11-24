@@ -637,8 +637,8 @@ class planning_Tasks extends core_Master
                 $compareMeasureId = cat_Products::fetchField($jobProductId, 'measureId');
                 $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobProductId, $rec->measureId)->quantity;
             } else {
-                $compareMeasureId = cat_Products::fetchField($jobProductId, 'measureId');
-                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobProductId, $rec->measureId)->quantity;
+                $compareMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
+                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($rec->productId, $rec->measureId)->quantity;
             }
 
             // Ако има разминаване с очакваното к-во в опаковка да се покаже
