@@ -234,9 +234,9 @@ class batch_plg_TaskDetails extends core_Plugin
         $block = new core_ET("<tr ><td><span style='font-weight:normal'><!--ET_BEGIN label-->[#label#]: <!--ET_END label-->[#batch#]</span></td><td><!--ET_BEGIN currentUserProduced-->[#currentUserProduced#] <span style='font-weight:normal'>/</span><!--ET_END currentUserProduced--> [#produced#] <i style='font-weight:normal'>/</i> [#planned#]</td>");
         foreach ($batchesSummary as $arr){
             $arr['planned'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['planned']) . " " . cat_UoM::getShortName($masterRec->measureId);
-            $arr['planned'] = ht::createHint($arr['planned'], 'Общо произведеното по партидата', 'noicon');
+            $arr['planned'] = ht::createHint($arr['planned'], 'Планирано по Задание', 'noicon');
             $arr['produced'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['produced']);
-            $arr['produced'] = ht::createHint($arr['produced'], 'Общо произведеното по партидата', 'noicon');
+            $arr['produced'] = ht::createHint($arr['produced'], 'Общо произведено по партидата', 'noicon');
             if($currentUserIsOperator){
                 $arr['currentUserProduced'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['currentUserProduced']);
                 $arr['currentUserProduced'] = ht::createElement("span", array('style' => 'color:green'), $arr['currentUserProduced']);
