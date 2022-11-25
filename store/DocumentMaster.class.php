@@ -279,10 +279,6 @@ abstract class store_DocumentMaster extends core_Master
     {
         $origin = $mvc::getOrigin($rec);
 
-        store_ShipmentOrderDetails::delete("#shipmentId = {$rec->id}");
-        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId}");
-
-
         // Ако документа е клониран пропуска се
         if ($rec->_isClone === true) {
             
