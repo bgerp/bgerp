@@ -249,8 +249,8 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $creatorName = core_Users::fetch($dRec->creator)->names;
-        $row->creator = ht::createLink($creatorName, array('crm_Persons', 'single', $dRec->creator));
+        $personId = (crm_Profiles::fetch("#userId = $dRec->creator")->personId);
+        $row->creator = crm_Persons::getHyperlink($personId);
 
         $row->salesCount = '<b>' . core_Type::getByName('int')->toVerbal($dRec->salesCount) . '</b>';
         $row->salesCount = ht::styleNumber($row->salesCount, $dRec->salesCount);
