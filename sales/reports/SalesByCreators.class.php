@@ -20,7 +20,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,debug';
+    public $canSelectDriver = 'ceo,debug, hrMaster';
 
 
     /**
