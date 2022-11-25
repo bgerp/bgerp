@@ -136,13 +136,20 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
         $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
 
         if (isset($rec->creators)) {
-            if ((min(array_keys(keylist::toArray($rec->creators))) >= 1)) {
-                $creators = keylist::toArray($rec->creators);
 
+            if ((min(array_keys(keylist::toArray($rec->creators))) >= 1)) {
+
+                $creators = keylist::toArray($rec->creators);
                 $query->in('createdBy', $creators);
             }
         }
 
+        $salesArr = arr::extractValuesFromArray($query->fetchAll(),'id');
+        $sClassId = core_Classes::getId('sales_Sales');
+
+        $primeQuery = sales_PrimeCostByDocument::getQuery();
+
+        bp(core_Classes::fetch(464),$primeQuery->fetchAll());
 
         // Синхронизира таймлимита с броя записи //
         $rec->count = $query->count();
@@ -154,6 +161,8 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
         }
 
         while ($sRec = $query->fetch()) {
+
+            bp($sRec);
 
         }
         return $recs;
@@ -177,13 +186,13 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
 
         if ($export === false) {
 
-            $fld->FLD('contragentId', 'varchar', 'caption=Създател');
-            $fld->FLD('delta', 'double(decimals=2)', "smartCenter,caption=Делта");
+            $fld->FLD('creator', 'varchar', 'caption=Създател');
             $fld->FLD('value', 'double(decimals=2)', 'smartCenter,caption=Продажби');
+            $fld->FLD('delta', 'double(decimals=2)', "smartCenter,caption=Делта");
 
         } else {
 
-            $fld->FLD('contragentId', 'varchar', 'caption=Създател');
+            $fld->FLD('creator', 'varchar', 'caption=Създател');
             $fld->FLD('delta', 'double(decimals=2)', "smartCenter,caption=Делта");
             $fld->FLD('value', 'double(decimals=2)', 'smartCenter,caption=Продажби');
         }

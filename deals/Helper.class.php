@@ -701,6 +701,10 @@ abstract class deals_Helper
                                 if (!empty($p->notes)) {
                                     $combined[$index]->notes = $p->notes;
                                 }
+
+                                if(is_array($p->batches)){
+                                    $combined[$index]->batches = array();
+                                }
                             }
                             
                             $d = &$combined[$index];
@@ -721,11 +725,15 @@ abstract class deals_Helper
                             }
                             
                             $sign = ($parameter == 'arrays') ? 1 : -1;
-                            
-                            //@TODO да може да е -
                             $d->quantity += $sign * $p->quantity;
                             $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
-                            
+
+                            if(is_array($p->batches)){
+                                foreach ($p->batches as $bObj){
+                                    $d->batches[$bObj->batch] += $sign * $bObj->quantity;
+                                }
+                            }
+
                             if (empty($d->packagingId)) {
                                 $d->packagingId = $p->packagingId;
                                 $d->quantityInPack = $p->quantityInPack;

@@ -75,13 +75,21 @@ class doc_plg_HidePrices extends core_Plugin
             if(haveRole('ceo,seePriceSale')) return true;
         } elseif($mvc instanceof purchase_Quotations){
             if(haveRole('ceo,seePricePurchase')) return true;
+        } elseif($mvc instanceof findeals_AdvanceReports){
+            if(haveRole('ceo,pettyCashReport')) return true;
         } elseif(isset($rec->threadId)){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 if($firstDocument->isInstanceOf('sales_Sales')){
                     if(haveRole('ceo,seePriceSale')) return true;
                 } elseif($firstDocument->isInstanceOf('purchase_Purchases')){
                     if(haveRole('ceo,seePricePurchase')) return true;
-                } elseif($firstDocument->isInstanceOf('findeals_Deals')){
+                } elseif($firstDocument->isInstanceOf('findeals_AdvanceDeals')){
+                    if($mvc instanceof purchase_Invoices || $mvc instanceof findeals_AdvanceDeals){
+                        if(haveRole('ceo,pettyCashReport')) return true;
+                    } else {
+                        if(haveRole('ceo,seePrice')) return true;
+                    }
+                } else {
                     if(haveRole('ceo,seePrice')) return true;
                 }
             }
@@ -242,6 +250,19 @@ class doc_plg_HidePrices extends core_Plugin
         foreach ($priceFields as $fld){
             if($form->getField($fld, false)){
                 $form->setField($fld, 'input=none');
+            }
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'exportdoc' && isset($rec)){
+            if(!static::canSeePriceFields($mvc, $rec)){
+                $requiredRoles = 'no_one';
             }
         }
     }

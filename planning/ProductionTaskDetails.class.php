@@ -299,6 +299,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
             if ($rec->type == 'production' && $masterRec->labelType == 'scan') {
                 $form->setField('serial', 'mandatory');
+            } elseif($rec->type == 'production' && $masterRec->labelType == 'print'){
+                $form->setField('serial', 'input=none');
             } elseif ($rec->type == 'input') {
                 $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
                 if (countR($availableSerialsToInput)) {
@@ -562,6 +564,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
                             $form->setError('quantity', "Надвишаване на допустимото максимално количество|* <b>{$limit}</b>");
                         }
+                    }
+
+                    if(static::fetchField("#type = 'production' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}'")){
+                        $form->setError('serial,weight,quantity,employees', "Има вече същия прогрес с тези данни|*!");
                     }
 
                     $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
@@ -1406,8 +1412,8 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
             if(($taskRec->isFinal == 'yes' && $rec->productId == $jobProductId) || $rec->productId == $taskRec->productId){
-
-                if(cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom'){
+                $isMeasureUom = (cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom');
+                if($isMeasureUom){
                     if($taskRec->indPackagingId == $taskRec->measureId){
                         $quantity /= $taskRec->quantityInPack;
                     }
@@ -1415,7 +1421,11 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if($taskRec->measureId != $taskRec->indPackagingId){
                     if(!empty($taskRec->labelQuantityInPack)){
-                        $quantity = ($quantity / $taskRec->labelQuantityInPack);
+                        $indQuantityInPack = $taskRec->labelQuantityInPack;
+                        if($isMeasureUom){
+                            $indQuantityInPack = $indQuantityInPack * $taskRec->quantityInPack;
+                        }
+                        $quantity = ($quantity / $indQuantityInPack);
                     } elseif ($indQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->indPackagingId, 'quantity')) {
                         $quantity = ($quantity / $indQuantityInPack);
                     }

@@ -86,6 +86,12 @@ defIfNot('PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
 
 
 /**
+ * На колко време да се рекалкулират валутните покупки
+ */
+defIfNot('PURCHASE_RECALC_PRICE_IN_CURRENCY_INTERVAL', '');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -176,7 +182,8 @@ class purchase_Setup extends core_ProtoSetup
         'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за липсваща фактура за направено плащане->Време'),
         'PURCHASE_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
         'PURCHASE_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен закупчик в покупката->Избор'),
-    );
+        'PURCHASE_RECALC_PRICE_IN_CURRENCY_INTERVAL' => array('int(min=60)', 'caption=На колко време да се рекалкулират валутните покупки->Минути,placeholder=Изключено'),
+        );
     
     
     /**
@@ -206,16 +213,6 @@ class purchase_Setup extends core_ProtoSetup
             'period' => 1440,
             'timeLimit' => 360
         ),
-
-        array(
-            'systemId' => 'Recalc Currency Purchase Rate',
-            'description' => 'Осредняване на валутните курсове на покупките',
-            'controller' => 'purchase_Purchases',
-            'action' => 'RecalcCurrencyRate',
-            'offset' => 20,
-            'period' => 60,
-            'timeLimit' => 180,
-        ),
     );
 
 
@@ -239,5 +236,25 @@ class purchase_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('purQuoteFiles', 'Прикачени файлове в офертите от доставчици', null, '104857600', 'user', 'user');
 
         return $html;
+    }
+
+
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        $params = array('systemId'    => 'Recalc Currency Purchase Rate',
+                        'description' => 'Осредняване на валутните курсове на покупките',
+                        'controller'  => 'purchase_Purchases',
+                        'action'      => 'RecalcCurrencyRate',
+                        'interval'    => static::get('RECALC_PRICE_IN_CURRENCY_INTERVAL'),
+        );
+
+        $res .= deals_Setup::syncCronSettings($params);
+
+        return $res;
     }
 }

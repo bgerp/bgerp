@@ -184,7 +184,25 @@ class cat_products_Packagings extends core_Detail
                     $form->setError('quantity', 'Количеството не може да е различно от единица за избраната мярка/опаковка');
                 }
             }
-            
+
+            if(isset($rec->id)){
+                $packType = cat_UoM::fetchField($rec->packagingId, 'type');
+                if($packType == 'uom'){
+                    $oldQuantity = $mvc->fetchField($rec->id, 'quantity');
+                    if(round($oldQuantity, 5) != round($rec->quantity, 5)){
+                        $tQuery = planning_Tasks::getQuery();
+                        $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
+                        $tQuery->where("#jobProductId = {$rec->productId} AND #state NOT IN ('closed', 'rejected') AND #measureId = {$rec->packagingId} AND #isFinal = 'yes'");
+                        $notClosedFound = $tQuery->count();
+                        if($notClosedFound){
+                            $notClosedFoundVerbal = core_Type::getByName('int')->toVerbal($notClosedFound);
+                            $errorMsgPart = ($notClosedFound == 1) ? 'неприключена финална операция! За да редактирате количеството операцита трябва да бъде приключена и след промяната на количеството в мярката - създадена (без клониране) отново' : 'неприключени финални операции! За да редактирате количеството операциите трябва да бъдат приключени и след промяната на количеството в мярката - създадени (без клониране) отново';
+                            $form->setError('quantity', "За артикула има |{$notClosedFoundVerbal}|* {$errorMsgPart}!");
+                        }
+                    }
+                }
+            }
+
             if ($rec->eanCode) {
                 
                 // Проверяваме дали има продукт с такъв код (като изключим текущия)
