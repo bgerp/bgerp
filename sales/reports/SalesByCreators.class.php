@@ -50,7 +50,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from';
+    protected $changeableFields = 'from,to,creator';
 
 
     /**
