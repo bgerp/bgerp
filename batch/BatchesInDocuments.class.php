@@ -185,10 +185,12 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
                 $q = $rec->quantity / $quantityInPack;
                 $quantity = core_Type::getByName('double(smartRound)')->toVerbal($q);
-                $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
-                if($rec->quantity > $batchQuantityInStore){
-                    $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
-                    $quantity = ht::createHint($quantity, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '"', 'warning', false);
+                if($rInfo->operation['out']){
+                    $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
+                    if($rec->quantity > $batchQuantityInStore){
+                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
+                        $quantity = ht::createHint($quantity, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '"', 'warning', false);
+                    }
                 }
                 $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
 
