@@ -680,7 +680,7 @@ abstract class deals_Helper
     public static function normalizeProducts($arrays, $subtractArrs = array())
     {
         $combined = array();
-        
+
         foreach (array('arrays', 'subtractArrs') as $parameter) {
             $var = ${$parameter};
             
@@ -704,6 +704,7 @@ abstract class deals_Helper
 
                                 if(is_array($p->batches)){
                                     $combined[$index]->batches = array();
+                                    $combined[$index]->batchesSums = array();
                                 }
                             }
                             
@@ -729,8 +730,9 @@ abstract class deals_Helper
                             $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
 
                             if(is_array($p->batches)){
-                                foreach ($p->batches as $bObj){
-                                    $d->batches[$bObj->batch] += $sign * $bObj->quantity;
+                                foreach ($p->batches as $batch => $batchQuantity){
+                                    $d->batches[$batch] += $sign * $batchQuantity;
+                                    $d->batchesSums[$batch] += $sign * ($batchQuantity * $p->price * (1 - $p->discount));
                                 }
                             }
 
@@ -748,9 +750,29 @@ abstract class deals_Helper
                 }
             }
         }
-        
+
         if (countR($combined)) {
             foreach ($combined as &$det) {
+                $det->sumAmounts = core_Math::roundNumber($det->sumAmounts);
+                if(is_array($det->batches) && countR($det->batches)){
+                    $sumBatches = $sumQuantities = 0;
+                    foreach ($det->batches as $b => $q){
+                        if($q <= 0) {
+                            unset($det->batches[$b]);
+                            unset($det->batchesSums[$b]);
+                        } else {
+                            $sumBatches += $det->batchesSums[$b];
+                            $sumQuantities += $det->batches[$b];
+                        }
+                    }
+                    $sumBatches = core_Math::roundNumber($sumBatches);
+                    $sumQuantities = core_Math::roundNumber($sumQuantities);
+
+                    $det->sumAmounts = max($det->sumAmounts, $sumBatches);
+                    $det->quantity = max($det->quantity, $sumQuantities);
+                    unset($det->batchesSums);
+                }
+
                 $delimiter = ($det->quantity * (1 - $det->discount));
                 if (!empty($delimiter)) {
                     $det->price = $det->sumAmounts / $delimiter;
@@ -763,7 +785,7 @@ abstract class deals_Helper
                 }
             }
         }
-        
+
         return $combined;
     }
     

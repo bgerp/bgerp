@@ -760,9 +760,9 @@ class sales_Sales extends deals_DealMaster
                 $bQuery->where("#detailClassId = {$detailId}");
                 $bQuery->where("#detailRecId = {$dRec->id}");
                 $bQuery->where("#productId = {$dRec->productId}");
-                $batches = $bQuery->fetchAll();
-                if(countR($batches)){
-                    $p->batches = $batches;
+                $p->batches = array();
+                while ($bRec = $bQuery->fetch()){
+                    $p->batches[$bRec->batch] = $bRec->quantity;
                 }
             }
             
@@ -801,7 +801,53 @@ class sales_Sales extends deals_DealMaster
         $agreed = deals_Helper::normalizeProducts(array($agreed2));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
-        $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($entries));
+        $shippedProducts = sales_transaction_Sale::getShippedProducts($entries);
+
+        // Ако има експедирани артикули и е инсталиран пакета за партиди
+        if(core_Packs::isInstalled('batch') && countR($shippedProducts)){
+            $threads = deals_Helper::getCombinedThreads($rec->threadId);
+
+            // Извличане на движенията по ЕН и Продажби
+            $otherSaleQuery = sales_Sales::getQuery();
+            $otherSaleQuery->where("#state IN ('active', 'closed')");
+            $otherSaleQuery->in("threadId", $threads);
+            $saleIds = arr::extractValuesFromArray($otherSaleQuery->fetchAll(), 'id');
+            $saleIds = implode(',', $saleIds);
+            $saleClassId = sales_Sales::getClassId();
+            $batchWhere = "(#docType={$saleClassId} AND #docId IN ({$saleIds}))";
+
+            $sQuery = store_ShipmentOrders::getQuery();
+            $sQuery->in("threadId", $threads);
+            $sQuery->where("#state = 'active'");
+            $soIds = arr::extractValuesFromArray($sQuery->fetchAll(), 'id');
+
+            if(countR($soIds)){
+                $soIds = implode(',', $soIds);
+                $soClassId = store_ShipmentOrders::getClassId();
+                $batchWhere .= "OR (#docType={$soClassId} AND #docId IN ({$soIds}))";
+            }
+
+            $batches = array();
+            $bQuery = batch_Movements::getQuery();
+            $bQuery->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
+            $bQuery->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
+            $bQuery->where($batchWhere);
+            $bQuery->where("#operation = 'out'");
+            $bQuery->show('quantity,batch,productId');
+            while ($batchRec = $bQuery->fetch()){
+                if(!array_key_exists($batchRec->productId, $batches)){
+                    $batches[$batchRec->productId] = array();
+                }
+                $batches[$batchRec->productId][$batchRec->batch] += $batchRec->quantity;
+            }
+
+            // Добавя се информация за експедираните партиди към данните за експедираните артикули
+            foreach ($shippedProducts as &$shipped){
+                $shipped->batches = array_key_exists($shipped->productId, $batches) ? $batches[$shipped->productId] : array();
+            }
+        }
+
+        $result->set('shippedProducts', $shippedProducts);
     }
     
     
