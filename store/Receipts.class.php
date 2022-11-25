@@ -212,7 +212,9 @@ class store_Receipts extends store_DocumentMaster
         $this->setField('pCode', 'caption=Адрес за натоварване->П. код');
         $this->setField('place', 'caption=Адрес за натоварване->Град/с');
         $this->setField('address', 'caption=Адрес за натоварване->Адрес');
-        $this->setField('addressInfo', 'caption=Адрес за натоварване->Особености');
+        $this->setField('addressInfo', 'caption=Адрес за натоварване->Други');
+        $this->setField('features', 'caption=Адрес за натоварване->Особености');
+
         $this->setFieldTypeParams("deliveryTime", array('defaultTime' => $endTime));
     }
     
