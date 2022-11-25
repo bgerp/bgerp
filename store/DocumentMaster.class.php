@@ -322,6 +322,7 @@ abstract class store_DocumentMaster extends core_Master
             } else {
                 $agreedProducts = $aggregatedDealInfo->get('dealProducts');
                 $normalizedProducts = $aggregatedDealInfo->get('dealProducts');
+                $copyBatches = true;
             }
             
             if (countR($agreedProducts)) {
@@ -364,7 +365,7 @@ abstract class store_DocumentMaster extends core_Master
                         $shipProduct->isEdited = false;
                         $shipProduct->_clonedWithBatches = true;
                     }
-                    
+
                     $Detail::save($shipProduct);
                     
                     // Копира партидата ако артикулите идат 1 към 1 от договора

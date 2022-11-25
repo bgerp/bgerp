@@ -61,6 +61,8 @@ class batch_definitions_DealReff extends batch_definitions_Varchar
             // Ще се приема че винаги е налична
             return array($batchName => 10000000000);
         }
+
+        return array();
     }
 
 
