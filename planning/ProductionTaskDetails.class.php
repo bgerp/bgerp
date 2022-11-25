@@ -1111,7 +1111,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
                             $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето|*: {$expectedNetWeightVerbal} |с|* {$deviationVerbal}");
                             if(haveRole('debug')){
-                                $msg .= " [NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$masterRec->quantityInPack}-Q:{$rec->quantity}]";
+                                $msg .= "<br>[NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$masterRec->quantityInPack}-Q:{$rec->quantity}]";
                             }
 
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
