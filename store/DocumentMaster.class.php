@@ -316,6 +316,17 @@ abstract class store_DocumentMaster extends core_Master
                         if ($p1->quantity > $inStock) {
                             unset($agreedProducts[$i1]);
                         }
+
+                        // Оставяне само на наличните партиди
+                        if(is_array($p1->batches) && core_Packs::isInstalled('batch')){
+                            $productBatchQuantitiesInStore = batch_Items::getBatchQuantitiesInStore($p1->productId,$rec->storeId, $rec->valior);
+                            foreach ($p1->batches as $b => $q){
+                                $batchQuantityInStore = !empty($productBatchQuantitiesInStore[$b]) ? $productBatchQuantitiesInStore[$b] : 0;
+                                if ($q > $batchQuantityInStore) {
+                                    unset($p1->batches[$b]);
+                                }
+                            }
+                        }
                     }
                 }
             } else {
