@@ -205,9 +205,9 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
         if ($export === false) {
 
             $fld->FLD('creator', 'varchar', 'caption=Създател');
-            $fld->FLD('salesAmount', 'double(decimals=2)', 'smartCenter,caption=Продажби->Стойност');
+            $fld->FLD('salesAmount', 'double(decimals=2)', 'smartCenter,caption=Продажби->Стойност->без ДДС');
             $fld->FLD('salesCount', 'int', "smartCenter,caption=Продажби->Брой");
-            $fld->FLD('detailsAmount', 'double(decimals=2)', 'smartCenter,caption=Редове-> Стойност');
+            $fld->FLD('detailsAmount', 'double(decimals=2)', 'smartCenter,caption=Редове-> Стойност-> без ДДС');
             $fld->FLD('detailsCount', 'double(int)', 'smartCenter,caption=Редове->Брой');
             $fld->FLD('delta', 'double(decimals=2)', 'smartCenter,caption=Редове->Делта');
 
