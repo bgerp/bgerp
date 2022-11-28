@@ -385,6 +385,7 @@ abstract class store_DocumentMaster extends core_Master
                                 $bRec->operation = 'out';
                                 $bRec->packagingId = $shipProduct->packagingId;
                                 $bRec->quantityInPack = $shipProduct->quantityInPack;
+
                                 batch_BatchesInDocuments::save($bRec);
                             }
                         }
