@@ -168,27 +168,20 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
             //Продажбата в която се формират делтите
             $firstDoc = doc_Threads::getFirstDocument($pRec->threadId);
 
-            if (($firstDoc->className != 'sales_Sales') ||  ($firstDoc->createBy != $rec->create) )continue;
+            if ($firstDoc->className != 'sales_Sales') continue;
+
+            $fDocRec = sales_Sales::fetch($firstDoc->that);
+
+            if ($fDocRec->createdBy != $rec->creator || !$pRec->delta) continue;
 
             if (!empty($recs)) {
                 $recs[$id]->delta += $pRec->delta;
-                $recs[$id]->detailsAmount += $pRec->sellCost*$pRec->quantity;
+                $recs[$id]->detailsAmount += $pRec->sellCost * $pRec->quantity;
                 $recs[$id]->detailsCount++;
             }
 
 
         }
-
-
-        // Синхронизира таймлимита с броя записи //
-        $rec->count = $query->count();
-
-        $timeLimit = $query->count() * 0.05;
-
-        if ($timeLimit >= 30) {
-            core_App::setTimeLimit($timeLimit);
-        }
-
 
         return $recs;
     }
