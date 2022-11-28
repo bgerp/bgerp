@@ -170,7 +170,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
             if ($detRec->createBy != $rec->create) continue;
             if (!empty($recs)) {
                 $recs[$id]->delta += $pRec->delta;
-                $recs[$id]->detailsAmount += $pRec->sellCost;
+                $recs[$id]->detailsAmount += $pRec->sellCost*$pRec->quantity;
                 $recs[$id]->detailsCount++;
             }
 
@@ -326,6 +326,8 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        $personId = (crm_Profiles::fetch("#userId = $dRec->creator")->personId);
+        $res->creator = crm_Persons::getHyperlink($personId);
 
     }
 }
