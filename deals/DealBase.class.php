@@ -982,9 +982,7 @@ abstract class deals_DealBase extends core_Master
 
             // Осредняване на курса
             if($averageRate =  $this->getAverageRateInThread($rec)){
-                if(round($averageRate, 5) != round($rec->currencyRate, 5)){
-                    $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                }
+                $this->recalcDocumentsWithNewRate($rec, $averageRate);
                 $rec->lastAutoRecalcRate = $now;
                 $updateRecs[$rec->id] = $rec;
             }
