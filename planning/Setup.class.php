@@ -140,12 +140,6 @@ defIfNot('PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT', '100000');
 
 
 /**
- * Макс бруто тегло при въвеждане на прогрес в ПО
- */
-defIfNot('PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT', '100000');
-
-
-/**
  * Поле което да определя опресняване на кеширането на артикула в заданието
  */
 defIfNot('PLANNING_JOB_USE_DATE_FIELD_FOR_PRODUCT_CACHE', 'modifiedOn');
