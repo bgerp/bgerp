@@ -991,7 +991,7 @@ class planning_Jobs extends core_Master
                 $row->pBomId = cat_Boms::getLink($pBomId, 0);
             }
             
-            $date = ($rec->state == 'draft') ? null : $rec->modifiedOn;
+            $date = ($rec->state == 'draft') ? null : (!empty($rec->activatedOn) ? $rec->activatedOn : $rec->modifiedOn);
             $lg = core_Lg::getCurrent();
             $row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'job', $lg);
             
