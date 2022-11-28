@@ -141,7 +141,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
                 $recs[$id] = (object)array(
 
                     'creator' => $rec->creator,
-                    'salesAmount' => $sRec->amountDeal,
+                    'salesAmount' => $sRec->amountDeal - $sRec->amountVat,
                     'salesCount' => 1,
                     'delta' => 0,
                     'detailsCount' => 0,
@@ -165,28 +165,23 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
 
         while ($pRec = $primeQuery->fetch()) {
 
-            $className = core_Classes::fetch($pRec->detailClassId)->name;
-            $detRec = $className::fetch($pRec->detailRecId);
-            if ($detRec->createBy != $rec->create) continue;
+            //Продажбата в която се формират делтите
+            $firstDoc = doc_Threads::getFirstDocument($pRec->threadId);
+
+            if ($firstDoc->className != 'sales_Sales') continue;
+
+            $fDocRec = sales_Sales::fetch($firstDoc->that);
+
+            if ($fDocRec->createdBy != $rec->creator || !$pRec->delta) continue;
+
             if (!empty($recs)) {
                 $recs[$id]->delta += $pRec->delta;
-                $recs[$id]->detailsAmount += $pRec->sellCost*$pRec->quantity;
+                $recs[$id]->detailsAmount += $pRec->sellCost * $pRec->quantity;
                 $recs[$id]->detailsCount++;
             }
 
 
         }
-
-
-        // Синхронизира таймлимита с броя записи //
-        $rec->count = $query->count();
-
-        $timeLimit = $query->count() * 0.05;
-
-        if ($timeLimit >= 30) {
-            core_App::setTimeLimit($timeLimit);
-        }
-
 
         return $recs;
     }
@@ -210,9 +205,9 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
         if ($export === false) {
 
             $fld->FLD('creator', 'varchar', 'caption=Създател');
-            $fld->FLD('salesAmount', 'double(decimals=2)', 'smartCenter,caption=Продажби->Стойност');
+            $fld->FLD('salesAmount', 'double(decimals=2)', 'smartCenter,caption=Продажби->Стойност->без ДДС');
             $fld->FLD('salesCount', 'int', "smartCenter,caption=Продажби->Брой");
-            $fld->FLD('detailsAmount', 'double(decimals=2)', 'smartCenter,caption=Редове-> Стойност');
+            $fld->FLD('detailsAmount', 'double(decimals=2)', 'smartCenter,caption=Редове-> Стойност-> без ДДС');
             $fld->FLD('detailsCount', 'double(int)', 'smartCenter,caption=Редове->Брой');
             $fld->FLD('delta', 'double(decimals=2)', 'smartCenter,caption=Редове->Делта');
 
