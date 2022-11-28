@@ -371,6 +371,7 @@ abstract class store_DocumentMaster extends core_Master
 
                     // Копира партидата ако артикулите идат 1 към 1 от договора
                     if (core_Packs::isInstalled('batch') && $copyBatches === true) {
+
                         if (is_array($shipProduct->batches)) {
                             foreach ($shipProduct->batches as $b => $q) {
                                 $bRec = new stdClass();
@@ -382,10 +383,9 @@ abstract class store_DocumentMaster extends core_Master
                                 $bRec->containerId = $rec->containerId;
                                 $bRec->date = $rec->valior;
                                 $bRec->storeId = $rec->storeId;
-                                $bRec->operation = 'out';
+                                $bRec->operation = $mvc->{$Detail}->getBatchMovementDocument($shipProduct);
                                 $bRec->packagingId = $shipProduct->packagingId;
                                 $bRec->quantityInPack = $shipProduct->quantityInPack;
-
                                 batch_BatchesInDocuments::save($bRec);
                             }
                         }
