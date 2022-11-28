@@ -141,7 +141,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
                 $recs[$id] = (object)array(
 
                     'creator' => $rec->creator,
-                    'salesAmount' => $sRec->amountDeal,
+                    'salesAmount' => $sRec->amountDeal - $sRec->amountVat,
                     'salesCount' => 1,
                     'delta' => 0,
                     'detailsCount' => 0,
