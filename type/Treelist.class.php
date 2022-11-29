@@ -85,8 +85,8 @@ class type_Treelist extends type_Keylist
 
         if ($suggCnt) {
 
-            $downArrow    = "<i class='trigger'>▼</i>";
-            $rightArrow   = "<i class='trigger'>►</i>";
+            $downArrow    = "<i class='trigger'>▽</i>";
+            $rightArrow   = "<i class='trigger'>▶</i>";
 
             // Подготовка на данните
             $keys = '';

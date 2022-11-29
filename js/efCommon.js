@@ -1238,10 +1238,10 @@ function setTrigger() {
          var sp = $(this);
          if (!($(obj).hasClass('hidden'))) {
              $(obj).slideUp(400);
-             sp.html('►'); $(obj).addClass('hidden');
+             sp.html('▶'); $(obj).addClass('hidden');
          } else {
              $(obj).slideDown(400);
-             sp.html('▼'); $(obj).removeClass('hidden');
+             sp.html('▽'); $(obj).removeClass('hidden');
          }
          event.stopPropagation();
     });
