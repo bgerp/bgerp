@@ -85,9 +85,13 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('typeOfQuantity', 'enum(available=Налично,free=Разполагаемо)', 'caption=Количество,removeAndRefreshForm,single=none,silent,after=limits');
 
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,input=none,silent,single=none');
+        $fieldset->FLD('typeOfPeriod', 'enum(toDate=Към дата,period=Период)', 'caption=Отчитане,removeAndRefreshForm,input=none,single=none,silent,after=typeOfQuantity');
 
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=date');
+        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Период,placeholder=Днес,after=typeOfPeriod,input=none,single=none');
+
+        $fieldset->FLD('date', 'date', 'caption=Към дата,placeholder=Днес,after=period,input=none,silent,single=none');
+
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=date');
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,mandatory,silent,single=none');
 
@@ -132,6 +136,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->setDefault('typeOfQuantity', 'free');
 
+        $form->setDefault('typeOfPeriod', 'toDate');
+
         $form->setDefault('filters', 'no');
 
         $form->setDefault('condFilter', '');
@@ -151,7 +157,19 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
 
         if ($rec->typeOfQuantity == 'free') {
-            $form->setField('date', 'input');
+
+            $form->setField('typeOfPeriod', 'input');
+
+            if ($rec->typeOfPeriod == 'toDate') {
+
+                $form->setField('date', 'input');
+            }
+            if ($rec->typeOfPeriod == 'period') {
+
+                $form->setField('period', 'input');
+            }
+
+
         }
 
         if ($rec->filters == 'condQuantity') {
@@ -230,7 +248,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             if ($rec->typeOfQuantity == 'free' && $recProduct->storeId) {
 
                 // Гледаме разполагаемото количество
-                $date = ($rec->date) ? $rec->date : dt::today();
+                if ($rec->typeOfPeriod == 'toDate') {
+                    $date = ($rec->date) ? $rec->date : dt::today();
+                } else {
+                    $date = dt::addSecs($rec->period, dt::today(), false) . ' 23:59:59';
+                    $rec->date = $date;
+                }
+
+
                 $quantity = store_Products::getQuantities($productId, $recProduct->storeId, $date)->free;
 
             } else {
@@ -620,7 +645,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-       
+
         $orderArr = self::getPacksForOrder($dRec, $rec);
 
         $pRec = (cat_Products::fetch($dRec->productId));
@@ -633,9 +658,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $res->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->packOrder);
 
-        if ($dRec->orderMeasure){
+        if ($dRec->orderMeasure) {
             $res->orderMeasure = cat_UoM::fetchField($dRec->orderMeasure, 'shortName');
-        }else{
+        } else {
             $res->orderMeasure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
         if ($dRec->orderMeasure) {
@@ -725,7 +750,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $prodPackArr[$productRec->measureId] = $productRec->measureId;
 
         $q = cat_UoM::getQuery();
-       // $q->where("#type = 'packaging'");
+        // $q->where("#type = 'packaging'");
         $q->in('id', $prodPackArr);
 
         while ($qRec = $q->fetch()) {
@@ -978,11 +1003,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             if ($quantityInPack) {
                 $packOrder = ceil($suggQuantity / $quantityInPack);
                 $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
-                if (($packOrder*$quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
+                if (($packOrder * $quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
             } else {
                 $packOrder = $suggQuantity;
             }
-
 
 
             $orderArr = (object)array('packOrder' => $packOrder,
@@ -998,7 +1022,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 if ($quantityInPack) {
                     $packOrder = ceil($suggQuantity / $quantityInPack);
                     $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
-                    if (($packOrder*$quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
+                    if (($packOrder * $quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
                 } else {
                     $packOrder = 0;
                 }
@@ -1018,7 +1042,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     if ($quantityInPack) {
                         $packOrder = ceil($suggQuantity / $quantityInPack);
                         $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
-                        if (($packOrder*$quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
+                        if (($packOrder * $quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
                     } else {
                         $packOrder = $suggQuantity;
                     }
