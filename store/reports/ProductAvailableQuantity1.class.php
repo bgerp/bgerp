@@ -85,11 +85,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('typeOfQuantity', 'enum(available=Налично,free=Разполагаемо)', 'caption=Количество,removeAndRefreshForm,single=none,silent,after=limits');
 
-        $fieldset->FLD('typeOfPeriod', 'enum(toDate=Към дата,period=Период)', 'caption=Отчитане,removeAndRefreshForm,input=none,single=none,silent,after=typeOfQuantity');
+        $fieldset->FLD('typeOfPeriod', 'enum(toDate=Конкретна дата,period=Бъдещ момент)', 'caption=Към,removeAndRefreshForm,input=none,single=none,silent,after=typeOfQuantity');
 
-        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Период,placeholder=Днес,after=typeOfPeriod,input=none,single=none');
+        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Избор,placeholder=Днес,after=typeOfPeriod,input=none,single=none, unit=напред');
 
-        $fieldset->FLD('date', 'date', 'caption=Към дата,placeholder=Днес,after=period,input=none,silent,single=none');
+        $fieldset->FLD('date', 'date', 'caption=Избор,placeholder=Днес,after=period,input=none,silent,single=none');
 
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=date');
 
