@@ -243,10 +243,12 @@ class deals_plg_DpInvoice extends core_Plugin
         $dpAmount = core_Math::roundNumber($dpAmount);
         $expectAdvanceForeignerDp = null;
 
+        $isForeignCountryId = $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+        $expectAdvanceForeignerDp = sales_Setup::get('EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS');
+
         // За проформи, Ако държавата не е България не предлагаме начисляване на ДДС
         if (!($mvc instanceof sales_Proformas)) {
-            if($form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'")){
-                $expectAdvanceForeignerDp = sales_Setup::get('EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS');
+            if($isForeignCountryId){
                 if($expectAdvanceForeignerDp == 'no') {
                     $form->setField('amountAccrued', 'autohide');
                     $form->setField('amountDeducted', 'autohide');
@@ -263,7 +265,11 @@ class deals_plg_DpInvoice extends core_Plugin
                         $dpOperation = 'none';
                         $form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
                     } else {
-                        $form->setDefault('amountAccrued', $dpAmount);
+                        if($isForeignCountryId && $expectAdvanceForeignerDp == 'no'){
+                            $form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
+                        } else {
+                            $form->setDefault('amountAccrued', $dpAmount);
+                        }
                     }
                 }
                 break;
@@ -282,10 +288,8 @@ class deals_plg_DpInvoice extends core_Plugin
             }
             break;
         }
-      ///  bp($form->rec);
+
         if ($dpOperation) {
-            //$form->setDefault('dpOperation', $dpOperation);
-            
             if ($form->rec->dpOperation == 'accrued' && isset($form->rec->amountDeducted)) {
                 unset($form->rec->amountDeducted);
             }
