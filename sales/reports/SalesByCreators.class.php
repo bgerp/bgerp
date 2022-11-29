@@ -20,7 +20,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,debug';
+    public $canSelectDriver = 'ceo,debug, hrMaster';
 
 
     /**
@@ -44,13 +44,13 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField ;
+    protected $groupByField;
 
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields ;
+    protected $changeableFields = 'from,to,creator';
 
 
     /**
@@ -62,9 +62,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        $fieldset->FLD('creators', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Създател,single=none,mandatory,after=to');
-        $fieldset->FLD('seeDelta', 'set(yes = )', 'caption=Делти,after=articleType,single=none');
-        $fieldset->FLD('see', 'set(sales=Сделки, articles=Артикули)', 'caption=Покажи,maxRadio=2,after=articleType,single=none,silent');
+        $fieldset->FLD('creator', 'user(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Създател,single=none,mandatory,after=to');
     }
 
 
@@ -103,12 +101,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        if (!core_Users::haveRole(array('ceo'))) {
-            $form->setField('seeDelta', 'input=hidden');
-        }
-
     }
-
 
     /**
      * Кои записи ще се показват в таблицата
@@ -125,46 +118,72 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
         }
 
         $recs = array();
-        $salesWithShipArr = array();
+        $salesWithShipArr = $salesArr = array();
+
+        $id = $rec->creator;
 
         $contragentsId = array();
 
+        //Договори за продажба създадени през периода от избрания служител
         $query = sales_Sales::getQuery();
 
         $query->where("#state != 'rejected'");
 
-        $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+        //$query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'.' 23:59:59'");
+        $query->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$rec->from. ' 00:00:00',$rec->to . ' 23:59:59'));
 
-        if (isset($rec->creators)) {
-
-            if ((min(array_keys(keylist::toArray($rec->creators))) >= 1)) {
-
-                $creators = keylist::toArray($rec->creators);
-                $query->in('createdBy', $creators);
-            }
-        }
-
-        $salesArr = arr::extractValuesFromArray($query->fetchAll(),'id');
-        $sClassId = core_Classes::getId('sales_Sales');
-
-        $primeQuery = sales_PrimeCostByDocument::getQuery();
-
-        bp(core_Classes::fetch(464),$primeQuery->fetchAll());
-
-        // Синхронизира таймлимита с броя записи //
-        $rec->count = $query->count();
-
-        $timeLimit = $query->count() * 0.05;
-
-        if ($timeLimit >= 30) {
-            core_App::setTimeLimit($timeLimit);
+        if (isset($rec->creator)) {
+            $query->where("#createdBy = $rec->creator");
         }
 
         while ($sRec = $query->fetch()) {
 
-            bp($sRec);
+            if (!array_key_exists($id, $recs)) {
+                $recs[$id] = (object)array(
+
+                    'creator' => $rec->creator,
+                    'salesAmount' => $sRec->amountDeal - $sRec->amountVat,
+                    'salesCount' => 1,
+                    'delta' => 0,
+                    'detailsCount' => 0,
+                    'detailsAmount' => 0,
+                );
+            } else {
+                $obj = &$recs[$id];
+                $obj->salesAmount += $sRec->amountDeal;
+                $obj->salesCount++;
+            }
+        }
+
+
+        //Делти за периода
+
+        $primeQuery = sales_PrimeCostByDocument::getQuery();
+
+        $primeQuery->where("#state != 'rejected'");
+
+        $primeQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+
+        while ($pRec = $primeQuery->fetch()) {
+
+            //Продажбата в която се формират делтите
+            $firstDoc = doc_Threads::getFirstDocument($pRec->threadId);
+
+            if ($firstDoc->className != 'sales_Sales') continue;
+
+            $fDocRec = sales_Sales::fetch($firstDoc->that);
+
+            if ($fDocRec->createdBy != $rec->creator || !$pRec->delta) continue;
+
+            if (!empty($recs)) {
+                $recs[$id]->delta += $pRec->delta;
+                $recs[$id]->detailsAmount += $pRec->sellCost * $pRec->quantity;
+                $recs[$id]->detailsCount++;
+            }
+
 
         }
+
         return $recs;
     }
 
@@ -187,14 +206,20 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
         if ($export === false) {
 
             $fld->FLD('creator', 'varchar', 'caption=Създател');
-            $fld->FLD('value', 'double(decimals=2)', 'smartCenter,caption=Продажби');
-            $fld->FLD('delta', 'double(decimals=2)', "smartCenter,caption=Делта");
+            $fld->FLD('salesAmount', 'double(decimals=2)', 'smartCenter,caption=Продажби->Стойност->без ДДС');
+            $fld->FLD('salesCount', 'int', "smartCenter,caption=Продажби->Брой");
+            $fld->FLD('detailsAmount', 'double(decimals=2)', 'smartCenter,caption=Редове-> Стойност-> без ДДС');
+            $fld->FLD('detailsCount', 'double(int)', 'smartCenter,caption=Редове->Брой');
+            $fld->FLD('delta', 'double(decimals=2)', 'smartCenter,caption=Редове->Делта');
 
         } else {
 
             $fld->FLD('creator', 'varchar', 'caption=Създател');
-            $fld->FLD('delta', 'double(decimals=2)', "smartCenter,caption=Делта");
-            $fld->FLD('value', 'double(decimals=2)', 'smartCenter,caption=Продажби');
+            $fld->FLD('salesAmount', 'double(decimals=2)', 'smartCenter,caption=Продажби->Стойност');
+            $fld->FLD('salesCount', 'int', "smartCenter,caption=Продажби->Брой");
+            $fld->FLD('detailsAmount', 'double(decimals=2)', 'smartCenter,caption=Редове->Стойност');
+            $fld->FLD('detailsCount', 'double(decimals=2)', 'smartCenter,caption=Редове->Брой');
+            $fld->FLD('delta', 'double(decimals=2)', 'smartCenter,caption=Редове->Делта');
         }
 
         return $fld;
@@ -220,10 +245,20 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->creator = core_Users::getTitleById($dRec->creator);
+        $personId = (crm_Profiles::fetch("#userId = $dRec->creator")->personId);
+        $row->creator = crm_Persons::getHyperlink($personId);
 
-        $row->value = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->value) . '</b>';
-        $row->value = ht::styleNumber($row->value, $dRec->value);
+        $row->salesCount = '<b>' . core_Type::getByName('int')->toVerbal($dRec->salesCount) . '</b>';
+        $row->salesCount = ht::styleNumber($row->salesCount, $dRec->salesCount);
+
+        $row->salesAmount = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->salesAmount) . '</b>';
+        $row->salesAmount = ht::styleNumber($row->salesAmount, $dRec->salesAmount);
+
+        $row->detailsAmount = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->detailsAmount) . '</b>';
+        $row->detailsAmount = ht::styleNumber($row->detailsAmount, $dRec->detailsAmount);
+
+        $row->detailsCount = '<b>' . core_Type::getByName('int')->toVerbal($dRec->detailsCount) . '</b>';
+        $row->detailsCount = ht::styleNumber($row->detailsCount, $dRec->detailsCount);
 
         $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->delta) . '</b>';
         $row->delta = ht::styleNumber($row->delta, $dRec->delta);
@@ -262,16 +297,17 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
-                                        <!--ET_BEGIN firstMonth--><div>|Месец 1|*: [#firstMonth#]</div><!--ET_END firstMonth-->
-                                        <!--ET_BEGIN secondMonth--><div>|Месец 2|*: [#secondMonth#]</div><!--ET_END secondMonth-->
-                                        <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
-                                        <!--ET_BEGIN contragent--><div>|Контрагент|*: [#contragent#]</div><!--ET_END contragent-->
-                                        <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
-                                        <!--ET_BEGIN group--><div>|Групи продукти|*: [#group#]</div><!--ET_END group-->
-                                        <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
+
+        if (isset($data->rec->from)) {
+            $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
+        }
+
+        if (isset($data->rec->to)) {
+            $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
+        }
 
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
@@ -288,6 +324,8 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        $personId = (crm_Profiles::fetch("#userId = $dRec->creator")->personId);
+        $res->creator = crm_Persons::getHyperlink($personId);
 
     }
 }

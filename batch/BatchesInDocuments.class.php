@@ -170,8 +170,7 @@ class batch_BatchesInDocuments extends core_Manager
                     }
                 }
             }
-            
-            $string = '';
+
             $block = clone $tpl->getBlock('BLOCK');
             $total -= $rec->quantity;
             $total = round($total, 5);
@@ -185,7 +184,14 @@ class batch_BatchesInDocuments extends core_Manager
             if (countR($batch1) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
                 $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
                 $q = $rec->quantity / $quantityInPack;
-                $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($q);
+                $quantity = core_Type::getByName('double(smartRound)')->toVerbal($q);
+                if($rInfo->operation['out'] && in_array($rInfo->state, array('draft', 'pending'))){
+                    $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
+                    if($rec->quantity > $batchQuantityInStore){
+                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
+                        $quantity = ht::createHint($quantity, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '"', 'warning', false);
+                    }
+                }
                 $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
 
                 if ($showBatchLink) {

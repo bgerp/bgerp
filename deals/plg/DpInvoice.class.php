@@ -29,8 +29,8 @@ class deals_plg_DpInvoice extends core_Plugin
             
             // Операция с авансовото плащане начисляване/намаляване
             $mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
-            $mvc->FLD('dpVatGroupId', 'key(allowEmpty,mvc=acc_VatGroups,select=title)', "silent,caption=Аванс->ДДС група,autohide,after=amountDeducted,placeholder=Автоматично,input=none");
-            $mvc->FLD('dpReason', 'richtext(rows=2)', 'caption=Аванс->Пояснение,after=amountDeducted,autohide,input=none');
+            $mvc->FLD('dpVatGroupId', 'key(allowEmpty,mvc=acc_VatGroups,select=title)', "silent,caption=Аванс->ДДС група,after=amountDeducted,placeholder=Автоматично,input=none");
+            $mvc->FLD('dpReason', 'richtext(rows=2)', 'caption=Аванс->Пояснение,after=amountDeducted,input=none');
         }
     }
     
@@ -66,8 +66,8 @@ class deals_plg_DpInvoice extends core_Plugin
         
         $unit = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? 'с ДДС' : 'без ДДС';
         
-        $form->FNC('amountAccrued', 'double', "caption=Аванс->Начисляване,input,autohide,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
-        $form->FNC('amountDeducted', 'double', "caption=Аванс->Приспадане,input,autohide,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
+        $form->FNC('amountAccrued', 'double', "caption=Аванс->Начисляване,input,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
+        $form->FNC('amountDeducted', 'double', "caption=Аванс->Приспадане,input,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
         if (in_array($rec->vatRate, array('yes', 'separate'))) {
             $form->setField('dpVatGroupId', 'input');
         }
@@ -165,6 +165,15 @@ class deals_plg_DpInvoice extends core_Plugin
         // Договореното до момента
         $agreedDp = $form->dealInfo->get('agreedDownpayment');
         $actualDp = $form->dealInfo->get('downpayment');
+
+        if(!$agreedDp){
+            $form->setField('amountAccrued', 'autohide');
+            $form->setField('amountDeducted', 'autohide');
+            $form->setField('dpReason', 'autohide');
+            $form->setField('dpVatGroupId', 'autohide');
+        }
+
+
         $downpayment = (empty($actualDp)) ? null : $actualDp;
         $flag = true;
 
@@ -232,13 +241,22 @@ class deals_plg_DpInvoice extends core_Plugin
         
         $dpAmount /= $rate;
         $dpAmount = core_Math::roundNumber($dpAmount);
-        
+        $expectAdvanceForeignerDp = null;
+
+        $isForeignCountryId = $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+        $expectAdvanceForeignerDp = sales_Setup::get('EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS');
+
         // За проформи, Ако държавата не е България не предлагаме начисляване на ДДС
-        if (!($mvc instanceof sales_Proformas) && $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'")) {
-            
-            return;
+        if (!($mvc instanceof sales_Proformas)) {
+            if($isForeignCountryId){
+                if($expectAdvanceForeignerDp == 'no') {
+                    $form->setField('amountAccrued', 'autohide');
+                    $form->setField('amountDeducted', 'autohide');
+                    $form->setField('dpReason', 'autohide');
+                }
+            }
         }
-        
+
         switch ($dpOperation) {
             case 'accrued':
                 if (isset($dpAmount)) {
@@ -247,7 +265,11 @@ class deals_plg_DpInvoice extends core_Plugin
                         $dpOperation = 'none';
                         $form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
                     } else {
-                        $form->setDefault('amountAccrued', $dpAmount);
+                        if($isForeignCountryId && $expectAdvanceForeignerDp == 'no'){
+                            $form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
+                        } else {
+                            $form->setDefault('amountAccrued', $dpAmount);
+                        }
                     }
                 }
                 break;
@@ -259,18 +281,15 @@ class deals_plg_DpInvoice extends core_Plugin
             case 'none':
             if (isset($agreedDp)) {
                 $dpField = $form->getField('amountAccrued');
-                unset($dpField->autohide);
-                
+
                 $sAmount = core_Math::roundNumber($agreedDp / $rate);
                 $suggestions = array('' => '', "{$sAmount}" => $sAmount);
                 $form->setSuggestions('amountAccrued', $suggestions);
             }
             break;
         }
-        
+
         if ($dpOperation) {
-            $form->setDefault('dpOperation', $dpOperation);
-            
             if ($form->rec->dpOperation == 'accrued' && isset($form->rec->amountDeducted)) {
                 unset($form->rec->amountDeducted);
             }

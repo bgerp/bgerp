@@ -990,8 +990,9 @@ class planning_Jobs extends core_Master
             if ($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id) {
                 $row->pBomId = cat_Boms::getLink($pBomId, 0);
             }
-            
-            $date = ($rec->state == 'draft') ? null : $rec->modifiedOn;
+
+            $useFieldForDateCache = planning_Setup::get('JOB_USE_DATE_FIELD_FOR_PRODUCT_CACHE');
+            $date = ($rec->state == 'draft') ? null : (!empty($rec->{$useFieldForDateCache}) ? $rec->{$useFieldForDateCache} : $rec->modifiedOn);
             $lg = core_Lg::getCurrent();
             $row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'job', $lg);
             

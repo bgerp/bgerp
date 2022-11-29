@@ -260,7 +260,12 @@ class acc_journal_Transaction
             
             return true;
         }
-        
+
+        // Ако има зададена дата за използване при реконтиране да се използва
+        if($recontoWithCreatedOnDate = Mode::get('recontoWithCreatedOnDate')){
+            $this->rec->createdOn = $recontoWithCreatedOnDate;
+        }
+
         return $this->Journal->save($this->rec);
     }
     
