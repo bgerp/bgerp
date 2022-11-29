@@ -432,7 +432,7 @@ class sales_Setup extends core_ProtoSetup
 
         'SALES_DELTA_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->От,unit=назад'),
         'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
-        'SALES_RECALC_PRICE_IN_CURRENCY_INTERVAL' => array('int(min=60)', 'caption=На колко време да се рекалкулират валутните продажби->Минути,placeholder=Изключено'),
+        'SALES_RECALC_PRICE_IN_CURRENCY_INTERVAL' => array('int(min=60)', 'caption=Рекалкулиране на валутните продажби за осредняване на курса и изравняване на статистиката->На всеки,placeholder=Изключено,unit=минути'),
         'SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS' => array('enum(no=Без фактуриране,yes=Фактуриране)', 'caption=Аванси от чуждестранни клиенти->Избор'),
     );
     

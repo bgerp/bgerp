@@ -296,15 +296,17 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
-                                        <!--ET_BEGIN firstMonth--><div>|Месец 1|*: [#firstMonth#]</div><!--ET_END firstMonth-->
-                                        <!--ET_BEGIN secondMonth--><div>|Месец 2|*: [#secondMonth#]</div><!--ET_END secondMonth-->
-                                        <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
-                                        <!--ET_BEGIN contragent--><div>|Контрагент|*: [#contragent#]</div><!--ET_END contragent-->
-                                        <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
-                                        <!--ET_BEGIN group--><div>|Групи продукти|*: [#group#]</div><!--ET_END group-->
-                                        <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
+
+
+        if (isset($data->rec->from)) {
+            $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
+        }
+
+        if (isset($data->rec->to)) {
+            $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
+        }
 
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
