@@ -185,7 +185,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
                 $q = $rec->quantity / $quantityInPack;
                 $quantity = core_Type::getByName('double(smartRound)')->toVerbal($q);
-                if($rInfo->operation['out']){
+                if($rInfo->operation['out'] && in_array($rInfo->state, array('draft', 'pending'))){
                     $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
                     if($rec->quantity > $batchQuantityInStore){
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
