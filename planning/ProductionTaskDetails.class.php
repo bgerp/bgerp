@@ -97,7 +97,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,netWeight=Нето (кг),weight=Бруто (кг),employees,fixedAsset=Оборудване,date=Дата,info=@';
+    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity=Колич.,netWeight=Нето (кг),weight=Бруто (кг),employees,fixedAsset=Обор.,date=Дата,info=@';
 
 
     /**
@@ -890,7 +890,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $dateVerbal = !empty($rec->date) ? ht::createHint($dateVerbal, "Датата е ръчно въведена на|*: {$createdOnVerbal}", 'notice', false) : $dateVerbal;
 
         $row->date = "<div class='nowrap'>{$dateVerbal}";
-        $row->date .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
+        $row->date .= ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : (($rec->type == 'scrap') ? 'state-hidden' : 'row-removed')));
 
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
