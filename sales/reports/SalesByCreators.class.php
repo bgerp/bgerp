@@ -129,7 +129,8 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
 
         $query->where("#state != 'rejected'");
 
-        $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+        //$query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'.' 23:59:59'");
+        $query->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$rec->from. ' 00:00:00',$rec->to . ' 23:59:59'));
 
         if (isset($rec->creator)) {
             $query->where("#createdBy = $rec->creator");
