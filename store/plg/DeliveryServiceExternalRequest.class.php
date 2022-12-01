@@ -14,6 +14,18 @@
 class store_plg_DeliveryServiceExternalRequest extends core_Plugin
 {
 
+
+    /**
+     * Извиква се след описанието на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+        setIfNot($mvc->canRequestbilloflading, 'powerUser');
+    }
+
+
     /**
      * След подготовка на тулбара на единичен изглед
      */
@@ -21,6 +33,7 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
     {
         $rec = &$data->rec;
 
+        //@todo да се взима от условие на доставка
         $Driver = cls::get('speedy_interface_ApiImpl');
         $driverClassId = $Driver->getClassId();
 
@@ -49,7 +62,9 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
                 $requiredRoles = 'no_one';
             } else {
                 $Driver = cls::get($rec->requestDriverId);
-                $requiredRoles = $Driver->canRequestBillOfLading($mvc, $objectRec, $userId);
+                if(!$Driver->canRequestBillOfLading($mvc, $objectRec, $userId)){
+                    $requiredRoles = 'no_one';
+                }
             }
 
             if($requiredRoles != 'no_one'){
@@ -84,6 +99,7 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
             expect($driverId = Request::get('requestDriverId'));
             $mvc->requireRightFor('requestbilloflading', (object)array('objectId' => $id, 'requestDriverId' => $driverId));
 
+            // Подаване на формата на драйвера
             $Driver = cls::get($driverId);
             $form = cls::get('core_Form');
             $Driver->addFieldToBillOfLadingForm($mvc, $rec, $form);
@@ -92,13 +108,13 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
 
             if($form->isSubmitted()){
                 if($form->cmd == 'save'){
-                    $requestedShipmentFh = $Driver->getRequestedShipmentFh($mvc, $rec, $form);
 
+                    // Ще върне ли драйвера файл хендлър на генерирана товарителница
+                    $requestedShipmentFh = $Driver->getRequestedShipmentFh($mvc, $rec, $form);
                     if(!empty($requestedShipmentFh)){
                         if(!$form->gotErrors()){
                             $fileId = fileman::fetchByFh($requestedShipmentFh, 'id');
                             doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
-
                             followRetUrl(null, "Успешно генерирана товарителница|*!");
                         }
                     }
@@ -110,6 +126,7 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
                 }
             }
 
+            // Подготовка на тулбара
             $form->toolbar->addSbBtn('Изпращане', 'save', 'ef_icon = img/16/speedy.png, title = Изпращане на товарителницата,id=save');
             $form->toolbar->addSbBtn('Изчисли', 'calc', 'ef_icon = img/16/calculator.png, title = Изчисляване на на товарителницата');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
