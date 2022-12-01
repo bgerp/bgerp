@@ -246,6 +246,18 @@ defIfNot('SALES_DELTA_NEW_PRODUCT_FROM', 12 * dt::SECONDS_IN_MONTH);
 
 
 /**
+ * На колко време да се рекалкулират валутните продажби
+ */
+defIfNot('SALES_RECALC_PRICE_IN_CURRENCY_INTERVAL', '');
+
+
+/**
+ * Очаква ли се аванс от чуждестранни клиенти
+ */
+defIfNot('SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS', 'no');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -420,6 +432,8 @@ class sales_Setup extends core_ProtoSetup
 
         'SALES_DELTA_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->От,unit=назад'),
         'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
+        'SALES_RECALC_PRICE_IN_CURRENCY_INTERVAL' => array('int(min=60)', 'caption=Рекалкулиране на валутните продажби за осредняване на курса и изравняване на статистиката->На всеки,placeholder=Изключено,unit=минути'),
+        'SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS' => array('enum(no=Без фактуриране,yes=Фактуриране)', 'caption=Аванси от чуждестранни клиенти->Избор'),
     );
     
     
@@ -468,7 +482,7 @@ class sales_Setup extends core_ProtoSetup
     public $defClasses = 'sales_SalesLastPricePolicy, 
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,
-                       sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_interface_FreeRegularDelivery,
+                       sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_reports_SalesByCreators,sales_interface_FreeRegularDelivery,
                        sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_InvoiceAccView';
     
     
@@ -510,7 +524,7 @@ class sales_Setup extends core_ProtoSetup
             'offset' => 190,
             'period' => 1440,
             'timeLimit' => 500
-        )
+        ),
     );
     
     
@@ -520,7 +534,7 @@ class sales_Setup extends core_ProtoSetup
     public $roles = array(
         array(
             'sales',
-            'invoicer,seePrice,dec'
+            'invoicer,seePrice,dec,seePriceSale'
         ),
         array(
             'salesMaster',
@@ -620,7 +634,16 @@ class sales_Setup extends core_ProtoSetup
                 $res .= "<li style='color:green'>Добавени са дефолтни артикули за транспорт</b></li>";
             }
         }
-        
+
+        $params = array('systemId'    => 'Recalc Currency Sales Rate',
+                        'description' => 'Осредняване на валутните курсове на продажбите',
+                        'controller'  => 'sales_Sales',
+                        'action'    => 'RecalcCurrencyRate',
+                        'interval'    => static::get('RECALC_PRICE_IN_CURRENCY_INTERVAL'),
+        );
+
+        $res .= deals_Setup::syncCronSettings($params);
+
         return $res;
     }
 }

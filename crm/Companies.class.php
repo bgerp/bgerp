@@ -308,11 +308,11 @@ class crm_Companies extends core_Master
     public function description()
     {
         // Име на фирмата
-        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv, translate=user|tr|transliterate');
+        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv, translate=user|tr|transliterate', array('placeholder' => 'Наименование (ЕИК/ДДС № за автоматично попълване)||Company name (VAT ID for feching VIES DB)'));
         $this->FNC('nameList', 'varchar(autocomplete=off)', 'sortingLike=name');
         
         // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent, class=focus');
+        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
         $this->FLD('uicId', 'drdata_type_Uic(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
         $this->FLD('eori', 'drdata_type_Eori', 'caption=EORI №,remember=info,class=contactData,export=Csv,silent');
         
@@ -583,7 +583,7 @@ class crm_Companies extends core_Master
         $mvc->autoChangeFields($form);
 
         if(empty($form->rec->id)){
-            $form->setField('name', 'formOrder=3');
+            $form->setField('name', array('attr' => array('onchange' => 'checkVatAndTriger(this)')));
         }
     }
     

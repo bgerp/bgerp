@@ -65,7 +65,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions,lastAutoRecalcRate';
     
     
     /**
@@ -695,7 +695,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 
                 cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
             }
-        }  elseif(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+        }  elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $data->row->value = doc_plg_HidePrices::getBuriedElement();
             $data->row->total = doc_plg_HidePrices::getBuriedElement();
         }
@@ -761,7 +761,7 @@ abstract class deals_DealMaster extends deals_DealBase
             'recTitle' => $title,
         );
 
-        if(doc_plg_HidePrices::canSeePriceFields($rec)){
+        if(doc_plg_HidePrices::canSeePriceFields($this, $rec)){
             $row->subTitle = $this->getSubTitle($rec);
         }
 
@@ -1439,16 +1439,21 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-        
+
         // Изтриваме досегашните детайли на сделката
         $Detail = $mvc->mainDetail;
         $Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
         $details = deals_Helper::normalizeProducts($details);
-        
+
         if (countR($details)) {
             foreach ($details as &$det1) {
                 $det1->{$mvc->{$Detail}->masterKey} = $rec->id;
+                $det1->_clonedWithBatches = true;
                 $Detail::save($det1);
+
+                if(isset($rec->shipmentStoreId) && is_array($det1->batches) && core_Packs::isInstalled('batch')){
+                    batch_BatchesInDocuments::saveBatches($Detail, $det1->id, $det1->batches);
+                }
             }
         }
         
@@ -2347,6 +2352,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		string|NULL   ['fromAddress']         - адрес за натоварване
      *  	string|NULL   ['fromCompany']         - фирма
      *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromPersonPhones']    - телефон на лицето
      *      string|NULL   ['fromLocationId']      - лице
      *      string|NULL   ['fromAddressInfo']     - особености
      *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
@@ -2413,6 +2419,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $res["{$ownPart}Company"] = $ownCompany->name;
         $personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
         $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_users::fetchField($personId, 'names');
+        if($res["{$ownPart}Person"]){
+            $personId = crm_Profiles::getPersonByUser($personId);
+            $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+            if(!empty($buzPhones)){
+                $res["{$ownPart}PersonPhones"] = $buzPhones;
+            }
+        }
+
         $res["{$contrPart}Country"] = $contragentCountry;
         $res["{$contrPart}Company"] = $contragentData->company;
         
@@ -2869,5 +2883,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
 
         return $files;
+    }
+
+
+    /**
+     * Осреднява валутните курсове на сделките при нужда
+     */
+    public function cron_RecalcCurrencyRate()
+    {
+        $this->recalcDealsWithCurrencies();
     }
 }

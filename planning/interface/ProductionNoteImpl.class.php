@@ -34,25 +34,28 @@ class planning_interface_ProductionNoteImpl
     {
         return null;
     }
-    
-    
+
+
     /**
      * Връща наименованието на етикета
      *
      * @param int $id
-     *
+     * @param string $series
      * @return string
      */
-    public function getLabelName($id)
+    public function getLabelName($id, $series = 'label')
     {
         $labelName = $this->class->getTitleById($id);
         
         return $labelName;
     }
-    
-    
+
+
     /**
      * Връща масив с данните за плейсхолдерите
+     *
+     * @param int|NULL $objId
+     * @param string $series
      *
      * @return array
      *               Ключа е името на плейсхолдера и стойностите са обект:
@@ -63,7 +66,7 @@ class planning_interface_ProductionNoteImpl
      *               importance -> (int|double) - тежест/важност на плейсхолдера
      *               example -> (string) - примерна стойност
      */
-    public function getLabelPlaceholders($objId = null)
+    public function getLabelPlaceholders($objId = null, $series = 'label')
     {
         $placeholders = array();
         $placeholders['JOB'] = (object) array('type' => 'text');
@@ -94,7 +97,7 @@ class planning_interface_ProductionNoteImpl
             $rec = $this->class->fetch($objId);
 
             $notEditableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
-            $labelData = $this->getLabelData($objId, 1, true);
+            $labelData = $this->getLabelData($objId, 1, true, null, $series);
 
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
@@ -154,10 +157,12 @@ class planning_interface_ProductionNoteImpl
      * @param int  $id
      * @param int  $cnt
      * @param bool $onlyPreview
+     * @param stdClass $lRec
+     * @param string $series
      *
-     * @return array - масив от масиви с ключ плейсхолдера и стойността
+     * @return array - масив от масив с ключ плейсхолдера и стойността
      */
-    public function getLabelData($id, $cnt, $onlyPreview = false)
+    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null, $series = 'label')
     {
         static $resArr = array();
         $lg = core_Lg::getCurrent();
@@ -268,19 +273,17 @@ class planning_interface_ProductionNoteImpl
 
         return $resArr[$key];
     }
-    
-    
+
+
     /**
      * Броя на етикетите, които могат да се отпечатат
      *
-     * @param int    $id
-     * @param string $allowSkip
+     * @param int $id
+     * @param string $series
      *
      * @return int
-     *
-     * @see label_SequenceIntf
      */
-    public function getLabelEstimatedCnt($id)
+    public function getLabelEstimatedCnt($id, $series = 'label')
     {
         $rec = $this->class->fetchRec($id);
         
@@ -292,9 +295,10 @@ class planning_interface_ProductionNoteImpl
      * Кой е дефолтния шаблон за печат към обекта
      *
      * @param $id
+     * @param string $series
      * @return int|null
      */
-    public function getDefaultLabelTemplateId($id)
+    public function getDefaultLabelTemplateId($id, $series = 'label')
     {
         return null;
     }

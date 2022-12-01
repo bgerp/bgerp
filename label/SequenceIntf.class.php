@@ -25,12 +25,12 @@ class label_SequenceIntf
      * Връща наименованието на етикета
      *
      * @param int $id
-     *
+     * @param string $series
      * @return string
      */
-    public function getLabelName($id)
+    public function getLabelName($id, $series = 'label')
     {
-        return $this->class->getLabelName($id);
+        return $this->class->getLabelName($id, $series);
     }
     
     
@@ -38,6 +38,7 @@ class label_SequenceIntf
      * Връща масив с данните за плейсхолдерите
      *
      * @param int|NULL $objId
+     * @param string $series
      *
      * @return array
      *               Ключа е името на плейсхолдера и стойностите са обект:
@@ -48,9 +49,9 @@ class label_SequenceIntf
      *               importance -> (int|double) - тежест/важност на плейсхолдера
      *               example -> (string) - примерна стойност
      */
-    public function getLabelPlaceholders($objId = null)
+    public function getLabelPlaceholders($objId = null, $series = 'label')
     {
-        return $this->class->getLabelPlaceholders($objId);
+        return $this->class->getLabelPlaceholders($objId, $series);
     }
     
     
@@ -58,12 +59,13 @@ class label_SequenceIntf
      * Броя на етикетите, които могат да се отпечатат
      *
      * @param int $id
+     * @param string $series
      *
      * @return int
      */
-    public function getLabelEstimatedCnt($id)
+    public function getLabelEstimatedCnt($id, $series = 'label')
     {
-        return $this->class->getLabelEstimatedCnt($id);
+        return $this->class->getLabelEstimatedCnt($id, $series);
     }
     
     
@@ -74,12 +76,13 @@ class label_SequenceIntf
      * @param int  $cnt
      * @param bool $onlyPreview
      * @param stdClass $lRec
+     * @param string $series
      *
      * @return array - масив от масив с ключ плейсхолдера и стойността
      */
-    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null)
+    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null, $series = 'label')
     {
-        return $this->class->getLabelData($id, $cnt, $onlyPreview, $lRec);
+        return $this->class->getLabelData($id, $cnt, $onlyPreview, $lRec, $series);
     }
     
     
@@ -116,10 +119,11 @@ class label_SequenceIntf
      * Кой е дефолтния шаблон за печат към обекта
      *
      * @param $id
+     * @param string $series
      * @return int|null
      */
-    public function getDefaultLabelTemplateId($id)
+    public function getDefaultLabelTemplateId($id, $series = 'label')
     {
-        return $this->class->getDefaultLabelTemplateId($id);
+        return $this->class->getDefaultLabelTemplateId($id, $series);
     }
 }

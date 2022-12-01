@@ -65,21 +65,46 @@ class doc_plg_HidePrices extends core_Plugin
     /**
      * Дали потребителя може да вижда чувствителната информация
      */
-    public static function canSeePriceFields($rec)
+    public static function canSeePriceFields($mvc, $rec)
     {
         // Ако има изброените роли, може да вижда цените
-        if (haveRole('ceo,seePrice')) {
-            
-            return true;
+        $mvc = cls::get($mvc);
+        if(($mvc instanceof deals_PaymentDocument) || ($mvc instanceof crm_Persons)){
+            if(haveRole('ceo,seePrice')) return true;
+        } elseif($mvc instanceof sales_Quotations){
+            if(haveRole('ceo,seePriceSale')) return true;
+        } elseif($mvc instanceof purchase_Quotations){
+            if(haveRole('ceo,seePricePurchase')) return true;
+        } elseif($mvc instanceof findeals_AdvanceReports){
+            if(haveRole('ceo,pettyCashReport')) return true;
+        } elseif(isset($rec->threadId)){
+            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDocument->isInstanceOf('sales_Sales')){
+                    if(haveRole('ceo,seePriceSale')) return true;
+                } elseif($firstDocument->isInstanceOf('purchase_Purchases')){
+                    if(haveRole('ceo,seePricePurchase')) return true;
+                } elseif($firstDocument->isInstanceOf('findeals_AdvanceDeals')){
+                    if($mvc instanceof purchase_Invoices || $mvc instanceof findeals_AdvanceDeals){
+                        if(haveRole('ceo,pettyCashReport')) return true;
+                    } else {
+                        if(haveRole('ceo,seePrice')) return true;
+                    }
+                } else {
+                    if(haveRole('ceo,seePrice')) return true;
+                }
+            }
         }
-        
-        // Ако е контрактор, и е инсталиран пакета за контрактови и имаме тред
-        if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab') && $rec->threadId) {
-            
-            // Ако контрактора може да види треда от външната част, то може и да види цялата ценова информация
+
+        if(isset($rec->threadId)){
             $threadRec = doc_Threads::fetch($rec->threadId);
+        }
+
+        // Ако е контрактор, и е инсталиран пакета за контрактови и имаме тред
+        if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab') && isset($threadRec)) {
+
+            // Ако контрактора може да види треда от външната част, то може и да види цялата ценова информация
             if (colab_Threads::haveRightFor('single', $threadRec)) {
-                
+
                 return true;
             }
         }
@@ -94,13 +119,11 @@ class doc_plg_HidePrices extends core_Plugin
         }
 
         // Ако документа е нишка на продажба и тя е с видими цени да се показват
-        if(isset($rec->threadId)){
-            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
-                if($firstDocument->isInstanceOf('sales_Sales')){
-                    $visiblePricesByAllInThread = $firstDocument->fetchField('visiblePricesByAllInThread');
+        if(isset($firstDocument)){
+            if($firstDocument->isInstanceOf('sales_Sales')){
+                $visiblePricesByAllInThread = $firstDocument->fetchField('visiblePricesByAllInThread');
 
-                    return ($visiblePricesByAllInThread == 'yes');
-                }
+                return ($visiblePricesByAllInThread == 'yes');
             }
         }
 
@@ -115,7 +138,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if (self::canSeePriceFields($data->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($mvc, $data->rec) || $data->dontHidePrices === true) {
             
             return;
         }
@@ -129,7 +152,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
-        if (self::canSeePriceFields($data->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($mvc, $data->rec) || $data->dontHidePrices === true) {
             
             return;
         }
@@ -145,7 +168,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
-        if (self::canSeePriceFields($data->masterData->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($data->masterMvc, $data->masterData->rec) || $data->dontHidePrices === true) {
             
             return;
         }
@@ -212,8 +235,12 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if (self::canSeePriceFields($data->masterRec)){
-            
+        if(self::canSeePriceFields($mvc, null)){
+            return;
+        }
+
+        if (isset($mvc->Master) && self::canSeePriceFields($mvc->Master, $data->masterRec)){
+
             return;
         }
         
@@ -223,6 +250,19 @@ class doc_plg_HidePrices extends core_Plugin
         foreach ($priceFields as $fld){
             if($form->getField($fld, false)){
                 $form->setField($fld, 'input=none');
+            }
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'exportdoc' && isset($rec)){
+            if(!static::canSeePriceFields($mvc, $rec)){
+                $requiredRoles = 'no_one';
             }
         }
     }

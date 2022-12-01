@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,calcWeightMode,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent';
+    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent';
 
 
     /**
@@ -109,16 +109,17 @@ class planning_Steps extends core_Extender
         $this->FLD('calcWeightMode', 'enum(auto=Автоматично,no=Изключено,yes=Включено)', 'caption=Използване в производството->Въвеждане на тегло,notNull,value=auto');
 
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Складове->Складируем,notNull,value=yes,silent');
-        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Складове->Материали');
-        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Произвеждане');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Складове->Влагане ОТ');
+        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Произвеждане В');
         
         $this->FLD('planningActions', 'keylist(mvc=cat_Products,select=name,makeLink)', 'caption=Планиране на производството->Действия');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Планиране на производството->Норма');
         $this->FLD('interruptOffset', 'time', 'caption=Планиране на производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
-        $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelType', 'enum(scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковката (к-во),tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelTransferQuantityInPack', 'enum(yes=Прехвърляне на к-то в операцията,no=Да не се прехвърля к-то в операцията)', 'caption=Етикиране в производството->Към операцията,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelType', 'enum(scan=Сканиране,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
         $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
@@ -207,6 +208,7 @@ class planning_Steps extends core_Extender
                 $form->setField("{$mvc->className}_labelQuantityInPack", 'input');
                 $form->setField("{$mvc->className}_labelType", 'input');
                 $form->setField("{$mvc->className}_labelTemplate", 'input');
+                $form->setField("{$mvc->className}_labelTransferQuantityInPack", 'input');
 
                 // При редакция на артикул наличните опаковки за етикетиране са само тези на артикула
                 if(isset($rec->id)){
@@ -466,6 +468,10 @@ class planning_Steps extends core_Extender
             if($rec->calcWeightMode == 'auto'){
                 $row->calcWeightMode = $mvc->getFieldType('calcWeightMode')->toVerbal(planning_Setup::get('TASK_WEIGHT_MODE'));
                 $row->calcWeightMode = ht::createHint($row->calcWeightMode, 'По подразбиране', 'notice', 'false');
+            }
+
+            if(empty($rec->labelPackagingId)){
+                unset($row->labelTransferQuantityInPack);
             }
         }
     }

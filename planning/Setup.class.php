@@ -134,6 +134,18 @@ defIfNot('PLANNING_TASK_PROGRESS_OPERATOR', 'lastAndMandatory');
 
 
 /**
+ * Макс бруто тегло при въвеждане на прогрес в ПО
+ */
+defIfNot('PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT', '100000');
+
+
+/**
+ * Поле което да определя опресняване на кеширането на артикула в заданието
+ */
+defIfNot('PLANNING_JOB_USE_DATE_FIELD_FOR_PRODUCT_CACHE', 'modifiedOn');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -197,11 +209,13 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
         'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
-        'PLANNING_TASK_PROGRESS_OPERATOR' => array('enum(lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално))', 'caption=Задаване на оператори в прогреса на ПО->Оператори'),
+        'PLANNING_TASK_PROGRESS_OPERATOR' => array('enum(lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално),current=Текущ оператор)', 'caption=Задаване на оператори в прогреса на ПО->Оператори,customizeBy=taskWorker|ceo'),
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
         'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
         'PLANNING_TASK_NET_WEIGHT_WARNING' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Предупреждение'),
+        'PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT' => array('int(Min=0)', 'caption=Максимално допустимо бруто тегло в прогреса на ПО->Максимално до,unit=кг'),
+        'PLANNING_JOB_USE_DATE_FIELD_FOR_PRODUCT_CACHE' => array('enum(modifiedOn=Модифицирано на,activatedOn=Активирано на)', 'caption=Поле което да определя опресняване на кеширането на артикула в заданието->Поле'),
     );
 
 

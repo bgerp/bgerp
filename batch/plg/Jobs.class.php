@@ -219,7 +219,7 @@ class batch_plg_Jobs extends core_Plugin
                 $BatchType = $BatchDef->getBatchClassType();
                 if($BatchType instanceof type_Enum){
                     $options = $BatchType->options;
-                    $res = array_combine(array_values($options), array_values($options));
+                    $res = $options;
                 }
             }
         }
@@ -258,11 +258,11 @@ class batch_plg_Jobs extends core_Plugin
                 $BatchType = $BatchClass->getBatchClassType();
                 if($BatchType instanceof type_Enum){
                     $options = $BatchType->options;
-                    $options = array_combine(array_values($options), array_values($options));
+                    unset($options['']);
                 }
             }
 
-            $res = countR($options) ? array_combine($options, $options) : null;
+            $res = countR($options) ? $options : null;
         }
     }
 }

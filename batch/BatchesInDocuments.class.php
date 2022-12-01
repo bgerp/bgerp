@@ -170,8 +170,7 @@ class batch_BatchesInDocuments extends core_Manager
                     }
                 }
             }
-            
-            $string = '';
+
             $block = clone $tpl->getBlock('BLOCK');
             $total -= $rec->quantity;
             $total = round($total, 5);
@@ -185,7 +184,14 @@ class batch_BatchesInDocuments extends core_Manager
             if (countR($batch1) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
                 $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
                 $q = $rec->quantity / $quantityInPack;
-                $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($q);
+                $quantity = core_Type::getByName('double(smartRound)')->toVerbal($q);
+                if($rInfo->operation['out'] && in_array($rInfo->state, array('draft', 'pending'))){
+                    $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
+                    if($rec->quantity > $batchQuantityInStore){
+                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
+                        $quantity = ht::createHint($quantity, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '"', 'warning', false);
+                    }
+                }
                 $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
 
                 if ($showBatchLink) {
@@ -609,24 +615,27 @@ class batch_BatchesInDocuments extends core_Manager
         }
         
         // Добавяне на бутони
-        $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-        
-        $attr = arr::make('warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
-        $attr['onclick'] = "$(this.form).find('.batch-quantity-fields').val('');";
+        $form->toolbar->addSbBtn('Промяна', 'save', 'id=btnSave,ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->setBtnOrder('btnSave', 1);
 
         if(!($Detail instanceof planning_Jobs)){
-            $form->toolbar->addSbBtn('Това е количеството', 'updateQuantity', 'ef_icon = img/16/disk.png,title = Обновяване на количеството');
+            $form->toolbar->addSbBtn('Това е количеството', 'updateQuantity', 'id=updateQuantity,ef_icon = img/16/disk.png,title = Обновяване на количеството');
+            $form->toolbar->setBtnOrder('updateQuantity', 2);
         }
 
         $operation = key($recInfo->operation);
         if ($operation == 'out') {
+            $attr = arr::make('id=btnAuto,warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
+            $attr['onclick'] = "$(this.form).find('.batch-quantity-fields').val('');";
             $form->toolbar->addSbBtn('Автоматично', 'auto', $attr);
+            $form->toolbar->setBtnOrder('btnSave', 3);
         }
         
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=back,ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $form->toolbar->setBtnOrder('back', 50);
         $tpl = $this->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);
-        
+
         // Рендиране на формата
         return $tpl;
     }

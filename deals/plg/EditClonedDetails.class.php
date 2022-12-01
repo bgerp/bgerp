@@ -55,14 +55,13 @@ class deals_plg_EditClonedDetails extends core_Plugin
         }
         $form = &$data->form;
         $rec = $form->rec;
-        
+
+        $MainDetail = cls::get($mvc->mainDetail);
         $Detail = null;
         $detailsToClone = $mvc->getDetailsToCloneAndChange($rec, $Detail);
-        setIfNot($Detail, cls::get($mvc->mainDetail));
-        if (!countR($detailsToClone)) {
-            
-            return;
-        }
+        setIfNot($Detail, $MainDetail);
+        if (!countR($detailsToClone)) return;
+
         setIfNot($Detail->productFld, 'productId');
         setIfNot($Detail->quantityFld, 'quantity');
         
@@ -72,8 +71,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $num = 1;
         $detailId = $Detail->getClassId();
         $installedBatch = core_Packs::isInstalled('batch');
-        
+
         foreach ($detailsToClone as $dRec) {
+            if($Detail->className != $MainDetail->className && empty($dRec->{$Detail->quantityFld})) continue;
             $caption = cat_Products::getTitleById($dRec->{$Detail->productFld});
             $caption .= ' / ' . cat_UoM::getShortName($dRec->packagingId);
             $caption = str_replace(',', ' ', $caption);
@@ -111,7 +111,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     $form->FLD($key, "double(Min=0,{$max})", "input,caption={$caption}->|*{$verbal}");
                     
                     $rec->details[$dRec->id]->batches[$bRec->id] = $bRec;
-                    $form->setDefault($key, $bQuantity);
+                    if($bQuantity > 0){
+                        $form->setDefault($key, $bQuantity);
+                    }
                 }
                 
                 // Показване на полетата без партиди
@@ -123,7 +125,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
             } else {
                 // Показване на полетата без партиди
                 $form->FLD("quantity||{$dRec->id}|", 'double(Min=0)', "input,caption={$caption}->Количество");
-                $form->setDefault("quantity||{$dRec->id}|", $dRec->packQuantity);
+                if($dRec->packQuantity > 0){
+                    $form->setDefault("quantity||{$dRec->id}|", $dRec->packQuantity);
+                }
                 
                 if ($dRec->autoBatches === true && $installedBatch) {
                     $type = $Detail->getBatchMovementDocument($dRec);
@@ -140,7 +144,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
             $rec->cloneAndChange = true;
             $num++;
         }
-        
+
         if (!isset($rec->clonedFromId)) {
             
             return;

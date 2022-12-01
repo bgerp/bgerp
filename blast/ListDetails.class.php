@@ -1406,7 +1406,7 @@ class blast_ListDetails extends doc_Detail
                     
                     $allEmailArr[$email] = $email;
 
-                    if (self::isContragentEmailHaveRightAccess($contragentAccess, $email)) {
+                    if (!self::isContragentEmailHaveRightAccess($contragentAccess, $email)) {
 
                         continue;
                     }

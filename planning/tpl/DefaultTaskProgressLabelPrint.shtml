@@ -1,6 +1,6 @@
 <div>[#SERIAL#]</div>
 <div>[#PRODUCT_NAME#]</div>
-<div>[#JOB#]</div>
+<div>[#JOB#]<!--ET_BEGIN JOB_PRODUCT_CODE--> / [#JOB_PRODUCT_CODE#]<!--ET_END JOB_PRODUCT_CODE--></div>
 <div><!--ET_BEGIN REFF-->Reff:[#REFF#] <!--ET_END REFF--><!--ET_BEGIN BATCH--> / [#BATCH#]<!--ET_END BATCH--></div>
 <div>[#QUANTITY#] / D:[#DATE#]</div>
 <!--ET_BEGIN WEIGHT--><div>[#WEIGHT#]</div><!--ET_END WEIGHT-->

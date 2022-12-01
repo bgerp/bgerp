@@ -238,7 +238,7 @@ class sales_SalesDetails extends deals_DealDetail
                 deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
             }
             
-            if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
+            if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice)) {
                $hintField = isset($data->listFields['packPrice']) ? 'packPrice' : 'amount';
                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
                
@@ -269,7 +269,7 @@ class sales_SalesDetails extends deals_DealDetail
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
             $fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
-            if(doc_plg_HidePrices::canSeePriceFields($masterRec)){
+            if(doc_plg_HidePrices::canSeePriceFields($mvc->Master, $masterRec)){
                 $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
             }
         }

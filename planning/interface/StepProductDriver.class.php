@@ -171,7 +171,9 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
         if($rec->canStore == 'yes'){
             $res['labelPackagingId'] = $rec->labelPackagingId;
-            $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+            if($rec->labelTransferQuantityInPack != 'no'){
+                $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+            }
             $res['labelType'] = $rec->labelType;
             $res['labelTemplate'] = $rec->labelTemplate;
         }
@@ -287,11 +289,10 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      */
     public static function on_AfterGetRequiredRoles(cat_ProductDriver $Driver, cat_Products $Embedder, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'editplanned' && isset($rec)){
-            if(empty($rec->planning_Steps_fixedAssets)){
+        if($action == 'editplanned'){
+            $requiredRoles = $Embedder->getRequiredRoles('edit', $rec, $userId);
+            if(isset($rec) && empty($rec->planning_Steps_fixedAssets)){
                 $requiredRoles = 'no_one';
-            } else {
-                $requiredRoles = $Embedder->getRequiredRoles('edit', $rec, $userId);
             }
         }
     }

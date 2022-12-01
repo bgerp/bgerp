@@ -25,8 +25,8 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->TAB('planning_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,consumption');
         $this->TAB('planning_ReturnNotes', 'Протоколи->Връщане', 'ceo,consumption');
         $this->TAB('planning_Jobs', 'Задания', 'ceo,jobSee');
-        $this->TAB('planning_Tasks', 'Операции->Списък', 'ceo,task');
-        $this->TAB('planning_ProductionTaskDetails', 'Операции->Прогрес', 'ceo,taskWorker');
+        $this->TAB('planning_Tasks', 'Операции->Списък', 'ceo,taskSee');
+        $this->TAB('planning_ProductionTaskDetails', 'Операции->Прогрес', 'ceo,taskSee');
         $this->TAB('planning_WorkCards', 'Операции->Работни карти', 'ceo,planning,admin');
         $this->TAB('planning_Centers', 'Центрове', 'ceo, planning, jobSee');
         $this->TAB(array('planning_AssetResources', 'type' => 'material'), 'Ресурси->Оборудване', 'ceo,planning');

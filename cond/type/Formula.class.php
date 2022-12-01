@@ -50,11 +50,11 @@ class cond_type_Formula extends cond_type_Text
     private static function getParamsFromDomain($domainClass, $domainId)
     {
         $params = array();
-        if(isset($domainClass)){
+        if (isset($domainClass)) {
             $Domain = cls::get($domainClass);
-            if($Domain instanceof cat_Products){
+            if ($Domain instanceof cat_Products) {
                 $params = $Domain->getParams($domainId);
-            } elseif($Domain instanceof planning_Tasks){
+            } elseif ($Domain instanceof planning_Tasks) {
 
                 // Ако е ПО, прави се обединение между нейните и на артикула от заданието параметрите
                 $tRec = $Domain->fetch($domainId, 'originId,productId');
@@ -64,10 +64,32 @@ class cond_type_Formula extends cond_type_Text
                 $tQuery = cat_products_Params::getQuery();
                 $tQuery->where("#classId = {$Domain->getClassId()} AND #productId = {$domainId}");
                 $tQuery->show('paramId,paramValue');
-                while($tRec = $tQuery->fetch()){
+                while ($tRec = $tQuery->fetch()) {
                     $params[$tRec->paramId] = $tRec->paramValue;
                 }
             }
+
+            $tries = 0;
+            do {
+                // Преизчисляват се формулите докато има промяна
+                $hasChange = false;
+                $tries++;
+                foreach ($params as $paramId => $paramVal) {
+                    if (cat_Params::haveDriver($paramId, 'cond_type_Formula')) {
+                        if (!is_numeric($paramVal)) {
+                            $idToNameArr = array();
+                            $cloneParams = $params;
+                            $paramCloneMap = cat_Params::getFormulaParamMap($cloneParams, $idToNameArr);
+                            $calced = cat_BomDetails::calcExpr($paramVal, $paramCloneMap);
+
+                            if ($paramVal != $calced) {
+                                $params[$paramId] = $calced;
+                                $hasChange = true;
+                            }
+                        }
+                    }
+                }
+            } while($hasChange || $tries <= 50);
         }
 
         return $params;
@@ -149,6 +171,7 @@ class cond_type_Formula extends cond_type_Text
         $params = static::getParamsFromDomain($domainClass, $domainId);
         $paramMap = cat_Params::getFormulaParamMap($params, $idToNameArr);
         $calced = cat_BomDetails::calcExpr($value, $paramMap);
+
         $verbal = $calced;
         if(!Mode::is('text', 'plain')){
             $exprDisplay = strtr($value, $idToNameArr);

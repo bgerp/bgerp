@@ -465,32 +465,33 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @param mixed $rec - ид или запис на документ
      * @return array      - логистичните данни
      *
-     *        string(2)     ['fromCountry']         - международното име на английски на държавата за натоварване
-     *        string|NULL   ['fromPCode']           - пощенски код на мястото за натоварване
-     *        string|NULL   ['fromPlace']           - град за натоварване
-     *        string|NULL   ['fromAddress']         - адрес за натоварване
-     *    string|NULL   ['fromCompany']         - фирма
-     *    string|NULL   ['fromPerson']          - лице
+     *		string(2)     ['fromCountry']         - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']           - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']           - град за натоварване
+     * 		string|NULL   ['fromAddress']         - адрес за натоварване
+     *  	string|NULL   ['fromCompany']         - фирма
+     *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromPersonPhones']    - телефон на лицето
      *      string|NULL   ['fromLocationId']      - лице
      *      string|NULL   ['fromAddressInfo']     - особености
      *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
-     *        datetime|NULL ['loadingTime']         - дата на натоварване
-     *        string(2)     ['toCountry']           - международното име на английски на държавата за разтоварване
-     *        string|NULL   ['toPCode']             - пощенски код на мястото за разтоварване
-     *        string|NULL   ['toPlace']             - град за разтоварване
-     *    string|NULL   ['toAddress']           - адрес за разтоварване
-     *    string|NULL   ['toCompany']           - фирма
-     *    string|NULL   ['toPerson']            - лице
+     * 		datetime|NULL ['loadingTime']         - дата на натоварване
+     * 		string(2)     ['toCountry']           - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']             - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']             - град за разтоварване
+     *  	string|NULL   ['toAddress']           - адрес за разтоварване
+     *   	string|NULL   ['toCompany']           - фирма
+     *   	string|NULL   ['toPerson']            - лице
      *      string|NULL   ['toLocationId']        - лице
      *      string|NULL   ['toPersonPhones']      - телефон на лицето
      *      string|NULL   ['toAddressInfo']       - особености
      *      string|NULL   ['toAddressFeatures']   - особености на транспорта
      *      string|NULL   ['instructions']        - инструкции
-     *        datetime|NULL ['deliveryTime']        - дата на разтоварване
-     *        text|NULL      ['conditions']          - други условия
-     *        varchar|NULL  ['ourReff']             - наш реф
-     *        double|NULL   ['totalWeight']         - общо тегло
-     *        double|NULL   ['totalVolume']         - общ обем
+     * 		datetime|NULL ['deliveryTime']        - дата на разтоварване
+     * 		text|NULL 	  ['conditions']          - други условия
+     *		varchar|NULL  ['ourReff']             - наш реф
+     * 		double|NULL   ['totalWeight']         - общо тегло
+     * 		double|NULL   ['totalVolume']         - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -616,8 +617,11 @@ class store_ShipmentOrders extends store_DocumentMaster
         }
 
         if (in_array($rec->state, array('active', 'pending')) && $rec->isReverse == 'no') {
-            if (cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
-                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
+            $contragentCountryId = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
+            if($contragentCountryId == drdata_Countries::getIdByName('Bulgaria')) {
+                if (cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
+                    $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ,row=2');
+                }
             }
         }
     }
@@ -882,5 +886,17 @@ class store_ShipmentOrders extends store_DocumentMaster
         setIfNot($loadingDate, $rec->valior, $rec->activatedOn, $rec->createdOn);
 
         return $loadingDate;
+    }
+
+
+    /**
+     * Връща наличните серии за етикети от източника
+     *
+     * @param null|stdClass $rec
+     * @return array
+     */
+    public function getLabelSeries($rec = null)
+    {
+        return array('label' => $this->printLabelCaptionPlural, 'detail' => 'Артикули');
     }
 }

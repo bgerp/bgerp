@@ -240,6 +240,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
+            unset($productOptions[$jobRec->productId]);
         } else {
             $jobRec = $originDoc->fetch();
             $productOptions = array($originRec->productId => cat_Products::getTitleById($originRec->productId, false));
@@ -285,7 +286,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
                 $originRec = $originDoc->fetch();
-                $originPackId = ($originRec->isFinal == 'yes') ? $originRec->measureId : $info->measureId;
+                $originPackId = ($jobRec->productId == $rec->productId) ? $originRec->measureId : $info->measureId;
                 $form->setDefault('packagingId', $originPackId);
                 $toProduce = round($info->totalQuantity - $info->producedQuantity - $info->scrappedQuantity, 4);
                 if ($toProduce > 0) {
@@ -448,7 +449,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $quantityInPack = ($productInfo->packagings[$rec->additionalMeasureId]) ? $productInfo->packagings[$rec->additionalMeasureId]->quantity : 1;
                     if($origin->isInstanceOf('planning_Tasks')){
                         if($originRec->labelPackagingId == $rec->additionalMeasureId){
-                            $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId);
+                            $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId, $originRec->id);
                         }
                     }
 
@@ -508,7 +509,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 // Ако втората мярка е опаковка
                 if($origin->isInstanceOf('planning_Tasks')){
                     if($originRec->labelPackagingId == $rec->additionalMeasureId){
-                        $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId);
+                        $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId, $originRec->id);
                     }
                 }
 
@@ -634,18 +635,22 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped', 'pending'))) {
                             $requiredRoles = 'no_one';
                         } else {
+                            if($originDoc->isInstanceOf('planning_Jobs')){
 
-                            // Ако артикула от заданието не е производим не можем да добавяме документ
-                            $productId = $originDoc->fetchField('productId');
-                            $productRec = cat_Products::fetch($productId, 'canManifacture,generic');
-                            if ($productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
-                                $requiredRoles = 'no_one';
-                            } else {
-                                if($originDoc->isInstanceOf('planning_Jobs')){
-                                    if(planning_Tasks::fetch("#originId = {$originDoc->fetchField('containerId')} AND #productId = {$productId} AND #state != 'draft' && #state != 'rejected'")){
+                                // Ако заданието е за производим артикул само тогава да може да се пуска протокол от него
+                                $productId = $originDoc->fetchField('productId');
+                                $productRec = cat_Products::fetch($productId, 'canManifacture,generic');
+                                if ($productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
+                                    $requiredRoles = 'no_one';
+                                }
+                            } elseif($originDoc->isInstanceOf('planning_Tasks')){
 
-                                        //@todo да се върне
-                                        //$requiredRoles = 'no_one';
+                                // Ако протокола е към финална ПО без допълнителни артикули да не се показва бутона
+                                $originRec = $originDoc->fetch('isFinal,productId');
+                                if($originRec->isFinal == 'yes'){
+                                    $producedCount4FinalTask = planning_ProductionTaskProducts::count("#taskId = {$originDoc->that} AND #type = 'production'");
+                                    if($producedCount4FinalTask == 1){
+                                        $requiredRoles = 'no_one';
                                     }
                                 }
                             }

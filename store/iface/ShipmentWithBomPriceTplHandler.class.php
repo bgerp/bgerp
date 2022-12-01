@@ -142,7 +142,11 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
     {
         // Ако няма редове или не е във вътрешен режим
         if (!countR($data->rows)) return;
-        if(Mode::is('printing') || (Mode::is('text', 'xhtml') && !Mode::is('docView'))) return;
+        if(Mode::is('printing') || (Mode::is('text', 'xhtml') && !Mode::is('docView'))) {
+            unset($data->listFields['packPrice']);
+            unset($data->listFields['amount']);
+            return;
+        }
 
         // Добавяне на колонката за цена по рецепта
         $date = isset($data->masterData->rec->valior) ? $data->masterData->rec->valior : dt::today();

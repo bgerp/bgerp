@@ -29,13 +29,13 @@
               <td class = 'nowrap'>[#producedQuantity#]</td>
               
               <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
-                  <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
-                  <!--ET_BEGIN subTitle-->
-                  <span style='font-weight:normal'>|Подзаглавие|*</span>: [#subTitle#]<br>
-                  <!--ET_END subTitle-->
-                  <!--ET_BEGIN batch-->
-                  <span style='font-weight:normal'>|Партида|*</span>: [#batch#]<br>
-                  <!--ET_END batch-->
+                  <div style='font-size: 1em;width:99%' class="state-[#jobState#] document-handler">
+                      <div><span style='font-weight:normal'>|Задание|*</span>: [#originId#]</div>
+                      <!--ET_BEGIN batch-->
+                        <div><span style='font-weight:normal'>|Партида|*</span>: [#batch#]</div>
+                      <!--ET_END batch-->
+                  </div>
+                  <div class='clearfix21'></div>
                   <!--ET_BEGIN storeId-->
                   <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->

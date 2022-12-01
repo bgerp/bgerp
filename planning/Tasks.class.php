@@ -275,12 +275,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = 'dependantProgress';
-
-
-    /**
      * Да се показват ли бъдещи периоди в лист изгледа
      */
     public $filterFutureOptions = true;
@@ -314,7 +308,7 @@ class planning_Tasks extends core_Master
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
-        $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both,input=hidden');
+        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
@@ -589,12 +583,20 @@ class planning_Tasks extends core_Master
             } else {
                 if(empty($rec->labelQuantityInPack)){
                     $labelProductId = ($rec->isFinal == 'yes') ? $origin->fetchField('productId') : $rec->productId;
-                    $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId);
+                    $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId, $rec->id);
+                    $expectedLabelQuantityInPack = $quantityInPackDefault;
                     $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
-                    $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
+                    $quantityInPackHint = ($rec->isFinal == 'yes') ? 'Средно от въведения прогрес или от опаковката/мярката на артикула' : 'От опаковката/мярката на артикула';
+                    $quantityInPackDefault = ht::createHint($quantityInPackDefault, $quantityInPackHint);
                     $row->labelQuantityInPack = $quantityInPackDefault;
                 } else {
                     $row->labelQuantityInPack .= " {$row->measureId}";
+                    $expectedLabelQuantityInPack = $rec->labelQuantityInPack;
+                }
+
+                if(cat_UoM::fetchField($rec->labelPackagingId, 'type') != 'uom'){
+                    $expectedLabelPacks = core_Type::getByName('double(smartRound,maxDecimals=1)')->toVerbal($rec->plannedQuantity / $expectedLabelQuantityInPack);
+                    $row->labelPackagingId .= ", {$expectedLabelPacks} " . tr('бр.');
                 }
             }
 
@@ -617,6 +619,8 @@ class planning_Tasks extends core_Master
             }
 
             $row->originId = $origin->getHyperlink(true);
+            $row->jobState = $origin->fetchField('state');
+
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
                 $row->wasteStart = isset($row->wasteStart) ? $row->wasteStart : 'n/a';
@@ -627,6 +631,22 @@ class planning_Tasks extends core_Master
             if(!empty($rec->employees)){
                 $employees = planning_Hr::getPersonsCodesArr($rec->employees, true);
                 $row->employees = implode(', ', $employees);
+            }
+
+            if($rec->isFinal == 'yes'){
+                $compareMeasureId = cat_Products::fetchField($jobProductId, 'measureId');
+                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobProductId, $rec->measureId)->quantity;
+            } else {
+                $compareMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
+                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($rec->productId, $rec->measureId)->quantity;
+            }
+
+            // Ако има разминаване с очакваното к-во в опаковка да се покаже
+            if($rec->quantityInPack != $expectedMeasureQuantityInPack){
+                $dUoms = cat_UoM::getShortName($rec->measureId) . "/" . cat_UoM::getShortName($compareMeasureId);
+                $quantityInPackVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantityInPack);
+                $diffMsg = "Отношението на |{$dUoms}|* се разминава със записаното при създаването на Операцията|*: {$quantityInPackVerbal}! |Приключете операцията и създайте нова (без да клонирате!), за да продължите с актуалното количество!";
+                $row->plannedQuantity = ht::createHint($row->plannedQuantity, $diffMsg, 'img/16/red-warning.png', false);
             }
         } else {
             if($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])){
@@ -722,13 +742,35 @@ class planning_Tasks extends core_Master
      * @param int $productId
      * @param int $measureId
      * @param int $labelPackagingId
+     * @param int|null $taskId
      * @return float|int $quantityInPackDefault
      */
-    public static function getDefaultQuantityInLabelPackagingId($productId, $measureId, $labelPackagingId)
+    public static function getDefaultQuantityInLabelPackagingId($productId, $measureId, $labelPackagingId, $taskId = null)
     {
+        $productMeasureId = cat_Products::fetchField($productId, 'measureId');
+        if(isset($taskId)){
+
+            // Показване на средното к-во в опаковка от реалните данни
+            $taskRec = planning_Tasks::fetch($taskId);
+            if($taskRec->isFinal != 'yes'){
+                $dQuery = planning_ProductionTaskDetails::getQuery();
+                $dQuery->where("#taskId = {$taskId} AND #productId = {$productId} AND #type='production' AND #state != 'rejected'");
+                $dRecs = array();
+                while($dRec = $dQuery->fetch()){
+                    $dRecs[$dRec->serial] += $dRec->quantity;
+                }
+                $detailsCount = countR($dRecs);
+                if($detailsCount){
+                    $round = cat_UoM::fetchField($measureId, 'round');
+                    $res = round((array_sum($dRecs) / $detailsCount) / $taskRec->quantityInPack, $round);
+
+                    return $res;
+                }
+            }
+        }
+
         $packRec = cat_products_Packagings::getPack($productId, $labelPackagingId);
         $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
-        $productMeasureId = cat_Products::fetchField($productId, 'measureId');
 
         if($productMeasureId != $measureId){
             $packRec1 = cat_products_Packagings::getPack($productId, $measureId);
@@ -883,8 +925,8 @@ class planning_Tasks extends core_Master
         unset($resArr['createdBy']);
         unset($resArr['createdOn']);
 
-        $display = (in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) || haveRole('task')) ? 'block' : 'none';
-        $toggleClass = (in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) || haveRole('task')) ? 'show-btn' : '';
+        $display = (in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) || haveRole('task,officer')) ? 'block' : 'none';
+        $toggleClass = (in_array($rec->state, array('pending', 'draft', 'waiting', 'rejected', 'stopped')) || haveRole('task,officer')) ? 'show-btn' : '';
 
         if(Mode::is('printing')){
             $resArr['info'] = array('name' => tr('Операция'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
@@ -939,18 +981,20 @@ class planning_Tasks extends core_Master
                 <!--ET_BEGIN simultaneity--><tr><td style='font-weight:normal'>|Едновременност|*:</td><td>[#simultaneity#]</td></tr><!--ET_END simultaneity-->
                 </table>"));
 
+        if(core_Packs::isInstalled('batch')){
+            if($rec->followBatchesForFinalProduct != 'no'){
+                $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
+                if($batchTpl instanceof core_ET){
+                    $resArr['batches'] = array('name' => tr('Партиди'), 'val' => $batchTpl->getContent());
+                }
+            }
+        }
+
         if(!Mode::is('printing')){
             $toggleBtnJs = "javascript:toggleDisplayByClass('btnShowHeaderInfo', 'docHeaderVal')";
             $hideBtn = ht::createLink('', $toggleBtnJs, false, array('id' => 'btnShowHeaderInfo', 'class' => "more-btn {$toggleClass}", 'title' => tr('Показване/Скриване на настройките на операцията')));
             $hideBtn = $hideBtn->getContent();
             $resArr['toggle'] = array('name' => "<div style='float:right'>{$hideBtn}</div>", 'val' => tr(""));
-        }
-        
-        if(core_Packs::isInstalled('batch')){
-            $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
-            if($batchTpl instanceof core_ET){
-                $resArr['batches'] = array('name' => tr('Партиди'), 'val' => $batchTpl->getContent());
-            }
         }
 
         if(isset($rec->indPackagingId) && !empty($rec->indTime)){
@@ -1131,7 +1175,7 @@ class planning_Tasks extends core_Master
         if ($action == 'reject' && isset($rec)) {
             if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")) {
                 $requiredRoles = 'no_one';
-            } elseif(!haveRole('task', $userId)){
+            } elseif(!haveRole('task,ceo', $userId)){
                 $requiredRoles = 'no_one';
             }
         }
@@ -1393,7 +1437,6 @@ class planning_Tasks extends core_Master
                 }
             }
 
-
             if(core_Packs::isInstalled('batch')){
                 if(batch_Defs::getBatchDef($originRec->productId)){
                     $form->setField('followBatchesForFinalProduct', 'input');
@@ -1571,15 +1614,17 @@ class planning_Tasks extends core_Master
                 $form->setField('labelTemplate', 'input');
 
                 if($rec->isFinal != 'yes' && $rec->labelPackagingId == $productionData['labelPackagingId']){
-                    $stepMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
-                    $stepSimilarMeasures = cat_UoM::getSameTypeMeasures($stepMeasureId);
-                    if(array_key_exists($productRec->measureId, $stepSimilarMeasures)){
-                        $productionData['labelQuantityInPack'] = cat_UoM::convertValue($productionData['labelQuantityInPack'], $stepMeasureId, $productRec->measureId);
+                    if(empty($rec->id)){
+                        $stepMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
+                        $stepSimilarMeasures = cat_UoM::getSameTypeMeasures($stepMeasureId);
+                        if(array_key_exists($productRec->measureId, $stepSimilarMeasures)){
+                            $productionData['labelQuantityInPack'] = cat_UoM::convertValue($productionData['labelQuantityInPack'], $stepMeasureId, $productRec->measureId);
+                        }
+                        $form->setDefault('labelQuantityInPack', $productionData['labelQuantityInPack']);
                     }
-                    $form->setDefault('labelQuantityInPack', $productionData['labelQuantityInPack']);
                 }
 
-                $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($productId4Form, $rec->measureId, $rec->labelPackagingId);
+                $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($productId4Form, $rec->measureId, $rec->labelPackagingId, $rec->id);
                 $form->setField('labelQuantityInPack', "placeholder={$quantityInPackDefault}");
 
                 $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);
@@ -2357,11 +2402,14 @@ class planning_Tasks extends core_Master
     /**
      * Параметрите на бутона за етикетиране
      */
-    protected static function on_AfterGetLabelTemplates($mvc, &$res, $rec)
+    protected static function on_AfterGetLabelTemplates($mvc, &$res, $rec, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
         $rec = $mvc->fetchRec($rec);
         if(isset($rec->labelTemplate) && !array_key_exists($rec->labelTemplate, $res)){
-            $res[$rec->labelTemplate] = label_Templates::fetch($rec->labelTemplate);
+            $templateSeries = label_Templates::fetchField($rec->labelTemplate, 'series');
+            if($templateSeries == $series){
+                $res[$rec->labelTemplate] = label_Templates::fetch($rec->labelTemplate);
+            }
         }
     }
 
@@ -2480,6 +2528,8 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, 'dependantProgress');
     }
 
 
