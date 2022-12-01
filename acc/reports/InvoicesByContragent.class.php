@@ -58,7 +58,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото');
         $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=текуща');
 
-        $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit=лв.,input=hidden,after=checkDate,silent,single=none');
+        $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Начин на плащане, placeholder=Всички,after=checkDate');
+
+        $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit=лв.,input=hidden,after=paymentType,placeholder=0.00,silent,single=none');
 
         $fieldset->FLD('seeProformаs', 'set(yes = )', 'caption=Покажи проформа фактурите,after=sill,input,single=none');
 
@@ -461,14 +463,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                             $fastMarker = in_array($firstDocumentArr[$thread], array_keys($fastSales)) ? 0 : 1;
 
-                            // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
-                            if ($rec->unpaid == 'unpaid') {
-                                if (($invDiff >= (-1) * $rec->sill) &&
-                                    ($invDiff <= $rec->sill)) {
-                                    continue;
-                                }
-                            }
-
                             //Тази фактура
                             $Invoice = doc_Containers::getDocument($inv);
 
@@ -479,8 +473,21 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             //Данни по тази фактура
                             $iRec = $Invoice->fetch(
                                 'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,
-                                     currencyId,date,dueDate,contragentName'
+                                     currencyId,date,dueDate,contragentName,paymentType,autoPaymentType'
                             );
+
+                            // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
+                            if ($rec->unpaid == 'unpaid') {
+                                if (($invDiff >= (-1) * $rec->sill) &&
+                                    ($invDiff <= $rec->sill)) {
+                                    continue;
+                                }
+
+                                //Ако е избран филтър по начин на плащане
+                                $paymentType = ($iRec->paymentType) ? : $iRec->autoPaymentType;
+                                if ($rec->paymentType && $rec->paymentType != $paymentType) continue;
+
+                            }
 
                             //Ако датата на фактурата е по голяма от избраната "към дата" не влиза в масива
                             if ($checkDate < $iRec->date) {
@@ -1332,6 +1339,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
 
+        $Enum = cls::get('type_Enum', array('options' => array('cash' => 'В брой', 'bank' => 'По банков път', 'intercept' => 'С прихващане','card'=>'С карта','factoring'=>'Факторинг','postal'=>'Пощенски паричен превод')));
+
         $fieldTpl = new core_ET(
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -1340,6 +1349,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                         <!--ET_BEGIN contragent--><div>|Контрагент|*: <b>[#contragent#]</b></div><!--ET_END contragent-->
                                         <!--ET_BEGIN typeOfInvoice--> <div>|Фактури|*: <b>[#typeOfInvoice#]</b></div><!--ET_END typeOfInvoice-->
                                         <!--ET_BEGIN unpaid--><div>|Плащане|*: <b>[#unpaid#]</b></div><!--ET_END unpaid-->
+                                        <!--ET_BEGIN paymentType--><div>|Начин на плащане|*: <b>[#paymentType#]</b></div><!--ET_END paymentType-->
                                         <!--ET_BEGIN totalInvoiceValueAll--><div>|Стойност|*: <b>[#totalInvoiceValueAll#] лв.</b></div><!--ET_END totalInvoiceValueAll-->
                                         <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] лв.</b></div><!--ET_END totalInvoicePayoutAll-->
                                         <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] лв.</b></div><!--ET_END totalInvoiceNotPaydAll-->
@@ -1365,6 +1375,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $paid,
                 'unpaid'
             );
+        }
+
+        if (isset($data->rec->paymentType)) {
+
+            $fieldTpl->append($Enum->toVerbal($data->rec->paymentType),'paymentType');
+
         }
 
         //Всички фактури
