@@ -596,6 +596,13 @@ class planning_Tasks extends core_Master
 
                 if(cat_UoM::fetchField($rec->labelPackagingId, 'type') != 'uom'){
                     $expectedLabelPacks = core_Type::getByName('double(smartRound,maxDecimals=1)')->toVerbal($rec->plannedQuantity / $expectedLabelQuantityInPack);
+
+                    // Преброяване на уникалните произв. номера
+                    $dQuery = planning_ProductionTaskDetails::getQuery();
+                    $dQuery->where("#taskId = {$rec->id} AND #productId = {$jobProductId} AND #type = 'production' AND #state != 'rejected'");
+                    $dQuery->XPR('countSerials', 'int', 'COUNT(DISTINCT(#serial))');
+                    $producedCountVerbal = core_Type::getByName('int')->toVerbal($dQuery->fetch()->countSerials);
+                    $expectedLabelPacks = "<span style='color:green'>{$producedCountVerbal}</span> / {$expectedLabelPacks}";
                     $row->labelPackagingId .= ", {$expectedLabelPacks} " . tr('бр.');
                 }
             }
