@@ -975,6 +975,7 @@ abstract class deals_DealBase extends core_Master
 
         // Ако има намерени сделки
         $now = dt::now();
+        $lastCalcedWithDiff = dt::addSecs(5, $now);
         $query = $this->getQuery();
         $query->in('id', $dealIds);
         $updateRecs = array();
@@ -982,10 +983,8 @@ abstract class deals_DealBase extends core_Master
 
             // Осредняване на курса
             if($averageRate =  $this->getAverageRateInThread($rec)){
-                if(round($averageRate, 5) != round($rec->currencyRate, 5)){
-                    $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                }
-                $rec->lastAutoRecalcRate = $now;
+                $this->recalcDocumentsWithNewRate($rec, $averageRate);
+                $rec->lastAutoRecalcRate = $lastCalcedWithDiff;
                 $updateRecs[$rec->id] = $rec;
             }
         }

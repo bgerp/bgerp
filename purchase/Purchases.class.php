@@ -594,7 +594,11 @@ class purchase_Purchases extends deals_DealMaster
                 $bQuery->where("#detailClassId = {$detailClassId}");
                 $bQuery->where("#detailRecId = {$dRec->id}");
                 $bQuery->where("#productId = {$dRec->productId}");
-                $p->batches = $bQuery->fetchAll();
+                $bQuery->show('quantity,batch,productId');
+                $p->batches = array();
+                while ($bRec = $bQuery->fetch()){
+                    $p->batches[$bRec->batch] = $bRec->quantity;
+                }
             }
             
             $agreed[] = $p;

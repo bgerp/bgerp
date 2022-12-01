@@ -270,8 +270,8 @@ abstract class store_DocumentMaster extends core_Master
         
         return $this->save($rec);
     }
-    
-    
+
+
     /**
      * След създаване на запис в модела
      */
@@ -303,19 +303,29 @@ abstract class store_DocumentMaster extends core_Master
             } elseif($rec->importProducts != 'all') {
                 $agreedProducts = $aggregatedDealInfo->get('products');
                 $shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-                
+                $copyBatches = true;
                 if (countR($shippedProducts)) {
                     $normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
                 } else {
-                    $copyBatches = true;
                     $agreedProducts = $aggregatedDealInfo->get('dealProducts');
                 }
-                
+
                 if ($rec->importProducts == 'stocked') {
                     foreach ($agreedProducts as $i1 => $p1) {
                         $inStock = store_Products::fetchField("#storeId = {$rec->storeId} AND #productId = {$p1->productId}", 'quantity');
                         if ($p1->quantity > $inStock) {
                             unset($agreedProducts[$i1]);
+                        }
+
+                        // Оставяне само на наличните партиди
+                        if(is_array($p1->batches) && core_Packs::isInstalled('batch')){
+                            $productBatchQuantitiesInStore = batch_Items::getBatchQuantitiesInStore($p1->productId,$rec->storeId, $rec->valior);
+                            foreach ($p1->batches as $b => $q){
+                                $batchQuantityInStore = !empty($productBatchQuantitiesInStore[$b]) ? $productBatchQuantitiesInStore[$b] : 0;
+                                if ($q > $batchQuantityInStore) {
+                                    unset($p1->batches[$b]);
+                                }
+                            }
                         }
                     }
                 }
@@ -324,7 +334,7 @@ abstract class store_DocumentMaster extends core_Master
                 $normalizedProducts = $aggregatedDealInfo->get('dealProducts');
                 $copyBatches = true;
             }
-            
+
             if (countR($agreedProducts)) {
                 foreach ($agreedProducts as $index => $product) {
                     
@@ -339,8 +349,10 @@ abstract class store_DocumentMaster extends core_Master
                     
                     if (isset($normalizedProducts[$index])) {
                         $toShip = $normalizedProducts[$index]->quantity;
+                        $batches = $normalizedProducts[$index]->batches;
                     } else {
                         $toShip = $product->quantity;
+                        $batches = $product->batches;
                     }
                     
                     $price = (isset($agreedProducts[$index]->price)) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
@@ -360,25 +372,31 @@ abstract class store_DocumentMaster extends core_Master
                     $shipProduct->discount = $discount;
                     $shipProduct->notes = $product->notes;
                     $shipProduct->quantityInPack = $product->quantityInPack;
-                    
-                    if (core_Packs::isInstalled('batch') && $copyBatches === true) {
-                        $shipProduct->isEdited = false;
-                        $shipProduct->_clonedWithBatches = true;
-                    }
 
+                    if (core_Packs::isInstalled('batch') && $copyBatches === true) {
+                        $shipProduct->batches = $batches;
+                        $shipProduct->isEdited = FALSE;
+                        $shipProduct->_clonedWithBatches = TRUE;
+                    }
                     $Detail::save($shipProduct);
-                    
+
                     // Копира партидата ако артикулите идат 1 към 1 от договора
                     if (core_Packs::isInstalled('batch') && $copyBatches === true) {
-                        if (is_array($product->batches)) {
-                            foreach ($product->batches as $bRec) {
-                                unset($bRec->id);
+
+                        if (is_array($shipProduct->batches)) {
+                            foreach ($shipProduct->batches as $b => $q) {
+                                $bRec = new stdClass();
+                                $bRec->batch = $b;
+                                $bRec->quantity = $q;
+                                $bRec->productId = $product->productId;
                                 $bRec->detailClassId = $mvc->{$Detail}->getClassId();
                                 $bRec->detailRecId = $shipProduct->id;
                                 $bRec->containerId = $rec->containerId;
                                 $bRec->date = $rec->valior;
                                 $bRec->storeId = $rec->storeId;
-                                
+                                $bRec->operation = $mvc->{$Detail}->getBatchMovementDocument($shipProduct);
+                                $bRec->packagingId = $shipProduct->packagingId;
+                                $bRec->quantityInPack = $shipProduct->quantityInPack;
                                 batch_BatchesInDocuments::save($bRec);
                             }
                         }

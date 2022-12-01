@@ -632,6 +632,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 foreach ($detailsToSave as $det) {
                     $det->_importBatches = $rec->importBatches;
                     $det->{$Detail->masterKey} = $rec->id;
+                    unset($det->batches);
                     $Detail->save($det);
                 }
             }
