@@ -24,7 +24,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
      *
      * @return array
      */
-    public static function on_AfterGetDetailsToCloneAndChange($mvc, &$res, $rec, &$Detail = null)
+    public static function on_AfterGetDetailsToCloneAndChange11($mvc, &$res, $rec, &$Detail = null)
     {
         if (!$res) {
             $res = array();
