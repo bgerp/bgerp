@@ -599,7 +599,8 @@ class planning_Tasks extends core_Master
 
                     // Преброяване на уникалните произв. номера
                     $dQuery = planning_ProductionTaskDetails::getQuery();
-                    $dQuery->where("#taskId = {$rec->id} AND #productId = {$jobProductId} AND #type = 'production' AND #state != 'rejected'");
+                    $checkProductId = ($rec->isFinal == 'yes') ? $jobProductId : $rec->productId;
+                    $dQuery->where("#taskId = {$rec->id} AND #productId = {$checkProductId} AND #type = 'production' AND #state != 'rejected'");
                     $dQuery->XPR('countSerials', 'int', 'COUNT(DISTINCT(#serial))');
                     $producedCountVerbal = core_Type::getByName('int')->toVerbal($dQuery->fetch()->countSerials);
                     $expectedLabelPacks = "<span style='color:green'>{$producedCountVerbal}</span> / {$expectedLabelPacks}";
