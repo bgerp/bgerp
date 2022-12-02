@@ -149,7 +149,7 @@ class plg_SaveAndNew extends core_Plugin
         }
         
         $fields = $data->form->selectFields("#remember == 'remember'");
-        
+
         // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
         if (countR($fields)) {
             foreach ($fields as $name => $fld) {
@@ -165,6 +165,7 @@ class plg_SaveAndNew extends core_Plugin
 
         if(Mode::get(cls::getClassName($mvc) . '_SAVE_AND_NEW')){
             $data->_isSaveAndNew = true;
+            $mvc->_isSaveAndNew = true;
             Mode::setPermanent(cls::getClassName($mvc) . '_SAVE_AND_NEW', null);
         }
     }
