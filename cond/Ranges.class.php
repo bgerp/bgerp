@@ -449,7 +449,13 @@ class cond_Ranges extends core_Manager
                     $form->setError('min', "Долната граница не може да е по-голяма от текущия номер|*: <b>{$rec->current}</b>");
                 }
             }
-            
+
+            if($rec->class == sales_Invoices::getClassId()){
+                if($rec->max > 9999999999){
+                    $form->setError('max', "За изходящи фактури, максималния номер трябва да е десетразряден");
+                }
+            }
+
             // Ако диапазона ще е дефолтен, всички останали няма да са дефолтни
             if($rec->isDefault == 'yes'){
                 $id = $rec->id;
