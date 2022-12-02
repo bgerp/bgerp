@@ -128,6 +128,7 @@ class core_Classes extends core_Manager
             if (!core_Classes::fetch("#name = '{$newClassName}'")) {
                 if ($rec = core_Classes::fetch("#name = '{$oldClassName}'")) {
                     $rec->name = $newClassName;
+                    $rec->state = 'active';
                     self::save($rec);
                 }
             }
@@ -136,7 +137,9 @@ class core_Classes extends core_Manager
         $rec = new stdClass();
         
         $rec->interfaces = core_Interfaces::getKeylist($class);
-        
+
+        $rec->state = 'active';
+
         // Ако класа няма интерфейси, обаче съществува в модела,
         // затваряме го, т.е. няма да излиза като опция
         if (!$rec->interfaces) {
