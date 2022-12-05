@@ -16,7 +16,6 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Експорт в Ажур » Експорт фактури продажби в Ажур
  */
 class ajur_Setup extends core_ProtoSetup
 {
@@ -57,7 +56,6 @@ class ajur_Setup extends core_ProtoSetup
     public $roles = array(
         'admin',
         'debug',
-
     );
 
 
