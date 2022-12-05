@@ -566,8 +566,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
                     }
 
-                    if(static::fetchField("#type = 'production' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}'")){
-                        $form->setError('serial,weight,quantity,employees', "Има вече същия прогрес с тези данни|*!");
+                    if($rec->type == 'production'){
+                        if(static::fetchField("#type = 'production' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
+                            $form->setError('serial,weight,quantity,employees', "Има вече същия прогрес с тези данни|*!");
+                        }
                     }
 
                     $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
@@ -1107,9 +1109,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                         if(isset($iconHint)){
                             $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviation);
-                            $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично ' : ($iconHint == 'warning' ? 'значително ' : null)));
+                            $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично!!' : ($iconHint == 'warning' ? 'значително!' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
-                            $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето|*: {$expectedNetWeightVerbal} |с|* {$deviationVerbal}");
+                            $msg = tr("{$deviationVerbal} разминаване|* ({$hintMsg})<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!");
                             if(haveRole('debug')){
                                 $msg .= "<br><br>debug info:<br>NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$masterRec->quantityInPack}-Q:{$rec->quantity}";
                             }

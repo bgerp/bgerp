@@ -30,6 +30,17 @@ class cond_type_Html extends cond_type_abstract_Proto
 
 
     /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('rows', 'int(min=1)', 'caption=Конкретизиране->Редове,before=default');
+    }
+
+
+    /**
      * Връща инстанция на типа
      *
      * @param stdClass    $rec         - запис на параметъра
@@ -41,7 +52,8 @@ class cond_type_Html extends cond_type_abstract_Proto
      */
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
-        $type = core_Type::getByName('html(tinyEditor=no)');
+        $rows = isset($rec->rows) ? $rec->rows : 2;
+        $type = core_Type::getByName("html(tinyEditor=no,rows={$rows})");
 
         return $type;
     }
