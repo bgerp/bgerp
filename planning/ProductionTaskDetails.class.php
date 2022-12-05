@@ -1109,7 +1109,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                         if(isset($iconHint)){
                             $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviation);
-                            $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично' : ($iconHint == 'warning' ? 'значително' : null)));
+                            $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично!!' : ($iconHint == 'warning' ? 'значително!' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
                             $msg = tr("{$deviationVerbal} разминаване|* ({$hintMsg})<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!");
                             if(haveRole('debug')){
