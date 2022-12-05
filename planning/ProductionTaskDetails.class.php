@@ -1111,7 +1111,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviation);
                             $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично ' : ($iconHint == 'warning' ? 'значително ' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
-                            $msg = tr("Има {$hintMsg}разминаване спрямо прогнозното нето|*: {$expectedNetWeightVerbal} |с|* {$deviationVerbal}");
+                            $msg = tr("Има {$hintMsg}разминаване с|*: {$deviationVerbal}<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!");
                             if(haveRole('debug')){
                                 $msg .= "<br><br>debug info:<br>NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$masterRec->quantityInPack}-Q:{$rec->quantity}";
                             }
