@@ -103,7 +103,7 @@
 
         <div class="scrolling-holder">
             <fieldset class="detail-info" style="margin-top: 20px;">
-                <legend class="groupTitle">|Норми|*</legend>
+                <legend class="groupTitle">|Действия и Норми|*</legend>
                 <div class="scrolling-holder">
                     [#planning_AssetResourcesNorms#]
                 </div>
