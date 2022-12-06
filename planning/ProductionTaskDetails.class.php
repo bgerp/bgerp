@@ -162,6 +162,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->setDbIndex('serial');
         $this->setDbIndex('taskId,productId');
         $this->setDbIndex('productId,type');
+        $this->setDbIndex('taskId,state');
     }
 
 
