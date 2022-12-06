@@ -2425,7 +2425,7 @@ class planning_Tasks extends core_Master
     /**
      * Преди рендиране на таблицата
      */
-    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderListTable111111111111($mvc, &$tpl, $data)
     {
         $rows = &$data->rows;
         if (!countR($rows)) return;
