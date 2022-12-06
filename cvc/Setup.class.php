@@ -14,6 +14,12 @@ defIfNot('CVC_URL', 'https://lox.e-cvc.bg/');
 
 
 /**
+ * Дефолтен изпращач
+ */
+defIfNot('CVC_SENDER_ID', '');
+
+
+/**
  *
  *
  * @category  bgerp
