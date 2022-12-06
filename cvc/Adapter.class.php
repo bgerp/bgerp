@@ -443,6 +443,43 @@ class cvc_Adapter
 
 
     /**
+     * Помощна функция, която използва getCities и търси пълно съвпадение на името
+     *
+     * @param string $q - стринг от името на населеното място
+     *
+     * @return false|array
+     * ключ - id, от тяхната системата, което се използва в заявките
+     * ['nameBg'] - името на БГ в тяхната система
+     * ['countyBg'] - името на обласста на БГ в тяхната система
+     * ['muniBg'] - името на общината на БГ в тяхната система
+     * ['zip'] - пощенски код на насаленото място
+     * ['deliveryDays'] - масив с дни на доставка - 1 - понедилки, 5 - петък и т.н.
+     * ['isTown'] - флаг, дали е град
+     * ['isRegionalTown'] - флаг, дали е областен град
+     * ['tpBg'] - съкращение за типа на населеното място - с., гр., к.
+     * ['isThereQts'] - Флаг, който индикира дали разполага с номенклатура с квартали/ж.к., които евентуално да се изполват чрез searchQts функцията
+     */
+    public static function getCity($q)
+    {
+        $citiesArr = self::getCities($q);
+
+        if (!$citiesArr) {
+
+            return $citiesArr;
+        }
+
+        $resArr = array();
+        foreach ($citiesArr as $k => $cArr) {
+            if (mb_strtolower($cArr['nameBg']) == mb_strtolower($q)) {
+                $resArr[$k] = $cArr;
+            }
+        }
+
+        return $resArr;
+    }
+
+
+    /**
      * Връща всички хъбове на CVC
      *
      * @param null|integer $countryId - id на държавата от getCountries - по подразбиран DEFAULT_COUNTRY_ID
