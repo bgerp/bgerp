@@ -76,7 +76,7 @@ class acc_ReportDetails extends core_Manager
 
         // Ако потребителя има достъп до репортите
         if (haveRole($data->masterMvc->canReports) && ($data->Tab == 'top' || $data->isCurrent)) {
-            
+
             // Извличане на счетоводните записи
             $this->prepareBalanceReports($data);
             $data->renderReports = true;
@@ -129,6 +129,9 @@ class acc_ReportDetails extends core_Manager
             return;
         }
 
+
+        $data->masterMvc->balanceRefAccounts = "221,401,406";
+
         $accounts = arr::make($data->masterMvc->balanceRefAccounts, true);
         $data->canSeePrices = haveRole('ceo,sales,accJournal');
         
@@ -166,7 +169,7 @@ class acc_ReportDetails extends core_Manager
         // и ид-то на перото е на произволна позиция
         $res = array();
         $data->recs = acc_Balances::fetchCurrent($accounts, $data->itemRec->id);
-        
+
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
         $data->lastBalance = acc_Balances::getLastBalance();
@@ -209,6 +212,15 @@ class acc_ReportDetails extends core_Manager
                     $res[$accountId]['total'] = arr::sumValuesArray($recsWithAccount, 'blAmount');
                 } else {
                     $objPos = acc_Lists::getPosition($accSysId, $groupBy);
+                    if(empty($objPos)){
+                        if($data->masterMvc instanceof crm_Companies){
+                            $objPos = acc_Lists::getPosition($accSysId, 'crm_CompanyAccRegIntf');
+                        } elseif($data->masterMvc instanceof crm_Persons){
+                            $objPos = acc_Lists::getPosition($accSysId, 'crm_PersonAccRegIntf');
+                        }
+                    }
+                    if(empty($objPos)) continue;
+
                     $fItems1 = $fItems2 = $fItems3 = null;
                     ${"fItems{$objPos}"} = $data->itemRec->id;
 
