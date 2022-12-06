@@ -162,6 +162,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->setDbIndex('serial');
         $this->setDbIndex('taskId,productId');
         $this->setDbIndex('productId,type');
+        $this->setDbIndex('taskId,state');
     }
 
 
@@ -1109,9 +1110,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                         if(isset($iconHint)){
                             $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviation);
-                            $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? 'критично!!' : ($iconHint == 'warning' ? 'значително!' : null)));
+                            $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? ' (критично!!)' : ($iconHint == 'warning' ? ' (значително!)' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
-                            $msg = tr("{$deviationVerbal} разминаване|* ({$hintMsg})<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!");
+                            $msg = tr("{$deviationVerbal} разминаване|*{$hintMsg}<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!");
                             if(haveRole('debug')){
                                 $msg .= "<br><br>debug info:<br>NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$masterRec->quantityInPack}-Q:{$rec->quantity}";
                             }

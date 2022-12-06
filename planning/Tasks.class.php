@@ -342,6 +342,8 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('productId');
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
+        $this->setDbIndex('modifiedOn');
+        $this->setDbIndex('saoParentId');
     }
 
 
@@ -433,6 +435,7 @@ class planning_Tasks extends core_Master
      */
     public static function recToVerbal_($rec, &$fields = '*')
     {
+        core_Debug::startTimer('RENDER_VERBAL');
         $row = parent::recToVerbal_($rec, $fields);
         $mvc = cls::get(get_called_class());
         $row->title = self::getHyperlink($rec->id, isset($fields['-list']));
@@ -739,6 +742,7 @@ class planning_Tasks extends core_Master
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
         $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
         $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ("<i>" . $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId) . "</i>") : "<span style='color:{$grey};'>{$row->progress}</span>";
+        core_Debug::stopTimer('RENDER_VERBAL');
 
         return $row;
     }
@@ -2427,6 +2431,7 @@ class planning_Tasks extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        core_Debug::startTimer('RENDER_TABLE');
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
@@ -2538,6 +2543,7 @@ class planning_Tasks extends core_Master
         }
 
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, 'dependantProgress');
+        core_Debug::stopTimer('RENDER_TABLE');
     }
 
 

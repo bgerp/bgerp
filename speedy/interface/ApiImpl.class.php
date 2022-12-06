@@ -17,9 +17,9 @@
 class speedy_interface_ApiImpl extends core_BaseClass
 {
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     * Роли по дефолт, които изисква драйвера
      */
-    public $oldClassName = 'speedy_interface_ApiRequest';
+    public $requireRoles = 'ceo,speedy';
 
 
     /**
@@ -109,7 +109,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         $form->FLD('isDocuments', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Документи,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount,maxRadio=2');
         $form->FLD('palletCount', 'int(min=0,max=10)', 'caption=Описание на пратката->Бр. пакети');
-        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина|Дълбочина|Височина|Тегло,validate=speedy_interface_ApiImpl::validatePallets)", 'caption=Описание на пратката->Описание,after=palletCount');
+        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина [см]|Дълбочина [см]|Височина [см]|Тегло [кг],validate=speedy_interface_ApiImpl::validatePallets)", 'caption=Описание на пратката->Описание,after=palletCount');
         $form->FLD('content', 'varchar', 'caption=Описание на пратката->Съдържание,mandatory,recently');
         $form->FLD('packaging', 'varchar', 'caption=Описание на пратката->Опаковка,mandatory,recently');
         $form->FLD('exciseGoods', 'set(yes=Декларирам че не изпращам акцизна стока с неплатен акциз!)', 'caption=Описание на пратката->Акциз');
@@ -337,7 +337,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
 
     /**
-     * Инпит на формата за изпращане на товарителница
+     * Инпут на формата за изпращане на товарителница
      *
      * @param core_Mvc $mvc         - Документ
      * @param stdClass $documentRec - Запис на документ
@@ -549,11 +549,13 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $TableArr = type_Table::toArray($tableData);
 
         $Double = core_Type::getByName('double');
+        $Int = core_Type::getByName('int');
 
         foreach($TableArr as $i => $obj){
             foreach (array('weight', 'depth', 'height', 'width') as $field){
+                $type = ($field == 'weight') ? $Double : $Int;
                 if(!empty($obj->{$field})){
-                    if(!$Double->fromVerbal($obj->{$field}) || $obj->{$field} < 0){
+                    if(!$type->fromVerbal($obj->{$field}) || $obj->{$field} < 0){
                         $error[] = 'Невалидни числа';
                         $errorFields[$field][$i] = 'Невалидно число';
                     }
@@ -721,7 +723,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
      */
     public function canRequestBillOfLading($mvc, $id, $userId = null)
     {
-        $res = haveRole('speedy,ceo', $userId);
+        $res = haveRole($this->requireRoles, $userId);
         if($res){
             $loginData = speedy_Adapter2::getLoginData($userId);
             if(empty($loginData['userName']) || empty($loginData['password'])){

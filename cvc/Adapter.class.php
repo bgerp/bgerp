@@ -29,7 +29,7 @@ class cvc_Adapter
      * Калкилиране на товарителница
      *
      * @param array $params
-     * ['parcel_type'] * enum(parcel=пакетна,pallet=палетна,tires=гуму) * - Типа на пратката
+     * ['parcel_type'] * enum(parcel=пакетна,pallet=палетна,tires=гуми) * - Типа на пратката
      * ['pickup_date'] * date(YYYY-MM-DD) - дата, на която пратката да се вземе (дата на изпращане)
      * ['description'] * string - описание/съдържание на пратката
      * ['payer'] * enum(contract=по договор,sender=при изпращане, rec=при получаване) - плащане на услугата
@@ -443,6 +443,43 @@ class cvc_Adapter
 
 
     /**
+     * Помощна функция, която използва getCities и търси пълно съвпадение на името
+     *
+     * @param string $q - стринг от името на населеното място
+     *
+     * @return false|array
+     * ключ - id, от тяхната системата, което се използва в заявките
+     * ['nameBg'] - името на БГ в тяхната система
+     * ['countyBg'] - името на обласста на БГ в тяхната система
+     * ['muniBg'] - името на общината на БГ в тяхната система
+     * ['zip'] - пощенски код на насаленото място
+     * ['deliveryDays'] - масив с дни на доставка - 1 - понедилки, 5 - петък и т.н.
+     * ['isTown'] - флаг, дали е град
+     * ['isRegionalTown'] - флаг, дали е областен град
+     * ['tpBg'] - съкращение за типа на населеното място - с., гр., к.
+     * ['isThereQts'] - Флаг, който индикира дали разполага с номенклатура с квартали/ж.к., които евентуално да се изполват чрез searchQts функцията
+     */
+    public static function getCity($q)
+    {
+        $citiesArr = self::getCities($q);
+
+        if (!$citiesArr) {
+
+            return $citiesArr;
+        }
+
+        $resArr = array();
+        foreach ($citiesArr as $k => $cArr) {
+            if (mb_strtolower($cArr['nameBg']) == mb_strtolower($q)) {
+                $resArr[$k] = $cArr;
+            }
+        }
+
+        return $resArr;
+    }
+
+
+    /**
      * Връща всички хъбове на CVC
      *
      * @param null|integer $countryId - id на държавата от getCountries - по подразбиран DEFAULT_COUNTRY_ID
@@ -642,6 +679,54 @@ class cvc_Adapter
 
 
     /**
+     * Връща опциите за избор на изпращач
+     *
+     * @return array
+     */
+    public static function getSenderOptions()
+    {
+        $options = array();
+        try {
+            $cvcCustoms = cvc_Adapter::getCustomLocations();
+            foreach ($cvcCustoms as $customerId => $customObj){
+                $options[$customerId] = $customObj['name'];
+            }
+        } catch(core_exception_Expect $e){}
+
+        if (countR($options)){
+            $options = array('' => '') + $options;
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Връща ид-то на държавата по подаденото име
+     *
+     * @param mixed $country
+     *
+     * @return null|int - ид-то на държавата
+     */
+    public static function getCountryIdByName($country)
+    {
+        // Извличане на кода на държавата
+        $countryId = is_numeric($country) ? $country : drdata_Countries::getIdByName($country);
+        $letterCode2 = drdata_Countries::fetchField($countryId, 'letterCode2');
+
+        // Извличане на всички държави и търсене на тази с този код
+        $countries = cvc_Adapter::getCountries();
+        $found = array_filter($countries, function($a) use ($letterCode2) {return $a['code'] == $letterCode2;});
+        if (countR($found) == 1){
+
+            return key($found);
+        }
+
+        return null;
+    }
+
+
+    /**
      * Помощна функция, която сваля файла от сървъра чрез CURL
      *
      * @param string $url - URL към файла от тяхната система
@@ -786,5 +871,23 @@ class cvc_Adapter
         }
 
         return $response;
+    }
+
+
+    /**
+     * Помощна функция за логване на грешките
+     *
+     * @param string $msg
+     *
+     * @return void
+     */
+    protected static function logErr($msg)
+    {
+        $className = get_called_class();
+        log_System::add($className, $msg, null, 'err', 7);
+
+        if (haveRole('debug')) {
+            status_Messages::newStatus($msg, 'error');
+        }
     }
 }

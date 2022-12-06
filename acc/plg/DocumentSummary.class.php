@@ -499,6 +499,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
+        core_Debug::startTimer('RENDER_SUMMARY');
         // Ако няма заявка, да не се изпълнява
         if (!$data->listSummary->query) {
             
@@ -545,6 +546,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listSummary->summary['countA'] = (object) array('caption' => "<span style='float:right'>" . tr('Активирани') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $activeCount);
         $data->listSummary->summary['countC'] = (object) array('caption' => "<span style='float:right'>" . tr('Заявки') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object) array('caption' => "<span style='float:right'>" . tr('Чернови') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $draftCount);
+        core_Debug::stopTimer('RENDER_SUMMARY');
     }
     
     
