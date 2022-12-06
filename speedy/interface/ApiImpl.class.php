@@ -17,9 +17,9 @@
 class speedy_interface_ApiImpl extends core_BaseClass
 {
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     * Роли по дефолт, които изисква драйвера
      */
-    public $oldClassName = 'speedy_interface_ApiRequest';
+    public $requireRoles = 'ceo,speedy';
 
 
     /**
@@ -337,7 +337,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
 
     /**
-     * Инпит на формата за изпращане на товарителница
+     * Инпут на формата за изпращане на товарителница
      *
      * @param core_Mvc $mvc         - Документ
      * @param stdClass $documentRec - Запис на документ
@@ -721,7 +721,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
      */
     public function canRequestBillOfLading($mvc, $id, $userId = null)
     {
-        $res = haveRole('speedy,ceo', $userId);
+        $res = haveRole($this->requireRoles, $userId);
         if($res){
             $loginData = speedy_Adapter2::getLoginData($userId);
             if(empty($loginData['userName']) || empty($loginData['password'])){

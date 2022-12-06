@@ -42,6 +42,16 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
             $serviceUrl = array($mvc, 'requestBillOfLading', 'requestDriverId' => $driverClassId, 'objectId' => $rec->id, 'ret_url' => true);
             $data->toolbar->addBtn($Driver->requestBillOfLadingBtnCaption, $serviceUrl, "ef_icon = {$Driver->requestBillOfLadingBtnIcon},title=Създаване на нова товарителница");
         }
+
+
+        $Driver = cls::get('cvc_interface_CourierImpl');
+        $driverClassId = $Driver->getClassId();
+
+        // Ако протокол може да се добавя към треда и не се експедира на момента
+        if ($mvc->haveRightFor('requestbilloflading', (object)array('objectId' => $rec->id, 'requestDriverId' => $driverClassId))) {
+            $serviceUrl = array($mvc, 'requestBillOfLading', 'requestDriverId' => $driverClassId, 'objectId' => $rec->id, 'ret_url' => true);
+            $data->toolbar->addBtn($Driver->requestBillOfLadingBtnCaption, $serviceUrl, "ef_icon = {$Driver->requestBillOfLadingBtnIcon},title=Създаване на нова товарителница");
+        }
     }
 
 
@@ -127,7 +137,7 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
             }
 
             // Подготовка на тулбара
-            $form->toolbar->addSbBtn('Изпращане', 'save', 'ef_icon = img/16/speedy.png, title = Изпращане на товарителницата,id=save');
+            $form->toolbar->addSbBtn('Изпращане', 'save', "ef_icon ={$Driver->requestBillOfLadingBtnIcon}, title = Изпращане на товарителницата,id=save");
             $form->toolbar->addSbBtn('Изчисли', 'calc', 'ef_icon = img/16/calculator.png, title = Изчисляване на на товарителницата');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 

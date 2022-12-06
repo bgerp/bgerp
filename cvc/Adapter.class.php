@@ -29,7 +29,7 @@ class cvc_Adapter
      * Калкилиране на товарителница
      *
      * @param array $params
-     * ['parcel_type'] * enum(parcel=пакетна,pallet=палетна,tires=гуму) * - Типа на пратката
+     * ['parcel_type'] * enum(parcel=пакетна,pallet=палетна,tires=гуми) * - Типа на пратката
      * ['pickup_date'] * date(YYYY-MM-DD) - дата, на която пратката да се вземе (дата на изпращане)
      * ['description'] * string - описание/съдържание на пратката
      * ['payer'] * enum(contract=по договор,sender=при изпращане, rec=при получаване) - плащане на услугата
@@ -770,13 +770,13 @@ class cvc_Adapter
         $response = @json_decode($json);
 
         if (!$response) {
-            self::logErr("Празен отговор от сървъра");
+            log_Data::logErr("Празен отговор от сървъра");
 
             return false;
         }
 
         if (is_object($response) && !$response->success) {
-            self::logErr("Грешка в сървъра: {$response->error}");
+            log_Data::logErr("Грешка в сървъра: {$response->error}");
 
             if (haveRole('debug')) {
                 core_Statuses::newStatus("Грешка в сървъра: {$response->error}", 'error');
@@ -786,5 +786,52 @@ class cvc_Adapter
         }
 
         return $response;
+    }
+
+
+    /**
+     * Връща опциите за избор на изпращач
+     *
+     * @return array $options
+     */
+    public static function getSenderOptions()
+    {
+        $options = array();
+        try{
+            $cvcCustoms = cvc_Adapter::getCustomLocations();
+            foreach ($cvcCustoms as $customerId => $customObj){
+                $options[$customerId] = $customObj['name'];
+            }
+        } catch(core_exception_Expect $e){}
+
+        if(countR($options)){
+            $options = array('' => '') + $options;
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Връща ид-то на държавата по подаденото име
+     *
+     * @param mixed $country
+     * @return null|int      - ид-то на държавата
+     */
+    public static function getCountryIdByName($country)
+    {
+        // Извличане на кода на държавата
+        $countryId = is_numeric($country) ? $country : drdata_Countries::getIdByName($country);
+        $letterCode2 = drdata_Countries::fetchField($countryId, 'letterCode2');
+
+        // Извличане на всички държави и търсене на тази с този код
+        $countries = cvc_Adapter::getCountries();
+        $found = array_filter($countries, function($a) use ($letterCode2) {return $a['code'] == $letterCode2;});
+        if(countR($found) == 1){
+
+            return key($found);
+        }
+
+        return null;
     }
 }
