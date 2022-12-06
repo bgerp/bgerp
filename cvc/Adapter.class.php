@@ -642,6 +642,54 @@ class cvc_Adapter
 
 
     /**
+     * Връща опциите за избор на изпращач
+     *
+     * @return array
+     */
+    public static function getSenderOptions()
+    {
+        $options = array();
+        try {
+            $cvcCustoms = cvc_Adapter::getCustomLocations();
+            foreach ($cvcCustoms as $customerId => $customObj){
+                $options[$customerId] = $customObj['name'];
+            }
+        } catch(core_exception_Expect $e){}
+
+        if (countR($options)){
+            $options = array('' => '') + $options;
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Връща ид-то на държавата по подаденото име
+     *
+     * @param mixed $country
+     *
+     * @return null|int - ид-то на държавата
+     */
+    public static function getCountryIdByName($country)
+    {
+        // Извличане на кода на държавата
+        $countryId = is_numeric($country) ? $country : drdata_Countries::getIdByName($country);
+        $letterCode2 = drdata_Countries::fetchField($countryId, 'letterCode2');
+
+        // Извличане на всички държави и търсене на тази с този код
+        $countries = cvc_Adapter::getCountries();
+        $found = array_filter($countries, function($a) use ($letterCode2) {return $a['code'] == $letterCode2;});
+        if (countR($found) == 1){
+
+            return key($found);
+        }
+
+        return null;
+    }
+
+
+    /**
      * Помощна функция, която сваля файла от сървъра чрез CURL
      *
      * @param string $url - URL към файла от тяхната система
@@ -770,13 +818,13 @@ class cvc_Adapter
         $response = @json_decode($json);
 
         if (!$response) {
-            log_Data::logErr("Празен отговор от сървъра");
+            self::logErr("Празен отговор от сървъра");
 
             return false;
         }
 
         if (is_object($response) && !$response->success) {
-            log_Data::logErr("Грешка в сървъра: {$response->error}");
+            self::logErr("Грешка в сървъра: {$response->error}");
 
             if (haveRole('debug')) {
                 core_Statuses::newStatus("Грешка в сървъра: {$response->error}", 'error');
@@ -790,48 +838,15 @@ class cvc_Adapter
 
 
     /**
-     * Връща опциите за избор на изпращач
+     * Помощна функция за логване на грешките
      *
-     * @return array $options
-     */
-    public static function getSenderOptions()
-    {
-        $options = array();
-        try{
-            $cvcCustoms = cvc_Adapter::getCustomLocations();
-            foreach ($cvcCustoms as $customerId => $customObj){
-                $options[$customerId] = $customObj['name'];
-            }
-        } catch(core_exception_Expect $e){}
-
-        if(countR($options)){
-            $options = array('' => '') + $options;
-        }
-
-        return $options;
-    }
-
-
-    /**
-     * Връща ид-то на държавата по подаденото име
+     * @param string $msg
      *
-     * @param mixed $country
-     * @return null|int      - ид-то на държавата
+     * @return void
      */
-    public static function getCountryIdByName($country)
+    protected static function logErr($msg)
     {
-        // Извличане на кода на държавата
-        $countryId = is_numeric($country) ? $country : drdata_Countries::getIdByName($country);
-        $letterCode2 = drdata_Countries::fetchField($countryId, 'letterCode2');
-
-        // Извличане на всички държави и търсене на тази с този код
-        $countries = cvc_Adapter::getCountries();
-        $found = array_filter($countries, function($a) use ($letterCode2) {return $a['code'] == $letterCode2;});
-        if(countR($found) == 1){
-
-            return key($found);
-        }
-
-        return null;
+        $className = get_called_class();
+        log_System::add($className, $msg, null, 'err', 7);
     }
 }
