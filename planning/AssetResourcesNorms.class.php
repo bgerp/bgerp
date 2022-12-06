@@ -61,7 +61,7 @@ class planning_AssetResourcesNorms extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'objectId,productId=Дейност,packagingId=Мярка/Опаковка,indTime,limit,state';
+    public $listFields = 'objectId,productId=Действие,packagingId=Мярка/Опаковка,indTime,limit,state';
     
     
     /**
