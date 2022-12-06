@@ -313,6 +313,15 @@ class cvc_interface_CourierImpl extends core_BaseClass
         if ($form->isSubmitted()) {
             $rec = $form->rec;
 
+            $today = dt::today();
+            if($rec->pickupDate < $today){
+                $form->setError('pickupDate', "Датата не може да е в миналото|*!");
+            }
+
+            if($rec->deliveryDate < $today){
+                $form->setError('pickupDate', "Датата не може да е в миналото|*!");
+            }
+
             if($rec->parcelType != 'parcel' && empty($rec->parcelInfo)){
                 $form->setError('parcelInfo', "За непакетни пратки описанието на палетите е задължително|*!");
             }
@@ -344,6 +353,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
                 } else {
                     $foundPlaces = static::getPlacesByString($rec->recipientPlace, $rec->recipientCountryId);
 
+                    // Проверка на мястото за доставка
                     $foundPlacesCount = countR($foundPlaces);
                     if(!$foundPlacesCount){
                         $form->setError('recipientPlace', "Населеното място не може да бъде намерено в тяхната система|*! Пробвайте да напишете името без съкращения!");
@@ -363,8 +373,13 @@ class cvc_interface_CourierImpl extends core_BaseClass
     }
 
 
-
-
+    /**
+     * Помощна ф-я връщаща населените места отговарящи на посочените критерии
+     *
+     * @param string $string
+     * @param int $ourCountry
+     * @return array|false
+     */
     private static function getPlacesByString($string, $ourCountry)
     {
         try{
