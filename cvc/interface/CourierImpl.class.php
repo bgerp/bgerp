@@ -540,7 +540,6 @@ class cvc_interface_CourierImpl extends core_BaseClass
         if($rec->senderDeliveryType == 'hub'){
             $senderObj->hub_id = $rec->senderHubId;
         } else {
-            $senderObj->city_id = $rec->_cityId;
             foreach (array('zip' => 'senderPcode', 'num' => 'senderAddressNum', 'entr' => 'senderEntrance', 'ap' => 'senderApp', 'floor' => 'senderFloor') as $theirFld => $oursFld){
                 if(!empty($rec->{$oursFld})){
                     $senderObj->{$theirFld} = $rec->{$oursFld};
@@ -570,7 +569,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
         } elseif($rec->recipientDeliveryType == 'office'){
             $recepientObj->office_id = $rec->recipientOfficeId;
         } else {
-            $recepientObj->city_id = 4442;
+            $recepientObj->city_id = $rec->_cityId;
             foreach (array('zip' => 'recipientPcode', 'num' => 'recipientAddressNum', 'entr' => 'recipientEntrance', 'ap' => 'recipientApp', 'floor' => 'recipientFloor') as $theirFld => $oursFld){
                 if(!empty($rec->{$oursFld})){
                     $recepientObj->{$theirFld} = $rec->{$oursFld};
