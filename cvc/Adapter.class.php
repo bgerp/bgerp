@@ -848,5 +848,9 @@ class cvc_Adapter
     {
         $className = get_called_class();
         log_System::add($className, $msg, null, 'err', 7);
+
+        if (haveRole('debug')) {
+            status_Messages::newStatus($msg, 'error');
+        }
     }
 }
