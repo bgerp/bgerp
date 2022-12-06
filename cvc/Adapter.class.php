@@ -446,6 +446,9 @@ class cvc_Adapter
      * Помощна функция, която използва getCities и търси пълно съвпадение на името
      *
      * @param string $q - стринг от името на населеното място
+     * @param null|int $countryId - id на държавата от getCountries - по подразбиран DEFAULT_COUNTRY_ID
+     * @param null|int $countyId - id на областта от getCounties
+     * @param null|int $municipalityId - id na общината от getMunicipalities
      *
      * @return false|array
      * ключ - id, от тяхната системата, което се използва в заявките
@@ -459,9 +462,9 @@ class cvc_Adapter
      * ['tpBg'] - съкращение за типа на населеното място - с., гр., к.
      * ['isThereQts'] - Флаг, който индикира дали разполага с номенклатура с квартали/ж.к., които евентуално да се изполват чрез searchQts функцията
      */
-    public static function getCity($q)
+    public static function getCity($q, $countryId = null, $countyId = null, $municipalityId = null)
     {
-        $citiesArr = self::getCities($q);
+        $citiesArr = self::getCities($q, $countryId, $countyId, $municipalityId);
 
         if (!$citiesArr) {
 
