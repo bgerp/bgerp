@@ -498,7 +498,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      * След подготовка на записите
      */
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
-    {
+    {return;
         // Ако няма заявка, да не се изпълнява
         if (!$data->listSummary->query) {
             

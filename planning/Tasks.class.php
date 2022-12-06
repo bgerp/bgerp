@@ -431,7 +431,7 @@ class planning_Tasks extends core_Master
      * Входният параметър $rec е оригиналният запис от модела
      * резултата е вербалният еквивалент, получен до тук
      */
-    public static function recToVerbal_11111($rec, &$fields = '*')
+    public static function recToVerbal_($rec, &$fields = '*')
     {
         $row = parent::recToVerbal_($rec, $fields);
         $mvc = cls::get(get_called_class());
@@ -2425,7 +2425,7 @@ class planning_Tasks extends core_Master
     /**
      * Преди рендиране на таблицата
      */
-    protected static function on_BeforeRenderListTable111111111111($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $rows = &$data->rows;
         if (!countR($rows)) return;
