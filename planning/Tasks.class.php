@@ -2579,13 +2579,6 @@ class planning_Tasks extends core_Master
      */
     protected function on_AfterGetContentHash($mvc, &$res, &$status)
     {
-        $res = md5(rand(1, 2000));
-        return;
-
-
-
-
-
         // Хеша е датата на последна модификация на движенията
         $mQuery = $mvc->getQuery();
         $mQuery->orderBy('modifiedOn', 'DESC');
