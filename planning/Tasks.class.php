@@ -2505,6 +2505,14 @@ class planning_Tasks extends core_Master
         $jQuery->show('id,containerId,productId,dueDate,quantityInPack,quantity,packagingId');
         while($jRec = $jQuery->fetch()){
             $jobRecs[$jRec->containerId] = $jRec;
+
+            // Взимане с приоритет от кеша на параметрите на артикула от заданието
+            $jobParams = core_Permanent::get("taskListJobParams{$jRec->productId}");
+            if(!is_array($jobParams)){
+                $jobParams = cat_Products::getParams($jRec->productId, null, true);
+                core_Permanent::set("taskListJobParams{$jRec->productId}", $jobParams, 5);
+            }
+            $jobRecs[$jRec->containerId]->params = $jobParams;
         }
 
         foreach ($rows as $id => $row) {
@@ -2530,15 +2538,7 @@ class planning_Tasks extends core_Master
             if($displayPlanningParamsCount){
 
                 // Кои са параметрите от артикула на заданието за операцията
-                $jobProductId = $jobRecs[$rec->originId]->productId;
-
-                // Взимане с приоритет от кеша на параметрите на артикула от заданието
-                $jobParams = core_Permanent::get("taskListJobParams{$jobProductId}");
-                if(!is_array($jobParams)){
-                    $jobParams = cat_Products::getParams($jobProductId, null, true);
-                    core_Permanent::set("taskListJobParams{$jobProductId}", $jobParams, 5);
-                }
-
+                $jobParams = $jobRecs[$rec->originId]->params;
                 foreach ($data->listFieldsParams as $paramId){
                     $live = true;
                     $pValue = array_key_exists($paramId, $jobParams) ? $jobParams[$paramId] : null;
