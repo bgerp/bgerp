@@ -163,16 +163,36 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             //Масив с фактури от продажбите
             $id = $sRec->id;
 
-            //Състояние
-            $state = $sRec->state;
-            $brState = $sRec->brState;
+
 
             //номер на фактурата
             $number = str_pad($sRec->number, 10, "0", STR_PAD_LEFT);
 
-            //Код на контрагента, така както е експортиран в БН. В случая folderId  на контрагента
+            //Състояние (Тип-права или анулирана (0 -за анулирана, 1 -за активна))
+            $state = $sRec->state;
+            $brState = $sRec->brState;
+            $stateType = $sRec->state == 'rejected' ? 0 : 1;
+
+            //Дата на данъчното събитие
+            $vatDate = $sRec->date;
+
+            //Вид валута
+            $currency = $sRec->currencyId;
+
+            //Валутен курс
+            $currencyRate = $sRec->rate;
+
+            //Експортна фактура по колона 8
+            $exportInv = ($sRec->currencyId != 'BGN') ? 1:  0;
+
+            //Код на контрагента, В случая folderId  на контрагента
             $contragentClassName = core_Classes::getName($sRec->contragentClassId);
-            $contragentCode = $contragentClassName::fetch($sRec->contragentId)->folderId;
+            $contragentRec = $contragentClassName::fetch($sRec->contragentId);
+            $contragentCode = $contragentRec -> folderId;
+
+            //Адрес
+            $contragentAddress = $contragentRec->contragentAddress;
+
 
             //Име на контрагента
             $contragentName = $sRec->contragentName;
@@ -180,8 +200,8 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             //VAT номер на контрагента
             $contragentVatNo = $sRec->contragentVatNo;
 
-            //Национален номер на контрагента
-            $contragentNo = $sRec->uicNo;
+            //БУЛСТАТ на контрагента
+            $bulstatNo = $sRec->uicNo;
 
             //Тип на плащането
             $paymentType = $sRec->paymentType;
@@ -189,47 +209,65 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             //Банкова сметка
             $bankAccount = $sRec->accountId;
 
-            $rec->dealType = self::getDealType($sRec);
-            $rec->docType = self::getDocType($sRec);
+            $invoiceType = self::getDocType($sRec);
+            $dealType = self::getDealType($sRec);
+
 
             //Ако има авансово начисляване на суми по цялата фактура
-            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {
-                $dealValue = $sRec->changeAmount ? $sRec->dealValue : $sRec->dpAmount;
+//            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {
+//                $dealValue = $sRec->changeAmount ? $sRec->dealValue : $sRec->dpAmount;
+//
+//                if (!array_key_exists($id, $recs)) {
+//                    $recs[$id] = (object)array(
+//                        'number' => $number,
+//                        'type' => $rec->docType,
+//                        'dealType' => $rec->dealType,
+//
+//                        'date' => $inviceDate,
+//                        'contragentVatNo' => $contragentVatNo,
+//                        'contragentNo' => $contragentNo,
+//                        'contragentName' => $contragentName,
+//                        'paymentType' => $paymentType,
+//                        'accountId' => $bankAccount,
+//                        'accItem' => '',
+//                        'currencyId' => $currency,
+//                        'rate' => $currencyRate,
+//                        'dealValue' => $dealValue,
+//                        'detAmount' => $dealValue,
+//                        'dpOperation' => $sRec->dpOperation,
+//                        'dpAmount' => $sRec->dpAmount,
+//                        'changeAmount' => $sRec->changeAmount,
+//                        'state' => $state,
+//                        'brState' => $brState,
+//
+//                    );
+//                }
+//            }
 
-                if (!array_key_exists($id, $recs)) {
-                    $recs[$id] = (object)array(
 
-                        'type' => $rec->docType,
-                        'dealType' => $rec->dealType,
-                        'number' => $number,
-                        'date' => $sRec->date,
-                        'contragentVatNo' => $contragentVatNo,
-                        'contragentNo' => $contragentNo,
-                        'contragentName' => $contragentName,
-                        'paymentType' => $paymentType,
-                        'accountId' => $bankAccount,
-                        'accItem' => '',
-                        'currencyId' => $sRec->currencyId,
-                        'rate' => $sRec->rate,
-                        'dealValue' => $dealValue,
-                        'detAmount' => $dealValue,
-                        'dpOperation' => $sRec->dpOperation,
-                        'dpAmount' => $sRec->dpAmount,
-                        'changeAmount' => $sRec->changeAmount,
-                        'state' => $state,
-                        'brState' => $brState,
-
-                    );
-                }
-            }
 
             // Запис в масива
             if (!array_key_exists($id, $invoices)) {
                 $invoices[$id] = (object)array(
+
+                    1 => $number,                 // Фалтура No
+                    2 => $stateType,              // Тип - права или обратна
+                    3 => $sRec->date,             // Дата на фактурата
+                    4 => $sRec->vatDate,          // Дата на данъчно събитие
+                    5 => $sRec->currencyId,       // Вид валута
+                    6 => $sRec->rate,             // Валутен курс към датата на дан. събитие
+                    7 => $invoiceType,            // Вид фактура
+                    8 => $exportInv,              // Фактура за експорт
+                    9 => $contragentCode,         // Шифър на контрагент
+                    10 => $contragentName,        // Наименование
+                    11 => $contragentAddress,     // Адрес на контрагента
+                    12 => $contragentVatNo,       // ИН по ДДС на контрагента
+                    13 => $bulstatNo,             // БУЛСТАТ на контрагента
+                   // 14 =>                         // Вид доставка
+
                     'id' => $id,
                     'type' => $rec->docType,
                     'dealType' => $rec->dealType,
-                    'number' => $number,
                     'date' => $sRec->date,
                     'contragentVatNo' => $contragentVatNo,
                     'contragentNo' => $contragentNo,
@@ -552,6 +590,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
      */
     private function getDealType($rec)
     {
+        bp($rec);
         $this->confCache = core_Packs::getConfig('bnav');
         $this->countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
 
@@ -592,7 +631,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
 
     /**
-     * Определя типа на документа
+     * Определя вида на фактурата за колона 7
      *
      * @param stdClass $rec - запис
      *
@@ -600,18 +639,20 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
      */
     private function getDocType($rec)
     {
-        $this->confCache = core_Packs::getConfig('bnav');
-        $this->countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-        $this->kgId = cat_UoM::fetchBySinonim('kg')->id;
 
+        $docType = 0;
+        // Дебитно или кредитно известие
         if ($rec->type == 'dc_note') {
             if ($rec->dpAmount > 0 || $rec->changeAmount) {
-                $docType = $this->confCache->FSD_DOC_DEBIT_NOTE_TYPE;
+                $docType = 3; //Дебитно известие
             } else {
-                $docType = $this->confCache->FSD_DOC_CREDIT_NOTE_TYPE;
+                $docType = 4;  //Кредитно известие
             }
-        } else {
-            $docType = $this->confCache->FSD_DOC_INVOCIE_TYPE;
+        }
+
+        // Фактура
+        if ($rec->type == 'invoice') {
+            $docType = 1; // Фактура
         }
 
         return ($docType);
