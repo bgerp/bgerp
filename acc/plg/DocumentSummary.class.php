@@ -526,8 +526,6 @@ class acc_plg_DocumentSummary extends core_Plugin
             self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
         }
         
-        $Double = cls::get('type_Double', array('params' => array('decimals' => 0)));
-        
         // Преброяване на черновите документи
         $activeQuery = clone $data->listSummary->query;
         $pendingQuery = clone $data->listSummary->query;
@@ -535,7 +533,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         $draftCount = $data->listSummary->query->count();
         
         // Преброяване на активираните/затворени документи
-        $activeQuery->where("#state = 'active' OR #state = 'closed'");
+        $activeQuery->setUnion("#state = 'active'");
+        $activeQuery->setUnion("#state = 'closed'");
         $activeCount = $activeQuery->count();
         
         // Преброяване на заявките
