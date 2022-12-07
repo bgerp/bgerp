@@ -384,7 +384,8 @@ class cvc_interface_CourierImpl extends core_BaseClass
     {
         try{
             $theirCountryId = cvc_Adapter::getCountryIdByName($ourCountry);
-            return cvc_Adapter::getCities($string, $theirCountryId);
+
+            return cvc_Adapter::getCity($string, $theirCountryId);
 
         } catch(core_exception_Expect $e){
 
