@@ -25,7 +25,7 @@ defIfNot('CVC_SENDER_ID', '');
  * @category  bgerp
  * @package   cvc
  *
- * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *

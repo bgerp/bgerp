@@ -470,6 +470,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
     public function calculateShipmentTpl($mvc, $documentRec, &$form)
     {
         $haveError = false;
+        $res = null;
         try{
             $preparedBolParams = static::prepareBolData($form->rec, 'calculate');
 
@@ -477,7 +478,6 @@ class cvc_interface_CourierImpl extends core_BaseClass
             $preparedBolParams['description'] = 'Тестване на АПИ - да не се изпълнява';
 
             $res = cvc_Adapter::calculateWb($preparedBolParams);
-            sleep(1);
         } catch(core_exception_Expect $e){
             $haveError = true;
         }
@@ -659,7 +659,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
         if(!$form->gotErrors()){
 
             // Ако е разпечатана записва се в помощния модел
-            $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'], 'deliveryDate' => $res['deliveryDate']);
+            $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'], 'deliveryDate' => $res['deliveryDate'], 'state' => 'pending');
             $wayBillRec->file = $res['pdf'];
             cvc_WayBills::save($wayBillRec);
 
