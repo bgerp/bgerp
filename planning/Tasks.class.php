@@ -2536,7 +2536,7 @@ class planning_Tasks extends core_Master
                 $jobParams = core_Permanent::get("taskListJobParams{$jobProductId}");
                 if(!is_array($jobParams)){
                     $jobParams = cat_Products::getParams($jobProductId, null, true);
-                    core_Permanent::set("taskListJobParams{$jobProductId}", $jobParams, 5*60);
+                    core_Permanent::set("taskListJobParams{$jobProductId}", $jobParams, 5);
                 }
 
                 foreach ($data->listFieldsParams as $paramId){
