@@ -83,7 +83,7 @@ class planning_AssetResourcesNorms extends core_Manager
     {
         $this->FLD('objectId', 'int', 'caption=Оборудване/Група,mandatory,silent,input=hidden,tdClass=leftCol');
         $this->FLD('classId', 'class', 'caption=Клас,mandatory,silent,input=hidden');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=indTime,class=w100');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=indTime,class=w100');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма,smartCenter,mandatory');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Опаковка,smartCenter,input=hidden');
         $this->FLD('quantityInPack', 'double', 'input=hidden');
