@@ -455,9 +455,9 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $arr = array();
         $plannedParams = arr::make($plannedParams);
         foreach ($plannedParams as $paramId){
-            $pRec = cat_Params::fetch($paramId,'group,order');
+            $pRec = is_object($paramId) ? $paramId : static::fetch($paramId,'group,order');
             $pRec->order = empty($pRec->order) ? '9999' : $pRec->order;
-            $arr[$paramId] = "{$pRec->group}|{$pRec->order}";
+            $arr[$pRec->id] = "{$pRec->group}|{$pRec->order}";
         }
 
         uasort($arr, function ($a, $b) use ($dir) {return ($dir == 'asc' ? 1 : -1) * strcmp($a, $b);});

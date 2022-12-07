@@ -2443,16 +2443,24 @@ class planning_Tasks extends core_Master
         }
 
         // Ако е филтрирано по център на дейност
+        core_Debug::startTimer('RENDER_HEADER');
+        $paramCache = array();
         if ($data->listFilter->rec->folder) {
             $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
             if($Cover->isInstanceOf('planning_Centers')){
                 $plannedParams = keylist::toArray($Cover->fetchField('planningParams'));
-                $data->listFieldsParams = cat_Params::getOrderedArr($plannedParams, 'desc');
+                if(countR($plannedParams)){
+                    $pQuery = cat_Params::getQuery();
+                    $pQuery->in('id', $plannedParams);
+                    $paramCache = $pQuery->fetchAll();
+                }
+                $data->listFieldsParams = cat_Params::getOrderedArr($paramCache, 'desc');
 
                 // и той има избрани параметри за планиране, добавят се в таблицата
                 $paramFields = array();
-                foreach ($data->listFieldsParams as $paramId) {
-                    $fullName = cat_Params::getVerbal($paramId, 'typeExt');
+                foreach ($data->listFieldsParams as $paramId){
+                    $paramRec = $paramCache[$paramId];
+                    $fullName = cat_Params::getVerbal($paramRec, 'typeExt');
                     $paramExt = explode(' » ', $fullName);
                     if(countR($paramExt) == 1){
                         $paramExt[1] = $paramExt[0];
@@ -2461,12 +2469,13 @@ class planning_Tasks extends core_Master
                     if($fullName != $paramExt[1]){
                         $paramExt[1] = ht::createHint($paramExt[1], $fullName);
                     }
-                    $paramFields["param_{$paramId}"] = "|*<small>{$paramExt[1]}</small>";
-                    $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'tdClass=taskParamCol');
+                    $paramFields["param_{$paramRec->id}"] = "|*<small>{$paramExt[1]}</small>";
+                    $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol');
                 }
                 arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
             }
         }
+        core_Debug::stopTimer('RENDER_HEADER');
 
         $displayPlanningParamsCount = countR($data->listFieldsParams);
         $enableReorder = isset($data->listFilter->rec->assetId) &&  in_array($data->listFilter->rec->state, array('activeAndPending', 'pending', 'active', 'wakeup')) && countR($data->recs) > 1;
@@ -2476,19 +2485,33 @@ class planning_Tasks extends core_Master
         if($displayPlanningParamsCount){
 
             // Ако в операцията има конкретно избрани параметри - ще се използват те с приоритет
+            core_Debug::startTimer('RENDER_VERBAL_PARAM_HEADER');
             $taskParamQuery = cat_products_Params::getQuery();
             $taskParamQuery->where("#classId = {$mvc->getClassId()}");
             $taskParamQuery->in('productId', array_keys($data->recs));
+            $taskParamQuery->in('paramId', $data->listFieldsParams);
             while($taskParamRec = $taskParamQuery->fetch()){
-                $taskParamVal = cat_Params::toVerbal($taskParamRec->paramId, $mvc->getClassId(), $taskParamRec->productId, $taskParamRec->paramValue);
+                $taskParamVal = cat_Params::toVerbal($paramCache[$taskParamRec->paramId], $mvc->getClassId(), $taskParamRec->productId, $taskParamRec->paramValue);
                 $taskSpecificParams[$taskParamRec->productId][$taskParamRec->paramId] = $taskParamVal;
             }
+            core_Debug::stopTimer('RENDER_VERBAL_PARAM_HEADER');
         }
 
         // Еднократно извличане на зависимите предходни операции
+        core_Debug::startTimer('RENDER_DEPENDANT');
         $dependentTasks = planning_StepConditions::getDependantTasksProgress($data->recs, true);
+        core_Debug::stopTimer('RENDER_DEPENDANT');
+
+        $jobRecs = array();
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in("containerId", arr::extractValuesFromArray($data->recs, 'originId'));
+        $jQuery->show('id,containerId,productId');
+        while($jRec = $jQuery->fetch()){
+            $jobRecs[$jRec->containerId] = $jRec;
+        }
 
         foreach ($rows as $id => $row) {
+            core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
@@ -2510,8 +2533,7 @@ class planning_Tasks extends core_Master
             if($displayPlanningParamsCount){
 
                 // Кои са параметрите от артикула на заданието за операцията
-                $origin = doc_Containers::getDocument($rec->originId);
-                $jobProductId = $origin->fetchField('productId');
+                $jobProductId = $jobRecs[$rec->originId]->productId;
 
                 // Взимане с приоритет от кеша на параметрите на артикула от заданието
                 $jobParams = core_Permanent::get("taskListJobParams{$jobProductId}");
@@ -2529,7 +2551,7 @@ class planning_Tasks extends core_Master
                     }
 
                     if(isset($pValue)){
-                        $pSuffix = cat_Params::getVerbal($paramId, 'suffix');
+                        $pSuffix = cat_Params::getVerbal($paramCache[$paramId], 'suffix');
                         $row->{"param_{$paramId}"} = $pValue;
                         if(!empty($pSuffix)){
                             $row->{"param_{$paramId}"} .= " {$pSuffix}";
@@ -2540,6 +2562,7 @@ class planning_Tasks extends core_Master
                     }
                 }
             }
+            core_Debug::stopTimer('RENDER_ROW');
         }
 
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, 'dependantProgress');
@@ -2556,6 +2579,13 @@ class planning_Tasks extends core_Master
      */
     protected function on_AfterGetContentHash($mvc, &$res, &$status)
     {
+        $res = md5(rand(1, 2000));
+        return;
+
+
+
+
+
         // Хеша е датата на последна модификация на движенията
         $mQuery = $mvc->getQuery();
         $mQuery->orderBy('modifiedOn', 'DESC');
