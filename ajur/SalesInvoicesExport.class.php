@@ -157,6 +157,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
         }
 
         $invoices = array();
+        $confCache = core_Packs::getConfig('ajur');
 
         while ($sRec = $sQuery->fetch()) {
 
@@ -209,8 +210,22 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             //Банкова сметка
             $bankAccount = $sRec->accountId;
 
+            //Вид фактура
             $invoiceType = self::getDocType($sRec);
+
+            //Към фактура (за КИ и ДИ)
+            if($invoiceType == $confCache->AJUR_DOC_CREDIT_NOTE_TYPE ||
+                $invoiceType == $confCache->AJUR_DOC_DEBIT_NOTE_TYPE ){
+
+                $originDoc = doc_Containers::getDocument($sRec->originId);
+                $originDocNumber = $originDoc->className::fetch($originDoc->that)->number;
+                $originDocDate = $originDoc->className::fetch($originDoc->that)->date;
+            }
+
+//bp($sRec);
             $dealType = self::getDealType($sRec);
+
+
 
 
             //Ако има авансово начисляване на суми по цялата фактура
@@ -230,7 +245,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 //                        'paymentType' => $paymentType,
 //                        'accountId' => $bankAccount,
 //                        'accItem' => '',
-//                        'currencyId' => $currency,
+//           ->confCash             'currencyId' => $currency,
 //                        'rate' => $currencyRate,
 //                        'dealValue' => $dealValue,
 //                        'detAmount' => $dealValue,
@@ -263,7 +278,22 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                     11 => $contragentAddress,     // Адрес на контрагента
                     12 => $contragentVatNo,       // ИН по ДДС на контрагента
                     13 => $bulstatNo,             // БУЛСТАТ на контрагента
-                   // 14 =>                         // Вид доставка
+                    14 => '',                     // Вид доставка
+                    15 => $sRec->vatReason,       // Основание за неначисляване на ДДС
+                    16 => '',                     // ИН по ДДС в друга държава
+                    17 => '',                     // Ставка по ДДС в друга държава
+                    18 => '',                     // МОЛ на контрагента
+                    19 => '',                     // Шифър на дистрибутор
+                    20 => '',                     // Наименование на дистрибутора
+                    21 => '',                     // Адрес на дистрибутора
+                    22 => '',                     // Ин по ДДС на дистрибутора
+                    23 => '',                     // БУЛСТАТ на дистрибутора
+                    24 => $sRec->place,           // Място на издаване
+                    25 => $originDocNumber,       // Към фактура No(при издаване на ДИ и КИ)
+                    26 => $originDocDate,         // От дата фактура (при издаване на ДИ и КИ)
+                    27 => $sRec->dcReason,        // Причина за издаване на ДИ или КИ
+                    28 => '',
+
 
                     'id' => $id,
                     'type' => $rec->docType,
@@ -590,7 +620,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
      */
     private function getDealType($rec)
     {
-        bp($rec);
+       // bp($rec);
         $this->confCache = core_Packs::getConfig('bnav');
         $this->countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
 
@@ -639,22 +669,40 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
      */
     private function getDocType($rec)
     {
+        $this->confCache = core_Packs::getConfig('ajur');
 
         $docType = 0;
         // Дебитно или кредитно известие
         if ($rec->type == 'dc_note') {
             if ($rec->dpAmount > 0 || $rec->changeAmount) {
-                $docType = 3; //Дебитно известие
+                $docType = $this->confCache->AJUR_DOC_DEBIT_NOTE_TYPE; //Дебитно известие
             } else {
-                $docType = 4;  //Кредитно известие
+                $docType = $this->confCache->AJUR_DOC_CREDIT_NOTE_TYPE;  //Кредитно известие
             }
         }
 
         // Фактура
         if ($rec->type == 'invoice') {
-            $docType = 1; // Фактура
+            $docType = $this->confCache->AJUR_DOC_INVOCIE_TYPE; // Фактура
         }
 
         return ($docType);
+    }
+
+    /**
+     * Връща начина на плащане за колона 28
+     *
+     * @param stdClass $rec - запис
+     *
+     * @return int
+     */
+    private function getPaymentType($rec)
+    {
+        $this->confCache = core_Packs::getConfig('ajur');
+
+        $paymentType = 0;
+
+
+        return ($paymentType);
     }
 }
