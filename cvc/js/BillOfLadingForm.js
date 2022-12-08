@@ -1,11 +1,6 @@
 var timeout;
 var url;
 
-function loadCitySuggestions()
-{
-    $("input[name=recipientPlace]").attr("list", "citySuggestions");
-}
-
 
 function render_citysuggestions(data)
 {
@@ -13,9 +8,7 @@ function render_citysuggestions(data)
     $('.cvcBillOfLading').append("<datalist id='citySuggestions'></datalist>");
 
     $places = data.cities;
-    $.each($places, function( index, value ){
-        $('#citySuggestions').append("<option value='" + value + "'>");
-    });
+    $("input[name=recipientPlace]").autocomplete({source: $places, autoFocus:true});
 }
 
 

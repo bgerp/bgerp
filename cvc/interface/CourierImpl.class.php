@@ -697,11 +697,10 @@ class cvc_interface_CourierImpl extends core_Manager
             $url = urlencode($url);
         }
 
-
         $tpl->push('cvc/js/BillOfLadingForm.js', 'JS');
         jquery_Jquery::run($tpl, "enableApi('{$url}');");
-        jquery_Jquery::run($tpl, "loadCitySuggestions();");
         jquery_Jquery::runAfterAjax($tpl, "enableApi");
+        jqueryui_Ui::enable($tpl);
     }
 
 
