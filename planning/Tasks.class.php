@@ -2441,6 +2441,7 @@ class planning_Tasks extends core_Master
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
+        $fieldsToFilterIfEmpty = array('dependantProgress');
         if ($data->listFilter->rec->folder) {
             $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
             if($Cover->isInstanceOf('planning_Centers')){
@@ -2468,9 +2469,12 @@ class planning_Tasks extends core_Master
                     $paramFields["param_{$paramRec->id}"] = "|*<small>{$paramExt[1]}</small>";
                     $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol');
                 }
+
+                $fieldsToFilterIfEmpty = array_merge($paramFields, $fieldsToFilterIfEmpty);
                 arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
             }
         }
+
         core_Debug::stopTimer('RENDER_HEADER');
 
         $displayPlanningParamsCount = countR($data->listFieldsParams);
@@ -2570,7 +2574,7 @@ class planning_Tasks extends core_Master
             core_Debug::stopTimer('RENDER_ROW');
         }
 
-        $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, 'dependantProgress');
+        $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);
         core_Debug::stopTimer('RENDER_TABLE');
     }
 
