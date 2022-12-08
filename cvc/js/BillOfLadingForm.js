@@ -30,15 +30,14 @@ function enableApi(url) {
         // Правим Ajax заявката като изтече време за изчакване
         timeout = setTimeout(function(){
             var searchCityString = $("input[name=recipientPlace]").val();
+            var countryId = $("select[name=recipientCountryId]").val();
             if(searchCityString.length >= 3){
                 var resObj = new Object();
                 resObj['url'] = url;
 
-                var params = {string:searchCityString,countryId:26};
+                var params = {string:searchCityString,countryId:countryId};
                 getEfae().process(resObj, params);
             }
-
-
         }, 1000);
     });
 
