@@ -474,7 +474,7 @@ class cvc_Adapter
 
         $resArr = array();
         foreach ($citiesArr as $k => $cArr) {
-            if (mb_strtolower($cArr['nameBg']) == mb_strtolower($q)) {
+            if ((mb_strtolower($cArr['nameBg']) == mb_strtolower($q)) || isset($zipCode)) {
                 if (isset($zipCode) && ($cArr['zip'] != $zipCode)) {
 
                     continue;
