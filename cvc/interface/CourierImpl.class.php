@@ -732,6 +732,7 @@ class cvc_interface_CourierImpl extends core_Manager
             $errorMsg = '|Невалидни параметри|*!';
         }
 
+        $cities = array();
         if(!empty($errorMsg)){
             // Ако е имало грешки се показват
             core_Statuses::newStatus($errorMsg, 'error');
@@ -740,17 +741,20 @@ class cvc_interface_CourierImpl extends core_Manager
                 $theirCountryId = cvc_Adapter::getCountryIdByName($countryId);
                 $cities = cvc_Adapter::getCities($q, $theirCountryId);
             } catch(core_exception_Expect $e){
+
             }
         }
 
         $citySuggestions = array();
-        foreach ($cities as $cityObj){
-            $citySuggestions[] = $cityObj['nameBg'];
+        if (is_array($cities)) {
+            foreach ($cities as $cityObj){
+                $citySuggestions[] = $cityObj['nameBg'];
+            }
         }
 
         $resObj = new stdClass();
         $resObj->func = 'citysuggestions';
-        $resObj->arg = array('cities' => $citySuggestions);
+        $resObj->arg = array('cities' => $citySuggestions, 'searchText' => $q);
         $res = array($resObj);
 
         return $res;
