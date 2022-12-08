@@ -303,6 +303,7 @@ class cvc_interface_CourierImpl extends core_Manager
         $phone = $phones[0]->original;
         $form->setDefault('senderName', $profile->name);
         $form->setDefault('senderPhone', $phone);
+        $form->setDefault('totalWeight', $logisticData['totalWeight']);
     }
 
 
