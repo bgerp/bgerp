@@ -612,7 +612,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         try{
             $res = speedy_Adapter2::calculateShipment($preparedBolParams);
         } catch(core_exception_Expect $e){
-            $form->info = "<div style='color:red;font-weight:bold;'>" . tr('Не може да се калкулира цената за доставка') . "</div>";
+            $form->info = "<div style='color:red;font-weight:bold;'>" . tr('Цената не може да се калкулира|*!') . "<br>" . tr($e->getMessage()) . "</div>";
             return;
         }
 
