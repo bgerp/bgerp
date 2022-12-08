@@ -358,7 +358,7 @@ class cvc_Adapter
         $q = mb_strtolower($q);
         $q = trim($q);
 
-        expect($q);
+        cvc_Exception::expect($q, 'Няма стринг за търсене');
 
         $res = self::makeCall('search_munis', array('country_id' => $countryId, 'search_for' => $q));
 
@@ -405,7 +405,7 @@ class cvc_Adapter
         $q = mb_strtolower($q);
         $q = trim($q);
 
-        expect($q);
+        cvc_Exception::expect($q, 'Няма стринг за търсене');
 
         $paramsArr = array('country_id' => $countryId, 'search_for' => $q);
         if (isset($countyId)) {
@@ -621,7 +621,7 @@ class cvc_Adapter
         $q = mb_strtolower($q);
         $q = trim($q);
 
-        expect($q);
+        cvc_Exception::expect($q, 'Няма стринг за търсене');
 
         $res = self::makeCall('search_qts', array('city_id' => $cityId, 'country_id' => $countryId, 'search_for' => $q));
 
@@ -661,7 +661,7 @@ class cvc_Adapter
         $q = mb_strtolower($q);
         $q = trim($q);
 
-        expect($q);
+        cvc_Exception::expect($q, 'Няма стринг за търсене');
 
         $res = self::makeCall('search_streets', array('city_id' => $cityId, 'country_id' => $countryId, 'search_for' => $q));
 
@@ -820,7 +820,8 @@ class cvc_Adapter
     {
         $token = cvc_Setup::get('TOKEN');
 
-        expect($url && $token);
+        cvc_Exception::expect($url, 'Не е подадено URL');
+        cvc_Exception::expect($token, 'Не е настроен токен');
 
         $curl = curl_init($url);
 
@@ -892,5 +893,7 @@ class cvc_Adapter
         if (haveRole('debug')) {
             status_Messages::newStatus($msg, 'error');
         }
+
+        cvc_Exception::expect(false, $msg);
     }
 }
