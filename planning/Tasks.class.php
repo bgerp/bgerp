@@ -2590,6 +2590,15 @@ class planning_Tasks extends core_Master
         $mQuery->show('modifiedOn');
         $mQuery->limit(1);
 
+        $assetId = Request::get('assetId', 'int');
+        if(isset($assetId)){
+            $mQuery->where("#assetId = {$assetId}");
+        }
+        $folderId = Request::get('folderId', 'int');
+        if(isset($folderId)){
+            $mQuery->where("#folderId = {$folderId}");
+        }
+
         $rememberedTask = Mode::get('rememberedTask');
         $rememberedTask = is_object($rememberedTask) ? $rememberedTask->id : '';
         $res = md5(trim($mQuery->fetch()->modifiedOn) . $rememberedTask);
