@@ -363,7 +363,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $userIds = keylist::toArray($filter->users);
                 
                 // Ако не се търси по всички
-                if (!$userIds[-1]) {
+                if ($usedUsers != 'all_users') {
                     $userArr = implode(',', $userIds);
                    
                     if(in_array($filter->filterDateField, $userFields)){
