@@ -2,6 +2,33 @@
 
 
 /**
+ * Константа стойност която да се експортира за документ ФАКТУРА
+ */
+defIfNot('AJUR_DOC_INVOCIE_TYPE', '1');
+
+
+/**
+ * Константа стойност която да се експортира за документ ДИ
+ */
+defIfNot('AJUR_DOC_DEBIT_NOTE_TYPE', '3');
+
+
+/**
+ * Константа стойност която да се експортира за документ КИ
+ */
+defIfNot('AJUR_DOC_CREDIT_NOTE_TYPE', '4');
+
+/**
+ * Константа стойност която да се експортира за документ ВЪТРЕШНА ФАКТУРА
+ */
+defIfNot('AJUR_DOC_INTER_INVOICE_TYPE', '7');
+
+/**
+ * Константа стойност която да се експортира за документ ОТЧЕТ ЗА ПРОДАЖБИТЕ
+ */
+defIfNot('AJUR_DOC_SALES_REPORT_TYPE', '8');
+
+/**
  * class ajur_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -29,6 +56,18 @@ class ajur_Setup extends core_ProtoSetup
      * Мениджър - входна точка в пакета
      */
     public $startCtr = '';
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'AJUR_DOC_INVOCIE_TYPE' => array('int', 'caption=Експорт->Документ фактура'),
+        'AJUR_DOC_DEBIT_NOTE_TYPE' => array('int', 'caption=Експорт->Документ дебитно известие'),
+        'AJUR_DOC_CREDIT_NOTE_TYPE' => array('int', 'caption=Експорт->Документ кредитно известие'),
+        'AJUR_DOC_INTER_INVOICE_TYPE' => array('int', 'caption=Експорт->Документ вътрешна фактура'),
+        'AJUR_DOC_SALES_REPORT_TYPE' => array('int', 'caption=Експорт->Документ отчет за продажбите'),
+
+    );
 
 
     /**
