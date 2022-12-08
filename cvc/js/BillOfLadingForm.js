@@ -8,6 +8,7 @@ function render_citysuggestions(data)
     $('.cvcBillOfLading').append("<datalist id='citySuggestions'></datalist>");
 
     $places = data.cities;
+    console.log($places);
     $("input[name=recipientPlace]").autocomplete({source: $places, autoFocus:true});
 }
 
