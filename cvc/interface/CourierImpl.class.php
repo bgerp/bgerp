@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class cvc_interface_CourierImpl extends core_BaseClass
+class cvc_interface_CourierImpl extends core_Manager
 {
     /**
      * Роли по дефолт, които изисква драйвера
@@ -44,6 +44,12 @@ class cvc_interface_CourierImpl extends core_BaseClass
      * Иконка за бутон за създаване на товарителница
      */
     public $requestBillOfLadingBtnIcon = 'img/16/cvc.png';
+
+
+    /**
+     * Кой може да взима опциите от стринг
+     */
+    public $canGetplacesbystring = 'cvc,ceo';
 
 
     /**
@@ -118,7 +124,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
 
         $form->FLD('recipientCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,silent,removeAndRefreshForm=recipientPcode|recipientPlace|recipientAddress|recipientAddressNum|recipientEntrance|recipientFloor|recipientApp');
         $form->FLD('recipientPcode', 'varchar','caption=Доставка->Населено място,class=w25,placeholder=П.К');
-        $form->FLD('recipientPlace', 'varchar','caption=Доставка->-,class=w75,placeholder=Наименование,inlineTo=recipientPcode');
+        $form->FLD('recipientPlace', 'varchar','caption=Доставка->-,class=w75,placeholder=Наименование,inlineTo=recipientPcode,autocomplete=off');
         $form->FLD('recipientAddress', 'varchar','caption=Доставка->Адрес,class=w50,placeholder=Наименование');
         $form->FLD('recipientAddressNum', 'varchar(size=3)','caption=Доставка->-,class=w10,placeholder=Номер,inlineTo=recipientAddress');
         $form->FLD('recipientEntrance', 'varchar(size=3)','caption=Доставка->->Вход,class=w10,placeholder=Вход');
@@ -672,6 +678,82 @@ class cvc_interface_CourierImpl extends core_BaseClass
         }
 
         return null;
+    }
+
+
+    /**
+     * @param core_Mvc $mvc          - модел
+     * @param stdClass $documentRec  - запис на документа от който ще се генерира
+     * @param core_Form $form        - формата за генериране на товарителница
+     * @param core_ET $tpl           - шаблона на формата
+     * @return void
+     */
+    public function afterPrepareBillOfLadingForm($mvc, $documentRec, $form, &$tpl)
+    {
+        $url = '';
+        if($this->haveRightFor('getplacesbystring')){
+            $url = toUrl(array($this, 'getplacesbystring'), 'local');
+            $url = urlencode($url);
+        }
+
+
+        $tpl->push('cvc/js/BillOfLadingForm.js', 'JS');
+        jquery_Jquery::run($tpl, "enableApi('{$url}');");
+        jquery_Jquery::run($tpl, "loadCitySuggestions();");
+        jquery_Jquery::runAfterAjax($tpl, "enableApi");
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'getplacesbystring'){
+            if(empty(cvc_Setup::get('TOKEN'))){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Екшън връщащ опциите за избор на място по даден стринг
+     */
+    function act_getplacesbystring()
+    {
+        $errorMsg = null;
+        if(!$this->haveRightFor('getplacesbystring')){
+            $errorMsg = '|Нямате права|*!';
+        }
+        $q = Request::get('string', 'varchar');
+        $countryId = Request::get('countryId', 'int');
+        if(empty($q) || empty($countryId)){
+            $errorMsg = '|Невалидни параметри|*!';
+        }
+
+        if(!empty($errorMsg)){
+            // Ако е имало грешки се показват
+            core_Statuses::newStatus($errorMsg, 'error');
+        } else {
+            try{
+                $theirCountryId = cvc_Adapter::getCountryIdByName($countryId);
+                $cities = cvc_Adapter::getCities($q, $theirCountryId);
+            } catch(core_exception_Expect $e){
+            }
+        }
+
+        $citySuggestions = array();
+        foreach ($cities as $cityObj){
+            $citySuggestions[] = $cityObj['nameBg'];
+        }
+
+        $resObj = new stdClass();
+        $resObj->func = 'citysuggestions';
+        $resObj->arg = array('cities' => $citySuggestions);
+        $res = array($resObj);
+
+        return $res;
     }
 }
 

@@ -733,4 +733,19 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
         return $res;
     }
+
+
+    /**
+     * След подготовка на формата за товарителница
+     *
+     * @param core_Mvc $mvc          - модел
+     * @param stdClass $documentRec  - запис на документа от който ще се генерира
+     * @param core_Form $form        - формата за генериране на товарителница
+     * @return core_ET|null $tpl     - хтмл с рендиране на информацията за плащането
+     * @throws core_exception_Expect
+     */
+    public function afterPrepareBillOfLadingForm($mvc, $documentRec, $form, &$tpl)
+    {
+
+    }
 }

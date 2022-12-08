@@ -145,6 +145,7 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
             $mvc->logInfo('Форма за генериране на товарителница на Speedy');
 
             $res = $mvc->renderWrapping($form->renderHtml());
+            $Driver->afterPrepareBillOfLadingForm($mvc, $rec, $form, $res);
             core_Form::preventDoubleSubmission($res, $form);
 
             return false;
