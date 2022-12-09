@@ -358,7 +358,7 @@ class cvc_interface_CourierImpl extends core_Manager
                 if(mb_strlen($rec->recipientPlace) < 3){
                     $form->setError('recipientPlace', "Населеното място трябва да има минимум три символа|*!");
                 } else {
-                    $foundPlaces = static::getPlacesByString($rec->recipientPlace, $rec->recipientCountryId);
+                    $foundPlaces = static::getPlacesByString($rec->recipientPlace, $rec->recipientCountryId, $rec->recipientPcode);
 
                     // Проверка на мястото за доставка
                     $foundPlacesCount = countR($foundPlaces);
@@ -387,12 +387,12 @@ class cvc_interface_CourierImpl extends core_Manager
      * @param int $ourCountry
      * @return array|false
      */
-    private static function getPlacesByString($string, $ourCountry)
+    private static function getPlacesByString($string, $ourCountry, $pCode)
     {
         try{
             $theirCountryId = cvc_Adapter::getCountryIdByName($ourCountry);
 
-            return cvc_Adapter::getCity($string, $theirCountryId);
+            return cvc_Adapter::getCity($string, $pCode, $theirCountryId);
 
         } catch(core_exception_Expect $e){
 
