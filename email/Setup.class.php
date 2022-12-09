@@ -178,7 +178,7 @@ defIfNot('EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN', 'Thanks for the email on [#DAT
 /**
  * Текст по подразбиране при препращане на имейл
  */
-defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING', 'Моля запознайте се с препратения имейл [#MSG#]');
+defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING', 'Моля, запознайте се с препратения имейл [#MSG#]');
 
 
 /**
