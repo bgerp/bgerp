@@ -310,7 +310,7 @@ class planning_Tasks extends core_Master
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelPrintFromProgress', 'enum(no=Изключено,yes=Включено)', 'caption=Етикиране->Етикет от прогреса,tdClass=small-field nowrap,notNull,value=no');
+        $this->FLD('labelPrintFromProgress', 'enum(no=Изключено,yes=Включено)', 'caption=Етикиране->Етикет от прогреса,tdClass=small-field nowrap,notNull,value=no,input=hidden');
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
@@ -973,12 +973,22 @@ class planning_Tasks extends core_Master
             }
         }
 
+        unset($row->labelPrintFromProgress);
+        if(core_Packs::isInstalled('label')) {
+            $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
+            if($labelPrintFromProgress == 'yes'){
+                $row->labelPrintFromProgress = $mvc->getFieldType('labelPrintFromProgress')->toVerbal($rec->labelPrintFromProgress);
+            }
+        }
+
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#labelPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#labelQuantityInPack#]</td></tr>
                 <tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>
+                <!--ET_BEGIN labelPrintFromProgress-->
                 <tr><td style='font-weight:normal'>|Етикет от прогреса|*:</td><td>[#labelPrintFromProgress#]</td></tr>
+                <!--ET_END labelPrintFromProgress-->
                 <!--ET_BEGIN printCount-->
                 <tr><td style='font-weight:normal'>|Отпечатвания|*:</td><td>[#printCount#]</td></tr>
                 <!--ET_END printCount-->
@@ -1374,6 +1384,13 @@ class planning_Tasks extends core_Master
         $fixedAssetOptions = array();
         $form->setField('saoRelative', "caption=Подредба в заданието->Спрямо");
         $form->setField('saoPosition', "caption=Подредба в заданието->Положение");
+
+        if(core_Packs::isInstalled('label')){
+            $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
+            if($labelPrintFromProgress == 'yes'){
+                $form->setField('labelPrintFromProgress', "input");
+            }
+        }
 
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
