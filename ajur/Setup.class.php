@@ -84,6 +84,8 @@ defIfNot('AJUR_DOC_PAYMENT_POST_TRANSFER_TYPE', 'B');
 defIfNot('AJUR_DOC_PAYMENT_АРТ25_TYPE', 'R');
 
 
+
+
 /**
  * class ajur_Setup
  *
