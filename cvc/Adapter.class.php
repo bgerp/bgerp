@@ -446,6 +446,7 @@ class cvc_Adapter
      * Помощна функция, която използва getCities и търси пълно съвпадение на името
      *
      * @param string $q - стринг от името на населеното място
+     * @param null|int $zipCode - пощенски код на населеното място
      * @param null|int $countryId - id на държавата от getCountries - по подразбиран DEFAULT_COUNTRY_ID
      * @param null|int $countyId - id на областта от getCounties
      * @param null|int $municipalityId - id na общината от getMunicipalities
@@ -462,7 +463,7 @@ class cvc_Adapter
      * ['tpBg'] - съкращение за типа на населеното място - с., гр., к.
      * ['isThereQts'] - Флаг, който индикира дали разполага с номенклатура с квартали/ж.к., които евентуално да се изполват чрез searchQts функцията
      */
-    public static function getCity($q, $countryId = null, $countyId = null, $municipalityId = null)
+    public static function getCity($q, $zipCode = null, $countryId = null, $countyId = null, $municipalityId = null)
     {
         $citiesArr = self::getCities($q, $countryId, $countyId, $municipalityId);
 
@@ -473,7 +474,12 @@ class cvc_Adapter
 
         $resArr = array();
         foreach ($citiesArr as $k => $cArr) {
-            if (mb_strtolower($cArr['nameBg']) == mb_strtolower($q)) {
+            if ((mb_strtolower($cArr['nameBg']) == mb_strtolower($q)) || isset($zipCode)) {
+                if (isset($zipCode) && ($cArr['zip'] != $zipCode)) {
+
+                    continue;
+                }
+
                 $resArr[$k] = $cArr;
             }
         }
