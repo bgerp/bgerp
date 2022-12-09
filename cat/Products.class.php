@@ -671,7 +671,7 @@ class cat_Products extends embed_Manager
 
                 if(countR($jobArr)){
                     $jobString = implode(',', $jobArr);
-                    $form->setWarning('name', "Артикулът се използва в|*: {$jobString}. |Ако искате промяната да се отрази в заданията трябва да бъдат спряни (бутон: Пауза) и пуснати отново|*!");
+                    $form->setWarning('name', "Артикулът се използва в|*: {$jobString}<br>|За да се отрази промяната в заданията, те трябва да бъдат спрени (бутон „Пауза“) и пуснати отново|*!");
                 }
             }
         }
