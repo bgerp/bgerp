@@ -142,7 +142,7 @@ defIfNot('PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT', '100000');
 /**
  * Поле което да определя опресняване на кеширането на артикула в заданието
  */
-defIfNot('PLANNING_JOB_USE_DATE_FIELD_FOR_PRODUCT_CACHE', 'modifiedOn');
+defIfNot('PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE', 'yes');
 
 
 /**
@@ -215,7 +215,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
         'PLANNING_TASK_NET_WEIGHT_WARNING' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Предупреждение'),
         'PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT' => array('int(Min=0)', 'caption=Максимално допустимо бруто тегло в прогреса на ПО->Максимално до,unit=кг'),
-        'PLANNING_JOB_USE_DATE_FIELD_FOR_PRODUCT_CACHE' => array('enum(modifiedOn=Модифицирано на,activatedOn=Активирано на)', 'caption=Поле което да определя опресняване на кеширането на артикула в заданието->Поле'),
+        'PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE' => array('enum(yes=Да,no=Не)', 'caption=Обновяване на параметрите на артикула в заданието при Пускане/Събуждане->По подразбиране'),
     );
 
 

@@ -659,6 +659,21 @@ class cat_Products extends embed_Manager
             if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $rec->id, $metaError)) {
                 $form->setError('meta', $metaError);
             }
+
+            if(isset($rec->id)){
+                $jobArr = array();
+                $jQuery = planning_Jobs::getQuery();
+                $jQuery->where("#productId = {$rec->id} AND #state IN ('active', 'stopped', 'wakeup')");
+                $jQuery->show('id');
+                while($jRec = $jQuery->fetch()){
+                    $jobArr[$jRec->id] = planning_Jobs::getLink($jRec->id, 0)->getContent();
+                }
+
+                if(countR($jobArr)){
+                    $jobString = implode(',', $jobArr);
+                    $form->setWarning('name', "Артикулът се използва в|*: {$jobString}. |Ако искате промяната да се отрази в заданията трябва да бъдат спряни (бутон: Пауза) и пуснати отново|*!");
+                }
+            }
         }
     }
     
