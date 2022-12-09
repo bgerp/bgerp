@@ -821,9 +821,11 @@ abstract class store_DocumentMaster extends core_Master
 
         if($res["{$ownPart}Person"]){
             $personId = crm_Profiles::getPersonByUser($toPersonId);
-            $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
-            if(!empty($buzPhones)){
-                $res["{$ownPart}PersonPhones"] = $buzPhones;
+            if(isset($personId)){
+                $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+                if(!empty($buzPhones)){
+                    $res["{$ownPart}PersonPhones"] = $buzPhones;
+                }
             }
         }
 
