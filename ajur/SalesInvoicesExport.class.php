@@ -122,19 +122,6 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
     {
         $recs = array();
 
-//        //Ако има регистрирана "ОСНОВНА ГРУПА", вадим групите, които са едно ниво под нея
-//        if (core_Packs::getConfig('bnav')->BASE_GROUP != '') {
-//
-//            $baseGroupId = (trim(core_Packs::getConfig('bnav')->BASE_GROUP, '|'));
-//            $gQuery = cat_Groups::getQuery();
-//            $gQuery->where("#parentId = $baseGroupId");
-//            expect($gQuery->count(), 'Липсват регистрирани групи в основната група');
-//
-//            //масив с групи, които са едно ниво под основната
-//            $flGroups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
-//
-//        }
-
         $sQuery = sales_Invoices::getQuery();
 
         //Експортира и оттеглените фактури
@@ -157,6 +144,8 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
         }
 
         $invoices = array();
+
+        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         $confCache = core_Packs::getConfig('ajur');
 
         while ($sRec = $sQuery->fetch()) {
@@ -204,9 +193,6 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             //БУЛСТАТ на контрагента
             $bulstatNo = $sRec->uicNo;
 
-            //Тип на плащането
-            $paymentType = $sRec->paymentType;
-
             //Банкова сметка
             $bankAccount = $sRec->accountId;
 
@@ -222,42 +208,23 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                 $originDocDate = $originDoc->className::fetch($originDoc->that)->date;
             }
 
+            //Взема начина на плащане
+            $paymentType = self::getPaymentType($sRec);
+
+            //Дата нападеж
+            $dueDate = ($sRec->dueDate) ? : $sRec->date;
+
+            //За фактурите с ДДС от БГ разпределяме по ставки ДДС
+            if ($sRec->contragentCountryId == $bgId || empty($sRec->contragentCountryId)) {
+
+                $vatAlocation = self::getVATallocation($sRec);
+
+
+            }
+
 //bp($sRec);
             $dealType = self::getDealType($sRec);
 
-
-
-
-            //Ако има авансово начисляване на суми по цялата фактура
-//            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {
-//                $dealValue = $sRec->changeAmount ? $sRec->dealValue : $sRec->dpAmount;
-//
-//                if (!array_key_exists($id, $recs)) {
-//                    $recs[$id] = (object)array(
-//                        'number' => $number,
-//                        'type' => $rec->docType,
-//                        'dealType' => $rec->dealType,
-//
-//                        'date' => $inviceDate,
-//                        'contragentVatNo' => $contragentVatNo,
-//                        'contragentNo' => $contragentNo,
-//                        'contragentName' => $contragentName,
-//                        'paymentType' => $paymentType,
-//                        'accountId' => $bankAccount,
-//                        'accItem' => '',
-//           ->confCash             'currencyId' => $currency,
-//                        'rate' => $currencyRate,
-//                        'dealValue' => $dealValue,
-//                        'detAmount' => $dealValue,
-//                        'dpOperation' => $sRec->dpOperation,
-//                        'dpAmount' => $sRec->dpAmount,
-//                        'changeAmount' => $sRec->changeAmount,
-//                        'state' => $state,
-//                        'brState' => $brState,
-//
-//                    );
-//                }
-//            }
 
 
 
@@ -292,27 +259,32 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                     25 => $originDocNumber,       // Към фактура No(при издаване на ДИ и КИ)
                     26 => $originDocDate,         // От дата фактура (при издаване на ДИ и КИ)
                     27 => $sRec->dcReason,        // Причина за издаване на ДИ или КИ
-                    28 => '',
+                    28 => $paymentType,           // Начин на плащане
+                    29 => $dueDate,               // Дата на падеж
+                    30 => $sRec->vatDate,         // Дата на получаване на стоката
+                    31 => 0,                      // Дата на регистрация
+                    32 => 0,                      // Фактура към търговска верига
+                    33 => '',                     // Код на доставчика към търговска верига
+                    34 => '',                     // Поръчка номер от търговска верига
+                    35 => '',                     // Входящ стоков номер за търговската верига
+                    36 => $sRec->createdBy,       // Съставил
+                    37 => $sRec->dealValue,       // Общо сума без ДДС във валутата на фактурата
+                    38 => $sRec->dealValueWithoutDiscount,    // Общо Дан. Основа във валутата на фактурата
+                    39 => $sRec->vatAmount,       // Общо ДДС във валутата на фактурата
+                    40 => $sRec->totalValue,      // Общо сума за плащане във валутата на фактурата
+                    41 => $sRec->exciseTax,       // Общо акциз във валутата на фактурата
+                    42 => $sRec->productTax,      // Общо екотакса във валутата на фактурата
+                    43 => $sRec->dealValue * $sRec->rate,      // Общо сума без ДДС в лева
+                    44 => $sRec->dealValueWithoutDiscount * $sRec->rate,     // Общо Дан. Основа в лева
+                    45 => $sRec->vatAmount * $sRec->rate,      // Общо ДДС е лева
+                    46 => $sRec->totalValue * $sRec->rate,     // Общо сума за плащане в лева
+                    47 => $sRec->exciseTax * $sRec->rate,      // Общо акциз в лева
+                    48 => $sRec->productTax * $sRec->rate,     // Общо екотакса в лева
+                    49 => 1,                       // Връзка със склад
+                    50 => 1,     //ВЪПРОС          // Дали трябва да има запис в дневника по ДДС
+                    51 => 0,                       // Звено по ДДС
+                    52 => '',  // МЕТОД???         //ДО на сделки с ДДС 20% бкл. дист. на територията на страната
 
-
-                    'id' => $id,
-                    'type' => $rec->docType,
-                    'dealType' => $rec->dealType,
-                    'date' => $sRec->date,
-                    'contragentVatNo' => $contragentVatNo,
-                    'contragentNo' => $contragentNo,
-                    'contragentName' => $contragentName,
-                    'paymentType' => $paymentType,
-                    'accountId' => $bankAccount,
-                    'accItem' => '',
-                    'currencyId' => $sRec->currencyId,
-                    'rate' => $sRec->rate,
-                    'dealValue' => $sRec->dealValue,
-                    'state' => $state,
-                    'brState' => $brState,
-                    'dpOperation' => $sRec->dpOperation,
-                    'dpAmount' => $sRec->dpAmount,
-                    'changeAmount' => $sRec->changeAmount,
 
                 );
             }
@@ -700,9 +672,55 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
     {
         $this->confCache = core_Packs::getConfig('ajur');
 
-        $paymentType = 0;
+        $paymentType = ($rec->paymentType) ? : $rec->autoPaymentType;
+
+        switch ($paymentType) {
+
+            case null : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_INDEFINITE_TYPE;break;
+            case 'cash' : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_CASH_TYPE;break;
+            case 'bank' : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_ACCOUNT_TYPE;break;
+            case 'card' : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_CARD_TYPE;break;
+            case 'postal' : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_POST_TRANSFER_TYPE;break;
+            case 'factoring' : $paymentTypeRet = 'факторинг';break;
+            case 'intercept' : $paymentTypeRet = 'прихващане';break;
+            case 'mixed' : $paymentTypeRet = ' ';break;
+            default : ' '; break;
+        }
+
+        return ($paymentTypeRet);
+    }
 
 
-        return ($paymentType);
+    /**
+     * Връща начина на плащане за колона 28
+     *
+     * @param stdClass $rec - запис
+     *
+     * @return array
+     */
+    private function getVATallocation($rec)
+    {
+        $taxBase20Vat = $taxBase9Vat = $taxBase0Vat = 0;
+        $tax20 = $tax9 = $tax0 = 0;
+
+        $vatAllocation = array();
+
+        $detQuery = sales_InvoiceDetails::getQuery();
+
+        $detQuery -> where("#invoiceId = $rec->id");
+
+        //Ако няма детайли връщаме празин масив
+        if ($detQuery->count() == 0){
+            return $vatAllocation;
+        }
+
+        while ($detRec = $detQuery->fetch()){
+
+            bp($detRec,cat_Products::getVat($detRec->productId));
+        }
+
+
+        bp($rec,$detQuery->count());
+
     }
 }
