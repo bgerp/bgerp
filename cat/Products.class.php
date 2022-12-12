@@ -3185,7 +3185,11 @@ class cat_Products extends embed_Manager
         if (!countR($components)) {
             return;
         }
-        
+
+        $measureArr = arr::extractValuesFromArray($components, '_measureId');
+        $maxDecimals = cat_UoM::getMaxRound($measureArr);
+        $Double = core_Type::getByName("double(decimals={$maxDecimals})");
+
         $compTpl = getTplFromFile('cat/tpl/Components.shtml');
         $block = $compTpl->getBlock('COMP');
         foreach ($components as $obj) {
@@ -3195,8 +3199,6 @@ class cat_Products extends embed_Manager
             } else {
                 $obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
                 $quantity = $obj->quantity / $obj->divideBy;
-                
-                $Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
                 $obj->quantity = $Double->toVerbal($quantity);
             }
             
@@ -3317,6 +3319,7 @@ class cat_Products extends embed_Manager
                 
                 $obj->title = cat_Products::getTitleById($dRec->resourceId);
                 $obj->measureId = $row->packagingId;
+                $obj->_measureId = $dRec->packagingId;
                 $obj->quantity = $dRec->rowQuantity;
                 
                 $obj->level = substr_count($obj->code, '.');
