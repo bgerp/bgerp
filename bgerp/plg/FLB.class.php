@@ -305,7 +305,12 @@ class bgerp_plg_FLB extends core_Plugin
     {
         // Само ако потребителя не е ceo, се филтрира по полетата
         if (!haveRole('ceo')) {
+            $originalQuery = clone $query;
             self::addUserFilterToQuery($mvc, $query, null, true);
+            if(!$query->count()){
+                $query = $originalQuery;
+                self::addUserFilterToQuery($mvc, $query);
+            }
         }
     }
 }
