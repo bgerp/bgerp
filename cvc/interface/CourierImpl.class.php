@@ -741,20 +741,22 @@ class cvc_interface_CourierImpl extends core_Manager
                 $theirCountryId = cvc_Adapter::getCountryIdByName($countryId);
                 $cities = cvc_Adapter::getCities($q, $theirCountryId);
             } catch(core_exception_Expect $e){
-
+                if(haveRole('debug')){
+                    core_Statuses::newStatus("Проблем при свързване с АПИ-то", 'error');
+                }
             }
         }
 
         $citySuggestions = array();
         if (is_array($cities)) {
             foreach ($cities as $cityObj){
-                $citySuggestions[] = $cityObj['nameBg'];
+                $citySuggestions[$cityObj['nameBg']] = $cityObj['nameBg'];
             }
         }
 
         $resObj = new stdClass();
         $resObj->func = 'citysuggestions';
-        $resObj->arg = array('cities' => $citySuggestions, 'searchText' => $q);
+        $resObj->arg = array('cities' => array_values($citySuggestions), 'searchText' => $q);
         $res = array($resObj);
 
         return $res;
