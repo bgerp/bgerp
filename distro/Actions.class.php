@@ -641,7 +641,7 @@ class distro_Actions extends embed_Manager
                     try {
                         $command = $driverInst->getActionStr($rec);
                     } catch (core_exception_Expect $e) {
-                        if ($rec->createdBy == core_Users::getCurrent()) {
+                        if ($rec->createdBy != core_Users::getCurrent()) {
                             $driverInst = $mvc->getDriver($rec);
 
                             $title = $driverInst ? mb_strtolower($driverInst->title) : 'действие';
