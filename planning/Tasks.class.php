@@ -342,6 +342,8 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('productId');
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
+        $this->setDbIndex('modifiedOn');
+        $this->setDbIndex('saoParentId');
     }
 
 
@@ -433,6 +435,7 @@ class planning_Tasks extends core_Master
      */
     public static function recToVerbal_($rec, &$fields = '*')
     {
+        core_Debug::startTimer('RENDER_VERBAL');
         $row = parent::recToVerbal_($rec, $fields);
         $mvc = cls::get(get_called_class());
         $row->title = self::getHyperlink($rec->id, isset($fields['-list']));
@@ -656,6 +659,50 @@ class planning_Tasks extends core_Master
                 $diffMsg = "Отношението на |{$dUoms}|* се разминава със записаното при създаването на Операцията|*: {$quantityInPackVerbal}! |Приключете операцията и създайте нова (без да клонирате!), за да продължите с актуалното количество!";
                 $row->plannedQuantity = ht::createHint($row->plannedQuantity, $diffMsg, 'img/16/red-warning.png', false);
             }
+
+            $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+            $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
+
+            // Ако има избрано оборудване
+            if(isset($rec->assetId)){
+                $hintSimultaneity = false;
+                $assetSimultaneity = $rec->simultaneity;
+                if(!isset($assetSimultaneity)){
+                    $assetSimultaneity = planning_AssetResources::fetchField($rec->assetId, 'simultaneity');
+                    $hintSimultaneity = true;
+                }
+                $row->simultaneity = core_Type::getByName('int')->toVerbal($assetSimultaneity);
+                if($hintSimultaneity){
+                    $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
+                }
+
+                $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+                if(planning_Tasks::haveRightFor('list') && !Mode::is('printing')){
+                    $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
+                }
+                if(isset($fields['-single']) && isset($rec->prevAssetId)){
+                    $row->assetId = ht::createHint($row->assetId, "Предишно оборудване|*: " . planning_AssetResources::getTitleById($rec->prevAssetId), 'warning', false);
+                }
+
+                if(haveRole('debug')){
+                    $row->orderByAssetId = isset($rec->orderByAssetId) ? $row->orderByAssetId : 'n/a';
+                    $row->assetId = ht::createHint($row->assetId, "Подредба|*: {$row->orderByAssetId}", 'img/16/bug.png');
+                }
+
+                if(isset($fields['-single']) && !in_array($rec->state, array('closed', 'rejected'))){
+
+                    // Показва се след коя ще започне
+                    $startAfter = $mvc->getPrevOrNextTask($rec);
+                    if(isset($startAfter)){
+                        $row->startAfter = $mvc->getHyperlink($startAfter, true);
+                    } else {
+                        $row->startAfter = tr('Първа за оборудването');
+                    }
+                }
+            } else {
+                $row->assetId = "<span class='quiet'>N/A</span>";
+                $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!', 'warning');
+            }
         } else {
             if($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])){
                 core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -684,61 +731,14 @@ class planning_Tasks extends core_Master
                     }
                 }
             }
-
-            $row->dueDate = $origin->getVerbal('dueDate');
-            $jobPackQuantity = $origin->fetchField('packQuantity');
-            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);
-            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
         }
 
         if(empty($rec->indTime)){
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
 
-        // Ако има избрано оборудване
-        if(isset($rec->assetId)){
-            $hintSimultaneity = false;
-            $assetSimultaneity = $rec->simultaneity;
-            if(!isset($assetSimultaneity)){
-                $assetSimultaneity = planning_AssetResources::fetchField($rec->assetId, 'simultaneity');
-                $hintSimultaneity = true;
-            }
-            $row->simultaneity = core_Type::getByName('int')->toVerbal($assetSimultaneity);
-            if($hintSimultaneity){
-                $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
-            }
-
-            $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
-            if(planning_Tasks::haveRightFor('list') && !Mode::is('printing')){
-                $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
-            }
-            if(isset($fields['-single']) && isset($rec->prevAssetId)){
-                $row->assetId = ht::createHint($row->assetId, "Предишно оборудване|*: " . planning_AssetResources::getTitleById($rec->prevAssetId), 'warning', false);
-            }
-
-            if(haveRole('debug')){
-                $row->orderByAssetId = isset($rec->orderByAssetId) ? $row->orderByAssetId : 'n/a';
-                $row->assetId = ht::createHint($row->assetId, "Подредба|*: {$row->orderByAssetId}", 'img/16/bug.png');
-            }
-
-            if(isset($fields['-single']) && !in_array($rec->state, array('closed', 'rejected'))){
-
-                // Показва се след коя ще започне
-                $startAfter = $mvc->getPrevOrNextTask($rec);
-                if(isset($startAfter)){
-                    $row->startAfter = $mvc->getHyperlink($startAfter, true);
-                } else {
-                    $row->startAfter = tr('Първа за оборудването');
-                }
-            }
-        } else {
-            $row->assetId = "<span class='quiet'>N/A</span>";
-            $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!', 'warning');
-        }
-
-        $canStore = cat_products::fetchField($rec->productId, 'canStore');
-        $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
         $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ("<i>" . $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId) . "</i>") : "<span style='color:{$grey};'>{$row->progress}</span>";
+        core_Debug::stopTimer('RENDER_VERBAL');
 
         return $row;
     }
@@ -2427,6 +2427,7 @@ class planning_Tasks extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        core_Debug::startTimer('RENDER_TABLE');
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
@@ -2438,16 +2439,24 @@ class planning_Tasks extends core_Master
         }
 
         // Ако е филтрирано по център на дейност
+        core_Debug::startTimer('RENDER_HEADER');
+        $paramCache = array();
         if ($data->listFilter->rec->folder) {
             $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
             if($Cover->isInstanceOf('planning_Centers')){
                 $plannedParams = keylist::toArray($Cover->fetchField('planningParams'));
-                $data->listFieldsParams = cat_Params::getOrderedArr($plannedParams, 'desc');
+                if(countR($plannedParams)){
+                    $pQuery = cat_Params::getQuery();
+                    $pQuery->in('id', $plannedParams);
+                    $paramCache = $pQuery->fetchAll();
+                }
+                $data->listFieldsParams = cat_Params::getOrderedArr($paramCache, 'desc');
 
                 // и той има избрани параметри за планиране, добавят се в таблицата
                 $paramFields = array();
-                foreach ($data->listFieldsParams as $paramId) {
-                    $fullName = cat_Params::getVerbal($paramId, 'typeExt');
+                foreach ($data->listFieldsParams as $paramId){
+                    $paramRec = $paramCache[$paramId];
+                    $fullName = cat_Params::getVerbal($paramRec, 'typeExt');
                     $paramExt = explode(' » ', $fullName);
                     if(countR($paramExt) == 1){
                         $paramExt[1] = $paramExt[0];
@@ -2456,12 +2465,13 @@ class planning_Tasks extends core_Master
                     if($fullName != $paramExt[1]){
                         $paramExt[1] = ht::createHint($paramExt[1], $fullName);
                     }
-                    $paramFields["param_{$paramId}"] = "|*<small>{$paramExt[1]}</small>";
-                    $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'tdClass=taskParamCol');
+                    $paramFields["param_{$paramRec->id}"] = "|*<small>{$paramExt[1]}</small>";
+                    $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol');
                 }
                 arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
             }
         }
+        core_Debug::stopTimer('RENDER_HEADER');
 
         $displayPlanningParamsCount = countR($data->listFieldsParams);
         $enableReorder = isset($data->listFilter->rec->assetId) &&  in_array($data->listFilter->rec->state, array('activeAndPending', 'pending', 'active', 'wakeup')) && countR($data->recs) > 1;
@@ -2471,19 +2481,34 @@ class planning_Tasks extends core_Master
         if($displayPlanningParamsCount){
 
             // Ако в операцията има конкретно избрани параметри - ще се използват те с приоритет
+            core_Debug::startTimer('RENDER_VERBAL_PARAM_HEADER');
             $taskParamQuery = cat_products_Params::getQuery();
             $taskParamQuery->where("#classId = {$mvc->getClassId()}");
             $taskParamQuery->in('productId', array_keys($data->recs));
+            $taskParamQuery->in('paramId', $data->listFieldsParams);
             while($taskParamRec = $taskParamQuery->fetch()){
-                $taskParamVal = cat_Params::toVerbal($taskParamRec->paramId, $mvc->getClassId(), $taskParamRec->productId, $taskParamRec->paramValue);
+                $taskParamVal = cat_Params::toVerbal($paramCache[$taskParamRec->paramId], $mvc->getClassId(), $taskParamRec->productId, $taskParamRec->paramValue);
                 $taskSpecificParams[$taskParamRec->productId][$taskParamRec->paramId] = $taskParamVal;
             }
+            core_Debug::stopTimer('RENDER_VERBAL_PARAM_HEADER');
         }
 
         // Еднократно извличане на зависимите предходни операции
+        core_Debug::startTimer('RENDER_DEPENDANT');
         $dependentTasks = planning_StepConditions::getDependantTasksProgress($data->recs, true);
+        core_Debug::stopTimer('RENDER_DEPENDANT');
+
+        // Еднократно извличане на заданията за бързодействие
+        $jobRecs = array();
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in("containerId", arr::extractValuesFromArray($data->recs, 'originId'));
+        $jQuery->show('id,containerId,productId,dueDate,quantityInPack,quantity,packagingId');
+        while($jRec = $jQuery->fetch()){
+            $jobRecs[$jRec->containerId] = $jRec;
+        }
 
         foreach ($rows as $id => $row) {
+            core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
@@ -2505,8 +2530,7 @@ class planning_Tasks extends core_Master
             if($displayPlanningParamsCount){
 
                 // Кои са параметрите от артикула на заданието за операцията
-                $origin = doc_Containers::getDocument($rec->originId);
-                $jobProductId = $origin->fetchField('productId');
+                $jobProductId = $jobRecs[$rec->originId]->productId;
 
                 // Взимане с приоритет от кеша на параметрите на артикула от заданието
                 $jobParams = core_Permanent::get("taskListJobParams{$jobProductId}");
@@ -2524,7 +2548,7 @@ class planning_Tasks extends core_Master
                     }
 
                     if(isset($pValue)){
-                        $pSuffix = cat_Params::getVerbal($paramId, 'suffix');
+                        $pSuffix = cat_Params::getVerbal($paramCache[$paramId], 'suffix');
                         $row->{"param_{$paramId}"} = $pValue;
                         if(!empty($pSuffix)){
                             $row->{"param_{$paramId}"} .= " {$pSuffix}";
@@ -2535,9 +2559,19 @@ class planning_Tasks extends core_Master
                     }
                 }
             }
+
+            // Допълнителна обработка на показването на заданието в списъка на ПО
+            $row->dueDate = core_Type::getByName('date(format=smartTime)')->toVerbal($jobRecs[$rec->originId]->dueDate);
+            $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
+            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity);
+            $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
+            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> {$jobLink}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
+
+            core_Debug::stopTimer('RENDER_ROW');
         }
 
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, 'dependantProgress');
+        core_Debug::stopTimer('RENDER_TABLE');
     }
 
 
@@ -2555,6 +2589,15 @@ class planning_Tasks extends core_Master
         $mQuery->orderBy('modifiedOn', 'DESC');
         $mQuery->show('modifiedOn');
         $mQuery->limit(1);
+
+        $assetId = Request::get('assetId', 'int');
+        if(isset($assetId)){
+            $mQuery->where("#assetId = {$assetId}");
+        }
+        $folderId = Request::get('folderId', 'int');
+        if(isset($folderId)){
+            $mQuery->where("#folderId = {$folderId}");
+        }
 
         $rememberedTask = Mode::get('rememberedTask');
         $rememberedTask = is_object($rememberedTask) ? $rememberedTask->id : '';
