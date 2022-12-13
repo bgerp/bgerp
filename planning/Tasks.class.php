@@ -2461,37 +2461,53 @@ class planning_Tasks extends core_Master
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
         $fieldsToFilterIfEmpty = array('dependantProgress');
-        if ($data->listFilter->rec->folder) {
+
+        // Кои ще са планиращите параметри
+        $plannedParams = array();
+
+        // Ако има филтрирано оборудване - тези от избраното оборудване (ако то няма от групата му)
+        if(isset($data->listFilter->rec->assetId)){
+            $assetRec = planning_AssetResources::fetch($data->listFilter->rec->assetId, 'planningParams,groupId');
+            $plannedParams = $assetRec->planningParams;
+            if(empty($plannedParams)){
+                $plannedParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
+            }
+            $plannedParams = keylist::toArray($plannedParams);
+        }
+
+        // Ако няма избрани параметри от оборудването и групата - тогава се търсят от центъра на дейност
+        if(empty($plannedParams) && isset($data->listFilter->rec->folder)){
             $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
             if($Cover->isInstanceOf('planning_Centers')){
                 $plannedParams = keylist::toArray($Cover->fetchField('planningParams'));
-                if(countR($plannedParams)){
-                    $pQuery = cat_Params::getQuery();
-                    $pQuery->in('id', $plannedParams);
-                    $paramCache = $pQuery->fetchAll();
-                }
-                $data->listFieldsParams = cat_Params::getOrderedArr($paramCache, 'desc');
-
-                // и той има избрани параметри за планиране, добавят се в таблицата
-                $paramFields = array();
-                foreach ($data->listFieldsParams as $paramId){
-                    $paramRec = $paramCache[$paramId];
-                    $fullName = cat_Params::getVerbal($paramRec, 'typeExt');
-                    $paramExt = explode(' » ', $fullName);
-                    if(countR($paramExt) == 1){
-                        $paramExt[1] = $paramExt[0];
-                        $paramExt[0] = " ";
-                    }
-                    if($fullName != $paramExt[1]){
-                        $paramExt[1] = ht::createHint($paramExt[1], $fullName);
-                    }
-                    $paramFields["param_{$paramRec->id}"] = "|*<small>{$paramExt[1]}</small>";
-                    $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol');
-                }
-
-                $fieldsToFilterIfEmpty = array_merge($paramFields, $fieldsToFilterIfEmpty);
-                arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
             }
+        }
+
+        // Ако има намерени планиращи параметри - показват се в таблицата
+        if(countR($plannedParams)){
+            $pQuery = cat_Params::getQuery();
+            $pQuery->in('id', $plannedParams);
+            $paramCache = $pQuery->fetchAll();
+            $data->listFieldsParams = cat_Params::getOrderedArr($paramCache, 'desc');
+
+            // и той има избрани параметри за планиране, добавят се в таблицата
+            $paramFields = array();
+            foreach ($data->listFieldsParams as $paramId){
+                $paramRec = $paramCache[$paramId];
+                $fullName = cat_Params::getVerbal($paramRec, 'typeExt');
+                $paramExt = explode(' » ', $fullName);
+                if(countR($paramExt) == 1){
+                    $paramExt[1] = $paramExt[0];
+                    $paramExt[0] = " ";
+                }
+                if($fullName != $paramExt[1]){
+                    $paramExt[1] = ht::createHint($paramExt[1], $fullName);
+                }
+                $paramFields["param_{$paramRec->id}"] = "|*<small>{$paramExt[1]}</small>";
+                $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol');
+            }
+
+            arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
         }
 
         core_Debug::stopTimer('RENDER_HEADER');
