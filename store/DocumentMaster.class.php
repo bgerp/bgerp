@@ -1348,14 +1348,19 @@ abstract class store_DocumentMaster extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        if ($rec->isReverse == 'no') {
-            if($rec->state == 'active'){
+
+        if($rec->state == 'active'){
+            if ($rec->isReverse == 'no') {
                 if(isset($mvc->reverseClassName)){
                     $ReverseClass = cls::get($mvc->reverseClassName);
                     if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
                         $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
                     }
                 }
+            }
+
+            if(store_ConsignmentProtocols::canBeAddedFromDocument($rec->containerId)){
+                $data->toolbar->addBtn('ПОП', array('store_ConsignmentProtocols', 'add', 'threadId' => $rec->threadId, 'ret_url' => true), "ef_icon=img/16/consignment.png,title=Създаване на нов протокол за отговорно пазене,row=1");
             }
         }
     }
