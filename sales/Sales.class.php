@@ -581,6 +581,10 @@ class sales_Sales extends deals_DealMaster
                 $btnRow = ($paymentType == 'cash') ? 2 : 1;
                 $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ,row={$btnRow}");
             }
+
+            if(store_ConsignmentProtocols::canBeAddedFromDocument($rec->containerId)){
+                $data->toolbar->addBtn('ПОП', array('store_ConsignmentProtocols', 'add', 'threadId' => $rec->threadId, 'ret_url' => true), "ef_icon=img/16/consignment.png,title=Създаване на нов протокол за отговорно пазене,row=1");
+            }
         }
     }
     
