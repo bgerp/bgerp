@@ -1119,22 +1119,24 @@ class planning_Tasks extends core_Master
         }
         $rec->producedQuantity = $producedQuantity;
 
-        // Ако има промяна в прогреса
-        if ($rec->progress != $originalProgress) {
-            $rec->orderByAssetId = null;
-            if ($lastTaskWithProgressId = $this->getPrevOrNextTask($rec, true)) {
-                $orderByAssetId = $this->fetchField($lastTaskWithProgressId, 'orderByAssetId');
-                $rec->orderByAssetId = $orderByAssetId + 0.5;
-            } else {
-                $rec->orderByAssetId = 0.5;
-            }
+        // Ако има промяна в прогреса (само ако не е приключена операцията)
+        if($rec->state != 'closed'){
+            if ($rec->progress != $originalProgress) {
+                $rec->orderByAssetId = null;
+                if ($lastTaskWithProgressId = $this->getPrevOrNextTask($rec, true)) {
+                    $orderByAssetId = $this->fetchField($lastTaskWithProgressId, 'orderByAssetId');
+                    $rec->orderByAssetId = $orderByAssetId + 0.5;
+                } else {
+                    $rec->orderByAssetId = 0.5;
+                }
 
-            if (isset($rec->assetId)) {
-                $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
-            }
+                if (isset($rec->assetId)) {
+                    $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
+                }
 
-            $updateFields .= ',orderByAssetId';
-            $rec->_stopReorder = true;
+                $updateFields .= ',orderByAssetId';
+                $rec->_stopReorder = true;
+            }
         }
 
         // При първо добавяне на прогрес, ако е в заявка - се активира автоматично
@@ -1815,6 +1817,7 @@ class planning_Tasks extends core_Master
             $query->where("#orderByAssetId {$sign} {$rec->orderByAssetId}");
         }
 
+        core_Statuses::newStatus($rec->orderByAssetId);
         return $query->fetch()->id;
     }
 
