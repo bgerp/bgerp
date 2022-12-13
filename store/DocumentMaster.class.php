@@ -1360,6 +1360,10 @@ abstract class store_DocumentMaster extends core_Master
                     }
                 }
             }
+
+            if(store_ConsignmentProtocols::canBeAddedFromDocument($rec->containerId)){
+                $data->toolbar->addBtn('ПОП', array('store_ConsignmentProtocols', 'add', 'threadId' => $rec->threadId, 'ret_url' => true), "ef_icon=img/16/consignment.png,title=Създаване на нов протокол за отговорно пазене,row=1");
+            }
         }
     }
 
