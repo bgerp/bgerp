@@ -1817,7 +1817,6 @@ class planning_Tasks extends core_Master
             $query->where("#orderByAssetId {$sign} {$rec->orderByAssetId}");
         }
 
-        core_Statuses::newStatus($rec->orderByAssetId);
         return $query->fetch()->id;
     }
 
