@@ -143,6 +143,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             ));
         }
 
+
         $invoices = array();
 
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
@@ -219,7 +220,6 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
                 $vatAlocation = self::getVATallocation($sRec);
 
-
             }
 
 //bp($sRec);
@@ -283,7 +283,22 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                     49 => 1,                       // Връзка със склад
                     50 => 1,     //ВЪПРОС          // Дали трябва да има запис в дневника по ДДС
                     51 => 0,                       // Звено по ДДС
-                    52 => '',  // МЕТОД???         //ДО на сделки с ДДС 20% бкл. дист. на територията на страната
+                    52 => $vatAlocation->taxBase20Vat,         // ДО на сделки с ДДС 20% бкл. дист. на територията на страната
+                    53 => $vatAlocation->tax20,         // Начислен ДДС за доставки по колона 52( 20%)
+                    54 => $vatAlocation->taxBase9Vat,          // ДО на сделки с ДДС 9% бкл. дист. на територията на страната
+                    55 => $vatAlocation->tax9,          // Начислен ДДС за доставки по колона 54( 9%)
+                    56 => $vatAlocation->taxBase0Vat,          // ДО на сделки с ДДС 0% бкл. дист. на територията на страната
+                    57 => $vatAlocation->tax0,          // Начислен ДДС за доставки по колона 56( 0%)
+                    58 => '',                           // ДО на доставки по чл.140, 146 и чл.173, ал.1 и 4 от ЗДДС
+                    59 => '',                           // ДО на доставка на услуги по чл.21, ал 3 и чл.24-24 от ЗДДС с място на изпълнение друга държава
+                    60 => '',                           // ДО на доставка на услуги по чл.69, ал 2 от ЗДДС (вкл. ДО за дост. от дист. продажби в друга държава)
+                    61 => '',                           // ДО на освобобените доставки и освободените ВОП, без чл50 т2
+                    62 => '',                           // Доставки по чл. 50 т.2
+                    63 => '',                           // ДО на доставки като посредник в тристранни операции
+                    64 => '',                           // ВОД на стоки, участващи във VIES декларацията
+                    65 => '',                           // ДО на доставки като посредник в тристранна операция, участващи във VIES декларацията
+                    66 => '',                           // Услуги в рамките на ЕС, участващи във VIES декларацията
+                    67 => '',  // ТОДО             // Вид на стоката / услугата
 
 
                 );
@@ -692,35 +707,55 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
 
     /**
-     * Връща начина на плащане за колона 28
+     * Разпределя симите по размер на ДДС: 20%, 9%, 0% и др.
      *
-     * @param stdClass $rec - запис
+     * @param array - запис
      *
      * @return array
      */
     private function getVATallocation($rec)
     {
-        $taxBase20Vat = $taxBase9Vat = $taxBase0Vat = 0;
-        $tax20 = $tax9 = $tax0 = 0;
-
         $vatAllocation = array();
 
-        $detQuery = sales_InvoiceDetails::getQuery();
+            $taxBase20Vat = $taxBase9Vat = $taxBase0Vat = 0;
+            $tax20 = $tax9 = $tax0 = 0;
 
-        $detQuery -> where("#invoiceId = $rec->id");
+            $detQuery = sales_InvoiceDetails::getQuery();
 
-        //Ако няма детайли връщаме празин масив
-        if ($detQuery->count() == 0){
+
+            $detQuery->where("#invoiceId = $rec->id");
+
+            //Ако няма детайли връщаме празин масив
+            if ($detQuery->count() == 0) {
+                return $vatAllocation;
+            }
+
+            while ($detRec = $detQuery->fetch()) {
+                $vatGroup = cat_Products::getVat($detRec->productId, $detRec->createdOn);
+
+                switch ($vatGroup) {
+
+                    case '0.2' :
+                        $tax20 += $detRec->amount * $vatGroup;
+                        $taxBase20Vat += $detRec->amount;
+                        break;
+                    case '0.09' :
+                        $tax9 += $detRec->amount * $vatGroup;
+                        $taxBase9Vat += $detRec->amount;
+                        break;
+                    case '0' :
+                        $tax0 += $detRec->amount * $vatGroup;
+                        $taxBase0Vat += $detRec->amount;
+                        break;
+                }
+
+
+            }
+            $vatAllocation = (object)array('taxBase20Vat' => $taxBase20Vat, 'tax20' => $tax20,
+                'taxBase9Vat' => $taxBase9Vat, 'tax9' => $tax9,
+                'taxBase0Vat' => $taxBase0Vat, 'tax0' => $tax0
+            );
+
             return $vatAllocation;
-        }
-
-        while ($detRec = $detQuery->fetch()){
-
-            bp($detRec,cat_Products::getVat($detRec->productId));
-        }
-
-
-        bp($rec,$detQuery->count());
-
     }
 }
