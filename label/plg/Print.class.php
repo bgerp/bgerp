@@ -103,14 +103,19 @@ class label_plg_Print extends core_Plugin
             // Прави се опит за печат от периферията
             $interface = core_Cls::getInterface('peripheral_BrowserPrinterIntf', $deviceRec->driverClass);
 
+            $responseUrl = array($mvc, 'printfastlabelresponse', $rec->id, 'ret_url' => getRetUrl(), 'hash' => $hash);
+            $refreshUrl = Request::get('refreshUrl');
+            if ($refreshUrl) {
+                $responseUrl['refreshUrl'] = $refreshUrl;
+            }
+
             $html = $interface->getHTML($deviceRec, $labelContent);
             $js = $interface->getJS($deviceRec, $labelContent);
-            $js .= $interface->afterResultJS($deviceRec, $labelContent, array($mvc, 'printfastlabelresponse', $rec->id, 'ret_url' => getRetUrl(), 'hash' => $hash));
+            $js .= $interface->afterResultJS($deviceRec, $labelContent, $responseUrl);
 
             $js = minify_Js::process($js);
 
             if (Request::get('ajax_mode')) {
-
                 // Добавяме резултата
                 $resObj = new stdClass();
                 $resObj->func = 'printPage';
@@ -118,6 +123,8 @@ class label_plg_Print extends core_Plugin
 
                 $res = array($resObj);
             }
+
+            Mode::setPermanent('PREV_SAVED_ID', null);
 
             return false;
         }
@@ -185,6 +192,19 @@ class label_plg_Print extends core_Plugin
             $afterPrint->arg = array('timeOut' => 700);
 
             $res =  array($statusObj, $afterPrint);
+
+            if ($refreshUrl = Request::get('refreshUrl')) {
+                status_Messages::newStatus($msg, $statusData['type']);
+
+                $res = array();
+
+                // Добавяме резултата
+                $redirectObj = new stdClass();
+                $redirectObj->func = 'redirect';
+                $redirectObj->arg = array('url' => $refreshUrl);
+
+                $res[] = $redirectObj;
+            }
 
             return false;
         }
@@ -347,6 +367,38 @@ class label_plg_Print extends core_Plugin
         } elseif ($mvc instanceof core_Detail) {
             $rec = $mvc->fetchRec($id);
             $res = $mvc->Master->getFormTitleLink($rec->{$mvc->masterKey});
+        }
+    }
+
+
+    /**
+     * Изпълнява се след запис/промяна на роля
+     */
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
+    {
+        if (cls::getClassName($mvc) . '_SAVE_AND_NEW') {
+            Mode::setPermanent('PREV_SAVED_ID', $rec->id);
+        }
+    }
+
+
+    /**
+     *
+     *
+     * @param $invoker
+     * @param $tpl
+     */
+    public function on_AfterRenderWrapping($invoker, &$tpl)
+    {
+        if ($invoker->_isSaveAndNew && ($prevSavedId = Mode::get('PREV_SAVED_ID'))) {
+            if (label_Setup::get('AUTO_PRINT_AFTER_SAVE_AND_NEW') == 'yes') {
+                if ($invoker->haveRightFor('printperipherallabel', $prevSavedId)) {
+                    $lUrl = toUrl(array($invoker, 'printperipherallabel', $prevSavedId, 'refreshUrl' => toUrl(getCurrentUrl())), 'local');
+                    $lUrl = urlencode($lUrl);
+
+                    jquery_Jquery::run($tpl, "getEfae().process({url: '{$lUrl}'});", TRUE);
+                }
+            }
         }
     }
 }

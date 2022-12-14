@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Автоматично отпечатване след "Запис и Нов"
+ */
+defIfNot('LABEL_AUTO_PRINT_AFTER_SAVE_AND_NEW', 'no');
+
 
 /**
  * Инсталиране/Деинсталиране на
@@ -68,6 +73,14 @@ class label_Setup extends core_ProtoSetup
         array('labelMaster', 'label'),
         array('seeLabelAll', 'seeLabel'),
         array('seeLabelAllGlobal', 'seeLabelAll'),
+    );
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'LABEL_AUTO_PRINT_AFTER_SAVE_AND_NEW' => array('enum(no=Не,yes=Да)', 'caption=Автоматично отпечатване след "Запис и Нов"->Избор,customizeBy=label'),
     );
     
     

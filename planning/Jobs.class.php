@@ -46,7 +46,7 @@ class planning_Jobs extends core_Master
      *
      * @see planning_plg_StateManager
      */
-    public $demandReasonChangeState = 'stop,wakeup';
+    public $demandReasonChangeState = 'stop,wakeup,activateAgain';
 
     
     /**
@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureQuantity';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureQuantity,productViewCacheDate';
 
 
     /**
@@ -237,7 +237,7 @@ class planning_Jobs extends core_Master
     /**
      * Описание на модела (таблицата)
      */
-    public function description()
+    public function  description()
     {
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|quantity|oldJobId');
         $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none');
@@ -275,6 +275,7 @@ class planning_Jobs extends core_Master
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
         $this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,autohide');
         $this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
+        $this->FLD('productViewCacheDate', 'datetime(format=smartTime)', 'caption=Към коя дата е кеширан изгледа на артикула,input=none');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('oldJobId');
@@ -991,11 +992,13 @@ class planning_Jobs extends core_Master
                 $row->pBomId = cat_Boms::getLink($pBomId, 0);
             }
 
-            $useFieldForDateCache = planning_Setup::get('JOB_USE_DATE_FIELD_FOR_PRODUCT_CACHE');
-            $date = ($rec->state == 'draft') ? null : (!empty($rec->{$useFieldForDateCache}) ? $rec->{$useFieldForDateCache} : $rec->modifiedOn);
+            $date = ($rec->state == 'draft') ? null : (!empty($rec->productViewCacheDate) ? $rec->productViewCacheDate : $rec->modifiedOn);
+            if(!empty($date)){
+                $row->title = ht::createHint($row->title, "Описанието на артикула е към дата|*: {$mvc->getFieldType('productViewCacheDate')->toVerbal($date)}");
+            }
             $lg = core_Lg::getCurrent();
             $row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'job', $lg);
-            
+
             if (isset($rec->department)) {
                 $row->department = planning_Centers::getHyperlink($rec->department, true);
             }
@@ -1158,6 +1161,9 @@ class planning_Jobs extends core_Master
                 }
             }
         }
+
+        $rec->productViewCacheDate = dt::now();
+        $mvc->save_($rec, 'productViewCacheDate');
     }
     
     
@@ -1206,9 +1212,15 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
+        $updateFields = array('history');
+        if($rec->_updateProductParams == 'yes'){
+            $rec->productViewCacheDate = dt::now();
+            $updateFields[] = 'productViewCacheDate';
+        }
+
         // Записваме в историята действието
         self::addToHistory($rec->history, $action, $rec->modifiedOn, $rec->modifiedBy, $rec->_reason);
-        $mvc->save_($rec, 'history');
+        $mvc->save_($rec, $updateFields);
         
         // Ако заданието е затворено, затваряме и задачите към него
         if($rec->state == 'stopped' || ($rec->brState == 'stopped' && $rec->state == 'active')){
@@ -1228,7 +1240,7 @@ class planning_Jobs extends core_Master
                 core_Statuses::newStatus("{$msg} са|* {$syncedCountVerbal} |операции|*!");
             }
         }
-        
+
         doc_Containers::touchDocumentsByOrigin($rec->containerId);
     }
     
@@ -2132,6 +2144,20 @@ class planning_Jobs extends core_Master
                 $saleRec = sales_Sales::fetch($data->form->rec->saleId, 'id,threadId,containerId');
                 $data->retUrl = $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $saleRec->id, 'threadId' => $saleRec->threadId, 'foreignId' => $saleRec->containerId, 'ret_url' => getRetUrl());
             }
+        }
+    }
+
+
+    /**
+     * След подготовка на формата за изискване на основание за промяна на състоянието
+     */
+    protected static function on_AfterGetDemandReasonFormForChange($mvc, &$form, $action, $rec)
+    {
+        // При събуждане и пускане да се изисква потребителя да посочи да се опреснят ли параметрите на артикула
+        if(in_array($action, array('wakeup', 'activateAgain'))){
+            $form->FLD('updateProductParams', 'enum(yes=Да,no=Не)', 'caption=Обновяване на параметрите на артикула в заданието->Избор,maxRadio=2,mandatory');
+            $defaultUpdateProductParams = planning_Setup::get('JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE');
+            $form->setDefault('updateProductParams', $defaultUpdateProductParams);
         }
     }
 }

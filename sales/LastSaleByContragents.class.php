@@ -192,12 +192,14 @@ class sales_LastSaleByContragents extends core_Manager
         if(!isset($mvc->mainDetail)) return;
 
         // има ли ид-та на артикулите в детайла
-        $masterRec = $mvc->fetchRec($masterRec);
         $Detail = cls::get($mvc->mainDetail);
+        if(!isset($Detail->productFld)) return;
+
+        $masterRec = $mvc->fetchRec($masterRec);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$masterRec->id}");
-        $dQuery->show($Detail->productFieldName);
-        $pIds = arr::extractValuesFromArray($dQuery->fetchAll(), $Detail->productFieldName);
+        $dQuery->show($Detail->productFld);
+        $pIds = arr::extractValuesFromArray($dQuery->fetchAll(), $Detail->productFld);
         if(!countR($pIds)) return;
 
         sales_LastSaleByContragents::updateDates($pIds,  $masterRec->folderId);
