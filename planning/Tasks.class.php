@@ -2633,10 +2633,19 @@ class planning_Tasks extends core_Master
 
         $assetId = Request::get('assetId');
         if (!empty($assetId)) {
+            if(strpos($assetId, '_') !== false){
+                // по неясни причини от някъде идва с хеш за това колкото да работи се маха
+                list($assetId,) = explode('_', $assetId);
+            }
             $mQuery->where("#assetId = {$assetId}");
         }
+
         $folderId = Request::get('folderId');
         if (!empty($folderId)) {
+            if(strpos($folderId, '_') !== false){
+                // по неясни причини от някъде идва с хеш за това колкото да работи се маха
+                list($folderId,) = explode('_', $folderId);
+            }
             $mQuery->where("#folderId = {$folderId}");
         }
 
