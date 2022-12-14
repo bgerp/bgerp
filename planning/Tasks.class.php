@@ -2634,11 +2634,20 @@ class planning_Tasks extends core_Master
 
         $assetId = Request::get('assetId');
         if (!empty($assetId)) {
-            $mQuery->where("#assetId = {$assetId}");
+            if(strpos($assetId, '_') !== false){
+                // по неясни причини от някъде идва с хеш за това колкото да работи се маха
+                list($assetId,) = explode('_', $assetId);
+            }
+            $mQuery->where(array("#assetId = [#1#]"), $assetId);
         }
+
         $folderId = Request::get('folderId');
         if (!empty($folderId)) {
-            $mQuery->where("#folderId = {$folderId}");
+            if(strpos($folderId, '_') !== false){
+                // по неясни причини от някъде идва с хеш за това колкото да работи се маха
+                list($folderId,) = explode('_', $folderId);
+            }
+            $mQuery->where(array("#folderId = [#1#]", $folderId));
         }
 
         $rememberedTask = Mode::get('rememberedTask');
