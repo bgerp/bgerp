@@ -30,7 +30,7 @@ class cond_type_Text extends cond_type_abstract_Proto
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('rows', 'int', 'caption=Конкретизиране->Редове,before=default');
+        $fieldset->FLD('rows', 'int(min=1)', 'caption=Конкретизиране->Редове,before=default');
     }
     
     

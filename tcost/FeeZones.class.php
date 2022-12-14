@@ -202,7 +202,7 @@ class tcost_FeeZones extends core_Master
                 $multiplier *= 1000;
             }
 
-            // Ако има тегло и има стойност за над и теглото е под нея, няма да се сметя обемното тегло
+            // Ако има тегло и има стойност за над и теглото е под нея, няма да се смята обемното тегло
             if(!empty($weight) && isset($zoneRec->volume2quantityValidForAbove) && $weight <= $zoneRec->volume2quantityValidForAbove){
 
                 return $weight;
@@ -233,7 +233,7 @@ class tcost_FeeZones extends core_Master
         $toCountry = $params['deliveryCountry'];
         $toPostalCode = $params['deliveryPCode'];
         
-        // Определяне на зоната на транспорт, за зададеното условие на доставка
+        // Определяне на зоната на транспорт за зададеното условие на доставка
         $singleWeight = $volumicWeight;
         
         // Ако няма, цената няма да може да се изчисли
@@ -320,7 +320,7 @@ class tcost_FeeZones extends core_Master
         // Вземаме съответстващата форма на този модел
         $form = cls::get('core_Form');
         $form->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName,allowEmpty)', 'caption=Условие на доставка, mandatory');
-        $form->FLD('countryId', 'key(mvc = drdata_Countries, select=commonName,allowEmpty)', 'caption=Държава, mandatory,smartCenter');
+        $form->FLD('countryId', 'key(mvc = drdata_Countries, select=commonName,selectBg=commonNameBg, allowEmpty)', 'caption=Държава, mandatory,smartCenter');
         $form->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
         $form->FLD('singleWeight', 'double(Min=0)', 'caption=Единично тегло,mandatory');
         $form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.,mandatory');

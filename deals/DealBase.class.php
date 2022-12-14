@@ -836,7 +836,12 @@ abstract class deals_DealBase extends core_Master
         
         if ($form->isSubmitted()) {
             $fRec = $form->rec;
-            $this->recalcDocumentsWithNewRate($rec, $fRec->newRate);
+            try{
+                $this->recalcDocumentsWithNewRate($rec, $fRec->newRate);
+            } catch(acc_journal_RejectRedirect $e){
+                $url = $this->getSingleUrlArray($rec->id);
+                redirect($url, false, '|*Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
+            }
 
             followRetUrl(null, 'Документите са преизчислени успешно');
         }
@@ -975,6 +980,7 @@ abstract class deals_DealBase extends core_Master
 
         // Ако има намерени сделки
         $now = dt::now();
+        $lastCalcedWithDiff = dt::addSecs(5, $now);
         $query = $this->getQuery();
         $query->in('id', $dealIds);
         $updateRecs = array();
@@ -982,8 +988,15 @@ abstract class deals_DealBase extends core_Master
 
             // Осредняване на курса
             if($averageRate =  $this->getAverageRateInThread($rec)){
-                $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                $rec->lastAutoRecalcRate = $now;
+                try{
+                    $this->recalcDocumentsWithNewRate($rec, $averageRate);
+                } catch(core_exception_Expect $e){
+                    $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
+                    $this->logErr($errorMsg, $rec->id);
+                    continue;
+                }
+
+                $rec->lastAutoRecalcRate = $lastCalcedWithDiff;
                 $updateRecs[$rec->id] = $rec;
             }
         }

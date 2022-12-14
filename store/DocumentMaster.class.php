@@ -821,9 +821,11 @@ abstract class store_DocumentMaster extends core_Master
 
         if($res["{$ownPart}Person"]){
             $personId = crm_Profiles::getPersonByUser($toPersonId);
-            $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
-            if(!empty($buzPhones)){
-                $res["{$ownPart}PersonPhones"] = $buzPhones;
+            if(isset($personId)){
+                $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+                if(!empty($buzPhones)){
+                    $res["{$ownPart}PersonPhones"] = $buzPhones;
+                }
             }
         }
 
@@ -836,6 +838,7 @@ abstract class store_DocumentMaster extends core_Master
 
         // Данните за разтоварване от ЕН-то са с приоритет
         if (!empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) {
+
             $res["{$contrPart}Country"] = !empty($rec->country) ? drdata_Countries::fetchField($rec->country, 'commonName') : null;
             $res["{$contrPart}PCode"] = !empty($rec->pCode) ? $rec->pCode : null;
             $res["{$contrPart}Place"] = !empty($rec->place) ? $rec->place : null;
@@ -843,6 +846,7 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$contrPart}Company"] = !empty($rec->company) ? $rec->company : $contragentData->company;
             $res["{$contrPart}Person"] = !empty($rec->person) ? $rec->person : $contragentData->person;
             $res["{$contrPart}AddressInfo"] = !empty($rec->addressInfo) ? $rec->addressInfo : null;
+            $res["{$contrPart}PersonPhones"] = !empty($rec->tel) ? $rec->tel : null;
             $res["{$contrPart}AddressFeatures"] = !empty($rec->features) ? $rec->features : null;
         } elseif (isset($rec->locationId)) {
             $res["{$contrPart}Country"] = !empty($contragentLocation->countryId) ? drdata_Countries::fetchField($contragentLocation->countryId, 'commonName') : null;
@@ -1346,14 +1350,19 @@ abstract class store_DocumentMaster extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        if ($rec->isReverse == 'no') {
-            if($rec->state == 'active'){
+
+        if($rec->state == 'active'){
+            if ($rec->isReverse == 'no') {
                 if(isset($mvc->reverseClassName)){
                     $ReverseClass = cls::get($mvc->reverseClassName);
                     if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
                         $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
                     }
                 }
+            }
+
+            if(store_ConsignmentProtocols::canBeAddedFromDocument($rec->containerId)){
+                $data->toolbar->addBtn('ПОП', array('store_ConsignmentProtocols', 'add', 'threadId' => $rec->threadId, 'ret_url' => true), "ef_icon=img/16/consignment.png,title=Създаване на нов протокол за отговорно пазене,row=1");
             }
         }
     }
@@ -1382,7 +1391,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @return array
      */
-    public function getDetailsToCloneAndChange($rec, &$Detail)
+    public function getDetailsToCloneAndChange_($rec, &$Detail)
     {
         $Detail = cls::get($this->mainDetail);
         $id = $rec->clonedFromId;

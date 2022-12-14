@@ -81,7 +81,7 @@ class plg_Clone extends core_Plugin
         
         // Генерираме събитие в $this, след въвеждането на формата
         $mvc->invoke('AfterInputEditForm', array($form));
-        
+
         // Ако формата е изпратена без грешки
         if ($form->isSubmitted()) {
             

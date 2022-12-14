@@ -37,7 +37,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
     
     
     /**
@@ -162,7 +162,7 @@ class cat_BomDetails extends doc_Detail
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate|labelType');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelType', 'enum(scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
@@ -1105,43 +1105,50 @@ class cat_BomDetails extends doc_Detail
             
             return;
         }
-        
+
         // Подреждаме детайлите
         $outArr = array();
         self::orderBomDetails($data->recs, $outArr);
         $data->recs = $outArr;
     }
-    
-    
+
+
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * Ако няма записи не вади таблицата
      */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         $hasSameQuantities = true;
-        
-        if (is_array($data->recs)) {
-            foreach ($data->recs as $id => &$rec) {
+        if (is_array($data->rows)) {
+
+            // Колко е най-голямото закръгляне на използваните мерки
+            $usedMeasures = arr::extractValuesFromArray($data->recs, 'packagingId');
+            $maxDecimals = cat_UoM::getMaxRound($usedMeasures);
+
+            $Double = core_Type::getByName("double(decimals={$maxDecimals})");
+            foreach ($data->rows as $id => &$row) {
+                $rec = $data->recs[$id];
                 if ($rec->parentId) {
                     if ($rec->rowQuantity != cat_BomDetails::CALC_ERROR) {
                         if ($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR) {
                             $rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
-                            $data->rows[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
                         }
                     }
                 }
-                
+
                 if ($rec->rowQuantity != $rec->propQuantity) {
                     $hasSameQuantities = false;
                 }
+
+                $row->rowQuantity = $Double->toVerbal($rec->rowQuantity);
             }
         }
-        
+
         // Ако формулите и изчислените к-ва са равни, показваме само едната колонка
         if ($hasSameQuantities === true) {
             unset($data->listFields['propQuantity']);
         }
-        
+
         unset($data->listFields['coefficient']);
     }
     

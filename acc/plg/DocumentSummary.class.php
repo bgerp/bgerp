@@ -363,7 +363,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $userIds = keylist::toArray($filter->users);
                 
                 // Ако не се търси по всички
-                if (!$userIds[-1]) {
+                if ($usedUsers != 'all_users') {
                     $userArr = implode(',', $userIds);
                    
                     if(in_array($filter->filterDateField, $userFields)){
@@ -499,6 +499,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
+        core_Debug::startTimer('RENDER_SUMMARY');
         // Ако няма заявка, да не се изпълнява
         if (!$data->listSummary->query) {
             
@@ -525,8 +526,6 @@ class acc_plg_DocumentSummary extends core_Plugin
             self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
         }
         
-        $Double = cls::get('type_Double', array('params' => array('decimals' => 0)));
-        
         // Преброяване на черновите документи
         $activeQuery = clone $data->listSummary->query;
         $pendingQuery = clone $data->listSummary->query;
@@ -534,17 +533,20 @@ class acc_plg_DocumentSummary extends core_Plugin
         $draftCount = $data->listSummary->query->count();
         
         // Преброяване на активираните/затворени документи
-        $activeQuery->where("#state = 'active' OR #state = 'closed'");
+        $activeQuery->where("#state IN ('active', 'closed')");
+        $activeQuery->show('id');
         $activeCount = $activeQuery->count();
         
         // Преброяване на заявките
         $pendingQuery->where("#state = 'pending'");
+        $pendingQuery->show('id');
         $pendingCount = $pendingQuery->count();
         
         // Добавяне в обобщението на броя активирани и броя чернови документи
         $data->listSummary->summary['countA'] = (object) array('caption' => "<span style='float:right'>" . tr('Активирани') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $activeCount);
         $data->listSummary->summary['countC'] = (object) array('caption' => "<span style='float:right'>" . tr('Заявки') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object) array('caption' => "<span style='float:right'>" . tr('Чернови') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $draftCount);
+        core_Debug::stopTimer('RENDER_SUMMARY');
     }
     
     
