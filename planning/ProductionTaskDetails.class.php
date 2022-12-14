@@ -185,7 +185,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Добавяне на последните данни за дефолтни
         $masterRec = planning_Tasks::fetch($rec->taskId);
         if ($masterRec->state == 'closed') {
-            $form->info = new core_ET(tr("|*<div class='richtext-message richtext-warning'><br>|Въвеждате прогрес в приключена операция|*!</div>"));
+            $form->info = new core_ET(tr("|*<div class='richtext-message richtext-warning'><br>|Въвеждате прогрес в приключена операция|*!<br><br></div>"));
         }
 
 
