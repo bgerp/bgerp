@@ -2469,21 +2469,21 @@ class planning_Tasks extends core_Master
         // Кои ще са планиращите параметри
         $plannedParams = array();
 
-        // Ако има филтрирано оборудване - тези от избраното оборудване (ако то няма от групата му)
+        // Ако има избрано оборудване добавят се параметрите от него и от групата му
         if (isset($data->listFilter->rec->assetId)) {
             $assetRec = planning_AssetResources::fetch($data->listFilter->rec->assetId, 'planningParams,groupId');
-            $plannedParams = $assetRec->planningParams;
+            $plannedParams += keylist::toArray($assetRec->planningParams);
             if (empty($plannedParams)) {
-                $plannedParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
+                $groupParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
+                $plannedParams += keylist::toArray($groupParams);
             }
-            $plannedParams = keylist::toArray($plannedParams);
         }
 
-        // Ако няма избрани параметри от оборудването и групата - тогава се търсят от центъра на дейност
-        if (empty($plannedParams) && isset($data->listFilter->rec->folder)) {
+        // Ако има избран център - тези параметри от тях
+        if (isset($data->listFilter->rec->folder)) {
             $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
             if ($Cover->isInstanceOf('planning_Centers')) {
-                $plannedParams = keylist::toArray($Cover->fetchField('planningParams'));
+                $plannedParams += keylist::toArray($Cover->fetchField('planningParams'));
             }
         }
 
