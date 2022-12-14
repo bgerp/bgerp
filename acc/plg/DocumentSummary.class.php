@@ -533,12 +533,13 @@ class acc_plg_DocumentSummary extends core_Plugin
         $draftCount = $data->listSummary->query->count();
         
         // Преброяване на активираните/затворени документи
-        $activeQuery->setUnion("#state = 'active'");
-        $activeQuery->setUnion("#state = 'closed'");
+        $activeQuery->where("#state IN ('active', 'closed')");
+        $activeQuery->show('id');
         $activeCount = $activeQuery->count();
         
         // Преброяване на заявките
         $pendingQuery->where("#state = 'pending'");
+        $pendingQuery->show('id');
         $pendingCount = $pendingQuery->count();
         
         // Добавяне в обобщението на броя активирани и броя чернови документи
