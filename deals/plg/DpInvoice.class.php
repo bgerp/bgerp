@@ -179,13 +179,19 @@ class deals_plg_DpInvoice extends core_Plugin
 
         $dpByVats = $form->dealInfo->get('downpaymentAccruedByVats');
         if(countR($dpByVats)){
-            if(in_array($rec->vatRate, array('yes', 'separate'))) {
-                $form->setField('dpVatGroupId','removeAndRefreshForm=amountAccrued|amountDeducted');
-                $form->setDefault('dpVatGroupId', key($dpByVats));
-            }
-            $invoicedDp = $dpByVats[$form->rec->dpVatGroupId];
+            $dpVatGroupId =  isset($form->rec->dpVatGroupId) ? $form->rec->dpVatGroupId : key($dpByVats);
+
+            $invoicedDp = $dpByVats[$dpVatGroupId];
             $dpDeductedByVats = $form->dealInfo->get('downpaymentDeductedByVats');
-            $deductedDp = $dpDeductedByVats[$form->rec->dpVatGroupId];
+            $deductedDp = $dpDeductedByVats[$dpVatGroupId];
+
+            if(in_array($rec->vatRate, array('yes', 'separate'))) {
+                if(($invoicedDp - $deductedDp) > 0){
+                    $form->setField('dpVatGroupId','removeAndRefreshForm=amountAccrued|amountDeducted');
+                    $form->setDefault('dpVatGroupId', key($dpByVats));
+                }
+            }
+
         } else {
             $invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
             $deductedDp = $form->dealInfo->get('downpaymentDeducted');

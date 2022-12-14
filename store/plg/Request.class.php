@@ -69,12 +69,14 @@ class store_plg_Request extends core_Plugin
         core_Request::setProtected('showDiff');
         $showDiff = Request::get('showDiff', 'int');
         if (empty($showDiff)) return;
-        
+
         $Detail = cls::get($mvc->mainDetail);
         $arr = $Detail->getUndeliveredDetails($rec->clonedFromId);
-        
+
         if (countR($arr)) {
             $res = $arr;
+
+            return false;
         }
     }
 }

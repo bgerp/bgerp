@@ -821,9 +821,11 @@ abstract class store_DocumentMaster extends core_Master
 
         if($res["{$ownPart}Person"]){
             $personId = crm_Profiles::getPersonByUser($toPersonId);
-            $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
-            if(!empty($buzPhones)){
-                $res["{$ownPart}PersonPhones"] = $buzPhones;
+            if(isset($personId)){
+                $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+                if(!empty($buzPhones)){
+                    $res["{$ownPart}PersonPhones"] = $buzPhones;
+                }
             }
         }
 
@@ -1389,7 +1391,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @return array
      */
-    public function getDetailsToCloneAndChange($rec, &$Detail)
+    public function getDetailsToCloneAndChange_($rec, &$Detail)
     {
         $Detail = cls::get($this->mainDetail);
         $id = $rec->clonedFromId;

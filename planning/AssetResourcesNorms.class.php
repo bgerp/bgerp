@@ -83,7 +83,7 @@ class planning_AssetResourcesNorms extends core_Manager
     {
         $this->FLD('objectId', 'int', 'caption=Оборудване/Група,mandatory,silent,input=hidden,tdClass=leftCol');
         $this->FLD('classId', 'class', 'caption=Клас,mandatory,silent,input=hidden');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=indTime');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=indTime,class=w100');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма,smartCenter,mandatory');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Опаковка,smartCenter,input=hidden');
         $this->FLD('quantityInPack', 'double', 'input=hidden');
@@ -183,9 +183,7 @@ class planning_AssetResourcesNorms extends core_Manager
         $form = &$data->form;
         $rec = $form->rec;
 
-        // Добавяне само на вложимите услуги
-        $productOptions = cat_Products::getByProperty('canConvert', 'canStore');
-        $form->setOptions('productId', array('' => '') + $productOptions);
+        $form->setFieldTypeParams('productId', array('hasProperties' => 'canConvert', 'hasnotProperties' => 'canStore', 'driverId' => cat_GeneralProductDriver::getClassId()));
         $form->setSuggestions('limit', array('' => '', '1' => '1'));
 
         if(isset($rec->productId)){

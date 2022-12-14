@@ -3,8 +3,11 @@
     <div class="info-table">
         <h2 style='line-height:30px' class='[#STATE_CLASS#]'>|Вид|* <b style="color:green;">[#name#]</b></h2>
             <div><span class="quiet" style="margin-bottom:5px;">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
-            <div style="margin-bottom: 20px;"><span class="quiet">|Допустимост в производствени операции|*:</span> [#showInPlanningTasks#]</div>
-        <div>
+            <div><span class="quiet">|Допустимост в производствени операции|*:</span> [#showInPlanningTasks#]</div>
+        <!--ET_BEGIN planningParams-->
+        <div><span class="quiet">|Планиращи параметри|*:</span> [#planningParams#]</div>
+        <!--ET_END planningParams-->
+        <div style="margin-top:20px">
            [#planning_AssetResources#]
            [#addAssetBtn#]
            </div>
