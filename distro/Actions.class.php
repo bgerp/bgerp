@@ -638,7 +638,22 @@ class distro_Actions extends embed_Manager
             if (!$rec->OnlyCallback) {
                 $driverInst = $mvc->getDriver($rec);
                 if ($driverInst) {
-                    $command = $driverInst->getActionStr($rec);
+                    try {
+                        $command = $driverInst->getActionStr($rec);
+                    } catch (core_exception_Expect $e) {
+                        if ($rec->createdBy != core_Users::getCurrent()) {
+                            $driverInst = $mvc->getDriver($rec);
+
+                            $title = $driverInst ? mb_strtolower($driverInst->title) : 'действие';
+
+                            status_Messages::newStatus('|Грешка при|* |' . $title, 'error');
+                        }
+
+                        $mvc->notifyErr($rec);
+
+                        return ;
+                    }
+
                     if ($rec->repoId) {
                         $errExec = $mvc::getErrHandleExec($rec->id, $rec->repoId);
                         

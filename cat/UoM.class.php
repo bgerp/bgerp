@@ -726,4 +726,25 @@ class cat_UoM extends core_Manager
         
         return array_key_exists($uomId, $kgUoms);
     }
+
+
+    /**
+     * Колко е най-големия брой десетични знаци за показване от посочените мерки
+     *
+     * @param array $packagings - мерки
+     * @return null|int - най-голям брой цифри за показване след десетичния знак
+     */
+    public static function getMaxRound($packagings)
+    {
+        // Колко е най-голямото закръгляне на използваните мерки
+        $usedMeasures = arr::make($packagings, true);
+        if(!countR($usedMeasures)) return null;
+
+        $uQuery = cat_UoM::getQuery();
+        $uQuery->XPR('maxDecimals', 'double', 'MAX(#round)');
+        $uQuery->in('id', $usedMeasures);
+        $uQuery->show('maxDecimals');
+
+        return  $uQuery->fetch()->maxDecimals;
+    }
 }

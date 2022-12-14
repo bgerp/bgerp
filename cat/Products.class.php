@@ -659,6 +659,21 @@ class cat_Products extends embed_Manager
             if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $rec->id, $metaError)) {
                 $form->setError('meta', $metaError);
             }
+
+            if(isset($rec->id)){
+                $jobArr = array();
+                $jQuery = planning_Jobs::getQuery();
+                $jQuery->where("#productId = {$rec->id} AND #state IN ('active', 'stopped', 'wakeup')");
+                $jQuery->show('id');
+                while($jRec = $jQuery->fetch()){
+                    $jobArr[$jRec->id] = planning_Jobs::getLink($jRec->id, 0)->getContent();
+                }
+
+                if(countR($jobArr)){
+                    $jobString = implode(',', $jobArr);
+                    $form->setWarning('name', "Артикулът се използва в|*: {$jobString}<br>|За да се отрази промяната в заданията, те трябва да бъдат спрени (бутон „Пауза“) и пуснати отново|*!");
+                }
+            }
         }
     }
     
@@ -3187,7 +3202,11 @@ class cat_Products extends embed_Manager
         if (!countR($components)) {
             return;
         }
-        
+
+        $measureArr = arr::extractValuesFromArray($components, '_measureId');
+        $maxDecimals = cat_UoM::getMaxRound($measureArr);
+        $Double = core_Type::getByName("double(decimals={$maxDecimals})");
+
         $compTpl = getTplFromFile('cat/tpl/Components.shtml');
         $block = $compTpl->getBlock('COMP');
         foreach ($components as $obj) {
@@ -3197,8 +3216,6 @@ class cat_Products extends embed_Manager
             } else {
                 $obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
                 $quantity = $obj->quantity / $obj->divideBy;
-                
-                $Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
                 $obj->quantity = $Double->toVerbal($quantity);
             }
             
@@ -3319,6 +3336,7 @@ class cat_Products extends embed_Manager
                 
                 $obj->title = cat_Products::getTitleById($dRec->resourceId);
                 $obj->measureId = $row->packagingId;
+                $obj->_measureId = $dRec->packagingId;
                 $obj->quantity = $dRec->rowQuantity;
                 
                 $obj->level = substr_count($obj->code, '.');

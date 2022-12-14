@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class cvc_interface_CourierImpl extends core_BaseClass
+class cvc_interface_CourierImpl extends core_Manager
 {
     /**
      * Роли по дефолт, които изисква драйвера
@@ -44,6 +44,12 @@ class cvc_interface_CourierImpl extends core_BaseClass
      * Иконка за бутон за създаване на товарителница
      */
     public $requestBillOfLadingBtnIcon = 'img/16/cvc.png';
+
+
+    /**
+     * Кой може да взима опциите от стринг
+     */
+    public $canGetplacesbystring = 'cvc,ceo';
 
 
     /**
@@ -118,7 +124,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
 
         $form->FLD('recipientCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,silent,removeAndRefreshForm=recipientPcode|recipientPlace|recipientAddress|recipientAddressNum|recipientEntrance|recipientFloor|recipientApp');
         $form->FLD('recipientPcode', 'varchar','caption=Доставка->Населено място,class=w25,placeholder=П.К');
-        $form->FLD('recipientPlace', 'varchar','caption=Доставка->-,class=w75,placeholder=Наименование,inlineTo=recipientPcode');
+        $form->FLD('recipientPlace', 'varchar','caption=Доставка->-,class=w75,placeholder=Наименование,inlineTo=recipientPcode,autocomplete=off');
         $form->FLD('recipientAddress', 'varchar','caption=Доставка->Адрес,class=w50,placeholder=Наименование');
         $form->FLD('recipientAddressNum', 'varchar(size=3)','caption=Доставка->-,class=w10,placeholder=Номер,inlineTo=recipientAddress');
         $form->FLD('recipientEntrance', 'varchar(size=3)','caption=Доставка->->Вход,class=w10,placeholder=Вход');
@@ -297,6 +303,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
         $phone = $phones[0]->original;
         $form->setDefault('senderName', $profile->name);
         $form->setDefault('senderPhone', $phone);
+        $form->setDefault('totalWeight', $logisticData['totalWeight']);
     }
 
 
@@ -351,7 +358,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
                 if(mb_strlen($rec->recipientPlace) < 3){
                     $form->setError('recipientPlace', "Населеното място трябва да има минимум три символа|*!");
                 } else {
-                    $foundPlaces = static::getPlacesByString($rec->recipientPlace, $rec->recipientCountryId);
+                    $foundPlaces = static::getPlacesByString($rec->recipientPlace, $rec->recipientCountryId, $rec->recipientPcode);
 
                     // Проверка на мястото за доставка
                     $foundPlacesCount = countR($foundPlaces);
@@ -380,11 +387,12 @@ class cvc_interface_CourierImpl extends core_BaseClass
      * @param int $ourCountry
      * @return array|false
      */
-    private static function getPlacesByString($string, $ourCountry)
+    private static function getPlacesByString($string, $ourCountry, $pCode)
     {
         try{
             $theirCountryId = cvc_Adapter::getCountryIdByName($ourCountry);
-            return cvc_Adapter::getCities($string, $theirCountryId);
+
+            return cvc_Adapter::getCity($string, $pCode, $theirCountryId);
 
         } catch(core_exception_Expect $e){
 
@@ -470,6 +478,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
     public function calculateShipmentTpl($mvc, $documentRec, &$form)
     {
         $haveError = false;
+        $res = null;
         try{
             $preparedBolParams = static::prepareBolData($form->rec, 'calculate');
 
@@ -477,7 +486,6 @@ class cvc_interface_CourierImpl extends core_BaseClass
             $preparedBolParams['description'] = 'Тестване на АПИ - да не се изпълнява';
 
             $res = cvc_Adapter::calculateWb($preparedBolParams);
-            sleep(1);
         } catch(core_exception_Expect $e){
             $haveError = true;
         }
@@ -540,7 +548,6 @@ class cvc_interface_CourierImpl extends core_BaseClass
         if($rec->senderDeliveryType == 'hub'){
             $senderObj->hub_id = $rec->senderHubId;
         } else {
-            $senderObj->city_id = $rec->_cityId;
             foreach (array('zip' => 'senderPcode', 'num' => 'senderAddressNum', 'entr' => 'senderEntrance', 'ap' => 'senderApp', 'floor' => 'senderFloor') as $theirFld => $oursFld){
                 if(!empty($rec->{$oursFld})){
                     $senderObj->{$theirFld} = $rec->{$oursFld};
@@ -570,7 +577,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
         } elseif($rec->recipientDeliveryType == 'office'){
             $recepientObj->office_id = $rec->recipientOfficeId;
         } else {
-            $recepientObj->city_id = 4442;
+            $recepientObj->city_id = $rec->_cityId;
             foreach (array('zip' => 'recipientPcode', 'num' => 'recipientAddressNum', 'entr' => 'recipientEntrance', 'ap' => 'recipientApp', 'floor' => 'recipientFloor') as $theirFld => $oursFld){
                 if(!empty($rec->{$oursFld})){
                     $recepientObj->{$theirFld} = $rec->{$oursFld};
@@ -660,7 +667,7 @@ class cvc_interface_CourierImpl extends core_BaseClass
         if(!$form->gotErrors()){
 
             // Ако е разпечатана записва се в помощния модел
-            $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'], 'deliveryDate' => $res['deliveryDate']);
+            $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'], 'deliveryDate' => $res['deliveryDate'], 'state' => 'pending');
             $wayBillRec->file = $res['pdf'];
             cvc_WayBills::save($wayBillRec);
 
@@ -672,6 +679,87 @@ class cvc_interface_CourierImpl extends core_BaseClass
         }
 
         return null;
+    }
+
+
+    /**
+     * @param core_Mvc $mvc          - модел
+     * @param stdClass $documentRec  - запис на документа от който ще се генерира
+     * @param core_Form $form        - формата за генериране на товарителница
+     * @param core_ET $tpl           - шаблона на формата
+     * @return void
+     */
+    public function afterPrepareBillOfLadingForm($mvc, $documentRec, $form, &$tpl)
+    {
+        $url = '';
+        if($this->haveRightFor('getplacesbystring')){
+            $url = toUrl(array($this, 'getplacesbystring'), 'local');
+            $url = urlencode($url);
+        }
+
+        $tpl->push('cvc/js/BillOfLadingForm.js', 'JS');
+        jquery_Jquery::run($tpl, "enableApi('{$url}');");
+        jquery_Jquery::runAfterAjax($tpl, "enableApi");
+        jqueryui_Ui::enable($tpl);
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'getplacesbystring'){
+            if(empty(cvc_Setup::get('TOKEN'))){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Екшън връщащ опциите за избор на място по даден стринг
+     */
+    function act_getplacesbystring()
+    {
+        $errorMsg = null;
+        if(!$this->haveRightFor('getplacesbystring')){
+            $errorMsg = '|Нямате права|*!';
+        }
+        $q = Request::get('string', 'varchar');
+        $countryId = Request::get('countryId', 'int');
+        if(empty($q) || empty($countryId)){
+            $errorMsg = '|Невалидни параметри|*!';
+        }
+
+        $cities = array();
+        if(!empty($errorMsg)){
+            // Ако е имало грешки се показват
+            core_Statuses::newStatus($errorMsg, 'error');
+        } else {
+            try{
+                $theirCountryId = cvc_Adapter::getCountryIdByName($countryId);
+                $cities = cvc_Adapter::getCities($q, $theirCountryId);
+            } catch(core_exception_Expect $e){
+                if(haveRole('debug')){
+                    core_Statuses::newStatus("Проблем при свързване с АПИ-то", 'error');
+                }
+            }
+        }
+
+        $citySuggestions = array();
+        if (is_array($cities)) {
+            foreach ($cities as $cityObj){
+                $citySuggestions[$cityObj['nameBg']] = $cityObj['nameBg'];
+            }
+        }
+
+        $resObj = new stdClass();
+        $resObj->func = 'citysuggestions';
+        $resObj->arg = array('cities' => array_values($citySuggestions), 'searchText' => $q);
+        $res = array($resObj);
+
+        return $res;
     }
 }
 

@@ -2418,12 +2418,14 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         $res["{$ownPart}Company"] = $ownCompany->name;
         $personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
-        $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_users::fetchField($personId, 'names');
+        $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($personId, 'names');
         if($res["{$ownPart}Person"]){
             $personId = crm_Profiles::getPersonByUser($personId);
-            $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
-            if(!empty($buzPhones)){
-                $res["{$ownPart}PersonPhones"] = $buzPhones;
+            if(isset($personId)){
+                $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+                if(!empty($buzPhones)){
+                    $res["{$ownPart}PersonPhones"] = $buzPhones;
+                }
             }
         }
 

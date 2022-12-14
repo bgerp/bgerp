@@ -132,20 +132,20 @@ class plg_RefreshRows extends core_Plugin
         
         // Времето на отваряне на страницата
         $hitTime = Request::get('hitTime');
-        
-        // Кеша зе името
-        $nameHash = static::getNameHash($refreshUrlStr, $hitTime);
-        
+
         // Парсираме URL-то
         $refreshUrlOrig = $refreshUrl = core_App::parseLocalUrl($refreshUrlStr);
-        
+
         if ($refreshUrl['Ctr']) {
             if ($refreshUrl['Ctr']::checkTimeForRefresh($hitTime, $refreshUrl)) {
                 
                 return false;
             }
         }
-        
+
+        // Кеша зе името
+        $nameHash = static::getNameHash($refreshUrlStr, $hitTime);
+
         $manualNameHash = static::getManualNameHash($nameHash);
         
         // Ако ще се обновява ръчно и вече е обновен n пъти

@@ -129,9 +129,6 @@ class acc_ReportDetails extends core_Manager
             return;
         }
 
-
-        $data->masterMvc->balanceRefAccounts = "221,401,406";
-
         $accounts = arr::make($data->masterMvc->balanceRefAccounts, true);
         $data->canSeePrices = haveRole('ceo,sales,accJournal');
         

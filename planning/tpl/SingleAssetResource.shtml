@@ -23,6 +23,14 @@
                     <td>[#groupId#]</td>
                 </tr>
                 <!--ET_END groupId-->
+                <!--ET_BEGIN planningParams-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Планиращи параметри|*:
+                    </td>
+                    <td>[#planningParams#]</td>
+                </tr>
+                <!--ET_END planningParams-->
                 <!--ET_BEGIN simultaneity-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
@@ -103,7 +111,7 @@
 
         <div class="scrolling-holder">
             <fieldset class="detail-info" style="margin-top: 20px;">
-                <legend class="groupTitle">|Норми|*</legend>
+                <legend class="groupTitle">|Действия и Норми|*</legend>
                 <div class="scrolling-holder">
                     [#planning_AssetResourcesNorms#]
                 </div>

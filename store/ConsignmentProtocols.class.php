@@ -769,4 +769,26 @@ class store_ConsignmentProtocols extends core_Master
 
         return $tpl->getContent();
     }
+
+
+    /**
+     * Може ли да се създава ПОП към документ
+     *
+     * @param int $containerId
+     * @return bool
+     */
+    public static function canBeAddedFromDocument($containerId)
+    {
+        $Document = doc_Containers::getDocument($containerId);
+        $docRec = $Document->fetch('threadId,folderId');
+
+        // Ако корицата е с търг. условие "Отговорно пазене"
+        $Cover = doc_Folders::getCover($docRec->folderId);
+        $consignmentParamValue = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'consignmentContragents');
+        if($consignmentParamValue == 'yes') {
+            if(store_ConsignmentProtocols::haveRightFor('add', (object)array($docRec->threadId))) return true;
+        }
+
+        return false;
+    }
 }

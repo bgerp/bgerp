@@ -122,19 +122,6 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
     {
         $recs = array();
 
-//        //Ако има регистрирана "ОСНОВНА ГРУПА", вадим групите, които са едно ниво под нея
-//        if (core_Packs::getConfig('bnav')->BASE_GROUP != '') {
-//
-//            $baseGroupId = (trim(core_Packs::getConfig('bnav')->BASE_GROUP, '|'));
-//            $gQuery = cat_Groups::getQuery();
-//            $gQuery->where("#parentId = $baseGroupId");
-//            expect($gQuery->count(), 'Липсват регистрирани групи в основната група');
-//
-//            //масив с групи, които са едно ниво под основната
-//            $flGroups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
-//
-//        }
-
         $sQuery = sales_Invoices::getQuery();
 
         //Експортира и оттеглените фактури
@@ -156,23 +143,47 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             ));
         }
 
+
         $invoices = array();
+
+        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        $confCache = core_Packs::getConfig('ajur');
 
         while ($sRec = $sQuery->fetch()) {
 
             //Масив с фактури от продажбите
             $id = $sRec->id;
 
-            //Състояние
-            $state = $sRec->state;
-            $brState = $sRec->brState;
+
 
             //номер на фактурата
             $number = str_pad($sRec->number, 10, "0", STR_PAD_LEFT);
 
-            //Код на контрагента, така както е експортиран в БН. В случая folderId  на контрагента
+            //Състояние (Тип-права или анулирана (0 -за анулирана, 1 -за активна))
+            $state = $sRec->state;
+            $brState = $sRec->brState;
+            $stateType = $sRec->state == 'rejected' ? 0 : 1;
+
+            //Дата на данъчното събитие
+            $vatDate = $sRec->date;
+
+            //Вид валута
+            $currency = $sRec->currencyId;
+
+            //Валутен курс
+            $currencyRate = $sRec->rate;
+
+            //Експортна фактура по колона 8
+            $exportInv = ($sRec->currencyId != 'BGN') ? 1:  0;
+
+            //Код на контрагента, В случая folderId  на контрагента
             $contragentClassName = core_Classes::getName($sRec->contragentClassId);
-            $contragentCode = $contragentClassName::fetch($sRec->contragentId)->folderId;
+            $contragentRec = $contragentClassName::fetch($sRec->contragentId);
+            $contragentCode = $contragentRec -> folderId;
+
+            //Адрес
+            $contragentAddress = $contragentRec->contragentAddress;
+
 
             //Име на контрагента
             $contragentName = $sRec->contragentName;
@@ -180,71 +191,115 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             //VAT номер на контрагента
             $contragentVatNo = $sRec->contragentVatNo;
 
-            //Национален номер на контрагента
-            $contragentNo = $sRec->uicNo;
-
-            //Тип на плащането
-            $paymentType = $sRec->paymentType;
+            //БУЛСТАТ на контрагента
+            $bulstatNo = $sRec->uicNo;
 
             //Банкова сметка
             $bankAccount = $sRec->accountId;
 
-            $rec->dealType = self::getDealType($sRec);
-            $rec->docType = self::getDocType($sRec);
+            //Вид фактура
+            $invoiceType = self::getDocType($sRec);
 
-            //Ако има авансово начисляване на суми по цялата фактура
-            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {
-                $dealValue = $sRec->changeAmount ? $sRec->dealValue : $sRec->dpAmount;
+            //Към фактура (за КИ и ДИ)
+            if($invoiceType == $confCache->AJUR_DOC_CREDIT_NOTE_TYPE ||
+                $invoiceType == $confCache->AJUR_DOC_DEBIT_NOTE_TYPE ){
 
-                if (!array_key_exists($id, $recs)) {
-                    $recs[$id] = (object)array(
-
-                        'type' => $rec->docType,
-                        'dealType' => $rec->dealType,
-                        'number' => $number,
-                        'date' => $sRec->date,
-                        'contragentVatNo' => $contragentVatNo,
-                        'contragentNo' => $contragentNo,
-                        'contragentName' => $contragentName,
-                        'paymentType' => $paymentType,
-                        'accountId' => $bankAccount,
-                        'accItem' => '',
-                        'currencyId' => $sRec->currencyId,
-                        'rate' => $sRec->rate,
-                        'dealValue' => $dealValue,
-                        'detAmount' => $dealValue,
-                        'dpOperation' => $sRec->dpOperation,
-                        'dpAmount' => $sRec->dpAmount,
-                        'changeAmount' => $sRec->changeAmount,
-                        'state' => $state,
-                        'brState' => $brState,
-
-                    );
-                }
+                $originDoc = doc_Containers::getDocument($sRec->originId);
+                $originDocNumber = $originDoc->className::fetch($originDoc->that)->number;
+                $originDocDate = $originDoc->className::fetch($originDoc->that)->date;
             }
+
+            //Взема начина на плащане
+            $paymentType = self::getPaymentType($sRec);
+
+            //Дата нападеж
+            $dueDate = ($sRec->dueDate) ? : $sRec->date;
+
+            //За фактурите с ДДС от БГ разпределяме по ставки ДДС
+            if ($sRec->contragentCountryId == $bgId || empty($sRec->contragentCountryId)) {
+
+                $vatAlocation = self::getVATallocation($sRec);
+
+            }
+
+//bp($sRec);
+            $dealType = self::getDealType($sRec);
+
+
+
 
             // Запис в масива
             if (!array_key_exists($id, $invoices)) {
                 $invoices[$id] = (object)array(
-                    'id' => $id,
-                    'type' => $rec->docType,
-                    'dealType' => $rec->dealType,
-                    'number' => $number,
-                    'date' => $sRec->date,
-                    'contragentVatNo' => $contragentVatNo,
-                    'contragentNo' => $contragentNo,
-                    'contragentName' => $contragentName,
-                    'paymentType' => $paymentType,
-                    'accountId' => $bankAccount,
-                    'accItem' => '',
-                    'currencyId' => $sRec->currencyId,
-                    'rate' => $sRec->rate,
-                    'dealValue' => $sRec->dealValue,
-                    'state' => $state,
-                    'brState' => $brState,
-                    'dpOperation' => $sRec->dpOperation,
-                    'dpAmount' => $sRec->dpAmount,
-                    'changeAmount' => $sRec->changeAmount,
+
+                    1 => $number,                 // Фалтура No
+                    2 => $stateType,              // Тип - права или обратна
+                    3 => $sRec->date,             // Дата на фактурата
+                    4 => $sRec->vatDate,          // Дата на данъчно събитие
+                    5 => $sRec->currencyId,       // Вид валута
+                    6 => $sRec->rate,             // Валутен курс към датата на дан. събитие
+                    7 => $invoiceType,            // Вид фактура
+                    8 => $exportInv,              // Фактура за експорт
+                    9 => $contragentCode,         // Шифър на контрагент
+                    10 => $contragentName,        // Наименование
+                    11 => $contragentAddress,     // Адрес на контрагента
+                    12 => $contragentVatNo,       // ИН по ДДС на контрагента
+                    13 => $bulstatNo,             // БУЛСТАТ на контрагента
+                    14 => '',                     // Вид доставка
+                    15 => $sRec->vatReason,       // Основание за неначисляване на ДДС
+                    16 => '',                     // ИН по ДДС в друга държава
+                    17 => '',                     // Ставка по ДДС в друга държава
+                    18 => '',                     // МОЛ на контрагента
+                    19 => '',                     // Шифър на дистрибутор
+                    20 => '',                     // Наименование на дистрибутора
+                    21 => '',                     // Адрес на дистрибутора
+                    22 => '',                     // Ин по ДДС на дистрибутора
+                    23 => '',                     // БУЛСТАТ на дистрибутора
+                    24 => $sRec->place,           // Място на издаване
+                    25 => $originDocNumber,       // Към фактура No(при издаване на ДИ и КИ)
+                    26 => $originDocDate,         // От дата фактура (при издаване на ДИ и КИ)
+                    27 => $sRec->dcReason,        // Причина за издаване на ДИ или КИ
+                    28 => $paymentType,           // Начин на плащане
+                    29 => $dueDate,               // Дата на падеж
+                    30 => $sRec->vatDate,         // Дата на получаване на стоката
+                    31 => 0,                      // Дата на регистрация
+                    32 => 0,                      // Фактура към търговска верига
+                    33 => '',                     // Код на доставчика към търговска верига
+                    34 => '',                     // Поръчка номер от търговска верига
+                    35 => '',                     // Входящ стоков номер за търговската верига
+                    36 => $sRec->createdBy,       // Съставил
+                    37 => $sRec->dealValue,       // Общо сума без ДДС във валутата на фактурата
+                    38 => $sRec->dealValueWithoutDiscount,    // Общо Дан. Основа във валутата на фактурата
+                    39 => $sRec->vatAmount,       // Общо ДДС във валутата на фактурата
+                    40 => $sRec->totalValue,      // Общо сума за плащане във валутата на фактурата
+                    41 => $sRec->exciseTax,       // Общо акциз във валутата на фактурата
+                    42 => $sRec->productTax,      // Общо екотакса във валутата на фактурата
+                    43 => $sRec->dealValue * $sRec->rate,      // Общо сума без ДДС в лева
+                    44 => $sRec->dealValueWithoutDiscount * $sRec->rate,     // Общо Дан. Основа в лева
+                    45 => $sRec->vatAmount * $sRec->rate,      // Общо ДДС е лева
+                    46 => $sRec->totalValue * $sRec->rate,     // Общо сума за плащане в лева
+                    47 => $sRec->exciseTax * $sRec->rate,      // Общо акциз в лева
+                    48 => $sRec->productTax * $sRec->rate,     // Общо екотакса в лева
+                    49 => 1,                       // Връзка със склад
+                    50 => 1,     //ВЪПРОС          // Дали трябва да има запис в дневника по ДДС
+                    51 => 0,                       // Звено по ДДС
+                    52 => $vatAlocation->taxBase20Vat,         // ДО на сделки с ДДС 20% бкл. дист. на територията на страната
+                    53 => $vatAlocation->tax20,         // Начислен ДДС за доставки по колона 52( 20%)
+                    54 => $vatAlocation->taxBase9Vat,          // ДО на сделки с ДДС 9% бкл. дист. на територията на страната
+                    55 => $vatAlocation->tax9,          // Начислен ДДС за доставки по колона 54( 9%)
+                    56 => $vatAlocation->taxBase0Vat,          // ДО на сделки с ДДС 0% бкл. дист. на територията на страната
+                    57 => $vatAlocation->tax0,          // Начислен ДДС за доставки по колона 56( 0%)
+                    58 => '',                           // ДО на доставки по чл.140, 146 и чл.173, ал.1 и 4 от ЗДДС
+                    59 => '',                           // ДО на доставка на услуги по чл.21, ал 3 и чл.24-24 от ЗДДС с място на изпълнение друга държава
+                    60 => '',                           // ДО на доставка на услуги по чл.69, ал 2 от ЗДДС (вкл. ДО за дост. от дист. продажби в друга държава)
+                    61 => '',                           // ДО на освобобените доставки и освободените ВОП, без чл50 т2
+                    62 => '',                           // Доставки по чл. 50 т.2
+                    63 => '',                           // ДО на доставки като посредник в тристранни операции
+                    64 => '',                           // ВОД на стоки, участващи във VIES декларацията
+                    65 => '',                           // ДО на доставки като посредник в тристранна операция, участващи във VIES декларацията
+                    66 => '',                           // Услуги в рамките на ЕС, участващи във VIES декларацията
+                    67 => '',  // ТОДО             // Вид на стоката / услугата
+
 
                 );
             }
@@ -552,6 +607,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
      */
     private function getDealType($rec)
     {
+       // bp($rec);
         $this->confCache = core_Packs::getConfig('bnav');
         $this->countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
 
@@ -592,7 +648,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
 
     /**
-     * Определя типа на документа
+     * Определя вида на фактурата за колона 7
      *
      * @param stdClass $rec - запис
      *
@@ -600,20 +656,106 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
      */
     private function getDocType($rec)
     {
-        $this->confCache = core_Packs::getConfig('bnav');
-        $this->countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-        $this->kgId = cat_UoM::fetchBySinonim('kg')->id;
+        $this->confCache = core_Packs::getConfig('ajur');
 
+        $docType = 0;
+        // Дебитно или кредитно известие
         if ($rec->type == 'dc_note') {
             if ($rec->dpAmount > 0 || $rec->changeAmount) {
-                $docType = $this->confCache->FSD_DOC_DEBIT_NOTE_TYPE;
+                $docType = $this->confCache->AJUR_DOC_DEBIT_NOTE_TYPE; //Дебитно известие
             } else {
-                $docType = $this->confCache->FSD_DOC_CREDIT_NOTE_TYPE;
+                $docType = $this->confCache->AJUR_DOC_CREDIT_NOTE_TYPE;  //Кредитно известие
             }
-        } else {
-            $docType = $this->confCache->FSD_DOC_INVOCIE_TYPE;
+        }
+
+        // Фактура
+        if ($rec->type == 'invoice') {
+            $docType = $this->confCache->AJUR_DOC_INVOCIE_TYPE; // Фактура
         }
 
         return ($docType);
+    }
+
+    /**
+     * Връща начина на плащане за колона 28
+     *
+     * @param stdClass $rec - запис
+     *
+     * @return int
+     */
+    private function getPaymentType($rec)
+    {
+        $this->confCache = core_Packs::getConfig('ajur');
+
+        $paymentType = ($rec->paymentType) ? : $rec->autoPaymentType;
+
+        switch ($paymentType) {
+
+            case null : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_INDEFINITE_TYPE;break;
+            case 'cash' : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_CASH_TYPE;break;
+            case 'bank' : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_ACCOUNT_TYPE;break;
+            case 'card' : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_CARD_TYPE;break;
+            case 'postal' : $paymentTypeRet = $this->confCache->AJUR_DOC_PAYMENT_POST_TRANSFER_TYPE;break;
+            case 'factoring' : $paymentTypeRet = 'факторинг';break;
+            case 'intercept' : $paymentTypeRet = 'прихващане';break;
+            case 'mixed' : $paymentTypeRet = ' ';break;
+            default : ' '; break;
+        }
+
+        return ($paymentTypeRet);
+    }
+
+
+    /**
+     * Разпределя симите по размер на ДДС: 20%, 9%, 0% и др.
+     *
+     * @param array - запис
+     *
+     * @return array
+     */
+    private function getVATallocation($rec)
+    {
+        $vatAllocation = array();
+
+            $taxBase20Vat = $taxBase9Vat = $taxBase0Vat = 0;
+            $tax20 = $tax9 = $tax0 = 0;
+
+            $detQuery = sales_InvoiceDetails::getQuery();
+
+
+            $detQuery->where("#invoiceId = $rec->id");
+
+            //Ако няма детайли връщаме празин масив
+            if ($detQuery->count() == 0) {
+                return $vatAllocation;
+            }
+
+            while ($detRec = $detQuery->fetch()) {
+                $vatGroup = cat_Products::getVat($detRec->productId, $detRec->createdOn);
+
+                switch ($vatGroup) {
+
+                    case '0.2' :
+                        $tax20 += $detRec->amount * $vatGroup;
+                        $taxBase20Vat += $detRec->amount;
+                        break;
+                    case '0.09' :
+                        $tax9 += $detRec->amount * $vatGroup;
+                        $taxBase9Vat += $detRec->amount;
+                        break;
+                    case '0' :
+                        $tax0 += $detRec->amount * $vatGroup;
+                        $taxBase0Vat += $detRec->amount;
+                        break;
+                }
+
+
+            }
+            $vatAllocation = (object)array('taxBase20Vat' => $taxBase20Vat, 'tax20' => $tax20,
+                'taxBase9Vat' => $taxBase9Vat, 'tax9' => $tax9,
+                'taxBase0Vat' => $taxBase0Vat, 'tax0' => $tax0
+            );
+
+            return $vatAllocation;
     }
 }

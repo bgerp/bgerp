@@ -279,10 +279,13 @@ class planning_plg_StateManager extends core_Plugin
                 if (in_array($action, $mvc->demandReasonChangeState)) {
                     if (!$reason = Request::get('reason', 'text')) {
                         $res = self::getReasonForm($mvc, $action, $rec);
-                        
+
                         return false;
                     }
                     $rec->_reason = $reason;
+                    if($updateProductParams = Request::get('updateProductParams', 'enum(yes,no)')){
+                        $rec->_updateProductParams = $updateProductParams;
+                    }
                 }
             }
             
@@ -490,6 +493,7 @@ class planning_plg_StateManager extends core_Plugin
         $form->FLD('reason', 'text(rows=2)', 'caption=Основание,mandatory');
         $actionVerbal = strtr($action, $actionArr);
         $form->title = $actionVerbal . '|* ' . tr('на') . '|* ' . planning_Jobs::getHyperlink($rec->id, true);
+        $mvc->invoke('AfterGetDemandReasonFormForChange', array(&$form, $action, $rec));
         $form->input();
         
         if ($form->isSubmitted()) {

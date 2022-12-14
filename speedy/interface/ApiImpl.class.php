@@ -109,7 +109,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         $form->FLD('isDocuments', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Документи,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount,maxRadio=2');
         $form->FLD('palletCount', 'int(min=0,max=10)', 'caption=Описание на пратката->Бр. пакети');
-        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина|Дълбочина|Височина|Тегло,validate=speedy_interface_ApiImpl::validatePallets)", 'caption=Описание на пратката->Описание,after=palletCount');
+        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина [см]|Дълбочина [см]|Височина [см]|Тегло [кг],validate=speedy_interface_ApiImpl::validatePallets)", 'caption=Описание на пратката->Описание,after=palletCount');
         $form->FLD('content', 'varchar', 'caption=Описание на пратката->Съдържание,mandatory,recently');
         $form->FLD('packaging', 'varchar', 'caption=Описание на пратката->Опаковка,mandatory,recently');
         $form->FLD('exciseGoods', 'set(yes=Декларирам че не изпращам акцизна стока с неплатен акциз!)', 'caption=Описание на пратката->Акциз');
@@ -549,11 +549,13 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $TableArr = type_Table::toArray($tableData);
 
         $Double = core_Type::getByName('double');
+        $Int = core_Type::getByName('int');
 
         foreach($TableArr as $i => $obj){
             foreach (array('weight', 'depth', 'height', 'width') as $field){
+                $type = ($field == 'weight') ? $Double : $Int;
                 if(!empty($obj->{$field})){
-                    if(!$Double->fromVerbal($obj->{$field}) || $obj->{$field} < 0){
+                    if(!$type->fromVerbal($obj->{$field}) || $obj->{$field} < 0){
                         $error[] = 'Невалидни числа';
                         $errorFields[$field][$i] = 'Невалидно число';
                     }
@@ -610,7 +612,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         try{
             $res = speedy_Adapter2::calculateShipment($preparedBolParams);
         } catch(core_exception_Expect $e){
-            $form->info = "<div style='color:red;font-weight:bold;'>" . tr('Не може да се калкулира цената за доставка') . "</div>";
+            $form->info = "<div style='color:red;font-weight:bold;'>" . tr('Цената не може да се калкулира|*!') . "<br>" . tr($e->getMessage()) . "</div>";
             return;
         }
 
@@ -730,5 +732,20 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         return $res;
+    }
+
+
+    /**
+     * След подготовка на формата за товарителница
+     *
+     * @param core_Mvc $mvc          - модел
+     * @param stdClass $documentRec  - запис на документа от който ще се генерира
+     * @param core_Form $form        - формата за генериране на товарителница
+     * @return core_ET|null $tpl     - хтмл с рендиране на информацията за плащането
+     * @throws core_exception_Expect
+     */
+    public function afterPrepareBillOfLadingForm($mvc, $documentRec, $form, &$tpl)
+    {
+
     }
 }

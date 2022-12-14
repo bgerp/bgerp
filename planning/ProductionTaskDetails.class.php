@@ -162,6 +162,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->setDbIndex('serial');
         $this->setDbIndex('taskId,productId');
         $this->setDbIndex('productId,type');
+        $this->setDbIndex('taskId,state');
     }
 
 
@@ -1369,6 +1370,20 @@ class planning_ProductionTaskDetails extends doc_Detail
         if($action == 'printperipherallabel' && isset($rec)){
             if($rec->type != 'production' || $rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
+            } else {
+                if($requiredRoles != 'no_one'){
+
+                    // Дали да се печата бърз етикет
+                    if(core_Packs::isInstalled('label')) {
+                        $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
+                        if ($labelPrintFromProgress == 'yes') {
+                            $taskPrintLabelFromTask = planning_Tasks::fetchField("#id = {$rec->taskId}", 'labelPrintFromProgress');
+                            if ($taskPrintLabelFromTask != 'yes') {
+                                $requiredRoles = 'no_one';
+                            }
+                        }
+                    }
+                }
             }
         }
 

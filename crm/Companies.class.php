@@ -2652,10 +2652,12 @@ class crm_Companies extends core_Master
         if(is_object($data)){
             
             // Нормализиране на името на фирмата
+            $data->name = strip_tags($data->name);
+            $data->name = str_replace('&nbsp;', ' ', $data->name);
             $data->name = str_replace('"', "", $data->name);
             $data->name = str_replace("'", "", $data->name);
             $data->name = mb_strtolower(str::removeWhiteSpace($data->name, " "));
-            $data->name = str::toUpperAfter($data->name, " ");
+            $data->name = str::toUpperAfter($data->name, " ");$data->name = trim($data->name);
             $data->name = trim($data->name);
             
             // Специалните думи се капитализират

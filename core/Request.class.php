@@ -230,9 +230,10 @@ class core_Request
         
         if ($type) {
             $inputType = core_Type::getByName($type);
+            $originalValue = $value;
             $value = $inputType->fromVerbal($value);
             if ($inputType->error) {
-                error('@Некоректна стойност за входен параметър', $name, $inputType->error);
+                error('@Некоректна стойност за входен параметър', $name, $inputType->error, $originalValue);
             }
         }
         
