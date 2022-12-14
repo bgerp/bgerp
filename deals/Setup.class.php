@@ -364,7 +364,7 @@ class deals_Setup extends core_ProtoSetup
                 }
 
                 if(countR($saveCronFields)){
-                    core_Cron::save($exRec, 'state');
+                    core_Cron::save($exRec, $saveCronFields);
                 }
             } else {
                 $rec = new stdClass();
