@@ -2637,7 +2637,7 @@ class planning_Tasks extends core_Master
                 // по неясни причини от някъде идва с хеш за това колкото да работи се маха
                 list($assetId,) = explode('_', $assetId);
             }
-            $mQuery->where("#assetId = {$assetId}");
+            $mQuery->where(array("#assetId = [#1#]"), $assetId);
         }
 
         $folderId = Request::get('folderId');
@@ -2646,7 +2646,7 @@ class planning_Tasks extends core_Master
                 // по неясни причини от някъде идва с хеш за това колкото да работи се маха
                 list($folderId,) = explode('_', $folderId);
             }
-            $mQuery->where("#folderId = {$folderId}");
+            $mQuery->where(array("#folderId = [#1#]", $folderId));
         }
 
         $rememberedTask = Mode::get('rememberedTask');
