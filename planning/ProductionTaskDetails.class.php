@@ -184,6 +184,10 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Добавяне на последните данни за дефолтни
         $masterRec = planning_Tasks::fetch($rec->taskId);
+        if ($masterRec->state == 'closed') {
+            $form->info = new core_ET(tr("|*<div class='richtext-message richtext-warning'>|Въвежда се прогрес във вече приключена операция|*!</div>"));
+        }
+
 
         // Кои оператори са въведени досега
         $defaultFillUser = planning_Setup::get('TASK_PROGRESS_OPERATOR');
@@ -407,6 +411,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         if ($form->isSubmitted()) {
             $masterRec = planning_Tasks::fetch($rec->taskId);
+
             if (empty($rec->serial) && empty($rec->productId) && !empty($masterRec->labelPackagingId)) {
                 $form->setError('serial,productId', 'Трябва да е въведен артикул или сериен номер');
             }
