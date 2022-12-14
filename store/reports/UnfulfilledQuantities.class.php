@@ -359,6 +359,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         }else{
             $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
@@ -490,6 +491,9 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $contragentClassName = cls::getClassName($dRec->contragentClassId);
 
         $res->contragent = $contragentClassName::getTitleById($dRec->contragentId);
+
+        $pRec = cat_Products::fetch($dRec->productId);
+        $res->code = cat_Products::getVerbal($pRec, 'code');
 
         if (isset($dRec->measure)) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
