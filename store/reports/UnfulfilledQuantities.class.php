@@ -348,15 +348,25 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
+        if ($export === false) {
+            $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
+            $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
+        }else{
+            $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
+            $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
 
-        $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
-        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
-        $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
-        $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
-        $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
 
+        }
         return $fld;
     }
 
@@ -472,7 +482,17 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
      * @param stdClass $rec
      * @param stdClass $dRec
      */
-    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+    protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+
+        $contragentClassName = cls::getClassName($dRec->contragentClassId);
+
+        $res->contragent = $contragentClassName::getTitleById($dRec->contragentId);
+
+        if (isset($dRec->measure)) {
+            $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
+        }
     }
 }
