@@ -2473,10 +2473,8 @@ class planning_Tasks extends core_Master
         if (isset($data->listFilter->rec->assetId)) {
             $assetRec = planning_AssetResources::fetch($data->listFilter->rec->assetId, 'planningParams,groupId');
             $plannedParams += keylist::toArray($assetRec->planningParams);
-            if (empty($plannedParams)) {
-                $groupParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
-                $plannedParams += keylist::toArray($groupParams);
-            }
+            $groupParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
+            $plannedParams += keylist::toArray($groupParams);
         }
 
         // Ако има избран център - тези параметри от тях
