@@ -598,6 +598,17 @@ class planning_plg_StateManager extends core_Plugin
 
 
     /**
+     * След промяна на състоянието в чакащо
+     */
+    public static function on_AfterSavePendingDocument($mvc, &$rec)
+    {
+        $rec->lastChangeStateOn = dt::now();
+        $rec->lastChangeStateBy = core_Users::getCurrent();
+        $mvc->save_($rec, 'lastChangeStateOn,lastChangeStateBy');
+    }
+
+
+    /**
      * След намиране на текста за грешка на бутона за 'Приключване'
      */
     public static function on_AfterGetCloseBtnError($mvc, &$res, $rec)
