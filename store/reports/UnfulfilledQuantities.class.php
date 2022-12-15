@@ -65,7 +65,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('contragent', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагент,placeholder=Всички,single=none,after=to');
         //$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=contragent');
-        $fieldset->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група артикули,placeholder=Всички,after=storeId,single=none');
+        $fieldset->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група артикули,placeholder=Всички,after=contragent,single=none');
         $fieldset->FLD('tolerance', 'double', 'caption=Толеранс,after=group,unit = %,single=none,mandatory');
     }
 
@@ -348,15 +348,26 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
+        if ($export === false) {
+            $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
+            $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
+        }else{
+            $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('code', 'varchar', 'caption=Код');
+            $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
+            $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
 
-        $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
-        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
-        $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
-        $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
-        $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
 
+        }
         return $fld;
     }
 
@@ -472,7 +483,20 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
      * @param stdClass $rec
      * @param stdClass $dRec
      */
-    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+    protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+
+        $contragentClassName = cls::getClassName($dRec->contragentClassId);
+
+        $res->contragent = $contragentClassName::getTitleById($dRec->contragentId);
+
+        $pRec = cat_Products::fetch($dRec->productId);
+        $res->code = cat_Products::getVerbal($pRec, 'code');
+
+        if (isset($dRec->measure)) {
+            $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
+        }
     }
 }

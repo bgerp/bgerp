@@ -840,10 +840,10 @@ abstract class deals_DealBase extends core_Master
                 $this->recalcDocumentsWithNewRate($rec, $fRec->newRate);
             } catch(acc_journal_RejectRedirect $e){
                 $url = $this->getSingleUrlArray($rec->id);
-                redirect($url, false, '|*Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
+                redirect($url, false, 'Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
             }
 
-            followRetUrl(null, 'Документите са преизчислени успешно');
+            followRetUrl(null, 'Документите са преизчислени успешно|*!');
         }
         
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс,order=9');
@@ -878,7 +878,9 @@ abstract class deals_DealBase extends core_Master
                     if(is_object($deletedRec)){
                         Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
                     }
+                    Mode::push('recontoTransaction', true);
                     acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
+                    Mode::push('recontoTransaction');
                     if(is_object($deletedRec)){
                         Mode::pop('recontoWithCreatedOnDate');
                     }
@@ -990,7 +992,7 @@ abstract class deals_DealBase extends core_Master
             if($averageRate =  $this->getAverageRateInThread($rec)){
                 try{
                     $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                } catch(core_exception_Expect $e){
+                } catch(acc_journal_RejectRedirect $e){
                     $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
                     $this->logErr($errorMsg, $rec->id);
                     continue;
