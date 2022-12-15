@@ -2509,6 +2509,7 @@ class planning_Tasks extends core_Master
                 $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol');
             }
 
+            $fieldsToFilterIfEmpty = array_merge($paramFields, $fieldsToFilterIfEmpty);
             arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
         }
 
