@@ -706,12 +706,14 @@ class plg_Search extends core_Plugin
                             
                             // Към полетата, които ще се записват, добавяме и полето за търсене
                             $saveFields[] = 'searchKeywords';
-                            
+
                             // Записваме само определени полета, от масива
                             $mvc->save($rec, $saveFields);
                             $i++;
                         } else {
                             wp('Има plg_Search, но няма полета за ключови думи', $mvc);
+
+                            break;
                         }
                     } catch (core_exception_Expect $e) {
                         continue;
