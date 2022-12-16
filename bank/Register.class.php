@@ -23,7 +23,7 @@ class bank_Register extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'bank_Wrapper, plg_State, plg_Created, plg_Modified, plg_Search,plg_GroupByField,plg_RowTools2,import2_Plugin';
+    public $loadList = 'bank_Wrapper, plg_State, plg_Created, plg_Modified, plg_GroupByField,plg_RowTools2,import2_Plugin';
     
     
     /**
