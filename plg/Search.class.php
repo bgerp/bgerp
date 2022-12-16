@@ -693,6 +693,9 @@ class plg_Search extends core_Plugin
         setIfNot($mvc->fillSearchKeywordsOnSetup, true);
 
         if ($mvc->fillSearchKeywordsOnSetup !== false && !$mvc->fetchField("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+
+            $res .= "<li style='color:green;'>Опит за добавяне на ключови думи</li>";
+
             try {
                 $query = $mvc->getQuery();
                 while ($rec = $query->fetch()) {
@@ -707,6 +710,8 @@ class plg_Search extends core_Plugin
                             // Записваме само определени полета, от масива
                             $mvc->save($rec, $saveFields);
                             $i++;
+                        } else {
+                            wp('Има plg_Search, но няма полета за ключови думи', $mvc);
                         }
                     } catch (core_exception_Expect $e) {
                         continue;
