@@ -1387,11 +1387,11 @@ abstract class store_DocumentMaster extends core_Master
      * Кои детайли да се клонират с промяна
      *
      * @param stdClass $rec
-     * @param mixed    $Detail
-     *
-     * @return array
+     * @return array $res
+     *          ['recs'] - записи за промяна
+     *          ['detailMvc] - модел от който са
      */
-    public function getDetailsToCloneAndChange_($rec, &$Detail)
+    public function getDetailsToCloneAndChange_($rec)
     {
         $Detail = cls::get($this->mainDetail);
         $id = $rec->clonedFromId;
@@ -1405,7 +1405,8 @@ abstract class store_DocumentMaster extends core_Master
 
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
+        $res = array('recs' => $dQuery->fetchAll(), 'detailMvc' => $Detail);
 
-        return $dQuery->fetchAll();
+        return $res;
     }
 }

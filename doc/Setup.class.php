@@ -168,7 +168,7 @@ defIfNot('DOC_SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE', 'no');
 /**
  * До колко време назад да се показват филтрираните документи при избор на период "Всички" в списъка
  */
-defIfNot('DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON', 60 * 60 * 24 * 365 * 3);
+defIfNot('DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON', 3 * 12 * core_DateTime::SECONDS_IN_MONTH);
 
 
 /**
@@ -253,7 +253,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_LIST_FIELDS_EXTRA_LINE' => array('enum(yes=Да,no=Не)', 'caption=Допълнителен ред в листовия изглед->Избор, customizeBy=powerUser'),
         'DOC_MOVE_LAST_DOCUMENT' => array('enum(yes=Да,no=Не)', 'caption=Възможност за преместване на последния документ в нишката->Избор'),
         'DOC_SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE' => array('enum(no=Не,yes=Да)', 'caption=Разбиване на цитиран текст на параграфи->Избор, customizeBy=user'),
-        'DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON' => array('time', 'caption=До колко време назад да се показват филтрираните документи при избор на период "Всички" в списъка->Време'),
+        'DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON' => array('time(unit=years, suggestions=Без ограничение|6 месеца|1 год.|2 год.|3 год.|5 год.)', 'caption=До колко време назад да се показват филтрираните документи при избор на период "Всички" в списъка->Време,customizeBy=officer'),
     );
 
     // Инсталиране на мениджърите
