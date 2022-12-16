@@ -27,7 +27,7 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито,properties, address, state, createdBy,createdOn';
+    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито,courierApi=Транспорт->API,properties, address, state, createdBy,createdOn';
     
     
     /**
@@ -137,6 +137,7 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('transport', 'text(rows=3)', 'caption=Транспорт');
         $this->FLD('costCalc', 'class(interface=cond_TransportCalc,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
+        $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'caption=Куриерско API->Избор');
         $this->FLD('address', 'enum(none=Не се показва,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
 

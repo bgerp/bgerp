@@ -67,8 +67,21 @@ abstract class cvc_proto_Object extends core_Manager
         $mvc->FLD('pCode', 'varchar', 'caption=П.код');
         $mvc->FLD('coord', 'varchar', 'caption=Координати');
         $mvc->FLD('countryId', 'int', 'caption=Държава');
+        $mvc->FNC('nameExt', 'varchar', 'caption=Пълно име');
 
         $this->setDbUnique('num');
+    }
+
+
+    /**
+     * Разширеното име
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public static function on_CalcNameExt(core_Mvc $mvc, $rec)
+    {
+        $rec->nameExt = "[{$rec->num}] {$rec->name}";
     }
 
 

@@ -76,7 +76,7 @@ class cvc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cvc_interface_CourierImpl';
+    public $defClasses = 'cvc_interface_CourierImpl,cvc_interface_DeliveryToOffice';
 
 
     /**
