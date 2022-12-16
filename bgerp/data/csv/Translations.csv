@@ -338,6 +338,7 @@ en,Всички,All
 en,Всяка сряда,Every Wednesday
 en,Всяка събота,Every Saturday
 en,Вто,Tue
+en,Вторник,Tuesday
 en,Вход в,Sign in
 en,Вход,Enter
 en,Входящ документ,Incoming Document
@@ -486,6 +487,7 @@ en,Диплома №,Diploma №
 en,Длъжност,Position
 en,Длъжности,Positions
 en,Дневни менюта,Daily menus
+en,Дни,Days 
 en,До 10 дни след фактуриране,Until 10 days after invoicing
 en,До 15 дни след фактуриране,Until 15 days after invoicing
 en,До 21 дни след фактуриране,Until 21 days after invoicing
@@ -1137,6 +1139,7 @@ en,Неактивиран,Inactivated
 en,Невалиден имейл!,Invalid email!
 en,Невалидна дълж_838c,Invalid digits length
 en,Нед,Sun
+en,Неделя,Sunday
 en,Недопустими символи в число/израз,Inadmissible symbols in number/expression
 en,Недоставени,Undelivered
 en,Незаскладено,Not stored
@@ -1265,6 +1268,7 @@ en,Освободено,Released
 en,Основание за р_b916b,Reason for the VAT amount
 en,Основание за с_ee041,Reason for creation
 en,Основание,Reason
+en,Основна мярка,Main measure
 en,Основно меню,Main Menu
 en,Осредняване,Averaging
 en,Остатък,Balance
@@ -1390,6 +1394,7 @@ en,Персонализация,Personalization
 en,Персонализира_fce24,Customize settings for
 en,Персонализиране,Customize
 en,Пет,Fri
+en,Петък,Friday
 en,Печалба по арт_373cd,Profit per articles
 en,Печалба по кли_0b887,Profit per customers
 en,Печат на страницата,Print page
@@ -1476,6 +1481,7 @@ en,Получено на,Received on
 en,Получено,Received
 en,Получил,Received by
 en,Пон,Mon
+en,Понеделник,Monday
 en,Поотделно,Separately
 en,Поправка,Repair
 en,Популярни продукти,Popular products
@@ -1849,6 +1855,7 @@ en,Скриване,Hide
 en,Скриптове,Scripts
 en,Скрито,Hidden
 en,Следващо напом_731f,Next reminder
+en,Следващо,Next
 en,Следене,Tracking
 en,Следени,Followed
 en,Сложи,Put
@@ -1898,6 +1905,7 @@ en,Срок до,Date to
 en,Срок,Deadline 
 en,Срочност,Term
 en,Сря,Wed
+en,Сряда,Wednesday
 en,Стандартна вът_9205,Standard internal theme
 en,Стара парола,Current password
 en,Стара стойност,Old value
@@ -1951,6 +1959,7 @@ en,Считано,Regarded
 en,Считано->До,Regarded->To
 en,Считано->От,Regarded->From
 en,Съб,Sat
+en,Събота,Saturday
 en,Събирателна,Collecting
 en,Събитие,Event
 en,Събития за година,Events for the year
@@ -2088,6 +2097,7 @@ en,Управител,Manager
 en,Управители,Managers
 en,Управление на _1cd80,Package manager
 en,Условие на дос_9b604,Delivery term
+en,Условие на доставката,Delivery term
 en,Условие,Condition
 en,Условия на доставка,Delivery terms
 en,Условия на про_52100,Terms of sale
@@ -2188,6 +2198,7 @@ en,Чакащи,Pending
 en,Чакащите,Pending
 en,Чакащо,Pending
 en,Час,Hour
+en,Часове,Hours
 en,Частен,Private
 en,Частни,Private
 en,Червен фон,Red background
@@ -2199,6 +2210,7 @@ en,Чернови документи,Draft documents
 en,Чернови,Drafts
 en,Черта,Line
 en,Чет,Thu
+en,Четвъртък,Thursday
 en,Четене,Reading
 en,Четец,Reader
 en,Четци,Readers
@@ -2517,6 +2529,7 @@ en,Нов партньор от,New partner from
 en,Експортиране на документ,Document export
 en,Интернет линк,Internet link
 en,CSV файл,CSV file
+en,DOC файл,DOC file
 en,HTML файл,HTML file
 en,XLS таблица,XLS table
 en,PDF файл,PDF file
@@ -3002,3 +3015,4 @@ en,Файлово разширение,File extension
 en,Нов ред,New line
 en,Ограждане,Enclosure
 en,Цена без ДДС,Price without VAT
+
