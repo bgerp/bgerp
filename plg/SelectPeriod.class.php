@@ -357,7 +357,7 @@ class plg_SelectPeriod extends core_Plugin
             $oldestDateAvailable = dt::addSecs(-1 * $oldestHorizon, null, false);
             $oldestDateAvailable = dt::mysql2verbal($oldestDateAvailable, 'Y-01-01');
             $oldestDateAvailableVerbal = dt::mysql2verbal($oldestDateAvailable, 'd.m.Y');
-            $captionAll = tr("Всички от|* {$oldestDateAvailableVerbal}");
+            $captionAll = tr("Всички|* (|от|* {$oldestDateAvailableVerbal})");
         }
 
         // Всички
