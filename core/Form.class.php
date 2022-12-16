@@ -231,9 +231,14 @@ class core_Form extends core_FieldSet
             
             // Правим проверка, дали избраната стойност е от множеството
             if (is_array($options) && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2')) {
-                
+                if (is_a($type, 'type_Text') && $type->params['isReadOnly']) {
+                    $valueCompare = str_replace("\n\r", '', $value);
+                } else {
+                    $valueCompare = $value;
+                }
+
                 // Не могат да се селектират неща които не са опции
-                if ((!array_key_exists($value, $options) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
+                if ((!array_key_exists($valueCompare, $options) && $this->cmd != 'refresh') || (is_object($options[$valueCompare]) && $options[$valueCompare]->group)) {
                     $this->setError($name, 'Невъзможна стойност за полето' .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
@@ -241,7 +246,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Не могат да се селектират групи!
-                if (is_object($options[$value]) && $options[$value]->group) {
+                if (is_object($options[$valueCompare]) && $options[$valueCompare]->group) {
                     $this->setError($name, 'Група не може да бъде стойност за полето' .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
@@ -249,7 +254,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Празна опция се приема според типа. Числата стават NULL
-                if ($options[$value] === '' && $value === '') {
+                if ($options[$valueCompare] === '' && $valueCompare === '') {
                     $value = $type->fromVerbal($value);
                 }
             } else {
@@ -379,8 +384,14 @@ class core_Form extends core_FieldSet
             
             // Правим проверка, дали избраната стойност е от множеството
             if (is_array($options) && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2')) {
+                if (is_a($type, 'type_Text') && $type->params['isReadOnly']) {
+                    $valueCompare = str_replace("\n\r", '', $value);
+                } else {
+                    $valueCompare = $value;
+                }
+
                 // Не могат да се селектират неща които не са опции
-                if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
+                if (!isset($options[$valueCompare]) || (is_object($options[$valueCompare]) && $options[$valueCompare]->group)) {
                     $this->setError($name, 'Невъзможна стойност за полето' .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
@@ -388,7 +399,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Не могат да се селектират групи!
-                if (is_object($options[$value]) && $options[$value]->group) {
+                if (is_object($options[$valueCompare]) && $options[$valueCompare]->group) {
                     $this->setError($name, 'Група не може да бъде стойност за полето' .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
@@ -396,7 +407,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Празна опция се приема според типа. Числата стават NULL
-                if ($options[$value] === '' && $value === '') {
+                if ($options[$valueCompare] === '' && $valueCompare === '') {
                     $value = $type->fromVerbal($value);
                 }
             } else {
