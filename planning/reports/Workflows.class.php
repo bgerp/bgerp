@@ -613,7 +613,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $row->jobs = ht::createLink($Job->getHandle(), array($Job->getInstance(), 'single', $Job->that));
         }
 
-        $row->taskId = planning_Tasks::getHyperlink($dRec->taskId, true);
+        if ($row->taskId){
+            $row->taskId = planning_Tasks::getHyperlink($dRec->taskId, true);
+        }
+
         $row->article = cat_Products::getHyperlink($dRec->productId, true);
 
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
@@ -636,7 +639,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                     $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val]);
 
-                    $name = crm_Persons::fetch($val)->name;
+                    $name = crm_Persons::fetch($val)->name.' / '.planning_Hr::getCodeLink($val);
                     $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
 
                     $row->employees .= $pers . '</br>';
