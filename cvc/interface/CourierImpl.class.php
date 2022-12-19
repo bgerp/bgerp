@@ -476,7 +476,7 @@ class cvc_interface_CourierImpl extends core_Manager
      * @throws core_exception_Expect
      */
     public function calculateShipmentTpl($mvc, $documentRec, &$form)
-    {bp();
+    {
         $haveError = false;
         $res = null;
         try{
