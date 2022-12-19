@@ -110,7 +110,7 @@ class cond_CourierApiIntf extends embed_DriverIntf
      */
     public function getRequestedShipmentFh($mvc, $documentRec, &$form)
     {
-        return $this->class->calculateShipmentTpl($mvc, $documentRec, $form);
+        return $this->class->getRequestedShipmentFh($mvc, $documentRec, $form);
     }
 
 

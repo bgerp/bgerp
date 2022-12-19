@@ -3,7 +3,7 @@
  * Плъгин за връзка към външна система за генериране на товарителница
  *
  * @category  bgerp
- * @package   cond
+ * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2022 Experta OOD
@@ -11,7 +11,7 @@
  *
  * @since     v 0.1
  */
-class store_plg_DeliveryServiceExternalRequest extends core_Plugin
+class store_plg_CourierApiShipment extends core_Plugin
 {
 
 
@@ -33,23 +33,10 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
     {
         $rec = &$data->rec;
 
-        //@todo да се взима от условие на доставка
-        $Driver = cls::get('speedy_interface_ApiImpl');
-        $driverClassId = $Driver->getClassId();
-
-        // Ако протокол може да се добавя към треда и не се експедира на момента
-        if ($mvc->haveRightFor('requestbilloflading', (object)array('objectId' => $rec->id, 'requestDriverId' => $driverClassId))) {
-            $serviceUrl = array($mvc, 'requestBillOfLading', 'requestDriverId' => $driverClassId, 'objectId' => $rec->id, 'ret_url' => true);
-            $data->toolbar->addBtn($Driver->requestBillOfLadingBtnCaption, $serviceUrl, "ef_icon = {$Driver->requestBillOfLadingBtnIcon},title=Създаване на нова товарителница");
-        }
-
-
-        $Driver = cls::get('cvc_interface_CourierImpl');
-        $driverClassId = $Driver->getClassId();
-
-        // Ако протокол може да се добавя към треда и не се експедира на момента
-        if ($mvc->haveRightFor('requestbilloflading', (object)array('objectId' => $rec->id, 'requestDriverId' => $driverClassId))) {
-            $serviceUrl = array($mvc, 'requestBillOfLading', 'requestDriverId' => $driverClassId, 'objectId' => $rec->id, 'ret_url' => true);
+        if ($mvc->haveRightFor('requestbilloflading', $rec)) {
+            $apiDriverId = $mvc->getCourierApi4Document($rec);
+            $serviceUrl = array($mvc, 'requestBillOfLading', 'id' => $rec->id, 'ret_url' => true);
+            $Driver = cls::get($apiDriverId);
             $data->toolbar->addBtn($Driver->requestBillOfLadingBtnCaption, $serviceUrl, "ef_icon = {$Driver->requestBillOfLadingBtnIcon},title=Създаване на нова товарителница");
         }
     }
@@ -67,22 +54,26 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if($action == 'requestbilloflading' && isset($rec)){
-            $objectRec = $mvc->fetch($rec->objectId);
-            if(empty($rec->requestDriverId)){
+            $apiDriverId = $mvc->getCourierApi4Document($rec);
+            if(empty($apiDriverId)){
                 $requiredRoles = 'no_one';
             } else {
-                $Driver = cls::get($rec->requestDriverId);
-                if(!$Driver->canRequestBillOfLading($mvc, $objectRec, $userId)){
+
+                // Ако потребителя може да избира драйвера
+                $Driver = cls::get($apiDriverId);
+                if(!$Driver->canRequestBillOfLading($mvc, $rec, $userId)){
                     $requiredRoles = 'no_one';
                 }
             }
 
             if($requiredRoles != 'no_one'){
-                if($objectRec->state != 'active'){
+                if($rec->state != 'active'){
                     $requiredRoles = 'no_one';
                 } else {
+
+                    // Само към бърза продажба с доставка може да се създава
                     if($mvc instanceof sales_Sales){
-                        $actions = type_Set::toArray($objectRec->contoActions);
+                        $actions = type_Set::toArray($rec->contoActions);
                         if (!isset($actions['ship'])) {
                             $requiredRoles = 'no_one';
                         }
@@ -104,13 +95,13 @@ class store_plg_DeliveryServiceExternalRequest extends core_Plugin
     {
         if (strtolower($action) == 'requestbilloflading') {
             $mvc->requireRightFor('requestbilloflading');
-            expect($id = Request::get('objectId', 'int'));
+            expect($id = Request::get('id', 'int'));
             expect($rec = $mvc->fetch($id));
-            expect($driverId = Request::get('requestDriverId'));
-            $mvc->requireRightFor('requestbilloflading', (object)array('objectId' => $id, 'requestDriverId' => $driverId));
+            $mvc->requireRightFor('requestbilloflading', $rec);
+            $apiDriverId = $mvc->getCourierApi4Document($rec);
 
             // Подаване на формата на драйвера
-            $Driver = cls::get($driverId);
+            $Driver = cls::getInterface('cond_CourierApiIntf', $apiDriverId);;
             $form = cls::get('core_Form');
             $Driver->addFieldToBillOfLadingForm($mvc, $rec, $form);
             $form->input();

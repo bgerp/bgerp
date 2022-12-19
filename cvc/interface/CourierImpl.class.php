@@ -476,7 +476,7 @@ class cvc_interface_CourierImpl extends core_Manager
      * @throws core_exception_Expect
      */
     public function calculateShipmentTpl($mvc, $documentRec, &$form)
-    {
+    {bp();
         $haveError = false;
         $res = null;
         try{
@@ -646,12 +646,6 @@ class cvc_interface_CourierImpl extends core_Manager
     {
         // Подготовка на данните за товарителницата
         $preparedBolParams = static::prepareBolData($form->rec);
-
-        //@todo да се махне
-        $preparedBolParams['description'] = 'Тестване на АПИ - да не се изпълнява';
-
-        //$cancel = cvc_Adapter::cancelWb();
-
         try{
             $res = cvc_Adapter::createWb($preparedBolParams);
         } catch(core_exception_Expect $e){

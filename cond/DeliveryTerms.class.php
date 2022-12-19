@@ -199,8 +199,27 @@ class cond_DeliveryTerms extends core_Master
             }
         }
     }
-    
-    
+
+
+    /**
+     * Връща имплементация на драйвера за куриерско АПИ
+     *
+     * @param mixed $id - ид, запис или NULL
+     * @return cond_TransportCalc|int|null
+     */
+    public static function getCourierApi($id, $instance = false)
+    {
+        if (!empty($id)) {
+            $rec = self::fetchRec($id);
+            if (cls::load($rec->courierApi, true)) {
+                if($instance) return cls::getInterface('cond_CourierApiIntf', $rec->courierApi);
+
+                return $rec->courierApi;
+            }
+        }
+    }
+
+
     /**
      * Дали да се изчислява скрития транспорт, за дадения артикул
      *
@@ -486,9 +505,11 @@ class cond_DeliveryTerms extends core_Master
                     $locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$formRec->contragentClassId}' AND #contragentId = '{$formRec->contragentId}'", $formRec->deliveryPlaceId), 'id');
                 }
             }
-            
-            if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $locationId, $deliveryData)) {
-                $form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
+
+            if(!$formRec->__isBeingChanged){
+                if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $locationId, $deliveryData)) {
+                    $form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
+                }
             }
         }
     }

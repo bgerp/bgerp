@@ -644,6 +644,9 @@ class sales_Setup extends core_ProtoSetup
 
         $res .= deals_Setup::syncCronSettings($params);
 
+        $Plugins = cls::get('core_Plugins');
+        $res .= $Plugins->installPlugin('Връзка на продажбите с куриерско API', 'store_plg_CourierApiShipment', 'sales_Sales', 'private');
+
         return $res;
     }
 }
