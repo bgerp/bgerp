@@ -115,7 +115,7 @@ class store_plg_CourierApiShipment extends core_Plugin
                     if(!empty($requestedShipmentFh)){
                         if(!$form->gotErrors()){
                             $fileId = fileman::fetchByFh($requestedShipmentFh, 'id');
-                            doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
+                            doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', $Driver->class->billOfLadingComment);
                             followRetUrl(null, "Успешно генерирана товарителница|*!");
                         }
                     }
@@ -128,7 +128,7 @@ class store_plg_CourierApiShipment extends core_Plugin
             }
 
             // Подготовка на тулбара
-            $form->toolbar->addSbBtn('Изпращане', 'save', "ef_icon ={$Driver->requestBillOfLadingBtnIcon}, title = Изпращане на товарителницата,id=save");
+            $form->toolbar->addSbBtn('Изпращане', 'save', "ef_icon ={$Driver->class->requestBillOfLadingBtnIcon}, title = Изпращане на товарителницата,id=save");
             $form->toolbar->addSbBtn('Изчисли', 'calc', 'ef_icon = img/16/calculator.png, title = Изчисляване на на товарителницата');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 

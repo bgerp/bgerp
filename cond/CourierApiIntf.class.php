@@ -42,6 +42,12 @@ class cond_CourierApiIntf extends embed_DriverIntf
 
 
     /**
+     * Коментар към връзката на прикачения файл
+     */
+    public $billOfLadingComment = 'Товарителница (Speedy)';
+
+
+    /**
      * Модифициране на формата за създаване на товарителница към документ
      *
      * @param core_Mvc $mvc   - Документ

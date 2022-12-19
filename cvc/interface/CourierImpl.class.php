@@ -53,6 +53,12 @@ class cvc_interface_CourierImpl extends core_Manager
 
 
     /**
+     * Коментар към връзката на прикачения файл
+     */
+    public $billOfLadingComment = 'Товарителница (CVC)';
+
+
+    /**
      * Може ли потребителя да създава товарителница от документа
      *
      * @param core_Mvc $mvc
