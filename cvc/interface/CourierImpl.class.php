@@ -88,7 +88,8 @@ class cvc_interface_CourierImpl extends core_Manager
      */
     public function addFieldToBillOfLadingForm($mvc, $rec, &$form)
     {
-        //$cacheArr = core_Permanent::get(self::getUserDataCacheKey($rec->folderId));
+        $cacheArr = core_Permanent::get(self::getUserDataCacheKey($rec->folderId));
+
         $formRec = &$form->rec;
 
         $form->class = 'cvcBillOfLading';
@@ -96,7 +97,9 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->FLD('parcelType', 'enum(parcel=Пакетна,pallet=Палетна,tires=Гуми)', 'caption=Тип на пратката,silent,removeAndRefreshForm=fixedTime,mandatory');
         $form->FLD('customerId', 'int','caption=Подател->Подател');
-        $form->setDefault('parcelType', 'parcel');
+
+        $defaultParcelType = isset($cacheArr['parcelType']) ? $cacheArr['parcelType'] : 'parcel';
+        $form->setDefault('parcelType', $defaultParcelType);
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 
         try{
@@ -105,13 +108,19 @@ class cvc_interface_CourierImpl extends core_Manager
         } catch(core_exception_Expect $e){
         }
 
-        $form->setDefault('customerId', cvc_Setup::get('SENDER_ID'));
+        $defaultCustomerId = isset($cacheArr['customerId']) ? $cacheArr['customerId'] : cvc_Setup::get('SENDER_ID');
+        $form->setDefault('customerId', $defaultCustomerId);
         $form->setReadOnly('customerId');
         $form->FLD('senderName', 'varchar','caption=Подател->Лице за контакт,mandatory');
         $form->FLD('senderPhone', 'drdata_PhoneType(type=tel,unrecognized=error)','caption=Подател->Данни за връзка,placeholder=Телефон,class=w25,mandatory');
         $form->FLD('senderEmail', 'email','caption=Подател->-,inlineTo=senderPhone,placeholder=Имейл,class=w75');
         $form->FLD('senderDeliveryType', 'enum(address=Адрес,hub=Хъб)','caption=Приемане от->Избор,silent,removeAndRefreshForm=senderHubId|senderCountryId|senderOfficeId|senderPcode|senderPlace|senderAddress|senderAddressNum|senderEntrance|senderFloor|senderApp,maxRadio=2');
         $form->FLD('senderHubId', 'key(mvc=cvc_Hubs, select=name, allowEmpty)','caption=Приемане от->Хъб,input=none');
+        if(is_array($cacheArr)){
+            $form->setDefault('senderName', $cacheArr['senderName']);
+            $form->setDefault('senderPhone', $cacheArr['senderPhone']);
+            $form->setDefault('senderEmail', $cacheArr['senderEmail']);
+        }
 
         $form->FLD('recipientPhone', 'drdata_PhoneType(type=tel,unrecognized=error)','caption=Получател->Данни за връзка,placeholder=Телефон,class=w25,mandatory');
         $form->FLD('recipientEmail', 'email','caption=Получател->-,inlineTo=recipientPhone,placeholder=Имейл,class=w75');
@@ -363,7 +372,7 @@ class cvc_interface_CourierImpl extends core_Manager
                     // Проверка на мястото за доставка
                     $foundPlacesCount = countR($foundPlaces);
                     if(!$foundPlacesCount){
-                        $form->setError('recipientPlace', "Населеното място не може да бъде намерено в тяхната система|*! Пробвайте да напишете името без съкращения!");
+                        $form->setError('recipientPlace', "Има проблем при разпознаване на населеното място|*! Моля проверете наименованието и пощенския код. Пробвайте да напишете името без съкращения!");
                     } elseif($foundPlacesCount != 1){
                         $form->setError('recipientPlace', "Населеното място не може да бъде определено еднозначно от тяхната система|*!");
                     }
@@ -666,13 +675,29 @@ class cvc_interface_CourierImpl extends core_Manager
             cvc_WayBills::save($wayBillRec);
 
             // Кеш на избраните полета от формата
-            //$cacheArr = array('senderClientId' => $form->rec->senderClientId, 'service' => $form->rec->service, 'pdfPrinterType' => $form->rec->pdfPrinterType);
-           // core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
+            $cacheArr = array('parcelType' => $form->rec->parcelType, 'customerId' => $form->rec->customerId, 'senderName' => $form->rec->senderName, 'senderPhone' => $form->rec->senderPhone, 'senderEmail' => $form->rec->senderEmail);
+            core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
 
             return $res['pdf'];
         }
 
         return null;
+    }
+
+
+    /**
+     * Какъв е ключа на потребителския кеш
+     *
+     * @param int $folderId
+     *
+     * @return string $key
+     */
+    private static function getUserDataCacheKey($folderId)
+    {
+        $cu = core_Users::getCurrent('id', false);
+        $key = "CVC_{$folderId}_{$cu}";
+
+        return $key;
     }
 
 
