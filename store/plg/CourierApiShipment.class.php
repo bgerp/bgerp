@@ -35,7 +35,7 @@ class store_plg_CourierApiShipment extends core_Plugin
 
         if ($mvc->haveRightFor('requestbilloflading', $rec)) {
             $apiDriverId = $mvc->getCourierApi4Document($rec);
-            $serviceUrl = array($mvc, 'requestBillOfLading', 'id' => $rec->id, 'ret_url' => true);
+            $serviceUrl = array($mvc, 'requestBillOfLading', 'objectId' => $rec->id, 'ret_url' => true);
             $Driver = cls::get($apiDriverId);
             $data->toolbar->addBtn($Driver->requestBillOfLadingBtnCaption, $serviceUrl, "ef_icon = {$Driver->requestBillOfLadingBtnIcon},title=Създаване на нова товарителница");
         }
@@ -95,7 +95,7 @@ class store_plg_CourierApiShipment extends core_Plugin
     {
         if (strtolower($action) == 'requestbilloflading') {
             $mvc->requireRightFor('requestbilloflading');
-            expect($id = Request::get('id', 'int'));
+            expect($id = Request::get('objectId', 'int'));
             expect($rec = $mvc->fetch($id));
             $mvc->requireRightFor('requestbilloflading', $rec);
             $apiDriverId = $mvc->getCourierApi4Document($rec);
