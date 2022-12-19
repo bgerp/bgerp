@@ -612,7 +612,7 @@ class eshop_CartDetails extends core_Detail
         $transportAmount = 0;
         foreach ($products as $p1) {
             $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total, $deliveryData);
-            if (is_array($fee)) {
+            if (is_array($fee) && $fee['totalFee'] > 0) {
                 $transportAmount += $fee['totalFee'];
             }
         }

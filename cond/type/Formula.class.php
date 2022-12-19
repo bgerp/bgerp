@@ -130,7 +130,6 @@ class cond_type_Formula extends cond_type_Text
 
         $formulaMap = cat_Params::getFormulaParamMap($params);
         $suggestions = cat_Params::formulaMapToSuggestions($formulaMap);
-
         $Type = cls::get($Type, array('params' => array('rows' => 2, ' maxOptionsShowCount' => 20), 'suggestions' => $suggestions));
 
         return $Type;
