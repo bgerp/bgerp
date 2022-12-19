@@ -27,17 +27,28 @@ class cond_type_Formula extends cond_type_Text
         $fieldset->FLD('formula', 'text(rows=2, maxOptionsShowCount=20)', 'mandatory,caption=Конкретизиране->Формула,after=order');
         $fieldset->FLD('round', 'int', 'caption=Конкретизиране->Закръгляне,after=formula');
 
-        // Налични за достъп са всички параметри
-        $pQuery = cat_Params::getQuery();
-        $pQuery->where("#state != 'rejected'");
-        $pQuery->show('id');
-        $paramIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
-
         // Задаване на параметрите като предложения във формата
+        $paramIds = static::getGlobalParamIds();
         $formulaMap = cat_Params::getFormulaParamMap($paramIds);
         $suggestions = cat_Params::formulaMapToSuggestions($formulaMap);
         $fieldset->setSuggestions('formula', $suggestions);
     }
+
+
+    /**
+     * Връща глобалните производствени параметри
+     *
+     * @return array $res
+     */
+     private static function getGlobalParamIds()
+     {
+         $pQuery = cat_Params::getQuery();
+         $pQuery->where("#state != 'rejected'");
+         $pQuery->show('id');
+         $res = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+
+         return $res;
+     }
 
 
     /**
@@ -53,19 +64,22 @@ class cond_type_Formula extends cond_type_Text
         if (isset($domainClass)) {
             $Domain = cls::get($domainClass);
             if ($Domain instanceof cat_Products) {
-                $params = $Domain->getParams($domainId);
+                if(isset($domainId)){
+                    $params = $Domain->getParams($domainId);
+                }
             } elseif ($Domain instanceof planning_Tasks) {
+                if(isset($domainId)){
+                    // Ако е ПО, прави се обединение между нейните и на артикула от заданието параметрите
+                    $tRec = $Domain->fetch($domainId, 'originId,productId');
+                    $jobProductId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
+                    $params = cat_Products::getParams($jobProductId);
 
-                // Ако е ПО, прави се обединение между нейните и на артикула от заданието параметрите
-                $tRec = $Domain->fetch($domainId, 'originId,productId');
-                $jobProductId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
-                $params = cat_Products::getParams($jobProductId);
-
-                $tQuery = cat_products_Params::getQuery();
-                $tQuery->where("#classId = {$Domain->getClassId()} AND #productId = {$domainId}");
-                $tQuery->show('paramId,paramValue');
-                while ($tRec = $tQuery->fetch()) {
-                    $params[$tRec->paramId] = $tRec->paramValue;
+                    $tQuery = cat_products_Params::getQuery();
+                    $tQuery->where("#classId = {$Domain->getClassId()} AND #productId = {$domainId}");
+                    $tQuery->show('paramId,paramValue');
+                    while ($tRec = $tQuery->fetch()) {
+                        $params[$tRec->paramId] = $tRec->paramValue;
+                    }
                 }
             }
 
@@ -109,8 +123,11 @@ class cond_type_Formula extends cond_type_Text
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
         $Type = parent::getType($rec, $domainClass, $domainId, $value);
-
         $params = static::getParamsFromDomain($domainClass, $domainId);
+        if(!countR($params)){
+            $params = static::getGlobalParamIds();
+        }
+
         $formulaMap = cat_Params::getFormulaParamMap($params);
         $suggestions = cat_Params::formulaMapToSuggestions($formulaMap);
 
