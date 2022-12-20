@@ -133,6 +133,12 @@ defIfNot('CAT_GROUPS_WITH_OVERHEAD_COSTS', '');
 
 
 /**
+ * Дефолтни режийни разходи за производимите артикули
+ */
+defIfNot('CAT_DEFAULT_PRODUCT_OVERHEAD_COST', '');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -258,6 +264,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_TRANSPORT_WEIGHT_STRATEGY' => array('enum(paramFirst=Първо параметър после опаковка,packFirst=Първо опаковка после параметър)', 'caption=Стратегия за изчисляване на транспортния обем->Избор,customizeBy=debug'),
         'CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи които могат да имат правила за обновяване на себестойностти->Избор'),
         'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи в които може да се задава процент режийни разходи->Избор'),
+        'CAT_DEFAULT_PRODUCT_OVERHEAD_COST' => array('percent(min=0)', 'caption=Режийни разходи по подразбиране за производими артикули->Реж. разходи'),
     );
     
     
