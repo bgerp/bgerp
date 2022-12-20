@@ -139,9 +139,9 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->FLD('recipientCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,silent,removeAndRefreshForm=recipientPcode|recipientPlace|recipientAddress|recipientAddressNum|recipientEntrance|recipientFloor|recipientApp');
         $form->FLD('recipientPcode', 'varchar','caption=Доставка->Населено място,class=w25,placeholder=П.К');
-        $form->FLD('recipientPlace', 'varchar','caption=Доставка->-,class=w75,placeholder=Наименование,inlineTo=recipientPcode,autocomplete=off');
-        $form->FLD('recipientAddress', 'varchar','caption=Доставка->Адрес,class=w50,placeholder=Наименование');
-        $form->FLD('recipientAddressNum', 'varchar(size=3)','caption=Доставка->-,class=w10,placeholder=Номер,inlineTo=recipientAddress');
+        $form->FLD('recipientPlace', 'varchar','caption=Доставка->-,class=w75,placeholder=Населено място,inlineTo=recipientPcode,autocomplete=off');
+        $form->FLD('recipientAddress', 'varchar','caption=Доставка->Адрес,class=w50,placeholder=Адрес');
+        $form->FLD('recipientAddressNum', 'varchar(size=3)','caption=Доставка->-,class=w10,placeholder=№,inlineTo=recipientAddress');
         $form->FLD('recipientEntrance', 'varchar(size=3)','caption=Доставка->->Вход,class=w10,placeholder=Вход');
         $form->FLD('recipientFloor', 'int(size=3)','caption=Доставка->-,class=w10,placeholder=Етаж,inlineTo=recipientEntrance');
         $form->FLD('recipientApp', 'int(size=3)','caption=Доставка->-,class=w10,placeholder=Апарт.,inlineTo=recipientFloor');
@@ -160,7 +160,7 @@ class cvc_interface_CourierImpl extends core_Manager
         $form->FLD('reff1', 'varchar','caption=Описание на пратката->Клиентски референции,class=w50%,placeholder=Референция 1');
         $form->FLD('reff2', 'varchar','caption=Описание на пратката->-,inlineTo=reff1,class=w50%,placeholder=Референция 2');
 
-        $form->FLD('test', 'enum(no=Без,observe=Преглед,test=Преглед и тест)','caption=Допълнителни услуги и добавки->Тест,maxRadio=3,silent,removeAndRefreshForm=rejectPayer,input=hidden');
+        $form->FLD('test', 'enum(no=Без,observe=Преглед,test=Преглед и тест)','caption=Допълнителни услуги и добавки->Тест,maxRadio=3,columns=3,silent,removeAndRefreshForm=rejectPayer,input=hidden');
         $form->FLD('rejectPayer', 'enum(contract=По договор,sender=От изпращача, rec=От получателя)','caption=Допълнителни услуги и добавки->При отказ - плащане,input=none');
 
         $form->FLD('haveCodPayment', 'enum(no=Без,yes=Да)','caption=Допълнителни услуги и добавки->Наложен платеж,silent,removeAndRefreshForm=codAmount|isCodPpp');
@@ -222,7 +222,7 @@ class cvc_interface_CourierImpl extends core_Manager
         $form->FLD('senderPcode', 'varchar','caption=Приемане от->Населено място,class=w25,placeholder=П.К');
         $form->FLD('senderPlace', 'varchar','caption=Приемане от->-,class=w75,placeholder=Наименование,inlineTo=senderPcode');
         $form->FLD('senderAddress', 'varchar','caption=Приемане от->Адрес,class=w50,placeholder=Наименование');
-        $form->FLD('senderAddressNum', 'varchar(size=3)','caption=Приемане от->-,class=w10,placeholder=Номер,inlineTo=senderAddress');
+        $form->FLD('senderAddressNum', 'varchar(size=3)','caption=Приемане от->-,class=w10,placeholder=№,inlineTo=senderAddress');
         $form->FLD('senderEntrance', 'varchar(size=3)','caption=Приемане от->Вход,class=w10,placeholder=Вход');
         $form->FLD('senderFloor', 'int(size=3)','caption=Приемане от->-,class=w10,placeholder=Етаж,inlineTo=senderEntrance');
         $form->FLD('senderApp', 'int(size=3)','caption=Приемане от->-,class=w10,placeholder=Апарт.,inlineTo=senderFloor');
@@ -381,8 +381,9 @@ class cvc_interface_CourierImpl extends core_Manager
                         $form->setError('recipientPlace', "Има проблем при разпознаване на населеното място|*! Моля проверете наименованието и пощенския код. Пробвайте да напишете името без съкращения!");
                     } elseif($foundPlacesCount != 1){
                         $form->setError('recipientPlace', "Населеното място не може да бъде определено еднозначно от тяхната система|*!");
+                    } elseif(is_array($foundPlaces)) {
+                        $rec->_cityId = key($foundPlaces);
                     }
-                    $rec->_cityId = key($foundPlaces);
                 }
             }
 
