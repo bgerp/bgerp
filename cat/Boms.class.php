@@ -298,15 +298,16 @@ class cat_Boms extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
-        $productInfo = cat_Products::getProductInfo($form->rec->productId);
+        $rec = &$form->rec;
+
+        $productInfo = cat_Products::getProductInfo($rec->productId);
         $shortUom = cat_UoM::getShortName($productInfo->productRec->measureId);
         $form->setField('quantity', "unit={$shortUom}");
         $form->setField('quantityForPrice', "unit={$shortUom}");
         
         // К-то е дефолтното от заданието
-        if (isset($form->rec->originId)) {
-            $origin = doc_Containers::getDocument($form->rec->originId);
+        if (isset($rec->originId)) {
+            $origin = doc_Containers::getDocument($rec->originId);
             if ($origin->isInstanceOf('planning_Jobs')) {
                 $form->setDefault('quantity', $origin->fetchField('quantity'));
             }
@@ -314,9 +315,19 @@ class cat_Boms extends core_Master
         $form->setDefault('quantity', 1);
         
         // При създаване на нова рецепта
-        if (empty($form->rec->id)) {
-            if ($expenses = cat_Products::getParams($form->rec->productId, 'expenses')) {
-                $form->setDefault('expenses', $expenses);
+        if (empty($rec->id)) {
+            $expensesArr = array();
+            if ($expenses = cat_Products::getParams($rec->productId, 'expenses')) {
+                $expensesArr[] = $expenses;
+            }
+
+            $defaultOverheadCosts = cat_Groups::getDefaultOverheadCostsByProductId($rec->productId);
+            if(!empty($defaultOverheadCosts)){
+                $expensesArr[] = $defaultOverheadCosts;
+            }
+
+            if(countR($expensesArr)){
+                $form->setDefault('expenses', max($expensesArr));
             }
         }
     }
