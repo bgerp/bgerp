@@ -116,7 +116,8 @@ class store_plg_CourierApiShipment extends core_Plugin
                         if(!$form->gotErrors()){
                             $fileId = fileman::fetchByFh($requestedShipmentFh, 'id');
                             doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', $Driver->class->billOfLadingComment);
-                            followRetUrl(null, "Успешно генерирана товарителница|*!");
+                            $mvc->logWrite("Създаване на товарителница", $rec->id);
+                            followRetUrl(null, "Товарителницата е изпратена успешно|*!");
                         }
                     }
                 } elseif($form->cmd == 'calc'){
@@ -133,7 +134,7 @@ class store_plg_CourierApiShipment extends core_Plugin
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
             // Записваме, че потребителя е разглеждал този списък
-            $mvc->logInfo('Форма за генериране на товарителница на Speedy');
+            $mvc->logInfo('Форма за генериране на товарителница на Speedy', $rec->id);
 
             $res = $mvc->renderWrapping($form->renderHtml());
             $Driver->afterPrepareBillOfLadingForm($mvc, $rec, $form, $res);
