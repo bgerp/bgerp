@@ -116,6 +116,12 @@ defIfNot('PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE', 60 * 60 * 24 * 5);
 
 
 /**
+ * Колко време след приключване на ПО може да се произведе ДРУГ артикул
+ */
+defIfNot('PLANNING_TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE', 60 * 60 * 24 * 30);
+
+
+/**
  * Да се показва ли предупреждение при дублирани серийни номера в ПО
  */
 defIfNot('PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS', 'yes');
@@ -142,7 +148,7 @@ defIfNot('PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT', '100000');
 /**
  * Поле което да определя опресняване на кеширането на артикула в заданието
  */
-defIfNot('PLANNING_JOB_USE_DATE_FIELD_FOR_PRODUCT_CACHE', 'modifiedOn');
+defIfNot('PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE', 'yes');
 
 
 /**
@@ -164,32 +170,32 @@ class planning_Setup extends core_ProtoSetup
      * Версия на пакета
      */
     public $version = '0.1';
-    
-    
+
+
     /**
      * Необходими пакети
      */
     public $depends = 'cat=0.1';
-    
-    
+
+
     /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = 'planning_Wrapper';
-    
-    
+
+
     /**
      * Екшън - входна точка в пакета
      */
     public $startAct = 'planning_DirectProductionNote';
-    
-    
+
+
     /**
      * Описание на модула
      */
     public $info = 'Производствено планиране';
-    
-    
+
+
     /**
      * Описание на конфигурационните константи за този модул
      */
@@ -212,10 +218,11 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_TASK_PROGRESS_OPERATOR' => array('enum(lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално),current=Текущ оператор)', 'caption=Задаване на оператори в прогреса на ПО->Оператори,customizeBy=taskWorker|ceo'),
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
+        'PLANNING_TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се произведе ДРУГ артикул->Време'),
         'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
         'PLANNING_TASK_NET_WEIGHT_WARNING' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Предупреждение'),
         'PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT' => array('int(Min=0)', 'caption=Максимално допустимо бруто тегло в прогреса на ПО->Максимално до,unit=кг'),
-        'PLANNING_JOB_USE_DATE_FIELD_FOR_PRODUCT_CACHE' => array('enum(modifiedOn=Модифицирано на,activatedOn=Активирано на)', 'caption=Поле което да определя опресняване на кеширането на артикула в заданието->Поле'),
+        'PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE' => array('enum(yes=Да,no=Не)', 'caption=Обновяване на параметрите на артикула в заданието при Пускане/Събуждане->По подразбиране'),
     );
 
 
@@ -267,9 +274,10 @@ class planning_Setup extends core_ProtoSetup
         'migrate::updateLastChangedOnState',
         'migrate::updateTasks1',
         'migrate::updateCenters2244',
+        'migrate::cleanClosedTasks2250'
     );
-    
-    
+
+
     /**
      * Роли за достъп до модула
      */
@@ -285,16 +293,16 @@ class planning_Setup extends core_ProtoSetup
         array('planning'),
         array('planningMaster', 'planning'),
     );
-    
-    
+
+
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
         array(3.21, 'Производство', 'Планиране', 'planning_Centers', 'dispatch', 'ceo,planning,production,jobSee'),
     );
-    
-    
+
+
     /**
      * Дефинирани класове, които имат интерфейси
      */
@@ -302,19 +310,19 @@ class planning_Setup extends core_ProtoSetup
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning';
-    
-    
+
+
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-        
+
         // Кофа за снимки
         $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'every_one', 'powerUser');
         $html .= fileman_Buckets::createBucket('workCards', 'Работни карти', 'pdf,jpg,jpeg,png', '200MB', 'powerUser', 'powerUser');
-        
+
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
 
@@ -328,19 +336,19 @@ class planning_Setup extends core_ProtoSetup
     public static function setJobAutoClose($Type, $oldValue, $newValue)
     {
         $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
-        if(empty($newValue)){
-            if(is_object($exRec)){
+        if (empty($newValue)) {
+            if (is_object($exRec)) {
                 $exRec->state = 'stopped';
                 core_Cron::save($exRec, 'state');
             }
-        } elseif(empty($oldValue)) {
+        } elseif (empty($oldValue)) {
             $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
-            if($exRec->state == 'stopped'){
+            if ($exRec->state == 'stopped') {
                 $exRec->state = 'free';
                 core_Cron::save($exRec, 'state');
             } else {
                 $rec = new stdClass();
-                $rec->systemId =  'Close Old Jobs';
+                $rec->systemId = 'Close Old Jobs';
                 $rec->description = 'Затваряне на стари задания';
                 $rec->controller = 'planning_Jobs';
                 $rec->action = 'CloseOldJobs';
@@ -411,7 +419,7 @@ class planning_Setup extends core_ProtoSetup
     function removeOldRoles()
     {
         $remRoleId = core_Roles::fetchByName('taskPlanning');
-        if(!$remRoleId) return;
+        if (!$remRoleId) return;
 
         core_Roles::removeRoles(array($remRoleId));
         core_Users::rebuildRoles();
@@ -423,10 +431,10 @@ class planning_Setup extends core_ProtoSetup
      */
     function updateLastChangedOnState()
     {
-        foreach (array('planning_Jobs', 'planning_Tasks') as $class){
+        foreach (array('planning_Jobs', 'planning_Tasks') as $class) {
             $Class = cls::get($class);
             $Class->setupMvc();
-            if($Class->count()){
+            if ($Class->count()) {
                 $tableName = $Class->dbTableName;
                 $lastChangeStateOnColName = str::phpToMysqlName('lastChangeStateOn');
                 $modifiedOnColName = str::phpToMysqlName('modifiedOn');
@@ -447,7 +455,7 @@ class planning_Setup extends core_ProtoSetup
     public function updateTasks1()
     {
         $Tasks = cls::get('planning_Tasks');
-        if(!$Tasks->count()) return;
+        if (!$Tasks->count()) return;
 
         $colName = str::phpToMysqlName('showadditionalUom');
         $query = "UPDATE {$Tasks->dbTableName} SET {$colName} = 'yes' WHERE {$colName} = 'mandatory'";
@@ -461,10 +469,44 @@ class planning_Setup extends core_ProtoSetup
     public function updateCenters2244()
     {
         $Centers = cls::get('planning_Centers');
-        if(!$Centers->count()) return;
+        if (!$Centers->count()) return;
 
         $colName = str::phpToMysqlName('mandatoryOperatorsInTasks');
         $query = "UPDATE {$Centers->dbTableName} SET {$colName} = 'lastAndMandatory' WHERE {$colName} = 'yes'";
         $Centers->db->query($query);
+    }
+
+
+    /**
+     * Миграция на замърсените ПО
+     */
+    public function cleanClosedTasks2250()
+    {
+        core_App::setTimeLimit(300);
+        $assets = $saveRecs = array();
+
+        // Зануляване на приключените ПО в подредбата
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#state = 'closed' AND #orderByAssetId IS NOT NULL AND #assetId IS NOT NULL");
+        $tQuery->show('id,assetId,orderByAssetId');
+
+        while($tRec = $tQuery->fetch()){
+            $tRec->orderByAssetId = null;
+            $saveRecs[$tRec->id] = $tRec;
+            $assets[$tRec->assetId] = $tRec->assetId;
+        }
+
+        if(countR($saveRecs)){
+            cls::get('planning_Tasks')->saveArray($saveRecs, 'id,orderByAssetId');
+        }
+
+        // За всяка засегната машина
+        if(countR($assets)){
+            foreach ($assets as $assetId){
+
+                // нулира се кеша ѝ за да може да се преизчисли наново
+                core_Permanent::remove("assetTaskOrder|{$assetId}");
+            }
+        }
     }
 }

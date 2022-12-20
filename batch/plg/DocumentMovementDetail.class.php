@@ -69,7 +69,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 // Ако има само позволени опции само тях
                 $allowedOptions = $mvc->getAllowedInBatches($rec);
                 if(is_array($allowedOptions)){
-                    $form->setOptions('batch', array('' => '') + $allowedOptions);
+                    if(countR($allowedOptions) == 1){
+                        $form->setOptions('batch', $allowedOptions);
+                        $form->setDefault('batch', key($allowedOptions));
+                    } else {
+                        $form->setOptions('batch', array('' => '') + $allowedOptions);
+                    }
                 }
 
                 if (isset($BatchClass->fieldPlaceholder)) {

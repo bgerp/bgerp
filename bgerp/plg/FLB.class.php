@@ -216,18 +216,29 @@ class bgerp_plg_FLB extends core_Plugin
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $showFields = 'users';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->FLD('users', 'users(rolesForAll=ceo|admin,rolesForTeams=officer|admin)', 'caption=Потребител,silent,autoFilter,remember');
-        $data->listFilter->showFields = 'users';
-        $data->listFilter->input('users', 'silent');
+        if($mvc->haveRightFor('close')){
+            $data->listFilter->setFieldType('state', "enum(active=Активирани,closed=Затворени)");
+            $data->listFilter->setField('state', 'autoFilter');
+            $showFields .= ",state";
+        }
+        $data->listFilter->showFields = $showFields;
+        $data->listFilter->input($showFields, 'silent');
         
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
         $data->listFilter->setDefault('users', $default);
         $data->query->orderBy('state', 'ASC');
 
         // Скриване на записите до които няма достъп
-        if ($selectedUsers = $data->listFilter->rec->users) {
-            self::addUserFilterToQuery($mvc, $data->query, $selectedUsers);
+        $filterRec = $data->listFilter->rec;
+        if(!empty($filterRec->users)){
+            if($filterRec->state == 'closed'){
+                $data->query->where("#state = 'closed'");
+            } else {
+                self::addUserFilterToQuery($mvc, $data->query, $filterRec->users);
+            }
         }
     }
     

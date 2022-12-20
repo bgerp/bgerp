@@ -326,6 +326,12 @@ class plg_SelectPeriod extends core_Plugin
             // За всички да е празен стринг вместо NULL
             case 'gr0':
                 $from = '';
+                $oldestHorizon = doc_Setup::get('SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON');
+                if(!empty($oldestHorizon)){
+                    $oldestDateAvailable = dt::addSecs(-1 * $oldestHorizon, null, false);
+                    $oldestDateAvailable = dt::mysql2verbal($oldestDateAvailable, 'Y-01-01');
+                    $from = $oldestDateAvailable;
+                }
                 $to = '';
                 break;
             default:
@@ -344,9 +350,18 @@ class plg_SelectPeriod extends core_Plugin
     public static function getOptions(&$keySel = null, $fromSel = null, $toSel = null, $showFutureOptions = false)
     {
         $opt = array();
-        
+
+        $oldestHorizon = doc_Setup::get('SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON');
+        $captionAll = tr('Всички');
+        if(!empty($oldestHorizon)){
+            $oldestDateAvailable = dt::addSecs(-1 * $oldestHorizon, null, false);
+            $oldestDateAvailable = dt::mysql2verbal($oldestDateAvailable, 'Y-01-01');
+            $oldestDateAvailableVerbal = dt::mysql2verbal($oldestDateAvailable, 'd.m.Y');
+            $captionAll = tr("Всички|* (|от|* {$oldestDateAvailableVerbal})");
+        }
+
         // Всички
-        $opt['gr0'] = (object) array('title' => tr('Всички'));
+        $opt['gr0'] = (object) array('title' => $captionAll);
         
         // Ден
         $opt['gr1'] = (object) array('title' => tr('Ден'), 'group' => true);

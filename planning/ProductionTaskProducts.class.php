@@ -319,10 +319,15 @@ class planning_ProductionTaskProducts extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
-            $tRec = $mvc->Master->fetch($rec->taskId, 'state,isFinal,originId');
+            $tRec = $mvc->Master->fetch($rec->taskId, 'state,isFinal,originId,timeClosed');
             if (in_array($tRec->state, array('active', 'waiting', 'wakeup', 'draft', 'pending'))) {
                 if ($action == 'add') {
                     $requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
+                }
+            } elseif($tRec->state == 'closed' && $rec->type == 'production'){
+                $howLong = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $tRec->timeClosed);
+                if(dt::now() >= $howLong){
+                    $requiredRoles = 'no_one';
                 }
             } else {
                 $requiredRoles = 'no_one';
@@ -400,25 +405,40 @@ class planning_ProductionTaskProducts extends core_Detail
         $taskRec = planning_Tasks::fetchRec($taskId);
         $usedProducts = $options = array();
         expect(in_array($type, array('input', 'waste', 'production', 'scrap')));
+        $now = dt::now();
+        $horizon1 = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $taskRec->timeClosed);
+        $horizon2 = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $taskRec->timeClosed);
+        $mainProductId = ($taskRec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId') : $taskRec->productId;
 
         if ($type == 'production' && $taskRec->isFinal != 'yes') {
-            $options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, false);
+            if($taskRec->state != 'closed' || $now <= $horizon1){
+                $options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, false);
+            }
         }
 
         if($type == 'scrap'){
             $query = planning_ProductionTaskDetails::getQuery();
             $query->where("#taskId = {$taskId} AND #state != 'rejected'");
-            $query->show('serial');
+            $query->show('serial,productId');
             $query->where("#type = 'production'");
             while ($rec = $query->fetch()) {
+                if($taskRec->state == 'closed' && $now >= $horizon1 && $rec->productId == $mainProductId) continue;
+
                 $options[$rec->serial] = cls::get('planning_ProductionTaskDetails')->getVerbal($rec, 'serial');
             }
         } else {
             $query = self::getQuery();
             $query->where("#taskId = {$taskId}");
-            $query->show('productId');
+            $query->show('productId,plannedQuantity');
             $query->where("#type = '{$type}'");
+
             while ($rec = $query->fetch()) {
+                if($taskRec->state == 'closed' && $type == 'production'){
+                    if(empty($rec->plannedQuantity)){
+                        if($now >= $horizon1) continue;
+                    } elseif($now >= $horizon2) continue;
+                }
+
                 $options[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
                 $usedProducts[$rec->productId] = $rec->productId;
             }
@@ -513,25 +533,22 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Документа не може да се създава  в нова нишка, ако е възоснова на друг
-        if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $data->toolbar->removeBtn('btnAdd');
-            
+        $data->toolbar->removeBtn('btnAdd');
+        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
             if (cat_Products::getByProperty('canManifacture', null, 1)) {
-                if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-                    $data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на производим артикул');
-                }
+                $data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на производим артикул');
             }
-            
+        }
+
+        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input'))) {
             if (cat_Products::getByProperty('canConvert', null, 1)) {
-                if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input'))) {
-                    $data->toolbar->addBtn('За влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
-                }
+                $data->toolbar->addBtn('За влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
             }
-            
+        }
+
+        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
             if (cat_Products::getByProperty('canStore,canConvert', null, 1, cat_Groups::getKeylistBySysIds('waste'))) {
-                if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
-                    $data->toolbar->addBtn('За отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => true), false, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
-                }
+                $data->toolbar->addBtn('За отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => true), false, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
             }
         }
     }

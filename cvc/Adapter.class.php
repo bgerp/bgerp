@@ -29,7 +29,7 @@ class cvc_Adapter
      * Калкилиране на товарителница
      *
      * @param array $params
-     * ['parcel_type'] * enum(parcel=пакетна,pallet=палетна,tires=гуму) * - Типа на пратката
+     * ['parcel_type'] * enum(parcel=пакетна,pallet=палетна,tires=гуми) * - Типа на пратката
      * ['pickup_date'] * date(YYYY-MM-DD) - дата, на която пратката да се вземе (дата на изпращане)
      * ['description'] * string - описание/съдържание на пратката
      * ['payer'] * enum(contract=по договор,sender=при изпращане, rec=при получаване) - плащане на услугата
@@ -358,7 +358,7 @@ class cvc_Adapter
         $q = mb_strtolower($q);
         $q = trim($q);
 
-        expect($q);
+        cvc_Exception::expect($q, 'Няма стринг за търсене');
 
         $res = self::makeCall('search_munis', array('country_id' => $countryId, 'search_for' => $q));
 
@@ -405,7 +405,7 @@ class cvc_Adapter
         $q = mb_strtolower($q);
         $q = trim($q);
 
-        expect($q);
+        cvc_Exception::expect($q, 'Няма стринг за търсене');
 
         $paramsArr = array('country_id' => $countryId, 'search_for' => $q);
         if (isset($countyId)) {
@@ -436,6 +436,52 @@ class cvc_Adapter
             $resArr[$city->id]['isRegionalTown'] = $city->is_regional_town;
             $resArr[$city->id]['isThereQts'] = $city->is_there_qts;
             $resArr[$city->id]['tpBg'] = $city->tp_bg;
+        }
+
+        return $resArr;
+    }
+
+
+    /**
+     * Помощна функция, която използва getCities и търси пълно съвпадение на името
+     *
+     * @param string $q - стринг от името на населеното място
+     * @param null|int $zipCode - пощенски код на населеното място
+     * @param null|int $countryId - id на държавата от getCountries - по подразбиран DEFAULT_COUNTRY_ID
+     * @param null|int $countyId - id на областта от getCounties
+     * @param null|int $municipalityId - id na общината от getMunicipalities
+     *
+     * @return false|array
+     * ключ - id, от тяхната системата, което се използва в заявките
+     * ['nameBg'] - името на БГ в тяхната система
+     * ['countyBg'] - името на обласста на БГ в тяхната система
+     * ['muniBg'] - името на общината на БГ в тяхната система
+     * ['zip'] - пощенски код на насаленото място
+     * ['deliveryDays'] - масив с дни на доставка - 1 - понедилки, 5 - петък и т.н.
+     * ['isTown'] - флаг, дали е град
+     * ['isRegionalTown'] - флаг, дали е областен град
+     * ['tpBg'] - съкращение за типа на населеното място - с., гр., к.
+     * ['isThereQts'] - Флаг, който индикира дали разполага с номенклатура с квартали/ж.к., които евентуално да се изполват чрез searchQts функцията
+     */
+    public static function getCity($q, $zipCode = null, $countryId = null, $countyId = null, $municipalityId = null)
+    {
+        $citiesArr = self::getCities($q, $countryId, $countyId, $municipalityId);
+
+        if (!$citiesArr) {
+
+            return $citiesArr;
+        }
+
+        $resArr = array();
+        foreach ($citiesArr as $k => $cArr) {
+            if ((mb_strtolower($cArr['nameBg']) == mb_strtolower($q)) || isset($zipCode)) {
+                if (isset($zipCode) && ($cArr['zip'] != $zipCode)) {
+
+                    continue;
+                }
+
+                $resArr[$k] = $cArr;
+            }
         }
 
         return $resArr;
@@ -581,7 +627,7 @@ class cvc_Adapter
         $q = mb_strtolower($q);
         $q = trim($q);
 
-        expect($q);
+        cvc_Exception::expect($q, 'Няма стринг за търсене');
 
         $res = self::makeCall('search_qts', array('city_id' => $cityId, 'country_id' => $countryId, 'search_for' => $q));
 
@@ -621,7 +667,7 @@ class cvc_Adapter
         $q = mb_strtolower($q);
         $q = trim($q);
 
-        expect($q);
+        cvc_Exception::expect($q, 'Няма стринг за търсене');
 
         $res = self::makeCall('search_streets', array('city_id' => $cityId, 'country_id' => $countryId, 'search_for' => $q));
 
@@ -638,6 +684,54 @@ class cvc_Adapter
         }
 
         return $resArr;
+    }
+
+
+    /**
+     * Връща опциите за избор на изпращач
+     *
+     * @return array
+     */
+    public static function getSenderOptions()
+    {
+        $options = array();
+        try {
+            $cvcCustoms = cvc_Adapter::getCustomLocations();
+            foreach ($cvcCustoms as $customerId => $customObj){
+                $options[$customerId] = $customObj['name'];
+            }
+        } catch(core_exception_Expect $e){}
+
+        if (countR($options)){
+            $options = array('' => '') + $options;
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Връща ид-то на държавата по подаденото име
+     *
+     * @param mixed $country
+     *
+     * @return null|int - ид-то на държавата
+     */
+    public static function getCountryIdByName($country)
+    {
+        // Извличане на кода на държавата
+        $countryId = is_numeric($country) ? $country : drdata_Countries::getIdByName($country);
+        $letterCode2 = drdata_Countries::fetchField($countryId, 'letterCode2');
+
+        // Извличане на всички държави и търсене на тази с този код
+        $countries = cvc_Adapter::getCountries();
+        $found = array_filter($countries, function($a) use ($letterCode2) {return $a['code'] == $letterCode2;});
+        if (countR($found) == 1){
+
+            return key($found);
+        }
+
+        return null;
     }
 
 
@@ -732,7 +826,8 @@ class cvc_Adapter
     {
         $token = cvc_Setup::get('TOKEN');
 
-        expect($url && $token);
+        cvc_Exception::expect($url, 'Не е подадено URL');
+        cvc_Exception::expect($token, 'Не е настроен токен');
 
         $curl = curl_init($url);
 
@@ -786,5 +881,25 @@ class cvc_Adapter
         }
 
         return $response;
+    }
+
+
+    /**
+     * Помощна функция за логване на грешките
+     *
+     * @param string $msg
+     *
+     * @return void
+     */
+    protected static function logErr($msg)
+    {
+        $className = get_called_class();
+        log_System::add($className, $msg, null, 'err', 7);
+
+        if (haveRole('debug')) {
+            status_Messages::newStatus($msg, 'error');
+        }
+
+        cvc_Exception::expect(false, $msg);
     }
 }

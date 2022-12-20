@@ -50,31 +50,33 @@ class store_plg_Request extends core_Plugin
             }
         }
     }
-    
-    
+
+
     /**
      * Кои детайли да се клонират с промяна
      *
+     * @param core_Mvc $mvc
      * @param stdClass $rec
-     * @param mixed    $Detail
+     * @return array $res
+     *          ['recs'] - записи за промяна
+     *          ['detailMvc] - модел от който са
      *
-     * @return array
      */
-    public static function on_BeforeGetDetailsToCloneAndChange($mvc, &$res, $rec, &$Detail = null)
+    public static function on_AfterGetDetailsToCloneAndChange($mvc, &$res, $rec)
     {
         if (!$rec->clonedFromId) return;
-
         if ($rec->state != 'active') return;
 
         core_Request::setProtected('showDiff');
         $showDiff = Request::get('showDiff', 'int');
         if (empty($showDiff)) return;
-        
+
         $Detail = cls::get($mvc->mainDetail);
-        $arr = $Detail->getUndeliveredDetails($rec->clonedFromId);
-        
-        if (countR($arr)) {
-            $res = $arr;
+        $undelivered = $Detail->getUndeliveredDetails($rec->clonedFromId);
+        if (countR($undelivered)) {
+            $res = array('recs' => $undelivered, 'detailMvc' => $Detail);
+
+            return false;
         }
     }
 }

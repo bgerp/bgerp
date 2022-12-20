@@ -2026,10 +2026,10 @@ class eshop_Carts extends core_Master
         $currencyCode = $settings->currencyId;
         $rec->vatAmount = $rec->total - $rec->totalNoVat;
         
-        if ($rec->freeDelivery != 'yes') {
+        if ($rec->freeDelivery != 'yes' && $rec->deliveryNoVat > 0) {
             $rec->totalNoVat = $rec->totalNoVat - $rec->deliveryNoVat;
         }
-        
+
         foreach (array('total', 'totalNoVat', 'deliveryNoVat', 'vatAmount') as $fld) {
             if (isset($rec->{$fld})) {
                 ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
@@ -2068,6 +2068,10 @@ class eshop_Carts extends core_Master
             // Показване на текст за очаквана доставка
             if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
                 $row->EXPECTED_DELIVERY = $expectedDeliveryText;
+            }
+        } else {
+            if($rec->deliveryNoVat < 0){
+                $row->deliveryNoVat = ht::createHint("", "Има проблем при изчислението на доставката|* [{$rec->deliveryNoVat}]", 'warning', false);
             }
         }
     }

@@ -732,7 +732,7 @@ class cat_UoM extends core_Manager
      * Колко е най-големия брой десетични знаци за показване от посочените мерки
      *
      * @param array $packagings - мерки
-     * @return null|int - най-голям брой цифри за показване след десетичния знак
+     * @return null|int $maxDecimals - най-голям брой цифри за показване след десетичния знак
      */
     public static function getMaxRound($packagings)
     {
@@ -744,7 +744,9 @@ class cat_UoM extends core_Manager
         $uQuery->XPR('maxDecimals', 'double', 'MAX(#round)');
         $uQuery->in('id', $usedMeasures);
         $uQuery->show('maxDecimals');
+        $maxDecimals = $uQuery->fetch()->maxDecimals;
+        $maxDecimals = empty($maxDecimals) ? 0 : $maxDecimals;
 
-        return  $uQuery->fetch()->maxDecimals;
+        return  $maxDecimals;
     }
 }

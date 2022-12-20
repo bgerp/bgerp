@@ -1422,7 +1422,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
         $aggregator->sum('invoicedAmount', $total);
         $aggregator->setIfNot('invoicedValior', $rec->date);
-        
+
         if (isset($rec->dpAmount)) {
             $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
             if(isset($rec->dpVatGroupId)){
@@ -1442,12 +1442,15 @@ abstract class deals_InvoiceMaster extends core_Master
                 $aggregator->sumByArrIndex('downpaymentDeductedByVats', $deducted + $vatAmount, $dpVatId);
             }
         } else {
-            
+
             // Ако е ДИ и КИ към ф-ра за начисляване на авансово плащане, променяме платения аванс по сделката
             if ($rec->type == 'dc_note') {
-                $originOperation = doc_Containers::getDocument($rec->originId)->fetchField('dpOperation');
-                if ($originOperation == 'accrued') {
+                $originRec = doc_Containers::getDocument($rec->originId)->fetch('dpOperation,dpVatGroupId,date');
+
+                if ($originRec->dpOperation == 'accrued') {
                     $aggregator->sum('downpaymentInvoiced', $total);
+                    $dpVatId = isset($originRec->dpVatGroupId) ? $originRec->dpVatGroupId : acc_VatGroups::getDefaultIdByDate($originRec->date);
+                    $aggregator->sumByArrIndex('downpaymentAccruedByVats', $total, $dpVatId);
                 }
             }
         }

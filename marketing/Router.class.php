@@ -431,11 +431,16 @@ class marketing_Router extends core_Manager
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
         $canonizedId = str::removeWhiteSpace($vatId);
 
-        if($id = $Class->fetchField(array("(#{$field} = '[#1#]' || #{$field} = '[#2#]') AND #state != 'rejected'", $vatId, $canonizedId))){
+        $query = $Class->getQuery();
+        $query->where(array("(#{$field} = '[#1#]' || #{$field} = '[#2#]') AND #state != 'rejected'", $vatId, $canonizedId));
+        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+        $query->orderBy('#orderByState=ASC');
+        $foundRec = $query->fetch();
+        if(is_object($foundRec)){
 
-            return $Class->forceCoverAndFolder((object) array('id' => $id, 'inCharge' => $inCharge));
+            return $Class->forceCoverAndFolder((object) array('id' => $foundRec->id, 'inCharge' => $inCharge));
         }
-        
+
         return null;
     }
     

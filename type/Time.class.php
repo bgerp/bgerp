@@ -44,7 +44,7 @@ class type_Time extends type_Varchar
     /**
      * Стойности, означаващи 0, на момента, on time
      */
-    protected $zeroArr = array('na momenta', 'vednaga', 'on time', 'nezabavno', 'immediately');
+    protected $zeroArr = array('na momenta', 'vednaga', 'on time', 'nezabavno', 'immediately', 'bez ogranichenie');
     
     
     /**

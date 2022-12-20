@@ -129,51 +129,38 @@ class speedy_Offices extends core_Manager
     public function cron_UpdateOffices()
     {
         core_Users::forceSystemUser();
-        
-        $adapter = new speedy_Adapter();
-        $connectResult = $adapter->connect();
-        
-        // Логване към API-то на спиди
-        if($connectResult->success !== true){
+
+        $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_COUNTRY', true);
+        $loginData = speedy_Adapter2::getLoginData();
+        if(empty($loginData['userName']) || empty($loginData['password'])) {
+            core_Users::cancelSystemUser();
+            return;
+        }
+
+        try{
+            $theirCountryId = speedy_Adapter2::getCountryId($ownCompanyId);
+            $offices = speedy_Adapter2::getOffices($theirCountryId);
+        } catch(core_exception_Expect $e){
             log_System::add($this, "Проблем при свързване към акаунта на Speedy", null, 'warning');
             core_Users::cancelSystemUser();
-            
+
             return;
         }
-        
-        $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_COUNTRY', true);
-        
-        try{
-            // Извличане на офисите на Speedy
-            $offices = $adapter->getOffices($ownCompanyId);
-        } catch(ServerException $e){
-            reportException($e);
-            $this->logErr('Проблем при извличане на офисите на Speedy');
-            $this->logErr($e->getMessage());
-            core_Users::cancelSystemUser();
-            
-            return;
-        }
-        
+
         // Ако има намерени офиси
         if(is_array($offices)){
-            $current = array();
-            
+
             // Извличат им се адресните данни
-            foreach ($offices as $OfficeRes){
-                try{
-                    $Address = $OfficeRes->getAddress();
-                    $obj = (object)array('num' => $OfficeRes->getId(), 'name' => $OfficeRes->getName(), 'pCode' => $Address->getPostCode(), 'address' => trim($Address->getFullAddressString()), 'state' => 'active');
-                    $current[$obj->num] = $obj;
-                } catch(ServerException $e){
-                    reportException($e);
-                }
+            $current = array();
+            foreach ($offices as $officeRes){
+                $obj = (object)array('num' => $officeRes['id'], 'name' => $officeRes['name'], 'pCode' => $officeRes['pCode'], 'address' => trim($officeRes['address']), 'state' => 'active');
+                $current[$obj->num] = $obj;
             }
-            
+
             $query = self::getQuery();
             $exRecs = $query->fetchAll();
             $sync = arr::syncArrays($current, $exRecs, 'num', 'name,pCode,address,state');
-            
+
             // Добавяне на новите офиси
             if(countR($sync['insert'])){
                 $this->saveArray($sync['insert']);

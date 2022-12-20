@@ -162,7 +162,7 @@ class cat_BomDetails extends doc_Detail
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate|labelType');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelType', 'enum(scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
@@ -1124,8 +1124,8 @@ class cat_BomDetails extends doc_Detail
             // Колко е най-голямото закръгляне на използваните мерки
             $usedMeasures = arr::extractValuesFromArray($data->recs, 'packagingId');
             $maxDecimals = cat_UoM::getMaxRound($usedMeasures);
-
             $Double = core_Type::getByName("double(decimals={$maxDecimals})");
+
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
                 if ($rec->parentId) {

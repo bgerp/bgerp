@@ -162,6 +162,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->setDbIndex('serial');
         $this->setDbIndex('taskId,productId');
         $this->setDbIndex('productId,type');
+        $this->setDbIndex('taskId,state');
     }
 
 
@@ -183,6 +184,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Добавяне на последните данни за дефолтни
         $masterRec = planning_Tasks::fetch($rec->taskId);
+        if ($masterRec->state == 'closed') {
+            $form->info = new core_ET(tr("|*<div class='richtext-message richtext-warning'><br>|Въвеждате прогрес в приключена операция|*!<br><br></div>"));
+        }
 
         // Кои оператори са въведени досега
         $defaultFillUser = planning_Setup::get('TASK_PROGRESS_OPERATOR');
@@ -250,9 +254,14 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         if ($rec->type == 'production') {
             if ($masterRec->isFinal != 'yes') {
-                $form->setDefault('productId', $masterRec->productId);
+                if(array_key_exists($masterRec->productId, $options)){
+                    $form->setDefault('productId', $masterRec->productId);
+                }
             } else {
-                $form->setDefault('productId', planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'));
+                $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
+                if(array_key_exists($jobProductId, $options)){
+                    $form->setDefault('productId', $jobProductId);
+                }
             }
         }
 
@@ -406,6 +415,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         if ($form->isSubmitted()) {
             $masterRec = planning_Tasks::fetch($rec->taskId);
+
             if (empty($rec->serial) && empty($rec->productId) && !empty($masterRec->labelPackagingId)) {
                 $form->setError('serial,productId', 'Трябва да е въведен артикул или сериен номер');
             }
@@ -1224,25 +1234,22 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Документът не може да се създава в нова нишка, ако е въз основа на друг
-        if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $data->toolbar->removeBtn('btnAdd');
-            $masterRec = $data->masterData->rec;
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-                $btnName = (empty($masterRec->labelPackagingId) || $masterRec->labelPackagingId == $masterRec->measureId) ? 'Прогрес' : "Прогрес|* " . tr(cat_UoM::getTitleById(($masterRec->labelPackagingId)));
-                $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на прогрес по операцията');
-            }
-            
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input'))) {
-                $data->toolbar->addBtn('Влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
-            }
-            
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
-                $data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => true), false, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
-            }
+        $data->toolbar->removeBtn('btnAdd');
+        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
+            $btnName = (empty($masterRec->labelPackagingId) || $masterRec->labelPackagingId == $masterRec->measureId) ? 'Прогрес' : "Прогрес|* " . tr(cat_UoM::getTitleById(($masterRec->labelPackagingId)));
+            $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на прогрес по операцията');
+        }
 
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'scrap'))) {
-                $data->toolbar->addBtn('Бракуване', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'scrap', 'ret_url' => true), false, 'ef_icon = img/16/bin_closed.png,title=Бракуване на прогрес по операцията');
-            }
+        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input'))) {
+            $data->toolbar->addBtn('Влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+        }
+
+        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
+            $data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => true), false, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
+        }
+
+        if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'scrap'))) {
+            $data->toolbar->addBtn('Бракуване', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'scrap', 'ret_url' => true), false, 'ef_icon = img/16/bin_closed.png,title=Бракуване на прогрес по операцията');
         }
     }
     
@@ -1331,14 +1338,42 @@ class planning_ProductionTaskDetails extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (in_array($action, array('add', 'edit', 'delete', 'reject', 'fix')) && isset($rec->taskId)) {
-            $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state,originId');
+            $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state,originId,productId,isFinal');
             $originState = doc_Containers::getDocument($masterRec->originId)->fetchField('state');
             if(in_array($masterRec->state, array('rejected', 'draft', 'waiting', 'stopped')) || in_array($originState, array('rejected', 'draft', 'stopped'))){
                 $requiredRoles = 'no_one';
             } elseif($masterRec->state == 'closed'){
-                $howLong = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
-                if(dt::now() >= $howLong){
-                    $requiredRoles = 'no_one';
+                $now = dt::now();
+                $horizon1 = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+                $horizon2 = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+
+                // Ако времето е след първия хоризонт
+                if($now >= $horizon1){
+
+                    // И сме след втория никой не може нищо
+                    if($now >= $horizon2){
+                        $requiredRoles = 'no_one';
+                    } else {
+
+                        // Ако сме преди втория и има за произвеждане повече от 1 артикул да може да се произвежда
+                        $productionCount = planning_ProductionTaskProducts::count("#type = 'production' AND #taskId = {$rec->taskId}");
+                        if($productionCount != 1){
+                            if(!haveRole('taskPostProduction,ceo')){
+                                $requiredRoles = 'no_one';
+                            }
+                        } else {
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+
+                    if($action == 'reject'){
+                        $mainProductId = ($masterRec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId') : $masterRec->productId;
+
+                        if($rec->productId == $mainProductId){
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                    // Ако е преди първия хоризонт се изисква роля за пост продукция
                 } elseif(!haveRole('taskPostProduction,ceo')){
                     $requiredRoles = 'no_one';
                 }
@@ -1357,7 +1392,19 @@ class planning_ProductionTaskDetails extends doc_Detail
                     if(!haveRole('taskPostProduction,ceo')){
                         $requiredRoles = 'no_one';
                     } elseif(isset($rec->scrapRecId)){
-                        $exRec = static::fetch("#id = {$rec->scrapRecId}", 'type,state,taskId');
+                        $exRec = static::fetch("#id = {$rec->scrapRecId}", 'type,state,taskId,productId');
+                        $taskRec = planning_Tasks::fetch($exRec->taskId, 'state,timeClosed,isFinal,originId,productId');
+
+                        if($taskRec->state == 'closed'){
+                            $horizon = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $taskRec->timeClosed);
+                            if(dt::now() >= $horizon){
+                                $mainProductId = ($taskRec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId') : $taskRec->productId;
+                                if($exRec->productId == $mainProductId){
+                                    $requiredRoles = 'no_one';
+                                }
+                            }
+                        }
+
                         if($exRec->state == 'rejected' || $exRec->type != 'production' || $exRec->taskId != $rec->taskId){
                             $requiredRoles = 'no_one';
                         }
@@ -1369,6 +1416,20 @@ class planning_ProductionTaskDetails extends doc_Detail
         if($action == 'printperipherallabel' && isset($rec)){
             if($rec->type != 'production' || $rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
+            } else {
+                if($requiredRoles != 'no_one'){
+
+                    // Дали да се печата бърз етикет
+                    if(core_Packs::isInstalled('label')) {
+                        $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
+                        if ($labelPrintFromProgress == 'yes') {
+                            $taskPrintLabelFromTask = planning_Tasks::fetchField("#id = {$rec->taskId}", 'labelPrintFromProgress');
+                            if ($taskPrintLabelFromTask != 'yes') {
+                                $requiredRoles = 'no_one';
+                            }
+                        }
+                    }
+                }
             }
         }
 
