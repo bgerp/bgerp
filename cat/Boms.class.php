@@ -316,19 +316,8 @@ class cat_Boms extends core_Master
         
         // При създаване на нова рецепта
         if (empty($rec->id)) {
-            $expensesArr = array();
-            if ($expenses = cat_Products::getParams($rec->productId, 'expenses')) {
-                $expensesArr[] = $expenses;
-            }
-
-            $defaultOverheadCosts = cat_Groups::getDefaultOverheadCostsByProductId($rec->productId);
-            if(!empty($defaultOverheadCosts)){
-                $expensesArr[] = $defaultOverheadCosts;
-            }
-
-            if(countR($expensesArr)){
-                $form->setDefault('expenses', max($expensesArr));
-            }
+            $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
+            $form->setDefault('expenses', $defaultOverheadCost);
         }
     }
     

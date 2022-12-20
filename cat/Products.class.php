@@ -4408,4 +4408,34 @@ class cat_Products extends embed_Manager
 
         $query->show('id,name,code,isPublic,nameEn');
     }
+
+
+    /**
+     * Колко са дефолтните режихни разходи на артикула намира в следната последователност
+     * 1. Стойност на продуктов параметър "режийни разходи"
+     * 2. Най-големия процент режийни разходи от групите на артикула
+     * 3. Стойноста на глобалната константа за системата
+     *
+     * @param int $productId             - ид на артикули
+     * @return double|null $overheadCost - дефолтната стойност
+     */
+    public static function getDefaultOverheadCost($productId)
+    {
+        // Има ли стойност параметъра "режийни разходи"
+        $overheadCost = cat_Products::getParams($productId, 'expenses');
+        if(empty($overheadCost)){
+
+            // Ако няма:Най-големия процент режийни разходи от групите на артикула
+            $overheadCost = cat_Groups::getDefaultOverheadCostsByProductId($productId);
+        }
+
+        // Ако не е намерена стойност гледа се глобалната константа
+        if(empty($overheadCost)) {
+            $overheadCost = cat_Setup::get('DEFAULT_PRODUCT_OVERHEAD_COST');
+        }
+
+        $overheadCost = empty($overheadCost) ? null : $overheadCost;
+
+        return $overheadCost;
+    }
 }
