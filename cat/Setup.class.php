@@ -121,9 +121,15 @@ defIfNot('CAT_PRODUCT_CODE_TYPE', 'default');
 
 
 /**
- * Продуктови групи които могат да имат правила за обновяване на себестойностти
+ * Продуктови групи, които могат да имат правила за обновяване на себестойностти
  */
 defIfNot('CAT_GROUPS_WITH_PRICE_UPDATE_RULES', '');
+
+
+/**
+ * Продуктови групи, в които могат да се задава процент режийни разходи
+ */
+defIfNot('CAT_GROUPS_WITH_OVERHEAD_COSTS', '');
 
 
 /**
@@ -248,10 +254,10 @@ class cat_Setup extends core_ProtoSetup
         'CAT_CLOSE_UNUSED_PRIVATE_IN_ACTIVE_QUOTES_OLDER_THAN' => array('time', 'caption=Затваряне на стари нестандартни артикули->В оферти отпреди'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на неизползвани стандартни артикули->Създадени преди'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Само в папките'),
-
         'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Пълни,no=Непълни)', 'caption=Дали рецептите по подразбиране са завършени->Избор'),
         'CAT_TRANSPORT_WEIGHT_STRATEGY' => array('enum(paramFirst=Първо параметър после опаковка,packFirst=Първо опаковка после параметър)', 'caption=Стратегия за изчисляване на транспортния обем->Избор,customizeBy=debug'),
         'CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи които могат да имат правила за обновяване на себестойностти->Избор'),
+        'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи в които може да се задава процент режийни разходи->Избор'),
     );
     
     
@@ -374,15 +380,22 @@ class cat_Setup extends core_ProtoSetup
     {
         $res = parent::loadSetupData($itr);
 
-        // Ако няма посочени от потребителя сметки за синхронизация
-        $groupsWithUpdateRules = cat_Setup::get('GROUPS_WITH_PRICE_UPDATE_RULES');
-        if (strlen($groupsWithUpdateRules) === 0) {
-            if($priceGroupRec = cat_Groups::fetch("#sysId = 'priceGroup'", 'name,id')){
-                $defaultGroupKeylist = keylist::addKey('', $priceGroupRec->id);
+        $arr = array('GROUPS_WITH_PRICE_UPDATE_RULES' => array('msg' => 'Дефолтна продуктова група за ценови правила', 'sysId' => 'priceGroup'),
+                     'GROUPS_WITH_OVERHEAD_COSTS' => array('msg' => 'Дефолтна продуктова група за режийни разходи', 'sysId' => 'products'));
+        foreach ($arr as $const => $constArr){
 
-                // Записват се ид-та на дефолт сметките за синхронизация
-                core_Packs::setConfig('cat', array('CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => $defaultGroupKeylist));
-                $res .= "<li style='color:green'>Дефолтна продуктова група за ценови правила: <b>{$priceGroupRec->name}</b></li>";
+            // Ако константата няма стойност
+            $groupsWithUpdateRules = cat_Setup::get($const);
+            if (strlen($groupsWithUpdateRules) === 0) {
+
+                // Има ли запис на дефолтната група
+                if($priceGroupRec = cat_Groups::fetch("#sysId = '{$constArr['sysId']}'", 'name,id')){
+                    $defaultGroupKeylist = keylist::addKey('', $priceGroupRec->id);
+
+                    // Ако да записва се като дефолтно избрана
+                    core_Packs::setConfig('cat', array("CAT_{$const}" => $defaultGroupKeylist));
+                    $res .= "<li style='color:green'>{$constArr['msg']}: <b>{$priceGroupRec->name}</b></li>";
+                }
             }
         }
 
