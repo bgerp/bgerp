@@ -272,32 +272,14 @@ class cat_Groups extends core_Master
 
         if ($fields['-single'] && empty($rec->defaultOverheadCostsPercent)) {
 
-            // Търси се от бащите наследените режийни разходи
-            $parent = $rec->parentId;
-            $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
-            $inheritedOverheadCostPercent = $inheritedFromParentId = null;
-            while ($parent && ($pRec = $mvc->fetch("#id = {$parent}", "id,parentId,defaultOverheadCostsPercent"))) {
-
-                // Ако има въведени режийни в бащата и той или неговите бащи са в дефолтно избраните тази е стойността
-                if(!empty($pRec->defaultOverheadCostsPercent)){
-                    $parentsArr = cls::get('cat_Groups')->getParentsArray($pRec->parentId);
-                    $intersectedParents = array_intersect_key($groupsWithOverheadCosts, $parentsArr);
-                    if(array_key_exists($pRec->id, $groupsWithOverheadCosts) || countR($intersectedParents)){
-                        $inheritedOverheadCostPercent = $pRec->defaultOverheadCostsPercent;
-                        $inheritedFromParentId = $pRec->id;
-                        break;
-                    }
-                }
-
-                $parent = $pRec->parentId;
-            }
-
             // Ако е намерена наследена стойност
-            if(!empty($inheritedOverheadCostPercent)){
-                $row->defaultOverheadCostsPercent = $mvc->getFieldType('defaultOverheadCostsPercent')->toVerbal($inheritedOverheadCostPercent);
-                $row->defaultOverheadCostsPercent = "<span style='color:blue'>{$row->defaultOverheadCostsPercent}</span>";
-                $hint = "Наследено от|*: " . $mvc->getVerbal($inheritedFromParentId, 'name');
-                $row->defaultOverheadCostsPercent = ht::createHint($row->defaultOverheadCostsPercent, $hint, 'notice', false);
+            if($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)){
+                if(!empty($overheadCostArr['overheadCost'])){
+                    $row->defaultOverheadCostsPercent = $mvc->getFieldType('defaultOverheadCostsPercent')->toVerbal($overheadCostArr['overheadCost']);
+                    $row->defaultOverheadCostsPercent = "<span style='color:blue'>{$row->defaultOverheadCostsPercent}</span>";
+                    $hint = "Наследено от|*: " . $mvc->getVerbal($overheadCostArr['groupId'], 'name');
+                    $row->defaultOverheadCostsPercent = ht::createHint($row->defaultOverheadCostsPercent, $hint, 'notice', false);
+                }
             }
         }
     }
@@ -560,6 +542,7 @@ class cat_Groups extends core_Master
     public static function getDefaultOverheadCostsByProductId($productId)
     {
         // Кои са въведените групи артикули
+        $me = cls::get(get_called_class());
         $groupsInput = cat_Products::fetchField($productId, 'groupsInput');
         $productGroups = keylist::toArray($groupsInput);
 
@@ -569,7 +552,7 @@ class cat_Groups extends core_Master
         foreach ($productGroups as $groupId){
 
             // За всяка от ръчно въведените групи на артикула, ако някой от бащите ѝ е в избраните групи
-            $parents = cls::get(get_called_class())->getParentsArray($groupId);
+            $parents = $me->getParentsArray($groupId);
             $intersected = array_intersect_key($groupsWithOverheadCosts, $parents);
 
             if(countR($intersected)){
@@ -579,23 +562,8 @@ class cat_Groups extends core_Master
                 if(!empty($groupRec->defaultOverheadCostsPercent)){
                     $groupsToCheck[$groupRec->id] = $groupRec->defaultOverheadCostsPercent;
                 } else {
-
-                    // Ако няма се търси в неговите бащи докато се намери процент
-                    $parent = $groupRec->parentId;
-                    while ($parent && ($pRec = static::fetch("#id = {$parent}", "id,parentId,defaultOverheadCostsPercent"))) {
-                        if(!empty($pRec->defaultOverheadCostsPercent)){
-                            $parentsArr = cls::get('cat_Groups')->getParentsArray($pRec->parentId);
-                            $intersectedParents = array_intersect_key($groupsWithOverheadCosts, $parentsArr);
-
-                            // Ако е намерен процент, все пак се проверява дали текущия баща или бащите му са в посочените
-                            if(array_key_exists($pRec->id, $groupsWithOverheadCosts) || countR($intersectedParents)){
-
-                                // Ако се намери се връща
-                                $groupsToCheck[$groupRec->id] = $pRec->defaultOverheadCostsPercent;
-                                break;
-                            }
-                        }
-                        $parent = $pRec->parentId;
+                    if($overheadCostArr = $me->getDefaultOverheadCostFromParent($groupRec)){
+                        $groupsToCheck[$groupRec->id] = $overheadCostArr['overheadCost'];
                     }
                 }
             }
@@ -605,5 +573,35 @@ class cat_Groups extends core_Master
         if(countR($groupsToCheck)) return max($groupsToCheck);
 
         return null;
+    }
+
+
+    /**
+     * Колко са очакваните режийни разходи от башата
+     *
+     * @param stdClass $rec
+     * @return array|false
+     *          ['groupId']      - от коя грипа е наследено
+     *          ['overheadCost'] - процент наследени разходи
+     */
+    private function getDefaultOverheadCostFromParent($rec)
+    {
+        // Ако няма се търси в неговите бащи докато се намери процент
+        $parent = $rec->parentId;
+        $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
+        while ($parent && ($pRec = static::fetch("#id = {$parent}", "id,parentId,defaultOverheadCostsPercent"))) {
+            if(!empty($pRec->defaultOverheadCostsPercent)){
+                $parentsArr = cls::get('cat_Groups')->getParentsArray($pRec->parentId);
+                $intersectedParents = array_intersect_key($groupsWithOverheadCosts, $parentsArr);
+
+                // Ако е намерен процент, все пак се проверява дали текущия баща или бащите му са в посочените
+                if(array_key_exists($pRec->id, $groupsWithOverheadCosts) || countR($intersectedParents)){
+                    return array('groupId' => $rec->id, 'overheadCost' => $pRec->defaultOverheadCostsPercent);
+                }
+            }
+            $parent = $pRec->parentId;
+        }
+
+        return false;
     }
 }
