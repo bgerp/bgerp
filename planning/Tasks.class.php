@@ -2346,6 +2346,7 @@ class planning_Tasks extends core_Master
             $msg = 'Операциите са успешно създадени';
 
             $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+
             $num = 1;
             foreach ($defaultTasks as $sysId => $defaultTask) {
                 try {
@@ -2366,6 +2367,15 @@ class planning_Tasks extends core_Master
                     Mode::push('manualSaoOrder', true);
                     $this->save($newTask);
                     Mode::pop('manualSaoOrder');
+
+                    // Ако има параметри от рецептата се прехвърлят 1 към 1
+                    if(is_array($defaultTask->params)){
+                        foreach ($defaultTask->params as $pId => $pVal){
+                            $paramRec = (object)array('classId' => $this->getClassId(), 'productId' => $newTask->id, 'paramId' => $pId, 'paramValue' => $pVal);
+                            cat_products_Params::save($paramRec);
+                        }
+                    }
+
                     $this->logWrite('Автоматично създаване от задание', $newTask->id);
                 } catch (core_exception_Expect $e) {
                     reportException($e);
