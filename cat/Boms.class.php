@@ -1651,6 +1651,7 @@ class cat_Boms extends core_Master
         $query->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $query->where("#bomId = {$rec->id}");
         $query->where("#type = 'stage' AND #innerClass = {$productStepClassId}");
+        $query->orderBy('id', 'ASC');
         while($dRec1 = $query->fetch()){
             $allStages[$dRec1->id] = $dRec1;
             if($dRec1->innerClass == $productStepClassId){
