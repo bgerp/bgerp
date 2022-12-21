@@ -205,7 +205,7 @@ class cat_products_Params extends doc_Detail
                 $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
                 $form->setDefault('paramValue', $defaultValue);
                 if(isset($defaultValue)){
-                    if($pRec->valueType == 'readonly'){
+                    if(($pRec->valueType == 'readonly') && !haveRole('ceo,task')){
                         $form->setReadOnly('paramValue');
                         $form->info = tr("Стойноста идва от параметъра и не може да се променя|*!");
                     }
