@@ -204,10 +204,12 @@ class cat_products_Params extends doc_Detail
             
                 $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
                 $form->setDefault('paramValue', $defaultValue);
-                if(isset($defaultValue)){
-                    if(($pRec->valueType == 'readonly') && !haveRole('ceo,catEdit,task')){
-                        $form->setReadOnly('paramValue');
-                        $form->info = tr("Стойноста идва от параметъра и не може да се променя|*!");
+                if($pRec->valueType == 'readonly'){
+                    if(isset($defaultValue)){
+                        $form->info = tr("|*<div class='richtext-message richtext-warning'>Параметърът е дефиниран като „Само за четене“|*!<br>|Промяната наложителна ли е|*?<br>Съвет|*: |Опитайте първо да презапишете с автоматично заредената дефолтна стойност|*!</div>");
+                    }
+                    else {
+                        $form->info = tr("|*<div class='richtext-message richtext-warning'>Параметърът е дефиниран като „Само за четене“|*!<br>|Промяната наложителна ли е|*?</div>");
                     }
                 }
 
@@ -478,11 +480,6 @@ class cat_products_Params extends doc_Detail
             $pRec = cat_Params::fetch($rec->paramId, 'roles,valueType');
             if (!empty($roles) && !haveRole($roles, $userId)) {
                 $requiredRoles = 'no_one';
-            }
-            if($action == 'edit'){
-                if($pRec->valueType == 'readonly'){
-                    $requiredRoles = 'ceo,catEdit,task';
-                }
             }
         }
     }
