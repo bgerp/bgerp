@@ -1347,6 +1347,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $requiredRoles = 'no_one';
             } elseif($masterRec->state == 'closed'){
                 $now = dt::now();
+                $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state,originId,productId,isFinal');
                 $horizon1 = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
                 $horizon2 = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
 
@@ -1360,7 +1361,8 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                         // Ако сме преди втория и има за произвеждане повече от 1 артикул да може да се произвежда
                         $productionCount = planning_ProductionTaskProducts::count("#type = 'production' AND #taskId = {$rec->taskId}");
-                        if($productionCount != 1){
+                        $allowedCount = ($masterRec->isFinal == 'yes') ? 1 : 0;
+                        if($productionCount != $allowedCount){
                             if(!haveRole('taskPostProduction,ceo')){
                                 $requiredRoles = 'no_one';
                             }
