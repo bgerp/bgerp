@@ -1237,6 +1237,7 @@ class planning_Tasks extends core_Master
                         }
                     } elseif ($rec->type == 'all') {
                         $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+
                         $defaultTaskCount = countR($defaultTasks);
                         if (!$defaultTaskCount) {
                             $requiredRoles = 'no_one';
@@ -2345,6 +2346,7 @@ class planning_Tasks extends core_Master
             $msg = 'Операциите са успешно създадени';
 
             $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+            $num = 1;
             foreach ($defaultTasks as $sysId => $defaultTask) {
                 try {
                     if (planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")) continue;
@@ -2360,13 +2362,18 @@ class planning_Tasks extends core_Master
                         $folderId = planning_Centers::getUndefinedFolderId();
                     }
                     $newTask->folderId = $folderId;
+                    $newTask->saoOrder = $num;
+                    Mode::push('manualSaoOrder', true);
                     $this->save($newTask);
+                    Mode::pop('manualSaoOrder');
                     $this->logWrite('Автоматично създаване от задание', $newTask->id);
                 } catch (core_exception_Expect $e) {
                     reportException($e);
                     $msg = 'Проблем при създаване на операция';
                     $msgType = 'error';
                 }
+
+                $num++;
             }
 
             followRetUrl(null, $msg, $msgType);
