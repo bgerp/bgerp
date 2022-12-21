@@ -2343,12 +2343,12 @@ class planning_Tasks extends core_Master
             // Ако ще се клонират всички шаблонни операции
             planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'));
             $msgType = 'notice';
-            $msg = 'Операциите са успешно създадени';
-
+            $msg = 'Успешно създаване на дефолтните операции|*!';
             $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
 
             $num = 1;
             foreach ($defaultTasks as $sysId => $defaultTask) {
+
                 try {
                     if (planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")) continue;
 
@@ -2356,6 +2356,13 @@ class planning_Tasks extends core_Master
                     $newTask = clone $defaultTask;
                     $newTask->originId = $jobRec->containerId;
                     $newTask->systemId = $sysId;
+                    $newTask->state = 'pending';
+
+                    // Ако има едно оборудване попълва се то по-дефолт
+                    $assets = keylist::toArray($defaultTask->fixedAssets);
+                    if(countR($assets)){
+                        $newTask->assetId = key($assets);
+                    }
 
                     // Клонират се в папката на посочения в тях център, ако няма в центъра от заданието, ако и там няма в Неопределения
                     $folderId = isset($defaultTask->centerId) ? planning_Centers::fetchField($defaultTask->centerId, 'folderId') : ((!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : null);
