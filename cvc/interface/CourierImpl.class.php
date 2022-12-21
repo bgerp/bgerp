@@ -178,10 +178,41 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->input(null, 'silent');
         $form->setDefault('senderDeliveryType', 'address');
-        $form->setDefault('recipientDeliveryType', 'address');
+
         $form->setDefault('returnReceipt', 'no');
         $form->setDefault('returnDocuments', 'no');
         $form->setDefault('palletCount', 1);
+
+        $deliveryData = array();
+        $deliveryTermId = null;
+
+        // Кои са данните за доставка от условието на договора
+        if($mvc instanceof sales_Sales){
+            $deliveryTermId = $rec->deliveryTermId;
+            $deliveryData = $rec->deliveryData;
+        } elseif($mvc instanceof store_DocumentMaster){
+            $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDocument->isInstanceOf('sales_Sales')) {
+                if(empty($rec->locationId) && empty($rec->tel)){
+                    $deliveryTermId = $firstDocument->fetchField('deliveryTermId');
+                    $deliveryData = $firstDocument->fetchField('deliveryData');
+                }
+            }
+        }
+
+        // Ако има намерено условие на доставка и то е с калкулатор за офис на CVC доставката да е до там
+        if(isset($deliveryTermId)){
+            if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($deliveryTermId)){
+                if($DeliveryCalc->class instanceof cvc_interface_DeliveryToOffice){
+                    if($form->cmd != 'refresh'){
+                        $form->setDefault('recipientDeliveryType', 'office');
+                        $form->setDefault('recipientOfficeId', $deliveryData['officeId']);
+                    }
+                }
+            }
+        }
+
+        $form->setDefault('recipientDeliveryType', 'address');
 
         if($formRec->parcelType == 'parcel'){
             $form->setField('fixedTime', 'input');
@@ -591,7 +622,7 @@ class cvc_interface_CourierImpl extends core_Manager
         if($rec->recipientDeliveryType == 'hub'){
             $recepientObj->hub_id = $rec->recipientHubId;
         } elseif($rec->recipientDeliveryType == 'office'){
-            $recepientObj->office_id = $rec->recipientOfficeId;
+            $recepientObj->office_id = cvc_Offices::fetchField($rec->recipientOfficeId, 'num');
         } else {
             $recepientObj->city_id = $rec->_cityId;
             foreach (array('zip' => 'recipientPcode', 'num' => 'recipientAddressNum', 'entr' => 'recipientEntrance', 'ap' => 'recipientApp', 'floor' => 'recipientFloor') as $theirFld => $oursFld){
