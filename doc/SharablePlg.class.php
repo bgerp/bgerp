@@ -337,7 +337,7 @@ class doc_SharablePlg extends core_Plugin
             return $shareUsers;
         }
         
-        setIfNot($vals['shareMaxCnt'], 10);
+        setIfNot($vals['shareMaxCnt'], 12);
         
         $shareUsers = array();
         
