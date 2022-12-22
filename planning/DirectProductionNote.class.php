@@ -301,9 +301,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
 
             $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,sales');
-            if (isset($bomRec->expenses)) {
-                $form->setDefault('expenses', $bomRec->expenses);
-            }
+            $defaultOverheadCost = isset($bomRec->expenses) ? $bomRec->expenses : cat_Products::getDefaultOverheadCost($rec->productId);
+            $form->setDefault('expenses', $defaultOverheadCost);
 
             // Ако има избрана опаковка
             if(isset($rec->packagingId)){
