@@ -135,7 +135,7 @@ defIfNot('CAT_GROUPS_WITH_OVERHEAD_COSTS', '');
 /**
  * Дефолтни режийни разходи за производимите артикули
  */
-defIfNot('CAT_DEFAULT_PRODUCT_OVERHEAD_COST', '');
+defIfNot('CAT_DEFAULT_PRODUCT_OVERHEAD_COST', '5');
 
 
 /**
@@ -260,11 +260,11 @@ class cat_Setup extends core_ProtoSetup
         'CAT_CLOSE_UNUSED_PRIVATE_IN_ACTIVE_QUOTES_OLDER_THAN' => array('time', 'caption=Затваряне на стари нестандартни артикули->В оферти отпреди'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на неизползвани стандартни артикули->Създадени преди'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Само в папките'),
-        'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Пълни,no=Непълни)', 'caption=Дали рецептите по подразбиране са завършени->Избор'),
         'CAT_TRANSPORT_WEIGHT_STRATEGY' => array('enum(paramFirst=Първо параметър после опаковка,packFirst=Първо опаковка после параметър)', 'caption=Стратегия за изчисляване на транспортния обем->Избор,customizeBy=debug'),
         'CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи които могат да имат правила за обновяване на себестойностти->Избор'),
-        'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи в които може да се задава процент режийни разходи->Избор'),
-        'CAT_DEFAULT_PRODUCT_OVERHEAD_COST' => array('percent(min=0)', 'caption=Режийни разходи по подразбиране за производими артикули->Реж. разходи'),
+        'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Пълни,no=Непълни)', 'caption=Рецепти: допълване на себест-стта до очакваната по политика Себестойност при производство->Избор,unit=(Пълни = Без допълване)'),
+        'CAT_DEFAULT_PRODUCT_OVERHEAD_COST' => array('percent(min=0)', 'caption=Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Режийни разходи'),
+        'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Задаване в групи'),
     );
     
     
