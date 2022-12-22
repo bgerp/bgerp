@@ -361,6 +361,23 @@ class batch_BatchesInDocuments extends core_Manager
 
         // Кои са наличните партиди към момента
         $batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date);
+
+        // Ако има други споменати партиди в нишката добавят се и те като достъпни
+        $batchesInThread = array();
+        $threadId = doc_Containers::fetchField($recInfo->containerId, 'threadId');
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#threadId = {$threadId} AND #id != {$recInfo->containerId}");
+        $cQuery->show('id');
+        $cIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
+        if(countR($cIds)){
+            $query1 = batch_BatchesInDocuments::getQuery();
+            $query1->in('containerId', $cIds);
+            while($r1 = $query1->fetch()){
+                $batchesInThread[$r1->batch] = 0;
+            }
+        }
+
+        $batches = $batches + $batchesInThread;
         foreach ($batches as $i => $v) {
             $itemState = batch_Items::fetchField("#productId = {$recInfo->productId} AND #storeId = {$storeId} AND #batch = '{$i}'", 'state');
             if ($itemState == 'closed') {
