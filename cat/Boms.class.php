@@ -225,7 +225,7 @@ class cat_Boms extends core_Master
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
 
-        $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable');
+        $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пълна рецепта,notNull,value=auto,mandatory');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
@@ -243,8 +243,8 @@ class cat_Boms extends core_Master
     /**
      * Показване на рецептата в артикула
      *
-     * @param int      $bomId
-     * @param core_Mvc $mvc
+     * @param int      $id
+     * @param core_Mvc $className
      *
      * @return bool
      */
@@ -280,10 +280,7 @@ class cat_Boms extends core_Master
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
         $type = Request::get('type');
-        if (!$type) {
-            
-            return;
-        }
+        if (!$type) return;
         
         $mvc->singleTitle = ($type == 'sales') ? 'Търговска рецепта' : (($type == 'instant') ? 'Моментна рецепта' : 'Работна рецепта');
     }
@@ -313,11 +310,10 @@ class cat_Boms extends core_Master
             }
         }
         $form->setDefault('quantity', 1);
-        
-        // При създаване на нова рецепта
-        if (empty($rec->id)) {
-            $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
-            $form->setDefault('expenses', $defaultOverheadCost);
+        $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
+        if(!empty($defaultOverheadCost)){
+            $defaultOverheadCostPlaceholder = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost);
+            $form->setField('expenses', "placeholder={$defaultOverheadCostPlaceholder}");
         }
     }
     
@@ -683,45 +679,57 @@ class cat_Boms extends core_Master
         }
 
         $row->title = $mvc->getHyperlink($rec, true);
-        if ($fields['-single'] && !doc_HiddenContainers::isHidden($rec->containerId)) {
-            $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
-            $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
+        if ($fields['-single']) {
+            if(!doc_HiddenContainers::isHidden($rec->containerId)) {
+                $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
+                $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
 
-            try{
-                $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
-            } catch(core_exception_Expect $e){
-                core_Statuses::newStatus($e->getMessage(), 'error');
-                reportException($e);
-                $price = 0;
-            }
-            
-            if (haveRole('ceo, acc, cat, price')) {
-                $row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
-                $rec->primeCost = ($price) ? $price : 0;
-                
-                $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->modifiedOn);
-                $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-                $row->primeCost = $Double->toVerbal($rec->primeCost);
-
-                if($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')){
-                    $row->primeCost = "<span class='red'>???</span>";
-                } else {
-                    $row->primeCost = ht::styleNumber($row->primeCost, $rec->primeCost);
-                    $row->primeCost = "<b>{$row->primeCost}</b>";
+                try {
+                    $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
+                } catch (core_exception_Expect $e) {
+                    core_Statuses::newStatus($e->getMessage(), 'error');
+                    reportException($e);
+                    $price = 0;
                 }
 
-                $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
-                $row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
-            }
-            
-            if ($mvc->haveRightFor('recalcselfvalue', $rec)) {
-                $row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), false, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
-            }
+                if (haveRole('ceo, acc, cat, price')) {
+                    $row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
+                    $rec->primeCost = ($price) ? $price : 0;
 
-            if ($rec->isComplete == 'auto') {
-                $autoValue = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
-                $row->isComplete = $mvc->getFieldType('isComplete')->toVerbal($autoValue);
-                $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена');
+                    $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->modifiedOn);
+                    $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+                    $row->primeCost = $Double->toVerbal($rec->primeCost);
+
+                    if ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) {
+                        $row->primeCost = "<span class='red'>???</span>";
+                    } else {
+                        $row->primeCost = ht::styleNumber($row->primeCost, $rec->primeCost);
+                        $row->primeCost = "<b>{$row->primeCost}</b>";
+                    }
+
+                    $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
+                    $row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
+                }
+
+                if ($mvc->haveRightFor('recalcselfvalue', $rec)) {
+                    $row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), false, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
+                }
+
+                if ($rec->isComplete == 'auto') {
+                    $autoValue = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
+                    $row->isComplete = $mvc->getFieldType('isComplete')->toVerbal($autoValue);
+                    $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена');
+                }
+
+                if (empty($rec->expenses)) {
+                    $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
+                    if (!empty($defaultOverheadCost)) {
+                        $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost);
+                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично изчислено|*!");
+                    } else {
+                        $row->expenses = ht::createHint("<span style='color:blue'>n/a</span>", "Не може да се определи автоматично|*!");
+                    }
+                }
             }
         }
     }
