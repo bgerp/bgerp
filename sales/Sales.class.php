@@ -437,8 +437,10 @@ class sales_Sales extends deals_DealMaster
         $rec = $form->rec;
         
         $myCompany = crm_Companies::fetchOwnCompany();
-        
         $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
+        if(!array_key_exists($rec->bankAccountId, $options)){
+            $options[$rec->bankAccountId] = $rec->bankAccountId;
+        }
         if (countR($options)) {
             foreach ($options as $id => &$name) {
                 if (is_numeric($id)) {

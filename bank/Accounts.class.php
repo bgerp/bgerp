@@ -442,13 +442,19 @@ class bank_Accounts extends core_Master
         
         $myCompany = crm_Companies::fetchOwnCompany();
         $isOurCompany = ($myCompany->companyId == $contragentId && $Contragent->getClassId() == crm_Companies::getClassId());
-        
+        $cu = core_Users::getCurrent();
+
         while ($rec = $query->fetch()) {
             
             // Ако е наша банкова сметка и е отттеглена, пропускаме я
             if ($isOurCompany === true) {
-                $state = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'state');
-                if ($state == 'rejected') {
+                $ownRec = bank_OwnAccounts::fetch("#bankAccountId = {$rec->id}");
+                if(is_object($ownRec)){
+                    if($ownRec->state == 'rejected') continue;
+                    if (!bgerp_plg_FLB::canUse('bank_OwnAccounts', $ownRec, $cu, 'select')) {
+                        continue;
+                    }
+                } else {
                     continue;
                 }
             }
@@ -457,7 +463,7 @@ class bank_Accounts extends core_Master
             $key = ($intKeys) ? $rec->id : $rec->iban;
             $suggestions[$key] = $iban;
         }
-        
+
         return $suggestions;
     }
     
