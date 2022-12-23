@@ -4436,13 +4436,13 @@ class cat_Products extends embed_Manager
             }
 
         } else {
-            $hint = tr('от продуктов параметър');
+            $hint = tr('от Артикула<br>(параметър "Режийни разходи")');
         }
 
         // Ако не е намерена стойност гледа се глобалната константа
         if(empty($overheadCost)) {
             $overheadCost = cat_Setup::get('DEFAULT_PRODUCT_OVERHEAD_COST');
-            $hint = tr('от глобална константа');
+            $hint = tr('от пакета "cat"<br>(обща настройка по подразбиране за системата)');
         }
 
         $overheadCost = empty($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
