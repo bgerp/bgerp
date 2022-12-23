@@ -537,7 +537,9 @@ class cat_Groups extends core_Master
      * Връща дефолтните режийни разходи според групите на артикула
      *
      * @param int $productId - ид на артикул
-     * @return null|double   - най-големия процент режийни разходи или null ако няма
+     * @return array|null    - информация за най-големия процент реж. разходи от групите
+     *         * ['value'] double
+     *         * ['groupId'] varchar
      */
     public static function getDefaultOverheadCostsByProductId($productId)
     {
@@ -570,7 +572,8 @@ class cat_Groups extends core_Master
         }
 
         // Ако има намерени - в;ръща се най-големия процент
-        if(countR($groupsToCheck)) return max($groupsToCheck);
+        arsort($groupsToCheck);
+        if(countR($groupsToCheck)) return array('groupId' => key($groupsToCheck), 'value' => $groupsToCheck[key($groupsToCheck)]);
 
         return null;
     }
