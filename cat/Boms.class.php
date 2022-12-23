@@ -312,7 +312,7 @@ class cat_Boms extends core_Master
         $form->setDefault('quantity', 1);
         $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
         if(!empty($defaultOverheadCost)){
-            $defaultOverheadCostPlaceholder = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost);
+            $defaultOverheadCostPlaceholder = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
             $form->setField('expenses', "placeholder={$defaultOverheadCostPlaceholder}");
         }
     }
@@ -724,8 +724,8 @@ class cat_Boms extends core_Master
                 if (empty($rec->expenses)) {
                     $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
                     if (!empty($defaultOverheadCost)) {
-                        $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost);
-                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично изчислено|*!");
+                        $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
+                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично изчислено|*: {$defaultOverheadCost['hint']}");
                     } else {
                         $row->expenses = ht::createHint("<span style='color:blue'>n/a</span>", "Не може да се определи автоматично|*!");
                     }

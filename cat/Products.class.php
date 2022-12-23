@@ -4417,24 +4417,35 @@ class cat_Products extends embed_Manager
      * 3. Стойноста на глобалната константа за системата
      *
      * @param int $productId             - ид на артикули
-     * @return double|null $overheadCost - дефолтната стойност
+     * @return array|null $overheadCost - дефолтната стойност
+     *         * ['overheadCost'] double
+     *         * ['hint'] varchar
      */
     public static function getDefaultOverheadCost($productId)
     {
         // Има ли стойност параметъра "режийни разходи"
+        $hint = null;
         $overheadCost = cat_Products::getParams($productId, 'expenses');
-        if(empty($overheadCost)){
 
-            // Ако няма:Най-големия процент режийни разходи от групите на артикула
-            $overheadCost = cat_Groups::getDefaultOverheadCostsByProductId($productId);
+        // Ако няма:Най-големия процент режийни разходи от групите на артикула
+        if(empty($overheadCost)){
+            $overheadCostArr = cat_Groups::getDefaultOverheadCostsByProductId($productId);
+            if(is_array($overheadCostArr)){
+                $overheadCost = $overheadCostArr['value'];
+                $hint = tr('от група|* ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
+            }
+
+        } else {
+            $hint = tr('от продуктов параметър');
         }
 
         // Ако не е намерена стойност гледа се глобалната константа
         if(empty($overheadCost)) {
             $overheadCost = cat_Setup::get('DEFAULT_PRODUCT_OVERHEAD_COST');
+            $hint = tr('от глобална константа');
         }
 
-        $overheadCost = empty($overheadCost) ? null : $overheadCost;
+        $overheadCost = empty($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
 
         return $overheadCost;
     }
