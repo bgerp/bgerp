@@ -1237,6 +1237,7 @@ class planning_Tasks extends core_Master
                         }
                     } elseif ($rec->type == 'all') {
                         $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+
                         $defaultTaskCount = countR($defaultTasks);
                         if (!$defaultTaskCount) {
                             $requiredRoles = 'no_one';
@@ -2342,10 +2343,12 @@ class planning_Tasks extends core_Master
             // Ако ще се клонират всички шаблонни операции
             planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'));
             $msgType = 'notice';
-            $msg = 'Операциите са успешно създадени';
-
+            $msg = 'Успешно създаване на дефолтните операции|*!';
             $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+
+            $num = 1;
             foreach ($defaultTasks as $sysId => $defaultTask) {
+
                 try {
                     if (planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")) continue;
 
@@ -2353,6 +2356,13 @@ class planning_Tasks extends core_Master
                     $newTask = clone $defaultTask;
                     $newTask->originId = $jobRec->containerId;
                     $newTask->systemId = $sysId;
+                    $newTask->state = 'pending';
+
+                    // Ако има едно оборудване попълва се то по-дефолт
+                    $assets = keylist::toArray($defaultTask->fixedAssets);
+                    if(countR($assets)){
+                        $newTask->assetId = key($assets);
+                    }
 
                     // Клонират се в папката на посочения в тях център, ако няма в центъра от заданието, ако и там няма в Неопределения
                     $folderId = isset($defaultTask->centerId) ? planning_Centers::fetchField($defaultTask->centerId, 'folderId') : ((!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : null);
@@ -2360,13 +2370,27 @@ class planning_Tasks extends core_Master
                         $folderId = planning_Centers::getUndefinedFolderId();
                     }
                     $newTask->folderId = $folderId;
+                    $newTask->saoOrder = $num;
+                    Mode::push('manualSaoOrder', true);
                     $this->save($newTask);
+                    Mode::pop('manualSaoOrder');
+
+                    // Ако има параметри от рецептата се прехвърлят 1 към 1
+                    if(is_array($defaultTask->params)){
+                        foreach ($defaultTask->params as $pId => $pVal){
+                            $paramRec = (object)array('classId' => $this->getClassId(), 'productId' => $newTask->id, 'paramId' => $pId, 'paramValue' => $pVal);
+                            cat_products_Params::save($paramRec);
+                        }
+                    }
+
                     $this->logWrite('Автоматично създаване от задание', $newTask->id);
                 } catch (core_exception_Expect $e) {
                     reportException($e);
                     $msg = 'Проблем при създаване на операция';
                     $msgType = 'error';
                 }
+
+                $num++;
             }
 
             followRetUrl(null, $msg, $msgType);
@@ -2509,6 +2533,7 @@ class planning_Tasks extends core_Master
                 $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol');
             }
 
+            $fieldsToFilterIfEmpty = array_merge($paramFields, $fieldsToFilterIfEmpty);
             arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
         }
 
@@ -2606,7 +2631,7 @@ class planning_Tasks extends core_Master
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity);
             $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
-            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> {$jobLink}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
+            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span>") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
 
             core_Debug::stopTimer('RENDER_ROW');
         }

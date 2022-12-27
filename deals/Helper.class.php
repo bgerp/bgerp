@@ -1432,7 +1432,9 @@ abstract class deals_Helper
             if(is_object($deletedRec)){
                 Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
             }
+            Mode::push('recontoTransaction', true);
             acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
+            Mode::pop('recontoTransaction');
             if(is_object($deletedRec)){
                 Mode::pop('recontoWithCreatedOnDate');
             }

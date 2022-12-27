@@ -8,6 +8,9 @@
     <!--ET_BEGIN costCalc-->
     <p><b>|Калкулатор|*:</b> [#costCalc#]</p>
     <!--ET_END costCalc-->
+    <!--ET_BEGIN courierApi-->
+    <p><b>|Куриерско API|*:</b> [#courierApi#]</p>
+    <!--ET_END courierApi-->
     <!--ET_BEGIN calcCost-->
     <p><b>|Скрито начисляване|*:</b> [#calcCost#]</p>
     <!--ET_END calcCost-->

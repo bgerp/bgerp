@@ -19,24 +19,23 @@ class deals_plg_EditClonedDetails extends core_Plugin
     /**
      * Кои детайли да се клонират с промяна
      *
+     * @param core_Mvc $mvc
      * @param stdClass $rec
-     * @param mixed    $Detail
+     * @return array $res
+     *          ['recs'] - записи за промяна
+     *          ['detailMvc] - модел от който са
      *
-     * @return array
      */
-    public static function on_AfterGetDetailsToCloneAndChange($mvc, &$res, $rec, &$Detail = null)
+    public static function on_AfterGetDetailsToCloneAndChange($mvc, &$res, $rec)
     {
         if (!$res) {
             $res = array();
-            if (!$rec->clonedFromId) {
-                
-                return;
-            }
+            if (!$rec->clonedFromId) return;
             
             $Detail = cls::get($mvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->clonedFromId}");
-            $res = $dQuery->fetchAll();
+            $res = array('recs' => $dQuery->fetchAll(), 'detailMvc' => $Detail);
         }
     }
     
@@ -49,24 +48,21 @@ class deals_plg_EditClonedDetails extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->action != 'clone') {
-            
-            return;
-        }
+        if ($data->action != 'clone') return;
+
         $form = &$data->form;
         $rec = $form->rec;
 
         $MainDetail = cls::get($mvc->mainDetail);
-        $Detail = null;
-        $detailsToClone = $mvc->getDetailsToCloneAndChange($rec, $Detail);
-        setIfNot($Detail, $MainDetail);
-        if (!countR($detailsToClone)) return;
+        $detailsToCloneArr = $mvc->getDetailsToCloneAndChange($rec);
+        $detailsToClone = $detailsToCloneArr['recs'];
+        $Detail = $detailsToCloneArr['detailMvc'];
 
+        if (!countR($detailsToClone)) return;
         setIfNot($Detail->productFld, 'productId');
         setIfNot($Detail->quantityFld, 'quantity');
-        
         $rec->details = array();
-        
+
         // Ако ориджина има артикули
         $num = 1;
         $detailId = $Detail->getClassId();

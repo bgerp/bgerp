@@ -37,13 +37,19 @@ class speedy_interface_ApiImpl extends core_BaseClass
     /**
      * Заглавие на  бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnCaption = 'Speedy 2';
+    public $requestBillOfLadingBtnCaption = 'Speedy';
 
 
     /**
      * Иконка за бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnIcon = 'img/16/bug.png';
+    public $requestBillOfLadingBtnIcon = 'img/16/speedy.png';
+
+
+    /**
+     * Коментар към връзката на прикачения файл
+     */
+    public $billOfLadingComment = 'Товарителница (Speedy)';
 
 
     /**
