@@ -138,6 +138,8 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input,mandatory');
+
+        $this->setDbIndex('newProductId');
     }
     
     
