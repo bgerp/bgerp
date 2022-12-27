@@ -235,12 +235,6 @@ class core_Request
             if ($inputType->error) {
                 error('@Некоректна стойност за входен параметър', $name, $inputType->error, $originalValue);
             }
-
-            $res = $inputType->isValid($value);
-
-            if (isset($res->error)) {
-                error('@Невалидна стойност за входен параметър', $name, $res->error);
-            }
         }
         
         return $value;
