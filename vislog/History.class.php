@@ -175,7 +175,7 @@ class vislog_History extends core_Manager
     {
         // Поставяме IP ако липсва
         if (!$rec->ip) {
-            $rec->ip = $_SERVER['REMOTE_ADDR'];
+            $rec->ip = type_Ip::getRealIp();
         }
         
         if (!$rec->brid) {
