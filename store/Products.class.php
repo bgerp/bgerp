@@ -72,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'history,code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,lastUpdated';
+    public $listFields = 'history,code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,lastUpdated=Промяна на||Changed on';
     
     
     /**
@@ -351,9 +351,9 @@ class store_Products extends core_Detail
                     $data->horizon = dt::addSecs($rec->horizon, null, false);
                     $horizonVerbal = dt::mysql2verbal($data->horizon, 'd.m.Y');
 
-                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>"), null, 'freeQuantityMin');
-                    arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>"), null, 'reservedOut');
-                    arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>"), null, 'expectedIn');
+                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}->|*<span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>"), null, 'freeQuantityMin');
+                    arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}->|*<span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>"), null, 'reservedOut');
+                    arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}->|*<span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>"), null, 'expectedIn');
                     $mvc->FNC('reservedOut', 'double', ',tdClass=horizonCol red');
                     $mvc->FNC('expectedIn', 'double', ',tdClass=horizonCol green');
                     $mvc->FNC('resultDiff', 'double', ',tdClass=horizonCol');
