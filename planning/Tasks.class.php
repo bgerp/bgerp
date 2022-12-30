@@ -2023,10 +2023,10 @@ class planning_Tasks extends core_Master
      * @param int $jobId - ид на задание
      * @param mixed $states - В кои състояния
      * @param boolean $verbal - вербални или записи
-     *
+     * @param boolean $skipTasksWithClosedParams - да се пропуснат ли операциите с деактивирани параметри
      * @return array $res      - масив с намерените задачи
      */
-    public static function getTasksByJob($jobId, $states, $verbal = true)
+    public static function getTasksByJob($jobId, $states, $verbal = true, $skipTasksWithClosedParams = false)
     {
         $res = array();
         $oldContainerId = planning_Jobs::fetchField($jobId, 'containerId');
@@ -2035,7 +2035,17 @@ class planning_Tasks extends core_Master
         $states = arr::make($states, true);
         $query->in("state", $states);
 
+        $taskClassId = planning_Tasks::getClassId();
         while ($rec = $query->fetch()) {
+            if($skipTasksWithClosedParams){
+
+                // Ако е посочено че се търсят само ПО с незакрити параметри оставят се само те
+                $pQuery = cat_products_Params::getQuery();
+                $pQuery->EXT('state', 'cat_Params', 'externalName=state,externalKey=paramId');
+                $pQuery->where("#classId = {$taskClassId} AND #productId = {$rec->id} AND #state = 'closed'");
+                if($pQuery->count()) continue;
+            }
+
             $res[$rec->id] = ($verbal) ? self::getLink($rec->id, false) : $rec;
         }
 
