@@ -199,6 +199,8 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
                 $countPlanned = $dQuery->count();
 
                 if(!$countPlanned) return false;
+            } else {
+                return false;
             }
         }
         
