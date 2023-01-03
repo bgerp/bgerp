@@ -120,7 +120,7 @@ class planning_AssetResourceFolders extends core_Manager
                 if (doc_Folders::haveRightFor('single', $rec->folderId)) {
                     $sQuery = cal_Tasks::getQuery();
                     $sQuery->where(array("#folderId = '[#1#]'", $rec->folderId));
-                    $sQuery->where("#state != 'rejected'");
+                    $sQuery->where("#state != 'rejected' AND #state != 'closed'");
                     $sQuery->where(array("#assetResourceId = '[#1#]'", $rec->objectId));
                     $sQuery->orderBy('state', 'ASC');
                     $sQuery->orderBy('modifiedOn', 'DESC');
