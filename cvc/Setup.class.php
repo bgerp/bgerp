@@ -143,4 +143,16 @@ class cvc_Setup extends core_ProtoSetup
             }
         }
     }
+
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+
+        $html .= fileman_Buckets::createBucket('cvc', 'Файлове за cvc', '', '104857600', 'user', 'user');
+
+        return $html;
+    }
 }
