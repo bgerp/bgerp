@@ -71,8 +71,8 @@ class planning_AssetResourceFolders extends core_Manager
     public function description()
     {
         $this->FLD('classId', 'class', 'caption=Клас,mandatory,silent,input=hidden');
-        $this->FLD('objectId', 'int', 'caption=Оборудване/Група,mandatory,silent,input=hidden,tdClass=leftCol');
-        $this->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка, mandatory, tdClass=leftCol');
+        $this->FLD('objectId', 'int', 'caption=Оборудване/Група,mandatory,silent,input=hidden');
+        $this->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка, mandatory');
         $this->FLD('users', 'userList', 'caption=Потребители');
         
         $this->setDbUnique('classId, objectId, folderId');
