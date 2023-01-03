@@ -744,7 +744,7 @@ class cvc_Adapter
      */
     protected static function getFileFromServer($url)
     {
-        $bucketId = fileman_Buckets::fetchByName('engView');
+        $bucketId = fileman_Buckets::fetchByName('cvc');
         $fh = fileman_Get::getFile((object) array('url' => $url, 'bucketId' => $bucketId));
 
         return $fh;
