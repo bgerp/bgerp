@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -106,7 +106,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,originId=@';
 
 
     /**
@@ -543,6 +543,9 @@ class planning_Tasks extends core_Master
 
         $calcedDurationUom = ($rec->calcedDuration < 60) ? 'seconds' : (($rec->calcedDuration < 3600) ? 'minutes' : 'hours');
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
+        if(isset($rec->assetId)){
+            $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+        }
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
@@ -677,7 +680,6 @@ class planning_Tasks extends core_Master
                     $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
                 }
 
-                $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
                 if (planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
                     $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
                 }
@@ -2509,6 +2511,7 @@ class planning_Tasks extends core_Master
             $plannedParams += keylist::toArray($assetRec->planningParams);
             $groupParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
             $plannedParams += keylist::toArray($groupParams);
+            unset($data->listFields['assetId']);
         }
 
         // Ако има избран център - тези параметри от тях
