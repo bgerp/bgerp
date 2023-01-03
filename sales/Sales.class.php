@@ -1427,11 +1427,11 @@ class sales_Sales extends deals_DealMaster
         }
         
         // Ако не е избрана сметка, от дефолтните
-        if (($rec->state == 'draft' || $rec->state == 'pending') && $rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
+        if (in_array($rec->state, array('draft', 'pending')) && $rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
             $cData = doc_Folders::getContragentData($rec->folderId);
             $bRecCountries = bank_OwnAccounts::fetchField(array("#bankAccountId = '[#1#]'", $rec->bankAccountId), 'countries');
-            
-            $defBankId = null;
+
+            $errorStr = $defBankId = null;
             if (!isset($bRecCountries)) {
                 $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false);
             } else {
@@ -1439,10 +1439,11 @@ class sales_Sales extends deals_DealMaster
                     $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
                 }
             }
-            
+
             if ($defBankId) {
                 $bRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $defBankId));
                 $errorStr = '|Има нова банкова сметка за тази държава|*: ' . bank_OwnAccounts::getVerbal($bRec, 'title');
+                $row->bankAccountId = "<span class='warning-balloon'>{$row->bankAccountId}</span>";
             }
             
             $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
