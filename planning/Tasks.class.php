@@ -545,6 +545,9 @@ class planning_Tasks extends core_Master
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(isset($rec->assetId)){
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+            if (planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
+                $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
+            }
         }
 
         // Показване на разширеното описание на артикула
@@ -680,10 +683,7 @@ class planning_Tasks extends core_Master
                     $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
                 }
 
-                if (planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
-                    $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
-                }
-                if (isset($fields['-single']) && isset($rec->prevAssetId)) {
+                if (isset($rec->prevAssetId)) {
                     $row->assetId = ht::createHint($row->assetId, "Предишно оборудване|*: " . planning_AssetResources::getTitleById($rec->prevAssetId), 'warning', false);
                 }
 
@@ -692,7 +692,7 @@ class planning_Tasks extends core_Master
                     $row->assetId = ht::createHint($row->assetId, "Подредба|*: {$row->orderByAssetId}", 'img/16/bug.png');
                 }
 
-                if (isset($fields['-single']) && !in_array($rec->state, array('closed', 'rejected'))) {
+                if (!in_array($rec->state, array('closed', 'rejected'))) {
 
                     // Показва се след коя ще започне
                     $startAfter = $mvc->getPrevOrNextTask($rec);
@@ -2546,7 +2546,7 @@ class planning_Tasks extends core_Master
                 $paramFields["param_{$paramRec->id}"] = "|*<small>{$paramExt[1]}</small>";
                 $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol');
             }
-
+            $data->listTableMvc->setField("assetId", 'tdClass=small');
             $fieldsToFilterIfEmpty = array_merge($paramFields, $fieldsToFilterIfEmpty);
             arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
         }
