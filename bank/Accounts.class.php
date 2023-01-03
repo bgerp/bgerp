@@ -450,7 +450,7 @@ class bank_Accounts extends core_Master
             if ($isOurCompany === true) {
                 $ownRec = bank_OwnAccounts::fetch("#bankAccountId = {$rec->id}");
                 if(is_object($ownRec)){
-                    if($ownRec->state == 'rejected') continue;
+                    if(in_array($ownRec->state, array('closed', 'rejected'))) continue;
                     if (!bgerp_plg_FLB::canUse('bank_OwnAccounts', $ownRec, $cu, 'select')) {
                         continue;
                     }
