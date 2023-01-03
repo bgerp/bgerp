@@ -713,6 +713,11 @@ class cvc_interface_CourierImpl extends core_Manager
 
             // Ако е разпечатана записва се в помощния модел
             $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'], 'deliveryDate' => $res['deliveryDate'], 'state' => 'pending');
+            if(empty($res['pdf'])){
+                $form->setError('parcelType', "Проблем при сваляне на товарителницата");
+                return;
+            }
+
             $wayBillRec->file = $res['pdf'];
             cvc_WayBills::save($wayBillRec);
 
