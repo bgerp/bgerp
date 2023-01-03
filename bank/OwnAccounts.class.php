@@ -65,8 +65,14 @@ class bank_OwnAccounts extends core_Master
      * Кой може да оттегля?
      */
     public $canReject = 'ceo, admin';
-    
-    
+
+
+    /**
+     * Кой може да пише
+     */
+    public $canClose = 'ceo, admin';
+
+
     /**
      * Кой може да възстановява?
      */
