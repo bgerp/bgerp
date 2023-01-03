@@ -75,6 +75,7 @@ class log_Setup extends core_ProtoSetup
         'log_Classes',
         'log_Ips',
         'log_Debug',
+        'log_Mysql',
     );
     
 

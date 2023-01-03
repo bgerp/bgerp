@@ -271,9 +271,9 @@ class core_Db
 
         $eTime = $eTimeAfter - $eTimeBefore;
 
-//        if (defined('CORE_DB_REPORT_SLOW_QUERY_TIME') && ($eTime >= CORE_DB_REPORT_SLOW_QUERY_TIME)) {
-//            wp("Бавна заявка", $eTime, $sqlQuery);
-//        }
+        if (defined('MIN_TIME_FOR_DB_QUERY_LOG') && $eTime >= MIN_TIME_FOR_DB_QUERY_LOG) {
+          log_Mysql::add($sqlQuery, $eTime);
+        }
 
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
