@@ -198,7 +198,8 @@ class bank_OwnAccounts extends core_Master
         $query = self::getQuery();
         $query->limit(1);
         $query->likeKeylist('countries', $countryId);
-        
+        $query->where("#state != 'rejected' AND #state != 'closed'");
+
         if ($checkNull) {
             $query->orWhere('#countries IS NULL');
             $query->orderBy('countries', 'DESC');
