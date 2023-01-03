@@ -238,7 +238,6 @@ class sales_Sales extends deals_DealMaster
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
-        'bankAccountId' => 'lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
         'chargeVat' => 'defMethod',
@@ -438,9 +437,24 @@ class sales_Sales extends deals_DealMaster
         
         $myCompany = crm_Companies::fetchOwnCompany();
         $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
+
+        $defaultBankAccountId = $rec->bankAccountId;
         if(!array_key_exists($rec->bankAccountId, $options)){
-            $options[$rec->bankAccountId] = $rec->bankAccountId;
+            if($data->action != 'clone'){
+                $options[$rec->bankAccountId] = $rec->bankAccountId;
+            } else {
+                $query = $mvc->getQuery();
+                $query->where("#state != 'rejected'");
+                $query->in("bankAccountId", array_keys($options));
+                $query->orderBy("id", 'DESC');
+                $query->limit(1);
+                $defaultBankAccountId = $query->fetch()->bankAccountId;
+                if(!empty($rec->bankAccountId) && $rec->bankAccountId != $defaultBankAccountId){
+                    $form->setWarning('bankAccountId', "Банковата сметка е сменена, защото оригиналната не може да се използва|*: <b>" . bank_OwnAccounts::getTitleById(bank_OwnAccounts::fetchField("#bankAccountId = {$rec->bankAccountId}")) . "</b>");
+                }
+            }
         }
+
         if (countR($options)) {
             foreach ($options as $id => &$name) {
                 if (is_numeric($id)) {
@@ -450,6 +464,7 @@ class sales_Sales extends deals_DealMaster
         }
         
         $form->setOptions('bankAccountId', $options);
+        $form->setDefault('bankAccountId', $defaultBankAccountId);
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
