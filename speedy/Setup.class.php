@@ -20,12 +20,6 @@ defIfNot('SPEEDY_API_BASE_URL', 'https://api.speedy.bg/v1/');
 
 
 /**
- * Коя е клиентската версия на библиотеката
- */
-defIfNot('SPEEDY_CLIENT_LIBRARY_VERSION', '3.5.6');
-
-
-/**
  * Потребителско име в системата на Speedy
  */
 defIfNot('SPEEDY_DEFAULT_ACCOUNT_USERNAME', '');
@@ -119,7 +113,6 @@ class speedy_Setup extends core_ProtoSetup
     public $configDescription = array(
         'SPEEDY_DEFAULT_ACCOUNT_USERNAME' => array('varchar','caption=Акаунт в сайта на Speedy->Потребител,customizeBy=speedy|ceo'),
         'SPEEDY_DEFAULT_ACCOUNT_PASSWORD' => array('password', 'caption=Акаунт в сайта на Speedy->Парола,customizeBy=speedy|ceo'),
-        'SPEEDY_CLIENT_LIBRARY_VERSION' => array('enum(3.5.4)','caption=Клиентска библиотека->Версия'),
         'SPEEDY_OFFICE_LOCATOR_URL' => array('varchar', 'caption=URL->Локатор на офис'),
         'SPEEDY_TRACKING_URL' => array('varchar', 'caption=URL->Проследяване на пратка'),
         'SPEEDY_API_BASE_URL' => array('url', 'caption=URL->Библиотека на спиди'),
