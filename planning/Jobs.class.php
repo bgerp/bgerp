@@ -721,7 +721,7 @@ class planning_Jobs extends core_Master
             }
             
             if (empty($rec->department)) {
-                $form->setWarning('department', 'В Заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
+                $form->setWarning('department', 'В заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
             }
             
             if ($rec->dueDate < dt::today()) {
