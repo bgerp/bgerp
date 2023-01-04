@@ -109,7 +109,7 @@ class log_Mysql extends core_Manager {
     /**
      * Записва всички логвани заявки в хита в таблицата
      */
-    public function flush()
+    public static function flush()
     {
         static $flag = false;
 
