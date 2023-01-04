@@ -1445,6 +1445,11 @@ class sales_Sales extends deals_DealMaster
         // Ако не е избрана сметка, от дефолтните
         if ($rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
             $errorStr = null;
+			
+			if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+                $errorStr = 'Банковата сметка е закрита|*!';
+            }
+			
             $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId), 'state,countries');
             if(in_array($rec->state, array('draft', 'pending'))){
                 $cData = doc_Folders::getContragentData($rec->folderId);
@@ -1459,13 +1464,11 @@ class sales_Sales extends deals_DealMaster
 
                 if ($defBankId) {
                     $bRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $defBankId));
-                    $errorStr = '|Има нова банкова сметка за тази държава|*: ' . bank_OwnAccounts::getVerbal($bRec, 'title');
+                    $errorStr = (!empty($errorStr) ? "{$errorStr} " : "") . '|Има нова банкова сметка за тази държава|*: ' . bank_OwnAccounts::getVerbal($bRec, 'title');
                 }
             }
 
-            if(in_array($ownBankRec->state, array('closed', 'rejected'))){
-                $errorStr = (!empty($errorStr) ? "{$errorStr}. " : "") . 'Банковата сметка е закрита|*!';
-            }
+            
             if(!empty($errorStr)){
                 $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
                 $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
