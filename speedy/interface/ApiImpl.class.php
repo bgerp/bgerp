@@ -623,6 +623,13 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         $priceObj = $res->calculations[0];
+
+        // Ако има грешка при калкулацията - визуализира се!
+        if(!empty($priceObj->error)){
+            $form->setError('service', $priceObj->error->message);
+            return;
+        }
+
         $Double = core_Type::getByName('double(decimals=2)');
         $row = new stdClass();
         $row->deadlineDelivery = dt::mysql2verbal($priceObj->deliveryDeadline, 'd.m.Y H:i:s');
