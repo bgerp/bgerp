@@ -83,7 +83,16 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $rec = $this->class->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
         $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
-        
+
+        if (Mode::get('saveTransaction')) {
+            if(isset($rec->bankAccountId)){
+                $ownBankRec = bank_OwnAccounts::fetch("#bankAccountId = {$rec->bankAccountId}", 'state');
+                if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+                    acc_journal_RejectRedirect::expect(false, 'Банкова сметка в договора е закрита/оттеглена|*!');
+                }
+            }
+        }
+
         if ($actions['ship'] || $actions['pay']) {
             
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));

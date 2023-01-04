@@ -721,7 +721,7 @@ class planning_Jobs extends core_Master
             }
             
             if (empty($rec->department)) {
-                $form->setWarning('department', 'В Заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
+                $form->setWarning('department', 'В заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
             }
             
             if ($rec->dueDate < dt::today()) {
@@ -2121,7 +2121,7 @@ class planning_Jobs extends core_Master
     protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $taskRecs = planning_Tasks::getTasksByJob($rec->id, array('draft', 'waiting', 'active', 'wakeup', 'stopped'));
+        $taskRecs = planning_Tasks::getTasksByJob($rec->id, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'pending'));
         if(countR($taskRecs)){
             core_Statuses::newStatus("Не може да се оттегли, докато следните операции не са оттеглени/приключени|*: " . implode(', ', $taskRecs), 'warning');
             return false;

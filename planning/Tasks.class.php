@@ -544,9 +544,15 @@ class planning_Tasks extends core_Master
         $calcedDurationUom = ($rec->calcedDuration < 60) ? 'seconds' : (($rec->calcedDuration < 3600) ? 'minutes' : 'hours');
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(isset($rec->assetId)){
-            $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
-            if (planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
-                $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
+            if(isset($fields['-single'])) {
+                $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+            }
+            if(planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
+                if(isset($fields['-single'])) {
+                    $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
+                } else {
+                    $row->assetId = ht::createLink($row->assetId, array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/equipment.png,title=Филтър по център на дейност и оборудване');
+                }
             }
         }
 
