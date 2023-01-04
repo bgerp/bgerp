@@ -79,8 +79,8 @@ class hr_Indicators extends core_Manager
         $this->FLD('value', 'double(smartRound,decimals=2)', 'caption=Стойност,mandatory');
         
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
-        $this->setDbIndex('docClass,docId');
-        $this->setDbIndex('date');
+        $this->setDbIndex('docId,docClass');
+        $this->setDbIndex('date,personId');
         $this->setDbIndex('indicatorId');
     }
     
@@ -377,8 +377,8 @@ class hr_Indicators extends core_Manager
             }
             
             $query = self::getQuery();
-            $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
             $query->where("#personId = {$personId}");
+            $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
             while ($rec = $query->fetch()) {
                 $indicator = $names[$rec->sourceClass][$rec->indicatorId];
                 $sum[$indicator] += $rec->value;

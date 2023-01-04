@@ -116,6 +116,7 @@ class doc_Linked extends core_Manager
         $this->FLD('actType', 'varchar(64)', 'caption=Действие, input=none');
         $this->FLD('state', 'enum(active=Активно, rejected=Оттеглено)', 'caption=Състояние, input=none');
         
+        $this->setDbIndex('folderId');
         $this->setDbUnique('outType, outVal, inType, inVal');
         $this->setDbIndex('outType, outVal');
         $this->setDbIndex('inType, inVal');
