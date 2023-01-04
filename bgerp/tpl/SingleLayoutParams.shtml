@@ -158,7 +158,12 @@
                 <td>[#rows#]</td>
             </tr>
             <!--ET_END rows-->
-            
+            <!--ET_BEGIN parser-->
+            <tr>
+                <td class="title-style">|Парсатор|*</td>
+                <td>[#parser#]</td>
+            </tr>
+            <!--ET_END parser-->
             <!--ET_BEGIN lenght-->
             <tr>
                 <td class="title-style">|Дължина|*</td>
