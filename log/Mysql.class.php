@@ -93,7 +93,7 @@ class log_Mysql extends core_Manager {
     /**
      * Добавя запис на прихваната заявка в буфера
      */
-    public function add($query, $time)
+    public static function add($query, $time)
     {
         $query = substr(self::strip($query), 0, 2048);
         $crc = crc32($query);
@@ -109,7 +109,7 @@ class log_Mysql extends core_Manager {
     /**
      * Записва всички логвани заявки в хита в таблицата
      */
-    public function flush()
+    public static function flush()
     {
         static $flag = false;
 
@@ -142,7 +142,7 @@ class log_Mysql extends core_Manager {
     /**
      * Поочиства заявката от данни
      */
-    private function strip($query)
+    private static function strip($query)
     {
         $query = preg_replace("/\\([0-9,]+\\)/is", '(*)', $query);        
         $query = preg_replace("/(?:(?:\"(?:\\\\\"|[^\"])+\")|(?:'(?:\\\'|[^'])+'))/is", '*', $query);

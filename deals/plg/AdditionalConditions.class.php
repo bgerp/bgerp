@@ -34,7 +34,7 @@ class deals_plg_AdditionalConditions extends core_Plugin
             $mvc->FLD('conditionSaleEn', 'text(rows=2)', 'caption=Допълнителни условия към Продажба->EN,autohide');
         }
 
-        if(isset($addDocumentFields['sales_Sales'])){
+        if(isset($addDocumentFields['purchase_Purchases'])){
             $mvc->FLD('conditionPurchaseBg', 'text(rows=2)', 'caption=Допълнителни условия към Покупка->BG,autohide');
             $mvc->FLD('conditionPurchaseEn', 'text(rows=2)', 'caption=Допълнителни условия към Покупка->EN,autohide');
         }
