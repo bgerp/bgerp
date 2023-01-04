@@ -62,8 +62,8 @@ class cat_Groups extends core_Master
      * Кой има право да променя?
      */
     public $canEdit = 'cat,ceo';
-    
-    
+
+
     /**
      * Кой има право да добавя?
      */
@@ -146,7 +146,8 @@ class cat_Groups extends core_Master
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
         $this->FLD('orderProductBy', 'enum(name=Име,code=Код)', 'caption=Сортиране по,notNull,value=name,after=parentId');
-        
+        $this->FLD('defaultOverheadCostsPercent', 'percent(min=0)', 'input=none,caption=Настройки->Режийни разходи');
+
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
                                 canBuy=Купуваеми,
@@ -166,8 +167,28 @@ class cat_Groups extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        $rec = $form->rec;
         $form->setField('parentId', 'caption=Настройки->В състава на');
         $form->setField('orderProductBy', 'caption=Настройки->Сортиране по');
+        $form->setField('parentId', 'silent,removeAndRefreshForm=defaultOverheadCostsPercent');
+
+        // На системните групи само определени полета може да се променят
+        if(isset($rec->sysId)){
+            foreach (array('name', 'nameEn', 'parentId') as $fld){
+                $form->setReadOnly($fld);
+            }
+            foreach (array('orderProductBy', 'meta', 'makeDescendantsFeatures') as $fld){
+                $form->setField($fld, 'input=hidden');
+            }
+        }
+
+        // Ако групата и бащите ѝ са от допустимите за режийни разходи да се показва полето
+        $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
+        $parentsArr = cls::get('cat_Groups')->getParentsArray($rec->parentId);
+        $intersectedParents = array_intersect_key($groupsWithOverheadCosts, $parentsArr);
+        if(array_key_exists($rec->id, $groupsWithOverheadCosts) || countR($intersectedParents)) {
+            $form->setField('defaultOverheadCostsPercent', 'input');
+        }
     }
 
 
@@ -248,6 +269,19 @@ class cat_Groups extends core_Master
                 $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
         }
+
+        if ($fields['-single'] && empty($rec->defaultOverheadCostsPercent)) {
+
+            // Ако е намерена наследена стойност
+            if($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)){
+                if(!empty($overheadCostArr['overheadCost'])){
+                    $row->defaultOverheadCostsPercent = $mvc->getFieldType('defaultOverheadCostsPercent')->toVerbal($overheadCostArr['overheadCost']);
+                    $row->defaultOverheadCostsPercent = "<span style='color:blue'>{$row->defaultOverheadCostsPercent}</span>";
+                    $hint = "Наследено от|*: " . $mvc->getVerbal($overheadCostArr['groupId'], 'name');
+                    $row->defaultOverheadCostsPercent = ht::createHint($row->defaultOverheadCostsPercent, $hint, 'notice', false);
+                }
+            }
+        }
     }
 
 
@@ -264,10 +298,6 @@ class cat_Groups extends core_Master
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if ($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
-            $requiredRoles = 'no_one';
-        }
-        
-        if ($action == 'edit' && $rec->sysId) {
             $requiredRoles = 'no_one';
         }
     }
@@ -500,5 +530,81 @@ class cat_Groups extends core_Master
     public function cron_UpdateGroupsCnt()
     {
         self::updateGroupsCnt();
+    }
+
+
+    /**
+     * Връща дефолтните режийни разходи според групите на артикула
+     *
+     * @param int $productId - ид на артикул
+     * @return array|null    - информация за най-големия процент реж. разходи от групите
+     *         * ['value'] double
+     *         * ['groupId'] varchar
+     */
+    public static function getDefaultOverheadCostsByProductId($productId)
+    {
+        // Кои са въведените групи артикули
+        $me = cls::get(get_called_class());
+        $groupsInput = cat_Products::fetchField($productId, 'groupsInput');
+        $productGroups = keylist::toArray($groupsInput);
+
+        // Кои са дефолтния групи с режийни разходи
+        $groupsToCheck = array();
+        $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
+        foreach ($productGroups as $groupId){
+
+            // За всяка от ръчно въведените групи на артикула, ако някой от бащите ѝ е в избраните групи
+            $parents = $me->getParentsArray($groupId);
+            $intersected = array_intersect_key($groupsWithOverheadCosts, $parents);
+
+            if(countR($intersected)){
+
+                // Ако в самата група има ръчно въведен процент - взима се той
+                $groupRec = static::fetch("#id = {$groupId}", "id,parentId,defaultOverheadCostsPercent");
+                if(!empty($groupRec->defaultOverheadCostsPercent)){
+                    $groupsToCheck[$groupRec->id] = $groupRec->defaultOverheadCostsPercent;
+                } else {
+                    if($overheadCostArr = $me->getDefaultOverheadCostFromParent($groupRec)){
+                        $groupsToCheck[$groupRec->id] = $overheadCostArr['overheadCost'];
+                    }
+                }
+            }
+        }
+
+        // Ако има намерени - в;ръща се най-големия процент
+        arsort($groupsToCheck);
+        if(countR($groupsToCheck)) return array('groupId' => key($groupsToCheck), 'value' => $groupsToCheck[key($groupsToCheck)]);
+
+        return null;
+    }
+
+
+    /**
+     * Колко са очакваните режийни разходи от башата
+     *
+     * @param stdClass $rec
+     * @return array|false
+     *          ['groupId']      - от коя грипа е наследено
+     *          ['overheadCost'] - процент наследени разходи
+     */
+    private function getDefaultOverheadCostFromParent($rec)
+    {
+        // Ако няма се търси в неговите бащи докато се намери процент
+        $parent = $rec->parentId;
+        $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
+        while ($parent && ($pRec = static::fetch("#id = {$parent}", "id,parentId,defaultOverheadCostsPercent"))) {
+            if(!empty($pRec->defaultOverheadCostsPercent)){
+                $parentsArr = cls::get('cat_Groups')->getParentsArray($pRec->parentId);
+                $intersectedParents = array_intersect_key($groupsWithOverheadCosts, $parentsArr);
+
+                // Ако е намерен процент, все пак се проверява дали текущия баща или бащите му са в посочените
+                if(array_key_exists($pRec->id, $groupsWithOverheadCosts) || countR($intersectedParents)){
+                    return array('groupId' => $rec->id, 'overheadCost' => $pRec->defaultOverheadCostsPercent);
+                }
+            }
+            $parent = $pRec->parentId;
+        }
+
+        return false;
     }
 }

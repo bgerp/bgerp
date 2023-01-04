@@ -115,7 +115,6 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->FLD('recipientPhone', 'drdata_PhoneType(type=tel,unrecognized=error)','caption=Получател->Данни за връзка,placeholder=Телефон,class=w25,mandatory');
         $form->FLD('recipientEmail', 'email','caption=Получател->-,inlineTo=recipientPhone,placeholder=Имейл,class=w75');
-        $form->FLD('recipientName', 'varchar','caption=Получател->Получател');
         $form->FLD('recipientPersonName', 'varchar','caption=Получател->Лице за контакт,mandatory');
 
         $form->FLD('recipientDeliveryType', 'enum(address=Адрес,office=Офис,hub=Хъб)','caption=Доставка->До,silent,removeAndRefreshForm=recipientCountryId|recipientOfficeId|recipientHubId|recipientPcode|recipientPlace|recipientAddress|recipientAddressNum|recipientEntrance|recipientFloor|recipientApp,maxRadio=3,columns=3');
@@ -270,7 +269,6 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->setDefault('recipientPhone', $logisticData['toPersonPhones']);
         $form->setDefault('recipientNotes', $logisticData['instructions']);
-        $form->setDefault('recipientName', $logisticData['toCompany']);
         $form->setDefault('recipientPersonName', $logisticData['toPerson']);
 
         if($formRec->recipientDeliveryType == 'hub'){
@@ -567,7 +565,7 @@ class cvc_interface_CourierImpl extends core_Manager
         $res['sender'] = $senderObj;
 
         $recepientObj = (object)array(
-            'name' => $rec->recipientName,
+            'name' => $rec->recipientPersonName,
             'phone' => $rec->recipientPhone,
             'email' => $rec->recipientEmail,
         );

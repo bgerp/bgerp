@@ -81,8 +81,14 @@ class cat_products_Params extends doc_Detail
      * Кой може да изтрива
      */
     public $canDelete = 'powerUser';
-    
-    
+
+
+    /**
+     * Позволено ли е мастъра да не е наследник на core_Master
+     */
+    public $requireMasterBeInstanceOfCoreMaster = false;
+
+
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
@@ -124,8 +130,8 @@ class cat_products_Params extends doc_Detail
      */
     public function getMasterMvc($rec)
     {
-        $masterMvc = cls::get('cat_Products');
-        
+        $masterMvc = cls::get($rec->classId);
+
         return $masterMvc;
     }
     
@@ -204,10 +210,12 @@ class cat_products_Params extends doc_Detail
             
                 $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
                 $form->setDefault('paramValue', $defaultValue);
-                if(isset($defaultValue)){
-                    if($pRec->valueType == 'readonly'){
-                        $form->setReadOnly('paramValue');
-                        $form->info = tr("Стойноста идва от параметъра и не може да се променя|*!");
+                if($pRec->valueType == 'readonly'){
+                    if(isset($defaultValue)){
+                        $form->info = tr("|*<div class='richtext-message richtext-warning'>Параметърът е дефиниран като „Само за четене“|*!<br>|Промяната наложителна ли е|*?<br>Съвет|*: |Опитайте първо да презапишете с автоматично заредената дефолтна стойност|*!</div>");
+                    }
+                    else {
+                        $form->info = tr("|*<div class='richtext-message richtext-warning'>Параметърът е дефиниран като „Само за четене“|*!<br>|Промяната наложителна ли е|*?</div>");
                     }
                 }
 
@@ -254,25 +262,38 @@ class cat_products_Params extends doc_Detail
             }
         }
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я, която връща заглавие за формата при добавяне на детайл към клас
+     * Изнесена е статично за да може да се използва и от класове, които не наследяват core_Detail,
+     * Но реално се добавят като детайли към друг клас
+     *
+     * @param mixed    $master      - ид на класа на мастъра
+     * @param int      $masterId    - ид на мастъра
+     * @param string   $singleTitle - еденично заглавие
+     * @param int|NULL $recId       - ид на записа, ако има
+     * @param string   $preposition - предлог
+     * @param int|NULL $len         - максимална дължина на стринга
+     *
+     * @return string $title      - заглавието на формата на 'Детайла'
+     */
+    public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = null, $len = null)
+    {
+        if($master instanceof cat_BomDetails){
+            $master = cls::get('cat_Boms');
+            $masterId = cat_BomDetails::fetchField($masterId, 'bomId');
+        }
+
+        return core_Detail::getEditTitle($master, $masterId, $singleTitle, $recId, $preposition);
+    }
+
+
     /**
      * След подготовката на заглавието на формата
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        $rec = $data->form->rec;
-        if (isset($rec->classId, $rec->productId)) {
-            $titleClass = $rec->classId;
-            $titleId = $rec->productId;
-            if($rec->classId == cat_BomDetails::getClassId()){
-                $titleClass = cat_Boms::getClassId();
-                $titleId = cat_BomDetails::fetchField($titleId, 'bomId');
-            }
-
-            $data->form->title = core_Detail::getEditTitle($titleClass, $titleId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
-        }
-        
         if (isset($data->form->paramOptions) && countR($data->form->paramOptions) <= 1) {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
@@ -479,11 +500,6 @@ class cat_products_Params extends doc_Detail
             if (!empty($roles) && !haveRole($roles, $userId)) {
                 $requiredRoles = 'no_one';
             }
-            if($action == 'edit'){
-                if($pRec->valueType == 'readonly'){
-                    $requiredRoles = 'no_one';
-                }
-            }
         }
     }
     
@@ -674,7 +690,7 @@ class cat_products_Params extends doc_Detail
 
             if($class instanceof planning_Tasks){
                 $tQuery = planning_Tasks::getQuery();
-                $tQuery->where("#state NOT IN ('draft', 'rejected') AND #originId = {$form->rec->originId} AND #productId = {$planningStepProductId}");
+                $tQuery->where("#state NOT IN ('draft', 'rejected') AND #originId = {$form->rec->originId}");
                 $tQuery->show('id');
 
                 $prevTaskIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
@@ -826,6 +842,9 @@ class cat_products_Params extends doc_Detail
     {
         $data->query->orderBy('id', 'DESC');
     }
+
+
+
 }
 
 

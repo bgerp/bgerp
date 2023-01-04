@@ -32,7 +32,7 @@ class bank_OwnAccounts extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, bank_Wrapper, acc_plg_Registry,
-                     plg_Sorting, bgerp_plg_FLB, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
+                     plg_Sorting, bgerp_plg_FLB, plg_Current, doc_plg_Close, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
     
     
     /**
@@ -65,8 +65,14 @@ class bank_OwnAccounts extends core_Master
      * Кой може да оттегля?
      */
     public $canReject = 'ceo, admin';
-    
-    
+
+
+    /**
+     * Кой може да пише
+     */
+    public $canClose = 'ceo, admin';
+
+
     /**
      * Кой може да възстановява?
      */
@@ -198,7 +204,8 @@ class bank_OwnAccounts extends core_Master
         $query = self::getQuery();
         $query->limit(1);
         $query->likeKeylist('countries', $countryId);
-        
+        $query->where("#state != 'rejected' AND #state != 'closed'");
+
         if ($checkNull) {
             $query->orWhere('#countries IS NULL');
             $query->orderBy('countries', 'DESC');

@@ -418,6 +418,7 @@ class log_Data extends core_Manager
     {
         // Записва в БД всички действия от стека
         self::flush();
+        log_Mysql::flush();
     }
     
     

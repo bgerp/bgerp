@@ -1368,7 +1368,7 @@ class planning_Jobs extends core_Master
 
         // Показване на наличните опции за клониране на операция от предходно задание
         if (isset($jobRec->oldJobId)) {
-            $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'));
+            $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), true, true);
 
             if (countR($oldTasks)) {
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('От предишно задание') . planning_Jobs::getLink($jobRec->oldJobId, 0), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
@@ -2121,7 +2121,7 @@ class planning_Jobs extends core_Master
     protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $taskRecs = planning_Tasks::getTasksByJob($rec->id, array('draft', 'waiting', 'active', 'wakeup', 'stopped'));
+        $taskRecs = planning_Tasks::getTasksByJob($rec->id, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'pending'));
         if(countR($taskRecs)){
             core_Statuses::newStatus("Не може да се оттегли, докато следните операции не са оттеглени/приключени|*: " . implode(', ', $taskRecs), 'warning');
             return false;

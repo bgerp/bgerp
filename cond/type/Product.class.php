@@ -95,7 +95,16 @@ class cond_type_Product extends cond_type_Varchar
     {
         if($this->driverRec->show == 'info'){
             Mode::push('text', 'plain');
-            $title = cat_Products::getVerbal($value, 'info');
+            $lg = core_Lg::getCurrent();
+            if($lg != 'bg'){
+                $valueRec = cat_Products::fetch($value);
+                if(!empty($valueRec->infoInt)){
+                    $title = core_Type::getByName('richtext')->toVerbal($valueRec->infoInt);
+                }
+            }
+            if(empty($title)){
+                $title = cat_Products::getVerbal($value, 'info');
+            }
             Mode::pop('text');
         }
         if(empty($title)){

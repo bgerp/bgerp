@@ -359,6 +359,8 @@ class core_Cron extends core_Manager
         }
         
         $this->logThenStop("Стартирани са {$i} процеса", null, 'info');
+
+        log_Mysql::flush();
     }
     
     
@@ -503,6 +505,8 @@ class core_Cron extends core_Manager
             echo(core_Debug::getLog());
         }
         
+        log_Mysql::flush();
+
         shutdown();
     }
     
