@@ -144,8 +144,10 @@ class log_Mysql extends core_Manager {
      */
     private function strip($query)
     {
+        $query = preg_replace("/\\([0-9,]+\\)/is", '(*)', $query);        
         $query = preg_replace("/(?:(?:\"(?:\\\\\"|[^\"])+\")|(?:'(?:\\\'|[^'])+'))/is", '*', $query);
-        $query = preg_replace("/-?[0-9]+(\\.[0-9]+)?([e][-+]?[0-9]+)?/is", '*', $query);        
+        $query = preg_replace("/-?[0-9]+(\\.[0-9]+)?([e][-+]?[0-9]+)?/is", '*', $query);
+
         $query = preg_replace("/NULL/i", '*', $query);        
 
         return $query;
