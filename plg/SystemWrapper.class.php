@@ -41,6 +41,7 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
         $this->TAB('log_Browsers', 'Логове->Браузъри', 'admin');
         $this->TAB('log_Ips', 'Логове->IP-та', 'admin');
+        $this->TAB('log_Mysql', 'Логове->Db', 'admin');
         $this->TAB('log_Actions', 'Логове->Действия', 'admin');
         $this->TAB('log_Classes', 'Логове->Класове', 'admin');
         
