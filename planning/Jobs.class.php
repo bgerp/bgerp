@@ -2121,7 +2121,7 @@ class planning_Jobs extends core_Master
     protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $taskRecs = planning_Tasks::getTasksByJob($rec->id, array('draft', 'waiting', 'active', 'wakeup', 'stopped'));
+        $taskRecs = planning_Tasks::getTasksByJob($rec->id, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'pending'));
         if(countR($taskRecs)){
             core_Statuses::newStatus("Не може да се оттегли, докато следните операции не са оттеглени/приключени|*: " . implode(', ', $taskRecs), 'warning');
             return false;
