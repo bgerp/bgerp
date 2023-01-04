@@ -353,6 +353,10 @@ class remote_BgerpDriver extends core_Mvc
             if ($getNotifys == 'no') {
                 continue;
             }
+
+            // Ако потребителят не е активен - също не правим нищо
+            $uRec = core_Users::fetch($rec->userId);
+            if($uRec->state != 'active') continue;
             
             if ($rec->data->lKeyCC && $rec->data->rId) {
                 $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications', array('priority' => true));
@@ -389,7 +393,7 @@ class remote_BgerpDriver extends core_Mvc
                         $message .= ' : ' . $nMsg;
                     }
                     
-                    // Добавя, ако няма нофификация
+                    // Добавя, ако има нофификация
                     bgerp_Notifications::add($message, $nUrl, $userId, $priority, null, true);
                 } else {
                     bgerp_Notifications::clear($nUrl, $userId);
@@ -627,6 +631,8 @@ class remote_BgerpDriver extends core_Mvc
         if ($res === false) {
             self::logWarning('Грешка при вземане на данни от URL: ' . $url);
         }
+
+        return null;
     }
     
     

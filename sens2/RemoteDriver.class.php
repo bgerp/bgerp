@@ -70,7 +70,7 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
 
         $cu = core_Users::getCurrent();
 
-        $aQuery->where("#driverClass = {$bgerpClassId} && #userId = {$cu}");
+        $aQuery->where("#driverClass = {$bgerpClassId} && #userId = {$cu} && #state = 'active'");
         
         $opt = array();
 
