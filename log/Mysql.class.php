@@ -82,8 +82,9 @@ class log_Mysql extends core_Manager {
     {
         $this->FLD('crc', 'bigint', 'caption=Код');
         $this->FLD('query', 'varchar(2048)', 'caption=Заявка');
-        $this->FLD('cnt', 'int', 'caption=Количество');
-        $this->FLD('time', 'float', 'caption=Време');
+        $this->FLD('time', 'float', 'caption=Време->Общо');
+        $this->FLD('timeAvg', 'float', 'caption=Време->Средно');
+        $this->FLD('cnt', 'int', 'caption=Брой');
 
         $this->setDbUnique('crc');
     }
@@ -124,8 +125,10 @@ class log_Mysql extends core_Manager {
                 if($exRec) {
                     $exRec->cnt += $rec->cnt;
                     $exRec->time += $rec->time;
+                    $exRec->timeAvg = $exRec->time / $exRec->cnt;
                     self::save($exRec);
                 } else {
+                    $rec->timeAvg = $rec->time / $rec->cnt;
                     self::save($rec);
                 }
             } catch ( \Exception $e ) {
@@ -143,6 +146,7 @@ class log_Mysql extends core_Manager {
     {
         $query = preg_replace("/(?:(?:\"(?:\\\\\"|[^\"])+\")|(?:'(?:\\\'|[^'])+'))/is", '*', $query);
         $query = preg_replace("/-?[0-9]+(\\.[0-9]+)?([e][-+]?[0-9]+)?/is", '*', $query);        
+        $query = preg_replace("/NULL/i", '*', $query);        
 
         return $query;
     }
