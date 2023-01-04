@@ -146,6 +146,8 @@ class purchase_PurchasesDetails extends deals_DealDetail
     {
         $this->FLD('requestId', 'key(mvc=purchase_Purchases)', 'column=none,notNull,silent,hidden,mandatory');
         
+        $this->setDbIndex('requestId');
+
         parent::getDealDetailFields($this);
     }
     
