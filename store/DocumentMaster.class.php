@@ -130,6 +130,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('reverseContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Връщане от,input=hidden,silent');
 
         $mvc->setDbIndex('valior');
+        $mvc->setDbIndex('contragentId');
     }
     
     
