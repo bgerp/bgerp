@@ -2123,4 +2123,25 @@ class sales_Sales extends deals_DealMaster
 
         return null;
     }
+
+
+    /**
+     * Преди записване на клонирания запис
+     */
+    protected function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // При репликиране от напомняне
+        if(isset($nRec->__isReplicate)){
+            if(isset($rec->bankAccountId)){
+
+                // Ако банковата сметка е затворена се сменя с дефолтната такава
+                $ownBankRec = bank_OwnAccounts::fetch("#bankAccountId = {$rec->bankAccountId}", 'state');
+                if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+                    $cData = doc_Folders::getContragentData($rec->folderId);
+                    $defaultCountryId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                    $nRec->bankAccountId = is_numeric($defaultCountryId) ? $defaultCountryId : null;
+                }
+            }
+        }
+    }
 }
