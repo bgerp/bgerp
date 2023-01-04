@@ -185,6 +185,8 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
                 // Ако Протокола за влагане е към задание и за артикула има активна рецепта - нея
                 $productId = $firstDoc->fetchField('productId');
                 $bomId = cat_Products::getLastActiveBom($productId, 'production,sales');
+                if(empty($bomId)) return false;
+
                 $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
                 if (!countR($details)) return false;
 
