@@ -1348,7 +1348,8 @@ class sales_Sales extends deals_DealMaster
         
         if (isset($rec->bankAccountId)) {
             if (!Mode::isReadOnly()) {
-                $row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
+                $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
+                $row->bankAccountId = bank_OwnAccounts::getHyperlink($ownBankRec, true);
             }
             
             if ($bic = bank_Accounts::getVerbal($rec->bankAccountId, 'bic')) {
@@ -1427,28 +1428,35 @@ class sales_Sales extends deals_DealMaster
         }
         
         // Ако не е избрана сметка, от дефолтните
-        if (in_array($rec->state, array('draft', 'pending')) && $rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
-            $cData = doc_Folders::getContragentData($rec->folderId);
-            $bRecCountries = bank_OwnAccounts::fetchField(array("#bankAccountId = '[#1#]'", $rec->bankAccountId), 'countries');
+        if ($rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
+            $errorStr = null;
+            $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId), 'state,countries');
+            if(in_array($rec->state, array('draft', 'pending'))){
+                $cData = doc_Folders::getContragentData($rec->folderId);
+                $defBankId = null;
+                if (!isset($ownBankRec->countries)) {
+                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false);
+                } else {
+                    if (!type_Keylist::isIn($cData->countryId, $ownBankRec->countries)) {
+                        $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                    }
+                }
 
-            $errorStr = $defBankId = null;
-            if (!isset($bRecCountries)) {
-                $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false);
-            } else {
-                if (!type_Keylist::isIn($cData->countryId, $bRecCountries)) {
-                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                if ($defBankId) {
+                    $bRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $defBankId));
+                    $errorStr = '|Има нова банкова сметка за тази държава|*: ' . bank_OwnAccounts::getVerbal($bRec, 'title');
                 }
             }
 
-            if ($defBankId) {
-                $bRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $defBankId));
-                $errorStr = '|Има нова банкова сметка за тази държава|*: ' . bank_OwnAccounts::getVerbal($bRec, 'title');
-                $row->bankAccountId = "<span class='warning-balloon'>{$row->bankAccountId}</span>";
+            if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+                $errorStr = (!empty($errorStr) ? "{$errorStr}. " : "") . 'Банковата сметка е закрита|*!';
             }
-            
-            $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
+            if(!empty($errorStr)){
+                $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
+                $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
+            }
         }
-        
+
         core_Lg::pop();
     }
     
