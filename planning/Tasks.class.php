@@ -2068,6 +2068,11 @@ class planning_Tasks extends core_Master
     {
         if (empty($rec->id)) return;
 
+        // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
+        if($jobSaleId = planning_Jobs::fetchField("#containerId = {$rec->originId}", 'saleId')){
+            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobSaleId));
+        }
+
         // Добавяне на всички ключови думи от прогреса
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $dQuery->XPR('concat', 'varchar', 'GROUP_CONCAT(#searchKeywords)');
@@ -2651,7 +2656,7 @@ class planning_Tasks extends core_Master
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity);
             $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
-            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span>") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
+            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
 
             core_Debug::stopTimer('RENDER_ROW');
         }
