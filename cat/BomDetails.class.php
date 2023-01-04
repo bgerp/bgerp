@@ -1124,8 +1124,8 @@ class cat_BomDetails extends doc_Detail
             // Колко е най-голямото закръгляне на използваните мерки
             $usedMeasures = arr::extractValuesFromArray($data->recs, 'packagingId');
             $maxDecimals = cat_UoM::getMaxRound($usedMeasures);
-
             $Double = core_Type::getByName("double(decimals={$maxDecimals})");
+
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
                 if ($rec->parentId) {

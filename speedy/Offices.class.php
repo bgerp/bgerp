@@ -131,15 +131,15 @@ class speedy_Offices extends core_Manager
         core_Users::forceSystemUser();
 
         $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_COUNTRY', true);
-        $loginData = speedy_Adapter2::getLoginData();
+        $loginData = speedy_Adapter::getLoginData();
         if(empty($loginData['userName']) || empty($loginData['password'])) {
             core_Users::cancelSystemUser();
             return;
         }
 
         try{
-            $theirCountryId = speedy_Adapter2::getCountryId($ownCompanyId);
-            $offices = speedy_Adapter2::getOffices($theirCountryId);
+            $theirCountryId = speedy_Adapter::getCountryId($ownCompanyId);
+            $offices = speedy_Adapter::getOffices($theirCountryId);
         } catch(core_exception_Expect $e){
             log_System::add($this, "Проблем при свързване към акаунта на Speedy", null, 'warning');
             core_Users::cancelSystemUser();

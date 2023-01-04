@@ -42,7 +42,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf,sales_RatingsSourceIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf,doc_ContragentDataIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,label_SequenceIntf=sales_interface_SaleLabelImpl,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf,doc_ContragentDataIntf';
     
     
     /**
@@ -62,7 +62,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery';
+    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery,courierApi';
     
     
     /**
@@ -238,7 +238,6 @@ class sales_Sales extends deals_DealMaster
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
-        'bankAccountId' => 'lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
         'chargeVat' => 'defMethod',
@@ -345,6 +344,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Допълнително->Цени,notChangeableByContractor');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId');
+        $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,caption=Доставка->Куриерско Api,after=deliveryCalcTransport,notChangeableIfHidden,placeholder=Автоматично');
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
@@ -437,8 +437,25 @@ class sales_Sales extends deals_DealMaster
         $rec = $form->rec;
         
         $myCompany = crm_Companies::fetchOwnCompany();
-        
         $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
+
+        $defaultBankAccountId = $rec->bankAccountId;
+        if(!array_key_exists($rec->bankAccountId, $options)){
+            if($data->action != 'clone'){
+                $options[$rec->bankAccountId] = $rec->bankAccountId;
+            } else {
+                $query = $mvc->getQuery();
+                $query->where("#state != 'rejected'");
+                $query->in("bankAccountId", array_keys($options));
+                $query->orderBy("id", 'DESC');
+                $query->limit(1);
+                $defaultBankAccountId = $query->fetch()->bankAccountId;
+                if(!empty($rec->bankAccountId) && $rec->bankAccountId != $defaultBankAccountId){
+                    $form->setWarning('bankAccountId', "Банковата сметка е сменена, защото оригиналната не може да се използва|*: <b>" . bank_OwnAccounts::getTitleById(bank_OwnAccounts::fetchField("#bankAccountId = {$rec->bankAccountId}")) . "</b>");
+                }
+            }
+        }
+
         if (countR($options)) {
             foreach ($options as $id => &$name) {
                 if (is_numeric($id)) {
@@ -448,6 +465,7 @@ class sales_Sales extends deals_DealMaster
         }
         
         $form->setOptions('bankAccountId', $options);
+        $form->setDefault('bankAccountId', $defaultBankAccountId);
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
@@ -517,6 +535,13 @@ class sales_Sales extends deals_DealMaster
         
         // Възможност за ръчна смяна на режима на начисляването на скрития транспорт
         if (isset($rec->deliveryTermId)) {
+            if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)){
+                $form->setField('courierApi', 'input');
+                if(empty($rec->id)){
+                    $form->setDefault('courierApi', $courierApi);
+                }
+            }
+
             if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                 $calcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                 $form->setField('deliveryCalcTransport', 'input');
@@ -524,8 +549,8 @@ class sales_Sales extends deals_DealMaster
             }
         }
     }
-    
-    
+
+
     /**
      * След подготовка на тулбара на единичен изглед
      */
@@ -1331,7 +1356,8 @@ class sales_Sales extends deals_DealMaster
         
         if (isset($rec->bankAccountId)) {
             if (!Mode::isReadOnly()) {
-                $row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
+                $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
+                $row->bankAccountId = bank_OwnAccounts::getHyperlink($ownBankRec, true);
             }
             
             if ($bic = bank_Accounts::getVerbal($rec->bankAccountId, 'bic')) {
@@ -1402,7 +1428,14 @@ class sales_Sales extends deals_DealMaster
                     $row->btnTransport = $link->getContent();
                 }
             }
-            
+
+            if(empty($rec->courierApi)){
+                if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)){
+                    $courierApiVerbal = $mvc->getFieldType('courierApi')->toVerbal($courierApi);
+                    $row->courierApi = ht::createHint("<span style='color:blue'>{$courierApiVerbal}</span>", 'От условието на доставка', 'notice', false);
+                }
+            }
+
             core_Lg::push($rec->tplLang);
         } elseif (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = '<b>' . $row->title . '</b>';
@@ -1410,27 +1443,38 @@ class sales_Sales extends deals_DealMaster
         }
         
         // Ако не е избрана сметка, от дефолтните
-        if (($rec->state == 'draft' || $rec->state == 'pending') && $rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
-            $cData = doc_Folders::getContragentData($rec->folderId);
-            $bRecCountries = bank_OwnAccounts::fetchField(array("#bankAccountId = '[#1#]'", $rec->bankAccountId), 'countries');
-            
-            $defBankId = null;
-            if (!isset($bRecCountries)) {
-                $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false);
-            } else {
-                if (!type_Keylist::isIn($cData->countryId, $bRecCountries)) {
-                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+        if ($rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
+            $errorStr = null;
+			
+			if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+                $errorStr = 'Банковата сметка е закрита|*!';
+            }
+			
+            $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId), 'state,countries');
+            if(in_array($rec->state, array('draft', 'pending'))){
+                $cData = doc_Folders::getContragentData($rec->folderId);
+                $defBankId = null;
+                if (!isset($ownBankRec->countries)) {
+                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false);
+                } else {
+                    if (!type_Keylist::isIn($cData->countryId, $ownBankRec->countries)) {
+                        $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                    }
+                }
+
+                if ($defBankId) {
+                    $bRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $defBankId));
+                    $errorStr = (!empty($errorStr) ? "{$errorStr} " : "") . '|Има нова банкова сметка за тази държава|*: ' . bank_OwnAccounts::getVerbal($bRec, 'title');
                 }
             }
+
             
-            if ($defBankId) {
-                $bRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $defBankId));
-                $errorStr = '|Има нова банкова сметка за тази държава|*: ' . bank_OwnAccounts::getVerbal($bRec, 'title');
+            if(!empty($errorStr)){
+                $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
+                $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
             }
-            
-            $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
         }
-        
+
         core_Lg::pop();
     }
     
@@ -2068,5 +2112,47 @@ class sales_Sales extends deals_DealMaster
         }
 
         return $deliveryDate;
+    }
+
+
+    /**
+     * Кой клас е избран за куриерско АПИ в документа
+     *
+     * @param stdClass $rec
+     * @return null|int
+     */
+    public function getCourierApi4Document($rec)
+    {
+        // Ако има конкретно посочено куриерско API
+        $rec = $this->fetchRec($rec);
+        if(isset($rec->courierApi)) return $rec->courierApi;
+
+        // Ако не е посочено куриерско АПИ, се търси това от условието на доставка (ако има такова)
+        if(isset($rec->deliveryTermId)){
+            if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)) return $courierApi;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Преди записване на клонирания запис
+     */
+    protected function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // При репликиране от напомняне
+        if(isset($nRec->__isReplicate)){
+            if(isset($rec->bankAccountId)){
+
+                // Ако банковата сметка е затворена се сменя с дефолтната такава
+                $ownBankRec = bank_OwnAccounts::fetch("#bankAccountId = {$rec->bankAccountId}", 'state');
+                if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+                    $cData = doc_Folders::getContragentData($rec->folderId);
+                    $defaultCountryId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                    $nRec->bankAccountId = is_numeric($defaultCountryId) ? $defaultCountryId : null;
+                }
+            }
+        }
     }
 }

@@ -361,11 +361,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             // Филтрираме по потребители
             if ($filter->users && $isDocument) {
                 $userIds = keylist::toArray($filter->users);
-                
+
                 // Ако не се търси по всички
                 if ($usedUsers != 'all_users') {
                     $userArr = implode(',', $userIds);
-                   
+
                     if(in_array($filter->filterDateField, $userFields)){
                         $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
                     } else {
@@ -373,7 +373,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                         $useUserField = isset($map[$filter->filterDateField]) ? $map[$filter->filterDateField] : $mvc->filterFieldUsers;
 
                         $data->query->where("#{$useUserField} IN ({$userArr})");
-                        if(!isset($map[$filter->filterDateField])){
+                        if(!isset($map[$filter->filterDateField]) && $useUserField != $mvc->filterFieldUsers){
                             $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
                         }
                     }

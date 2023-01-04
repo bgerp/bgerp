@@ -1269,6 +1269,12 @@ class log_Debug extends core_Manager
                     $requiredRoles = 'no_one';
                 }
             }
+
+            if ($requiredRoles != 'no_one') {
+                if (!defined('DEBUG_FATAL_ERRORS_FILE')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
         
         if ($action == 'report' && $requiredRoles != 'no_one') {

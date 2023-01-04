@@ -117,7 +117,7 @@ class vislog_Referer extends core_Manager
                 
                 // Поставяме IP ако липсва
                 if (!$rec->ip) {
-                    $rec->ip = $_SERVER['REMOTE_ADDR'];
+                    $rec->ip = type_Ip::getRealIp();
                 }
                 $rec->domainId = cms_Domains::getPublicDomain('id');
 

@@ -53,6 +53,12 @@ class cvc_interface_CourierImpl extends core_Manager
 
 
     /**
+     * Коментар към връзката на прикачения файл
+     */
+    public $billOfLadingComment = 'Товарителница (CVC)';
+
+
+    /**
      * Може ли потребителя да създава товарителница от документа
      *
      * @param core_Mvc $mvc
@@ -88,7 +94,8 @@ class cvc_interface_CourierImpl extends core_Manager
      */
     public function addFieldToBillOfLadingForm($mvc, $rec, &$form)
     {
-        //$cacheArr = core_Permanent::get(self::getUserDataCacheKey($rec->folderId));
+        $cacheArr = core_Permanent::get(self::getUserDataCacheKey($rec->folderId));
+
         $formRec = &$form->rec;
 
         $form->class = 'cvcBillOfLading';
@@ -96,7 +103,9 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->FLD('parcelType', 'enum(parcel=Пакетна,pallet=Палетна,tires=Гуми)', 'caption=Тип на пратката,silent,removeAndRefreshForm=fixedTime,mandatory');
         $form->FLD('customerId', 'int','caption=Подател->Подател');
-        $form->setDefault('parcelType', 'parcel');
+
+        $defaultParcelType = isset($cacheArr['parcelType']) ? $cacheArr['parcelType'] : 'parcel';
+        $form->setDefault('parcelType', $defaultParcelType);
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 
         try{
@@ -105,13 +114,19 @@ class cvc_interface_CourierImpl extends core_Manager
         } catch(core_exception_Expect $e){
         }
 
-        $form->setDefault('customerId', cvc_Setup::get('SENDER_ID'));
+        $defaultCustomerId = isset($cacheArr['customerId']) ? $cacheArr['customerId'] : cvc_Setup::get('SENDER_ID');
+        $form->setDefault('customerId', $defaultCustomerId);
         $form->setReadOnly('customerId');
         $form->FLD('senderName', 'varchar','caption=Подател->Лице за контакт,mandatory');
         $form->FLD('senderPhone', 'drdata_PhoneType(type=tel,unrecognized=error)','caption=Подател->Данни за връзка,placeholder=Телефон,class=w25,mandatory');
         $form->FLD('senderEmail', 'email','caption=Подател->-,inlineTo=senderPhone,placeholder=Имейл,class=w75');
         $form->FLD('senderDeliveryType', 'enum(address=Адрес,hub=Хъб)','caption=Приемане от->Избор,silent,removeAndRefreshForm=senderHubId|senderCountryId|senderOfficeId|senderPcode|senderPlace|senderAddress|senderAddressNum|senderEntrance|senderFloor|senderApp,maxRadio=2');
         $form->FLD('senderHubId', 'key(mvc=cvc_Hubs, select=name, allowEmpty)','caption=Приемане от->Хъб,input=none');
+        if(is_array($cacheArr)){
+            $form->setDefault('senderName', $cacheArr['senderName']);
+            $form->setDefault('senderPhone', $cacheArr['senderPhone']);
+            $form->setDefault('senderEmail', $cacheArr['senderEmail']);
+        }
 
         $form->FLD('recipientPhone', 'drdata_PhoneType(type=tel,unrecognized=error)','caption=Получател->Данни за връзка,placeholder=Телефон,class=w25,mandatory');
         $form->FLD('recipientEmail', 'email','caption=Получател->-,inlineTo=recipientPhone,placeholder=Имейл,class=w75');
@@ -124,9 +139,9 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->FLD('recipientCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,silent,removeAndRefreshForm=recipientPcode|recipientPlace|recipientAddress|recipientAddressNum|recipientEntrance|recipientFloor|recipientApp');
         $form->FLD('recipientPcode', 'varchar','caption=Доставка->Населено място,class=w25,placeholder=П.К');
-        $form->FLD('recipientPlace', 'varchar','caption=Доставка->-,class=w75,placeholder=Наименование,inlineTo=recipientPcode,autocomplete=off');
-        $form->FLD('recipientAddress', 'varchar','caption=Доставка->Адрес,class=w50,placeholder=Наименование');
-        $form->FLD('recipientAddressNum', 'varchar(size=3)','caption=Доставка->-,class=w10,placeholder=Номер,inlineTo=recipientAddress');
+        $form->FLD('recipientPlace', 'varchar','caption=Доставка->-,class=w75,placeholder=Населено място,inlineTo=recipientPcode,autocomplete=off');
+        $form->FLD('recipientAddress', 'varchar','caption=Доставка->Адрес,class=w50,placeholder=Адрес');
+        $form->FLD('recipientAddressNum', 'varchar(size=3)','caption=Доставка->-,class=w10,placeholder=№,inlineTo=recipientAddress');
         $form->FLD('recipientEntrance', 'varchar(size=3)','caption=Доставка->->Вход,class=w10,placeholder=Вход');
         $form->FLD('recipientFloor', 'int(size=3)','caption=Доставка->-,class=w10,placeholder=Етаж,inlineTo=recipientEntrance');
         $form->FLD('recipientApp', 'int(size=3)','caption=Доставка->-,class=w10,placeholder=Апарт.,inlineTo=recipientFloor');
@@ -145,7 +160,7 @@ class cvc_interface_CourierImpl extends core_Manager
         $form->FLD('reff1', 'varchar','caption=Описание на пратката->Клиентски референции,class=w50%,placeholder=Референция 1');
         $form->FLD('reff2', 'varchar','caption=Описание на пратката->-,inlineTo=reff1,class=w50%,placeholder=Референция 2');
 
-        $form->FLD('test', 'enum(no=Без,observe=Преглед,test=Преглед и тест)','caption=Допълнителни услуги и добавки->Тест,maxRadio=3,silent,removeAndRefreshForm=rejectPayer,input=hidden');
+        $form->FLD('test', 'enum(no=Без,observe=Преглед,test=Преглед и тест)','caption=Допълнителни услуги и добавки->Тест,maxRadio=3,columns=3,silent,removeAndRefreshForm=rejectPayer,input=hidden');
         $form->FLD('rejectPayer', 'enum(contract=По договор,sender=От изпращача, rec=От получателя)','caption=Допълнителни услуги и добавки->При отказ - плащане,input=none');
 
         $form->FLD('haveCodPayment', 'enum(no=Без,yes=Да)','caption=Допълнителни услуги и добавки->Наложен платеж,silent,removeAndRefreshForm=codAmount|isCodPpp');
@@ -163,10 +178,41 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->input(null, 'silent');
         $form->setDefault('senderDeliveryType', 'address');
-        $form->setDefault('recipientDeliveryType', 'address');
+
         $form->setDefault('returnReceipt', 'no');
         $form->setDefault('returnDocuments', 'no');
         $form->setDefault('palletCount', 1);
+
+        $deliveryData = array();
+        $deliveryTermId = null;
+
+        // Кои са данните за доставка от условието на договора
+        if($mvc instanceof sales_Sales){
+            $deliveryTermId = $rec->deliveryTermId;
+            $deliveryData = $rec->deliveryData;
+        } elseif($mvc instanceof store_DocumentMaster){
+            $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDocument->isInstanceOf('sales_Sales')) {
+                if(empty($rec->locationId) && empty($rec->tel)){
+                    $deliveryTermId = $firstDocument->fetchField('deliveryTermId');
+                    $deliveryData = $firstDocument->fetchField('deliveryData');
+                }
+            }
+        }
+
+        // Ако има намерено условие на доставка и то е с калкулатор за офис на CVC доставката да е до там
+        if(isset($deliveryTermId)){
+            if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($deliveryTermId)){
+                if($DeliveryCalc->class instanceof cvc_interface_DeliveryToOffice){
+                    if($form->cmd != 'refresh'){
+                        $form->setDefault('recipientDeliveryType', 'office');
+                        $form->setDefault('recipientOfficeId', $deliveryData['officeId']);
+                    }
+                }
+            }
+        }
+
+        $form->setDefault('recipientDeliveryType', 'address');
 
         if($formRec->parcelType == 'parcel'){
             $form->setField('fixedTime', 'input');
@@ -207,7 +253,7 @@ class cvc_interface_CourierImpl extends core_Manager
         $form->FLD('senderPcode', 'varchar','caption=Приемане от->Населено място,class=w25,placeholder=П.К');
         $form->FLD('senderPlace', 'varchar','caption=Приемане от->-,class=w75,placeholder=Наименование,inlineTo=senderPcode');
         $form->FLD('senderAddress', 'varchar','caption=Приемане от->Адрес,class=w50,placeholder=Наименование');
-        $form->FLD('senderAddressNum', 'varchar(size=3)','caption=Приемане от->-,class=w10,placeholder=Номер,inlineTo=senderAddress');
+        $form->FLD('senderAddressNum', 'varchar(size=3)','caption=Приемане от->-,class=w10,placeholder=№,inlineTo=senderAddress');
         $form->FLD('senderEntrance', 'varchar(size=3)','caption=Приемане от->Вход,class=w10,placeholder=Вход');
         $form->FLD('senderFloor', 'int(size=3)','caption=Приемане от->-,class=w10,placeholder=Етаж,inlineTo=senderEntrance');
         $form->FLD('senderApp', 'int(size=3)','caption=Приемане от->-,class=w10,placeholder=Апарт.,inlineTo=senderFloor');
@@ -269,8 +315,8 @@ class cvc_interface_CourierImpl extends core_Manager
         }
 
         $form->setDefault('recipientPhone', $logisticData['toPersonPhones']);
-        $form->setDefault('recipientNotes', $logisticData['instructions']);
         $form->setDefault('recipientName', $logisticData['toCompany']);
+        $form->setDefault('recipientNotes', $logisticData['instructions']);
         $form->setDefault('recipientPersonName', $logisticData['toPerson']);
 
         if($formRec->recipientDeliveryType == 'hub'){
@@ -363,11 +409,12 @@ class cvc_interface_CourierImpl extends core_Manager
                     // Проверка на мястото за доставка
                     $foundPlacesCount = countR($foundPlaces);
                     if(!$foundPlacesCount){
-                        $form->setError('recipientPlace', "Населеното място не може да бъде намерено в тяхната система|*! Пробвайте да напишете името без съкращения!");
+                        $form->setError('recipientPlace', "Има проблем при разпознаване на населеното място|*! Моля проверете наименованието и пощенския код. Пробвайте да напишете името без съкращения!");
                     } elseif($foundPlacesCount != 1){
                         $form->setError('recipientPlace', "Населеното място не може да бъде определено еднозначно от тяхната система|*!");
+                    } elseif(is_array($foundPlaces)) {
+                        $rec->_cityId = key($foundPlaces);
                     }
-                    $rec->_cityId = key($foundPlaces);
                 }
             }
 
@@ -566,21 +613,25 @@ class cvc_interface_CourierImpl extends core_Manager
         }
         $res['sender'] = $senderObj;
 
-        $recepientObj = (object)array(
-            'name' => $rec->recipientName,
+        $recipientName = $rec->recipientPersonName;
+        if(!empty($rec->recipientPersonName)){
+            $recipientName .= ", {$rec->recipientName}";
+        }
+        $recipientObj = (object)array(
+            'name' => $recipientName,
             'phone' => $rec->recipientPhone,
             'email' => $rec->recipientEmail,
         );
 
         if($rec->recipientDeliveryType == 'hub'){
-            $recepientObj->hub_id = $rec->recipientHubId;
+            $recipientObj->hub_id = $rec->recipientHubId;
         } elseif($rec->recipientDeliveryType == 'office'){
-            $recepientObj->office_id = $rec->recipientOfficeId;
+            $recipientObj->office_id = cvc_Offices::fetchField($rec->recipientOfficeId, 'num');
         } else {
-            $recepientObj->city_id = $rec->_cityId;
+            $recipientObj->city_id = $rec->_cityId;
             foreach (array('zip' => 'recipientPcode', 'num' => 'recipientAddressNum', 'entr' => 'recipientEntrance', 'ap' => 'recipientApp', 'floor' => 'recipientFloor') as $theirFld => $oursFld){
                 if(!empty($rec->{$oursFld})){
-                    $recepientObj->{$theirFld} = $rec->{$oursFld};
+                    $recipientObj->{$theirFld} = $rec->{$oursFld};
                 }
             }
             $streetStr = '';
@@ -591,14 +642,14 @@ class cvc_interface_CourierImpl extends core_Manager
                 $streetStr .= (!empty($streetStr) ? ", " : '') . $rec->recipientAddress;
             }
             if(!empty($streetStr)){
-                $recepientObj->street = $streetStr;
+                $recipientObj->street = $streetStr;
             }
         }
 
         if(!empty($rec->recipientNotes)){
-            $recepientObj->notes = $rec->recipientNotes;
+            $recipientObj->notes = $rec->recipientNotes;
         }
-        $res['rec'] = $recepientObj;
+        $res['rec'] = $recipientObj;
         $res['ref1'] = $rec->reff1;
         $res['ref2'] = $rec->reff2;
         $res['fix_time'] = $rec->fixedTime;
@@ -646,12 +697,6 @@ class cvc_interface_CourierImpl extends core_Manager
     {
         // Подготовка на данните за товарителницата
         $preparedBolParams = static::prepareBolData($form->rec);
-
-        //@todo да се махне
-        $preparedBolParams['description'] = 'Тестване на АПИ - да не се изпълнява';
-
-        //$cancel = cvc_Adapter::cancelWb();
-
         try{
             $res = cvc_Adapter::createWb($preparedBolParams);
         } catch(core_exception_Expect $e){
@@ -668,17 +713,38 @@ class cvc_interface_CourierImpl extends core_Manager
 
             // Ако е разпечатана записва се в помощния модел
             $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'], 'deliveryDate' => $res['deliveryDate'], 'state' => 'pending');
+            if(empty($res['pdf'])){
+                $form->setError('parcelType', "Проблем при сваляне на товарителницата");
+                return;
+            }
+
             $wayBillRec->file = $res['pdf'];
             cvc_WayBills::save($wayBillRec);
 
             // Кеш на избраните полета от формата
-            //$cacheArr = array('senderClientId' => $form->rec->senderClientId, 'service' => $form->rec->service, 'pdfPrinterType' => $form->rec->pdfPrinterType);
-           // core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
+            $cacheArr = array('parcelType' => $form->rec->parcelType, 'customerId' => $form->rec->customerId, 'senderName' => $form->rec->senderName, 'senderPhone' => $form->rec->senderPhone, 'senderEmail' => $form->rec->senderEmail);
+            core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
 
             return $res['pdf'];
         }
 
         return null;
+    }
+
+
+    /**
+     * Какъв е ключа на потребителския кеш
+     *
+     * @param int $folderId
+     *
+     * @return string $key
+     */
+    private static function getUserDataCacheKey($folderId)
+    {
+        $cu = core_Users::getCurrent('id', false);
+        $key = "CVC_{$folderId}_{$cu}";
+
+        return $key;
     }
 
 

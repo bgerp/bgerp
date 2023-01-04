@@ -149,7 +149,6 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->mustUpdateUsed, false);
         setIfNot($mvc->canMovelast, 'powerUser');
         
-        $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');

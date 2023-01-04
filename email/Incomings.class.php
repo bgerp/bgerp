@@ -2749,6 +2749,9 @@ class email_Incomings extends core_Master
      */
     public static function scanForPublicDomains()
     {
+        $ignoreSameEmailsCnt = 2;
+        $addDomainsCnt = 3;
+
         // Извличаме ид на корица на фирмените папки
         $crmCompaniesClassId = core_Classes::getId('crm_Companies');
         $crmPersonsClassId = core_Classes::getId('crm_Persons');
@@ -2763,17 +2766,39 @@ class email_Incomings extends core_Master
         
         $domains = array();
         $results = array();
-        
+        $allEmails = array();
+
+        // Групираме имейлите по ковър и имейл
         while ($rec = $query->fetch()) {
-            $fromDomain = type_Email::domain($rec->fromEml);
-            $domains[$rec->coverClass][$fromDomain][$rec->folderId] = true;
-            
-            if (countR($domains[$rec->coverClass][$fromDomain]) > 1) {
-                // От $fromDomain има поне 2 писма, които са в различни фирмени папки
-                $results[$fromDomain] = true;
+            $allEmails[$rec->coverClass][$rec->fromEml][$rec->folderId] = $rec->folderId;
+        }
+
+        // Премахваме повтарящите се имейли от фирмите
+        // Останалите ги групираме по ковър и домейн
+        foreach ($allEmails as $cover => $coverEmails) {
+            foreach ($coverEmails as $email => $folders) {
+                if ($cover == $crmCompaniesClassId) {
+                    if (countR((array) $folders) >= $ignoreSameEmailsCnt) {
+                        continue;
+                    }
+                }
+
+                $fromDomain = type_Email::domain($email);
+                foreach ((array) $folders as $folderId) {
+                    $domains[$cover][$fromDomain][$folderId] = $folderId;
+                }
             }
         }
-        
+
+        // Ако има достатъчно различни имейли в различни папки от различни изпращачи
+        foreach ($domains as $cover => $domainsArr) {
+            foreach ($domainsArr as $fromDomain => $folders) {
+                if (countR((array) $folders) >= $addDomainsCnt) {
+                    $results[$fromDomain] = true;
+                }
+            }
+        }
+
         return $results;
     }
     

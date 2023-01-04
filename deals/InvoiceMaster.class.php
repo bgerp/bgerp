@@ -77,7 +77,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason';
+    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions';
     
     
     /**
