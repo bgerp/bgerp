@@ -543,7 +543,7 @@ class acc_Journal extends core_Master
         // Избиране на всички чернови в журнала, По стари от 5 минути
         $query = self::getQuery();
         $query->where("#state = 'draft'");
-        $before5m = dt::addSec(-5*60);
+        $before5m = dt::addSecs(-5*60);
         $query->where("#createdOn < '{$before5m}'");
         
         while ($rec = $query->fetch()) {
