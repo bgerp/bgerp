@@ -122,7 +122,7 @@ class log_Data extends core_Manager
         $this->setDbIndex('time');
         $this->setDbIndex('type');
         $this->setDbIndex('actionCrc');
-        $this->setDbIndex('classCrc,objectId');
+        $this->setDbIndex('objectId,classCrc');
         
         $this->dbEngine = 'InnoDB';
     }
