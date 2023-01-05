@@ -80,8 +80,8 @@ class email_Salutations extends core_Manager
         $this->FLD('salutation', 'varchar', 'caption=Обръщение');
         $this->FLD('toEmail', 'emails', 'caption=Имейл');
         
-        $this->setDbUnique('folderId');
         $this->setDbUnique('containerId');
+        $this->setDbIndex('folderId');
         $this->setDbIndex('createdBy');
     }
     
