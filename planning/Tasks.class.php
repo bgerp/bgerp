@@ -3252,4 +3252,47 @@ class planning_Tasks extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Разрешено ли е на потребителя да произвежда след приключването на дадената ПО
+     *
+     * @param stdClass $taskId
+     * @param int|null $userId
+     * @return bool
+     */
+    public static function isProductionAfterClosureAllowed($taskId, $userId = null)
+    {
+        $now = dt::now();
+        $masterRec = static::fetch($taskId, 'timeClosed,state,originId,productId,isFinal');
+        $horizon1 = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+        $horizon2 = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+
+        // Ако времето е след първия хоризонт
+        if($now >= $horizon1){
+
+            // И сме след втория никой не може нищо
+            if($now >= $horizon2){
+                return false;
+            } else {
+
+                // Ако сме преди втория и има за произвеждане повече от 1 артикул да може да се произвежда
+                $productionCount = planning_ProductionTaskProducts::count("#type = 'production' AND #taskId = {$taskId}");
+                $allowedCount = ($masterRec->isFinal == 'yes') ? 1 : 0;
+                if($productionCount != $allowedCount){
+                    if(!haveRole('taskPostProduction,ceo', $userId)){
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+            // Ако е преди първия хоризонт се изисква роля за пост продукция
+        } elseif(!haveRole('taskPostProduction,ceo', $userId)){
+            return false;
+        }
+
+        return true;
+    }
 }
