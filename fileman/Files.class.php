@@ -150,6 +150,7 @@ class fileman_Files extends core_Master
         $this->setDbUnique('name,bucketId', 'uniqName');
         $this->setDbIndex('dataId,bucketId', 'indexDataId');
         $this->setDbIndex('createdBy');
+        $this->setDbIndex('createdOn');
     }
     
     

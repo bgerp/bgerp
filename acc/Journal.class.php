@@ -119,8 +119,7 @@ class acc_Journal extends core_Master
         $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
         
-        $this->setDbUnique('docType,docId,state');
-        $this->setDbIndex('docType,docId');
+        $this->setDbUnique('docId,docType,state');
         $this->setDbIndex('valior');
         $this->setDbIndex('createdOn');
     }
@@ -158,13 +157,13 @@ class acc_Journal extends core_Master
                 if (is_object($doc)) {
                     
                     // Показваме документа и другите документи в нишката му
-                    $data->query->orWhere("#docType = '{$doc->getClassId()}' AND #docId = '{$doc->that}'");
+                    $data->query->orWhere("#docId = '{$doc->that}' AND #docType = '{$doc->getClassId()}'");
                     
                     $chain = $doc->getDescendants();
                     
                     if (countR($chain)) {
                         foreach ($chain as $desc) {
-                            $data->query->orWhere("#docType = '{$desc->getClassId()}' AND #docId = '{$desc->that}'");
+                            $data->query->orWhere("#docId = '{$desc->that}' AND #docType = '{$desc->getClassId()}'");
                         }
                     }
                 }
@@ -451,7 +450,7 @@ class acc_Journal extends core_Master
     {
         $docClassId = cls::get($doc)->getClassId();
         
-        return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
+        return self::fetch("#docId = {$docId} AND #docType = {$docClassId}");
     }
 
 
@@ -467,7 +466,7 @@ class acc_Journal extends core_Master
     {
         $docClassId = cls::get($docClassId)->getClassId();
         $query = static::getQuery();
-        $query->where("#docType = {$docClassId} AND #docId = {$docId}");
+        $query->where("#docId = {$docId} AND #docType = {$docClassId}");
         
         // Изтриваме всички записи направени в журнала от документа
         while ($rec = $query->fetch()) {
@@ -544,7 +543,8 @@ class acc_Journal extends core_Master
         // Избиране на всички чернови в журнала, По стари от 5 минути
         $query = self::getQuery();
         $query->where("#state = 'draft'");
-        $query->where('#createdOn < (NOW() - INTERVAL 5 MINUTE)');
+        $before5m = dt::addSecs(-5*60);
+        $query->where("#createdOn < '{$before5m}'");
         
         while ($rec = $query->fetch()) {
             try {

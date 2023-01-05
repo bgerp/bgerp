@@ -187,8 +187,6 @@ class doc_Threads extends core_Manager
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
         $this->setDbIndex('last');
-        $this->setDbIndex('state');
-        $this->setDbIndex('last, id');
         
         $this->setDbIndex('firstContainerId');
     }

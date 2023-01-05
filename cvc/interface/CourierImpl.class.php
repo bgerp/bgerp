@@ -826,5 +826,18 @@ class cvc_interface_CourierImpl extends core_Manager
 
         return $res;
     }
+
+
+    /**
+     * Може ли потребителя да създава товарителница от документа
+     *
+     * @param core_Mvc $mvc
+     * @param int|stdClass $id
+     * @return core_ET|null
+     */
+    public function getDefaultEmailBody($mvc, $id)
+    {
+        return null;
+    }
 }
 

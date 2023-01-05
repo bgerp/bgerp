@@ -279,6 +279,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
         
         $mvc->setDbIndex('valior');
+        $mvc->setDbIndex('modifiedOn');
     }
     
     
