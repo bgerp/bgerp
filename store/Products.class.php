@@ -837,7 +837,9 @@ class store_Products extends core_Detail
                 
                 // Сумира се какво е общото к-во и сумата му
                 $dQuery = $Detail->getQuery();
-                $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+
+                $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
+                $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
                 $dRecs = $dQuery->fetchAll();
                 
                 if(countR($dRecs)){

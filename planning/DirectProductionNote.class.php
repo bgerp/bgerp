@@ -256,23 +256,32 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->setField('inputStoreId', 'input=none');
             }
 
-            // Ако артикула не е складируем, скриваме полето за мярка
-            $packs = cat_Products::getPacks($rec->productId, false, $jobRec->secondMeasureId);
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
+            if($rec->productId == $jobRec->productId){
+                $packs = cat_Products::getPacks($rec->productId, false, $jobRec->secondMeasureId);
+                $secondMeasureDerivatives = array();
+                if($jobRec->secondMeasureId){
+                    $secondMeasureDerivatives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
+                }
 
-            $secondMeasureDerivatives = array();
-            if($jobRec->secondMeasureId){
-                $secondMeasureDerivatives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
-            }
+                $originalPacks = $packs;
+                if(!array_key_exists($originPackId, $secondMeasureDerivatives)){
+                    $packs = array_diff_key($packs, $secondMeasureDerivatives);
+                } else {
+                    $packs = array_intersect_key($packs, $secondMeasureDerivatives);
+                }
 
-            $originalPacks = $packs;
-            if(!array_key_exists($originPackId, $secondMeasureDerivatives)){
-                $packs = array_diff_key($packs, $secondMeasureDerivatives);
+                $defaultPack =  ($productRec->canStore == 'no') ? $originRec->measureId : $originRec->packagingId;
             } else {
-                $packs = array_intersect_key($packs, $secondMeasureDerivatives);
+                $packs = cat_Products::getPacks($rec->productId);
+                if($originDoc->isInstanceOf('planning_Tasks')){
+                    $pInfo = planning_ProductionTaskProducts::getInfo($originRec->id, $rec->productId, 'production');
+                    $defaultPack = $pInfo->packagingId;
+                } else {
+                    $defaultPack = key($packs);
+                }
             }
 
-            $defaultPack =  ($productRec->canStore == 'no') ? $originRec->measureId : $originRec->packagingId;
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', $defaultPack);
             if ($productRec->canStore == 'no') {

@@ -837,7 +837,39 @@ class cvc_interface_CourierImpl extends core_Manager
      */
     public function getDefaultEmailBody($mvc, $id)
     {
-        return null;
+        if($mvc instanceof store_ShipmentOrders) {
+            $rec = $mvc->fetchRec($id);
+            if ($foundRec = self::getLastWayBill($rec->containerId)) {
+                $urlTpl = new core_ET(cvc_Setup::get('TRACKING_URL'));
+                $urlTpl->replace($foundRec->number, 'NUM');
+                $url = $urlTpl->getContent();
+
+                $date = dt::mysql2verbal($foundRec->pickupDate, 'd.m.Y');
+                $bolTpl = new ET(tr("|*\n|Вашата пратка е подготвена за изпращане на|* [#date#] |с товарителница|* [#number#].\n|Може да проследите получаването ѝ от тук|*: [#URL#]"));
+                $bolTpl->replace($url, 'URL');
+                $bolTpl->replace($foundRec->number, 'number');
+                $bolTpl->replace($date, 'date');
+
+                return $bolTpl;
+            }
+        }
+    }
+
+
+    /**
+     * Връща коя е последната товарителница издадена към документа
+     *
+     * @param int $containerId
+     * @return stdClass|false
+     */
+    private static function getLastWayBill($containerId)
+    {
+        $spQuery = cvc_WayBills::getQuery();
+        $spQuery->where("#containerId = {$containerId}");
+        $spQuery->orderBy('id', 'DESC');
+        $spQuery->limit(1);
+
+        return $spQuery->fetch();
     }
 }
 
