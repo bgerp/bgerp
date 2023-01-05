@@ -395,10 +395,14 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Показване на допълнителна мярка при нужда
         if ($rec->type == 'production') {
-            if ($masterRec->showadditionalUom == 'no') {
-                $form->setField('weight', 'input=none');
+            if(planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId)){
+                if ($masterRec->showadditionalUom == 'yes') {
+                    $form->setField('weight', 'mandatory');
+                } else {
+                    $form->setField('weight', 'input=none');
+                }
             } else {
-                $form->setField('weight', 'mandatory');
+                $form->setField('weight', 'input=none');
             }
         } elseif ($rec->type != 'scrap') {
             $form->setField('weight', 'input=none');
