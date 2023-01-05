@@ -119,7 +119,7 @@ class cat_ListingDetails extends doc_Detail
         $this->FLD('multiplicity', 'double(Min=0)', 'caption=Кратност');
         $this->FLD('price', 'double(Min=0)', 'caption=Цена');
         
-        $this->setDbUnique('productId,packagingId');
+        $this->setDbUnique('listId,productId,packagingId');
         $this->setDbUnique('listId,reff');
     }
     

@@ -145,6 +145,7 @@ class core_SystemLock
                     <h2>Ще сме на разположение след {$after}...</h2>
                     <p>{$msg}</p>
                     </div></body>";
+            flush();
             die;
         }
     }

@@ -130,6 +130,24 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
                 'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Изходен код на имейла') . "</div><div class='webdrvFieldset'>{$sourceShow}</div></div>",
                 'order' => 9,
             );
+
+        $parsedData = '';
+        if (openai_Setup::get('TOKEN')) {
+            $cTab = Request::get('currentTab');
+            if ($cTab == 'emailData') {
+                $parsedData = openai_ExtractContactInfo::extractEmailDataFromEmlFile($source);
+            }
+            $parsedData = trim($parsedData);
+            $parsedData = str_replace("\n", '<br />', $parsedData);
+
+            // Таб за данните
+            $tabsArr['emailData'] = (object)
+            array(
+                'title' => 'Данни',
+                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Контактните данни в имейла') . "</div><div class='webdrvFieldset'>{$parsedData}</div></div>",
+                'order' => 100,
+            );
+        }
         
         return $tabsArr;
     }
