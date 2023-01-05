@@ -32,6 +32,7 @@ class email_drivers_CheckEmails extends core_BaseClass
         $mvc->FLD('closeAfter', 'time(suggestions=Веднага|10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Затваряне на нишката след->Дни, before=note, class=w100 clearSelect');
         $mvc->FLD('rejectAfter', 'time(suggestions=Веднага|10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Оттегляне на нишката след->Дни, before=note, class=w100 clearSelect');
         $mvc->FLD('deleteAfter', 'time(suggestions=Веднага|10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Изтриване на имейла след->Дни, before=note, class=w100 clearSelect');
+        $mvc->FLD('haveSuccess', 'enum(no=Не,yes=Да)', 'caption=Успешно преминаване на правилот->Избор,input=none,single=none');
     }
 
 
@@ -91,6 +92,23 @@ class email_drivers_CheckEmails extends core_BaseClass
 
 
     /**
+     * @param $Driver
+     * @param $Embedder
+     * @param $id
+     * @param $rec
+     * @param $fields
+     * @return void
+     * @throws core_exception_Break
+     */
+    public static function on_BeforeSave($Driver, &$Embedder, &$id, &$rec, $fields = null)
+    {
+        if ($fields != 'haveSuccess' && !is_array($fields) && !$fields['haveSuccess']) {
+            $rec->haveSuccess = 'no';
+        }
+    }
+
+
+    /**
      * Кронн процес за изтриване на имейли, които отговарят на условията
      *
      * @return string
@@ -119,11 +137,12 @@ class email_drivers_CheckEmails extends core_BaseClass
 
             $iQuery = email_Incomings::getQuery();
 
-            $beforeClose = $beforeReject = $beforeDelete = 0;
+            $beforeClose = $beforeReject = $beforeDelete = $beforeVal = 0;
 
             $or = false;
 
             if (isset($sRec->closeAfter)) {
+                $beforeVal = max($sRec->closeAfter, $beforeVal);
                 $beforeClose = dt::subtractSecs($sRec->closeAfter);
                 $iQuery->EXT('docThreadState', 'doc_Threads', 'externalName=state,remoteKey=firstContainerId, externalFieldName=containerId');
                 $iQuery->where(array("#docThreadState = 'opened' AND #modifiedOn <= '[#1#]'", $beforeClose));
@@ -131,14 +150,26 @@ class email_drivers_CheckEmails extends core_BaseClass
             }
 
             if (isset($sRec->rejectAfter)) {
+                $beforeVal = max($sRec->rejectAfter, $beforeVal);
                 $beforeReject = dt::subtractSecs($sRec->rejectAfter);
                 $iQuery->where(array("#state != 'rejected' AND #modifiedOn <= '[#1#]'", $beforeReject), $or);
                 $or = true;
             }
 
             if (isset($sRec->deleteAfter)) {
+                $beforeVal = max($sRec->deleteAfter, $beforeVal);
                 $beforeDelete = dt::subtractSecs($sRec->deleteAfter);
                 $iQuery->where(array("#modifiedOn <= '[#1#]'", $beforeDelete), $or);
+            }
+
+            if ($sRec->haveSuccess == 'yes') {
+                $beforeVal *= 3;
+
+                if (dt::SECONDS_IN_MONTH > $beforeVal) {
+                    $beforeVal = dt::SECONDS_IN_MONTH;
+                }
+
+                $iQuery->where(array("#modifiedOn >= '[#1#]'", dt::subtractSecs($beforeVal)));
             }
 
             $iQuery->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt,remoteKey=firstContainerId, externalFieldName=containerId');
@@ -269,6 +300,11 @@ class email_drivers_CheckEmails extends core_BaseClass
             $allMsg .= $msg;
 
             doc_Folders::updateFolderByContent($iRec->folderId);
+
+            if ($sRec->haveSuccess != 'yes') {
+                $sRec->haveSuccess = 'yes';
+                $rulesInst->save($sRec, 'haveSuccess');
+            }
         }
 
         return $allMsg;
