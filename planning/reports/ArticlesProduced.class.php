@@ -50,7 +50,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,duration,compare,compareStart,seeCrmGroup,seeGroup,group,groups,groupBy,orderBy,consumed,groupsMat,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
+    protected $changeableFields = 'from, to, duration, compare, compareStart, seeCrmGroup, seeGroup, group, groups, groupBy, orderBy, consumed, groupsMat, dealers, contragent, crmGroup, articleType, orderBy, grouping, updateDays, updateTime';
 
 
     /**
