@@ -42,7 +42,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf,sales_RatingsSourceIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf,doc_ContragentDataIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,label_SequenceIntf=sales_interface_SaleLabelImpl,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf,doc_ContragentDataIntf';
     
     
     /**
@@ -62,7 +62,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery';
+    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery,courierApi';
     
     
     /**
@@ -344,6 +344,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Допълнително->Цени,notChangeableByContractor');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId');
+        $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,caption=Доставка->Куриерско Api,after=deliveryCalcTransport,notChangeableIfHidden,placeholder=Автоматично');
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
@@ -534,6 +535,13 @@ class sales_Sales extends deals_DealMaster
         
         // Възможност за ръчна смяна на режима на начисляването на скрития транспорт
         if (isset($rec->deliveryTermId)) {
+            if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)){
+                $form->setField('courierApi', 'input');
+                if(empty($rec->id)){
+                    $form->setDefault('courierApi', $courierApi);
+                }
+            }
+
             if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                 $calcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                 $form->setField('deliveryCalcTransport', 'input');
@@ -541,8 +549,8 @@ class sales_Sales extends deals_DealMaster
             }
         }
     }
-    
-    
+
+
     /**
      * След подготовка на тулбара на единичен изглед
      */
@@ -1420,7 +1428,14 @@ class sales_Sales extends deals_DealMaster
                     $row->btnTransport = $link->getContent();
                 }
             }
-            
+
+            if(empty($rec->courierApi)){
+                if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)){
+                    $courierApiVerbal = $mvc->getFieldType('courierApi')->toVerbal($courierApi);
+                    $row->courierApi = ht::createHint("<span style='color:blue'>{$courierApiVerbal}</span>", 'От условието на доставка', 'notice', false);
+                }
+            }
+
             core_Lg::push($rec->tplLang);
         } elseif (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = '<b>' . $row->title . '</b>';
@@ -2097,5 +2112,47 @@ class sales_Sales extends deals_DealMaster
         }
 
         return $deliveryDate;
+    }
+
+
+    /**
+     * Кой клас е избран за куриерско АПИ в документа
+     *
+     * @param stdClass $rec
+     * @return null|int
+     */
+    public function getCourierApi4Document($rec)
+    {
+        // Ако има конкретно посочено куриерско API
+        $rec = $this->fetchRec($rec);
+        if(isset($rec->courierApi)) return $rec->courierApi;
+
+        // Ако не е посочено куриерско АПИ, се търси това от условието на доставка (ако има такова)
+        if(isset($rec->deliveryTermId)){
+            if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)) return $courierApi;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Преди записване на клонирания запис
+     */
+    protected function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // При репликиране от напомняне
+        if(isset($nRec->__isReplicate)){
+            if(isset($rec->bankAccountId)){
+
+                // Ако банковата сметка е затворена се сменя с дефолтната такава
+                $ownBankRec = bank_OwnAccounts::fetch("#bankAccountId = {$rec->bankAccountId}", 'state');
+                if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+                    $cData = doc_Folders::getContragentData($rec->folderId);
+                    $defaultCountryId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                    $nRec->bankAccountId = is_numeric($defaultCountryId) ? $defaultCountryId : null;
+                }
+            }
+        }
     }
 }

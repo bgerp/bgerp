@@ -756,6 +756,6 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                 'taxBase0Vat' => $taxBase0Vat, 'tax0' => $tax0
             );
 
-            return $vatAllocation;
+        return $vatAllocation;
     }
 }

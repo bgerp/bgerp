@@ -194,7 +194,10 @@ class store_Setup extends core_ProtoSetup
         // Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Синхронизиране на складовите наличности', 'store_plg_BalanceSync', 'acc_Balances', 'private');
-        
+
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Връзка на ЕН-та с куриерско API', 'store_plg_CourierApiShipment', 'store_ShipmentOrders', 'private');
+
         return $html;
     }
     

@@ -310,9 +310,11 @@ class planning_StepConditions extends core_Detail
             $dependantArr[$taskRec->id] = array();
             if(array_key_exists($taskRec->productId, $conditions)){
                 foreach ($conditions[$taskRec->productId] as $stepId){
-                    if(array_key_exists($stepId, $tasks[$taskRec->originId])){
-                        foreach ($tasks[$taskRec->originId][$stepId] as $condTaskArr){
-                            $dependantArr[$taskRec->id][$condTaskArr['id']] = $condTaskArr;
+                    if(is_array($tasks[$taskRec->originId])){
+                        if(array_key_exists($stepId, $tasks[$taskRec->originId])){
+                            foreach ($tasks[$taskRec->originId][$stepId] as $condTaskArr){
+                                $dependantArr[$taskRec->id][$condTaskArr['id']] = $condTaskArr;
+                            }
                         }
                     }
                 }
