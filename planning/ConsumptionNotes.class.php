@@ -252,7 +252,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         }
         
         // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed')")) {
             
             return true;
         }
@@ -301,8 +301,12 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                     $requiredRoles = 'no_one';
                 } else {
                     $state = $origin->fetchField('state');
-                    if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped', 'pending'))) {
+                    if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped', 'pending'))) {
                         $requiredRoles = 'no_one';
+                    } elseif($state == 'closed'){
+                        if(!planning_Tasks::isProductionAfterClosureAllowed($origin->that, $userId)){
+                            $requiredRoles = 'no_one';
+                        }
                     }
                 }
             }

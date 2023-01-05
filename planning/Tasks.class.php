@@ -301,7 +301,7 @@ class planning_Tasks extends core_Master
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено)', 'caption=Отчитане на тегло,notNull,value=yes,autohide');
         if (core_Packs::isInstalled('batch')) {
-            $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
+            $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Партида,input=none');
         }
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
@@ -341,7 +341,7 @@ class planning_Tasks extends core_Master
         $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
 
         $this->setDbIndex('productId');
-        $this->setDbIndex('assetId,orderByAssetId');
+        $this->setDbIndex('orderByAssetId');
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('saoParentId');
@@ -2234,7 +2234,7 @@ class planning_Tasks extends core_Master
         }
 
         // Бутон за добавяне на документ за влагане
-        if (planning_ConsumptionNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
+        if (planning_ReturnNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
             $pUrl = array('planning_ReturnNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => true);
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието,row=2');
         }
@@ -3251,5 +3251,48 @@ class planning_Tasks extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Разрешено ли е на потребителя да произвежда след приключването на дадената ПО
+     *
+     * @param stdClass $taskId
+     * @param int|null $userId
+     * @return bool
+     */
+    public static function isProductionAfterClosureAllowed($taskId, $userId = null)
+    {
+        $now = dt::now();
+        $masterRec = static::fetch($taskId, 'timeClosed,state,originId,productId,isFinal');
+        $horizon1 = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+        $horizon2 = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+
+        // Ако времето е след първия хоризонт
+        if($now >= $horizon1){
+
+            // И сме след втория никой не може нищо
+            if($now >= $horizon2){
+                return false;
+            } else {
+
+                // Ако сме преди втория и има за произвеждане повече от 1 артикул да може да се произвежда
+                $productionCount = planning_ProductionTaskProducts::count("#type = 'production' AND #taskId = {$taskId}");
+                $allowedCount = ($masterRec->isFinal == 'yes') ? 1 : 0;
+                if($productionCount != $allowedCount){
+                    if(!haveRole('taskPostProduction,ceo', $userId)){
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+            // Ако е преди първия хоризонт се изисква роля за пост продукция
+        } elseif(!haveRole('taskPostProduction,ceo', $userId)){
+            return false;
+        }
+
+        return true;
     }
 }

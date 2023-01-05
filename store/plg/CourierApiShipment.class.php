@@ -101,7 +101,7 @@ class store_plg_CourierApiShipment extends core_Plugin
             $apiDriverId = $mvc->getCourierApi4Document($rec);
 
             // Подаване на формата на драйвера
-            $Driver = cls::getInterface('cond_CourierApiIntf', $apiDriverId);;
+            $Driver = cls::getInterface('cond_CourierApiIntf', $apiDriverId);
             $form = cls::get('core_Form');
             $Driver->addFieldToBillOfLadingForm($mvc, $rec, $form);
             $form->input();
@@ -141,6 +141,21 @@ class store_plg_CourierApiShipment extends core_Plugin
             core_Form::preventDoubleSubmission($res, $form);
 
             return false;
+        }
+    }
+
+
+    /**
+     * Връща тялото на имейла генериран от документа
+     */
+    public function on_AfterGetDefaultEmailBody($mvc, &$tpl, $id, $isForwarding = false)
+    {
+        if($apiDriverId = $mvc->getCourierApi4Document($id)){
+            $Iface = cls::getInterface('cond_CourierApiIntf', $apiDriverId);
+            $defaultEmailTpl = $Iface->getDefaultEmailBody($mvc, $id);
+            if(!empty($defaultEmailTpl)){
+                $tpl->append($defaultEmailTpl);
+            }
         }
     }
 }

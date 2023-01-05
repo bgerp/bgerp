@@ -81,9 +81,10 @@ class log_Mysql extends core_Manager {
     public function description()
     {
         $this->FLD('crc', 'bigint', 'caption=Код');
-        $this->FLD('query', 'varchar(2048)', 'caption=Заявка');
+        $this->FLD('query', 'varchar(4000)', 'caption=Заявка');
         $this->FLD('time', 'float', 'caption=Време->Общо');
         $this->FLD('timeAvg', 'float', 'caption=Време->Средно');
+        $this->FLD('timeMax', 'float', 'caption=Време->Макс.');
         $this->FLD('cnt', 'int', 'caption=Брой');
 
         $this->setDbUnique('crc');
@@ -95,13 +96,17 @@ class log_Mysql extends core_Manager {
      */
     public static function add($query, $time)
     {
-        $query = substr(self::strip($query), 0, 2048);
-        $crc = crc32($query);
+        $crc = self::getCrc32($query);
+        $query = substr($query, 0, 4000);
         if(isset(self::$buffer[$crc])) {
             self::$buffer[$crc]->time += $time;
             self::$buffer[$crc]->cnt++;
+            if($time > self::$buffer[$crc]->timeMax) {
+                self::$buffer[$crc]->timeMax = $time;
+                self::$buffer[$crc]->query = $query;
+            }
         } else {
-            self::$buffer[$crc] = (object) array('crc' => $crc, 'query' => $query, 'time' => $time, 'cnt' => 1);
+            self::$buffer[$crc] = (object) array('crc' => $crc, 'query' => $query, 'time' => $time, 'timeMax' => $time, 'cnt' => 1);
         }
     }
 
@@ -126,6 +131,10 @@ class log_Mysql extends core_Manager {
                     $exRec->cnt += $rec->cnt;
                     $exRec->time += $rec->time;
                     $exRec->timeAvg = $exRec->time / $exRec->cnt;
+                    if($rec->timeMax > $exRec->timeMax) {
+                        $exRec->timeMax = $rec->timeMax;
+                        $exRec->query = $rec->query;
+                    }
                     self::save($exRec);
                 } else {
                     $rec->timeAvg = $rec->time / $rec->cnt;
@@ -140,17 +149,31 @@ class log_Mysql extends core_Manager {
 
 
     /**
-     * Поочиства заявката от данни
+     * Изчислява CRC32 на изчистената от данните заявка
      */
-    private static function strip($query)
+    private static function getCrc32($query)
     {
         $query = preg_replace("/\\([0-9,]+\\)/is", '(*)', $query);        
         $query = preg_replace("/(?:(?:\"(?:\\\\\"|[^\"])+\")|(?:'(?:\\\'|[^'])+'))/is", '*', $query);
         $query = preg_replace("/-?[0-9]+(\\.[0-9]+)?([e][-+]?[0-9]+)?/is", '*', $query);
 
-        $query = preg_replace("/NULL/i", '*', $query);        
+        $query = preg_replace("/NULL/i", '*', $query); 
+        
+        return crc32($query);
+    }
 
-        return $query;
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    { 
+        if(substr($rec->query, 0, 6) == 'SELECT') {
+            $url = toUrl(array('log_Mysql', 'Explain', $rec->id));
+            $row->query = "<a href='{$url}' target=_blank>SELECT</a>" . substr($rec->query, 6);
+        }
+
+        $row->query = "<div style='overflow:auto;max-height:240px;'>{$row->query}</div>";
     }
 
 
@@ -176,6 +199,69 @@ class log_Mysql extends core_Manager {
         core_Statuses::newStatus('Записите са изтрити');
         
         followRetUrl();
+    }
+
+
+    /**
+     * Explain на дадена заявка
+     */
+    public function act_Explain()
+    {
+        requireRole('debug');
+
+        $id = Request::get('id', 'int');
+
+        $rec = $this->fetch($id);
+
+        expect(substr($rec->query, 0, 6) == 'SELECT');
+
+        $query = 'EXPLAIN ' . $rec->query;
+        
+        // id 	select_type 	table 	type 	possible_keys 	key 	key_len 	ref 	rows 	Extra 
+
+        $dbRes = $this->db->query($query);
+        
+        $html = "<div style='padding:0.5em'><h1>Обясняване на избора на ключове</h1>
+
+        <h3>Заявка:</h3>
+        <code>{$query}</code>";
+
+        if ($dbRes && $this->db->numRows($dbRes)) {
+            $html .= "<table class='listTable' style='margin-top:1em''>
+                          <tr>
+                            <td>id</td>
+                            <td>select_type</td>
+                            <td>table</td>
+                            <td>type</td>
+                            <td>possible_keys</td>
+                            <td>key</td>
+                            <td>key_len</td>
+                            <td>ref</td>
+                            <td>rows</td>
+                            <td>Extra</td>
+                          </tr>";
+            while ($rec = $this->db->fetchObject($dbRes)) {
+                $html .= "<tr>
+                            <td>{$rec->id}</td>
+                            <td>{$rec->select_type}</td>
+                            <td>{$rec->table}</td>
+                            <td>{$rec->type}</td>
+                            <td>{$rec->possible_keys}</td>
+                            <td>{$rec->key}</td>
+                            <td>{$rec->key_len}</td>
+                            <td>{$rec->ref}</td>
+                            <td>{$rec->rows}</td>
+                            <td>{$rec->Extra}</td>
+                          </tr>";
+            }
+            $html .= '</table>';
+        } else {
+            $html .= '<div>Няма резултати</div>';
+        }
+
+        $html .= '</div>';
+
+        return $html;
     }
     
     

@@ -249,7 +249,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $form->setDefault('storeId', $storeId);
         $form->setOptions('productId', $productOptions);
         $form->setDefault('productId', key($productOptions));
-        $kgDerivitives = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
         $originPackId = $originRec->packagingId;
 
         if(isset($rec->productId)){
@@ -273,8 +272,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $packs = array_intersect_key($packs, $secondMeasureDerivatives);
             }
 
+            $defaultPack =  ($productRec->canStore == 'no') ? $originRec->measureId : $originRec->packagingId;
             $form->setOptions('packagingId', $packs);
-            $form->setDefault('packagingId', $originRec->packagingId);
+            $form->setDefault('packagingId', $defaultPack);
             if ($productRec->canStore == 'no') {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
                 $form->setField('packQuantity', "unit={$measureShort}");
@@ -646,7 +646,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                         // Което не е чернова или оттеглено
                         $state = $originDoc->fetchField('state');
-                        if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped', 'pending'))) {
+                        if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped', 'pending'))) {
                             $requiredRoles = 'no_one';
                         } else {
                             if($originDoc->isInstanceOf('planning_Jobs')){
@@ -654,7 +654,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                                 // Ако заданието е за производим артикул само тогава да може да се пуска протокол от него
                                 $productId = $originDoc->fetchField('productId');
                                 $productRec = cat_Products::fetch($productId, 'canManifacture,generic');
-                                if ($productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
+                                if ($state == 'closed' || $productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
                                     $requiredRoles = 'no_one';
                                 }
                             } elseif($originDoc->isInstanceOf('planning_Tasks')){
@@ -664,6 +664,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                                 if($originRec->isFinal == 'yes'){
                                     $producedCount4FinalTask = planning_ProductionTaskProducts::count("#taskId = {$originDoc->that} AND #type = 'production'");
                                     if($producedCount4FinalTask == 1){
+                                        $requiredRoles = 'no_one';
+                                    }
+                                }
+
+                                if($state == 'closed' && $requiredRoles != 'no_one'){
+                                    if(!planning_Tasks::isProductionAfterClosureAllowed($originDoc->that, $userId)){
                                         $requiredRoles = 'no_one';
                                     }
                                 }
