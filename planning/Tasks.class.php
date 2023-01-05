@@ -341,7 +341,7 @@ class planning_Tasks extends core_Master
         $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
 
         $this->setDbIndex('productId');
-        $this->setDbIndex('orderByAssetId');
+        $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('saoParentId');
