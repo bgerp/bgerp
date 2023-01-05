@@ -60,8 +60,8 @@ class sales_interface_SaleLabelImpl
         $placeholders['PRODUCT_NAME'] = (object) array('type' => 'text', 'hidden' => TRUE);
         $placeholders['CODE'] = (object) array('type' => 'text', 'hidden' => TRUE);
         $placeholders['VALIOR'] = (object) array('type' => 'text');
-        $placeholders['QUANTITY'] = (object) array('type' => 'picture', 'hidden' => TRUE);
-        $placeholders['QUANTITY_IN_PACK'] = (object) array('type' => 'picture', 'hidden' => TRUE);
+        $placeholders['QUANTITY'] = (object) array('type' => 'text', 'hidden' => TRUE);
+        $placeholders['QUANTITY_IN_PACK'] = (object) array('type' => 'text', 'hidden' => TRUE);
         $placeholders['REFF'] = (object) array('type' => 'text');
         $placeholders['SALE_ID'] = (object) array('type' => 'text');
         $placeholders['MEASURE_ID'] = (object) array('type' => 'text', 'hidden' => TRUE);
