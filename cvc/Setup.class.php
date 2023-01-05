@@ -20,6 +20,12 @@ defIfNot('CVC_SENDER_ID', '');
 
 
 /**
+ * Урл за онлайн проследяване на пратката
+ */
+defIfNot('CVC_TRACKING_URL', "https://my.e-cvc.bg/track?wb=[#NUM#]");
+
+
+/**
  *
  *
  * @category  bgerp
@@ -52,6 +58,7 @@ class cvc_Setup extends core_ProtoSetup
     public $configDescription = array(
         'CVC_TOKEN' => array('password(show)', 'caption=Ключ,class=w100'),
         'CVC_URL' => array('url', 'caption=УРЛ'),
+        'CVC_TRACKING_URL' => array('varchar', 'caption=Проследяване'),
         'CVC_SENDER_ID' => array('varchar', 'caption=Изпращач'),
     );
 
