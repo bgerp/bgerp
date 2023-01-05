@@ -401,8 +401,6 @@ class planning_ProductionTaskDetails extends doc_Detail
                 } else {
                     $form->setField('weight', 'input=none');
                 }
-            } else {
-                $form->setField('weight', 'input=none');
             }
         } elseif ($rec->type != 'scrap') {
             $form->setField('weight', 'input=none');
