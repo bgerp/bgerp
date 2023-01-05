@@ -132,4 +132,17 @@ class cond_CourierApiIntf extends embed_DriverIntf
     {
         return $this->class->canRequestBillOfLading($mvc, $id, $userId);
     }
+
+
+    /**
+     * Може ли потребителя да създава товарителница от документа
+     *
+     * @param core_Mvc $mvc
+     * @param int|stdClass $id
+     * @return core_ET|null
+     */
+    public function getDefaultEmailBody($mvc, $id)
+    {
+        return $this->class->getDefaultEmailBody($mvc, $id);
+    }
 }
