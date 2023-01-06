@@ -89,6 +89,7 @@ class tags_Logs extends core_Manager
         $this->setDbUnique('containerId, tagId, userId');
 
         $this->setDbIndex('docId, docClassId');
+        $this->setDbIndex('containerId');
     }
 
 
@@ -426,5 +427,49 @@ class tags_Logs extends core_Manager
         }
 
         $data->query->orderBy('createdOn', 'DESC');
+    }
+
+
+    /**
+     * Помощна функция за вземана на таговете към документи
+     *
+     * @param array $arr
+     * @param null|integer $userId
+     * @param bool $order
+     *
+     * @return array
+     */
+    public static function getTagsFromContainers($arr, $userId = null, $order = true)
+    {
+        $arr = arr::make($arr, true);
+        $userId = isset($userId) ? $userId : core_Users::getCurrent();
+        $query = self::getQuery();
+        if(countR($arr)){
+            $query->in("containerId", $arr);
+            self::restrictQueryByType($query, $userId);
+        } else {
+            $query->where("1=2");
+        }
+
+        if ($order) {
+            $query->orderBy('type', 'DESC');
+            $query->EXT('name', 'tags_Tags', 'externalKey=tagId');
+            $query->orderBy('name', 'ASC');
+        }
+
+        $resArr = $tagCache = array();
+        while ($rec = $query->fetch()) {
+
+            // За всеки от изброените документи се групират таговете
+            if(!array_key_exists($rec->tagId, $tagCache)){
+                $tagCache[$rec->tagId] = tags_Tags::getTagNameArr($rec->tagId);
+            }
+            $resArr[$rec->containerId][$rec->id]['name'] = $tagCache[$rec->tagId]['name'];
+            $resArr[$rec->containerId][$rec->id]['span'] = $tagCache[$rec->tagId]['span'];
+            $resArr[$rec->containerId][$rec->id]['spanNoName'] = $tagCache[$rec->tagId]['spanNoName'];
+            $resArr[$rec->containerId][$rec->id]['color'] = $tagCache[$rec->tagId]['color'];
+        }
+
+        return $resArr;
     }
 }
