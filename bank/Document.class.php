@@ -671,9 +671,8 @@ abstract class bank_Document extends deals_PaymentDocument
         if ($requiredRoles == 'no_one') return;
 
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'ownAccount')) {
-            if($rec->state != 'pending'){
-                $requiredRoles = 'no_one';
-            }
+            if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
+            $requiredRoles = 'no_one';
         }
     }
 
