@@ -70,7 +70,7 @@ defIfNot('PURCHASE_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
 /**
  * Показване на ваш реф в нишката на покупката
  */
-defIfNot('PURCHASE_SHOW_REFF_IN_SALE_THREAD', 'no');
+defIfNot('PURCHASE_SHOW_REFF_IN_PURCHASE_THREAD', 'no');
 
 
 /**
@@ -180,7 +180,7 @@ class purchase_Setup extends core_ProtoSetup
             'mandatory,caption=Действие на бързия бутон "Покупка" и "Оферта от доставчик" в папките->Оферта от доставчик,customizeBy=ceo|sales|purchase',
         ),
         'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за липсваща фактура за направено плащане->Време'),
-        'PURCHASE_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
+        'PURCHASE_SHOW_REFF_IN_PURCHASE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
         'PURCHASE_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен закупчик в покупката->Избор'),
         'PURCHASE_RECALC_PRICE_IN_CURRENCY_INTERVAL' => array('int(min=0)', 'caption=Рекалкулиране на валутните покупки за осредняване на курса и изравняване на статистиката->На всеки,placeholder=Изключено,unit=минути (0 за стоп)'),
         );
