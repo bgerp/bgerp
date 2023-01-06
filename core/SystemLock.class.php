@@ -104,9 +104,6 @@ class core_SystemLock
         if (self::isBlocked()) {
             $setupLockFile = self::getPath();
             list($startTime, $lockTime, $msg) = explode("\n", @file_get_contents($setupLockFile), 3);
-            header('HTTP/1.1 503 Service Temporarily Unavailable');
-            header('Status: 503 Service Temporarily Unavailable');
-            header('Retry-After: ' . ($lockTime + 100));
             
             if (strtoupper($_SERVER['REQUEST_METHOD']) == 'GET') {
                 $refresh = '<meta http-equiv="refresh" content="1">';
@@ -146,6 +143,10 @@ class core_SystemLock
                     <p>{$msg}</p>
                     </div></body>";
             flush();
+            header('HTTP/1.1 503 Service Temporarily Unavailable');
+            header('Status: 503 Service Temporarily Unavailable');
+            header('Retry-After: ' . ($lockTime + 100));
+            
             die;
         }
     }
