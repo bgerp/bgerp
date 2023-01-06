@@ -551,6 +551,7 @@ abstract class cash_Document extends deals_PaymentDocument
             return;
         }
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')) {
+            if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
             $requiredRoles = 'no_one';
         }
     }

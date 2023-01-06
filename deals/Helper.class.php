@@ -2518,7 +2518,7 @@ abstract class deals_Helper
     {
         $firstDocument = doc_Threads::getFirstDocument($threadId);
         if($firstDocument->isInstanceOf('deals_DealMaster')){
-            $show = $firstDocument->isInstanceOf('sales_Sales') ? sales_Setup::get('SHOW_REFF_IN_SALE_THREAD') : purchase_Setup::get('SHOW_REFF_IN_SALE_THREAD');
+            $show = $firstDocument->isInstanceOf('sales_Sales') ? sales_Setup::get('SHOW_REFF_IN_SALE_THREAD') : purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
             if($show == 'yes') {
                 $reff = $firstDocument->fetchField('reff');
                 if(!empty($reff)) return $reff;

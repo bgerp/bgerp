@@ -772,15 +772,20 @@ class sales_Sales extends deals_DealMaster
         
         $agreed = array();
         $agreed2 = array();
+
+        $showReffInThread = sales_Setup::get('SHOW_REFF_IN_SALE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
 
+            // Записване на вашия реф в забележките само ако е избрано в настройките
             if(Mode::is('isClosedWithDeal')){
-                if(!empty($rec->reff)){
-                    $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                if($showReffInThread == 'yes'){
+                    if(!empty($rec->reff)){
+                        $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                    }
                 }
             }
 
