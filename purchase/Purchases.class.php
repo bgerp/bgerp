@@ -575,6 +575,8 @@ class purchase_Purchases extends deals_DealMaster
         $detailClassId = purchase_PurchasesDetails::getClassId();
         $agreed = array();
         $agreed2 = array();
+
+        $showReffInThread = purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
@@ -582,8 +584,10 @@ class purchase_Purchases extends deals_DealMaster
             }
 
             if(Mode::is('isClosedWithDeal')){
-                if(!empty($rec->reff)){
-                    $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                if($showReffInThread == 'yes'){
+                    if(!empty($rec->reff)){
+                        $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                    }
                 }
             }
 
