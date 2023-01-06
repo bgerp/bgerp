@@ -149,7 +149,9 @@ abstract class deals_ManifactureMaster extends core_Master
         }
         
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
-            $requiredRoles = 'no_one';
+            if($rec->state != 'pending'){
+                $requiredRoles = 'no_one';
+            }
         }
     }
     

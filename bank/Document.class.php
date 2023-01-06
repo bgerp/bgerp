@@ -668,12 +668,12 @@ abstract class bank_Document extends deals_PaymentDocument
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles == 'no_one') {
-            
-            return;
-        }
+        if ($requiredRoles == 'no_one') return;
+
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'ownAccount')) {
-            $requiredRoles = 'no_one';
+            if($rec->state != 'pending'){
+                $requiredRoles = 'no_one';
+            }
         }
     }
 

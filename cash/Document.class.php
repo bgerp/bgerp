@@ -551,7 +551,9 @@ abstract class cash_Document extends deals_PaymentDocument
             return;
         }
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')) {
-            $requiredRoles = 'no_one';
+            if($rec->state != 'pending'){
+                $requiredRoles = 'no_one';
+            }
         }
     }
 
