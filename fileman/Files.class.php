@@ -151,6 +151,7 @@ class fileman_Files extends core_Master
         $this->setDbIndex('dataId,bucketId', 'indexDataId');
         $this->setDbIndex('createdBy');
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('dangerRate');
     }
     
     

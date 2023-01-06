@@ -50,7 +50,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,duration,compare,compareStart,seeCrmGroup,seeGroup,group,groups,groupBy,orderBy,consumed,groupsMat,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
+    protected $changeableFields = 'from, to, duration, compare, compareStart, seeCrmGroup, seeGroup, group, groups, groupBy, orderBy, consumed, groupsMat, dealers, contragent, crmGroup, articleType, orderBy, grouping, updateDays, updateTime';
 
 
     /**
@@ -78,7 +78,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
 
-        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
+        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Показване,removeAndRefreshForm,after=orderBy,silent');
         $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent,single=none');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
