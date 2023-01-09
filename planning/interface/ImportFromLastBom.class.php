@@ -19,7 +19,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     /**
      * Заглавие
      */
-    public $title = 'Импорт на артикули от последната работна рецепта';
+    public $title = 'Импорт на артикули от последната активна рецепта';
     
     
     /**
@@ -61,11 +61,9 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         } else {
             $details = array();
             $dQuery = planning_ProductionTaskProducts::getQuery();
-            $dQuery->where("#taskId = {$firstDoc->that} AND #type = 'input'");
-            if(empty($masterRec->storeId)){
-                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-                $dQuery->where("#canStore = 'no'");
-            }
+            $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+            $dQuery->where("#taskId = {$firstDoc->that} AND #type = 'input' AND #canStore = 'yes'");
+
             $plannedQuantity = $firstDoc->fetchField('plannedQuantity');
             while($dRec = $dQuery->fetch()){
                 $ratio = $plannedQuantity / $dRec->plannedQuantity;
@@ -193,11 +191,8 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             } elseif($firstDoc->isInstanceOf('planning_Tasks')){
                 // Ако е към ПО само ако има посочени в таба планиране артикули за влагане
                 $dQuery = planning_ProductionTaskProducts::getQuery();
-                $dQuery->where("#type = 'input' && #taskId = {$firstDoc->that} ");
-                if(empty($masterRec->storeId)){
-                    $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-                    $dQuery->where("#canStore = 'no'");
-                }
+                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                $dQuery->where("#type = 'input' && #taskId = {$firstDoc->that} AND #canStore = 'yes'");
                 $countPlanned = $dQuery->count();
 
                 if(!$countPlanned) return false;
