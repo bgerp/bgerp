@@ -186,7 +186,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId,removeAndRefreshForm=packagingId|quantityInPack|quantity|packQuantity|additionalMeasureId|additionalMeasureQuantity,silent');
         $this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,after=productId');
 
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'mandatory,input=hidden,before=packQuantity,silent,removeAndRefreshForm=additionalMeasureId|additionalMeasureQuantity|packQuantity|quantityInPack');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'mandatory,input=hidden,before=packQuantity,silent,removeAndRefreshForm=additionalMeasureId|additionalMeasureQuantity|packQuantity|quantityInPack|quantity');
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
 
         $this->FLD('expenses', 'percent(Min=0)', 'caption=Реж. разходи,after=packQuantity');
@@ -256,10 +256,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->setField('inputStoreId', 'input=none');
             }
 
+            $secondMeasureDerivatives = array();
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
             if($rec->productId == $jobRec->productId){
                 $packs = cat_Products::getPacks($rec->productId, false, $jobRec->secondMeasureId);
-                $secondMeasureDerivatives = array();
                 if($jobRec->secondMeasureId){
                     $secondMeasureDerivatives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
                 }
@@ -274,9 +274,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $defaultPack =  ($productRec->canStore == 'no') ? $originRec->measureId : $originRec->packagingId;
             } else {
                 $packs = cat_Products::getPacks($rec->productId);
+
                 if($originDoc->isInstanceOf('planning_Tasks')){
                     $pInfo = planning_ProductionTaskProducts::getInfo($originRec->id, $rec->productId, 'production');
-                    $defaultPack = $pInfo->packagingId;
+                    $defaultPack = ($originRec->productId == $rec->productId) ? $pInfo->measureId : $pInfo->packagingId;
                 } else {
                     $defaultPack = key($packs);
                 }
@@ -398,17 +399,20 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
                 $originRec = $originDoc->fetch();
-                $originPackId = ($jobRec->productId == $rec->productId) ? $originRec->measureId : $info->measureId;
+                $originPackId = ($rec->productId == $originRec->productId) ? $info->measureId : $info->packagingId;
                 $form->setDefault('packagingId', $originPackId);
                 $toProduce = round($info->totalQuantity - $info->producedQuantity - $info->scrappedQuantity, 4);
-                if ($toProduce > 0) {
+                $originPackRec = cat_products_Packagings::getPack($rec->productId, $originPackId);
+                $originPackQuantity = is_object($originPackRec) ? $originPackRec->quantity : 1;
+                $toProduceInBaseQuantity = $toProduce * $originPackQuantity;
+
+                if ($toProduceInBaseQuantity > 0) {
+                    $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+                    $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+                    $toProduce = $toProduceInBaseQuantity / $quantityInPack;
                     $form->setDefault('packQuantity', $toProduce);
                 }
             }
-
-
-
-
         }
 
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));

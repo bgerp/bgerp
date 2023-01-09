@@ -1361,8 +1361,16 @@ class sales_Sales extends deals_DealMaster
         
         if (isset($rec->bankAccountId)) {
             if (!Mode::isReadOnly()) {
+
+                // Линк към нашата банкова сметка
                 $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
-                $row->bankAccountId = bank_OwnAccounts::getHyperlink($ownBankRec, true);
+                $bankAccountRec = bank_OwnAccounts::getOwnAccountInfo($ownBankRec->id);
+                $row->bankAccountId = $bankAccountRec->iban;
+                $singleBankUrl = bank_OwnAccounts::getSingleUrlArray($ownBankRec);
+                if(countR($singleBankUrl)){
+                    $attr = !empty($ownBankRec->title) ? "title={$ownBankRec->title}" : null;
+                    $row->bankAccountId = ht::createLink($row->bankAccountId, $singleBankUrl, false, $attr);
+                }
             }
             
             if ($bic = bank_Accounts::getVerbal($rec->bankAccountId, 'bic')) {

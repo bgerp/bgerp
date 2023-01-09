@@ -177,7 +177,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
         // За всеки артикул от договора, копира се 1:1
         if (is_array($dealInfo->dealProducts)) {
-            
             foreach ($dealInfo->dealProducts as $det) {
                 $det->{$this->masterKey} = $id;
                 $det->amount = $det->price * $det->quantity;
@@ -185,6 +184,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if(is_array($det->batches) && countR($det->batches)){
                     $det->_batches = array_keys($det->batches);
                 }
+
                 unset($det->batches);
                 $det->_importBatches = $importBatches;
                 $this->save($det);
