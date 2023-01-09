@@ -76,6 +76,7 @@ class vtotal_Checks extends core_Master
         $this->FLD('rateByVT', 'varchar(8)', 'caption=Опасност');
 
         $this->setDbIndex('timesScanned');
+        $this->setDbIndex('createdOn');
         $this->setDbUnique('filemanDataId');
     }
     
@@ -418,7 +419,15 @@ class vtotal_Checks extends core_Master
         if ($maxScanLimit > 0) {
             $query->where(array("#timesScanned < '[#1#]'", $maxScanLimit));
         }
-        
+
+        $maxDate = vtotal_Setup::get('BETWEEN_TIME_SCANS');
+        $maxDate *= $maxScanLimit;
+        $maxDate = max($maxDate, 6 * core_DateTime::SECONDS_IN_MONTH);
+
+        if ($maxDate) {
+            $query->where(array("#createdOn >= '[#1#]'", core_DateTime::subtractSecs($maxDate)));
+        }
+
         $isAvastInstalled = $this->isAvastInstalled();
         
         while ($rec = $query->fetch()) {
