@@ -828,7 +828,7 @@ class planning_Tasks extends core_Master
         $me = cls::get(get_called_class());
         $title = "Opr{$rec->id} - {$me->getStepTitle($rec->productId)}";
         if (!empty($rec->subTitle)) {
-            $title .= ", <i>{$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
+            $title .= ", {$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
         }
 
         return $title;
@@ -2516,6 +2516,17 @@ class planning_Tasks extends core_Master
         // Кои ще са планиращите параметри
         $plannedParams = array();
 
+        // Еднократно извличане на таговете на листваните операции и заданията към тях
+        $containerIds = arr::extractValuesFromArray($data->recs, 'containerId');
+        $containerIds += arr::extractValuesFromArray($data->recs, 'originId');
+        $tagsArr = tags_Logs::getTagsFromContainers($containerIds);
+        $inlineTags = array();
+        foreach ($tagsArr as $cId => $tagArr){
+            $tagsStr = '';
+            array_walk($tagArr, function($a) use (&$tagsStr){$tagsStr  .= $a['span'];});
+            $inlineTags[$cId] = "<span class='documentTags'>{$tagsStr}</span>";
+        }
+
         // Ако има избрано оборудване добавят се параметрите от него и от групата му
         if (isset($data->listFilter->rec->assetId)) {
             $assetRec = planning_AssetResources::fetch($data->listFilter->rec->assetId, 'planningParams,groupId');
@@ -2618,6 +2629,7 @@ class planning_Tasks extends core_Master
 
             // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
+
             if ($enableReorder) {
                 if ($mvc->haveRightFor('reordertask', $rec)) {
                     $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
@@ -2658,6 +2670,12 @@ class planning_Tasks extends core_Master
             $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
 
             core_Debug::stopTimer('RENDER_ROW');
+            if(array_key_exists($rec->containerId, $inlineTags)){
+                $row->title->append($inlineTags[$rec->containerId]);
+            }
+            if(array_key_exists($rec->originId, $inlineTags)){
+                $row->originId .= $inlineTags[$rec->containerId];
+            }
         }
 
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);

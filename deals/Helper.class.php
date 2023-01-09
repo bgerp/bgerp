@@ -1646,8 +1646,9 @@ abstract class deals_Helper
 
         // Ако сделката е приключена, проверява се дали не е приключена с друга сделка
         if ($firstDoc->fetchField('state') == 'closed') {
+            $firstDocRec = $firstDoc->fetch('folderId,id');
             $dQuery = $firstDoc->getInstance()->getQuery();
-            $dQuery->where("LOCATE('|{$firstDoc->that}|', #closedDocuments)");
+            $dQuery->where("LOCATE('|{$firstDocRec->id}|', #closedDocuments) AND #folderId = {$firstDocRec->folderId}");
 
             // Ако е подменя се треда с този на обединяващата сделка, защото тя ще се използва за основа
             if ($combinedThread = $dQuery->fetch()->threadId) {
@@ -2518,7 +2519,7 @@ abstract class deals_Helper
     {
         $firstDocument = doc_Threads::getFirstDocument($threadId);
         if($firstDocument->isInstanceOf('deals_DealMaster')){
-            $show = $firstDocument->isInstanceOf('sales_Sales') ? sales_Setup::get('SHOW_REFF_IN_SALE_THREAD') : purchase_Setup::get('SHOW_REFF_IN_SALE_THREAD');
+            $show = $firstDocument->isInstanceOf('sales_Sales') ? sales_Setup::get('SHOW_REFF_IN_SALE_THREAD') : purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
             if($show == 'yes') {
                 $reff = $firstDocument->fetchField('reff');
                 if(!empty($reff)) return $reff;

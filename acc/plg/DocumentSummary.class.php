@@ -409,6 +409,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
             }
 
+
             if ($dateRange[0] || $dateRange[1]) {
                 $nullCond = '';
                 $where = '';
@@ -428,6 +429,12 @@ class acc_plg_DocumentSummary extends core_Plugin
                             $where .= "(#{$fromField} >= '[#1#]')";
                             if($autoCalcField){
                                 $where .= " OR (#{$fromField} IS NULL AND #{$autoCalcField} >= '[#1#]')";
+                                $where = "({$where})";
+                            }
+
+                            $oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate();
+                            if($dateRange[0] == $oldestAvailableDate && empty($dateRange[1])){
+                                $where .= " OR (#{$fromField} IS NULL)";
                                 $where = "({$where})";
                             }
                         }
