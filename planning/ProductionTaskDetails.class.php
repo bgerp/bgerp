@@ -1007,8 +1007,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listTableMvc->setField('weight', 'smartCenter');
 
             // Ако няма настройка за приспадане на тарата да не се показва колонката за нето
-            $centerRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
-            if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)){
+            $masterCenterRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
+            if(empty($masterCenterRec->useTareFromParamId) && empty($masterCenterRec->useTareFromPackagings)){
                 unset($data->listFields['netWeight']);
             }
         }
@@ -1036,6 +1036,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             $masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : planning_Tasks::fetch($rec->taskId);
+            $centerRec = is_object($masterCenterRec) ? $masterCenterRec : planning_Centers::fetch("#folderId = {$masterRec->folderId}");
+
 
             $eFields = planning_Tasks::getExpectedDeviations($masterRec);
             $deviationNotice = $eFields['notice'];
@@ -1071,6 +1073,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     // Ако няма и има избран параметър за ед. тегло
                     $convertAgain = true;
                     if(empty($expectedSingleNetWeight)){
+
                         if(isset($centerRec->paramExpectedNetWeight)){
                             $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $rec->productId);
 
@@ -1314,6 +1317,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(countR($employees)){
                 $data->listFilter->setSuggestions('employees', array('' => '') + $employees);
                 $data->listFilter->showFields .= ",employees";
+                $data->listFilter->setField('employees', 'input');
             }
         }
 
