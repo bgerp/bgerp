@@ -151,6 +151,7 @@ class cvc_Setup extends core_ProtoSetup
         }
     }
 
+
     /**
      * Инсталиране на пакета
      */

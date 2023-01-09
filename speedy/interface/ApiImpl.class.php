@@ -63,7 +63,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
     {
         $userName = speedy_Setup::get('DEFAULT_ACCOUNT_USERNAME');
         $cu = core_Users::getCurrent('id', false);
-        $key = "speedy_{$folderId}_{$cu}_{$userName}";
+        $key = "speedy_{$cu}_{$userName}";
 
         return $key;
     }
@@ -716,7 +716,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
                 // Кеш на избраните полета от формата
                 $cacheArr = array('senderClientId' => $form->rec->senderClientId, 'service' => $form->rec->service, 'pdfPrinterType' => $form->rec->pdfPrinterType);
-                core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
+                core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, core_Permanent::FOREVER_VALUE);
 
                 return $fh;
             }
