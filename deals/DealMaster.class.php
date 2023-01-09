@@ -277,9 +277,12 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $mvc->FLD('paymentState', 'enum(pending=Има||Yes,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Плащане->чакащо, input=none,notNull,value=paid');
         $mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
-        
+
+        $mvc->setDbIndex('state');
+        $mvc->setDbIndex('dealerId');
         $mvc->setDbIndex('valior');
         $mvc->setDbIndex('modifiedOn');
+        $mvc->setDbIndex('contragentId,contragentClassId');
     }
     
     

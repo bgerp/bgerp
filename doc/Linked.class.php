@@ -119,7 +119,8 @@ class doc_Linked extends core_Manager
         $this->setDbUnique('outType, outVal, inType, inVal');
         $this->setDbIndex('outType, outVal');
         $this->setDbIndex('inType, inVal');
-    }
+        $this->setDbIndex('createdOn');
+     }
     
     
     /**
