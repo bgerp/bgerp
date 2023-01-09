@@ -277,6 +277,7 @@ class planning_Jobs extends core_Master
         $this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
         $this->FLD('productViewCacheDate', 'datetime(format=smartTime)', 'caption=Към коя дата е кеширан изгледа на артикула,input=none');
 
+        $this->setDbIndex('state');
         $this->setDbIndex('productId');
         $this->setDbIndex('oldJobId');
         $this->setDbIndex('saleId');

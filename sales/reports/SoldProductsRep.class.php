@@ -1360,7 +1360,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $fld->FLD('engName', 'varchar', 'caption=Артикул[EN]');
             }
 
-            $fld->FLD('measure', 'key( да дам мнmvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('measure', 'key( mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             if ($rec->seeCategory == 'yes') {
                 $fld->FLD('category', 'varchar', 'caption=Категория');
             }
