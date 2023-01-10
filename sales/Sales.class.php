@@ -535,8 +535,8 @@ class sales_Sales extends deals_DealMaster
         
         // Възможност за ръчна смяна на режима на начисляването на скрития транспорт
         if (isset($rec->deliveryTermId)) {
+            $form->setField('courierApi', 'input');
             if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)){
-                $form->setField('courierApi', 'input');
                 if(empty($rec->id)){
                     $form->setDefault('courierApi', $courierApi);
                 }

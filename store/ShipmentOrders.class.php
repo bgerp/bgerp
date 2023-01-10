@@ -273,9 +273,9 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули, input,after=responsible');
             }
 
+            $form->setField('courierApi', 'input');
             $courierApi = $origin->getCourierApi4Document();
             if(isset($courierApi)){
-                $form->setField('courierApi', 'input');
                 if (!isset($rec->id)) {
                     $form->setDefault('courierApi', $courierApi);
                 }
