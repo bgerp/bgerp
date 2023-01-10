@@ -92,6 +92,7 @@ class fileman_Data extends core_Manager
         
         $this->FLD('processed', 'enum(no,yes)', 'caption=Извличане на ключови думи,column=none,single=none,input=none');
         
+        $this->setDbIndex('processed');
         $this->setDbUnique('fileLen,md5', 'DNA');
     }
     
