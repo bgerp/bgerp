@@ -156,7 +156,7 @@ class cvc_interface_CourierImpl extends core_Manager
         $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина|Дълбочина|Височина|Тегло,validate=speedy_interface_ApiImpl::validatePallets)");
         $form->FLD('totalWeight', 'double(min=0)');
 
-        $form->FLD('description', 'varchar','caption=Описание на пратката->Описание / Съдържание,mandatory');
+        $form->FLD('description', 'varchar','caption=Описание на пратката->Описание / Съдържание,mandatory,recently');
         $form->FLD('reff1', 'varchar','caption=Описание на пратката->Клиентски референции,class=w50%,placeholder=Референция 1');
         $form->FLD('reff2', 'varchar','caption=Описание на пратката->-,inlineTo=reff1,class=w50%,placeholder=Референция 2');
 
