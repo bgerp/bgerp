@@ -528,10 +528,6 @@ class cvc_interface_CourierImpl extends core_Manager
         $res = null;
         try{
             $preparedBolParams = static::prepareBolData($form->rec, 'calculate');
-
-            //@TODO да се махне това описание преди използване
-            $preparedBolParams['description'] = 'Тестване на АПИ - да не се изпълнява';
-
             $res = cvc_Adapter::calculateWb($preparedBolParams);
         } catch(core_exception_Expect $e){
             $haveError = true;
@@ -593,7 +589,7 @@ class cvc_interface_CourierImpl extends core_Manager
             $senderObj->notes = $rec->senderNotes;
         }
         if($rec->senderDeliveryType == 'hub'){
-            $senderObj->hub_id = $rec->senderHubId;
+            $senderObj->hub_id = cvc_Hubs::fetchField($rec->senderHubId, 'num');
         } else {
             foreach (array('zip' => 'senderPcode', 'num' => 'senderAddressNum', 'entr' => 'senderEntrance', 'ap' => 'senderApp', 'floor' => 'senderFloor') as $theirFld => $oursFld){
                 if(!empty($rec->{$oursFld})){
@@ -624,7 +620,7 @@ class cvc_interface_CourierImpl extends core_Manager
         );
 
         if($rec->recipientDeliveryType == 'hub'){
-            $recipientObj->hub_id = $rec->recipientHubId;
+            $recipientObj->hub_id = cvc_Hubs::fetchField($rec->recipientHubId, 'num');
         } elseif($rec->recipientDeliveryType == 'office'){
             $recipientObj->office_id = cvc_Offices::fetchField($rec->recipientOfficeId, 'num');
         } else {
@@ -712,9 +708,9 @@ class cvc_interface_CourierImpl extends core_Manager
         if(!$form->gotErrors()){
 
             // Ако е разпечатана записва се в помощния модел
-            $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'], 'deliveryDate' => $res['deliveryDate'], 'state' => 'pending');
+            $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'], 'deliveryDate' => $res['deliveryDate'], 'state' => 'pending', 'data' => $preparedBolParams);
             if(empty($res['pdf'])){
-                $form->setError('parcelType', "Проблем при сваляне на товарителницата");
+                $form->setError('parcelType', "Проблем при сваляне на товарителницата|*: <b>{$res['wb']}</b>");
                 return;
             }
 
