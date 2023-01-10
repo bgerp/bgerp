@@ -60,7 +60,7 @@ class cvc_WayBills extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "id,containerId,number,pickupDate,deliveryDate,file,createdOn,createdBy,state";
+    public $listFields = "id,containerId,number,pickupDate,deliveryDate,file,data,createdOn,createdBy,state";
 
 
     /**
@@ -74,6 +74,7 @@ class cvc_WayBills extends core_Manager
         $this->FLD('deliveryDate', 'datetime(format=smartTime)', 'caption=Доставка');
         $this->FLD('file', 'fileman_FileType(bucket=engView)', 'caption=Файл');
         $this->FLD('state', 'enum(pending=Чакаща,rejected=Оттеглена)', 'caption=Състояние,notNull,value=rejected');
+        $this->FLD('data', 'blob(serialize,compress)', 'caption=Данни');
 
         $this->setDbIndex('containerId');
     }
