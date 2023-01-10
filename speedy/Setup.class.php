@@ -115,7 +115,7 @@ class speedy_Setup extends core_ProtoSetup
         'SPEEDY_DEFAULT_ACCOUNT_PASSWORD' => array('password', 'caption=Акаунт в сайта на Speedy->Парола,customizeBy=speedy|ceo'),
         'SPEEDY_OFFICE_LOCATOR_URL' => array('varchar', 'caption=URL->Локатор на офис'),
         'SPEEDY_TRACKING_URL' => array('varchar', 'caption=URL->Проследяване на пратка'),
-        'SPEEDY_API_BASE_URL' => array('url', 'caption=URL->Библиотека на спиди'),
+        'SPEEDY_API_BASE_URL' => array('url', 'caption=URL->REST API'),
     );
     
     
