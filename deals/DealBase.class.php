@@ -843,6 +843,12 @@ abstract class deals_DealBase extends core_Master
                 redirect($url, false, 'Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
             }
 
+            // Нотифициране на обекта за да се преизчисли статистиката за всеки случай
+            $itemRec = acc_Items::fetchItem($this, $rec);
+            if($itemRec){
+                acc_Items::notifyObject($itemRec);
+            }
+
             followRetUrl(null, 'Документите са преизчислени успешно|*!');
         }
         
@@ -1000,6 +1006,11 @@ abstract class deals_DealBase extends core_Master
 
                 $rec->lastAutoRecalcRate = $lastCalcedWithDiff;
                 $updateRecs[$rec->id] = $rec;
+
+                $itemRec = acc_Items::fetchItem($this, $rec);
+                if($itemRec){
+                    acc_Items::notifyObject($itemRec);
+                }
             }
         }
 
