@@ -152,6 +152,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $salQuery = sales_Sales::getQuery();
 
+
+
         $salQuery->where("#closedDocuments != ''");
 
         //Масив с затварящи документи по обединени договори //
@@ -174,6 +176,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         // Фактури ПРОДАЖБИ
         while ($saleInvoice = $sQuery->fetch()) {
+
+            //Филтър по контрагент
             if ($rec->contragent && (!keylist::isIn($saleInvoice->folderId, $rec->contragent))) {
                 continue;
             }
