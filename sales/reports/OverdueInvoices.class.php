@@ -170,10 +170,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $sQuery->where("#state = 'active'");
 
-        $sQuery->where(array(
-            "#dueDate IS NOT NULL AND #dueDate < '[#1#]'",
-            $checkDate
-        ));
+        $sQuery->where(array( "#dueDate < '[#1#]'",$checkDate));
 
         // Фактури ПРОДАЖБИ
         while ($saleInvoice = $sQuery->fetch()) {
@@ -231,17 +228,20 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
                 $className = $firstDocument->className;
 
+                //река на първия документ в нишката
+                $firstDocRec = $className::fetch($firstDocument->that);
+
                 //Филтър по дилър
                 if ($rec->dealer) {
-                    if ($className::fetchField($firstDocument->that, 'dealerId') != $rec->dealer) {
+                    if ($firstDocRec -> dealerId != $rec->dealer) {
                         continue;
                     }
                 }
 
                 //Проверка дали е затворена или обединяваща
-                $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUNList);
+                $unitedCheck = keylist::isIn($firstDocument->that, $salesUNList);
 
-                if (($className::fetchField($firstDocument->that, 'state') == 'closed') && !$unitedCheck) {
+                if ($firstDocRec -> state == 'closed' && !$unitedCheck) {
                     continue;
                 }
 
