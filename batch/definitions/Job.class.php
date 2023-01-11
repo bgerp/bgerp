@@ -112,8 +112,8 @@ class batch_definitions_Job extends batch_definitions_Proto
     public function filterBatches($quantities, $mvc, $id)
     {
         $Detail = cls::get($mvc);
-        if($Detail instanceof planning_DirectProductNoteDetails){
-            $originId = planning_DirectProductionNote::fetchField($Detail->fetchRec($id, 'noteId')->noteId, 'originId');
+        if(($Detail instanceof planning_DirectProductNoteDetails) || ($Detail instanceof planning_ConsumptionNoteDetails)){
+            $originId = $Detail->Master->fetchField($Detail->fetchRec($id, 'noteId')->noteId, 'originId');
             $origin = doc_Containers::getDocument($originId);
             if($origin->isInstanceOf('planning_Tasks')){
                 $jobId = $origin->fetchField('originId');
@@ -122,7 +122,7 @@ class batch_definitions_Job extends batch_definitions_Proto
             } else {
                 $jobId = $origin->that;
             }
-            
+
             $batchName = $this->getDefaultBatchName($jobId);
             if(array_key_exists($batchName, $quantities)){
                 
