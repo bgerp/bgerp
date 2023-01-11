@@ -1853,7 +1853,8 @@ class planning_Jobs extends core_Master
         $pQuery1->in('threadId', $threadsArr);
         $pNoteClassId = planning_DirectProductionNote::getClassId();
 
-        while($pRec = $pQuery1->fetch()){
+        /*
+         * while($pRec = $pQuery1->fetch()){
 
             $aArray = array('' => $pRec->quantity);
 
@@ -1883,6 +1884,7 @@ class planning_Jobs extends core_Master
                 $convertedArr[$key]->quantityExpected += $q;
             }
         }
+         */
 
         // Всички протоколи за влагане/връщане на услуги се реконтират - за да се смени правилно разходния обект
         foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_ReturnNoteDetails' => 'planning_ReturnNotes') as $detailName => $masterName){
