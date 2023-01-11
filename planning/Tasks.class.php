@@ -1128,27 +1128,60 @@ class planning_Tasks extends core_Master
         $rec->producedQuantity = $producedQuantity;
 
         // Ако има промяна в прогреса (само ако не е приключена операцията)
+        $autoActivation = ($rec->state == 'pending' && planning_ProductionTaskDetails::count("#taskId = {$rec->id}"));
         if($rec->state != 'closed'){
-            if ($rec->progress != $originalProgress) {
-                $rec->orderByAssetId = null;
-                if ($lastTaskWithProgressId = $this->getPrevOrNextTask($rec, true)) {
-                    $orderByAssetId = $this->fetchField($lastTaskWithProgressId, 'orderByAssetId');
-                    $rec->orderByAssetId = $orderByAssetId + 0.5;
-                } else {
-                    $rec->orderByAssetId = 0.5;
-                }
+            $reorder = false;
+            if ($rec->progress > $originalProgress) {
 
+                // Ако прогреса е увеличен - става първа
+                $rec->orderByAssetId = 0.5;
+                $reorder = true;
+            } elseif($autoActivation) {
+                $rec->orderByAssetId = null;
+
+                // Ако само е активирана - БЕЗ да е увеличен прогреса
+                $query = static::getQuery();
+                $query->where("#assetId = {$rec->assetId} AND  #state IN ('pending', 'stopped')");
+                $query->orderBy("orderByAssetId", 'ASC');
+                $query->show('id,orderByAssetId');
+                $query->limit(1);
+                $firstPendingRec = $query->fetch();
+
+                // Намества се преди първата спряна/заявка
+                if(is_object($firstPendingRec)){
+                    $rec->orderByAssetId = $firstPendingRec->orderByAssetId - 0.5;
+                } else {
+
+                    // Ако няма заявки/спрени - мести се след първата активна/събудена
+                    $query1 = static::getQuery();
+                    $query1->where("#assetId = {$rec->assetId} AND #state IN ('active', 'wakeup')");
+                    $query1->orderBy("orderByAssetId", 'ASC');
+                    $query1->show('id,orderByAssetId');
+                    $query1->limit(1);
+                    $lastActiveRec = $query1->fetch();
+                    if(is_object($lastActiveRec)){
+                        $rec->orderByAssetId = $lastActiveRec->orderByAssetId + 0.5;
+                    } else {
+
+                        // Ако няма и такива - става първа
+                        $rec->orderByAssetId = 0.5;
+                    }
+                }
+                $reorder = true;
+            }
+
+            // Ако ще се преподреждат
+            if($reorder){
                 if (isset($rec->assetId)) {
                     $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
                 }
-
                 $updateFields .= ',orderByAssetId';
                 $rec->_stopReorder = true;
             }
         }
 
         // При първо добавяне на прогрес, ако е в заявка - се активира автоматично
-        if ($rec->state == 'pending' && planning_ProductionTaskDetails::count("#taskId = {$rec->id}")) {
+        if ($autoActivation) {
             planning_plg_StateManager::changeState($this, $rec, 'activate');
             $this->logWrite('Активиране при прогрес', $rec->id);
             core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
@@ -1816,7 +1849,6 @@ class planning_Tasks extends core_Master
         $query->show('id');
         $query->limit(1);
 
-
         if ($withProgress) {
             $query->where("#progress != 0");
         }
@@ -2222,13 +2254,13 @@ class planning_Tasks extends core_Master
         $rec = $data->rec;
 
         // Бутон за добавяне на документ за производство
-        if (planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))) {
+        if (planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Произвеждане', $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от операцията');
         }
 
         // Бутон за добавяне на документ за производство
-        if (planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $rec->containerId))) {
+        if (planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
             $pUrl = array('planning_ConsumptionNotes', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Влагане', $pUrl, 'ef_icon = img/16/produce_in.png,title=Създаване на протокол за влагане от операцията');
         }

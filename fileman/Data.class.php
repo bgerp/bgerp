@@ -92,7 +92,7 @@ class fileman_Data extends core_Manager
         
         $this->FLD('processed', 'enum(no,yes)', 'caption=Извличане на ключови думи,column=none,single=none,input=none');
         
-        $this->setDbUnique('processed');
+        $this->setDbIndex('processed');
         $this->setDbUnique('fileLen,md5', 'DNA');
     }
     
@@ -491,7 +491,7 @@ class fileman_Data extends core_Manager
         $classesArr = core_Classes::getOptionsByInterface('fileman_ProcessIntf');
         
         $query = self::getQuery();
-        $query->where("#processed != 'yes'");
+        $query->where("#processed = 'no'");
         $query->orWhere('#processed IS NULL');
         
         // Данните с processed==no да са с по-голям приоритет
