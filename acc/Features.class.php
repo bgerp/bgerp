@@ -110,6 +110,7 @@ class acc_Features extends core_Manager
         $this->FLD('value', 'varchar(80)', 'caption=Стойност,mandatory');
         
         $this->setDbUnique('itemId,featureTitleId');
+        $this->setDbIndex('itemId');
     }
     
     
