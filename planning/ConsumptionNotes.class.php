@@ -247,16 +247,16 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         // Може да добавяме или към нишка в която има задание
         if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-            
+
             return true;
         }
         
         // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed')")) {
-            
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
+
             return true;
         }
-        
+
         return false;
     }
     
