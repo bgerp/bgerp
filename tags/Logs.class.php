@@ -90,6 +90,7 @@ class tags_Logs extends core_Manager
 
         $this->setDbIndex('docId, docClassId');
         $this->setDbIndex('containerId');
+        $this->setDbIndex('tagId');
     }
 
 

@@ -134,6 +134,7 @@ class core_QueryCnts extends core_Manager
                     $q = $qCnt->mvc->getQuery();
                     $q->XPR('maxId', 'int', 'max(#id)');
                     $q->show('maxId');
+                    $q->limit(1);
                     $qRec = $q->fetch();
                     
                     if ($qRec) {

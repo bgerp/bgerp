@@ -84,8 +84,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        //$checkDate = dt::today();
-        //$form->setDefault('checkDate', "{$checkDate}");
         $form->setDefault('typeGrupping', 'contragent');
         $form->setDefault('minSumForEmail', 0.05);
 
@@ -142,7 +140,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $checkDate = $rec->checkDate . ' 23:59:59';
         }
 
-
         $this->groupByField = $rec->typeGrupping;
         $recs = array();
         $isRec = array();
@@ -152,129 +149,30 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $salQuery = sales_Sales::getQuery();
 
+        //$salQuery->where("(#state = 'active') OR (#closedOn IS NOT NULL AND #closedOn > '$checkDate')");
+        $salQuery->where("#closedOn IS NULL OR #closedOn > '$checkDate'");
 
-
-        $salQuery->where("#closedDocuments != ''");
-
-        //Масив с затварящи документи по обединени договори //
-        $salesUN = array();
-
-        while ($sale = $salQuery->fetch()) {
-            foreach ((keylist::toArray($sale->closedDocuments)) as $v) {
-                $salesUN[$v] = ($v);
-            }
-        }
-
-        $salesUNList = keylist::fromArray($salesUN);
-
-
-        $sQuery = sales_Invoices::getQuery();
-
-        $sQuery->where("#state = 'active'");
-
-        $sQuery->where(array( "#dueDate < '[#1#]'",$checkDate));
-
-        // Фактури ПРОДАЖБИ
-        while ($saleInvoice = $sQuery->fetch()) {
-
-            //Филтър по контрагент
-            if ($rec->contragent && (!keylist::isIn($saleInvoice->folderId, $rec->contragent))) {
-                continue;
-            }
-
-            $salesInvoicesArr[] = $saleInvoice;
-        }
-
-        $timeLimit = countR($salesInvoicesArr) * 0.05;
-
-        if ($timeLimit >= 30) {
-            core_App::setTimeLimit($timeLimit);
-        }
-
-        $cQuery = crm_ext_ContragentInfo::getQuery();
-
-        $cQuery->where("#overdueSales = 'yes'");
-
-        $contragentsArr = array();
-
-        while ($contragent = $cQuery->fetch()) {
-
-            $contragentKey = $contragent->contragentClassId . '|' . $contragent->contragentId;
-
-            $contragentsArr[$contragentKey] = $contragentKey;
-        }
-
-
-        if ($rec->countryGroup) {
-            $countriesList = drdata_CountryGroups::fetch($rec->countryGroup)->countries;
-        }
-
-        if (is_array($salesInvoicesArr)) {
-
-            $threadsId = array();
-            foreach ($salesInvoicesArr as $saleInvoice) {
-
-                $saleInvoiceContragrntKey = $saleInvoice->contragentClassId . '|' . $saleInvoice->contragentId;
-
-                if (!in_array($saleInvoiceContragrntKey, $contragentsArr)) {
-                    continue;
-                }
-
-
-                if ($rec->countryGroup) {
-                    if (!keylist::isIn($saleInvoice->contragentCountryId, $countriesList)) {
-                        continue;
-                    }
-                }
-
-
-                $firstDocument = doc_Threads::getFirstDocument($saleInvoice->threadId);
-
-                $className = $firstDocument->className;
-
-                //река на първия документ в нишката
-                $firstDocRec = $className::fetch($firstDocument->that);
-
-                //Филтър по дилър
-                if ($rec->dealer) {
-                    if ($firstDocRec->dealerId != $rec->dealer) {
-                        continue;
-                    }
-                }
-
-                //Проверка дали е затворена или обединяваща
-                $unitedCheck = keylist::isIn($firstDocument->that, $salesUNList);
-
-                if ($firstDocRec->state == 'closed' && !$unitedCheck) {
-                    continue;
-                }
-
-                //масив с нишките за проверка
-                $threadsId[$saleInvoice->threadId] = $saleInvoice->threadId;
-            }
-        }
+        //нишки на активни договори
+        $threadsActivSalesArr = arr::extractValuesFromArray($salQuery->fetchAll(), 'threadId');
 
         $salesTotalOverDue = $salesTotalPayout = 0;
         $invoiceCurrentSummArr = array();
 
-        if (is_array($threadsId)) {
-            foreach ($threadsId as $thread) {
+        if (is_array($threadsActivSalesArr)) {
+            foreach ($threadsActivSalesArr as $thread) {
 
-
-                $firstDoc = doc_Threads::getFirstDocument($thread);
-                $firstDocClassName = $firstDoc->className;
-                $firstDocId = $firstDoc->that;
-                $firstDocState = $firstDocClassName::fetch($firstDocId)->state;
-                if ($firstDocState == 'closed') continue;
+                //Договора за продажба
+                $FirstDoc = doc_Threads::getFirstDocument($thread);
+                $fDocRec = $FirstDoc->fetch('dealerId');
 
                 // масив от фактури в тази нишка към избраната дата
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
 
-                if (is_array($invoicePayments)) {
+                if (is_array($invoicePayments) && !empty($invoicePayments)) {
+
 
                     // фактура от нишката и масив от платежни документи по тази фактура//
                     foreach ($invoicePayments as $inv => $paydocs) {
-
 
                         $invoiceCurrentSumm = 0;
 
@@ -290,8 +188,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         }
 
                         $iRec = $Invoice->fetch(
-                            'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate,contragentId,contragentClassId'
-
+                            'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate,
+                                   contragentId,contragentClassId, contragentCountryId'
                         );
 
                         $contragentClassName = core_Classes::fetch($iRec->contragentClassId)->name;
@@ -299,6 +197,21 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         $contragentRec = $contragentClassName::fetch($iRec->contragentId);
 
                         $contragentFolderId = $contragentRec->folderId;
+
+                        //Филтър по контрагент
+                        if ($rec->contragent && (!in_array($contragentFolderId, keylist::toArray($rec->contragent)))) continue;
+
+                        //Филтър по дилър
+                        if ($rec->dealer && ($rec->dealer != $fDocRec->dealerId)) continue;
+
+                        //Филтър по група държави
+                        if ($rec->countryGroup) {
+                            $countriesList = drdata_CountryGroups::fetch($rec->countryGroup)->countries;
+
+                            if (!keylist::isIn($iRec->contragentCountryId, $countriesList)) {
+                                continue;
+                            }
+                        }
 
                         $overdueColor = '';
                         $limits = json_decode($rec->additional);
