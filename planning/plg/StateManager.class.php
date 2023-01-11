@@ -377,6 +377,14 @@ class planning_plg_StateManager extends core_Plugin
                 core_Statuses::newStatus($activateErrMsg, 'warning');
             }
         }
+
+        if($action == 'close' && isset($rec->threadId)){
+            $threadRec = doc_Threads::fetch($rec->threadId, 'state,id');
+            if($threadRec->state == 'opened'){
+                $threadRec->state = 'closed';
+                cls::get('doc_Threads')->save($threadRec, 'state');
+            }
+        }
     }
 
 
