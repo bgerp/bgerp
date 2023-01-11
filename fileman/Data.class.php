@@ -491,7 +491,7 @@ class fileman_Data extends core_Manager
         $classesArr = core_Classes::getOptionsByInterface('fileman_ProcessIntf');
         
         $query = self::getQuery();
-        $query->where("#processed != 'yes'");
+        $query->where("#processed = 'no'");
         $query->orWhere('#processed IS NULL');
         
         // Данните с processed==no да са с по-голям приоритет
