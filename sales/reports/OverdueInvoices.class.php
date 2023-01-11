@@ -149,7 +149,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $salQuery = sales_Sales::getQuery();
 
-        $salQuery->where("#state = 'active'");
+        $salQuery->where("(#state = 'active') OR (#closedOn IS NOT NULL AND #closedOn < $rec->checkDate . ' 00:00:01')");
 
         //нишки на активни договори
         $threadsActivSalesArr = arr::extractValuesFromArray($salQuery->fetchAll(), 'threadId');
@@ -201,7 +201,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         if ($rec->contragent && (!in_array($contragentFolderId, keylist::toArray($rec->contragent)))) continue;
 
                         //Филтър по дилър
-                        if ($rec->dealer && $rec->dealer != $fDocRec->dealerId) continue;
+                        if ($rec->dealer && ($rec->dealer != $fDocRec->dealerId)) continue;
 
                         //Филтър по група държави
                         if ($rec->countryGroup) {
