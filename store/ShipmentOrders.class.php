@@ -255,6 +255,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->setField('deliveryTime', 'caption=Товарене');
         $this->setFieldTypeParams("deliveryTime", array('defaultTime' => $startTime));
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('state');
     }
 
 
