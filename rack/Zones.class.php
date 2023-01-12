@@ -342,9 +342,8 @@ class rack_Zones extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $rec = self::fetchRec($rec);
-        $num = self::getVerbal($rec, 'num');
         $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
-        $title = "{$num} ({$groupName})";
+        $title = "{$rec->num} ({$groupName})";
 
         if ($escaped) {
             $title = type_Varchar::escape($title);
