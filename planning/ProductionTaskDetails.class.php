@@ -1357,9 +1357,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 if($action == 'reject'){
-                    $mainProductId = ($masterRec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId') : $masterRec->productId;
-                    if($rec->productId == $mainProductId){
-                        $requiredRoles = 'no_one';
+                    $horizon1 = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+                    if(dt::now() > $horizon1){
+                        $mainProductId = ($masterRec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId') : $masterRec->productId;
+                        if($rec->productId == $mainProductId){
+                            $requiredRoles = 'no_one';
+                        }
                     }
                 }
             }
