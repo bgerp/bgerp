@@ -119,7 +119,15 @@ class doc_View extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'tplId, clsId, dataId';
-    
+
+
+    /**
+     * Позволява премахването на бланката при отпечатване
+     *
+     * @see bgerp_plg_Blank
+     */
+    public $allowPrintingWithoutBlank = true;
+
     
     /**
      * Описание на модела
