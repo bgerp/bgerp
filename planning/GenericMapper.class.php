@@ -178,13 +178,10 @@ class planning_GenericMapper extends core_Manager
         $row->genericProductMeasureId = cat_UoM::getVerbal(cat_Products::fetchField($rec->genericProductId, 'measureId'), 'name');
         $row->productMeasureId = cat_UoM::getVerbal(cat_Products::fetchField($rec->productId, 'measureId'), 'name');
         
-        $canConvert = cat_Products::fetchField($rec->productId, 'canConvert');
-
-        if($canConvert != 'yes'){
-            $row->ROW_ATTR['class'] = 'state-closed';
+        $pRec = cat_Products::fetch($rec->productId, 'canConvert,state');
+        $row->ROW_ATTR['class'] = "state-{$pRec->state}";
+        if($pRec->canConvert != 'yes'){
             $row->productId = ht::createHint($row->productId, "Артикулът вече не е вложим", 'warning', false);
-        } else {
-            $row->ROW_ATTR['class'] = 'state-active';
         }
     }
     
@@ -371,33 +368,31 @@ class planning_GenericMapper extends core_Manager
                 }
             }
         }
-        
-        // За да се добави ресурс към обект, трябва самия обект да може да има ресурси
-        if ($action == 'add' && isset($rec)) {
-            if(isset($rec->productId)){
-                if ($mvc->fetch("#productId = {$rec->productId}")) {
-                    $res = 'no_one';
-                }
-            }
-        }
     }
     
     
     /**
      * Намира еквивалентите за влагане артикули на даден артикул
      *
-     * @param int $productId         - на кой артикул му търсим еквивалентните
-     * @param int|null $ignoreRecId  - ид на ред, който да се игнорира
+     * @param int $productId             - на кой артикул му търсим еквивалентните
+     * @param int|null $ignoreRecId      - ид на ред, който да се игнорира
+     * @param int|null $genericProductId - конкретен генеричен артикул
      *
-     * @return array  $res           - масив за избор с еквивалентни артикули
+     * @return array  $res               - масив за избор с еквивалентни артикули
      */
-    public static function getEquivalentProducts($productId, $ignoreRecId = null)
+    public static function getEquivalentProducts($productId, $ignoreRecId = null, $genericProductId = null)
     {
         $res = array();
         
         $inArr = array($productId => $productId);
-        if($genericProductId = self::fetchField("#productId = {$productId}", 'genericProductId')){
-            $inArr[$genericProductId] = $genericProductId;
+        if(isset($genericProductId)){
+            if(self::fetchField("#productId = {$productId} AND #genericProductId = {$genericProductId}")){
+                $inArr[$genericProductId] = $genericProductId;
+            }
+        } else {
+            if($genericProductId = self::fetchField("#productId = {$productId}", 'genericProductId')){
+                $inArr[$genericProductId] = $genericProductId;
+            }
         }
         
         // Всички артикули, които се влагат като търсения, или се влагат като неговия генеричен

@@ -39,7 +39,7 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->TAB('planning_AssetResourcesNorms', 'Настройки->Норми', 'ceo,planning');
         $this->TAB('planning_GenericMapper', 'Настройки->Генерични', 'ceo,planning');
         $this->TAB('planning_Points', 'Дебъг->Точки', 'debug');
-        
+        $this->TAB('planning_GenericProductPerDocuments', 'Дебъг->По документи', 'debug');
         $this->title = 'Планиране';
     }
 }
