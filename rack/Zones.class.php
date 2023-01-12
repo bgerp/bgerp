@@ -167,7 +167,7 @@ class rack_Zones extends core_Master
      */
     public function description()
     {
-        $this->FLD('num', 'int(max=999)', 'caption=Номер,mandatory');
+        $this->FLD('num', 'int(max=99999)', 'caption=Номер,mandatory,focus');
         $this->FLD('color', 'color_Type', 'caption=Цвят,remember');
         $this->FLD('description', 'text(rows=2)', 'caption=Описание');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
@@ -342,7 +342,9 @@ class rack_Zones extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $rec = self::fetchRec($rec);
+        Mode::push('text', 'plain');
         $num = self::getVerbal($rec, 'num');
+        Mode::pop('text');
         $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
         $title = "{$num} ({$groupName})";
 
@@ -1492,7 +1494,7 @@ class rack_Zones extends core_Master
      */
     protected function on_AfterPrepareRetUrl($mvc, $data)
     {
-        if($data->action == 'manage'){
+        if($data->action == 'manage' && $data->form->cmd != 'save_n_new'){
             $data->retUrl = array('rack_Zones', 'list');
         }
     }

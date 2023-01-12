@@ -261,4 +261,15 @@ class plg_Printing extends core_Plugin
             }
         }
     }
+
+
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
+    {
+        if ($data->_selectTplForm) {
+            $tpl->append($data->_selectTplForm, 'noPrint');
+        }
+    }
 }
