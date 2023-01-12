@@ -167,7 +167,7 @@ class rack_Zones extends core_Master
      */
     public function description()
     {
-        $this->FLD('num', 'int(max=999)', 'caption=Номер,mandatory');
+        $this->FLD('num', 'int(max=99999)', 'caption=Номер,mandatory');
         $this->FLD('color', 'color_Type', 'caption=Цвят,remember');
         $this->FLD('description', 'text(rows=2)', 'caption=Описание');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
