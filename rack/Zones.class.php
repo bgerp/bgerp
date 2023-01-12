@@ -31,7 +31,7 @@ class rack_Zones extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2,plg_RefreshRows,plg_Printing';
+    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2,plg_RefreshRows,plg_Printing,plg_SaveAndNew';
 
 
     /**
@@ -167,14 +167,14 @@ class rack_Zones extends core_Master
      */
     public function description()
     {
-        $this->FLD('num', 'int(max=999)', 'caption=Номер,mandatory');
-        $this->FLD('color', 'color_Type', 'caption=Цвят');
+        $this->FLD('num', 'int(max=99999)', 'caption=Номер,mandatory');
+        $this->FLD('color', 'color_Type', 'caption=Цвят,remember');
         $this->FLD('description', 'text(rows=2)', 'caption=Описание');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,input=none');
         $this->FLD('defaultUserId', 'key(mvc=core_Users,select=nick)', 'caption=Изпълнител,input=none');
         $this->FLD('readiness', 'percent', 'caption=Готовност,input=none');
-        $this->FLD('groupId', 'key(mvc=rack_ZoneGroups,select=name,allowEmpty)', 'caption=Група,placeholder=Без групиране');
+        $this->FLD('groupId', 'key(mvc=rack_ZoneGroups,select=name,allowEmpty)', 'caption=Група,placeholder=Без групиране,remember');
 
         $this->setDbUnique('num,storeId');
         $this->setDbIndex('storeId');
@@ -1492,7 +1492,7 @@ class rack_Zones extends core_Master
      */
     protected function on_AfterPrepareRetUrl($mvc, $data)
     {
-        if($data->action == 'manage'){
+        if($data->action == 'manage' && $data->form->cmd != 'save_n_new'){
             $data->retUrl = array('rack_Zones', 'list');
         }
     }
