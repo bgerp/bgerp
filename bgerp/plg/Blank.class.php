@@ -16,6 +16,17 @@
  */
 class bgerp_plg_Blank extends core_Plugin
 {
+
+
+    /**
+     * Извиква се след описанието на модела
+     */
+    public static function on_AfterDescription(&$mvc)
+    {
+        setIfNot($mvc->allowPrintingWithoutBlank, false);
+    }
+
+
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
@@ -192,5 +203,44 @@ class bgerp_plg_Blank extends core_Plugin
         $thumb = new thumb_Img(array($companyLogo, 3000, 348, $sourceType, 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => 'companyLog', 'imgWidth' => 750, 'imgHeight' => 87));
         
         return $thumb;
+    }
+
+
+    /**
+     * Преди подготовка на на единичния изглед
+     */
+    public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, &$data)
+    {
+        // Показваме форма за избор на шаблон в екрана за отпечатване
+        if (($mvc->allowPrintingWithoutBlank === true) && Mode::is('printing') && Request::get('Printing') && haveRole('powerUser') && !Mode::is('preventChangeTemplateOnPrint')) {
+            $form = cls::get('core_Form');
+
+            $form->class .= ' simpleForm';
+            $form->FNC('useBlank', 'enum(yes=Да,no=Не)', 'caption=Бланка, silent, input');
+            $form->addAttr('useBlank', array('onchange' => 'this.form.submit();'));
+
+            $form->setDefault('useBlank', 'yes');
+            $form->input();
+
+            if ($form->isSubmitted()) {
+                if ($form->rec->useBlank == 'no') {
+                    Mode::set('noBlank', true);
+                }
+            }
+
+            Mode::push('forcePrinting', true);
+            $data->_selectTplForm = $form->renderHtml();
+            Mode::pop('forcePrinting');
+
+
+            if ($data->_selectTplForm) {
+                // Това е необходимо за инпутва на формата
+                // Когат няма 'addSbBtn'
+                $data->_selectTplForm->appendOnce(
+                    '<input type="hidden" name="Cmd[default]" value=1>',
+                    'FORM_HIDDEN'
+                );
+            }
+        }
     }
 }
