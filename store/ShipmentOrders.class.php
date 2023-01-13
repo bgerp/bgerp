@@ -921,7 +921,9 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         // Ако има конкретно посочено куриерско API
         $rec = $this->fetchRec($rec);
-        if(isset($rec->courierApi)) return $rec->courierApi;
+        if(isset($rec->courierApi)) {
+            return cls::load($rec->courierApi, true) ? $rec->courierApi : null;
+        }
 
         $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
         if($firstDocument->isInstanceOf('sales_Sales')){
