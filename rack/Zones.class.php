@@ -188,7 +188,7 @@ class rack_Zones extends core_Master
     public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if ($part == 'num') {
-            $num = "Z-{$num}";
+            $num = "Z-{$rec->num}";
         } elseif($part == 'readiness'){
             if(empty($rec->readiness)){
                 $num = core_Type::getByName('percent')->toVerbal(0);
@@ -342,9 +342,7 @@ class rack_Zones extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $rec = self::fetchRec($rec);
-        Mode::push('text', 'plain');
         $num = self::getVerbal($rec, 'num');
-        Mode::pop('text');
         $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
         $title = "{$num} ({$groupName})";
 
