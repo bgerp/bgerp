@@ -57,8 +57,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title');
-        $fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Индикатори,after=periods');
+        $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title,allowEmpty)', 'caption=Период->Месец,after=title,removeAndRefreshForm=fromDate|toDate');
+        $fieldset->FLD('fromDate', 'date(format=smartTime)', 'caption=Период->От,after=periods,silent,removeAndRefreshForm=periods');
+        $fieldset->FLD('toDate', 'date(format=smartTime)', 'caption=Период->До,after=fromDate,silent,removeAndRefreshForm=periods');
+        $fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Индикатори,after=toDate');
         $fieldset->FLD('personId', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,after=indocators');
         $fieldset->FLD('formula', 'text(rows=2)', 'caption=Формула,after=indocators,single=none');
     }
@@ -74,9 +76,11 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
-        
-        $periodToday = acc_Periods::fetchByDate(dt::now());
-        $form->setDefault('periods', $periodToday->id);
+        if(empty($form->rec->fromDate) && empty($form->rec->toDate)){
+            $periodToday = acc_Periods::fetchByDate(dt::now());
+            $form->setDefault('periods', $periodToday->id);
+        }
+
         $form->setSuggestions('formula', hr_IndicatorNames::getFormulaSuggestions());
 
         $cu = core_Users::getCurrent();
@@ -91,8 +95,31 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         }
         $form->setSuggestions('personId', $filteredUsers);
     }
-    
-    
+
+
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param tremol_FiscPrinterDriverWeb $Driver
+     * @param peripheral_Devices     $Embedder
+     * @param core_Form         $form
+     */
+    protected static function on_AfterInputEditForm($Driver, $Embedder, &$form)
+    {
+        if ($form->isSubmitted()){
+            $rec = $form->rec;
+
+            if(empty($rec->periods) && empty($rec->fromDate) && empty($rec->toDate)){
+                $form->setError('periods,fromDate,toDate', 'Трябва да бъде избран период');
+            }
+
+            if(!empty($rec->periods) && (!empty($rec->fromDate) || !empty($rec->toDate))){
+                $form->setError('periods,fromDate,toDate', 'Трябва или да е избран точен месец, или конкретни дати|*!');
+            }
+        }
+    }
+
+
     /**
      * Кои записи ще се показват в таблицата
      *
@@ -104,13 +131,19 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        $periodRec = acc_Periods::fetch($rec->periods);
-        
+
+        if(!empty($rec->periods)){
+            $periodRec = acc_Periods::fetch($rec->periods);
+            list($start, $end) = array($periodRec->start, $periodRec->end);
+        } else {
+            $start = !empty($rec->fromDate) ? $rec->fromDate : null;
+            $end = !empty($rec->toDate) ? $rec->toDate : null;
+        }
+
         // Ако има избрани потребители, взимат се те. Ако няма всички потребители
         $users = (!empty($rec->personId)) ? keylist::toArray($rec->personId) : core_Users::getByRole('powerUser');
         
         // Извличат се ид-та на визитките на избраните потребители
-        $personIds = array();
         $pQuery = crm_Profiles::getQuery();
         $pQuery->in('userId', $users);
         $pQuery->show('personId');
@@ -118,7 +151,14 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         
         // Извличане на индикаторите за посочените дати, САМО за избраните лица
         $query = hr_Indicators::getQuery();
-        $query->where("(#date >= '{$periodRec->start}' AND #date <= '{$periodRec->end}')");
+        if(!empty($start)){
+            $query->where("#date >= '{$start}'");
+        }
+        if(!empty($end)){
+            $query->where("#date <= '{$end}'");
+        }
+
+
         $query->in('personId', $personIds);
         
         // Ако са посочени индикатори извличат се само техните записи
@@ -295,26 +335,29 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         if (isset($dRec->value) && empty($row->value)) {
             $row->value = $Double->toVerbal($dRec->value);
             $row->value = ht::styleNumber($row->value, $dRec->value);
-            
-            $start = acc_Periods::fetchField($rec->periods, 'start');
-            $date = new DateTime($start);
-            $startMonth = $date->format('Y-m-01');
-            
+
             $haveRight = hr_Indicators::haveRightFor('list');
-            $url = array('hr_Indicators', 'list', 'period' => $startMonth, 'indicatorId' => $dRec->indicatorId);
+            $url = array('hr_Indicators', 'list', 'indicatorId' => $dRec->indicatorId);
+
+            if(!empty($rec->periods)){
+                $start = acc_Periods::fetchField($rec->periods, 'start');
+                $date = new DateTime($start);
+                $url['period'] = $date->format('Y-m-01');
+            }
+
             if (!empty($dRec->person)) {
                 $url['personId'] = $dRec->person;
             }
-            
+
             if ($haveRight !== true) {
                 core_Request::setProtected('period,personId,indicatorId,force');
                 $url['force'] = true;
             }
-            
+
             if (!Mode::isReadOnly()) {
                 $row->value = ht::createLinkRef($row->value, toUrl($url), false, 'target=_blank,title=Към документите формирали записа');
             }
-            
+
             if ($haveRight !== true) {
                 core_Request::removeProtected('period,personId,indicatorId,force');
             }
@@ -417,12 +460,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             }
             
             $row->persons = implode(', ', $persons);
-        }
-        
-        
-        if (isset($rec->periods)) {
-            // избраният месец
-            $row->month = acc_Periods::fetchField("#id = '{$rec->periods}'", 'title');
         }
         
         if (isset($rec->formula)) {
