@@ -169,11 +169,6 @@ class planning_plg_ReplaceProducts extends core_Plugin
             if ($mvc->haveRightFor('replaceproduct', $rec)) {
                 $url = array($mvc, 'replaceproduct', $rec->id, 'ret_url' => true);
 
-                if(haveRole('debug')){
-                    bp($url);
-                }
-
-
                 if ($mvc->hasPlugin('plg_RowTools2')) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Заместване', $url, array('ef_icon' => 'img/16/arrow_refresh.png', 'title' => 'Избор на заместващ материал'));
@@ -202,9 +197,6 @@ class planning_plg_ReplaceProducts extends core_Plugin
 
                 $options = static::getReplaceOptions($mvc, $rec->id, $rec->{$mvc->replaceProductFieldName});
                 if (!countR($options)) {
-                    if(haveRole('debug')){
-                        bp($options, $mvc, $rec->id, $rec->{$mvc->replaceProductFieldName});
-                    }
                     $requiredRoles = 'no_one';
                 }
             }
