@@ -116,8 +116,7 @@ class planning_GenericProductPerDocuments extends core_Manager
     function act_Test()
     {
         requireRole('debug');
-        $this->truncate();
-        return;
+
         static::recalc();
     }
 
