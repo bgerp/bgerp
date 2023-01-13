@@ -116,6 +116,12 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             if(!empty($rec->periods) && (!empty($rec->fromDate) || !empty($rec->toDate))){
                 $form->setError('periods,fromDate,toDate', 'Трябва или да е избран точен месец, или конкретни дати|*!');
             }
+
+            if(!empty($rec->fromDate) && !empty($rec->toDate)){
+                if($rec->fromDate > $rec->toDate){
+                    $form->setError('fromDate,toDate', 'Началната дата е по-голяма от крайната|*!');
+                }
+            }
         }
     }
 
