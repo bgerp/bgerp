@@ -17,12 +17,6 @@
 class planning_GenericProductPerDocuments extends core_Manager
 {
     /**
-     * Име на перото за неразпределени разходи
-     */
-    const UNALLOCATED_ITEM_NAME = 'Неразпределени разходи';
-
-
-    /**
      * Заглавие
      */
     public $title = 'Генерични артикули в документи';
@@ -31,7 +25,7 @@ class planning_GenericProductPerDocuments extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'planning_Wrapper';
+    public $loadList = 'planning_Wrapper,plg_RowTools2';
 
 
     /**

@@ -109,7 +109,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Поле за заместване на артикул
      *
-     * @see planning_plg_ReplaceEquivalentProducts
+     * @see planning_plg_ReplaceProducts
      */
     public $replaceProductFieldName = 'resourceId';
     
@@ -123,7 +123,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Поле за количеството на заместващ артикул
      *
-     * @see planning_plg_ReplaceEquivalentProducts
+     * @see planning_plg_ReplaceProducts
      */
     public $replaceProductQuantityFieldName = 'propQuantity';
     

@@ -2839,12 +2839,8 @@ class planning_Tasks extends core_Master
                         if($normRec = planning_AssetResources::getNormRec($rec->assetId, $actionId)){
                             $inputRec->indTime = $normRec->indTime;
                         }
-                        $saveRecs[] = $inputRec;
+                        planning_ProductionTaskProducts::save($inputRec);
                     }
-                }
-
-                if(countR($saveRecs)){
-                    cls::get('planning_ProductionTaskProducts')->saveArray($saveRecs);
                     core_Statuses::newStatus('Добавени са планираните действия за операцията|*!');
                 }
             }
@@ -3009,8 +3005,6 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterActivation($mvc, &$rec)
     {
-        $saveRecs = array();
-
         $now = dt::now();
         if(isset($rec->wasteProductId)){
 
@@ -3034,11 +3028,7 @@ class planning_Tasks extends core_Master
             }
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdOn' => core_Users::getCurrent(), 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
-            $saveRecs[] = $wasteRec;
-        }
-
-        if(countR($saveRecs)){
-            cls::get('planning_ProductionTaskProducts')->saveArray($saveRecs);
+            planning_ProductionTaskProducts::save($wasteRec);
         }
     }
 

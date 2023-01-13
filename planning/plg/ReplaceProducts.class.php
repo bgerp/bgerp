@@ -34,8 +34,8 @@ class planning_plg_ReplaceProducts extends core_Plugin
      * Преди изпълнението на контролерен екшън
      *
      * @param core_Manager $mvc
-     * @param core_ET      $res
-     * @param string       $action
+     * @param core_ET $res
+     * @param string $action
      */
     public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
@@ -73,12 +73,14 @@ class planning_plg_ReplaceProducts extends core_Plugin
             $selectedGenericId = planning_GenericProductPerDocuments::getRec($mvc, $rec->id);
             $selectedKey = "{$rec->{$mvc->replaceProductFieldName}}|{$selectedGenericId}";
 
-            if(array_key_exists($selectedKey, $replaceOptions)){
+            if (array_key_exists($selectedKey, $replaceOptions)) {
                 $form->setDefault('replaceProduct', $selectedKey);
             } else {
                 $startWith = "{$rec->{$mvc->replaceProductFieldName}}|";
-                $usedArr = array_filter($replaceOptions, function($k) use ($startWith) {return strpos($k, $startWith) === 0;}, ARRAY_FILTER_USE_KEY);
-                if(countR($usedArr) == 1){
+                $usedArr = array_filter($replaceOptions, function ($k) use ($startWith) {
+                    return strpos($k, $startWith) === 0;
+                }, ARRAY_FILTER_USE_KEY);
+                if (countR($usedArr) == 1) {
                     $form->setDefault('replaceProduct', key($usedArr));
                 } else {
                     $replaceOptions = array($rec->{$mvc->replaceProductFieldName} => cat_Products::getTitleById($rec->{$mvc->replaceProductFieldName})) + $replaceOptions;
@@ -87,7 +89,7 @@ class planning_plg_ReplaceProducts extends core_Plugin
 
             $form->setOptions('replaceProduct', $replaceOptions);
             $form->input('replaceProduct', 'silent');
-            if(isset($form->rec->replaceProduct)){
+            if (isset($form->rec->replaceProduct)) {
                 list($form->rec->{$mvc->replaceProductFieldName}, $form->rec->_genericProductId) = explode('|', $form->rec->replaceProduct);
             }
 
@@ -101,19 +103,19 @@ class planning_plg_ReplaceProducts extends core_Plugin
                 $productMeasureId = cat_Products::fetchField($nRec->{$mvc->replaceProductFieldName}, 'measureId');
                 $originalMeasureId = cat_Products::fetchField($exRec->{$mvc->replaceProductFieldName}, 'measureId');
 
-                if($mvc instanceof deals_ManifactureDetail){
+                if ($mvc instanceof deals_ManifactureDetail) {
                     $convertedQuantity = cat_Uom::convertValue($rec->{$mvc->quantityFld}, $originalMeasureId, $productMeasureId);
                     $nRec->{$mvc->quantityFld} = $convertedQuantity;
                     $nRec->{$mvc->packQuantityFld} = $nRec->{$mvc->quantityFld};
-                } elseif($mvc instanceof cat_BomDetails){
+                } elseif ($mvc instanceof cat_BomDetails) {
                     $formula = trim($nRec->propQuantity);
-                    if(is_numeric($formula)){
+                    if (is_numeric($formula)) {
                         $convertedQuantity = cat_Uom::convertValue($formula, $originalMeasureId, $productMeasureId);
                         $nRec->propQuantity = $convertedQuantity;
                     }
                 }
 
-                if($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
+                if ($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
 
                     return followRetUrl(null, 'Артикулът не е подменен');
                 }
@@ -205,10 +207,10 @@ class planning_plg_ReplaceProducts extends core_Plugin
         $temp = $options = $generics = array();
 
         $genericProductId = planning_GenericProductPerDocuments::getRec($mvc, $id);
-        if(isset($genericProductId)){
+        if (isset($genericProductId)) {
             $generics[$genericProductId] = $genericProductId;
         } else {
-            if(planning_GenericMapper::fetchField("#genericProductId = {$productId}")){
+            if (planning_GenericMapper::fetchField("#genericProductId = {$productId}")) {
                 $generics[$productId] = $productId;
             } else {
                 $gQuery = planning_GenericMapper::getQuery();
@@ -218,7 +220,7 @@ class planning_plg_ReplaceProducts extends core_Plugin
             }
         }
 
-        if(!countR($generics)) return $options;
+        if (!countR($generics)) return $options;
 
         // Всички артикули, които се влагат като търсения, или се влагат като неговия генеричен
         $query = planning_GenericMapper::getQuery();
@@ -233,9 +235,9 @@ class planning_plg_ReplaceProducts extends core_Plugin
             $temp[$dRec->genericProductId][$dRec->productId] = $dRec->productId;
         }
 
-        foreach ($temp as $gProductId => $products){
+        foreach ($temp as $gProductId => $products) {
             $options["g{$gProductId}"] = (object)array('group' => true, 'title' => cat_Products::getTitleById($gProductId));
-            foreach ($products as $pId){
+            foreach ($products as $pId) {
                 $options["{$pId}|{$gProductId}"] = cat_Products::getTitleById($pId);
             }
         }

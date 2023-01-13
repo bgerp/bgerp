@@ -44,7 +44,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
     
     
     /**
