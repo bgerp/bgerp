@@ -2137,15 +2137,17 @@ class sales_Sales extends deals_DealMaster
     public function getCourierApi4Document($rec)
     {
         // Ако има конкретно посочено куриерско API
+        $courierApiDriver = null;
         $rec = $this->fetchRec($rec);
-        if(isset($rec->courierApi)) return $rec->courierApi;
-
-        // Ако не е посочено куриерско АПИ, се търси това от условието на доставка (ако има такова)
-        if(isset($rec->deliveryTermId)){
-            if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)) return $courierApi;
+        if(isset($rec->courierApi)) {
+            $courierApiDriver = $rec->courierApi;
+        } elseif(isset($rec->deliveryTermId)){
+            if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)) {
+                $courierApiDriver = $courierApi;
+            }
         }
 
-        return null;
+        return cls::load($courierApiDriver, true) ? $courierApiDriver : null;
     }
 
 
