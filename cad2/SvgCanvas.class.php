@@ -263,9 +263,10 @@ class cad2_SvgCanvas extends cad2_Canvas
         
         $m = $absolute ? 'M' : 'm';
         
-        
-        // $path->attr['d'] .= " {$m}{$x},{$y}";
-        $path->data[] = array($m, $x, $y);
+        if ($path) {
+            // $path->attr['d'] .= " {$m}{$x},{$y}";
+            $path->data[] = array($m, $x, $y);
+        }
     }
     
     
@@ -321,8 +322,10 @@ class cad2_SvgCanvas extends cad2_Canvas
         
         
         // $path->attr['d'] .= " {$l}{$x},{$y}";
-        
-        $path->data[] = array($l, $x, $y);
+
+        if ($path) {
+            $path->data[] = array($l, $x, $y);
+        }
     }
     
     
@@ -336,10 +339,12 @@ class cad2_SvgCanvas extends cad2_Canvas
         list($x1, $y1, $x2, $y2, $x, $y) = self::toPix($x1, $y1, $x2, $y2, $x, $y);
         
         $c = $absolute ? 'C' : 'c';
-        
-        // $path->attr['d'] .= " {$c}{$x1},{$y1} {$x2},{$y2} {$x},{$y}";
-        $path->data[] = array($c, $x1, $y1, $x2, $y2, $x, $y);
-        
+
+        if ($path) {
+            // $path->attr['d'] .= " {$c}{$x1},{$y1} {$x2},{$y2} {$x},{$y}";
+            $path->data[] = array($c, $x1, $y1, $x2, $y2, $x, $y);
+        }
+
         $this->setCP($x1, $y1, $absolute);
         $this->setCP($x2, $y2, $absolute);
         $this->setCP($x, $y, $absolute);
