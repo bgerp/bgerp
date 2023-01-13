@@ -221,10 +221,6 @@ class planning_plg_ReplaceProducts extends core_Plugin
             }
         }
 
-        if(haveRole('debug')){
-            bp($genericProductId, $id, $productId, $generics);
-        }
-
 
         if (!countR($generics)) return $options;
 
@@ -247,6 +243,11 @@ class planning_plg_ReplaceProducts extends core_Plugin
                 $options["{$pId}|{$gProductId}"] = cat_Products::getTitleById($pId);
             }
         }
+
+        if(haveRole('debug')){
+            bp($genericProductId, $id, $productId, $generics, $temp, $options);
+        }
+
 
         return $options;
     }
