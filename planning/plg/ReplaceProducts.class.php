@@ -207,6 +207,7 @@ class planning_plg_ReplaceProducts extends core_Plugin
         $temp = $options = $generics = array();
 
         $genericProductId = planning_GenericProductPerDocuments::getRec($mvc, $id);
+
         if (isset($genericProductId)) {
             $generics[$genericProductId] = $genericProductId;
         } else {
@@ -219,6 +220,11 @@ class planning_plg_ReplaceProducts extends core_Plugin
                 $generics = arr::extractValuesFromArray($gQuery->fetchAll(), 'genericProductId');
             }
         }
+
+        if(haveRole('debug')){
+            bp($genericProductId, $id, $productId, $generics);
+        }
+
 
         if (!countR($generics)) return $options;
 
