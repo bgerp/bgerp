@@ -257,6 +257,20 @@ class planning_ProductionTaskProducts extends core_Detail
                 }
             }
 
+            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
+                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
+            }
+
+            $taskRec = planning_Tasks::fetch($rec->taskId);
+            if(empty($rec->id) && $rec->productId == $taskRec->wasteProductId && $rec->type != 'waste'){
+                $form->setError('productId', 'Артикулът е посочен като планиран отпадък');
+            }
+
+            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
+                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
+            }
+
+
             if(!$form->gotErrors()){
                 if (!empty($rec->inputedQuantity) && !empty($rec->indTime)){
                     $rec->norm = $rec->indTime;
