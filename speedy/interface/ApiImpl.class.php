@@ -169,6 +169,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->setDefault('isPrivatePerson', $isPrivatePerson);
         $form->setDefault('isDocuments', 'no');
         $form->setDefault('isPaletize', 'no');
+        $form->setDefault('palletCount', 1);
         $form->setFieldTypeParams('parcelInfo', array('width_sgt' => '80=80,100=100,120=120,150=150,175=175,200=200', 'depth_sgt' => '60=60,120=120'));
         $form->input(null, 'silent');
 
@@ -178,7 +179,6 @@ class speedy_interface_ApiImpl extends core_BaseClass
             $form->setField('isFragile', 'input=none');
             $form->setField('insurancePayer', 'input=none');
             $form->setField('palletCount', 'input=hidden');
-            $form->setDefault('palletCount', 1);
         }
 
         $logisticData = $mvc->getLogisticData($rec);
