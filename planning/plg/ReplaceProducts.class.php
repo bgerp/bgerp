@@ -205,43 +205,20 @@ class planning_plg_ReplaceProducts extends core_Plugin
 
     private static function getReplaceOptions($mvc, $id, $productId)
     {
-        $temp = $options = $generics = array();
+        $temp = $options = array();
 
         $genericProductId = planning_GenericProductPerDocuments::getRec($mvc, $id);
-
-        if (isset($genericProductId)) {
-            $generics[$genericProductId] = $genericProductId;
-        } else {
-            if (planning_GenericMapper::fetchField("#genericProductId = {$productId}")) {
-                $generics[$productId] = $productId;
-            } else {
-                $gQuery = planning_GenericMapper::getQuery();
-                $gQuery->where("#productId = {$productId}");
-                $gQuery->show('genericProductId');
-                $generics = arr::extractValuesFromArray($gQuery->fetchAll(), 'genericProductId');
+        if($query = planning_GenericMapper::getHelperQuery($productId, $genericProductId)){
+            while ($dRec = $query->fetch()) {
+                $temp[$dRec->genericProductId][$dRec->genericProductId] = $dRec->genericProductId;
+                $temp[$dRec->genericProductId][$dRec->productId] = $dRec->productId;
             }
-        }
 
-
-        if (!countR($generics)) return $options;
-
-        // Всички артикули, които се влагат като търсения, или се влагат като неговия генеричен
-        $query = planning_GenericMapper::getQuery();
-        $query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
-        $query->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
-        $query->where("#state = 'active' AND #canConvert = 'yes'");
-        $query->in("genericProductId", $generics);
-        $query->show('productId,genericProductId');
-
-        while ($dRec = $query->fetch()) {
-            $temp[$dRec->genericProductId][$dRec->genericProductId] = $dRec->genericProductId;
-            $temp[$dRec->genericProductId][$dRec->productId] = $dRec->productId;
-        }
-
-        foreach ($temp as $gProductId => $products) {
-            $options["g{$gProductId}"] = (object)array('group' => true, 'title' => cat_Products::getTitleById($gProductId));
-            foreach ($products as $pId) {
-                $options["{$pId}|{$gProductId}"] = cat_Products::getTitleById($pId);
+            foreach ($temp as $gProductId => $products) {
+                $options["g{$gProductId}"] = (object)array('group' => true, 'title' => cat_Products::getTitleById($gProductId));
+                foreach ($products as $pId) {
+                    $options["{$pId}|{$gProductId}"] = cat_Products::getTitleById($pId);
+                }
             }
         }
 

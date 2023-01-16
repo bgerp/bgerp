@@ -3638,14 +3638,11 @@ class cat_Products extends embed_Manager
             return $primeCost;
         }
         
-        if ($onlyManager === true) {
-            return;
-        }
-        
-        $pRec = cat_Products::fetch($productId, 'canConvert,canManifacture,canStore');
-        
+        if ($onlyManager === true) return;
+
         // Ако е вложим
-        if ($pRec->canConvert == 'yes') {
+        $pRec = cat_Products::fetch($productId, 'canConvert,canManifacture,canStore,generic');
+        if ($pRec->canConvert == 'yes' && $pRec->generic == 'yes') {
             
             // Кои са му еквивалентните
             $similar = planning_GenericMapper::getEquivalentProducts($productId);
@@ -3695,8 +3692,6 @@ class cat_Products extends embed_Manager
                 return $primeCost;
             }
         }
-        
-        // Ако нищо не намери
     }
     
     

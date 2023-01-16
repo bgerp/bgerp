@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -126,10 +126,8 @@ class planning_GenericMapper extends core_Manager
             $query->show('productId');
             $alreadySelectedProductsArr = arr::extractValuesFromArray($query->fetchAll(), 'productId');
             $form->setFieldTypeParams("productId", array('notIn' => $alreadySelectedProductsArr));
-            
             $form->setField('genericProductId', 'input=hidden');
         } else {
-            
             $form->setField('productId', 'input=hidden');
         }
     }
@@ -372,55 +370,6 @@ class planning_GenericMapper extends core_Manager
     
     
     /**
-     * Намира еквивалентите за влагане артикули на даден артикул
-     *
-     * @param int $productId             - на кой артикул му търсим еквивалентните
-     * @param int|null $ignoreRecId      - ид на ред, който да се игнорира
-     * @param int|null $genericProductId - конкретен генеричен артикул
-     *
-     * @return array  $res               - масив за избор с еквивалентни артикули
-     */
-    public static function getEquivalentProducts($productId, $ignoreRecId = null, $genericProductId = null)
-    {
-        $res = array();
-        
-        $inArr = array($productId => $productId);
-        if(isset($genericProductId)){
-            if(self::fetchField("#productId = {$productId} AND #genericProductId = {$genericProductId}")){
-                $inArr[$genericProductId] = $genericProductId;
-            }
-        } else {
-            if($genericProductId = self::fetchField("#productId = {$productId}", 'genericProductId')){
-                $inArr[$genericProductId] = $genericProductId;
-            }
-        }
-        
-        // Всички артикули, които се влагат като търсения, или се влагат като неговия генеричен
-        $query = self::getQuery();
-        $query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
-        $query->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
-        $query->where("#state = 'active' AND #canConvert = 'yes'");
-        $query->in("genericProductId", $inArr);
-        $query->show('productId,genericProductId');
-        if (isset($ignoreRecId)) {
-            $query->where("#id != {$ignoreRecId}");
-        }
-        
-        while ($dRec = $query->fetch()) {
-            if(!array_key_exists($dRec->productId, $res)){
-                $res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, false);
-            }
-            
-            if(!array_key_exists($dRec->genericProductId, $res)){
-                $res[$dRec->genericProductId] = cat_Products::getTitleById($dRec->genericProductId, false);
-            }
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
      * Връща среднопритеглената цена на артикула в сметката на незавършеното производство
      *
      * @param int  $quantity - к-во
@@ -474,7 +423,7 @@ class planning_GenericMapper extends core_Manager
         }
         
         // Ако няма заместващи артикули, не търсим средна цена
-        $equivalentProducts = static::getEquivalentProducts($productId);
+        $equivalentProducts = static::getEquivalentProducts($productId, null, true);
         if (!countR($equivalentProducts)) {
             
             return $avgPrice;
@@ -530,11 +479,10 @@ class planning_GenericMapper extends core_Manager
             if (!$date) {
                 $date = dt::now();
             }
-            
-            $pInfo = cat_Products::getProductInfo($productId);
-            
+
             // Ако артикула е складируем взимаме среднопритеглената му цена от склада
-            if (isset($pInfo->meta['canStore'])) {
+            $canStore = cat_Products::fetchField($productId, 'canStore');
+            if ($canStore == 'yes') {
                 $selfValue = cat_Products::getWacAmountInStore($quantity, $productId, $date);
             } else {
                 $selfValue = static::getWacAmountInProduction($quantity, $productId, $date);
@@ -601,6 +549,69 @@ class planning_GenericMapper extends core_Manager
         $query = "UPDATE {$tableName} SET {$genericProductIdColName} = {$genericProductId} WHERE {$tableName}.{$productIdColName} = {$rec->productId}";
 
         $Stocks->db->query($query);
+    }
+
+    /**
+     * Помощна ф-я за работа с генеричните артикули
+     *
+     * @param int $productId
+     * @param int|null $genericProductId
+     * @param bool $onlyIfOne
+     * @return null|core_Query
+     */
+    public static function getHelperQuery($productId, $genericProductId = null, $onlyIfOne = true)
+    {
+        if (isset($genericProductId)) {
+            $generics[$genericProductId] = $genericProductId;
+        } else {
+            if (planning_GenericMapper::fetchField("#genericProductId = {$productId}")) {
+                $generics[$productId] = $productId;
+            } else {
+                $gQuery = planning_GenericMapper::getQuery();
+                $gQuery->where("#productId = {$productId}");
+                $gQuery->show('genericProductId');
+                if($onlyIfOne){
+                    $gQuery->limit(1);
+                }
+                $generics = arr::extractValuesFromArray($gQuery->fetchAll(), 'genericProductId');
+            }
+        }
+
+        $count = countR($generics);
+        if (!$count) return null;
+
+        // Всички артикули, които се влагат като търсения, или се влагат като неговия генеричен
+        $query = planning_GenericMapper::getQuery();
+        $query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+        $query->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
+        $query->where("#state = 'active' AND #canConvert = 'yes'");
+        $query->in("genericProductId", $generics);
+        $query->show('productId,genericProductId');
+
+        return $query;
+    }
+
+
+
+    /**
+     * Намира еквивалентите за влагане артикули на даден артикул
+     *
+     * @param int $productId             - на кой артикул му търсим еквивалентните
+     * @param int|null $genericProductId - конкретен генеричен артикул
+     * @param bool $onlyIfGenericIsOne   - дали да се върне само ако има един генеричен артикул
+     *
+     * @return array  $res               - масив за избор с еквивалентни артикули
+     */
+    public static function getEquivalentProducts($productId, $genericProductId = null, $onlyIfGenericIsOne = true)
+    {
+        $res = array();
+        if($query = static::getHelperQuery($productId, $genericProductId, $onlyIfGenericIsOne)){
+            while ($dRec = $query->fetch()) {
+                $res[$dRec->productId] = $dRec->productId;
+            }
+        }
+
+        return $res;
     }
 }
     
