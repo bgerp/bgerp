@@ -2989,7 +2989,14 @@ class planning_Tasks extends core_Master
 
         // Запомняне на предишните стойностти на определени полета
         if(isset($rec->id)){
-            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId,indTime', false);
+            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId,indTime,plannedQuantity', false);
+
+            // Ако е сменено планираното к-во преизчислява се прогреса
+            if (!empty($rec->plannedQuantity) && $rec->plannedQuantity != $exRec->plannedQuantity) {
+                $percent = ($rec->totalQuantity - $rec->scrappedQuantity) / $rec->plannedQuantity;
+                $rec->progress = round($percent, 2);
+            }
+
             $rec->_exAssetId = $exRec->assetId;
             $rec->_exOrderByAssetId = $exRec->orderByAssetId;
             $rec->_exIndTime = $exRec->indTime;
