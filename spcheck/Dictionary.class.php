@@ -176,7 +176,7 @@ class spcheck_Dictionary extends core_Manager
             }
         } else {
             if (function_exists('pspell_new')) {
-                $pspellLink=@pspell_new($lg);
+                $pspellLink = @pspell_new($lg);
             } else {
                 self::logErr("Не е инсталиран PHP модулът 'pspell'");
                 
