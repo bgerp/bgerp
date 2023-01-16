@@ -1529,7 +1529,7 @@ class planning_Tasks extends core_Master
 
             // Ако артикула от етапа е генеричен предлагат се за избор неговите еквивалентни
             if (isset($productionData['wasteProductId'])) {
-                $wasteOptions = planning_GenericMapper::getEquivalentProducts($productionData['wasteProductId']);
+                $wasteOptions = planning_GenericMapper::getEquivalentProducts($productionData['wasteProductId'], null, true, true);
                 if (countR($wasteOptions)) {
                     $form->setFieldType('wasteProductId', 'int');
                     $form->setOptions('wasteProductId', $wasteOptions);
