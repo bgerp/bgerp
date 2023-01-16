@@ -1818,7 +1818,7 @@ class cat_Boms extends core_Master
             
             return $res;
         }
-
+        //bp($bomInfo);
         foreach ($bomInfo['resources'] as $pRec) {
             $productRec = cat_Products::fetch($pRec->productId, 'canStore,generic');
             if ($productRec->canStore != 'yes' || $pRec->type != 'input') {
@@ -1839,13 +1839,17 @@ class cat_Boms extends core_Master
 
                 if (empty($quantity)) continue;
             }
-            
-            $res[] = (object) array('productId' => $pRec->productId,
+
+            $r = (object) array('productId' => $pRec->productId,
                 'packagingId' => $pRec->packagingId,
                 'quantity' => $pRec->propQuantity,
                 'quantityInPack' => $pRec->quantityInPack);
+            if(isset($pRec->genericProductId)){
+                $r->genericProductId = $pRec->genericProductId;
+            }
+            $res[] = $r;
         }
-        
+
         return $res;
     }
 

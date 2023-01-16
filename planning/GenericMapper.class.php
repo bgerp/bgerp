@@ -602,12 +602,15 @@ class planning_GenericMapper extends core_Manager
      *
      * @return array  $res               - масив за избор с еквивалентни артикули
      */
-    public static function getEquivalentProducts($productId, $genericProductId = null, $onlyIfGenericIsOne = true)
+    public static function getEquivalentProducts($productId, $genericProductId = null, $onlyIfGenericIsOne = true, $verbal = false)
     {
         $res = array();
         if($query = static::getHelperQuery($productId, $genericProductId, $onlyIfGenericIsOne)){
             while ($dRec = $query->fetch()) {
-                $res[$dRec->productId] = $dRec->productId;
+                $res[$dRec->productId] = ($verbal) ? cat_Products::getTitleById($dRec->productId, false) : $dRec->productId;
+                if(!array_key_exists($dRec->genericProductId, $res)){
+                    $res[$dRec->genericProductId] = ($verbal) ? cat_Products::getTitleById($dRec->genericProductId, false) : $dRec->genericProductId;
+                }
             }
         }
 
