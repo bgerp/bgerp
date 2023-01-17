@@ -128,7 +128,8 @@ class planning_GenericProductPerDocuments extends core_Manager
         if(isset($rec->containerId)){
             $Document = doc_Containers::getDocument($rec->containerId);
             $row->containerId = $Document->getLink(0);
-            $row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
+            $row->ROW_ATTR['class'] = "state-{$Document->fetchField('state
+            ')}";
         }
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->genericProductId = cat_Products::getHyperlink($rec->genericProductId, true);
@@ -141,7 +142,11 @@ class planning_GenericProductPerDocuments extends core_Manager
         static::recalc();
     }
 
-    public static function recalc()
+
+    /**
+     * Рекалкулиране на записите
+     */
+    private static function recalc()
     {
         $map = $save = array();
         $gQuery = planning_GenericMapper::getQuery();
@@ -194,6 +199,16 @@ class planning_GenericProductPerDocuments extends core_Manager
     }
 
 
+    /**
+     * Синхронизира документа
+     *
+     * @param mixed $detailClassId
+     * @param int $detailRecId
+     * @param int $productId
+     * @param int $containerId
+     * @param int|null $genericProductId
+     * @return void
+     */
     public static function sync($detailClassId, $detailRecId, $productId, $containerId, $genericProductId = null)
     {
         $Detail = cls::get($detailClassId);
