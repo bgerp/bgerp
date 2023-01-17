@@ -25,7 +25,7 @@ class planning_GenericProductPerDocuments extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'planning_Wrapper,plg_RowTools2';
+    public $loadList = 'planning_Wrapper,plg_RowTools2,plg_Sorting';
 
 
     /**
@@ -55,7 +55,7 @@ class planning_GenericProductPerDocuments extends core_Manager
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'detailClassId, detailRecId, containerId, productId, genericProductId';
+    public $listFields = 'containerId, productId, genericProductId';
 
 
     /**
@@ -98,6 +98,25 @@ class planning_GenericProductPerDocuments extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('id', 'DESC');
+
+        $data->listFilter->FLD('docId', 'varchar', 'caption=Документ');
+        $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикул');
+        $data->listFilter->showFields .= "docId,product";
+        $data->listFilter->input(null, 'silent');
+
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input();
+        if ($filter = $data->listFilter->rec) {
+            if(!empty($filter->docId)){
+                if ($document = doc_Containers::getDocumentByHandle($filter->docId)) {
+                    $data->query->where("#containerId = {$document->fetchField('containerId')}");
+                }
+            }
+            if(!empty($filter->product)){
+                $data->query->where("#productId = {$filter->product} OR #genericProductId = {$filter->product}");
+            }
+        }
     }
 
 
@@ -107,7 +126,9 @@ class planning_GenericProductPerDocuments extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if(isset($rec->containerId)){
-            $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+            $Document = doc_Containers::getDocument($rec->containerId);
+            $row->containerId = $Document->getLink(0);
+            $row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
         }
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->genericProductId = cat_Products::getHyperlink($rec->genericProductId, true);
