@@ -1420,7 +1420,7 @@ class rack_Zones extends core_Master
     public static function getDisplayZone($zoneId, $showGroup = false, $makeLink = 'terminal', $class = 'zoneMovement')
     {
         if(Mode::is('printing') || Mode::is('text', 'xhtml')) return null;
-        $zoneTitle = ($showGroup) ? rack_Zones::getRecTitle($zoneId) : rack_Zones::getVerbal($zoneId, 'num');
+        $zoneTitle = ($showGroup) ? rack_Zones::getRecTitle($zoneId) : rack_Zones::getVerbal(rack_Zones::fetch($zoneId), 'num');
         $warning = $hint = null;
 
         // Линк към зоната
