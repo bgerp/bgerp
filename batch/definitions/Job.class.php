@@ -113,22 +113,24 @@ class batch_definitions_Job extends batch_definitions_Proto
     {
         $Detail = cls::get($mvc);
         if(($Detail instanceof planning_DirectProductNoteDetails) || ($Detail instanceof planning_ConsumptionNoteDetails)){
-            $originId = $Detail->Master->fetchField($Detail->fetchRec($id, 'noteId')->noteId, 'originId');
-            $origin = doc_Containers::getDocument($originId);
-            if($origin->isInstanceOf('planning_Tasks')){
-                $jobId = $origin->fetchField('originId');
-                $originJob = doc_Containers::getDocument($jobId);
-                $jobId = $originJob->that;
-            } else {
-                $jobId = $origin->that;
+            $masterRec = $Detail->Master->fetch($Detail->fetchRec($id, 'noteId')->noteId, 'originId,threadId');
+            $origin = isset($masterRec->originId) ? doc_Containers::getDocument($masterRec->originId) : doc_Threads::getFirstDocument($masterRec->threadId);
+            if(is_object($origin)){
+                if($origin->isInstanceOf('planning_Tasks')){
+                    $jobId = $origin->fetchField('originId');
+                    $originJob = doc_Containers::getDocument($jobId);
+                    $jobId = $originJob->that;
+                } else {
+                    $jobId = $origin->that;
+                }
+
+                $batchName = $this->getDefaultBatchName($jobId);
+                if(array_key_exists($batchName, $quantities)){
+
+                    return array($batchName => $quantities[$batchName]);
+                }
             }
 
-            $batchName = $this->getDefaultBatchName($jobId);
-            if(array_key_exists($batchName, $quantities)){
-                
-                return array($batchName => $quantities[$batchName]);
-            }
-            
             return array();
         }
         

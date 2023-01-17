@@ -99,13 +99,13 @@ class rack_Zones extends core_Master
     /**
      * Кой може да селектира документа
      */
-    public $canSelectdocument = 'ceo,rack';
+    public $canSelectdocument = 'ceo,rackZoneSelect';
 
 
     /**
      * Кой може ръчно да премахва документ от зона
      */
-    public $canManualclearzone = 'ceo,rack';
+    public $canManualclearzone = 'ceo,rackZoneSelect';
 
 
     /**
@@ -668,12 +668,16 @@ class rack_Zones extends core_Master
                         $msg = 'Дефолтния работник е променен успешно|*!';
                     }
 
-                    $zoneUrl = self::getUrlArr($fRec->zoneId);
-                    if(isset($fRec->defaultUserId)){
-                        $zoneUrl['additional'] = 'yes';
+                    if(haveRole('ceo,rackSee')){
+                        $redirectUrl = self::getUrlArr($fRec->zoneId);
+                        if(isset($fRec->defaultUserId)){
+                            $redirectUrl['additional'] = 'yes';
+                        }
+                    } else {
+                        $redirectUrl = $document->getSingleUrlArray();
                     }
 
-                    redirect($zoneUrl, false, $msg);
+                    redirect($redirectUrl, false, $msg);
                 } elseif(isset($zoneRec->id)) {
                     $document->getInstance()->logWrite('Премахване от зона', $document->that);
                     $msg = 'Документът е премахнат от зоната|*!';
@@ -778,7 +782,7 @@ class rack_Zones extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 if (rack_ZoneDetails::fetchField("#zoneId = {$rec->id} AND (#movementQuantity IS NOT NULL AND #movementQuantity != 0)")) {
-                    $requiredRoles = 'no_one';
+                   $requiredRoles = 'no_one';
                 }
             }
         }
@@ -1420,7 +1424,7 @@ class rack_Zones extends core_Master
     public static function getDisplayZone($zoneId, $showGroup = false, $makeLink = 'terminal', $class = 'zoneMovement')
     {
         if(Mode::is('printing') || Mode::is('text', 'xhtml')) return null;
-        $zoneTitle = ($showGroup) ? rack_Zones::getRecTitle($zoneId) : rack_Zones::getVerbal($zoneId, 'num');
+        $zoneTitle = ($showGroup) ? rack_Zones::getRecTitle($zoneId) : rack_Zones::getVerbal(rack_Zones::fetch($zoneId), 'num');
         $warning = $hint = null;
 
         // Линк към зоната
