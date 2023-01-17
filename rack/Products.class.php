@@ -37,7 +37,7 @@ class rack_Products extends store_Products
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,rack';
+    public $canList = 'ceo,rackSee';
     
     
     /**

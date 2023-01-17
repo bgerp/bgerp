@@ -49,7 +49,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,rack';
+    public $canList = 'ceo,rackSee';
     
     
     /**

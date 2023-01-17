@@ -638,6 +638,9 @@ class planning_ProductionTaskProducts extends core_Detail
         // При клониране да се пропуска прогнозния отпадъка посочен в операцията (той ще се запише при активиране)
         $newTask = planning_Tasks::fetch($rec->taskId);
         if($rec->type == 'waste' && $rec->productId == $newTask->wasteProductId) return false;
+        if($rec->type == 'production' && empty($rec->plannedQuantity)){
+            $rec->productId = planning_Jobs::fetchField("#containerId = {$newTask->originId}", 'productId');
+        }
     }
 
 
