@@ -559,7 +559,7 @@ class planning_GenericMapper extends core_Manager
      * @param bool $onlyIfOne
      * @return null|core_Query
      */
-    public static function getHelperQuery($productId, $genericProductId = null, $onlyIfOne = true)
+    public static function getHelperQuery($productId, $genericProductId = null, $onlyIfOne = false)
     {
         if (isset($genericProductId)) {
             $generics[$genericProductId] = $genericProductId;
