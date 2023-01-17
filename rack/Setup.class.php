@@ -147,14 +147,16 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = array('rack', array('rackMaster', 'rack'));
+    public $roles = array('rackZoneSelect', 'rackSee',
+                    array('rack', 'rackSee'),
+                    array('rackMaster', 'rack'));
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rack,ceo'),
+        array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rackSee,ceo'),
     );
 
 

@@ -37,7 +37,7 @@ class rack_OldMovements extends rack_MovementAbstract
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,rack';
+    public $canList = 'ceo,rackSee';
 
 
     /**
