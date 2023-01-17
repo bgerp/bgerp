@@ -148,7 +148,7 @@ class rack_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array('rackZoneSelect', 'rackSee',
-                    array('rack', 'rackSee'),
+                    array('rack', 'rackSee,rackZoneSelect'),
                     array('rackMaster', 'rack'));
     
     
