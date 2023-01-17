@@ -69,7 +69,7 @@ class planning_GenericProductPerDocuments extends core_Manager
      */
     public function description()
     {
-        $this->FLD('detailClassId', 'class(interface=core_ManagerIntf)', 'caption=Детайл,mandatory,silent,input=hidden,remember');
+        $this->FLD('detailClassId', 'class(interface=core_ManagerIntf,select=title)', 'caption=Детайл,mandatory,silent,remember');
         $this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory,silent,input=hidden');
         $this->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden,tdClass=leftCol');
         $this->FLD('genericProductId', 'int', 'caption=Генеричен,mandatory,silent,input=hidden,tdClass=leftCol');
@@ -101,7 +101,7 @@ class planning_GenericProductPerDocuments extends core_Manager
 
         $data->listFilter->FLD('docId', 'varchar', 'caption=Документ');
         $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикул');
-        $data->listFilter->showFields .= "docId,product";
+        $data->listFilter->showFields .= "docId,product,detailClassId";
         $data->listFilter->input(null, 'silent');
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -115,6 +115,10 @@ class planning_GenericProductPerDocuments extends core_Manager
             }
             if(!empty($filter->product)){
                 $data->query->where("#productId = {$filter->product} OR #genericProductId = {$filter->product}");
+            }
+
+            if(!empty($filter->detailClassId)){
+                $data->query->where("#detailClassId = {$filter->detailClassId}");
             }
         }
     }

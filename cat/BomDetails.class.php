@@ -1328,6 +1328,11 @@ class cat_BomDetails extends doc_Detail
 
                 // Добавяме записа
                 $this->save_($dRec);
+
+                if($genericProductId = planning_GenericProductPerDocuments::getRec($this, $oldId)){
+                    planning_GenericProductPerDocuments::sync($this, $dRec->id, $dRec->resourceId, $toRec->containerId, $genericProductId);
+                }
+
                 $map[$oldId] = $dRec->id;
             }
         }

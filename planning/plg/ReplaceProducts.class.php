@@ -227,6 +227,17 @@ class planning_plg_ReplaceProducts extends core_Plugin
 
 
     /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        if($genericProductId = planning_GenericProductPerDocuments::getRec($mvc, $oldRec->id)){
+            $rec->_genericProductId = $genericProductId;
+        }
+    }
+
+
+    /**
      * Извиква се след успешен запис в модела
      */
     public static function on_AfterSave($mvc, &$id, $rec)
