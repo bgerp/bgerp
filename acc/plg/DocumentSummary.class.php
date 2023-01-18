@@ -112,8 +112,6 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
         $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
-        $rolesForTeamsArr = arr::make($mvc->filterRolesForTeam, true);
-        $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
         
         $mvc->filterRolesForAll .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_ALL');
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
@@ -125,12 +123,17 @@ class acc_plg_DocumentSummary extends core_Plugin
             foreach ($rolesAllArr as $roleStr) {
                 $roleStr = trim($roleStr);
                 $mvc->filterRolesForAll .= ',' . $roleStr . 'Global';
+                $mvc->filterRolesForTeam .= ',' . $roleStr;
             }
         }
+        $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
+        $rolesForTeamsArr = arr::make($mvc->filterRolesForTeam, true);
+        $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
+
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
         $rolesForAllArr = arr::make($mvc->filterRolesForAll, true);
         $mvc->filterRolesForAll = implode('|', $rolesForAllArr);
-        
+
         setIfNot($mvc->filterAutoDate, true);
         if(!$mvc->hidePeriodFilter){
             $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
