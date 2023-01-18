@@ -73,7 +73,7 @@ class rack_Zones extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,rack';
+    public $canList = 'ceo,rackSee';
 
 
     /**
