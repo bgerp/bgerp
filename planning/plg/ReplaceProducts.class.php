@@ -115,7 +115,9 @@ class planning_plg_ReplaceProducts extends core_Plugin
                     }
                 }
 
-                if ($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
+                $exGenericProductId = isset($exRec->id) ? planning_GenericProductPerDocuments::getRec($mvc, $exRec->id) : null;
+
+                if ($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName} && $nRec->_genericProductId == $exGenericProductId) {
 
                     return followRetUrl(null, 'Артикулът не е подменен');
                 }
@@ -243,7 +245,6 @@ class planning_plg_ReplaceProducts extends core_Plugin
     public static function on_AfterSave($mvc, &$id, $rec)
     {
         if(isset($rec->{$mvc->replaceProductFieldName})){
-
             $updateGenericProductId = null;
             if(isset($rec->_genericProductId)){
                 $updateGenericProductId = $rec->_genericProductId;
