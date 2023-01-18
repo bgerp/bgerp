@@ -190,7 +190,8 @@ class type_Ip extends type_Varchar
     public static function getRealIp() {
         $ip = $_SERVER['REMOTE_ADDR'];
         if (!self::isPublic($ip) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            $ip = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']); // може да има повече IP-та разделени със запетайка
+            $ip = trim($ip);
         }
 
         return $ip;

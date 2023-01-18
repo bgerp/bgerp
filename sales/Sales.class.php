@@ -439,7 +439,20 @@ class sales_Sales extends deals_DealMaster
         $myCompany = crm_Companies::fetchOwnCompany();
         $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
 
+        // Ако няма ръчно избрана БС гледа се последно избраната в папката
         $defaultBankAccountId = $rec->bankAccountId;
+        if(empty($rec->bankAccountId)) {
+            $lastSelectedBankAccountId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'bankAccountId', 'lastDocUser|lastDoc');
+            if(!empty($lastSelectedBankAccountId)){
+
+                // ако все още е активна и може да я избира потребителя - попълва се
+                $ownBankSelectedRec = bank_OwnAccounts::fetch("#bankAccountId = {$lastSelectedBankAccountId}");
+                if(!in_array($ownBankSelectedRec->state, array('closed', 'rejected')) && bgerp_plg_FLB::canUse('bank_OwnAccounts', $ownBankSelectedRec, null, 'select')){
+                    $defaultBankAccountId = $lastSelectedBankAccountId;
+                }
+            }
+        }
+
         if(!array_key_exists($rec->bankAccountId, $options)){
             if($data->action != 'clone'){
                 $options[$rec->bankAccountId] = $rec->bankAccountId;

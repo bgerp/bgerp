@@ -529,6 +529,7 @@ class cvc_interface_CourierImpl extends core_Manager
             $preparedBolParams = static::prepareBolData($form->rec, 'calculate');
             $res = cvc_Adapter::calculateWb($preparedBolParams);
         } catch(core_exception_Expect $e){
+            bp($e, $preparedBolParams);
             $haveError = true;
         }
 
@@ -629,13 +630,7 @@ class cvc_interface_CourierImpl extends core_Manager
                     $recipientObj->{$theirFld} = $rec->{$oursFld};
                 }
             }
-            $streetStr = '';
-            if(!empty($rec->recipientPlace)){
-                $streetStr = $rec->recipientPlace;
-            }
-            if(!empty($rec->recipientAddress)){
-                $streetStr .= (!empty($streetStr) ? ", " : '') . $rec->recipientAddress;
-            }
+
             if(!empty($streetStr)){
                 $recipientObj->street = $streetStr;
             }
