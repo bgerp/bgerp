@@ -602,8 +602,8 @@ class rack_Zones extends core_Master
         $this->requireRightFor('selectdocument');
         expect($containerId = Request::get('containerId', 'int'));
         expect($document = doc_Containers::getDocument($containerId));
-        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId));
         $documentRec = $document->fetch();
+        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId, 'storeId' => $documentRec->{$document->storeFieldName}));
         $storeId = $documentRec->{$document->storeFieldName};
 
         // Подготовка на формата
@@ -746,16 +746,15 @@ class rack_Zones extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'selectdocument' && isset($rec)) {
-            if (empty($rec->containerId)) {
+            if (empty($rec->containerId) || empty($rec->storeId)) {
                 $requiredRoles = 'no_one';
             } else {
                 $document = doc_Containers::getDocument($rec->containerId);
-                $selectedStoreId = store_Stores::getCurrent('id');
-                if (!rack_Zones::fetchField("#storeId = {$selectedStoreId} AND #state != 'closed'")) {
+                if (!rack_Zones::fetchField("#storeId = {$rec->storeId} AND #state != 'closed'")) {
                     $requiredRoles = 'no_one';
                 } else {
                     $documentRec = $document->fetch("state,{$document->storeFieldName}");
-                    if (!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending')) || $documentRec->{$document->storeFieldName} != $selectedStoreId) {
+                    if (!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending'))) {
                         $requiredRoles = 'no_one';
                     }
                 }
