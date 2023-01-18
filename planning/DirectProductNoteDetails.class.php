@@ -477,4 +477,20 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
         }
     }
+
+
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        // При клониране да се пропуска прогнозния отпадъка посочен в операцията (той ще се запише при активиране)
+        $newTaskQuantity = planning_DirectProductionNote::fetchField($rec->noteId, 'quantity');
+        $oldTaskQuantity = planning_DirectProductionNote::fetchField($oldRec->noteId, 'quantity');
+
+        $q = $oldRec->quantity / $oldTaskQuantity->quantity;
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+        $round = cat_UoM::fetchField($measureId, 'round');
+        $rec->quantity = round($q * $newTaskQuantity->quantity, $round);
+    }
 }
