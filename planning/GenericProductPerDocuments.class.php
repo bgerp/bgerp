@@ -69,7 +69,7 @@ class planning_GenericProductPerDocuments extends core_Manager
      */
     public function description()
     {
-        $this->FLD('detailClassId', 'class(interface=core_ManagerIntf,select=title)', 'caption=Детайл,mandatory,silent,remember');
+        $this->FLD('detailClassId', 'class(interface=core_ManagerIntf,select=title,allowEmpty)', 'caption=Детайл,mandatory,silent,remember');
         $this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory,silent,input=hidden');
         $this->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden,tdClass=leftCol');
         $this->FLD('genericProductId', 'int', 'caption=Генеричен,mandatory,silent,input=hidden,tdClass=leftCol');
