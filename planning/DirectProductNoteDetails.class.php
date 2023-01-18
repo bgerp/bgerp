@@ -492,5 +492,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
         $round = cat_UoM::fetchField($measureId, 'round');
         $rec->quantity = round($q * $newTaskQuantity, $round);
+
+        if(!empty($rec->quantityFromBom)){
+            $q1 = $oldRec->quantityFromBom / $oldTaskQuantity;
+            $rec->quantityFromBom = round($q1 * $newTaskQuantity, $round);
+        }
     }
 }
