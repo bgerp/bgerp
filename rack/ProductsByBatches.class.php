@@ -108,7 +108,7 @@ class rack_ProductsByBatches extends batch_Items
     {
         $storeId = store_Stores::getCurrent('id');
         $data->listFilter->setDefault('store', $storeId);
-        $data->query->orderBy('id', 'ASC');
+        $data->query->orderBy('productId', 'ASC');
     }
 
 
