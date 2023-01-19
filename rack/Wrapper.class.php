@@ -26,7 +26,11 @@ class rack_Wrapper extends plg_ProtoWrapper
         $this->TAB('rack_Movements', 'Движения->Списък', 'ceo,rackSee');
         $this->TAB('rack_OldMovements', 'Движения->История', 'ceo,rackSee');
 
-        $this->TAB('rack_Products', 'Продукти', 'ceo,rackSee');
+        $this->TAB('rack_Products', 'Продукти->Всички', 'ceo,rackSee');
+        if(core_Packs::isInstalled('batch')){
+            $this->TAB('rack_ProductsByBatches', 'Продукти->Партиди', 'ceo,rackSee');
+        }
+
         $this->TAB('rack_Pallets', 'Палети', 'ceo,rackSee');
         $this->TAB(array('rack_Zones', 'list', 'terminal' => true), 'Зони->Терминал', 'ceo,rackSee');
         $this->TAB(array('rack_Zones'), 'Зони->Списък', 'ceo,rackSee');
