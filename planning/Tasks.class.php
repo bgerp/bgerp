@@ -281,6 +281,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'saleId';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -2605,7 +2611,7 @@ class planning_Tasks extends core_Master
         }
 
         core_Debug::stopTimer('RENDER_HEADER');
-
+        $showSaleInList = planning_Setup::get('SHOW_SALE_IN_TASK_LIST');
         $displayPlanningParamsCount = countR($data->listFieldsParams);
         $enableReorder = isset($data->listFilter->rec->assetId) && in_array($data->listFilter->rec->state, array('activeAndPending', 'pending', 'active', 'wakeup')) && countR($data->recs) > 1;
 
@@ -2652,8 +2658,10 @@ class planning_Tasks extends core_Master
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
 
-            if($saleId = $jobRecs[$rec->originId]->saleId){
-                $row->saleId = sales_Sales::getLink($saleId, 0);
+            if($showSaleInList != 'no'){
+                if($saleId = $jobRecs[$rec->originId]->saleId){
+                    $row->saleId = sales_Sales::getLink($saleId, 0);
+                }
             }
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
