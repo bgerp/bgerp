@@ -55,7 +55,7 @@ class rack_Products extends store_Products
     /**
      * Полета за листовия изглед?
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Разполагаемо,quantityOnPallets,quantityOnZones,quantityNotOnPallets';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Налично,quantityOnPallets,quantityOnZones,quantityNotOnPallets';
     
     
     /**
@@ -91,14 +91,7 @@ class rack_Products extends store_Products
     protected function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         core_RowToolbar::createIfNotExists($row->_rowTools);
-        
-        if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->quantityNotOnPallets > 0) {
-            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            
-            // ОТ URL е махнато количеството, защото (1) винаги предлага с това количество палет; (2) Неща, които ги има в базата, не трябва да се предават в URL
-            $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
-        }
-        
+
         // Добавяне на бутони за преизчисляване на кешираните количества
         if ($mvc->haveRightFor('recalccachecquantity', $rec->id)) {
             $row->_rowTools->addLink('К-во по зони', array('rack_Products', 'recalcquantityonzones', 'id' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на количеството по зони');
@@ -124,6 +117,21 @@ class rack_Products extends store_Products
                 
                 if ($rec->quantityOnPallets > 0) {
                     $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт') . '&nbsp;' . $row->quantityOnPallets;
+                }
+
+                if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->quantityNotOnPallets > 0) {
+                    $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+                    $link = ht::createLink('', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), false, 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
+                    $row->quantityNotOnPallets = "{$link} {$row->quantityNotOnPallets}";
+                }
+
+                if(core_Packs::isInstalled('batch')){
+                    $bCount = batch_Items::count("#productId = {$rec->productId} AND #storeId = {$rec->storeId}");
+                    if($bCount && rack_ProductsByBatches::haveRightFor('list')){
+                        $link = ht::createLink('', array('rack_ProductsByBatches', 'list', 'productId' => $rec->productId), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на наличните партиди в склада');
+                        $row->productId->append("&nbsp;");
+                        $row->productId->append($link);
+                    }
                 }
             }
         }

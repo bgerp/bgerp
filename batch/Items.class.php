@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -20,85 +20,88 @@ class batch_Items extends core_Master
      * Заглавие
      */
     public $title = 'Наличности';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, batch_Wrapper, plg_AlignDecimals2, plg_Search, plg_Sorting, plg_State2';
-    
-    
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'productId, batch, storeId';
-    
-    
+
+
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'batch, productId, storeId, measureId=Мярка, quantity, state';
-    
-    
+    public $listFields = 'code=Код, productId, storeId, batch, measureId=Мярка, quantity, state';
+
+
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Наличност';
-    
-    
+
+
     /**
      * Кой може да променя състоянието на валутата
      */
     public $canChangestate = 'batchMaster,ceo';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'batch,ceo';
-    
-    
+
+
     /**
      * Кой може да пише?
      */
     public $canWrite = 'no_one';
-    
-    
+
+
     /**
      * Детайла, на модела
      */
     public $details = 'batch_Movements';
-    
-    
+
+
     /**
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'batch/tpl/SingleLayoutItem.shtml';
-    
-    
+
+
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      *
-     *  @var string
+     * @var string
      */
     public $hideListFieldsIfEmpty = 'nullifiedDate';
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул,mandatory,silent');
         $this->FLD('batch', 'varchar(128)', 'caption=Партида,mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory');
         $this->FLD('quantity', 'double(smartRound)', 'caption=Наличност');
         $this->FLD('nullifiedDate', 'datetime(format=smartTime)', 'caption=Изчерпано');
-        
+
         $this->setDbUnique('productId,batch,storeId');
+        $this->setDbIndex('productId');
+        $this->setDbIndex('storeId');
+        $this->setDbIndex('productId,storeId');
     }
-    
-    
+
+
     /**
      * Връща наличното количество от дадена партида
      *
@@ -158,7 +161,7 @@ class batch_Items extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
@@ -179,7 +182,6 @@ class batch_Items extends core_Master
             if (isset($fields['-list'])) {
                 $link += array('productId' => $rec->productId, 'storeId' => $rec->storeId);
             }
-            
             $row->batch = ht::createLink($row->batch, $link);
         }
         
@@ -187,6 +189,11 @@ class batch_Items extends core_Master
             $featRec = batch_Features::fetch($rec->featureId, 'name,classId,value');
             $row->featureId = cls::get($featRec->classId)->toVerbal($featRec->value);
         }
+
+        $row->code = cat_Products::getVerbal($rec->productId, 'code');
+        $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+        $icon = cls::get('cat_Products')->getIcon($rec->productId);
+        $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
     }
     
     
@@ -269,7 +276,6 @@ class batch_Items extends core_Master
         $data->listFilter->view = 'horizontal';
         $data->listFilter->FLD('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'placeholder=Всички складове');
         $data->listFilter->FLD('filterState', 'varchar', 'placeholder=Състояние');
-        
         $options = arr::make('active=Активни,closed=Затворени,all=Всички', true);
         
         // Кои са инсталираните партидни дефиниции
@@ -294,7 +300,11 @@ class batch_Items extends core_Master
         // Сетване на новите опции
         $data->listFilter->setOptions('filterState', $options);
         $data->listFilter->setDefault('filterState', 'active');
-        $data->listFilter->showFields = 'search,store,filterState';
+        if($mvc instanceof rack_ProductsByBatches){
+            $data->listFilter->showFields = 'search,productId,filterState';
+        } else {
+            $data->listFilter->showFields = 'search,store,productId,filterState';
+        }
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -303,8 +313,16 @@ class batch_Items extends core_Master
             // Филтрираме по склад
             if (isset($filter->store)) {
                 $data->query->where("#storeId = {$filter->store}");
+                unset($data->listFields['storeId']);
+                $selectedStoreName = store_Stores::getHyperlink($filter->store, true);
+                $data->title = "|Наличности по партиди в склад|* <b style='color:green'>{$selectedStoreName}</b>";
             }
-            
+
+            if (isset($filter->productId)) {
+                $data->query->where("#productId = {$filter->productId}");
+                unset($data->listFields['productId']);
+            }
+
             // Филтрираме по състояние
             if (isset($filter->filterState)) {
                 if (strpos($filter->filterState, '::')) {

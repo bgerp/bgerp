@@ -65,7 +65,8 @@ class batch_definitions_Job extends batch_definitions_Proto
     {
         $jobProductId = planning_Jobs::fetchField($jobId, 'productId');
         $res = "JOB{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), ' ');
-        
+        $res = str_replace(' [Art', ' [Art ', $res);
+
         return $res;
     }
     
@@ -124,10 +125,11 @@ class batch_definitions_Job extends batch_definitions_Proto
                     $jobId = $origin->that;
                 }
 
-                $batchName = $this->getDefaultBatchName($jobId);
-                if(array_key_exists($batchName, $quantities)){
-
-                    return array($batchName => $quantities[$batchName]);
+                $startString = "JOB{$jobId}/";
+                foreach ($quantities as $b => $q){
+                    if(strpos($b, $startString) === 0){
+                        return array($b => $q[$b]);
+                    }
                 }
             }
 
