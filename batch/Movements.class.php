@@ -139,12 +139,9 @@ class batch_Movements extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        if (isset($data->masterMvc) && $data->masterMvc instanceof batch_Items) {
-            
-            return;
-        }
+        if (isset($data->masterMvc) && $data->masterMvc instanceof batch_Items)  return;
+
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-        
         $data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
         $data->listFilter->FLD('searchType', 'enum(full=Точно съвпадение,notFull=Частично съвпадение)', 'caption=Търсене,silent');
         $data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
@@ -157,7 +154,10 @@ class batch_Movements extends core_Detail
         $showFields = arr::make('batch,searchType,productId,storeId,action,from,to,selectPeriod,document', true);
         $data->listFilter->showFields = $showFields;
         $data->listFilter->setDefault('searchType', 'full');
-        
+        if($oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate()){
+            $data->listFilter->setDefault('from', $oldestAvailableDate);
+        }
+
         if (haveRole('batch,ceo')) {
             $data->listFilter->showFields = $showFields;
         } else {
