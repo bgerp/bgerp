@@ -135,6 +135,7 @@ class rack_Setup extends core_ProtoSetup
         'rack_OccupancyOfRacks',
         'rack_OldMovements',
         'rack_Logs',
+        'rack_ProductsByBatches',
     );
     
     
