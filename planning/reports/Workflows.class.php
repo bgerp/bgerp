@@ -613,7 +613,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $row->jobs = ht::createLink($Job->getHandle(), array($Job->getInstance(), 'single', $Job->that));
         }
 
-        if ($row->taskId){
+        if ($dRec->taskId){
             $row->taskId = planning_Tasks::getHyperlink($dRec->taskId, true);
         }
 

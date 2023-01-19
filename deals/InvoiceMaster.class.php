@@ -77,7 +77,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason';
+    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions';
     
     
     /**
@@ -185,6 +185,8 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,mandatory');
         $mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
+
+        $mvc->setDbIndex('dueDate');
     }
 
 
@@ -1640,14 +1642,6 @@ abstract class deals_InvoiceMaster extends core_Master
                         $res = 'no_one';
                     }
                 }
-            }
-        }
-
-        // Не може да се променя в затворен период
-        if ($action == 'changerec' && isset($rec) && $res != 'no_one') {
-            $periodState = acc_Periods::fetchByDate($mvc->getValiorValue($rec))->state;
-            if ($periodState == 'closed' || $periodState == 'draft' || is_null($periodState)) {
-                $res = 'no_one';
             }
         }
     }

@@ -71,6 +71,9 @@
                   <!--ET_BEGIN lastAutoRecalcRate-->
                   <span style='font-weight:normal'>|Авт. осредняване на курсове|*</span>: [#lastAutoRecalcRate#]<br>
                   <!--ET_END lastAutoRecalcRate-->
+                  <!--ET_BEGIN courierApi-->
+                  <span style='font-weight:normal'>|Куриерско API|*</span>: [#courierApi#]<br>
+                  <!--ET_END courierApi-->
               </td>
            </tr>
            <tr>

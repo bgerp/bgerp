@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,7 +56,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'note';
+    public $changableFields = 'note,courierApi';
 
 
     /**
@@ -251,9 +251,11 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
+        $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,placeholder=Автоматично,caption=Допълнително->Куриерско Api,after=template,notChangeableIfHidden');
         $this->setField('deliveryTime', 'caption=Товарене');
         $this->setFieldTypeParams("deliveryTime", array('defaultTime' => $startTime));
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('state');
     }
 
 
@@ -265,11 +267,19 @@ class store_ShipmentOrders extends store_DocumentMaster
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if (!isset($rec->id)) {
-            expect($origin = static::getOrigin($rec), $rec);
-            if ($origin->isInstanceOf('sales_Sales')) {
-                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули, input,after=responsible');
+        expect($origin = static::getOrigin($rec), $rec);
 
+        if ($origin->isInstanceOf('sales_Sales')) {
+            if (!isset($rec->id)) {
+                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули, input,after=responsible');
+            }
+
+            $form->setField('courierApi', 'input');
+            $courierApi = $origin->getCourierApi4Document();
+            if(isset($courierApi)){
+                if (!isset($rec->id)) {
+                    $form->setDefault('courierApi', $courierApi);
+                }
             }
         }
     }
@@ -898,5 +908,28 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function getLabelSeries($rec = null)
     {
         return array('label' => $this->printLabelCaptionPlural, 'detail' => 'Артикули');
+    }
+
+
+    /**
+     * Кой клас е избран за куриерско АПИ в документа
+     *
+     * @param stdClass $rec
+     * @return null|int
+     */
+    public function getCourierApi4Document($rec)
+    {
+        // Ако има конкретно посочено куриерско API
+        $rec = $this->fetchRec($rec);
+        if(isset($rec->courierApi)) {
+            return cls::load($rec->courierApi, true) ? $rec->courierApi : null;
+        }
+
+        $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+        if($firstDocument->isInstanceOf('sales_Sales')){
+            return $firstDocument->getCourierApi4Document();
+        }
+
+        return null;
     }
 }

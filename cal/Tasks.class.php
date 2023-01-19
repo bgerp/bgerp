@@ -341,8 +341,11 @@ class cal_Tasks extends embed_Manager
         
         // Точното време на затваряне
         $this->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворена на,input=none');
-
+        
+        $this->setDbIndex('state');
         $this->setDbIndex('modifiedOn');
+        $this->setDbIndex('createdOn');
+        $this->setDbIndex('createdBy');
     }
     
     

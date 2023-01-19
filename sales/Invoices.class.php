@@ -240,6 +240,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $this->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед,notChangeableByContractor,silent,removeAndRefreshForm=additionalInfo');
         $this->FNC('selectInvoiceText', 'enum(,private=Частно,public=Общо,both=Частно и общо)', 'caption=Допълнително->Други условия,removeAndRefreshForm=additionalInfo,silent,before=additionalInfo');
         $this->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
+        $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
 
         $this->setDbUnique('number');
     }
@@ -580,6 +581,30 @@ class sales_Invoices extends deals_InvoiceMaster
                 $row->number = "<span style='color:blue;'>{$row->number}</span>";
                 $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
             }
+
+            // Показване на допълнителните условия от банковата сметка
+            $conditions = $rec->additionalConditions;
+            if (empty($conditions)) {
+                if (in_array($rec->state, array('pending', 'draft'))) {
+                    if(!empty($rec->accountId)){
+                        $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                        $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $rec->tplLang);
+                        if (!empty($condition)) {
+                            if (!Mode::isReadOnly()) {
+                                $condition = "<span style='color:blue'>{$condition}</span>";
+                            }
+                            $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
+                            $conditions = array($condition);
+                        }
+                    }
+                }
+            }
+
+            if (is_array($conditions)) {
+                foreach ($conditions as $cond) {
+                    $row->additionalInfo .= "\n" . $cond;
+                }
+            }
         }
     }
     
@@ -854,6 +879,16 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterActivation($mvc, &$rec)
     {
         $rec = $mvc->fetchRec($rec);
+
+        if (empty($rec->additionalConditions)) {
+            if(!empty($rec->accountId)) {
+                $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+                $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
+                $rec->additionalConditions = array($condition);
+                $mvc->save_($rec, 'additionalConditions');
+            }
+        }
 
         if (!empty($rec->sourceContainerId)) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);

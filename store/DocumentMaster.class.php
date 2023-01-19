@@ -130,6 +130,8 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('reverseContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Връщане от,input=hidden,silent');
 
         $mvc->setDbIndex('valior');
+        $mvc->setDbIndex('contragentId,contragentClassId');
+        $mvc->setDbIndex('modifiedOn');
     }
     
     
@@ -139,6 +141,7 @@ abstract class store_DocumentMaster extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
+            if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
             $requiredRoles = 'no_one';
         }
     }

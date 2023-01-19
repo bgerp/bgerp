@@ -75,13 +75,11 @@ class rack_plg_Shipments extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        $currentStoreId = store_Stores::getCurrent('id', false);
-        if (empty($currentStoreId)) return;
 
         $zoneOptions = rack_Zones::getZones($rec->{$mvc->storeFieldName}, true);
         $attr = arr::make('ef_icon=img/16/hand-point.png,title=Избор на зона за нагласяне', true);
 
-        if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $rec->containerId))) {
+        if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $rec->containerId, 'storeId' => $rec->{$mvc->storeFieldName}))) {
             $url = array('rack_Zones', 'selectdocument', 'containerId' => $rec->containerId, 'ret_url' => true);
             if (empty($zoneOptions)) {
                 $zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId} and #storeId = {$rec->{$mvc->storeFieldName}}");

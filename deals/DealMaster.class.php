@@ -245,7 +245,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor,removeAndRefreshForm=deliveryLocationId|deliveryAdress|deliveryData|deliveryCalcTransport,silent');
+        $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor,removeAndRefreshForm=deliveryLocationId|deliveryAdress|deliveryData|deliveryCalcTransport|courierApi,silent');
         $mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->До,silent,class=contactData,silent,removeAndRefreshForm=deliveryInfo');
         $mvc->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място,notChangeableByContractor');
         $mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor');
@@ -277,8 +277,12 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $mvc->FLD('paymentState', 'enum(pending=Има||Yes,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Плащане->чакащо, input=none,notNull,value=paid');
         $mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
-        
+
+        $mvc->setDbIndex('state');
+        $mvc->setDbIndex('dealerId');
         $mvc->setDbIndex('valior');
+        $mvc->setDbIndex('modifiedOn');
+        $mvc->setDbIndex('contragentId,contragentClassId');
     }
     
     

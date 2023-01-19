@@ -325,14 +325,11 @@ class plg_SelectPeriod extends core_Plugin
                 break;
             // За всички да е празен стринг вместо NULL
             case 'gr0':
-                $from = '';
-                $oldestHorizon = doc_Setup::get('SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON');
-                if(!empty($oldestHorizon)){
-                    $oldestDateAvailable = dt::addSecs(-1 * $oldestHorizon, null, false);
-                    $oldestDateAvailable = dt::mysql2verbal($oldestDateAvailable, 'Y-01-01');
-                    $from = $oldestDateAvailable;
-                }
+                $oldestAvailableDate = self::getOldestAvailableDate();
+
+                $from = !empty($oldestAvailableDate) ? $oldestAvailableDate : '';
                 $to = '';
+
                 break;
             default:
                 if (preg_match('/^\\d{4}-\\d{2}-\\d{2}\\|\\d{4}-\\d{2}-\\d{2}$/', $sel)) {
@@ -342,8 +339,27 @@ class plg_SelectPeriod extends core_Plugin
 
         return array($from,  $to);
     }
-    
-    
+
+
+    /**
+     * Коя е най-старата възжможна за избор дата
+     *
+     * @return date|null
+     */
+    public static function getOldestAvailableDate()
+    {
+        $oldestHorizon = doc_Setup::get('SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON');
+        if(!empty($oldestHorizon)){
+            $oldestDateAvailable = dt::addSecs(-1 * $oldestHorizon, null, false);
+            $oldestDateAvailable = dt::mysql2verbal($oldestDateAvailable, 'Y-01-01');
+
+            return $oldestDateAvailable;
+        }
+
+        return null;
+    }
+
+
     /**
      * Подготва опциите за избир на период
      */

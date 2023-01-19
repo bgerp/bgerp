@@ -378,6 +378,7 @@ class cat_Products extends embed_Manager
         $this->setDbIndex('canStore');
         $this->setDbIndex('canConvert');
         $this->setDbIndex('fixedAsset');
+        $this->setDbIndex('state');
         $this->setDbIndex('canManifacture');
         
         $this->setDbUnique('code');

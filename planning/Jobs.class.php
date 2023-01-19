@@ -277,6 +277,7 @@ class planning_Jobs extends core_Master
         $this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
         $this->FLD('productViewCacheDate', 'datetime(format=smartTime)', 'caption=Към коя дата е кеширан изгледа на артикула,input=none');
 
+        $this->setDbIndex('state');
         $this->setDbIndex('productId');
         $this->setDbIndex('oldJobId');
         $this->setDbIndex('saleId');
@@ -721,7 +722,7 @@ class planning_Jobs extends core_Master
             }
             
             if (empty($rec->department)) {
-                $form->setWarning('department', 'В Заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
+                $form->setWarning('department', 'В заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
             }
             
             if ($rec->dueDate < dt::today()) {
@@ -1852,7 +1853,8 @@ class planning_Jobs extends core_Master
         $pQuery1->in('threadId', $threadsArr);
         $pNoteClassId = planning_DirectProductionNote::getClassId();
 
-        while($pRec = $pQuery1->fetch()){
+        /*
+         * while($pRec = $pQuery1->fetch()){
 
             $aArray = array('' => $pRec->quantity);
 
@@ -1882,6 +1884,7 @@ class planning_Jobs extends core_Master
                 $convertedArr[$key]->quantityExpected += $q;
             }
         }
+         */
 
         // Всички протоколи за влагане/връщане на услуги се реконтират - за да се смени правилно разходния обект
         foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_ReturnNoteDetails' => 'planning_ReturnNotes') as $detailName => $masterName){

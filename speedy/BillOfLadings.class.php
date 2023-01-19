@@ -8,7 +8,7 @@
  * @package   speedy
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -54,7 +54,7 @@ class speedy_BillOfLadings extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-     public $listFields = "id,containerId,number,takingDate,file,createdOn,createdBy";
+     public $listFields = "id,containerId,number,takingDate,file,data,createdOn,createdBy";
     
     
     /**
@@ -66,7 +66,8 @@ class speedy_BillOfLadings extends core_Manager
         $this->FLD('number', 'varchar', 'caption=Товарителница');
         $this->FLD('takingDate', 'datetime(format=smartTime)', 'caption=Дата');
         $this->FLD('file', 'fileman_FileType(bucket=billOfLadings)', 'caption=Файл');
-        
+        $this->FLD('data', 'blob(serialize,compress)', 'caption=Данни');
+
         $this->setDbIndex('containerId');
     }
     

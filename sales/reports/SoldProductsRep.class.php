@@ -80,7 +80,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealers');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
 
-        $fieldset->FLD('typeOfGroups', 'enum(no=Без групи, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Групи,removeAndRefreshForm,after=crmGroup');
+        $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
         $fieldset->FLD('category', 'keylist(mvc=cat_Categories,select=name)', 'caption=Артикули->Категории артикули,after=typeOfGroups,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=category,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,placeholder=Всички,after=group,single=none,input=none,class=w100');
@@ -90,7 +90,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Покаване на резултата
         $fieldset->FLD('grouping', 'enum(yes=По групи, no=По артикули)', 'caption=Показване->Вид,removeAndRefreshForm,after=quantityType');
         $fieldset->FLD('currency', 'key(mvc=currency_Currencies,select=code,allowEmpty)', 'caption=Показване->Валута,removeAndRefreshForm,single=none,after=grouping,placeholder=Основна');
-        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Разбивка по контрагенти,after=currency,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->По контрагенти,after=currency,removeAndRefreshForm,single=none,silent');
         $fieldset->FLD('seeCategory', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи категория,after=seeByContragent,single=none,silent');
 
         $fieldset->FLD('engName', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Име EN,after=seeByContragent,single=none');
@@ -1360,7 +1360,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $fld->FLD('engName', 'varchar', 'caption=Артикул[EN]');
             }
 
-            $fld->FLD('measure', 'key( да дам мнmvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('measure', 'key( mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             if ($rec->seeCategory == 'yes') {
                 $fld->FLD('category', 'varchar', 'caption=Категория');
             }

@@ -37,13 +37,19 @@ class speedy_interface_ApiImpl extends core_BaseClass
     /**
      * Заглавие на  бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnCaption = 'Speedy 2';
+    public $requestBillOfLadingBtnCaption = 'Speedy';
 
 
     /**
      * Иконка за бутон за създаване на товарителница
      */
-    public $requestBillOfLadingBtnIcon = 'img/16/bug.png';
+    public $requestBillOfLadingBtnIcon = 'img/16/speedy.png';
+
+
+    /**
+     * Коментар към връзката на прикачения файл
+     */
+    public $billOfLadingComment = 'Товарителница (Speedy)';
 
 
     /**
@@ -57,7 +63,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
     {
         $userName = speedy_Setup::get('DEFAULT_ACCOUNT_USERNAME');
         $cu = core_Users::getCurrent('id', false);
-        $key = "speedy_{$folderId}_{$cu}_{$userName}";
+        $key = "speedy_{$cu}_{$userName}";
 
         return $key;
     }
@@ -143,7 +149,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->setDefault('exciseGoods', 'yes');
 
         // Зареждане на наличните локации на изпращача
-        $senderObjects = speedy_Adapter2::getSenderClientOptions();
+        $senderObjects = speedy_Adapter::getSenderClientOptions();
         $form->FLD('senderClientId', 'varchar', 'after=senderName,caption=Подател->Обект,silent,removeAndRefreshForm=serviceId');
         $form->setOptions('senderClientId', $senderObjects);
         if(!countR($senderObjects)){
@@ -163,6 +169,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->setDefault('isPrivatePerson', $isPrivatePerson);
         $form->setDefault('isDocuments', 'no');
         $form->setDefault('isPaletize', 'no');
+        $form->setDefault('palletCount', 1);
         $form->setFieldTypeParams('parcelInfo', array('width_sgt' => '80=80,100=100,120=120,150=150,175=175,200=200', 'depth_sgt' => '60=60,120=120'));
         $form->input(null, 'silent');
 
@@ -172,7 +179,6 @@ class speedy_interface_ApiImpl extends core_BaseClass
             $form->setField('isFragile', 'input=none');
             $form->setField('insurancePayer', 'input=none');
             $form->setField('palletCount', 'input=hidden');
-            $form->setDefault('palletCount', 1);
         }
 
         $logisticData = $mvc->getLogisticData($rec);
@@ -298,7 +304,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $serviceOptions = array();
         if((isset($formRec->receiverCountryId) && !empty($formRec->receiverPCode)) || !empty($formRec->receiverSpeedyOffice)){
             try{
-                $serviceOptions = speedy_Adapter2::getServiceOptions($formRec->senderClientId, $formRec->receiverCountryId, $formRec->receiverPCode, $formRec->receiverSpeedyOffice, $formRec->isPrivatePerson);
+                $serviceOptions = speedy_Adapter::getServiceOptions($formRec->senderClientId, $formRec->receiverCountryId, $formRec->receiverPCode, $formRec->receiverSpeedyOffice, $formRec->isPrivatePerson);
             } catch(core_exception_Expect $e){
                 $serviceOptions = array();
             }
@@ -393,7 +399,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
      *
      * @param stdClass $formRec - запис от формата за създаване на товарителница
      * @param string $action - дали директно да се създаде товарителница или само да се калкулира цена
-     * @return array $res (@see speedy_Adapter2::requestShipment)
+     * @return array $res (@see speedy_Adapter::requestShipment)
      */
     private function prepareBolData($formRec, $action = 'shipment')
     {
@@ -412,9 +418,9 @@ class speedy_interface_ApiImpl extends core_BaseClass
         if(isset($formRec->receiverSpeedyOffice)){
             $recipientArr['pickupOfficeId'] = $formRec->receiverSpeedyOffice;
         } else {
-            $theirCountryId = speedy_Adapter2::getCountryId($formRec->receiverCountryId);
+            $theirCountryId = speedy_Adapter::getCountryId($formRec->receiverCountryId);
             if($action == 'calculate'){
-                $sites = speedy_Adapter2::getSites($theirCountryId, $formRec->receiverPCode);
+                $sites = speedy_Adapter::getSites($theirCountryId, $formRec->receiverPCode);
                 $recipientArr['addressLocation'] = array('countryId' => $theirCountryId, 'siteId' => key($sites));
             } else {
                 $recipientAddressArray = array('countryId' => $theirCountryId);
@@ -610,13 +616,20 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $preparedBolParams = static::prepareBolData($form->rec, 'calculate');
 
         try{
-            $res = speedy_Adapter2::calculateShipment($preparedBolParams);
+            $res = speedy_Adapter::calculateShipment($preparedBolParams);
         } catch(core_exception_Expect $e){
             $form->info = "<div style='color:red;font-weight:bold;'>" . tr('Цената не може да се калкулира|*!') . "<br>" . tr($e->getMessage()) . "</div>";
             return;
         }
 
         $priceObj = $res->calculations[0];
+
+        // Ако има грешка при калкулацията - визуализира се!
+        if(!empty($priceObj->error)){
+            $form->setError('service', $priceObj->error->message);
+            return;
+        }
+
         $Double = core_Type::getByName('double(decimals=2)');
         $row = new stdClass();
         $row->deadlineDelivery = dt::mysql2verbal($priceObj->deliveryDeadline, 'd.m.Y H:i:s');
@@ -673,7 +686,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $preparedBolParams = static::prepareBolData($form->rec);
 
         try{
-            $res = speedy_Adapter2::requestShipment($preparedBolParams);
+            $res = speedy_Adapter::requestShipment($preparedBolParams);
         } catch(core_exception_Expect $e){
             $form->setError('service', $e->getMessage());
             return;
@@ -688,7 +701,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
             // Ако е генерирана успешно, прави се опит за разпечатването ѝ
             $parcelIds = array();
             array_walk($res->parcels, function($a) use (&$parcelIds) {$parcelIds[] = $a->id;});
-            $fh = speedy_Adapter2::printWaybillPdf($parcelIds, $form->rec->pdfPrinterType);
+            $fh = speedy_Adapter::printWaybillPdf($parcelIds, $form->rec->pdfPrinterType);
 
             if(empty($fh)){
                 $form->setError('service', 'Проблем при генериране на PDF на товарителница');
@@ -697,13 +710,13 @@ class speedy_interface_ApiImpl extends core_BaseClass
             if(!$form->gotErrors()){
 
                 // Ако е разпечатана записва се в помощния модел
-                $bolRec = (object)array('containerId' => $documentRec->containerId, 'number' => $parcelIds[0], 'takingDate' => $res->pickupDate);
+                $bolRec = (object)array('containerId' => $documentRec->containerId, 'number' => $parcelIds[0], 'takingDate' => $res->pickupDate, 'data' => $preparedBolParams);
                 $bolRec->file = $fh;
                 speedy_BillOfLadings::save($bolRec);
 
                 // Кеш на избраните полета от формата
                 $cacheArr = array('senderClientId' => $form->rec->senderClientId, 'service' => $form->rec->service, 'pdfPrinterType' => $form->rec->pdfPrinterType);
-                core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
+                core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, core_Permanent::FOREVER_VALUE);
 
                 return $fh;
             }
@@ -725,7 +738,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
     {
         $res = haveRole($this->requireRoles, $userId);
         if($res){
-            $loginData = speedy_Adapter2::getLoginData($userId);
+            $loginData = speedy_Adapter::getLoginData($userId);
             if(empty($loginData['userName']) || empty($loginData['password'])){
                 $res = false;
             }
@@ -747,5 +760,54 @@ class speedy_interface_ApiImpl extends core_BaseClass
     public function afterPrepareBillOfLadingForm($mvc, $documentRec, $form, &$tpl)
     {
 
+    }
+
+
+    /**
+     * Може ли потребителя да създава товарителница от документа
+     *
+     * @param core_Mvc $mvc
+     * @param int|stdClass $id
+     * @return core_ET|null
+     */
+    public function getDefaultEmailBody($mvc, $id)
+    {
+        if($mvc instanceof store_ShipmentOrders) {
+            $rec = $mvc->fetchRec($id);
+            if($foundRec = self::getLastBolRec($rec->containerId)){
+
+                $urlTpl = new core_ET(speedy_Setup::get('TRACKING_URL'));
+                $urlTpl->replace($foundRec->number, 'NUM');
+                $url = $urlTpl->getContent();
+
+                $date = dt::mysql2verbal($foundRec->takingDate, 'd.m.Y');
+                $bolTpl = new ET(tr("|*\n|Вашата пратка е подготвена за изпращане на|* [#date#] |с товарителница|* [#number#].\n|Може да проследите получаването ѝ от тук|*: [#URL#]"));
+                $bolTpl->replace($url, 'URL');
+                $bolTpl->replace($foundRec->number, 'number');
+                $bolTpl->replace($date, 'date');
+
+                return $bolTpl;
+            }
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Връща коя е последната товарителница издадена към документа
+     *
+     * @param int $containerId
+     *
+     * @return stdClass|false
+     */
+    private static function getLastBolRec($containerId)
+    {
+        $spQuery = speedy_BillOfLadings::getQuery();
+        $spQuery->where("#containerId = {$containerId}");
+        $spQuery->orderBy('id', 'DESC');
+        $spQuery->limit(1);
+
+        return $spQuery->fetch();
     }
 }

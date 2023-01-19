@@ -191,6 +191,13 @@ class log_Ips extends core_Manager
         
         if (!$rec) {
             $id = self::getIpId($ip);
+
+            if (!$id) {
+                wp('Не може да се намери IpId', $id, $ip);
+
+                return $ip;
+            }
+
             $rec = self::fetch($id);
         }
         
@@ -229,7 +236,7 @@ class log_Ips extends core_Manager
             $countryName = 'Unknown Country';
         }
         
-        $country = ht::createLink($country, $country2 != '⒫' ? 'http://bgwhois.com/?query=' . $ip : null, null, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
+        $country = ht::createLink($country, $country != '⒫' ? 'http://bgwhois.com/?query=' . $ip : null, null, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
         
         // $count
         $count = '';

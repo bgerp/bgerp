@@ -31,7 +31,7 @@ class rack_Zones extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2,plg_RefreshRows,plg_Printing';
+    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2,plg_RefreshRows,plg_Printing,plg_SaveAndNew';
 
 
     /**
@@ -73,7 +73,7 @@ class rack_Zones extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,rack';
+    public $canList = 'ceo,rackSee';
 
 
     /**
@@ -99,13 +99,13 @@ class rack_Zones extends core_Master
     /**
      * Кой може да селектира документа
      */
-    public $canSelectdocument = 'ceo,rack';
+    public $canSelectdocument = 'ceo,rackZoneSelect';
 
 
     /**
      * Кой може ръчно да премахва документ от зона
      */
-    public $canManualclearzone = 'ceo,rack';
+    public $canManualclearzone = 'ceo,rackZoneSelect';
 
 
     /**
@@ -167,14 +167,14 @@ class rack_Zones extends core_Master
      */
     public function description()
     {
-        $this->FLD('num', 'int(max=999)', 'caption=Номер,mandatory');
-        $this->FLD('color', 'color_Type', 'caption=Цвят');
+        $this->FLD('num', 'int(max=99999)', 'caption=Номер,mandatory,focus');
+        $this->FLD('color', 'color_Type', 'caption=Цвят,remember');
         $this->FLD('description', 'text(rows=2)', 'caption=Описание');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,input=none');
         $this->FLD('defaultUserId', 'key(mvc=core_Users,select=nick)', 'caption=Изпълнител,input=none');
         $this->FLD('readiness', 'percent', 'caption=Готовност,input=none');
-        $this->FLD('groupId', 'key(mvc=rack_ZoneGroups,select=name,allowEmpty)', 'caption=Група,placeholder=Без групиране');
+        $this->FLD('groupId', 'key(mvc=rack_ZoneGroups,select=name,allowEmpty)', 'caption=Група,placeholder=Без групиране,remember');
 
         $this->setDbUnique('num,storeId');
         $this->setDbIndex('storeId');
@@ -188,7 +188,7 @@ class rack_Zones extends core_Master
     public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if ($part == 'num') {
-            $num = "Z-{$num}";
+            $num = "Z-{$rec->num}";
         } elseif($part == 'readiness'){
             if(empty($rec->readiness)){
                 $num = core_Type::getByName('percent')->toVerbal(0);
@@ -602,8 +602,8 @@ class rack_Zones extends core_Master
         $this->requireRightFor('selectdocument');
         expect($containerId = Request::get('containerId', 'int'));
         expect($document = doc_Containers::getDocument($containerId));
-        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId));
         $documentRec = $document->fetch();
+        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId, 'storeId' => $documentRec->{$document->storeFieldName}));
         $storeId = $documentRec->{$document->storeFieldName};
 
         // Подготовка на формата
@@ -668,12 +668,16 @@ class rack_Zones extends core_Master
                         $msg = 'Дефолтния работник е променен успешно|*!';
                     }
 
-                    $zoneUrl = self::getUrlArr($fRec->zoneId);
-                    if(isset($fRec->defaultUserId)){
-                        $zoneUrl['additional'] = 'yes';
+                    if(haveRole('ceo,rackSee')){
+                        $redirectUrl = self::getUrlArr($fRec->zoneId);
+                        if(isset($fRec->defaultUserId)){
+                            $redirectUrl['additional'] = 'yes';
+                        }
+                    } else {
+                        $redirectUrl = $document->getSingleUrlArray();
                     }
 
-                    redirect($zoneUrl, false, $msg);
+                    redirect($redirectUrl, false, $msg);
                 } elseif(isset($zoneRec->id)) {
                     $document->getInstance()->logWrite('Премахване от зона', $document->that);
                     $msg = 'Документът е премахнат от зоната|*!';
@@ -742,16 +746,15 @@ class rack_Zones extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'selectdocument' && isset($rec)) {
-            if (empty($rec->containerId)) {
+            if (empty($rec->containerId) || empty($rec->storeId)) {
                 $requiredRoles = 'no_one';
             } else {
                 $document = doc_Containers::getDocument($rec->containerId);
-                $selectedStoreId = store_Stores::getCurrent('id');
-                if (!rack_Zones::fetchField("#storeId = {$selectedStoreId} AND #state != 'closed'")) {
+                if (!rack_Zones::fetchField("#storeId = {$rec->storeId} AND #state != 'closed'")) {
                     $requiredRoles = 'no_one';
                 } else {
                     $documentRec = $document->fetch("state,{$document->storeFieldName}");
-                    if (!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending')) || $documentRec->{$document->storeFieldName} != $selectedStoreId) {
+                    if (!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending'))) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -778,7 +781,7 @@ class rack_Zones extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 if (rack_ZoneDetails::fetchField("#zoneId = {$rec->id} AND (#movementQuantity IS NOT NULL AND #movementQuantity != 0)")) {
-                    $requiredRoles = 'no_one';
+                   $requiredRoles = 'no_one';
                 }
             }
         }
@@ -1420,7 +1423,7 @@ class rack_Zones extends core_Master
     public static function getDisplayZone($zoneId, $showGroup = false, $makeLink = 'terminal', $class = 'zoneMovement')
     {
         if(Mode::is('printing') || Mode::is('text', 'xhtml')) return null;
-        $zoneTitle = ($showGroup) ? rack_Zones::getRecTitle($zoneId) : rack_Zones::getVerbal($zoneId, 'num');
+        $zoneTitle = ($showGroup) ? rack_Zones::getRecTitle($zoneId) : rack_Zones::getVerbal(rack_Zones::fetch($zoneId), 'num');
         $warning = $hint = null;
 
         // Линк към зоната
@@ -1492,7 +1495,7 @@ class rack_Zones extends core_Master
      */
     protected function on_AfterPrepareRetUrl($mvc, $data)
     {
-        if($data->action == 'manage'){
+        if($data->action == 'manage' && $data->form->cmd != 'save_n_new'){
             $data->retUrl = array('rack_Zones', 'list');
         }
     }

@@ -37,7 +37,7 @@ class rack_Products extends store_Products
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,rack';
+    public $canList = 'ceo,rackSee';
     
     
     /**
@@ -55,7 +55,7 @@ class rack_Products extends store_Products
     /**
      * Полета за листовия изглед?
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Разполагаемо,quantityOnPallets,quantityOnZones,quantityNotOnPallets';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Налично,quantityOnPallets,quantityOnZones,quantityNotOnPallets';
     
     
     /**

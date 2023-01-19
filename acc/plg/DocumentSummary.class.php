@@ -112,8 +112,6 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
         $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
-        $rolesForTeamsArr = arr::make($mvc->filterRolesForTeam, true);
-        $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
         
         $mvc->filterRolesForAll .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_ALL');
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
@@ -125,12 +123,17 @@ class acc_plg_DocumentSummary extends core_Plugin
             foreach ($rolesAllArr as $roleStr) {
                 $roleStr = trim($roleStr);
                 $mvc->filterRolesForAll .= ',' . $roleStr . 'Global';
+                $mvc->filterRolesForTeam .= ',' . $roleStr;
             }
         }
+        $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
+        $rolesForTeamsArr = arr::make($mvc->filterRolesForTeam, true);
+        $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
+
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
         $rolesForAllArr = arr::make($mvc->filterRolesForAll, true);
         $mvc->filterRolesForAll = implode('|', $rolesForAllArr);
-        
+
         setIfNot($mvc->filterAutoDate, true);
         if(!$mvc->hidePeriodFilter){
             $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
@@ -409,6 +412,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
             }
 
+
             if ($dateRange[0] || $dateRange[1]) {
                 $nullCond = '';
                 $where = '';
@@ -428,6 +432,12 @@ class acc_plg_DocumentSummary extends core_Plugin
                             $where .= "(#{$fromField} >= '[#1#]')";
                             if($autoCalcField){
                                 $where .= " OR (#{$fromField} IS NULL AND #{$autoCalcField} >= '[#1#]')";
+                                $where = "({$where})";
+                            }
+
+                            $oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate();
+                            if($dateRange[0] == $oldestAvailableDate && empty($dateRange[1])){
+                                $where .= " OR (#{$fromField} IS NULL)";
                                 $where = "({$where})";
                             }
                         }

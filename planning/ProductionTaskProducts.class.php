@@ -122,7 +122,7 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('quantityInPack', 'double', 'mandatory,input=none');
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull');
-        $this->FLD('limit', 'double(min=0)', 'caption=Макс. к-во,input=none');
+        $this->FLD('limit', 'double(min=0,smartRound)', 'caption=Макс. к-во,input=none');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма');
         $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,input=none');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо тегло,input=none');
@@ -638,6 +638,9 @@ class planning_ProductionTaskProducts extends core_Detail
         // При клониране да се пропуска прогнозния отпадъка посочен в операцията (той ще се запише при активиране)
         $newTask = planning_Tasks::fetch($rec->taskId);
         if($rec->type == 'waste' && $rec->productId == $newTask->wasteProductId) return false;
+        if($rec->type == 'production' && empty($rec->plannedQuantity)){
+            $rec->productId = planning_Jobs::fetchField("#containerId = {$newTask->originId}", 'productId');
+        }
     }
 
 

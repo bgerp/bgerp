@@ -132,25 +132,29 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
 
         // Ако е инсталиран пакета за партиди
         if (core_Packs::isInstalled('batch') && $rec->_importBatches != 'no') {
-            $cQuery = doc_Containers::getQuery();
-            $cQuery->where("#threadId = {$containerId} AND #state != 'draft' AND #state != 'rejected'");
-            $cQuery->show('id');
-            $ids = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
-            if (!countR($ids)) {
-                return;
+            if(!empty($rec->_batches)){
+                $batches = $rec->_batches;
+            } else {
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->where("#threadId = {$containerId} AND #state != 'draft' AND #state != 'rejected'");
+                $cQuery->show('id');
+                $ids = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
+                if (!countR($ids)) {
+                    return;
+                }
+
+                // Намират се всички партиди в документите от нишката на фактурата
+                $bQuery = batch_BatchesInDocuments::getQuery();
+                $bQuery->in('containerId', $ids);
+                $bQuery->where("#productId = {$rec->productId}");
+                if(isset($rec->_batches)){
+                    $bQuery->in("id", $rec->_batches);
+                }
+
+                $bQuery->show('batch');
+                $batches = arr::extractValuesFromArray($bQuery->fetchAll(), 'batch');
             }
-            
-            // Намират се всички партиди в документите от нишката на фактурата
-            $bQuery = batch_BatchesInDocuments::getQuery();
-            $bQuery->in('containerId', $ids);
-            $bQuery->where("#productId = {$rec->productId}");
-            if(isset($rec-> _batches)){
-                $bQuery->in("id", $rec-> _batches);
-            }
-            
-            $bQuery->show('batch');
-            $batches = arr::extractValuesFromArray($bQuery->fetchAll(), 'batch');
-            
+
             // И се попълват
             if (countR($batches)) {
                 $rec->batches = implode(', ', $batches);

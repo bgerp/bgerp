@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,6 +31,7 @@ class cond_type_Text extends cond_type_abstract_Proto
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('rows', 'int(min=1)', 'caption=Конкретизиране->Редове,before=default');
+        $fieldset->FLD('parser', 'class(interface=cond_ParseStringIntf,select=title,allowEmpty)', 'caption=Конкретизиране->Парсатор,after=rows');
     }
     
     
@@ -68,11 +69,24 @@ class cond_type_Text extends cond_type_abstract_Proto
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
-        if(Mode::is('dontVerbalizeText')){
+        if(Mode::is('dontVerbalizeText')) return $value;
+        $Type = cls::get('type_Text');
 
-            return $value;
+        // Ако има посочен парсатор
+        if(isset($rec->parser)){
+            if(cls::load($rec->parser, true)){
+
+                // Парсира се стойноста
+                $Iface = cls::getInterface('cond_ParseStringIntf',$rec->parser);
+                $value = $Iface->parse($rec, $value);
+
+                // Ако се ще се парсира като Html - ще се рендира като такъв тип
+                if($Iface->isParsedAsHtml($rec)){
+                    $Type = cls::get('type_Html');
+                }
+            }
         }
 
-        return parent::toVerbal($rec, $domainClass, $domainId, $value);
+        return $Type->toVerbal(trim($value));
     }
 }

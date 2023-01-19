@@ -247,16 +247,16 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         // Може да добавяме или към нишка в която има задание
         if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-            
+
             return true;
         }
         
         // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-            
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
+
             return true;
         }
-        
+
         return false;
     }
     
@@ -276,9 +276,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
             $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $dQuery->where("#taskId = {$origin->that} AND #totalQuantity != 0 AND #type = 'input'");
             if(isset($rec->storeId)){
-                $dQuery->where("#storeId = {$rec->storeId} OR #storeId IS NULL");
-            } else {
-                $dQuery->where("#canStore = 'no'");
+                $dQuery->where("(#storeId = {$rec->storeId} OR #storeId IS NULL) AND #canStore != 'no'");
             }
 
             while($dRec = $dQuery->fetch()){
@@ -301,8 +299,12 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                     $requiredRoles = 'no_one';
                 } else {
                     $state = $origin->fetchField('state');
-                    if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped', 'pending'))) {
+                    if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
                         $requiredRoles = 'no_one';
+                    } elseif($state == 'closed'){
+                        if(!planning_Tasks::isProductionAfterClosureAllowed($origin->that, $userId)){
+                            $requiredRoles = 'no_one';
+                        }
                     }
                 }
             }

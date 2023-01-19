@@ -301,7 +301,7 @@ class planning_Tasks extends core_Master
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено)', 'caption=Отчитане на тегло,notNull,value=yes,autohide');
         if (core_Packs::isInstalled('batch')) {
-            $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
+            $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Партида,input=none');
         }
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
@@ -828,7 +828,7 @@ class planning_Tasks extends core_Master
         $me = cls::get(get_called_class());
         $title = "Opr{$rec->id} - {$me->getStepTitle($rec->productId)}";
         if (!empty($rec->subTitle)) {
-            $title .= ", <i>{$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
+            $title .= " »» {$me->getFieldType('subTitle')->toVerbal($rec->subTitle)} ««";
         }
 
         return $title;
@@ -1128,27 +1128,60 @@ class planning_Tasks extends core_Master
         $rec->producedQuantity = $producedQuantity;
 
         // Ако има промяна в прогреса (само ако не е приключена операцията)
+        $autoActivation = ($rec->state == 'pending' && planning_ProductionTaskDetails::count("#taskId = {$rec->id}"));
         if($rec->state != 'closed'){
-            if ($rec->progress != $originalProgress) {
-                $rec->orderByAssetId = null;
-                if ($lastTaskWithProgressId = $this->getPrevOrNextTask($rec, true)) {
-                    $orderByAssetId = $this->fetchField($lastTaskWithProgressId, 'orderByAssetId');
-                    $rec->orderByAssetId = $orderByAssetId + 0.5;
-                } else {
-                    $rec->orderByAssetId = 0.5;
-                }
+            $reorder = false;
+            if ($rec->progress > $originalProgress) {
 
+                // Ако прогреса е увеличен - става първа
+                $rec->orderByAssetId = 0.5;
+                $reorder = true;
+            } elseif($autoActivation) {
+                $rec->orderByAssetId = null;
+
+                // Ако само е активирана - БЕЗ да е увеличен прогреса
+                $query = static::getQuery();
+                $query->where("#assetId = {$rec->assetId} AND  #state IN ('pending', 'stopped')");
+                $query->orderBy("orderByAssetId", 'ASC');
+                $query->show('id,orderByAssetId');
+                $query->limit(1);
+                $firstPendingRec = $query->fetch();
+
+                // Намества се преди първата спряна/заявка
+                if(is_object($firstPendingRec)){
+                    $rec->orderByAssetId = $firstPendingRec->orderByAssetId - 0.5;
+                } else {
+
+                    // Ако няма заявки/спрени - мести се след първата активна/събудена
+                    $query1 = static::getQuery();
+                    $query1->where("#assetId = {$rec->assetId} AND #state IN ('active', 'wakeup')");
+                    $query1->orderBy("orderByAssetId", 'ASC');
+                    $query1->show('id,orderByAssetId');
+                    $query1->limit(1);
+                    $lastActiveRec = $query1->fetch();
+                    if(is_object($lastActiveRec)){
+                        $rec->orderByAssetId = $lastActiveRec->orderByAssetId + 0.5;
+                    } else {
+
+                        // Ако няма и такива - става първа
+                        $rec->orderByAssetId = 0.5;
+                    }
+                }
+                $reorder = true;
+            }
+
+            // Ако ще се преподреждат
+            if($reorder){
                 if (isset($rec->assetId)) {
                     $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
                 }
-
                 $updateFields .= ',orderByAssetId';
                 $rec->_stopReorder = true;
             }
         }
 
         // При първо добавяне на прогрес, ако е в заявка - се активира автоматично
-        if ($rec->state == 'pending' && planning_ProductionTaskDetails::count("#taskId = {$rec->id}")) {
+        if ($autoActivation) {
             planning_plg_StateManager::changeState($this, $rec, 'activate');
             $this->logWrite('Активиране при прогрес', $rec->id);
             core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
@@ -1816,7 +1849,6 @@ class planning_Tasks extends core_Master
         $query->show('id');
         $query->limit(1);
 
-
         if ($withProgress) {
             $query->where("#progress != 0");
         }
@@ -2068,6 +2100,11 @@ class planning_Tasks extends core_Master
     {
         if (empty($rec->id)) return;
 
+        // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
+        if($jobSaleId = planning_Jobs::fetchField("#containerId = {$rec->originId}", 'saleId')){
+            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobSaleId));
+        }
+
         // Добавяне на всички ключови думи от прогреса
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $dQuery->XPR('concat', 'varchar', 'GROUP_CONCAT(#searchKeywords)');
@@ -2217,19 +2254,19 @@ class planning_Tasks extends core_Master
         $rec = $data->rec;
 
         // Бутон за добавяне на документ за производство
-        if (planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))) {
+        if (planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Произвеждане', $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от операцията');
         }
 
         // Бутон за добавяне на документ за производство
-        if (planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $rec->containerId))) {
+        if (planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
             $pUrl = array('planning_ConsumptionNotes', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Влагане', $pUrl, 'ef_icon = img/16/produce_in.png,title=Създаване на протокол за влагане от операцията');
         }
 
         // Бутон за добавяне на документ за влагане
-        if (planning_ConsumptionNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
+        if (planning_ReturnNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
             $pUrl = array('planning_ReturnNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => true);
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието,row=2');
         }
@@ -2511,6 +2548,17 @@ class planning_Tasks extends core_Master
         // Кои ще са планиращите параметри
         $plannedParams = array();
 
+        // Еднократно извличане на таговете на листваните операции и заданията към тях
+        $containerIds = arr::extractValuesFromArray($data->recs, 'containerId');
+        $containerIds += arr::extractValuesFromArray($data->recs, 'originId');
+        $tagsArr = tags_Logs::getTagsFromContainers($containerIds);
+        $inlineTags = array();
+        foreach ($tagsArr as $cId => $tagArr){
+            $tagsStr = '';
+            array_walk($tagArr, function($a) use (&$tagsStr){$tagsStr  .= $a['span'];});
+            $inlineTags[$cId] = "<span class='documentTags'>{$tagsStr}</span>";
+        }
+
         // Ако има избрано оборудване добавят се параметрите от него и от групата му
         if (isset($data->listFilter->rec->assetId)) {
             $assetRec = planning_AssetResources::fetch($data->listFilter->rec->assetId, 'planningParams,groupId');
@@ -2614,6 +2662,7 @@ class planning_Tasks extends core_Master
 
             // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
+
             if ($enableReorder) {
                 if ($mvc->haveRightFor('reordertask', $rec)) {
                     $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
@@ -2651,9 +2700,15 @@ class planning_Tasks extends core_Master
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity);
             $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
-            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span>") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
+            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
 
             core_Debug::stopTimer('RENDER_ROW');
+            if(array_key_exists($rec->containerId, $inlineTags)){
+                $row->title->append($inlineTags[$rec->containerId]);
+            }
+            if(array_key_exists($rec->originId, $inlineTags)){
+                $row->originId .= $inlineTags[$rec->containerId];
+            }
         }
 
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);
@@ -2939,7 +2994,14 @@ class planning_Tasks extends core_Master
 
         // Запомняне на предишните стойностти на определени полета
         if(isset($rec->id)){
-            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId,indTime', false);
+            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId,indTime,plannedQuantity', false);
+
+            // Ако е сменено планираното к-во преизчислява се прогреса
+            if (!empty($rec->plannedQuantity) && $rec->plannedQuantity != $exRec->plannedQuantity) {
+                $percent = ($rec->totalQuantity - $rec->scrappedQuantity) / $rec->plannedQuantity;
+                $rec->progress = round($percent, 2);
+            }
+
             $rec->_exAssetId = $exRec->assetId;
             $rec->_exOrderByAssetId = $exRec->orderByAssetId;
             $rec->_exIndTime = $exRec->indTime;
@@ -3247,5 +3309,48 @@ class planning_Tasks extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Разрешено ли е на потребителя да произвежда след приключването на дадената ПО
+     *
+     * @param stdClass $taskId
+     * @param int|null $userId
+     * @return bool
+     */
+    public static function isProductionAfterClosureAllowed($taskId, $userId = null)
+    {
+        $now = dt::now();
+        $masterRec = static::fetch($taskId, 'timeClosed,state,originId,productId,isFinal');
+        $horizon1 = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+        $horizon2 = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+
+        // Ако времето е след първия хоризонт
+        if($now >= $horizon1){
+
+            // И сме след втория никой не може нищо
+            if($now >= $horizon2){
+                return false;
+            } else {
+
+                // Ако сме преди втория и има за произвеждане повече от 1 артикул да може да се произвежда
+                $productionCount = planning_ProductionTaskProducts::count("#type = 'production' AND #taskId = {$taskId}");
+                $allowedCount = ($masterRec->isFinal == 'yes') ? 1 : 0;
+                if($productionCount != $allowedCount){
+                    if(!haveRole('taskPostProduction,ceo', $userId)){
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+            // Ако е преди първия хоризонт се изисква роля за пост продукция
+        } elseif(!haveRole('taskPostProduction,ceo', $userId)){
+            return false;
+        }
+
+        return true;
     }
 }

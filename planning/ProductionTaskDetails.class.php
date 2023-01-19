@@ -395,10 +395,12 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Показване на допълнителна мярка при нужда
         if ($rec->type == 'production') {
-            if ($masterRec->showadditionalUom == 'no') {
-                $form->setField('weight', 'input=none');
-            } else {
-                $form->setField('weight', 'mandatory');
+            if(planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId)){
+                if ($masterRec->showadditionalUom == 'yes') {
+                    $form->setField('weight', 'mandatory');
+                } else {
+                    $form->setField('weight', 'input=none');
+                }
             }
         } elseif ($rec->type != 'scrap') {
             $form->setField('weight', 'input=none');
@@ -1005,8 +1007,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listTableMvc->setField('weight', 'smartCenter');
 
             // Ако няма настройка за приспадане на тарата да не се показва колонката за нето
-            $centerRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
-            if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)){
+            $masterCenterRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
+            if(empty($masterCenterRec->useTareFromParamId) && empty($masterCenterRec->useTareFromPackagings)){
                 unset($data->listFields['netWeight']);
             }
         }
@@ -1034,6 +1036,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             $masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : planning_Tasks::fetch($rec->taskId);
+            $centerRec = is_object($masterCenterRec) ? $masterCenterRec : planning_Centers::fetch("#folderId = {$masterRec->folderId}");
+
 
             $eFields = planning_Tasks::getExpectedDeviations($masterRec);
             $deviationNotice = $eFields['notice'];
@@ -1069,6 +1073,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     // Ако няма и има избран параметър за ед. тегло
                     $convertAgain = true;
                     if(empty($expectedSingleNetWeight)){
+
                         if(isset($centerRec->paramExpectedNetWeight)){
                             $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $rec->productId);
 
@@ -1312,6 +1317,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(countR($employees)){
                 $data->listFilter->setSuggestions('employees', array('' => '') + $employees);
                 $data->listFilter->showFields .= ",employees";
+                $data->listFilter->setField('employees', 'input');
             }
         }
 
@@ -1346,41 +1352,18 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(in_array($masterRec->state, array('rejected', 'draft', 'waiting', 'stopped')) || in_array($originState, array('rejected', 'draft', 'stopped'))){
                 $requiredRoles = 'no_one';
             } elseif($masterRec->state == 'closed'){
-                $now = dt::now();
-                $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state,originId,productId,isFinal');
-                $horizon1 = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
-                $horizon2 = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+                if(!planning_Tasks::isProductionAfterClosureAllowed($rec->taskId, $userId)){
+                    $requiredRoles = 'no_one';
+                }
 
-                // Ако времето е след първия хоризонт
-                if($now >= $horizon1){
-
-                    // И сме след втория никой не може нищо
-                    if($now >= $horizon2){
-                        $requiredRoles = 'no_one';
-                    } else {
-
-                        // Ако сме преди втория и има за произвеждане повече от 1 артикул да може да се произвежда
-                        $productionCount = planning_ProductionTaskProducts::count("#type = 'production' AND #taskId = {$rec->taskId}");
-                        $allowedCount = ($masterRec->isFinal == 'yes') ? 1 : 0;
-                        if($productionCount != $allowedCount){
-                            if(!haveRole('taskPostProduction,ceo')){
-                                $requiredRoles = 'no_one';
-                            }
-                        } else {
-                            $requiredRoles = 'no_one';
-                        }
-                    }
-
-                    if($action == 'reject'){
+                if($action == 'reject'){
+                    $horizon1 = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+                    if(dt::now() > $horizon1){
                         $mainProductId = ($masterRec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId') : $masterRec->productId;
-
                         if($rec->productId == $mainProductId){
                             $requiredRoles = 'no_one';
                         }
                     }
-                    // Ако е преди първия хоризонт се изисква роля за пост продукция
-                } elseif(!haveRole('taskPostProduction,ceo')){
-                    $requiredRoles = 'no_one';
                 }
             }
         }

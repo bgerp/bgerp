@@ -37,6 +37,7 @@ class cond_type_Html extends cond_type_abstract_Proto
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('rows', 'int(min=1)', 'caption=Конкретизиране->Редове,before=default');
+        $fieldset->FLD('translate', 'enum(no=Не,yes=Да)', 'caption=Конкретизиране->Превод,after=rows');
     }
 
 
@@ -75,6 +76,7 @@ class cond_type_Html extends cond_type_abstract_Proto
         $Type = parent::getType($rec, $domainClass, $domainId, $value);
 
         if ($Type) {
+            $value = ($rec->driverRec['translate'] == 'yes') ? tr("|* {$value}") : $value;
             if(Mode::is('text', 'plain')){
                 $value = strip_tags($value);
             }

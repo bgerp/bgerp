@@ -20,6 +20,12 @@ defIfNot('CVC_SENDER_ID', '');
 
 
 /**
+ * Урл за онлайн проследяване на пратката
+ */
+defIfNot('CVC_TRACKING_URL', "https://my.e-cvc.bg/track?wb=[#NUM#]");
+
+
+/**
  *
  *
  * @category  bgerp
@@ -52,6 +58,7 @@ class cvc_Setup extends core_ProtoSetup
     public $configDescription = array(
         'CVC_TOKEN' => array('password(show)', 'caption=Ключ,class=w100'),
         'CVC_URL' => array('url', 'caption=УРЛ'),
+        'CVC_TRACKING_URL' => array('varchar', 'caption=Проследяване'),
         'CVC_SENDER_ID' => array('varchar', 'caption=Изпращач'),
     );
 
@@ -142,5 +149,18 @@ class cvc_Setup extends core_ProtoSetup
                 $configForm->info = "<div class='red'>" . tr("Има проблем при връзката с CVC API и извличане на изпращачите|*!") . "</div>";
             }
         }
+    }
+
+
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+
+        $html .= fileman_Buckets::createBucket('cvc', 'Файлове за cvc', '', '104857600', 'user', 'user');
+
+        return $html;
     }
 }

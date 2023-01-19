@@ -42,6 +42,12 @@ class cond_CourierApiIntf extends embed_DriverIntf
 
 
     /**
+     * Коментар към връзката на прикачения файл
+     */
+    public $billOfLadingComment = 'Товарителница (Speedy)';
+
+
+    /**
      * Модифициране на формата за създаване на товарителница към документ
      *
      * @param core_Mvc $mvc   - Документ
@@ -110,7 +116,7 @@ class cond_CourierApiIntf extends embed_DriverIntf
      */
     public function getRequestedShipmentFh($mvc, $documentRec, &$form)
     {
-        return $this->class->calculateShipmentTpl($mvc, $documentRec, $form);
+        return $this->class->getRequestedShipmentFh($mvc, $documentRec, $form);
     }
 
 
@@ -125,5 +131,18 @@ class cond_CourierApiIntf extends embed_DriverIntf
     public function canRequestBillOfLading($mvc, $id, $userId = null)
     {
         return $this->class->canRequestBillOfLading($mvc, $id, $userId);
+    }
+
+
+    /**
+     * Може ли потребителя да създава товарителница от документа
+     *
+     * @param core_Mvc $mvc
+     * @param int|stdClass $id
+     * @return core_ET|null
+     */
+    public function getDefaultEmailBody($mvc, $id)
+    {
+        return $this->class->getDefaultEmailBody($mvc, $id);
     }
 }
