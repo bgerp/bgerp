@@ -125,6 +125,15 @@ class rack_Products extends store_Products
                 if ($rec->quantityOnPallets > 0) {
                     $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт') . '&nbsp;' . $row->quantityOnPallets;
                 }
+
+                if(core_Packs::isInstalled('batch')){
+                    $bCount = batch_Items::count("#productId = {$rec->productId} AND #storeId = {$rec->storeId}");
+                    if($bCount && rack_ProductsByBatches::haveRightFor('list')){
+                        $link = ht::createLink('', array('rack_ProductsByBatches', 'list', 'productId' => $rec->productId), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на наличните партиди в склада');
+                        $row->productId->append("&nbsp;");
+                        $row->productId->append($link);
+                    }
+                }
             }
         }
     }
