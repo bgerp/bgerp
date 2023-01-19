@@ -625,14 +625,10 @@ class cvc_interface_CourierImpl extends core_Manager
             $recipientObj->office_id = cvc_Offices::fetchField($rec->recipientOfficeId, 'num');
         } else {
             $recipientObj->city_id = $rec->_cityId;
-            foreach (array('zip' => 'recipientPcode', 'num' => 'recipientAddressNum', 'entr' => 'recipientEntrance', 'ap' => 'recipientApp', 'floor' => 'recipientFloor') as $theirFld => $oursFld){
+            foreach (array('zip' => 'recipientPcode', 'num' => 'recipientAddressNum', 'entr' => 'recipientEntrance', 'ap' => 'recipientApp', 'floor' => 'recipientFloor', 'street' => 'recipientAddress') as $theirFld => $oursFld){
                 if(!empty($rec->{$oursFld})){
                     $recipientObj->{$theirFld} = $rec->{$oursFld};
                 }
-            }
-
-            if(!empty($streetStr)){
-                $recipientObj->street = $streetStr;
             }
         }
 
