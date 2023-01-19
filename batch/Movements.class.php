@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -148,9 +148,8 @@ class batch_Movements extends core_Detail
         $data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
         $data->listFilter->FLD('searchType', 'enum(full=Точно съвпадение,notFull=Частично съвпадение)', 'caption=Търсене,silent');
         $data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
-        $data->listFilter->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул');
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
-        $data->listFilter->setOptions('productId', array('' => '') + batch_Items::getProductsWithDefs());
         $data->listFilter->FNC('action', 'enum(all=Всички,in=Влиза, out=Излиза, stay=Стои)', 'caption=Операция,input');
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
         $data->listFilter->FLD('to', 'date', 'caption=До,silent');
@@ -165,7 +164,6 @@ class batch_Movements extends core_Detail
             if (Request::get('batch', 'varchar')) {
                 $data->listFilter->setField('batch', 'input=hidden');
             }
-            
             if (Request::get('productId', 'varchar')) {
                 $data->listFilter->setField('productId', 'input=hidden');
             } else {
@@ -240,6 +238,8 @@ class batch_Movements extends core_Detail
                     $data->query->where("#docType = {$document->getClassId()} AND #docId = {$document->that}");
                 }
             }
+
+            //bp($data->query->where);
         }
     }
     
