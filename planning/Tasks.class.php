@@ -106,7 +106,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Продажба,originId=@';
 
 
     /**
@@ -2635,7 +2635,7 @@ class planning_Tasks extends core_Master
         $jobRecs = array();
         $jQuery = planning_Jobs::getQuery();
         $jQuery->in("containerId", arr::extractValuesFromArray($data->recs, 'originId'));
-        $jQuery->show('id,containerId,productId,dueDate,quantityInPack,quantity,packagingId');
+        $jQuery->show('id,containerId,productId,dueDate,quantityInPack,quantity,packagingId,saleId');
         while ($jRec = $jQuery->fetch()) {
             $jobRecs[$jRec->containerId] = $jRec;
 
@@ -2651,6 +2651,10 @@ class planning_Tasks extends core_Master
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
+
+            if($saleId = $jobRecs[$rec->originId]->saleId){
+                $row->saleId = sales_Sales::getLink($saleId, 0);
+            }
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
             if (isset($dependentTasks[$rec->id])) {
