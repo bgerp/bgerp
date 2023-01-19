@@ -2641,6 +2641,7 @@ abstract class deals_Helper
             }
         }
 
+
         $maxDeliveryTime = null;
         if(countR($deliveryTimes)){
 
@@ -2648,7 +2649,8 @@ abstract class deals_Helper
             $maxDeliveryTime = max($deliveryTimes);
 
             // Към тях се добавя нужното време за подготовка от склада (ако има)
-            $defaultShipmentTime = store_Stores::getShipmentPreparationTime($masterRec->{$storeFieldName});
+            $storeId = isset($storeFieldName) ? $masterRec->{$storeFieldName} : null;
+            $defaultShipmentTime = store_Stores::getShipmentPreparationTime($storeId);
             if(!empty($defaultShipmentTime)){
                 $maxDeliveryTime += $defaultShipmentTime;
             }
