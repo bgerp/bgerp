@@ -238,8 +238,6 @@ class batch_Movements extends core_Detail
                     $data->query->where("#docType = {$document->getClassId()} AND #docId = {$document->that}");
                 }
             }
-
-            //bp($data->query->where);
         }
     }
     
