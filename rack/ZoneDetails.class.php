@@ -290,7 +290,7 @@ class rack_ZoneDetails extends core_Detail
      * @param int $storeId
      * @return number $res
      */
-    public static function calcProductQuantityOnZones($productId, $storeId = null)
+    public static function calcProductQuantityOnZones($productId, $storeId = null, $batch = null)
     {
         $query = self::getQuery();
         $query->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
@@ -298,6 +298,9 @@ class rack_ZoneDetails extends core_Detail
         $query->where("#productId = {$productId}");
         if(isset($storeId)){
             $query->where("#storeId = {$storeId}");
+        }
+        if(isset($batch)){
+            $query->where("#batch = '{$batch}'");
         }
         
         $rec = $query->fetch();
@@ -316,6 +319,14 @@ class rack_ZoneDetails extends core_Detail
         
         // Рекалкулира какво е количеството по зони на артикула в склад-а
         rack_Products::recalcQuantityOnZones($rec->productId, $storeId);
+
+        if(core_Packs::isInstalled('batch')){
+            $bItemRec = rack_ProductsByBatches::fetch("#productId = {$rec->productId} AND #batch = '{$rec->batch}' AND #storeId = {$storeId}");
+            if(is_object($bItemRec)){
+                $bItemRec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId, $storeId, $rec->batch);
+                rack_ProductsByBatches::save($bItemRec, 'quantityOnZones');
+            }
+        }
     }
     
     
