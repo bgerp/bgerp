@@ -501,8 +501,12 @@ class rack_Pallets extends core_Manager
         if ($saveAgain === true) {
             $mvc->save_($rec, $updateFields);
         }
-        
+
         self::recalc($rec->productId, $rec->storeId);
+        if(!empty($rec->batch)){
+            rack_ProductsByBatches::recalc($rec->productId, $rec->storeId, $rec->batch);
+        }
+
         $cacheType = 'UsedRacksPositions' . $rec->storeId;
         core_Cache::removeByType($cacheType);
 
