@@ -89,19 +89,19 @@ class batch_Items extends core_Master
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул,mandatory,silent');
         $this->FLD('batch', 'varchar(128)', 'caption=Партида,mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory');
         $this->FLD('quantity', 'double(smartRound)', 'caption=Наличност');
         $this->FLD('nullifiedDate', 'datetime(format=smartTime)', 'caption=Изчерпано');
 
         $this->setDbUnique('productId,batch,storeId');
+        $this->setDbIndex('productId');
+        $this->setDbIndex('storeId');
+        $this->setDbIndex('productId,storeId');
     }
 
-    function act_Test()
-    {
-        bp(cls::get('batch_definitions_Job')->getDefaultBatchName(911));
-    }
+
     /**
      * Връща наличното количество от дадена партида
      *
@@ -300,7 +300,11 @@ class batch_Items extends core_Master
         // Сетване на новите опции
         $data->listFilter->setOptions('filterState', $options);
         $data->listFilter->setDefault('filterState', 'active');
-        $data->listFilter->showFields = 'search,store,productId,filterState';
+        if($mvc instanceof rack_ProductsByBatches){
+            $data->listFilter->showFields = 'search,productId,filterState';
+        } else {
+            $data->listFilter->showFields = 'search,store,productId,filterState';
+        }
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
