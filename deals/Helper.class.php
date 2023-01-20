@@ -753,7 +753,7 @@ abstract class deals_Helper
 
         if (countR($combined)) {
             foreach ($combined as &$det) {
-                $det->sumAmounts = core_Math::roundNumber($det->sumAmounts);
+                //$det->sumAmounts = core_Math::roundNumber($det->sumAmounts);
                 if(is_array($det->batches) && countR($det->batches)){
                     $sumBatches = $sumQuantities = 0;
                     foreach ($det->batches as $b => $q){
