@@ -668,7 +668,7 @@ class rack_Zones extends core_Master
                         $msg = 'Дефолтния работник е променен успешно|*!';
                     }
 
-                    if(haveRole('ceo,rackSee')){
+                    if(haveRole('ceo,rackSee') && store_Stores::haveRightFor('select', $zoneRec->storeId)){
                         $redirectUrl = self::getUrlArr($fRec->zoneId);
                         if(isset($fRec->defaultUserId)){
                             $redirectUrl['additional'] = 'yes';
