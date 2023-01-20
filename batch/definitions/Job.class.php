@@ -82,7 +82,7 @@ class batch_definitions_Job extends batch_definitions_Proto
      */
     public function isValid($value, $quantity, &$msg)
     {
-        if (!preg_match("/^Job:[0-9]+\\//" , $value)) {
+        if (!preg_match("/^Job:[0-9]+\\//" , $value) && !preg_match("/^JOB[0-9]+\\//" , $value)) {
             $msg = "Формата трябва да започва с|* Job:XXX/";
             
             return false;
