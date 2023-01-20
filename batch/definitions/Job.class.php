@@ -64,8 +64,8 @@ class batch_definitions_Job extends batch_definitions_Proto
     public function getDefaultBatchName($jobId)
     {
         $jobProductId = planning_Jobs::fetchField($jobId, 'productId');
-        $res = "JOB{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), ' ');
-        $res = str_replace(' [Art', ' [Art ', $res);
+        $res = "Job:{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), ' ');
+        $res = str_replace(' [Art', ' [Art:', $res);
 
         return $res;
     }
@@ -82,8 +82,8 @@ class batch_definitions_Job extends batch_definitions_Proto
      */
     public function isValid($value, $quantity, &$msg)
     {
-        if (!preg_match("/^JOB[0-9]+\\//" , $value)) {
-            $msg = "Формата трябва да започва с|* JOB1/";
+        if (!preg_match("/^Job:[0-9]+\\//" , $value)) {
+            $msg = "Формата трябва да започва с|* Job:XXX/";
             
             return false;
         }
@@ -126,8 +126,9 @@ class batch_definitions_Job extends batch_definitions_Proto
                 }
 
                 $startString = "JOB{$jobId}/";
+                $startString1 = "Job:{$jobId}/";
                 foreach ($quantities as $b => $q){
-                    if(strpos($b, $startString) === 0){
+                    if(strpos($b, $startString) === 0 || strpos($b, $startString1) === 0){
                         return array($b => $q[$b]);
                     }
                 }
