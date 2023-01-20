@@ -1215,11 +1215,13 @@ class rack_Zones extends core_Master
                     static::$cache[$pRec->productId] = $packagings;
                 }
 
+                Mode::push('pickupStore', $storeId);
                 $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId]);
+                Mode::pop('pickupStore');
             } else {
                 $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             }
-
+            //$storeId
             // Ако има генерирани движения се записват
             $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId);
 
