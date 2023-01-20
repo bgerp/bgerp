@@ -529,7 +529,6 @@ class cvc_interface_CourierImpl extends core_Manager
             $preparedBolParams = static::prepareBolData($form->rec, 'calculate');
             $res = cvc_Adapter::calculateWb($preparedBolParams);
         } catch(core_exception_Expect $e){
-            bp($e, $preparedBolParams);
             $haveError = true;
         }
 

@@ -93,7 +93,8 @@ class rack_ProductsByBatches extends batch_Items
         core_RowToolbar::createIfNotExists($row->_rowTools);
         if (rack_Movements::haveRightFor('add', (object)array('productId' => $rec->productId)) && $rec->quantityNotOnPallets > 0) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'batch' => $rec->batch, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
+            $link = ht::createLink('', array('rack_Movements', 'add', 'productId' => $rec->productId, 'batch' => $rec->batch, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), false, 'ef_icon=img/16/pallet1.png,title=Палетиране на партидата');
+            $row->quantityNotOnPallets = "{$link} {$row->quantityNotOnPallets}";
         }
 
         $row->quantityNotOnPallets = ht::styleIfNegative($row->quantityNotOnPallets, $rec->quantityNotOnPallets);
@@ -107,6 +108,7 @@ class rack_ProductsByBatches extends batch_Items
     {
         $storeId = store_Stores::getCurrent('id');
         $data->listFilter->setDefault('store', $storeId);
+        $data->query->orderBy('productId', 'ASC');
     }
 
 

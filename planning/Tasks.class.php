@@ -106,7 +106,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Продажба,originId=@';
 
 
     /**
@@ -278,6 +278,12 @@ class planning_Tasks extends core_Master
      * Да се показват ли бъдещи периоди в лист изгледа
      */
     public $filterFutureOptions = true;
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'saleId';
 
 
     /**
@@ -2606,7 +2612,7 @@ class planning_Tasks extends core_Master
         }
 
         core_Debug::stopTimer('RENDER_HEADER');
-
+        $showSaleInList = planning_Setup::get('SHOW_SALE_IN_TASK_LIST');
         $displayPlanningParamsCount = countR($data->listFieldsParams);
         $enableReorder = isset($data->listFilter->rec->assetId) && in_array($data->listFilter->rec->state, array('activeAndPending', 'pending', 'active', 'wakeup')) && countR($data->recs) > 1;
 
@@ -2636,7 +2642,7 @@ class planning_Tasks extends core_Master
         $jobRecs = array();
         $jQuery = planning_Jobs::getQuery();
         $jQuery->in("containerId", arr::extractValuesFromArray($data->recs, 'originId'));
-        $jQuery->show('id,containerId,productId,dueDate,quantityInPack,quantity,packagingId');
+        $jQuery->show('id,containerId,productId,dueDate,quantityInPack,quantity,packagingId,saleId');
         while ($jRec = $jQuery->fetch()) {
             $jobRecs[$jRec->containerId] = $jRec;
 
@@ -2652,6 +2658,12 @@ class planning_Tasks extends core_Master
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
+
+            if($showSaleInList != 'no'){
+                if($saleId = $jobRecs[$rec->originId]->saleId){
+                    $row->saleId = sales_Sales::getLink($saleId, 0);
+                }
+            }
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
             if (isset($dependentTasks[$rec->id])) {
