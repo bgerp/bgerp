@@ -668,7 +668,8 @@ class rack_Zones extends core_Master
                         $msg = 'Дефолтния работник е променен успешно|*!';
                     }
 
-                    if(haveRole('ceo,rackSee')){
+                    if(haveRole('ceo,rackSee') && store_Stores::haveRightFor('select', $zoneRec->storeId)){
+
                         $redirectUrl = self::getUrlArr($fRec->zoneId);
                         if(isset($fRec->defaultUserId)){
                             $redirectUrl['additional'] = 'yes';
@@ -1214,7 +1215,7 @@ class rack_Zones extends core_Master
                     static::$cache[$pRec->productId] = $packagings;
                 }
 
-                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId]);
+                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId], null, null, $storeId);
             } else {
                 $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             }
