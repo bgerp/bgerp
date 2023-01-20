@@ -669,6 +669,7 @@ class rack_Zones extends core_Master
                     }
 
                     if(haveRole('ceo,rackSee') && store_Stores::haveRightFor('select', $zoneRec->storeId)){
+                        store_Stores::selectCurrent($zoneRec->storeId);
                         $redirectUrl = self::getUrlArr($fRec->zoneId);
                         if(isset($fRec->defaultUserId)){
                             $redirectUrl['additional'] = 'yes';
