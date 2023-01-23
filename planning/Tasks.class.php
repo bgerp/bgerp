@@ -2104,22 +2104,21 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        if (empty($rec->id)) return;
-
         // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
         if($jobSaleId = planning_Jobs::fetchField("#containerId = {$rec->originId}", 'saleId')){
             $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobSaleId));
         }
 
         // Добавяне на всички ключови думи от прогреса
-        $dQuery = planning_ProductionTaskDetails::getQuery();
-        $dQuery->XPR('concat', 'varchar', 'GROUP_CONCAT(#searchKeywords)');
-        $dQuery->where("#taskId = {$rec->id}");
-        $dQuery->limit(1);
-
-        if ($keywords = $dQuery->fetch()->concat) {
-            $keywords = str_replace(' , ', ' ', $keywords);
-            $res = ' ' . $res . ' ' . $keywords;
+        if(isset($rec->id)){
+            $dQuery = planning_ProductionTaskDetails::getQuery();
+            $dQuery->XPR('concat', 'varchar', 'GROUP_CONCAT(#searchKeywords)');
+            $dQuery->where("#taskId = {$rec->id}");
+            $dQuery->limit(1);
+            if ($keywords = $dQuery->fetch()->concat) {
+                $keywords = str_replace(' , ', ' ', $keywords);
+                $res = ' ' . $res . ' ' . $keywords;
+            }
         }
     }
 
