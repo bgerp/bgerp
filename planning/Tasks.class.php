@@ -2542,7 +2542,7 @@ class planning_Tasks extends core_Master
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
-        $fieldsToFilterIfEmpty = array('dependantProgress,saleId');
+        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId');
 
         // Кои ще са планиращите параметри
         $plannedParams = array();
