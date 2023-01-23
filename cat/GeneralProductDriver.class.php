@@ -202,34 +202,48 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         $arr = (array) $rec;
         $classId = $Embedder->getClassId();
-        
-        // За всеко поле от записа
-        core_Debug::startTimer('saveParams');
-        core_Debug::log('START SAVE_ALL_PARAMS');
-        foreach ($arr as $key => $value) {
 
-            // Ако името му съдържа ключова дума
+        // За всеко поле от записа
+        $updateRecs = array();
+        foreach ($arr as $key => $value) {
             if (strpos($key, 'paramcat') !== false) {
                 $paramId = substr($key, 8);
-                
-                // Има стойност и е разпознато ид на параметър
-                if (cat_Params::fetch($paramId) && !empty($value)) {
-                    $dRec = (object) array('productId' => $rec->id,
-                        'classId' => $classId,
-                        'paramId' => $paramId,
-                        'paramValue' => $value);
-                    
-                    // Записваме продуктовия параметър с въведената стойност
-                    $fields = array();
-                    $exRec = null;
-                    if (!cls::get('cat_products_Params')->isUnique($dRec, $fields, $exRec)) {
-                        $dRec->id = $exRec->id;
-                    }
-                    
-                    cat_products_Params::save($dRec);
+                if (!empty($value)) {
+                    $dRec = (object) array('productId' => $rec->id, 'classId' => $classId, 'paramId' => $paramId, 'paramValue' => $value);
+                    $updateRecs[] = $dRec;
                 }
             }
         }
+
+        if(!countR($updateRecs)) return;
+
+        core_Debug::startTimer('saveParams');
+        core_Debug::log('START SAVE_ALL_PARAMS');
+
+        $exQuery = cat_products_Params::getQuery();
+        $exQuery->fetch("#classId = {$classId} AND #productId = {$rec->id}");
+        $exRecs = $exQuery->fetch();
+
+        $syncedArr = arr::syncArrays($updateRecs, $exRecs, 'classId,productId,paramId', 'paramValue');
+        $Params = cls::get('cat_products_Params');
+        if(countR($syncedArr['insert'])){
+            $Params->saveArray($syncedArr['insert']);
+        }
+
+        if(countR($syncedArr['update'])){
+            $Params->saveArray($syncedArr['update'], 'id,paramValue');
+        }
+
+        if(countR($syncedArr['delete'])){
+            $inStr = implode(',', $syncedArr['delete']);
+            $Params->delete("#id IN ({$inStr})");
+        }
+
+        if($classId == cat_Products::getClassId()){
+            acc_Features::syncFeatures(cat_Products::getClassId(), $rec->id);
+        }
+        plg_Search::forceUpdateKeywords($Embedder, $rec);
+
         core_Debug::stopTimer('saveParams');
         core_Debug::log('END SAVE_ALL_PARAMS: ' . round(core_Debug::$timers['saveParams']->workingTime, 2));
     }
