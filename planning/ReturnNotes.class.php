@@ -36,7 +36,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, store_plg_Request, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, deals_plg_SaveValiorOnActivation, store_plg_StockPlanning, store_plg_Request, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, plg_Sorting,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
     
     
@@ -234,7 +234,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         $rec = &$form->rec;
         $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
         $form->setDefault('valior', dt::today());
-        $form->setField('valior', 'mandatory');
 
         $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
