@@ -201,10 +201,6 @@ class planning_ProductionTaskProducts extends core_Detail
                     $form->setReadOnly('productId');
                     $form->setReadOnly('packagingId');
                 }
-                
-                if (!haveRole('ceo,planningMaster')) {
-                    $form->setReadOnly('indTime');
-                }
             }
 
             $form->setFieldTypeParams('indTime', array('measureId' => $rec->packagingId));
