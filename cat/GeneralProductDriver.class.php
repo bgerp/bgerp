@@ -218,6 +218,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                         'paramValue' => $value);
                     
                     // Записваме продуктовия параметър с въведената стойност
+                    $fields = array();
+                    $exRec = null;
                     if (!cls::get('cat_products_Params')->isUnique($dRec, $fields, $exRec)) {
                         $dRec->id = $exRec->id;
                     }
