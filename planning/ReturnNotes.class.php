@@ -182,14 +182,20 @@ class planning_ReturnNotes extends deals_ManifactureMaster
             }
         }
 
+        $recs = array();
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
         $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         if(!isset($rec->storeId)){
             $dQuery->where("#canStore = 'no'");
         }
-
-        $res = array('recs' => $dQuery->fetchAll(), 'detailMvc' => $Detail);
+        while($dRec = $dQuery->fetch()){
+            if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
+                $dRec->_genericProductId = $genericProductId;
+            }
+            $recs[$dRec->id] = $dRec;
+        }
+        $res = array('recs' => $recs, 'detailMvc' => $Detail);
 
         return $res;
     }

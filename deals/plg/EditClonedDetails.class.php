@@ -31,11 +31,18 @@ class deals_plg_EditClonedDetails extends core_Plugin
         if (!$res) {
             $res = array();
             if (!$rec->clonedFromId) return;
-            
+
+            $recs = array();
             $Detail = cls::get($mvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->clonedFromId}");
-            $res = array('recs' => $dQuery->fetchAll(), 'detailMvc' => $Detail);
+            while($dRec = $dQuery->fetch()){
+                if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
+                    $dRec->_genericProductId = $genericProductId;
+                }
+                $recs[$dRec->id] = $dRec;
+            }
+            $res = array('recs' => $recs, 'detailMvc' => $Detail);
         }
     }
     
@@ -203,6 +210,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
         
         if (countR($rec->details)) {
+
             foreach ($rec->details as $det) {
                 if (!empty($det->baseQuantity)) {
                     $det->quantityInPack = $det->baseQuantity / $det->packQuantity;
