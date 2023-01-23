@@ -281,12 +281,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = 'saleId';
-
-
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -2548,7 +2542,7 @@ class planning_Tasks extends core_Master
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
-        $fieldsToFilterIfEmpty = array('dependantProgress');
+        $fieldsToFilterIfEmpty = array('dependantProgress,saleId');
 
         // Кои ще са планиращите параметри
         $plannedParams = array();
