@@ -129,7 +129,7 @@ class batch_definitions_Job extends batch_definitions_Proto
                 $startString1 = "Job:{$jobId}/";
                 foreach ($quantities as $b => $q){
                     if(strpos($b, $startString) === 0 || strpos($b, $startString1) === 0){
-                        return array($b => $q[$b]);
+                        return array($b => $q);
                     }
                 }
             }
