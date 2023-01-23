@@ -204,8 +204,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $classId = $Embedder->getClassId();
         
         // За всеко поле от записа
+        core_Debug::startTimer('saveParams');
+        core_Debug::log('START SAVE_ALL_PARAMS');
         foreach ($arr as $key => $value) {
-            
+
             // Ако името му съдържа ключова дума
             if (strpos($key, 'paramcat') !== false) {
                 $paramId = substr($key, 8);
@@ -228,6 +230,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 }
             }
         }
+        core_Debug::stopTimer('saveParams');
+        core_Debug::log('END SAVE_ALL_PARAMS: ' . round(core_Debug::$timers['saveParams']->workingTime, 2));
     }
     
     
