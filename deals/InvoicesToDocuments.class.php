@@ -449,8 +449,7 @@ class deals_InvoicesToDocuments extends core_Manager
         if($Document->isInstanceOf('sales_Proformas')){
             $row->documentName = tr('проформа фактура');
         } elseif($Document->isInstanceOf('deals_InvoiceMaster')){
-            $invoiceType = $Document->fetchField('type');
-            $row->documentName = ($invoiceType == 'invoice') ? tr('фактура') : (($invoiceType == 'dc_note' && $rec->amount <= 0) ? 'к-но известие' : 'д-но известие');
+            $row->documentName = tr('фактура/известие');
         }
 
         if ($Document->getInstance()->getField('number', false)) {
@@ -486,7 +485,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 $tpl->append($clone);
             }
         } elseif(isset($data->btn)) {
-            $block->replace(tr('Към фактура'), 'documentName');
+            $block->replace(tr('Към фактура/известие'), 'documentName');
             $block->append("<div class='border-field'></div>", 'amount');
             $block->append($data->btn, 'amount');
             $tpl->append($block);
