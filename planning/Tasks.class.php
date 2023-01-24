@@ -2641,6 +2641,7 @@ class planning_Tasks extends core_Master
                 if(!empty($jRec->saleId)){
                     $jRec->_saleId = sales_Sales::getLink($jRec->saleId, 0);
                     $saleRec = sales_Sales::fetch($jRec->saleId, 'deliveryTermTime,deliveryTime,activatedOn');
+                    $deliveryDate = null;
                     if (!empty($saleRec->deliveryTime)) {
                         $deliveryDate = $saleRec->deliveryTime;
                     } elseif (!empty($saleRec->deliveryTermTime)) {
