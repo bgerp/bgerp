@@ -816,6 +816,11 @@ class rack_Zones extends core_Master
         while ($dRec = $dQuery->fetch()) {
             rack_ZoneDetails::delete($dRec->id);
             $productArr[$dRec->productId] = $dRec->productId;
+
+            // Да се преизчислят и партидите
+            if(core_Packs::isInstalled('batch')){
+                rack_ProductsByBatches::recalcQuantityOnZones($dRec->productId, $dRec->batch, $zoneRec->storeId);
+            }
         }
 
         rack_Products::recalcQuantityOnZones($productArr, $zoneRec->storeId);
