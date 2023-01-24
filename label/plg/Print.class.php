@@ -376,21 +376,16 @@ class label_plg_Print extends core_Plugin
      */
     public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
-        if (cls::getClassName($mvc) . '_SAVE_AND_NEW') {
-            Mode::setPermanent('PREV_SAVED_ID', $rec->id);
-        }
+        Mode::setPermanent("{$mvc->className}_PREV_SAVED_ID", $rec->id);
     }
 
 
     /**
-     *
-     *
-     * @param $invoker
-     * @param $tpl
+     * След рендиране на обвивката
      */
     public function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        if ($invoker->_isSaveAndNew && ($prevSavedId = Mode::get('PREV_SAVED_ID'))) {
+        if ($invoker->_isSaveAndNew && ($prevSavedId = Mode::get("{$invoker->className}_PREV_SAVED_ID"))) {
             if (label_Setup::get('AUTO_PRINT_AFTER_SAVE_AND_NEW') == 'yes') {
                 if ($invoker->haveRightFor('printperipherallabel', $prevSavedId)) {
                     $lUrl = toUrl(array($invoker, 'printperipherallabel', $prevSavedId, 'refreshUrl' => toUrl(getCurrentUrl())), 'local');

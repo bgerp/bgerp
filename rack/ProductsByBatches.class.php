@@ -135,4 +135,22 @@ class rack_ProductsByBatches extends batch_Items
 
         return null;
     }
+
+
+    /**
+     * Рекалкулира какво количество на партидата по зони
+     *
+     * @param int $productId
+     * @param string $batch
+     * @param int $storeId
+     * @return void
+     */
+    public static function recalcQuantityOnZones($productId, $batch, $storeId)
+    {
+        $bItemRec = rack_ProductsByBatches::fetch("#productId = {$productId} AND #batch = '{$batch}' AND #storeId = {$storeId}");
+        if(is_object($bItemRec)){
+            $bItemRec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($productId, $storeId, $batch);
+            rack_ProductsByBatches::save($bItemRec, 'quantityOnZones');
+        }
+    }
 }

@@ -233,7 +233,8 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         $form = &$data->form;
         $rec = &$form->rec;
         $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
-        
+        $form->setDefault('valior', dt::today());
+
         $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
             $form->setDefault('departmentId', $folderCover->that);

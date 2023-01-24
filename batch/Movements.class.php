@@ -174,22 +174,6 @@ class batch_Movements extends core_Detail
             Request::setProtected('batch');
         }
         
-        $documentSuggestions = array();
-        $query = $mvc->getQuery();
-        $query->show('docType,docId');
-        $query->groupBy('docType,docId');
-        while ($r = $query->fetch()) {
-            if (!cls::load($r->docType, true)) {
-                continue;
-            }
-            $handle = '#' . cls::get($r->docType)->getHandle($r->docId);
-            $documentSuggestions[$handle] = $handle;
-        }
-        
-        if (countR($documentSuggestions)) {
-            $data->listFilter->setSuggestions('document', array('' => '') + $documentSuggestions);
-        }
-        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();

@@ -202,7 +202,7 @@ class rack_Products extends store_Products
             $query->where("#productId IN ({$onlyIds})");
         } else {
             $storeId = store_Stores::getCurrent();
-            $query->where("#storeId = {$storeId} AND #quantity > 0");
+            $query->where("#storeId = {$storeId}");
         }
         
         $inIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
