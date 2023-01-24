@@ -2631,7 +2631,7 @@ class planning_Tasks extends core_Master
         core_Debug::stopTimer('RENDER_DEPENDANT');
 
         // Еднократно извличане на заданията за бързодействие
-        $jobRecs = $jobSales = array();
+        $jobRecs = array();
         $jQuery = planning_Jobs::getQuery();
         $jQuery->in("containerId", arr::extractValuesFromArray($data->recs, 'originId'));
         $jQuery->show('id,containerId,productId,dueDate,quantityInPack,quantity,packagingId,saleId');
