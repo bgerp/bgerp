@@ -106,7 +106,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Продажба,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,originId=@';
 
 
     /**
@@ -2631,12 +2631,30 @@ class planning_Tasks extends core_Master
         core_Debug::stopTimer('RENDER_DEPENDANT');
 
         // Еднократно извличане на заданията за бързодействие
-        $jobRecs = array();
+        $jobRecs = $jobSales = array();
         $jQuery = planning_Jobs::getQuery();
         $jQuery->in("containerId", arr::extractValuesFromArray($data->recs, 'originId'));
         $jQuery->show('id,containerId,productId,dueDate,quantityInPack,quantity,packagingId,saleId');
         while ($jRec = $jQuery->fetch()) {
             $jobRecs[$jRec->containerId] = $jRec;
+            if($showSaleInList != 'no'){
+                if(!empty($jRec->saleId)){
+                    $jRec->_saleId = sales_Sales::getLink($jRec->saleId, 0);
+                    $saleRec = sales_Sales::fetch($jRec->saleId, 'deliveryTermTime,deliveryTime,activatedOn');
+                    if (!empty($saleRec->deliveryTime)) {
+                        $deliveryDate = $saleRec->deliveryTime;
+                    } elseif (!empty($saleRec->deliveryTermTime)) {
+                        $deliveryDate = dt::addSecs($saleRec->deliveryTermTime, $saleRec->activatedOn);
+                    }
+
+                    if(!empty($deliveryDate)){
+                        $jRec->_saleId .= " [" . dt::mysql2verbal($deliveryDate, 'd.m.y') . "]";
+                    } else {
+                        $jRec->_saleId .= " <span class='quiet'>[n/a]</span>";
+                    }
+                }
+            }
+
 
             // Взимане с приоритет от кеша на параметрите на артикула от заданието
             $jobParams = core_Permanent::get("taskListJobParams{$jRec->productId}");
@@ -2647,14 +2665,12 @@ class planning_Tasks extends core_Master
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
 
+
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
-
-            if($showSaleInList != 'no'){
-                if($saleId = $jobRecs[$rec->originId]->saleId){
-                    $row->saleId = sales_Sales::getLink($saleId, 0);
-                }
+            if($saleIdRow = $jobRecs[$rec->originId]->_saleId){
+                $row->saleId = $saleIdRow;
             }
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
