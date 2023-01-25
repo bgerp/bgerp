@@ -1488,7 +1488,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $normFormQuantity = round($normFormQuantity);
         if($verbal) {
             $normFormQuantityVerbal = ($normFormQuantity > 60) ? round($normFormQuantity / 60, 2) . " min" : $normFormQuantity . " s";
-            $normFormQuantity = "|Заработка|*: {$normFormQuantityVerbal}";
+            $sign = ($rec->type == 'scrap') ? '-' : '';
+            $normFormQuantity = "|Заработка|*: {$sign}{$normFormQuantityVerbal}";
             if(haveRole('debug')){
                 $quantity = round($quantity, 5);
                 $normFormQuantity .= " [N:{$rec->norm}; Q:{$quantity}]";
