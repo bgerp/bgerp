@@ -362,8 +362,13 @@ class rack_MovementGenerator2 extends core_Manager
 
         if(!array_key_exists("{$num}|{$row}", static::$firstRowTo)){
             if($num){
-                $sessionStoreId = Mode::get('pickupStore');
-                $storeId = ($sessionStoreId) ? $sessionStoreId : store_Stores::getCurrent();
+                $sessionStoreId = Mode::get('pickupStoreId');
+                if(isset($sessionStoreId)){
+                    $storeId = $sessionStoreId;
+                } else {
+                    wp('Форсиране на склад', $pos);
+                    $storeId = store_Stores::getCurrent();
+                }
                 static::$firstRowTo["{$num}|{$row}"] = strtolower(rack_Racks::fetchField(array('#storeId = [#1#] AND #num = [#2#]', $storeId, $num), 'firstRowTo'));
             } else {
                 static::$firstRowTo["{$num}|{$row}"] = 'a';
