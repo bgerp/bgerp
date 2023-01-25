@@ -611,7 +611,7 @@ class rack_Zones extends core_Master
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
         $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($storeId, true);
         $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
-        $form->FLD('defaultUserId', 'user(roles=rack|ceo, allowEmpty)', 'caption=Изпълнител,placeholder=Няма');
+        $form->FLD('defaultUserId', 'user(roles=rack|ceo, rolesForAll=ceo|rackZoneSelect, rolesForTeams=ceo|rack|rackZoneSelect, allowEmpty)', 'caption=Изпълнител,placeholder=Няма');
         $zoneOptions = rack_Zones::getZones($storeId, true);
         $zoneRec = rack_Zones::fetch("#containerId = {$containerId}");
 
