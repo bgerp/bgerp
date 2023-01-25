@@ -3375,4 +3375,19 @@ class planning_Tasks extends core_Master
 
         return true;
     }
+
+
+    /**
+     * Линк към мастъра, подходящ за показване във форма
+     *
+     * @param int $id - ид на записа
+     * @return string $masterTitle - линк заглавие
+     */
+    public function getFormTitleLink($id)
+    {
+        $res = parent::getFormTitleLink($id);
+        $rec = static::fetchRec($id);
+
+        return $res . " [№:{$rec->saoOrder}]";
+    }
 }
