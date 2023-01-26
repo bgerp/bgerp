@@ -309,15 +309,16 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
             // Ако има ПП в предходни операции ще може да се избира
             $firstDocRec = $firstDoc->fetch();
             $prevThreadIds = $this->getPrevTasksThreadId($firstDocRec);
-            $prevThreadIdString = implode(',', $prevThreadIds);
-
-            $nQuery = planning_DirectProductionNote::getQuery();
-            $nQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-            $nQuery->where("#threadId IN ({$prevThreadIdString}) AND #state = 'active'");
-            if(empty($masterRec->storeId)){
-                $nQuery->where("#canStore = 'no'");
+            if(countR($prevThreadIds)){
+                $prevThreadIdString = implode(',', $prevThreadIds);
+                $nQuery = planning_DirectProductionNote::getQuery();
+                $nQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                $nQuery->where("#threadId IN ({$prevThreadIdString}) AND #state = 'active'");
+                if(empty($masterRec->storeId)){
+                    $nQuery->where("#canStore = 'no'");
+                }
+                if($nQuery->count()) return true;
             }
-            if($nQuery->count()) return true;
 
             // Ако текущата ПО е клонирана
             if(isset($firstDocRec->clonedFromId)){
