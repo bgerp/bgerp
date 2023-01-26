@@ -580,8 +580,10 @@ class cvc_interface_CourierImpl extends core_Manager
             }
         }
 
+        $senderOptions = cvc_Adapter::getSenderOptions();
+        $senderName = "{$senderOptions[$rec->customerId]}, {$rec->senderName}";
         $senderObj = (object)array('custom_location_id' => $rec->customerId,
-                                   'name' => $rec->senderName,
+                                   'name' => $senderName,
                                    'phone' => $rec->senderPhone,
                                    'email' => $rec->senderEmail);
 
