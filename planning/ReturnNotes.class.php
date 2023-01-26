@@ -239,7 +239,8 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         $form = &$data->form;
         $rec = &$form->rec;
         $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
-        
+        $form->setDefault('valior', dt::today());
+
         $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
             $form->setDefault('departmentId', $folderCover->that);
@@ -285,7 +286,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         }
 
         // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'pending')")) {
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
 
             return true;
         }

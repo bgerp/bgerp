@@ -580,8 +580,10 @@ class cvc_interface_CourierImpl extends core_Manager
             }
         }
 
+        $senderOptions = cvc_Adapter::getSenderOptions();
+        $senderName = "{$senderOptions[$rec->customerId]}, {$rec->senderName}";
         $senderObj = (object)array('custom_location_id' => $rec->customerId,
-                                   'name' => $rec->senderName,
+                                   'name' => $senderName,
                                    'phone' => $rec->senderPhone,
                                    'email' => $rec->senderEmail);
 
@@ -609,10 +611,12 @@ class cvc_interface_CourierImpl extends core_Manager
         }
         $res['sender'] = $senderObj;
 
-        $recipientName = $rec->recipientPersonName;
-        if(!empty($rec->recipientPersonName)){
-            $recipientName .= ", {$rec->recipientName}";
+        $recipientName = "";
+        if(!empty($rec->recipientName)){
+            $recipientName = $rec->recipientName;
         }
+
+        $recipientName .= (empty($recipientName) ? '' : ', ') . $rec->recipientPersonName;
         $recipientObj = (object)array(
             'name' => $recipientName,
             'phone' => $rec->recipientPhone,

@@ -259,7 +259,6 @@ class cat_BomDetails extends doc_Detail
                 $form->input('centerId', 'silent');
                 $Driver = cat_Products::getDriver($rec->resourceId);
                 $productionData = $Driver->getProductionData($rec->resourceId);
-
                 $canStore = cat_Products::fetchField($rec->resourceId, 'canStore');
                 if($canStore == 'yes'){
                     // Показване на полетата за етикетиране
@@ -282,6 +281,10 @@ class cat_BomDetails extends doc_Detail
                                 $form->setField($productionFld, 'autohide=any');
                             }
                         }
+                    }
+
+                    if (isset($productionData['normPackagingId'])) {
+                        $form->setFieldTypeParams('norm', array('measureId' => $productionData['normPackagingId']));
                     }
                 }
 

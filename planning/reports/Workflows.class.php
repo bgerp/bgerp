@@ -46,7 +46,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField = 'sdfsd';
+    protected $groupByField ;
 
 
     /**

@@ -106,7 +106,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Продажба,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,originId=@';
 
 
     /**
@@ -278,12 +278,6 @@ class planning_Tasks extends core_Master
      * Да се показват ли бъдещи периоди в лист изгледа
      */
     public $filterFutureOptions = true;
-
-
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = 'saleId';
 
 
     /**
@@ -2104,22 +2098,21 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        if (empty($rec->id)) return;
-
         // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
         if($jobSaleId = planning_Jobs::fetchField("#containerId = {$rec->originId}", 'saleId')){
             $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobSaleId));
         }
 
         // Добавяне на всички ключови думи от прогреса
-        $dQuery = planning_ProductionTaskDetails::getQuery();
-        $dQuery->XPR('concat', 'varchar', 'GROUP_CONCAT(#searchKeywords)');
-        $dQuery->where("#taskId = {$rec->id}");
-        $dQuery->limit(1);
-
-        if ($keywords = $dQuery->fetch()->concat) {
-            $keywords = str_replace(' , ', ' ', $keywords);
-            $res = ' ' . $res . ' ' . $keywords;
+        if(isset($rec->id)){
+            $dQuery = planning_ProductionTaskDetails::getQuery();
+            $dQuery->XPR('concat', 'varchar', 'GROUP_CONCAT(#searchKeywords)');
+            $dQuery->where("#taskId = {$rec->id}");
+            $dQuery->limit(1);
+            if ($keywords = $dQuery->fetch()->concat) {
+                $keywords = str_replace(' , ', ' ', $keywords);
+                $res = ' ' . $res . ' ' . $keywords;
+            }
         }
     }
 
@@ -2549,7 +2542,7 @@ class planning_Tasks extends core_Master
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
-        $fieldsToFilterIfEmpty = array('dependantProgress');
+        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId');
 
         // Кои ще са планиращите параметри
         $plannedParams = array();
@@ -2644,6 +2637,25 @@ class planning_Tasks extends core_Master
         $jQuery->show('id,containerId,productId,dueDate,quantityInPack,quantity,packagingId,saleId');
         while ($jRec = $jQuery->fetch()) {
             $jobRecs[$jRec->containerId] = $jRec;
+            if($showSaleInList != 'no'){
+                if(!empty($jRec->saleId)){
+                    $jRec->_saleId = sales_Sales::getLink($jRec->saleId, 0);
+                    $saleRec = sales_Sales::fetch($jRec->saleId, 'deliveryTermTime,deliveryTime,activatedOn');
+                    $deliveryDate = null;
+                    if (!empty($saleRec->deliveryTime)) {
+                        $deliveryDate = $saleRec->deliveryTime;
+                    } elseif (!empty($saleRec->deliveryTermTime)) {
+                        $deliveryDate = dt::addSecs($saleRec->deliveryTermTime, $saleRec->activatedOn);
+                    }
+
+                    if(!empty($deliveryDate)){
+                        $jRec->_saleId .= " [" . dt::mysql2verbal($deliveryDate, 'd.m.y') . "]";
+                    } else {
+                        $jRec->_saleId .= " <span class='quiet'>[n/a]</span>";
+                    }
+                }
+            }
+
 
             // Взимане с приоритет от кеша на параметрите на артикула от заданието
             $jobParams = core_Permanent::get("taskListJobParams{$jRec->productId}");
@@ -2654,14 +2666,12 @@ class planning_Tasks extends core_Master
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
 
+
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
-
-            if($showSaleInList != 'no'){
-                if($saleId = $jobRecs[$rec->originId]->saleId){
-                    $row->saleId = sales_Sales::getLink($saleId, 0);
-                }
+            if($saleIdRow = $jobRecs[$rec->originId]->_saleId){
+                $row->saleId = $saleIdRow;
             }
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
@@ -3353,5 +3363,20 @@ class planning_Tasks extends core_Master
         }
 
         return true;
+    }
+
+
+    /**
+     * Линк към мастъра, подходящ за показване във форма
+     *
+     * @param int $id - ид на записа
+     * @return string $masterTitle - линк заглавие
+     */
+    public function getFormTitleLink($id)
+    {
+        $res = parent::getFormTitleLink($id);
+        $rec = static::fetchRec($id);
+
+        return $res . " [№:{$rec->saoOrder}]";
     }
 }
