@@ -351,7 +351,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
 
             // Записваме в кеша последно избраните потребители
-            if ($usedUsers = $filter->users) {
+            if ($data->listFilter->isSubmitted() && ($usedUsers = $filter->users)) {
                 if (($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }
