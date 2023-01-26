@@ -124,7 +124,7 @@ class label_plg_Print extends core_Plugin
                 $res = array($resObj);
             }
 
-            Mode::setPermanent('PREV_SAVED_ID', null);
+            Mode::setPermanent("{$mvc->className}_PREV_SAVED_ID", null);
 
             return false;
         }
@@ -376,7 +376,9 @@ class label_plg_Print extends core_Plugin
      */
     public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
-        Mode::setPermanent("{$mvc->className}_PREV_SAVED_ID", $rec->id);
+        if (Mode::get(cls::getClassName($mvc) . '_SAVE_AND_NEW')) {
+            Mode::setPermanent("{$mvc->className}_PREV_SAVED_ID", $rec->id);
+        }
     }
 
 
