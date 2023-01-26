@@ -701,7 +701,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId));
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
     }
 
 
