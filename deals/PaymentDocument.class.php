@@ -93,7 +93,7 @@ abstract class deals_PaymentDocument extends core_Master
             $rec = $this->fetchRec($id, '*', false);
         }
 
-        return (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amountDeal, 'dealCurrencyId' => $rec->dealCurrencyId);
+        return (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amountDeal, 'dealCurrencyId' => $rec->dealCurrencyId, 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
     }
 
 
