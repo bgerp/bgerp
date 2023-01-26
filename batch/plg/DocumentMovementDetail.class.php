@@ -253,7 +253,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         } else {
             $rec->batch = null;
         }
-        
+
         // Ако записа е редактиран и к-то е променено
         if ($rec->isEdited === true && isset($rec->id)) {
             if ($rec->quantity != $mvc->fetchField($rec->id, 'quantity')) {
@@ -277,13 +277,15 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
-            if ($rec->autoAllocate === true) {
-                batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
-                self::autoAllocate($mvc, $rec);
-                core_Statuses::newStatus('Преразпределени партиди, поради променено количество');
+            if($rec->_forceBatch !== true){
+                if ($rec->autoAllocate === true) {
+                    batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
+                    self::autoAllocate($mvc, $rec);
+                    core_Statuses::newStatus('Преразпределени партиди, поради променено количество');
+                }
+
+                return;
             }
-            
-            return;
         }
         
         if ($rec->isEdited === true) {
