@@ -38,6 +38,7 @@ class plg_StructureAndOrder extends core_Plugin
         $mvc->listItemsPerPage = max($mvc->listItemsPerPage, 1000);
         setIfNot($mvc->saoOrderPrioriy, -100);
         setIfNot($mvc->autoOrderBySaoOrder, true);
+        setIfNot($mvc->saoReorderAfterSave, true);
     }
     
     
@@ -255,6 +256,8 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
+        if($mvc->saoReorderAfterSave === false && $rec->_doReorder !== true) return;
+
         if ($fields === null || $fields === '*') {
             if(Mode::is('manualSaoOrder')) return;
 
@@ -377,6 +380,7 @@ class plg_StructureAndOrder extends core_Plugin
             expect($rRec = $mvc->fetch($rId));
             
             if ($rRec && abs($rec->saoOrder - $rRec->saoOrder) == 0.5) {
+                $rec->_doReorder = true;
                 $mvc->save($rec);
                 followRetUrl();
             } else {
