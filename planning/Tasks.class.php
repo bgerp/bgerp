@@ -3390,4 +3390,16 @@ class planning_Tasks extends core_Master
 
         return $res . " [№:{$rec->saoOrder}]";
     }
+
+
+    /**
+     * След намиране на текста за грешка на бутона за 'Приключване'
+     */
+    public function getCloseBtnError($rec)
+    {
+        if (doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) {
+
+            return 'Операцията не може да се приключи, защото има документи в състояние "Заявка"';
+        }
+    }
 }
