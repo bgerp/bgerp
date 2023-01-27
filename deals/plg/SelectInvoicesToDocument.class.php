@@ -168,7 +168,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         $res = array();
         $threadsArr = deals_Helper::getCombinedThreads($rec->threadId);
 
-        $isTransfer = in_array($rec->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer'));
+        $isTransfer = in_array($rec->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
         $iArr = ($rec->isReverse == 'yes' && !$isTransfer) ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, true);
 
         foreach ($iArr as $k => $number){
