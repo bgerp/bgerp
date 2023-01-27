@@ -297,7 +297,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $threadsId = array();
 
                 // Синхронизира таймлимита с броя записи //
-                $maxTimeLimit = $invQuery->count() * 5;
+                $maxTimeLimit = $invQuery->count() * 10;
                 $maxTimeLimit = max(array($maxTimeLimit, 300));
                 if ($maxTimeLimit > 300) {
                     core_App::setTimeLimit($maxTimeLimit);
