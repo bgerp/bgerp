@@ -1426,8 +1426,8 @@ class planning_Tasks extends core_Master
 
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
-        $form->setField('saoRelative', "caption=Подредба в заданието->Спрямо");
-        $form->setField('saoPosition', "caption=Подредба в заданието->Положение");
+        $form->setField('saoRelative', "input=none");
+        $form->setField('saoPosition', "input=none");
 
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
