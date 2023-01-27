@@ -71,7 +71,7 @@ class deals_InvoicesToDocuments extends core_Manager
         $Document->requireRightFor('selectinvoice');
         $Document->requireRightFor('selectinvoice', $rec);
         $paymentData = $Document->getPaymentData($rec);
-        $isTransfer = in_array($paymentData->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer'));
+        $isTransfer = in_array($paymentData->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
         $isReverseWithTransfer = ($isTransfer && $paymentData->isReverse);
 
         $form = cls::get('core_Form');
