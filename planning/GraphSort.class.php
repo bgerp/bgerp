@@ -46,11 +46,11 @@ class planning_GraphSort extends core_Mvc
         return $res;
     }
 
-    function topologicalSort($data) {
+    public static function topologicalSort($data)
+    {
         $sorted = array();
         $visited = array();
         $graph = array();
-        $n = count($data);
         foreach ($data as $key => $value) {
             $graph[$key] = $value;
             $visited[$key] = false;
@@ -65,7 +65,7 @@ class planning_GraphSort extends core_Mvc
         return array_keys($sorted);
     }
 
-    private function topologicalSortUtil($v, &$visited, &$sorted, $graph) {
+    private static function topologicalSortUtil($v, &$visited, &$sorted, $graph) {
         $visited[$v] = true;
         if (!empty($graph[$v])) {
             foreach ($graph[$v] as $neighbor) {
