@@ -279,10 +279,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,allowEmpty)', 'caption=Папка,silent,after=users');
             $data->listFilter->showFields .= ',folder';
             
-            $cKey = $mvc->className . core_Users::getCurrent();
+            $cKey = $mvc->className . '|' . core_Users::getCurrent();
             $haveUsers = false;
             
             if ($lastUsers = core_Permanent::get('userFilter' . $cKey)) {
+                $usedUsers = $lastUsers;
                 $type = $data->listFilter->getField('users')->type;
                 $type->prepareOptions();
                 foreach ($type->options as $key => $optObj) {
@@ -350,7 +351,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
 
             // Записваме в кеша последно избраните потребители
-            if ($usedUsers = $filter->users) {
+            if ($data->listFilter->isSubmitted() && ($usedUsers = $filter->users)) {
                 if (($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }

@@ -1228,7 +1228,7 @@ class cat_Boms extends core_Master
             
             // Първо проверяваме имали цена по политиката
             $price = price_ListRules::getPrice($priceListId, $productId, null, $date);
-
+            $pRec = cat_Products::fetch($productId, 'generic,canStore');
             if (!isset($price)) {
                 
                 // Ако няма, търсим по последната търговска рецепта, ако има
@@ -1238,15 +1238,16 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
+                if($pRec->generic == 'yes'){
+                    $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
+                }
             }
             
             // Ако и по рецепта няма тогава да гледа по складова
             if (!isset($price)) {
-                $pInfo = cat_Products::getProductInfo($productId);
                 
                 // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
-                if (isset($pInfo->meta['canStore'])) {
+                if ($pRec->canStore == 'yes') {
                     $price = cat_Products::getWacAmountInStore(1, $productId, $date);
                 } else {
                     $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
@@ -1257,10 +1258,9 @@ class cat_Boms extends core_Master
                 }
             }
         } else {
-            $pInfo = cat_Products::getProductInfo($productId);
-            
             // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
-            if (isset($pInfo->meta['canStore'])) {
+            $pRec = cat_Products::fetch($productId, 'generic,canStore');
+            if ($pRec->canStore == 'yes') {
                 $price = cat_Products::getWacAmountInStore(1, $productId, $date);
             } else {
                 $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
@@ -1275,7 +1275,9 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
+                if ($pRec->generic == 'yes') {
+                    $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
+                }
             }
             
             // В краен случай взимаме мениджърската себестойност
@@ -1285,14 +1287,8 @@ class cat_Boms extends core_Master
         }
         
         // Ако няма цена връщаме FALSE
-        if (!isset($price)) {
-            
-            return false;
-        }
-        if (!$quantity) {
-            
-            return false;
-        }
+        if (!isset($price)) return false;
+        if (!$quantity) return false;
         
         // Умножаваме цената по количеството
         if($quantity != cat_BomDetails::CALC_ERROR){
@@ -1301,7 +1297,6 @@ class cat_Boms extends core_Master
             return false;
         }
 
-        
         // Връщаме намерената цена
         return $price;
     }
@@ -1344,6 +1339,7 @@ class cat_Boms extends core_Master
                     'packagingId' => $rec->packagingId,
                     'quantityInPack' => $rec->quantityInPack,
                     'type' => $rec->type,
+                    'genericProductId' => planning_GenericProductPerDocuments::getRec('cat_BomDetails', $rec->id),
                 );
 
                 if ($rQuantity != cat_BomDetails::CALC_ERROR) {
@@ -1822,7 +1818,7 @@ class cat_Boms extends core_Master
             
             return $res;
         }
-
+        //bp($bomInfo);
         foreach ($bomInfo['resources'] as $pRec) {
             $productRec = cat_Products::fetch($pRec->productId, 'canStore,generic');
             if ($productRec->canStore != 'yes' || $pRec->type != 'input') {
@@ -1833,7 +1829,7 @@ class cat_Boms extends core_Master
             if (isset($storeId)) {
 
                 // Ако артикула или някой от заместителите му са налични в склада остава
-                $productArr = array_keys(planning_GenericMapper::getEquivalentProducts($pRec->productId));
+                $productArr = array_keys(planning_GenericMapper::getEquivalentProducts($pRec->productId, $pRec->genericProductId, true));
                 if(!countR($productArr)){
                     $productArr = array($pRec->productId);
                 }
@@ -1843,13 +1839,17 @@ class cat_Boms extends core_Master
 
                 if (empty($quantity)) continue;
             }
-            
-            $res[] = (object) array('productId' => $pRec->productId,
+
+            $r = (object) array('productId' => $pRec->productId,
                 'packagingId' => $pRec->packagingId,
                 'quantity' => $pRec->propQuantity,
                 'quantityInPack' => $pRec->quantityInPack);
+            if(isset($pRec->genericProductId)){
+                $r->genericProductId = $pRec->genericProductId;
+            }
+            $res[] = $r;
         }
-        
+
         return $res;
     }
 

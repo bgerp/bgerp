@@ -81,7 +81,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             $key = "{$dRec->productId}_{$dRec->packagingId}";
             $shortUom = cat_UoM::getShortName($dRec->packagingId);
 
-            $equivalentArr = planning_GenericMapper::getEquivalentProducts($dRec->productId);
+            $equivalentArr = planning_GenericMapper::getEquivalentProducts($dRec->productId, $dRec->genericProductId, false, true);
             if(countR($equivalentArr) > 1){
                 unset($equivalentArr[$dRec->productId]);
                 $form->FLD("{$key}_replaceId", 'int', "input,caption={$dRec->caption}->Заместител");

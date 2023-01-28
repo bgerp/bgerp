@@ -281,6 +281,9 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 
             while($dRec = $dQuery->fetch()){
                 $newRec = (object)array('noteId' => $rec->id, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'quantity' => $dRec->totalQuantity);
+                if($genericProductId = planning_GenericProductPerDocuments::getRec('planning_ProductionTaskProducts', $dRec->id)){
+                    $newRec->_genericProductId = $genericProductId;
+                }
                 planning_ConsumptionNoteDetails::save($newRec);
             }
         }

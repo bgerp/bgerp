@@ -98,10 +98,10 @@ class planning_StepConditions extends core_Detail
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->isSubmitted()){
+        if ($form->isSubmitted()) {
             $rec = &$form->rec;
 
-            if($rec->prevStepId == $rec->stepId){
+            if ($rec->prevStepId == $rec->stepId) {
                 $form->setError('prevStepId', 'Трябва да изберете различен етап от текущия');
             }
         }
@@ -113,12 +113,12 @@ class planning_StepConditions extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-       $row->stepId = cat_Products::getHyperlink($rec->stepId, true);
-       $row->prevStepId = cat_Products::getHyperlink($rec->prevStepId, true);
-       $row->ROW_ATTR['class'] = "state-" . cat_Products::fetchField($rec->prevStepId, 'state');
-       if(empty($rec->delay)){
-           $row->delay = "<span class='quiet'>N/A</span>";
-       }
+        $row->stepId = cat_Products::getHyperlink($rec->stepId, true);
+        $row->prevStepId = cat_Products::getHyperlink($rec->prevStepId, true);
+        $row->ROW_ATTR['class'] = "state-" . cat_Products::fetchField($rec->prevStepId, 'state');
+        if (empty($rec->delay)) {
+            $row->delay = "<span class='quiet'>N/A</span>";
+        }
     }
 
 
@@ -131,13 +131,13 @@ class planning_StepConditions extends core_Detail
         unset($data->listFields['modifiedOn']);
         unset($data->listFields['modifiedBy']);
 
-        if($data->toolbar->haveButton('btnAdd')){
+        if ($data->toolbar->haveButton('btnAdd')) {
             $data->toolbar->removeBtn('btnAdd');
         }
         $tplBlock = parent::renderDetail_($data);
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Предходни етапи'), 'title');
-        if($this->haveRightFor('add', (object)array('stepId' => $data->masterId))){
+        if ($this->haveRightFor('add', (object)array('stepId' => $data->masterId))) {
             $newBtn = ht::createLink('', array($this, 'add', 'stepId' => $data->masterId), false, 'ef_icon=img/16/add.png');
 
             $tpl->append($newBtn, 'title');
@@ -153,11 +153,11 @@ class planning_StepConditions extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        if($action == 'add' && isset($rec->stepId)){
+        if ($action == 'add' && isset($rec->stepId)) {
             $productRec = cat_Products::fetch($rec->stepId, 'state,innerClass');
-            if($productRec->innerClass != planning_interface_StepProductDriver::getClassId()){
+            if ($productRec->innerClass != planning_interface_StepProductDriver::getClassId()) {
                 $res = 'no_one';
-            } elseif($productRec->state != 'active'){
+            } elseif ($productRec->state != 'active') {
                 $res = 'no_one';
             }
         }
@@ -209,7 +209,7 @@ class planning_StepConditions extends core_Detail
         $tasksEarliestTime = array();
         foreach ($jobArr as $jobTasks) {
             foreach ($jobTasks as $taskId => $taskRec) {
-                if(!array_key_exists($taskId, $tasksEarliestTime)){
+                if (!array_key_exists($taskId, $tasksEarliestTime)) {
                     $tasksEarliestTime[$taskId] = array('prevErr' => array(), 'nextErr' => array(), 'exPrevErrId' => $taskRec->prevErrId, 'exNextErrId' => $taskRec->nextErrId, 'taskRec' => $taskRec);
                 }
 
@@ -221,13 +221,15 @@ class planning_StepConditions extends core_Detail
                     foreach ($stepArr[$taskRec->productId] as $stepRec) {
 
                         // За всеки запис се търси в текущото Задание ПО която има същия ПЕ като prevStepId
-                        $tasks4StepInSameJob = array_filter($jobTasks, function($a) use ($stepRec) { return $a->productId == $stepRec->prevStepId;});
+                        $tasks4StepInSameJob = array_filter($jobTasks, function ($a) use ($stepRec) {
+                            return $a->productId == $stepRec->prevStepId;
+                        });
 
                         // Ако се намерят такива (предходни операция)
-                        if(countR($tasks4StepInSameJob)){
-                            foreach ($tasks4StepInSameJob as $prevStepTask){
+                        if (countR($tasks4StepInSameJob)) {
+                            foreach ($tasks4StepInSameJob as $prevStepTask) {
 
-                                if($stepRec->intersect == 'no'){
+                                if ($stepRec->intersect == 'no') {
                                     $earlierTime = dt::addSecs($stepRec->delay, $prevStepTask->expectedTimeEnd);
                                 } else {
                                     $prevEndCalc = dt::addSecs(-1 * ($duration - $stepRec->delay), $prevStepTask->expectedTimeEnd);
@@ -236,9 +238,9 @@ class planning_StepConditions extends core_Detail
                                 }
 
                                 // Ако $earlierTime е по-голямо от началото на текущата операция
-                                if($earlierTime > $taskRec->expectedTimeStart){
+                                if ($earlierTime > $taskRec->expectedTimeStart) {
                                     $tasksEarliestTime[$taskRec->id]['prevErr'][$prevStepTask->id] = $earlierTime;
-                                    if(!array_key_exists($prevStepTask->id, $tasksEarliestTime)){
+                                    if (!array_key_exists($prevStepTask->id, $tasksEarliestTime)) {
                                         $tasksEarliestTime[$prevStepTask->id] = array('prevErr' => array(), 'nextErr' => array(), 'exPrevErrId' => $prevStepTask->prevErrId, 'exNextErrId' => $prevStepTask->nextErrId, 'taskRec' => $prevStepTask);
                                     }
                                     $tasksEarliestTime[$prevStepTask->id]['nextErr'][$taskRec->id] = $earlierTime;
@@ -251,25 +253,45 @@ class planning_StepConditions extends core_Detail
         }
 
         $toUpdate = array();
-        foreach ($tasksEarliestTime as $taskId => $taskData){
+        foreach ($tasksEarliestTime as $taskId => $taskData) {
 
             // Ако има колизия с предходна/последваща ПО взима се тази с минималната дата
             $prevNewErrId = countR($taskData['prevErr']) ? array_search(min($taskData['prevErr']), $taskData['prevErr']) : null;
             $nextNewErrId = countR($taskData['nextErr']) ? array_search(min($taskData['nextErr']), $taskData['nextErr']) : null;
 
             // Ако има промяна между съществуващите записи, ще се обновява
-            if($taskData['exPrevErrId'] != $prevNewErrId || $taskData['exNextErrId'] != $nextNewErrId){
+            if ($taskData['exPrevErrId'] != $prevNewErrId || $taskData['exNextErrId'] != $nextNewErrId) {
                 $toUpdate[$taskId] = (object)array('id' => $taskId, 'prevErrId' => $prevNewErrId, 'nextErrId' => $nextNewErrId);
             }
         }
 
         // Ако има записи за обновяване - обновяват се
-        if(countR($toUpdate)){
+        if (countR($toUpdate)) {
             $Tasks = cls::get('planning_Tasks');
             $Tasks->saveArray($toUpdate, 'id,prevErrId,nextErrId');
         }
 
         return $tasksEarliestTime;
+    }
+
+
+    /**
+     * Помощна ф-я за извличане на групирани предходни етапи
+     *
+     * @param array $stepIds
+     * @return array $res
+     */
+    public static function getConditionalArr($stepIds)
+    {
+        $res = array();
+        $query = static::getQuery();
+        $query->in('stepId', $stepIds);
+        $query->show('prevStepId,stepId');
+        while($rec = $query->fetch()){
+            $res[$rec->stepId][$rec->prevStepId] = $rec->prevStepId;
+        }
+
+        return $res;
     }
 
 
@@ -289,13 +311,7 @@ class planning_StepConditions extends core_Detail
 
         $ids = arr::extractValuesFromArray($arr, 'productId');
         $originIds = arr::extractValuesFromArray($arr, 'originId');
-
-        $query = static::getQuery();
-        $query->in('stepId', $ids);
-        $query->show('prevStepId,stepId');
-        while($rec = $query->fetch()){
-            $conditions[$rec->stepId][$rec->prevStepId] = $rec->prevStepId;
-        }
+        $conditions = static::getConditionalArr($ids);
 
         $taskQuery = planning_Tasks::getQuery();
         $taskQuery->in('originId', $originIds);

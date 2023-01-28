@@ -75,7 +75,7 @@ class doc_Search extends core_Manager
         if (defined('SEARCH_DB_HOST')) {
             $error = core_App::isReplicationOK();
             if (!empty($error)) {
-                if (rand(1, 100)%7 == 0) {
+                if (rand(1, 100)%11 == 0) {
                     $this->logWarning($error);
                     // todo: да праща signal msg на админа
                 }

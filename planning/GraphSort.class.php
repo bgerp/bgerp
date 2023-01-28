@@ -46,13 +46,53 @@ class planning_GraphSort extends core_Mvc
         return $res;
     }
 
+    public static function topologicalSort($data)
+    {
+        $sorted = array();
+        $visited = array();
+        $graph = array();
+        foreach ($data as $key => $value) {
+            $graph[$key] = $value;
+            $visited[$key] = false;
+        }
+
+        foreach ($data as $key1 => $value) {
+            if (!$visited[$key1]) {
+                static::topologicalSortUtil($key1, $visited, $sorted, $graph);
+            }
+        }
+
+        return array_keys($sorted);
+    }
+
+    private static function topologicalSortUtil($v, &$visited, &$sorted, $graph) {
+        $visited[$v] = true;
+        if (!empty($graph[$v])) {
+            foreach ($graph[$v] as $neighbor) {
+                if (!$visited[$neighbor]) {
+                    static::topologicalSortUtil($neighbor, $visited, $sorted, $graph);
+                }
+            }
+        }
+        $sorted[$v] = true;
+    }
+
+
+
+
 
     public function act_Test()
     {
-        $arr = [ 1 => [2, 3], 2 => [3,4], 3 => [3,2], 4 => [] ];
+        requireRole('debug');
 
-        $res = self::sort($arr);
+        //$arr = [ 1 => [2, 3], 2 => [3,4], 3 => [3,2], 4 => [] ];
+        //$arr = array(1 => array(2, 3), 2 => array(3,4), 3 => array(1,2), 4 => array(1));
+        $arr = array(1 => array(3), 2 => array(), 3 => array(4), 4 => array(2)) ;
+        $arr = array(1 => array(), 2 => array(3), 3 => array(), 4 => array());
+        //$res = self::sort($arr);
+        $res1 = self::topologicalSort($arr);
 
-        bp($res);
+
+        bp($res1, $arr);
     }
 }
