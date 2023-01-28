@@ -91,7 +91,7 @@ class core_Session
 
         ini_set('session.gc_maxlifetime', 7200);
         
-        $this->sid = $_COOKIE[session_name()];
+        $this->sid = isset($_COOKIE[session_name()]) ? $_COOKIE[session_name()] : null;
         
         session_name($name);
         

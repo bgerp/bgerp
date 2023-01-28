@@ -176,7 +176,8 @@ class core_Db
      */
     public function connect($forceDb = false)
     {
-        if (!($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName])) {
+        if (!isset(self::$links[$this->dbHost][$this->dbUser][$this->dbName]) ||
+            !($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName])) {
             if (strpos($this->dbHost, ':')) {
                 list($host, $port) = explode(':', $this->dbHost);
                 $link = new mysqli($host, $this->dbUser, $this->dbPass, '', $port);
@@ -215,7 +216,7 @@ class core_Db
             // Избираме указаната база от данни на сървъра
             if (!$link->select_db("{$this->dbName}")) {
                 // Грешка при избиране на база
-                $dump = array('mysqlErrCode' => $this->link->error_list[0]['errno'], 'mysqlErrMsg' => $this->link->error_list[0]['error'], 'dbName' => $this->dbName, 'dbLink' => $this->link);
+                $dump = array('mysqlErrCode' => $link->error_list[0]['errno'], 'mysqlErrMsg' => $link->error_list[0]['error'], 'dbName' => $this->dbName, 'dbLink' => $link);
                 throw new core_exception_Db('500 @Грешка при избиране на база', 'DB Грешка', $dump);
             }
         }

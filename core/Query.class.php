@@ -551,7 +551,8 @@ class core_Query extends core_FieldSet
     {
         if (countR($this->orderBy) > 0) {
             arr::sortObjects($this->orderBy, 'priority');
-            
+
+            $orderBy = '';
             foreach ($this->orderBy as $order) {
                 $fldName = ($useAlias === false) ? $this->expr2mysql($order->field) : str_replace('#', '', $order->field);
                 
@@ -1052,7 +1053,7 @@ class core_Query extends core_FieldSet
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
         // без виртуалните и чуждестранните
-        if (!countR($this->show) || $this->show['*']) {
+        if (!countR($this->show) || isset($this->show['*'])) {
             $this->show = $this->selectFields('');
         }
         

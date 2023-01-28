@@ -201,7 +201,7 @@ class core_Request
         }
         
         // Защита на ИД-то
-        if ($arr['id'] && $arr['Ctr']) {
+        if (isset($arr['id']) && isset($arr['Ctr'])) {
             $mvc = cls::get($arr['Ctr']);
             
             $arr['id'] = $mvc->protectId($arr['id']);
@@ -218,7 +218,7 @@ class core_Request
         $value = null;
         
         foreach (self::$vars as $key => $arr) {
-            if (self::$protected[$name] && ($key == '_POST' || $key == '_GET')) {
+            if (isset(self::$protected[$name]) && ($key == '_POST' || $key == '_GET')) {
                 continue;
             }
             
