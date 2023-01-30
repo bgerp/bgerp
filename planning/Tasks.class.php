@@ -3389,7 +3389,7 @@ class planning_Tasks extends core_Master
                 $productionCount = planning_ProductionTaskProducts::count("#type = 'production' AND #taskId = {$taskId}");
                 $allowedCount = ($masterRec->isFinal == 'yes') ? 1 : 0;
                 if($productionCount != $allowedCount){
-                    if(!haveRole('taskPostProduction,ceo,production,consumption', $userId)){
+                    if(!haveRole('taskPostProduction,ceo', $userId)){
                         return false;
                     }
                 } else {
