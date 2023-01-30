@@ -63,7 +63,7 @@ class bank_Setup extends core_ProtoSetup
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
         'bank_Register',
-        'migrate::updateAccounts',
+        'migrate::updateAccounts1',
     );
     
     
