@@ -9,7 +9,7 @@
  * @package   bank
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,7 +25,7 @@ class bank_Accounts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search, plg_Sorting, deals_plg_AdditionalConditions';
+    public $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search, plg_Sorting, doc_plg_Close, deals_plg_AdditionalConditions';
 
 
     /**
@@ -63,8 +63,14 @@ class bank_Accounts extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'iban';
-    
-    
+
+
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'bank,ceo';
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -249,7 +255,7 @@ class bank_Accounts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->contragent = cls::get($rec->contragentCls)->getHyperLink($rec->contragentId, true);
-        $row->STATE = ($rec->state == 'rejected') ? 'rejected' : 'active';
+        $row->STATE = ($rec->state == 'rejected') ? 'rejected' : (($rec->state == 'closed') ? 'closed' : 'active');
         $row->ROW_ATTR['class'] = "state-{$row->STATE}";
         
         if ($rec->iban) {
@@ -439,7 +445,8 @@ class bank_Accounts extends core_Master
         $query = static::getQuery();
         $query->where("#contragentId = {$contragentId}");
         $query->where("#contragentCls = {$Contragent->getClassId()}");
-        
+        $query->where("#state != 'closed'");
+
         $myCompany = crm_Companies::fetchOwnCompany();
         $isOurCompany = ($myCompany->companyId == $contragentId && $Contragent->getClassId() == crm_Companies::getClassId());
         $cu = core_Users::getCurrent();
@@ -516,5 +523,30 @@ class bank_Accounts extends core_Master
                 $data->query->where("#currencyId = {$data->listFilter->rec->currencyId}");
             }
         }
+    }
+
+
+    /**
+     * Декорира ибан-а в удобен за показване вид
+     *
+     * @param string $iban
+     * @return core_ET
+     */
+    public static function decorateIban($iban)
+    {
+        $res = core_Type::getByName('iban_Type(64)')->toVerbal($iban);
+        if(!Mode::isReadOnly()){
+            if($bRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $iban))){
+                if(bank_Accounts::haveRightFor('single', $bRec)){
+                    $url = bank_Accounts::getSingleUrlArray($bRec->id);
+                    $res = ht::createLink($res, $url);
+                }
+                if($bRec->state == 'closed'){
+                    $res = ht::createElement('span', array('class' => 'warning-balloon state-closed', 'title' => 'Сметката е закрита'), $res);
+                }
+            }
+        }
+
+        return $res;
     }
 }
