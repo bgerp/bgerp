@@ -309,14 +309,12 @@ class bank_Accounts extends core_Master
         }
         
         while ($rec = $query->fetch()) {
-            
+
             // Ако е наша банкова сметка и е отттеглена, пропускаме я
             if ($data->isOurCompany === true) {
                 $rec->ourAccount = true;
                 $state = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'state');
-                if ($state == 'rejected') {
-                    continue;
-                }
+                if ($state == 'rejected') continue;
             }
             
             $data->recs[$rec->id] = $rec;
@@ -351,17 +349,19 @@ class bank_Accounts extends core_Master
                 $cCodeRec = currency_Currencies::fetch($rec->currencyId);
                 $cCode = currency_Currencies::getVerbal($cCodeRec, 'code');
                 
-                $row->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px;
-                font-size:0.7em;vertical-align:middle;'>{$cCode}</span>&nbsp;";
-                
+                $row->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px;font-size:0.7em;vertical-align:middle;'>{$cCode}</span>&nbsp;";
+                if($rec->state == 'closed'){
+                    $row->iban = ht::createElement('span', array('class' => 'warning-balloon state-closed', 'title' => tr('Сметката е закрита')), $row->iban);
+                }
+
                 $row->title .= $row->iban;
-                
                 if ($rec->bank) {
                     $row->title .= ", {$row->bank}";
                 }
                 
                 $row->title = core_ET::escape($row->title);
-                
+
+
                 $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
                 $tools = new core_ET("{$row->title} <span style='position:relative;top:4px'>[#tools#]</span>");
                 $tools->replace($row->_rowTools->renderHtml(), 'tools');
