@@ -63,7 +63,7 @@ class bank_Setup extends core_ProtoSetup
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
         'bank_Register',
-        'migrate::updateAccounts1',
+        'migrate::updateAccounts2',
     );
     
     
@@ -87,13 +87,13 @@ class bank_Setup extends core_ProtoSetup
     /**
      * Миграция на банковите сметки
      */
-    function updateAccounts1()
+    function updateAccounts2()
     {
         $Accounts = cls::get('bank_Accounts');
         $Accounts->setupMvc();
 
         $stateColName = str::phpToMysqlName('state');
-        $brStateColName = str::phpToMysqlName('brState');
+        $brStateColName = str::phpToMysqlName('exState');
         $query = "UPDATE {$Accounts->dbTableName} SET {$stateColName} = 'active', {$brStateColName} = 'active' WHERE ({$stateColName} = 'draft' OR {$stateColName} IS NULL OR {$brStateColName} = 'draft')";
         $Accounts->db->query($query);
     }
