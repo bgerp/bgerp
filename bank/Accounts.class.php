@@ -167,11 +167,20 @@ class bank_Accounts extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'edit' || $action == 'delete') && isset($rec->contragentCls)) {
-            $productState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
-            
-            if ($productState == 'rejected') {
-                $requiredRoles = 'no_one';
+        if (($action == 'close'|| $action == 'edit' || $action == 'delete')) {
+            if(isset($rec->contragentCls)){
+                $cState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
+                if (in_array($cState, array('closed', 'rejected'))) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        if($action == 'close' && isset($rec)){
+            if($ownAccountRec = bank_OwnAccounts::fetch("#bankAccountId = {$rec->id}")){
+                if (in_array($ownAccountRec->state, array('closed', 'rejected'))) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
