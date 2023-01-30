@@ -655,12 +655,12 @@ class bank_OwnAccounts extends core_Master
     {
         $bRec = bank_Accounts::fetch($rec->bankAccountId);
         if($newState == 'closed'){
-            $bRec->brState = $bRec->state;
+            $bRec->exState = $bRec->state;
             $bRec->state = 'closed';
         } else {
-            $bRec->state = $bRec->brState;
-            $bRec->brState = 'closed';
+            $bRec->state = $bRec->exState;
+            $bRec->exState = 'closed';
         }
-        bank_Accounts::save($bRec);
+        bank_Accounts::save($bRec, 'state,exState');
     }
 }

@@ -109,6 +109,7 @@ class bank_Accounts extends core_Master
         $this->FLD('bic', 'varchar(12)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
+        $this->FLD('state', 'enum(active=Активно,closed=Затворено,rejected=Оттеглено)', 'caption=Състояние,input=none,notNull,value=active');
 
         // Задаваме индексите и уникалните полета за модела
         $this->setDbIndex('contragentCls,contragentId');
