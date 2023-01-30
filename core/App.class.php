@@ -801,7 +801,7 @@ class core_App
             
             // Премахваме защитата на id-то, ако има такава
             if ($get['id'] && $unprotect) {
-                expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'), $get['id'], Request::unprotectId($get['id'], $get['Ctr']), strlen($get['id']));
+                expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'), $get['id'], strlen($get['id']));
             }
             
             if ($get['App']) {
