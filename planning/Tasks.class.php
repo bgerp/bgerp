@@ -3400,7 +3400,7 @@ class planning_Tasks extends core_Master
                 $productionCount = planning_ProductionTaskProducts::count("#type = 'production' AND #taskId = {$taskId}");
                 $allowedCount = ($masterRec->isFinal == 'yes') ? 1 : 0;
                 if($productionCount != $allowedCount){
-                    if(!haveRole('taskPostProduction,ceo', $userId)){
+                    if(!haveRole('taskPostProduction,ceo,production,consumption', $userId)){
                         return false;
                     }
                 } else {
@@ -3409,7 +3409,7 @@ class planning_Tasks extends core_Master
             }
 
             // Ако е преди първия хоризонт се изисква роля за пост продукция
-        } elseif(!haveRole('taskPostProduction,ceo', $userId)){
+        } elseif(!haveRole('taskPostProduction,ceo,production,consumption', $userId)){
             return false;
         }
 
