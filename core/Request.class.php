@@ -201,7 +201,7 @@ class core_Request
         }
         
         // Защита на ИД-то
-        if (isset($arr['id']) && isset($arr['Ctr'])) {
+        if (isset($arr['id']) && strlen(trim($arr['id'])) && isset($arr['Ctr'])) {
             $mvc = cls::get($arr['Ctr']);
             
             $arr['id'] = $mvc->protectId($arr['id']);
