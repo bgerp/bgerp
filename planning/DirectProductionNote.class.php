@@ -683,7 +683,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                                 }
 
                                 if($state == 'closed' && $requiredRoles != 'no_one'){
-                                    if(!planning_Tasks::isProductionAfterClosureAllowed($originDoc->that, $userId)){
+                                    if(!planning_Tasks::isProductionAfterClosureAllowed($originDoc->that, $userId, 'taskPostProduction,ceo,production')){
                                         $requiredRoles = 'no_one';
                                     }
                                 }
