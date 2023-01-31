@@ -2302,9 +2302,15 @@ class planning_Tasks extends core_Master
     protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
         // При затваряне се попълва очаквания край, ако не може да се изчисли
-        if ($action == 'closed' && empty($rec->timeEnd) && !isset($rec->timeStart, $rec->timeDuration)) {
-            $rec->timeEnd = dt::now();
-            $mvc->save_($rec, 'timeEnd');
+        if ($action == 'closed') {
+            if(empty($rec->timeEnd) && !isset($rec->timeStart, $rec->timeDuration)){
+                $rec->timeEnd = dt::now();
+                $mvc->save_($rec, 'timeEnd');
+            }
+
+            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")){
+                core_Statuses::newStatus('В операцията има документ/и на "Заявка"!', 'warning');
+            }
         }
     }
 
@@ -3418,18 +3424,6 @@ class planning_Tasks extends core_Master
         $rec = static::fetchRec($id);
 
         return $res . " [№:{$rec->saoOrder}]";
-    }
-
-
-    /**
-     * След намиране на текста за грешка на бутона за 'Приключване'
-     */
-    public function getCloseBtnError($rec)
-    {
-        if (doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) {
-
-            return 'Операцията не може да се приключи, защото има документи в състояние "Заявка"';
-        }
     }
 
 
