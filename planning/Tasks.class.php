@@ -3383,11 +3383,13 @@ class planning_Tasks extends core_Master
     /**
      * Разрешено ли е на потребителя да произвежда след приключването на дадената ПО
      *
-     * @param stdClass $taskId
-     * @param int|null $userId
+     * @param int $taskId - ид на операция
+     * @param int|null $userId - ид на потребител
+     * @param string $roles4FirstHorizon - роли, които да има потребителя за първия хоризонт
+     * @param string $roles4SecondHorizon - роли, които да има потребителя за втория хоризонт
      * @return bool
      */
-    public static function isProductionAfterClosureAllowed($taskId, $userId = null)
+    public static function isProductionAfterClosureAllowed($taskId, $userId = null, $roles4FirstHorizon = 'taskPostProduction,ceo', $roles4SecondHorizon = 'taskPostProduction,ceo')
     {
         $now = dt::now();
         $masterRec = static::fetch($taskId, 'timeClosed,state,originId,productId,isFinal');
@@ -3406,7 +3408,7 @@ class planning_Tasks extends core_Master
                 $productionCount = planning_ProductionTaskProducts::count("#type = 'production' AND #taskId = {$taskId}");
                 $allowedCount = ($masterRec->isFinal == 'yes') ? 1 : 0;
                 if($productionCount != $allowedCount){
-                    if(!haveRole('taskPostProduction,ceo', $userId)){
+                    if(!haveRole($roles4SecondHorizon, $userId)){
                         return false;
                     }
                 } else {
@@ -3415,7 +3417,7 @@ class planning_Tasks extends core_Master
             }
 
             // Ако е преди първия хоризонт се изисква роля за пост продукция
-        } elseif(!haveRole('taskPostProduction,ceo,production,consumption', $userId)){
+        } elseif(!haveRole($roles4FirstHorizon, $userId)){
             return false;
         }
 

@@ -302,7 +302,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                     if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
                         $requiredRoles = 'no_one';
                     } elseif($state == 'closed'){
-                        if(!planning_Tasks::isProductionAfterClosureAllowed($origin->that, $userId)){
+                        if(!planning_Tasks::isProductionAfterClosureAllowed($origin->that, $userId, 'taskPostProduction,ceo,consumption')){
                             $requiredRoles = 'no_one';
                         }
                     }
