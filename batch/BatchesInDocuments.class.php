@@ -856,7 +856,7 @@ class batch_BatchesInDocuments extends core_Manager
                         if (!haveRole('batch,ceo')) {
                             Request::setProtected('batch');
                         }
-                        $b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $k));
+                        $b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $k, 'productId' => $productId));
                         $b = $b->getContent();
                     }
                     
