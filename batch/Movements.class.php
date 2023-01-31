@@ -61,7 +61,7 @@ class batch_Movements extends core_Detail
     /**
      * Брой записи на страница
      */
-    public $listItemsPerPage = 5;
+    public $listItemsPerPage = 50;
     
     
     /**
