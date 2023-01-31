@@ -1528,18 +1528,33 @@ class planning_Jobs extends core_Master
             return 'Заданието не може да се приключи, защото има документи в състояние "Заявка"';
         }
 
-        $notClosedTasks = array();
+        // Всички ПО към заданието
+        $errorMsgArr = $notClosedTasks = $threadsWithPendings = array();
         $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#originId = {$rec->containerId} AND #state IN ('active', 'wakeup', 'stopped', 'pending', 'draft')");
-        $tQuery->show('id');
+        $tQuery->where("#originId = {$rec->containerId}");
+        $tQuery->show('id,threadId,state');
         while($tRec = $tQuery->fetch()){
-            $notClosedTasks[] = "#" . planning_Tasks::getHandle($tRec->id);
+
+            // Ако има неприключени - няма да може да се приключи
+            if(in_array($tRec->state, array('active', 'wakeup', 'stopped', 'pending', 'draft'))){
+                $notClosedTasks[] = "#" . planning_Tasks::getHandle($tRec->id);
+            }
+
+            // Ако има в тях документи на заявка - няма да може да се приключи
+            if(doc_Containers::fetchField("#threadId = {$tRec->threadId} AND #state = 'pending'")){
+                $threadsWithPendings[] = "#" . planning_Tasks::getHandle($tRec->id);
+            }
         }
 
         if(countR($notClosedTasks)){
-
-            return "Заданието не може да бъде приключено докато не са приключени операциите към него|*: " . implode(', ', $notClosedTasks);
+            $errorMsgArr[] = "|Заданието не може да бъде приключено докато не са приключени операциите към него|*: " . implode(', ', $notClosedTasks);
         }
+
+        if(countR($threadsWithPendings)){
+            $errorMsgArr[] = "|Заданието не може да бъде приключено докато в следните операции има документ/и на заявка|*: " . implode(', ', $threadsWithPendings);
+        }
+
+        if(countR($errorMsgArr)) return implode('. ', $errorMsgArr);
     }
     
     
