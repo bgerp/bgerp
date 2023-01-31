@@ -671,12 +671,10 @@ class cat_Boms extends core_Master
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
         $row->title = $mvc->getLink($rec->id, 0);
         $row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : (($rec->type == 'instant') ? tr('Моментна рецепта') : ('Работна рецепта'));
-        
-        if ($row->quantity) {
-            $measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
-            $shortUom = cat_UoM::getShortName($measureId);
-            $row->quantity .= ' ' . $shortUom;
-        }
+
+        $measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
+        $shortUom = cat_UoM::getShortName($measureId);
+        $row->quantity .= ' ' . $shortUom;
 
         $row->title = $mvc->getHyperlink($rec, true);
         if ($fields['-single']) {
@@ -692,6 +690,18 @@ class cat_Boms extends core_Master
                     $price = 0;
                 }
 
+                $overheadCost = $rec->expenses;
+                if (empty($rec->expenses)) {
+                    $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
+                    if (!empty($defaultOverheadCost)) {
+                        $overheadCost = $defaultOverheadCost['overheadCost'];
+                        $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
+                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично|*: {$defaultOverheadCost['hint']}");
+                    } else {
+                        $row->expenses = ht::createHint("<span style='color:blue'>n/a</span>", "Не може да се определи автоматично|*!");
+                    }
+                }
+
                 if (haveRole('ceo, acc, cat, price')) {
                     $row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
                     $rec->primeCost = ($price) ? $price : 0;
@@ -705,10 +715,19 @@ class cat_Boms extends core_Master
                     } else {
                         $row->primeCost = ht::styleNumber($row->primeCost, $rec->primeCost);
                         $row->primeCost = "<b>{$row->primeCost}</b>";
+
+                        if(isset($overheadCost) && !empty($rec->primeCost)){
+                            $rec->primeCostWithOverheadCost = $rec->primeCost * (1 + $overheadCost);
+                            $row->primeCostWithOverheadCost = $Double->toVerbal($rec->primeCostWithOverheadCost);
+                        }
                     }
 
+                    $row->primeCost = currency_Currencies::decorate($row->primeCost, $baseCurrencyCode);
                     $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
-                    $row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
+                    $row->primeCost .= tr("|*, |при тираж|* {$row->quantityForPrice} {$shortUom}");
+                    if(!empty($row->primeCostWithOverheadCost)){
+                        $row->primeCostWithOverheadCost = currency_Currencies::decorate($row->primeCostWithOverheadCost, $baseCurrencyCode);
+                    }
                 }
 
                 if ($mvc->haveRightFor('recalcselfvalue', $rec)) {
@@ -719,16 +738,6 @@ class cat_Boms extends core_Master
                     $autoValue = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
                     $row->isComplete = $mvc->getFieldType('isComplete')->toVerbal($autoValue);
                     $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена');
-                }
-
-                if (empty($rec->expenses)) {
-                    $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
-                    if (!empty($defaultOverheadCost)) {
-                        $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
-                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично|*: {$defaultOverheadCost['hint']}");
-                    } else {
-                        $row->expenses = ht::createHint("<span style='color:blue'>n/a</span>", "Не може да се определи автоматично|*!");
-                    }
                 }
             }
         }
