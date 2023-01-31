@@ -391,7 +391,7 @@ class batch_Movements extends core_Detail
                 if (!haveRole('batch,ceo')) {
                     Request::setProtected('batch');
                 }
-                $b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
+                $b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key, 'productId' => $productId));
             }
             
             $b = ($b instanceof core_ET) ? $b->getContent() : $b;
@@ -427,10 +427,11 @@ class batch_Movements extends core_Detail
         $round = cat_UoM::fetchField($measureId, 'round');
 
         // Показване на обобщаващ ред за единствения листван артикул
-        $total = core_Type::getByName("double(decimals={$round})")->toVerbal($total[$filteredProductId]);
+        $totalVerbal = core_Type::getByName("double(decimals={$round})")->toVerbal($total[$filteredProductId]);
+        $totalVerbal = ht::styleIfNegative($totalVerbal, $total[$filteredProductId]);
         $lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='9'>[#caption#]: &nbsp;<b>[#total#]</b> &nbsp;[#measureShortName#]</td></tr>");
         $lastRow->replace(tr('Общо'), 'caption');
-        $lastRow->replace($total, 'total');
+        $lastRow->replace($totalVerbal, 'total');
         $lastRow->replace($measureShortName, 'measureShortName');
         $tpl->append($lastRow, 'ROW_AFTER');
     }
