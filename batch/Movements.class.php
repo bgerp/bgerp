@@ -31,7 +31,7 @@ class batch_Movements extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'quantity, operation, date, document=Документ,createdOn=Създаване||Created';
+    public $listFields = 'date, document=Документ,createdOn=Създаване||Created,operation,quantity';
     
     
     /**
@@ -61,7 +61,7 @@ class batch_Movements extends core_Detail
     /**
      * Брой записи на страница
      */
-    public $listItemsPerPage = 150;
+    public $listItemsPerPage = 5;
     
     
     /**
@@ -181,8 +181,7 @@ class batch_Movements extends core_Detail
         $data->query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
         $data->query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
         $data->query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
-        
-        $fields = array('RowNumb' => '№', 'batch' => 'Партида', 'productId' => 'Артикул', 'storeId' => 'Склад');
+        $fields = array('RowNumb' => '№', 'storeId' => 'Склад', 'productId' => 'Артикул', 'batch' => 'Партида');
         $data->listFields = $fields + $data->listFields;
         
         if ($fRec = $data->listFilter->rec) {
@@ -399,5 +398,40 @@ class batch_Movements extends core_Detail
         }
         
         return $batch;
+    }
+
+
+    /**
+     * След рендиране на лист таблицата
+     */
+    protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+        if (!countR($data->recs)) return;
+
+        // Сумиране по филтрираните артикули
+        $total = array();
+        $summaryQuery = clone $data->listSummary->query;
+        $summaryQuery->show('productId,operation,quantity');
+        while($sumRec = $summaryQuery->fetch()){
+            $sign = ($sumRec->operation == 'in') ? 1 : (($sumRec->operation == 'out') ? -1 : 0);
+            $total[$sumRec->productId] += $sign * $sumRec->quantity;
+        }
+
+        // Ако се показват повече от 1 нищо не се прави
+        if(countR($total) != 1) return;
+
+        // Ако е един се извличат данните на мярката му
+        $filteredProductId = key($total);
+        $measureId = cat_Products::fetchField($filteredProductId, 'measureId');
+        $measureShortName = cat_UoM::getShortName($measureId);
+        $round = cat_UoM::fetchField($measureId, 'round');
+
+        // Показване на обобщаващ ред за единствения листван артикул
+        $total = core_Type::getByName("double(decimals={$round})")->toVerbal($total[$filteredProductId]);
+        $lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='9'>[#caption#]: &nbsp;<b>[#total#]</b> &nbsp;[#measureShortName#]</td></tr>");
+        $lastRow->replace(tr('Общо'), 'caption');
+        $lastRow->replace($total, 'total');
+        $lastRow->replace($measureShortName, 'measureShortName');
+        $tpl->append($lastRow, 'ROW_AFTER');
     }
 }
