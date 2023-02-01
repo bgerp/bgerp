@@ -196,6 +196,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $docsArr = array('sales_Invoices');
 
+            //Когато се търсят неплатените фактури, и има избор за проформи, се гледат и проформите
+            //към които има изрично насочени плащания
             if ($rec->seeProformаs == 'yes' && $rec->unpaid == 'all') {
 
                 array_push($docsArr, 'sales_Proformas');
