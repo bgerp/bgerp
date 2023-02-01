@@ -2308,7 +2308,7 @@ class planning_Tasks extends core_Master
                 $mvc->save_($rec, 'timeEnd');
             }
 
-            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")){
+            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state IN ('pending', 'draft')")){
                 core_Statuses::newStatus('В операцията има документ/и на "Заявка"!', 'warning');
             }
         }
