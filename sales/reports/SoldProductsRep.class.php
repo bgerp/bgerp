@@ -1914,6 +1914,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $prodCategory = doc_Folders::fetch($prodFolderId)->title;
                 $res->category = $prodCategory;
             }
+            $res->productId = $dRec->productId;
         }
     }
 
