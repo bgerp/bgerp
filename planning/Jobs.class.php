@@ -1523,9 +1523,9 @@ class planning_Jobs extends core_Master
      */
     public function getCloseBtnError($rec)
     {
-        if (doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) {
+        if (doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state IN ('pending', 'draft')")) {
             
-            return 'Заданието не може да се приключи, защото има документи в състояние "Заявка"';
+            return 'Заданието не може да се приключи, защото има документи в състояние "Заявка/Чернова"';
         }
 
         // Всички ПО към заданието
@@ -1541,7 +1541,7 @@ class planning_Jobs extends core_Master
             }
 
             // Ако има в тях документи на заявка - няма да може да се приключи
-            if(doc_Containers::fetchField("#threadId = {$tRec->threadId} AND #state = 'pending'")){
+            if(doc_Containers::fetchField("#threadId = {$tRec->threadId} AND #state IN ('pending', 'draft')")){
                 $threadsWithPendings[] = "#" . planning_Tasks::getHandle($tRec->id);
             }
         }
@@ -1551,7 +1551,7 @@ class planning_Jobs extends core_Master
         }
 
         if(countR($threadsWithPendings)){
-            $errorMsgArr[] = "|Заданието не може да бъде приключено докато в следните операции има документ/и на заявка|*: " . implode(', ', $threadsWithPendings);
+            $errorMsgArr[] = "|Заданието не може да бъде приключено докато в следните операции има документ/и на заявка/чернова|*: " . implode(', ', $threadsWithPendings);
         }
 
         if(countR($errorMsgArr)) return implode('. ', $errorMsgArr);
