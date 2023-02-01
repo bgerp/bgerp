@@ -1079,7 +1079,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                             // Ако параметъра е формула, се прави опит за изчислението ѝ
                             if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
-                                bp($expectedSingleNetWeight);
+
                                 Mode::push('text', 'plain');
                                 $expectedSingleNetWeight = cat_Params::toVerbal($centerRec->paramExpectedNetWeight, planning_Tasks::getClassId(), $rec->taskId, $expectedSingleNetWeight);
                                 Mode::pop('text');
@@ -1089,7 +1089,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                             }
 
                             if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
-                                bp($expectedSingleNetWeight);
+
                                 $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
                                 $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
                                 if($rec->type == 'production'){
