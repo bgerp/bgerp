@@ -179,7 +179,11 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
     {
         $prevTaskQuery = planning_Tasks::getQuery();
         $prevTaskQuery->where("#originId = {$firstDocRec->originId} AND #state IN ('active', 'stopped', 'wakeup', 'closed') AND #id != {$firstDocRec->id}");
-        $prevTaskQuery->where("#saoOrder < {$firstDocRec->saoOrder}");
+        if($firstDocRec->saoOrder){
+            $prevTaskQuery->where("#saoOrder < '{$firstDocRec->saoOrder}'");
+        } else {
+            $prevTaskQuery->where("#id < '{$firstDocRec->id}'");
+        }
         $prevTaskQuery->orderBy('saoOrder', "DESC");
         $prevTaskQuery->show('threadId');
         $prevTasks = $prevTaskQuery->fetchAll();
