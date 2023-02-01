@@ -1776,18 +1776,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Опит за приспадане на параметър от стойността на теглото
         $rec = $form->rec;
         if(!isset($rec->weight)) return;
-        $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
 
-        // Ако се произвежда главния артикул
-        if($rec->productId == $jobProductId || $rec->productId == $masterRec->productId){
-            $weightMsg = $weightMsgType = null;
-            $rec->netWeight = static::subtractParamValueFromWeight($rec->taskId, $rec->productId, $masterRec->originId, $rec->weight, $weightMsg, $weightMsgType);
+        $weightMsg = $weightMsgType = null;
+        $rec->netWeight = static::subtractParamValueFromWeight($rec->taskId, $rec->productId, $masterRec->originId, $rec->weight, $weightMsg, $weightMsgType);
 
-            if($weightMsgType == 'warning'){
-                $form->setWarning('weight', $weightMsg);
-            } elseif($weightMsgType == 'error'){
-                $form->setError('weight', $weightMsg);
-            }
+        if($weightMsgType == 'warning'){
+            $form->setWarning('weight', $weightMsg);
+        } elseif($weightMsgType == 'error'){
+            $form->setError('weight', $weightMsg);
         }
     }
 
