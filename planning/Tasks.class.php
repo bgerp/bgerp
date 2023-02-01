@@ -2309,7 +2309,7 @@ class planning_Tasks extends core_Master
             }
 
             if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state IN ('pending', 'draft')")){
-                core_Statuses::newStatus('В операцията има документ/и на "Заявка"!', 'warning');
+                core_Statuses::newStatus('В операцията има документ/и на "Заявка/Чернова"!', 'warning');
             }
         }
     }
