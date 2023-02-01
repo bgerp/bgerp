@@ -679,7 +679,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността от параметъра|* <b>{$paramName}</b> : {$subtractTareWeightValVerbal}";
         }
 
-        if(!empty($centerRec->useTareFromPackagings)){
+        if(!empty($centerRec->useTareFromPackagings) && empty($taskWeightSubtractValue)){
             if(isset($taskRec->labelPackagingId) && keylist::isIn($taskRec->labelPackagingId, $centerRec->useTareFromPackagings)){
                 $tareWeight = cat_products_Packagings::fetchField("#productId = {$jobProductId} AND #packagingId = {$taskRec->labelPackagingId}",'tareWeight');
                 $packName = cat_UoM::getShortName($taskRec->labelPackagingId);
