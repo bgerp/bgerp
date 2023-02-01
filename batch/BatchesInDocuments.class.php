@@ -865,7 +865,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
         }
         
-        $res = implode(',', $res);
+        $res = implode('<br>', $res);
         
         return $res;
     }
