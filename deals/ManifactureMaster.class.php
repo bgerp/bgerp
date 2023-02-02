@@ -222,7 +222,7 @@ abstract class deals_ManifactureMaster extends core_Master
             return false;
         } else {
             $state = $origin->fetchField('state');
-            if (in_array($state, array('rejected', 'draft', 'stopped'))) {
+            if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
                 return false;
             } elseif ($state == 'closed') {
                 if (!planning_Tasks::isProductionAfterClosureAllowed($origin->that, $userId, 'taskPostProduction,ceo,consumption')) {
