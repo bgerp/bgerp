@@ -218,9 +218,9 @@ abstract class deals_ManifactureMaster extends core_Master
     protected function canAddToOriginId($containerId, $userId = null)
     {
         $origin = doc_Containers::getDocument($containerId);
-        if (!$origin->isInstanceOf('planning_Tasks')) {
+        if (!$origin->isInstanceOf('planning_Tasks') && !$origin->isInstanceOf('planning_ConsumptionNotes')) {
             return false;
-        } else {
+        }elseif($origin->isInstanceOf('planning_Tasks')){
             $state = $origin->fetchField('state');
             if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
                 return false;
