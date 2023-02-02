@@ -2934,6 +2934,7 @@ class planning_Tasks extends core_Master
         if (countR($mvc->reorderTasksByJobIds)) {
             foreach ($mvc->reorderTasksByJobIds as $originId) {
                 $mvc->reorderTasksInJob($originId);
+                core_Statuses::newStatus('Преподредени са операциите в заданието|*!');
             }
         }
     }
