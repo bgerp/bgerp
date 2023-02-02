@@ -293,4 +293,24 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 
         return false;
     }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'add' && isset($rec)) {
+            if (isset($rec->originId)) {
+                if(!$mvc->canAddToOriginId($rec->originId, $userId)){
+                    $requiredRoles = 'no_one';
+                } else {
+                    $threadId = doc_Containers::fetchField($rec->originId, 'threadId');
+                    if(!planning_ConsumptionNotes::count("#threadId = {$threadId} AND #state = 'active'")){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
+    }
 }
