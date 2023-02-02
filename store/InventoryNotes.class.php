@@ -372,7 +372,9 @@ class store_InventoryNotes extends core_Master
         
         if (core_Packs::isInstalled('batch')) {
             if (batch_Movements::haveRightFor('list') && $data->rec->state == 'active') {
-                $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Показване на движенията на партидите генерирани от документа,row=2');
+                if(batch_Movements::count("#docType = {$mvc->getClassId()} AND #docId = {$data->rec->id}")){
+                    $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Показване на движенията на партидите генерирани от документа,row=2');
+                }
             }
         }
         
