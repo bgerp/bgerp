@@ -192,7 +192,7 @@ class batch_plg_DocumentMovement extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if (batch_Movements::haveRightFor('list') && $data->rec->state == 'active') {
-            $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Добавяне като ресурс,row=2');
+            $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Показване на движенията на партидите генерирани от документа,row=2');
         }
     }
 }
