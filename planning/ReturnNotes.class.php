@@ -306,7 +306,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
                     $requiredRoles = 'no_one';
                 } else {
                     $threadId = doc_Containers::fetchField($rec->originId, 'threadId');
-                    if(!planning_ConsumptionNotes::count("#threadId = {$threadId} AND #state = 'active'")){
+                    if(!planning_ConsumptionNotes::count("#threadId = {$threadId} AND #state IN ('active', 'pending')")){
                         $requiredRoles = 'no_one';
                     }
                 }
