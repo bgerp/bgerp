@@ -197,9 +197,9 @@ class batch_Movements extends core_Detail
             
             if (!empty($fRec->batch)) {
                 if($fRec->searchType == 'full'){
-                    $data->query->where("#batch = '{$fRec->batch}'");
+                    $data->query->where(array("#batch = '[#1#]'", $fRec->batch));
                 } else {
-                    $data->query->where("#batch LIKE '%{$fRec->batch}%'");
+                    $data->query->where(array("#batch LIKE '%[#1#]%'", $fRec->batch));
                 }
             }
             
