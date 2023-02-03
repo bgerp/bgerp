@@ -88,12 +88,10 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
         $fieldset->FLD('to', 'date', 'caption=До,after=start,single=none,mandatory');
 
         //Артикули
-        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholder=Избери,mandatory,after=to,single=none,class=w100');
+        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholder=Избери,removeAndRefreshForm,silent,mandatory,after=to,single=none,class=w100');
 
         //Задание
-        $fieldset->FLD('jobs', 'keylist(mvc=planning_Jobs)', 'caption=Заданиe,placeholder=Всички активни,after=products,single=none');
-
-
+        $fieldset->FLD('jobs', 'keylist(mvc=planning_Jobs)', 'caption=Заданиe,placeholder=Избери,mandatory,after=productId,silent,single=none');
 
     }
 
@@ -113,14 +111,15 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
 
         $suggestions = array();
         foreach (keylist::toArray($rec->jobs) as $val) {
-            $suggestions[$val] = planning_Jobs::getTitleById($val);
+       //     $suggestions[$val] = planning_Jobs::getTitleById($val);
         }
 
         $stateArr = array('active', 'wakeup', 'closed');
 
         $jQuery = planning_Jobs::getQuery();
         $jQuery->in('state', $stateArr);
-        $jQuery->show('productId');
+        $jQuery->where("#productId = $rec->productId");
+     //   $jQuery->show('productId');
         while ($jRec = $jQuery->fetch()) {
             if (!array_key_exists($jRec->id, $suggestions)) {
                 $suggestions[$jRec->id] = planning_Jobs::getTitleById($jRec->id);
@@ -167,9 +166,27 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
     {
         $recs = array();
 
+//        $jRec = planning_Jobs::fetch(trim($rec->jobs,'|'));
+//
+//        $query = planning_ProductionTaskDetails::getQuery();
+//
+//        $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
+//        $query->EXT('folderId', 'planning_Tasks', 'externalName=folderId,externalKey=taskId');
+//        $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+//
+//        $query->where("#state != 'rejected' ");
+//
+//        $taskQuery = planning_Tasks::getQuery();
+//        $taskQuery->where("#originId = $jRec->containerId");
+//        while ($tRec = $taskQuery->fetch()){
+//            $normTime = planning_ProductionTaskDetails::calcNormByRec($tRec);
+//            if ($tRec->indTime)bp($normTime,$tRec->indTime);
+//        }
 
 
-        bp($rec);
+
+
+     //   bp($jRec,$taskQuery->fetchAll(),$rec);
 
         return $recs;
     }
