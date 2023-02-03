@@ -455,12 +455,13 @@ class core_Query extends core_FieldSet
         
         // Ескейпване на стойности
         array_walk($values, function (&$a) {
+            $a = $this->mvc->db->escape($a);
             $a = "'" . $a . "'";
         });
         
         // Обръщане на масива в стринг
         $values = implode(',', $values);
-        
+
         if (!$not) {
             $this->where("#{$field} IN ({$values})", $or);
         } else {
