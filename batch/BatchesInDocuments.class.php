@@ -379,7 +379,7 @@ class batch_BatchesInDocuments extends core_Manager
 
         $batches = $batches + $batchesInThread;
         foreach ($batches as $i => $v) {
-            $itemState = batch_Items::fetchField("#productId = {$recInfo->productId} AND #storeId = {$storeId} AND #batch = '{$i}'", 'state');
+            $itemState = batch_Items::fetchField(array("#productId = {$recInfo->productId} AND #storeId = {$storeId} AND #batch = '[#1#]'", $i), 'state');
             if ($itemState == 'closed') {
                 unset($batches[$i]);
             }
@@ -606,7 +606,7 @@ class batch_BatchesInDocuments extends core_Manager
                 if (countR($delete)) {
                     foreach ($delete as $b) {
                         $b = $Def->normalize($b);
-                        self::delete("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$b}'");
+                        self::delete(array("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '[#1#]'", $b));
                     }
                 }
 
@@ -754,10 +754,11 @@ class batch_BatchesInDocuments extends core_Manager
         $detailClassId = cls::get($detailClassId)->getClassId();
         $where = "#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #productId = {$productId} AND #operation = '{$operation}'";
         if (!empty($batch)) {
-            $where .= " AND #batch = '{$batch}'";
+            $where .= " AND #batch = '[#1#]'";
+            return self::fetchField(array($where, $batch));
+        } else {
+            return self::fetchField($where);
         }
-
-        return self::fetchField($where);
     }
     
     
@@ -856,7 +857,7 @@ class batch_BatchesInDocuments extends core_Manager
                         if (!haveRole('batch,ceo')) {
                             Request::setProtected('batch');
                         }
-                        $b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $k));
+                        $b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $k, 'productId' => $productId));
                         $b = $b->getContent();
                     }
                     
@@ -865,7 +866,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
         }
         
-        $res = implode(',', $res);
+        $res = implode('<br>', $res);
         
         return $res;
     }

@@ -679,7 +679,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността от параметъра|* <b>{$paramName}</b> : {$subtractTareWeightValVerbal}";
         }
 
-        if(!empty($centerRec->useTareFromPackagings)){
+        if(!empty($centerRec->useTareFromPackagings) && empty($taskWeightSubtractValue)){
             if(isset($taskRec->labelPackagingId) && keylist::isIn($taskRec->labelPackagingId, $centerRec->useTareFromPackagings)){
                 $tareWeight = cat_products_Packagings::fetchField("#productId = {$jobProductId} AND #packagingId = {$taskRec->labelPackagingId}",'tareWeight');
                 $packName = cat_UoM::getShortName($taskRec->labelPackagingId);
@@ -1079,6 +1079,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                             // Ако параметъра е формула, се прави опит за изчислението ѝ
                             if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
+
                                 Mode::push('text', 'plain');
                                 $expectedSingleNetWeight = cat_Params::toVerbal($centerRec->paramExpectedNetWeight, planning_Tasks::getClassId(), $rec->taskId, $expectedSingleNetWeight);
                                 Mode::pop('text');
@@ -1088,6 +1089,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                             }
 
                             if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
+
                                 $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
                                 $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
                                 if($rec->type == 'production'){
@@ -1103,8 +1105,17 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
 
                     $weightQuantity = $rec->quantity;
-                    if($rec->type == 'production' && $convertAgain){
-                        $weightQuantity = $rec->quantity * $masterRec->quantityInPack;
+                    if($rec->type == 'production'){
+                        $qInPack = $masterRec->quantityInPack;
+                        $isProduct4Tasks = planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId);
+                        if(!$isProduct4Tasks){
+                            $convertAgain = true;
+                            $qInPack = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}", 'quantityInPack');
+                        }
+
+                        if($convertAgain){
+                            $weightQuantity = $rec->quantity * $qInPack;
+                        }
                     }
 
                     // Ако артикула има нето тегло
@@ -1128,7 +1139,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
                             $msg = tr("{$deviationVerbal} разминаване|*{$hintMsg}<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!");
                             if(haveRole('debug')){
-                                $msg .= "<br><br>debug info:<br>NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$masterRec->quantityInPack}-Q:{$rec->quantity}";
+                                $msg .= "<br><br>debug info:<br>NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$qInPack}-Q:{$rec->quantity}";
                             }
 
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
@@ -1776,18 +1787,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Опит за приспадане на параметър от стойността на теглото
         $rec = $form->rec;
         if(!isset($rec->weight)) return;
-        $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
 
-        // Ако се произвежда главния артикул
-        if($rec->productId == $jobProductId || $rec->productId == $masterRec->productId){
-            $weightMsg = $weightMsgType = null;
-            $rec->netWeight = static::subtractParamValueFromWeight($rec->taskId, $rec->productId, $masterRec->originId, $rec->weight, $weightMsg, $weightMsgType);
+        $weightMsg = $weightMsgType = null;
+        $rec->netWeight = static::subtractParamValueFromWeight($rec->taskId, $rec->productId, $masterRec->originId, $rec->weight, $weightMsg, $weightMsgType);
 
-            if($weightMsgType == 'warning'){
-                $form->setWarning('weight', $weightMsg);
-            } elseif($weightMsgType == 'error'){
-                $form->setError('weight', $weightMsg);
-            }
+        if($weightMsgType == 'warning'){
+            $form->setWarning('weight', $weightMsg);
+        } elseif($weightMsgType == 'error'){
+            $form->setError('weight', $weightMsg);
         }
     }
 

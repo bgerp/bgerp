@@ -210,18 +210,19 @@ class batch_plg_TaskDetails extends core_Plugin
         }
 
         $dQuery = planning_ProductionTaskDetails::getQuery();
-        $dQuery->where("#taskId = {$masterRec->id} AND #type = 'production' AND #state != 'rejected'");
+        $dQuery->where("#taskId = {$masterRec->id} AND (#type = 'production' OR #type = 'scrap') AND #state != 'rejected'");
         while($dRec = $dQuery->fetch()){
+            $sign = ($dRec->type == 'scrap') ? -1 : 1;
             if(!array_key_exists($dRec->batch, $batchesSummary)){
                 $batchesSummary[$dRec->batch] = array('planned' => 0, 'produced' => 0, 'currentUserProduced' => 0, 'batch' => $batchDef->toVerbal($dRec->batch));
             }
 
             // Ако текущия потребител е и оператор показва се в отделна колонка
             if(keylist::isIn($cuPersonId, $dRec->employees)){
-                $batchesSummary[$dRec->batch]['currentUserProduced'] += $dRec->quantity / $masterRec->quantityInPack;
+                $batchesSummary[$dRec->batch]['currentUserProduced'] += $sign * ($dRec->quantity / $masterRec->quantityInPack);
                 $currentUserIsOperator = true;
             }
-            $batchesSummary[$dRec->batch]['produced'] += $dRec->quantity / $masterRec->quantityInPack;
+            $batchesSummary[$dRec->batch]['produced'] += $sign * ($dRec->quantity / $masterRec->quantityInPack);
         }
 
         $plannedByNow = arr::sumValuesArray($batchesSummary, 'planned');

@@ -124,7 +124,7 @@ class label_plg_Print extends core_Plugin
                 $res = array($resObj);
             }
 
-            Mode::setPermanent('PREV_SAVED_ID', null);
+            Mode::setPermanent("{$mvc->className}_PREV_SAVED_ID", null);
 
             return false;
         }

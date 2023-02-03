@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -243,13 +243,7 @@ class planning_Centers extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        $rec = $form->rec;
         static::checkDeviationPercents($form);
-        if($form->isSubmitted()){
-            if(!empty($rec->useTareFromParamId) && !empty($rec->useTareFromPackagings)){
-                $form->setError('useTareFromParamId,useTareFromPackagings', 'Могат да бъдат избрани или само Опаковки, или само Параметър!');
-            }
-        }
     }
 
 

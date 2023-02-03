@@ -43,7 +43,7 @@ class plg_Search extends core_Plugin
         $fType = $mvc->getFieldType('searchKeywords');
         $fType->params['collate'] = 'ascii_bin';
         
-        if (empty($mvc->dbEngine) && !$mvc->dbIndexes['search_keywords']) {
+        if (empty($mvc->dbEngine) && !isset($mvc->dbIndexes['search_keywords'])) {
             $mvc->setDbIndex('searchKeywords', null, 'FULLTEXT');
         }
         

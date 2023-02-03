@@ -144,7 +144,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
 
                         if(isset($batchQuantities[$b])){
                             if($batchQuantities[$b] > 0){
-                                $fRec = batch_BatchesInDocuments::fetch("#containerId = {$masterRec->containerId} AND #productId = {$pData['productId']} AND #packagingId = {$pData['packagingId']} AND #batch = '{$b}'");
+                                $fRec = batch_BatchesInDocuments::fetch(array("#containerId = {$masterRec->containerId} AND #productId = {$pData['productId']} AND #packagingId = {$pData['packagingId']} AND #batch = '[#1#]'", $b));
                                 if(!$fRec){
                                     $form->setDefault($key, $batchQuantities[$b]);
                                 }
@@ -179,7 +179,11 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
     {
         $prevTaskQuery = planning_Tasks::getQuery();
         $prevTaskQuery->where("#originId = {$firstDocRec->originId} AND #state IN ('active', 'stopped', 'wakeup', 'closed') AND #id != {$firstDocRec->id}");
-        $prevTaskQuery->where("#saoOrder < {$firstDocRec->saoOrder}");
+        if($firstDocRec->saoOrder){
+            $prevTaskQuery->where("#saoOrder < '{$firstDocRec->saoOrder}'");
+        } else {
+            $prevTaskQuery->where("#id < '{$firstDocRec->id}'");
+        }
         $prevTaskQuery->orderBy('saoOrder', "DESC");
         $prevTaskQuery->show('threadId');
         $prevTasks = $prevTaskQuery->fetchAll();
@@ -309,15 +313,16 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
             // Ако има ПП в предходни операции ще може да се избира
             $firstDocRec = $firstDoc->fetch();
             $prevThreadIds = $this->getPrevTasksThreadId($firstDocRec);
-            $prevThreadIdString = implode(',', $prevThreadIds);
-
-            $nQuery = planning_DirectProductionNote::getQuery();
-            $nQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-            $nQuery->where("#threadId IN ({$prevThreadIdString}) AND #state = 'active'");
-            if(empty($masterRec->storeId)){
-                $nQuery->where("#canStore = 'no'");
+            if(countR($prevThreadIds)){
+                $prevThreadIdString = implode(',', $prevThreadIds);
+                $nQuery = planning_DirectProductionNote::getQuery();
+                $nQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                $nQuery->where("#threadId IN ({$prevThreadIdString}) AND #state = 'active'");
+                if(empty($masterRec->storeId)){
+                    $nQuery->where("#canStore = 'no'");
+                }
+                if($nQuery->count()) return true;
             }
-            if($nQuery->count()) return true;
 
             // Ако текущата ПО е клонирана
             if(isset($firstDocRec->clonedFromId)){

@@ -157,7 +157,7 @@ class rack_Pallets extends core_Manager
             $floorPosition = rack_PositionType::FLOOR;
             $mQuery->where("#productId = {$productId} AND #palletId IS NULL AND #position = '{$floorPosition}'");
             if(!is_null($batch)){
-                $mQuery->where("#batch = '{$batch}'");
+                $mQuery->where(array("#batch = '[#1#]'", $batch));
             }
         }
 
@@ -190,7 +190,7 @@ class rack_Pallets extends core_Manager
         $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
         $query->show('quantity,position,createdOn');
         if(!is_null($batch)){
-            $query->where("#batch = '{$batch}'");
+            $query->where(array("#batch = '[#1#]'", $batch));
         }
        
         $query->orderBy('createdOn', 'ASC');
@@ -280,7 +280,7 @@ class rack_Pallets extends core_Manager
 
         if ($form->isSubmitted()) {
             if(!empty($rec->newProductId)){
-                $activeMovementCount = rack_Movements::count("#storeId = {$rec->storeId} AND (#state = 'active' OR #state = 'waiting') AND (#palletId = {$rec->id} OR (#productId = {$rec->productId} AND #batch = '{$rec->batch}' AND (#position = '{$rec->position}' OR #positionTo = '{$rec->position}')))");
+                $activeMovementCount = rack_Movements::count(array("#storeId = {$rec->storeId} AND (#state = 'active' OR #state = 'waiting') AND (#palletId = {$rec->id} OR (#productId = {$rec->productId} AND #batch = '[#1#]' AND (#position = '{$rec->position}' OR #positionTo = '{$rec->position}')))", $rec->batch));
                 if($activeMovementCount){
                     $countVerbal = core_Type::getByName('int')->toVerbal($activeMovementCount);
                     if(rack_Movements::haveRightFor('list')){
@@ -942,7 +942,7 @@ class rack_Pallets extends core_Manager
             
             // От наличното в партидния склад, махаме това което вече е палетирано
             $query = self::getQuery();
-            $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '{$batch}'");
+            $query->where(array("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '[#1#]'", $batch));
             $query->XPR("sum", 'double', 'SUM(#quantity)');
             $batchQuantity -= $query->fetch()->sum;
             

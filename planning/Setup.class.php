@@ -274,6 +274,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Points',
         'planning_GenericMapper',
         'planning_StepConditions',
+        'planning_GenericProductPerDocuments',
         'migrate::updateLabelType',
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
@@ -316,7 +317,8 @@ class planning_Setup extends core_ProtoSetup
     public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
-                          planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,planning_interface_ImportFromPreviousTasks';
+                          planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
+                          planning_interface_ImportFromPreviousTasks, planning_reports_TechnologicalTimeForMakingUnitProduct';
 
 
     /**

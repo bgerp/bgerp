@@ -38,6 +38,7 @@ class plg_StructureAndOrder extends core_Plugin
         $mvc->listItemsPerPage = max($mvc->listItemsPerPage, 1000);
         setIfNot($mvc->saoOrderPrioriy, -100);
         setIfNot($mvc->autoOrderBySaoOrder, true);
+        setIfNot($mvc->saoReorderAfterSave, true);
     }
     
     
@@ -246,8 +247,19 @@ class plg_StructureAndOrder extends core_Plugin
     {
         self::getOrSetLastId($mvc->className, $rec->id);
     }
-    
-    
+
+
+    /**
+     * Преди запис на документ
+     */
+    public static function on_BeforeSave($mvc, $res, $rec)
+    {
+        if(empty($rec->id)){
+            $rec->_isCreated = true;
+        }
+    }
+
+
     /**
      * Преподрежда записите от същото ниво, в случай, че току-що записания обект има същия
      * $pLevel като някой друг. Всички с номера на $pLevel по-големи или равни на текущия се
@@ -255,6 +267,8 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
+        if($rec->_isCreated && $mvc->saoReorderAfterSave === false) return;
+
         if ($fields === null || $fields === '*') {
             if(Mode::is('manualSaoOrder')) return;
 
@@ -377,6 +391,7 @@ class plg_StructureAndOrder extends core_Plugin
             expect($rRec = $mvc->fetch($rId));
             
             if ($rRec && abs($rec->saoOrder - $rRec->saoOrder) == 0.5) {
+                $rec->_doReorder = true;
                 $mvc->save($rec);
                 followRetUrl();
             } else {

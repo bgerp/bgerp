@@ -196,6 +196,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $docsArr = array('sales_Invoices');
 
+            //Когато се търсят неплатените фактури, и има избор за проформи, се гледат и проформите
+            //към които има изрично насочени плащания
             if ($rec->seeProformаs == 'yes' && $rec->unpaid == 'all') {
 
                 array_push($docsArr, 'sales_Proformas');
@@ -297,7 +299,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $threadsId = array();
 
                 // Синхронизира таймлимита с броя записи //
-                $maxTimeLimit = $invQuery->count() * 5;
+                $maxTimeLimit = $invQuery->count() * 10;
                 $maxTimeLimit = max(array($maxTimeLimit, 300));
                 if ($maxTimeLimit > 300) {
                     core_App::setTimeLimit($maxTimeLimit);

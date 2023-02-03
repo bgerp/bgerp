@@ -455,12 +455,13 @@ class core_Query extends core_FieldSet
         
         // Ескейпване на стойности
         array_walk($values, function (&$a) {
+            $a = $this->mvc->db->escape($a);
             $a = "'" . $a . "'";
         });
         
         // Обръщане на масива в стринг
         $values = implode(',', $values);
-        
+
         if (!$not) {
             $this->where("#{$field} IN ({$values})", $or);
         } else {
@@ -551,7 +552,8 @@ class core_Query extends core_FieldSet
     {
         if (countR($this->orderBy) > 0) {
             arr::sortObjects($this->orderBy, 'priority');
-            
+
+            $orderBy = '';
             foreach ($this->orderBy as $order) {
                 $fldName = ($useAlias === false) ? $this->expr2mysql($order->field) : str_replace('#', '', $order->field);
                 
@@ -1052,7 +1054,7 @@ class core_Query extends core_FieldSet
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
         // без виртуалните и чуждестранните
-        if (!countR($this->show) || $this->show['*']) {
+        if (!countR($this->show) || isset($this->show['*'])) {
             $this->show = $this->selectFields('');
         }
         

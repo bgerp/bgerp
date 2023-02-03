@@ -71,6 +71,8 @@ class deals_InvoicesToDocuments extends core_Manager
         $Document->requireRightFor('selectinvoice');
         $Document->requireRightFor('selectinvoice', $rec);
         $paymentData = $Document->getPaymentData($rec);
+        $isTransfer = in_array($paymentData->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
+        $isReverseWithTransfer = ($isTransfer && $paymentData->isReverse);
 
         $form = cls::get('core_Form');
         $form->title = "Избор на фактури към|* " . cls::get($Document)->getFormTitleLink($documentId);
@@ -111,15 +113,17 @@ class deals_InvoicesToDocuments extends core_Manager
                 foreach ($iData['containerId'] as $k => $v){
                     if(empty($iData['amount'][$k])){
                         $iRec = doc_Containers::getDocument($iData['containerId'][$k])->fetch();
-
                         $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+
                         if($iRec->type == 'dc_note' && $iRec->totalValue < 0){
                             $expectedAmountToPayData->amount = -1 * $expectedAmountToPayData->amount;
                         }
 
                         $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
                         $vAmount = round($vAmount, 2);
-
+                        if($paymentData->isReverse){
+                            $vAmount = abs($vAmount);
+                        }
                         $defAmount = min($paymentData->amount, $vAmount);
                         $iData['amount'][$k] = $defAmount;
                     }
@@ -164,7 +168,9 @@ class deals_InvoicesToDocuments extends core_Manager
                     } elseif($iRec->amount < 0){
                         $invRec = $Invoice->fetch('type,dealValue');
                         if($invRec->type == 'invoice' || $invRec->dealValue > 0){
-                            $amountErrors[] = "Към фактура или дебитно разпределената сума, трябва да е положителна";
+                            if(!$isReverseWithTransfer){
+                                $amountErrors[] = "Към фактура или дебитно разпределената сума, трябва да е положителна";
+                            }
                         }
                     }
                 }
@@ -177,7 +183,6 @@ class deals_InvoicesToDocuments extends core_Manager
                 }
 
                 $summed = arr::sumValuesArray($invArr, 'amount');
-
                 if(isset($paymentData->amount)){
                     if($summed < 0){
                         $form->setError('invoices,fromContainerId', "Общата сума не може да е отрицателна");

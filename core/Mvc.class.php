@@ -97,7 +97,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
-    public function _Singleton()
+    public static function _Singleton()
     {
     }
     

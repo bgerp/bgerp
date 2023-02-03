@@ -225,7 +225,7 @@ class core_FieldSet extends core_BaseClass
                 }
             }
             
-            $this->fields[$name]->caption = $this->fields[$name]->caption ? $this->fields[$name]->caption : $name;
+            $this->fields[$name]->caption = isset($this->fields[$name]->caption) ? $this->fields[$name]->caption : $name;
             $this->fields[$name]->name = $name;
             
             // Параметри, които се предават на типа

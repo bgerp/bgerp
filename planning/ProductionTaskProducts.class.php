@@ -44,7 +44,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
     
     
     /**
@@ -252,6 +252,20 @@ class planning_ProductionTaskProducts extends core_Detail
                     $form->setError('inputedQuantity,limit', "{$caption} е повече от зададения лимит");
                 }
             }
+
+            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
+                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
+            }
+
+            $taskRec = planning_Tasks::fetch($rec->taskId);
+            if(empty($rec->id) && $rec->productId == $taskRec->wasteProductId && $rec->type != 'waste'){
+                $form->setError('productId', 'Артикулът е посочен като планиран отпадък');
+            }
+
+            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
+                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
+            }
+
 
             if(!$form->gotErrors()){
                 if (!empty($rec->inputedQuantity) && !empty($rec->indTime)){

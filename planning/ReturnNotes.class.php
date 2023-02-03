@@ -182,14 +182,20 @@ class planning_ReturnNotes extends deals_ManifactureMaster
             }
         }
 
+        $recs = array();
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
         $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         if(!isset($rec->storeId)){
             $dQuery->where("#canStore = 'no'");
         }
-
-        $res = array('recs' => $dQuery->fetchAll(), 'detailMvc' => $Detail);
+        while($dRec = $dQuery->fetch()){
+            if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
+                $dRec->_genericProductId = $genericProductId;
+            }
+            $recs[$dRec->id] = $dRec;
+        }
+        $res = array('recs' => $recs, 'detailMvc' => $Detail);
 
         return $res;
     }
@@ -280,11 +286,31 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         }
 
         // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'pending')")) {
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
 
             return true;
         }
 
         return false;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'add' && isset($rec)) {
+            if (isset($rec->originId)) {
+                if(!$mvc->canAddToOriginId($rec->originId, $userId)){
+                    $requiredRoles = 'no_one';
+                } else {
+                    $threadId = doc_Containers::fetchField($rec->originId, 'threadId');
+                    if(!planning_ConsumptionNotes::count("#threadId = {$threadId} AND #state IN ('active', 'pending')")){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
     }
 }

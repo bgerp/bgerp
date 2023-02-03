@@ -412,10 +412,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-//            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-//            $fld->FLD('suggQuantity', 'varchar', 'caption=Количество->За поръчка,smartCenter');
-            $fld->FLD('orderMeasure', 'varchar', 'caption=За поръчка->Мярка,tdClass=centered');
-            $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
+            $fld->FLD('orderMeasure', 'double(decimals=3)', 'caption=За поръчка->Мярка,tdClass=centered');
+            $fld->FLD('packOrder', 'double(decimals=3)', 'caption=За поръчка->Опаковки,smartCenter');
         }
         return $fld;
     }
@@ -654,9 +652,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
 
-        $res->suggQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->suggQuantity);
+        $res->suggQuantity = $orderArr->suggQuantity;
 
-        $res->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->packOrder);
+        $res->packOrder = $orderArr->packOrder;
 
         if ($dRec->orderMeasure) {
             $res->orderMeasure = cat_UoM::fetchField($dRec->orderMeasure, 'shortName');
