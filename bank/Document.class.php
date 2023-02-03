@@ -576,6 +576,10 @@ abstract class bank_Document extends deals_PaymentDocument
                 $options = $origin->allowedPaymentOperations;
                 $row->operationSysId = $options[$rec->operationSysId]['title'];
             }
+
+            if(isset($rec->contragentIban)){
+                $row->contragentIban = bank_Accounts::decorateIban($rec->contragentIban);
+            }
         }
     }
 

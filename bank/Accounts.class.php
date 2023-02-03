@@ -9,7 +9,7 @@
  * @package   bank
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,7 +25,7 @@ class bank_Accounts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search, plg_Sorting, deals_plg_AdditionalConditions';
+    public $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search, plg_Sorting, doc_plg_Close, deals_plg_AdditionalConditions';
 
 
     /**
@@ -63,8 +63,14 @@ class bank_Accounts extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'iban';
-    
-    
+
+
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'bank,ceo';
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -103,6 +109,7 @@ class bank_Accounts extends core_Master
         $this->FLD('bic', 'varchar(12)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
+        $this->FLD('state', 'enum(active=Активно,closed=Затворено,rejected=Оттеглено)', 'caption=Състояние,input=none,notNull,value=active');
 
         // Задаваме индексите и уникалните полета за модела
         $this->setDbIndex('contragentCls,contragentId');
@@ -161,11 +168,20 @@ class bank_Accounts extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'edit' || $action == 'delete') && isset($rec->contragentCls)) {
-            $productState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
-            
-            if ($productState == 'rejected') {
-                $requiredRoles = 'no_one';
+        if (($action == 'close'|| $action == 'edit' || $action == 'delete')) {
+            if(isset($rec->contragentCls)){
+                $cState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
+                if (in_array($cState, array('closed', 'rejected'))) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        if($action == 'close' && isset($rec)){
+            if($ownAccountRec = bank_OwnAccounts::fetch("#bankAccountId = {$rec->id}")){
+                if (in_array($ownAccountRec->state, array('closed', 'rejected'))) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -249,7 +265,7 @@ class bank_Accounts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->contragent = cls::get($rec->contragentCls)->getHyperLink($rec->contragentId, true);
-        $row->STATE = ($rec->state == 'rejected') ? 'rejected' : 'active';
+        $row->STATE = ($rec->state == 'rejected') ? 'rejected' : (($rec->state == 'closed') ? 'closed' : 'active');
         $row->ROW_ATTR['class'] = "state-{$row->STATE}";
         
         if ($rec->iban) {
@@ -294,14 +310,12 @@ class bank_Accounts extends core_Master
         }
         
         while ($rec = $query->fetch()) {
-            
+
             // Ако е наша банкова сметка и е отттеглена, пропускаме я
             if ($data->isOurCompany === true) {
                 $rec->ourAccount = true;
                 $state = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'state');
-                if ($state == 'rejected') {
-                    continue;
-                }
+                if ($state == 'rejected') continue;
             }
             
             $data->recs[$rec->id] = $rec;
@@ -336,17 +350,19 @@ class bank_Accounts extends core_Master
                 $cCodeRec = currency_Currencies::fetch($rec->currencyId);
                 $cCode = currency_Currencies::getVerbal($cCodeRec, 'code');
                 
-                $row->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px;
-                font-size:0.7em;vertical-align:middle;'>{$cCode}</span>&nbsp;";
-                
+                $row->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px;font-size:0.7em;vertical-align:middle;'>{$cCode}</span>&nbsp;";
+                if($rec->state == 'closed'){
+                    $row->iban = ht::createElement('span', array('class' => 'warning-balloon state-closed', 'title' => tr('Сметката е закрита')), $row->iban);
+                }
+
                 $row->title .= $row->iban;
-                
                 if ($rec->bank) {
                     $row->title .= ", {$row->bank}";
                 }
                 
                 $row->title = core_ET::escape($row->title);
-                
+
+
                 $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
                 $tools = new core_ET("{$row->title} <span style='position:relative;top:4px'>[#tools#]</span>");
                 $tools->replace($row->_rowTools->renderHtml(), 'tools');
@@ -439,7 +455,8 @@ class bank_Accounts extends core_Master
         $query = static::getQuery();
         $query->where("#contragentId = {$contragentId}");
         $query->where("#contragentCls = {$Contragent->getClassId()}");
-        
+        $query->where("#state != 'closed'");
+
         $myCompany = crm_Companies::fetchOwnCompany();
         $isOurCompany = ($myCompany->companyId == $contragentId && $Contragent->getClassId() == crm_Companies::getClassId());
         $cu = core_Users::getCurrent();
@@ -516,5 +533,30 @@ class bank_Accounts extends core_Master
                 $data->query->where("#currencyId = {$data->listFilter->rec->currencyId}");
             }
         }
+    }
+
+
+    /**
+     * Декорира ибан-а в удобен за показване вид
+     *
+     * @param string $iban
+     * @return core_ET
+     */
+    public static function decorateIban($iban)
+    {
+        $res = core_Type::getByName('iban_Type(64)')->toVerbal($iban);
+        if(!Mode::isReadOnly()){
+            if($bRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $iban))){
+                if(bank_Accounts::haveRightFor('single', $bRec)){
+                    $url = bank_Accounts::getSingleUrlArray($bRec->id);
+                    $res = ht::createLink($res, $url);
+                }
+                if($bRec->state == 'closed'){
+                    $res = ht::createElement('span', array('class' => 'warning-balloon state-closed', 'title' => 'Сметката е закрита'), $res);
+                }
+            }
+        }
+
+        return $res;
     }
 }

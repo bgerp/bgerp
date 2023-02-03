@@ -1441,8 +1441,9 @@ class planning_Tasks extends core_Master
 
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
-        $form->setField('saoRelative', "input=none");
-        $form->setField('saoPosition', "input=none");
+        $form->setField('saoRelative', "input=hidden");
+        $form->setDefault('saoPosition', "next");
+        $form->setField('saoPosition', "input=hidden");
 
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
@@ -1544,7 +1545,7 @@ class planning_Tasks extends core_Master
 
             // Ако артикула от етапа е генеричен предлагат се за избор неговите еквивалентни
             if (isset($productionData['wasteProductId'])) {
-                $wasteOptions = planning_GenericMapper::getEquivalentProducts($productionData['wasteProductId']);
+                $wasteOptions = planning_GenericMapper::getEquivalentProducts($productionData['wasteProductId'], null, true, true);
                 if (countR($wasteOptions)) {
                     $form->setFieldType('wasteProductId', 'int');
                     $form->setOptions('wasteProductId', $wasteOptions);
@@ -2268,20 +2269,20 @@ class planning_Tasks extends core_Master
         $rec = $data->rec;
 
         // Бутон за добавяне на документ за производство
-        if (planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
+        if (planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))) {
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Произвеждане', $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от операцията');
         }
 
         // Бутон за добавяне на документ за производство
-        if (planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
+        if (planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $rec->containerId))) {
             $pUrl = array('planning_ConsumptionNotes', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Влагане', $pUrl, 'ef_icon = img/16/produce_in.png,title=Създаване на протокол за влагане от операцията');
         }
 
         // Бутон за добавяне на документ за влагане
-        if (planning_ReturnNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
-            $pUrl = array('planning_ReturnNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => true);
+        if (planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $rec->containerId))) {
+            $pUrl = array('planning_ReturnNotes', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието,row=2');
         }
 
@@ -2883,12 +2884,8 @@ class planning_Tasks extends core_Master
                         if($normRec = planning_AssetResources::getNormRec($rec->assetId, $actionId)){
                             $inputRec->indTime = $normRec->indTime;
                         }
-                        $saveRecs[] = $inputRec;
+                        planning_ProductionTaskProducts::save($inputRec);
                     }
-                }
-
-                if(countR($saveRecs)){
-                    cls::get('planning_ProductionTaskProducts')->saveArray($saveRecs);
                     core_Statuses::newStatus('Добавени са планираните действия за операцията|*!');
                 }
             }
@@ -2939,6 +2936,7 @@ class planning_Tasks extends core_Master
         if (countR($mvc->reorderTasksByJobIds)) {
             foreach ($mvc->reorderTasksByJobIds as $originId) {
                 $mvc->reorderTasksInJob($originId);
+                core_Statuses::newStatus('Преподредени са операциите в заданието|*!');
             }
         }
     }
@@ -3085,8 +3083,6 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterActivation($mvc, &$rec)
     {
-        $saveRecs = array();
-
         $now = dt::now();
         if(isset($rec->wasteProductId)){
 
@@ -3110,11 +3106,7 @@ class planning_Tasks extends core_Master
             }
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdOn' => core_Users::getCurrent(), 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
-            $saveRecs[] = $wasteRec;
-        }
-
-        if(countR($saveRecs)){
-            cls::get('planning_ProductionTaskProducts')->saveArray($saveRecs);
+            planning_ProductionTaskProducts::save($wasteRec);
         }
     }
 

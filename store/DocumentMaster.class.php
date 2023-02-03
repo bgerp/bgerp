@@ -1406,9 +1406,16 @@ abstract class store_DocumentMaster extends core_Master
             $id = $Source->that;
         }
 
+        $res = array();
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
-        $res = array('recs' => $dQuery->fetchAll(), 'detailMvc' => $Detail);
+        while($dRec = $dQuery->fetch()){
+            if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
+                $dRec->_genericProductId = $genericProductId;
+            }
+            $res[$dRec->id] = $dRec;
+        }
+        $res = array('recs' => $res, 'detailMvc' => $Detail);
 
         return $res;
     }

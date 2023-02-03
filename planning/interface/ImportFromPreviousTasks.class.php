@@ -144,7 +144,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
 
                         if(isset($batchQuantities[$b])){
                             if($batchQuantities[$b] > 0){
-                                $fRec = batch_BatchesInDocuments::fetch("#containerId = {$masterRec->containerId} AND #productId = {$pData['productId']} AND #packagingId = {$pData['packagingId']} AND #batch = '{$b}'");
+                                $fRec = batch_BatchesInDocuments::fetch(array("#containerId = {$masterRec->containerId} AND #productId = {$pData['productId']} AND #packagingId = {$pData['packagingId']} AND #batch = '[#1#]'", $b));
                                 if(!$fRec){
                                     $form->setDefault($key, $batchQuantities[$b]);
                                 }

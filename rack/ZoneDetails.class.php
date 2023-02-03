@@ -215,7 +215,7 @@ class rack_ZoneDetails extends core_Detail
      */
     public static function recordMovement($zoneId, $productId, $packagingId, $quantity, $batch)
     {
-        $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #batch = '{$batch}'");
+        $newRec = self::fetch(array("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #batch = '[#1#]'", $batch));
         if (empty($newRec)) {
             $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null, 'batch' => $batch);
         }
@@ -241,7 +241,7 @@ class rack_ZoneDetails extends core_Detail
             
             if (countR($products)) {
                 foreach ($products as $obj) {
-                    $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId} AND #batch = '{$obj->batch}'");
+                    $newRec = self::fetch(array("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId} AND #batch = '[#1#]'", $obj->batch));
                     if (empty($newRec)) {
                         $newRec = (object) array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'batch' => $obj->batch, 'movementQuantity' => null, 'documentQuantity' => 0);
                     }
@@ -300,7 +300,7 @@ class rack_ZoneDetails extends core_Detail
             $query->where("#storeId = {$storeId}");
         }
         if(isset($batch)){
-            $query->where("#batch = '{$batch}'");
+            $query->where(array("#batch = '[#1#]'", $batch));
         }
         
         $rec = $query->fetch();
@@ -321,7 +321,7 @@ class rack_ZoneDetails extends core_Detail
         rack_Products::recalcQuantityOnZones($rec->productId, $storeId);
 
         if(core_Packs::isInstalled('batch')){
-            $bItemRec = rack_ProductsByBatches::fetch("#productId = {$rec->productId} AND #batch = '{$rec->batch}' AND #storeId = {$storeId}");
+            $bItemRec = rack_ProductsByBatches::fetch(array("#productId = {$rec->productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $rec->batch));
             if(is_object($bItemRec)){
                 $bItemRec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId, $storeId, $rec->batch);
                 rack_ProductsByBatches::save($bItemRec, 'quantityOnZones');

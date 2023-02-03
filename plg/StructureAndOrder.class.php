@@ -247,8 +247,19 @@ class plg_StructureAndOrder extends core_Plugin
     {
         self::getOrSetLastId($mvc->className, $rec->id);
     }
-    
-    
+
+
+    /**
+     * Преди запис на документ
+     */
+    public static function on_BeforeSave($mvc, $res, $rec)
+    {
+        if(empty($rec->id)){
+            $rec->_isCreated = true;
+        }
+    }
+
+
     /**
      * Преподрежда записите от същото ниво, в случай, че току-що записания обект има същия
      * $pLevel като някой друг. Всички с номера на $pLevel по-големи или равни на текущия се
@@ -256,7 +267,7 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
-        if($mvc->saoReorderAfterSave === false && $rec->_doReorder !== true) return;
+        if($rec->_isCreated && $mvc->saoReorderAfterSave === false) return;
 
         if ($fields === null || $fields === '*') {
             if(Mode::is('manualSaoOrder')) return;

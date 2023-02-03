@@ -281,6 +281,9 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 
             while($dRec = $dQuery->fetch()){
                 $newRec = (object)array('noteId' => $rec->id, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'quantity' => $dRec->totalQuantity);
+                if($genericProductId = planning_GenericProductPerDocuments::getRec('planning_ProductionTaskProducts', $dRec->id)){
+                    $newRec->_genericProductId = $genericProductId;
+                }
                 planning_ConsumptionNoteDetails::save($newRec);
             }
         }
@@ -294,18 +297,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         if ($action == 'add' && isset($rec)) {
             if (isset($rec->originId)) {
-                $origin = doc_Containers::getDocument($rec->originId);
-                if(!$origin->isInstanceOf('planning_Tasks')){
+                if(!$mvc->canAddToOriginId($rec->originId, $userId)){
                     $requiredRoles = 'no_one';
-                } else {
-                    $state = $origin->fetchField('state');
-                    if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
-                        $requiredRoles = 'no_one';
-                    } elseif($state == 'closed'){
-                        if(!planning_Tasks::isProductionAfterClosureAllowed($origin->that, $userId, 'taskPostProduction,ceo,consumption')){
-                            $requiredRoles = 'no_one';
-                        }
-                    }
                 }
             }
         }

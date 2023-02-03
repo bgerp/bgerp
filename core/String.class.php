@@ -145,6 +145,8 @@ class core_String
         
         $pLen = strlen($pattern);
         
+        $res = '';
+
         for ($i = 0; $i < $pLen; $i++) {
             $p = $pattern[$i];
             

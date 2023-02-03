@@ -37,7 +37,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, plg_PrevAndNext';
     
     
     /**
@@ -109,7 +109,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Поле за заместване на артикул
      *
-     * @see planning_plg_ReplaceEquivalentProducts
+     * @see planning_plg_ReplaceProducts
      */
     public $replaceProductFieldName = 'resourceId';
     
@@ -123,7 +123,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Поле за количеството на заместващ артикул
      *
-     * @see planning_plg_ReplaceEquivalentProducts
+     * @see planning_plg_ReplaceProducts
      */
     public $replaceProductQuantityFieldName = 'propQuantity';
     
@@ -136,8 +136,8 @@ class cat_BomDetails extends doc_Detail
      * @see plg_RowTools2
      */
     public $rowToolsMinLinksToShow = 2;
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -1331,6 +1331,11 @@ class cat_BomDetails extends doc_Detail
 
                 // Добавяме записа
                 $this->save_($dRec);
+
+                if($genericProductId = planning_GenericProductPerDocuments::getRec($this, $oldId)){
+                    planning_GenericProductPerDocuments::sync($this, $dRec->id, $dRec->resourceId, $toRec->containerId, $genericProductId);
+                }
+
                 $map[$oldId] = $dRec->id;
             }
         }

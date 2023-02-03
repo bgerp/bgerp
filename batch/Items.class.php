@@ -656,6 +656,8 @@ class batch_Items extends core_Master
         $bQuery->notIn('batch', array_keys($res));
         $bQuery->where("#date <= '{$date}'");
         $bQuery->show('batch');
+
+       // bp($bQuery);
         while ($bRec = $bQuery->fetch()) {
             if (!array_key_exists($bRec->batch, $res) && $onlyActiveBatches === false) {
                 $res[$bRec->batch] = 0;

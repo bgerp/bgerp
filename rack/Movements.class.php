@@ -1465,7 +1465,7 @@ class rack_Movements extends rack_MovementAbstract
         $query->XPR('totalQuantity', 'double', 'ROUND(SUM(#quantity), 4)');
         $batchDef = batch_Defs::getBatchDef($productId);
         if(!is_null($batch)){
-            $query->where("#batch = '{$batch}'");
+            $query->where(array("#batch = '[#1#]'", $batch));
         } elseif($batchDef){
             $query->where("#batch = ''");
         }
