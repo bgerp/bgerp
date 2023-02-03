@@ -1039,7 +1039,7 @@ class store_InventoryNotes extends core_Master
                     }
 
                     foreach ($batchQuantities as $batch => $batchQuantity){
-                        if(store_InventoryNoteDetails::fetchField("#noteId = {$id} AND #productId = {$summaryRec->productId} AND #batch = '{$batch}'")) continue;
+                        if(store_InventoryNoteDetails::fetchField(array("#noteId = {$id} AND #productId = {$summaryRec->productId} AND #batch = '[#1#]'", $batch))) continue;
 
                         $dRec = (object) array('noteId' => $id,
                             'productId' => $summaryRec->productId,

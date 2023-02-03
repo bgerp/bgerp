@@ -118,13 +118,13 @@ class rack_ProductsByBatches extends batch_Items
     public static function recalc($productId, $storeId, $batch)
     {
         $query = rack_Pallets::getQuery();
-        $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '{$batch}' AND #state != 'closed'");
+        $query->where(array("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '[#1#]' AND #state != 'closed'", $batch));
         $query->XPR('sum', 'double', 'SUM(#quantity)');
         $query->show('sum,productId,storeId,batch');
         $sum = $query->fetch()->sum;
         $sum = ($sum) ? $sum : null;
 
-        $bRec = static::fetch("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '{$batch}'", 'id,quantityOnPallets');
+        $bRec = static::fetch(array("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '[#1#]'", $batch), 'id,quantityOnPallets');
         if($bRec){
             $bRec->quantityOnPallets = $sum;
             $bRec->state = 'active';
@@ -147,7 +147,7 @@ class rack_ProductsByBatches extends batch_Items
      */
     public static function recalcQuantityOnZones($productId, $batch, $storeId)
     {
-        $bItemRec = rack_ProductsByBatches::fetch("#productId = {$productId} AND #batch = '{$batch}' AND #storeId = {$storeId}");
+        $bItemRec = rack_ProductsByBatches::fetch(array("#productId = {$productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $batch));
         if(is_object($bItemRec)){
             $bItemRec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($productId, $storeId, $batch);
             rack_ProductsByBatches::save($bItemRec, 'quantityOnZones');

@@ -288,7 +288,7 @@ class rack_Products extends store_Products
         
         // Ако има конкретна партида
         if(!empty($batch)){
-            $palletQuery->where("#batch = '{$batch}'");
+            $palletQuery->where(array("#batch = '[#1#]'", $batch));
             
             // Очакваното к-во на пода с премахнатото палетирано
             $expectedBatchQuantity = batch_Items::getQuantity($productId, $batch, $storeId);
