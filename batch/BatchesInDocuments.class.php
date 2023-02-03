@@ -379,7 +379,7 @@ class batch_BatchesInDocuments extends core_Manager
 
         $batches = $batches + $batchesInThread;
         foreach ($batches as $i => $v) {
-            $itemState = batch_Items::fetchField("#productId = {$recInfo->productId} AND #storeId = {$storeId} AND #batch = '{$i}'", 'state');
+            $itemState = batch_Items::fetchField(array("#productId = {$recInfo->productId} AND #storeId = {$storeId} AND #batch = '[#1#]'", $i), 'state');
             if ($itemState == 'closed') {
                 unset($batches[$i]);
             }
@@ -754,10 +754,11 @@ class batch_BatchesInDocuments extends core_Manager
         $detailClassId = cls::get($detailClassId)->getClassId();
         $where = "#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #productId = {$productId} AND #operation = '{$operation}'";
         if (!empty($batch)) {
-            $where .= " AND #batch = '{$batch}'";
+            $where .= " AND #batch = '[#1#]'";
+            return self::fetchField(array($where, $batch));
+        } else {
+            return self::fetchField($where);
         }
-
-        return self::fetchField($where);
     }
     
     
