@@ -103,6 +103,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
 
     /**
+     * Кое поле ще се оказва за подредбата на детайла
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -268,7 +274,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
         $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
-
+        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=По код)', 'caption=Допълнително->Сортиране на детайлите,notNull,value=auto');
         $mvc->FLD(
             'state',
                 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка,stopped=Спряно)',
@@ -326,6 +332,8 @@ abstract class deals_DealMaster extends deals_DealBase
                     $form->setReadOnly($fld, isset($rec->{$fld}) ? $rec->{$fld} : $mvc->fetchField($rec->id, $fld));
                 }
             }
+        } else {
+            $form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
         }
         
         $form->setField('sharedUsers', 'input=none');
@@ -437,10 +445,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        if (!$form->isSubmitted()) {
-            
-            return;
-        }
+        if (!$form->isSubmitted()) return;
         $rec = &$form->rec;
         
         if (empty($rec->currencyRate)) {
@@ -492,6 +497,10 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if(isset($rec->deliveryTermId)){
             cond_DeliveryTerms::inputDocumentForm($rec->deliveryTermId, $form, $mvc);
+        }
+
+        if(empty($rec->id)){
+            core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
         }
     }
     

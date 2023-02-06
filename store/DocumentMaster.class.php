@@ -88,8 +88,14 @@ abstract class store_DocumentMaster extends core_Master
      * Поле за забележките
      */
     public $notesFld = 'note';
-    
-    
+
+
+    /**
+     * Кое поле ще се оказва за подредбата на детайла
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
     /**
      * След описанието на полетата
      */
@@ -128,6 +134,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('features', 'keylist(mvc=trans_Features,select=name)', 'caption=Адрес за доставка->Особености');
         $mvc->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Други,autohide');
         $mvc->FLD('reverseContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Връщане от,input=hidden,silent');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=По код)', 'caption=Допълнително->Сортиране на детайлите,notNull,value=auto');
 
         $mvc->setDbIndex('valior');
         $mvc->setDbIndex('contragentId,contragentClassId');
@@ -206,6 +213,8 @@ abstract class store_DocumentMaster extends core_Master
         } else {
             $data->form->setField('prevShipment', 'input=none');
         }
+
+        $form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
     }
     
     
@@ -241,6 +250,10 @@ abstract class store_DocumentMaster extends core_Master
 
             if ((!empty($rec->tel) || !empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) && (empty($rec->tel) || empty($rec->country) || empty($rec->pCode) || empty($rec->place) || empty($rec->address))) {
                 $form->setError('tel,country,pCode,place,address', 'Трябва или да са попълнени всички полета за адрес или нито едно');
+            }
+
+            if(empty($rec->id)){
+                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
             }
         }
     }

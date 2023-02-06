@@ -43,12 +43,9 @@ class cat_plg_ShowCodes extends core_Plugin
      */
     public static function on_AfterPrepareListRows($mvc, $data)
     {
-        if (!countR($data->recs)) {
-            
-            return;
-        }
+        if (!countR($data->recs)) return;
+
         $masterRec = $data->masterData->rec;
-        
         if ($data->showReffCode === true) {
             $firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
             if ($firstDocument) {
@@ -69,6 +66,14 @@ class cat_plg_ShowCodes extends core_Plugin
             }
             
             $row->code = cat_Products::getVerbal($rec->{$mvc->productFld}, 'code');
+        }
+
+        if($mvc->Master->detailOrderByField){
+            $detailOrderBy = $data->masterData->rec->{$mvc->Master->detailOrderByField};
+
+            if($detailOrderBy == 'code'){
+                arr::sortObjects($data->rows, 'code', 'ASC', 'natural');
+            }
         }
     }
     

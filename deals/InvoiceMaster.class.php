@@ -139,6 +139,12 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Кое поле ще се оказва за подредбата на детайла
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
@@ -175,6 +181,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6, passage)', 'caption=Допълнително->Бележки');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=По код)', 'caption=Допълнително->Сортиране на детайлите,notNull,value=auto');
         $mvc->FNC('dealValueWithoutDiscount', 'double(decimals=2)', 'caption=Дан. основа,summary=amount');
         $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
@@ -723,6 +730,7 @@ abstract class deals_InvoiceMaster extends core_Master
         if (empty($form->rec->id)) {
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
             $form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+            $form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
         }
 
         // Ако ф-та не е към служебен аванс не искаме да се сменя контрагента
@@ -1025,6 +1033,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 if($cData->countryId == $ukCountryId && empty($rec->contragentEori)){
                     $form->setWarning('contragentEori', 'За Великобритания, е препоръчително да има EORI №');
                 }
+            }
+
+            if(empty($rec->id)){
+                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
             }
         }
         
