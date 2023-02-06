@@ -1246,8 +1246,8 @@ class sales_Sales extends deals_DealMaster
         while ($jRec = $jQuery->fetch()) {
             $data->jobs[$jRec->id] = planning_Jobs::recToVerbal($jRec, $fields);
         }
-        
-        if (planning_Jobs::haveRightFor('add', (object) array('saleId' => $rec->id))) {
+
+        if (planning_Jobs::haveRightFor('add', (object) array('saleId' => $rec->id)) && doc_Threads::haveRightFor('single', $rec->threadId)) {
             $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $rec->id, 'threadId' => $rec->threadId, 'foreignId' => $rec->containerId, 'ret_url' => true);
         }
     }
