@@ -69,10 +69,14 @@ class cat_plg_ShowCodes extends core_Plugin
         }
 
         if($mvc->Master->detailOrderByField){
-            $detailOrderBy = $data->masterData->rec->{$mvc->Master->detailOrderByField};
+            $sortRequest = Request::get('Sort');
 
+            // Ако все пак се сортира по артикула от стрелките да се игнорира зададеното сортиране
+            if(!empty($sortRequest) && in_array($sortRequest, array("{$mvc->productFld}|up", "{$mvc->productFld}|down"))) return;
+
+            $detailOrderBy = $data->masterData->rec->{$mvc->Master->detailOrderByField};
             if($detailOrderBy == 'code'){
-                arr::sortObjects($data->rows, 'code', 'ASC', 'natural');
+                arr::sortObjects($data->rows, 'code', 'ASC', 'str');
             }
         }
     }
