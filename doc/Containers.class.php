@@ -1219,8 +1219,8 @@ class doc_Containers extends core_Manager
 
         // Линка да сочи до първия документ, който е споделен, но не е видян
         foreach ($usersArr as $uId) {
-            $customUrlFromLast = null;
-            $activeMsg = bgerp_Notifications::getActiveMsgFor($url, $uId, $customUrlFromLast);
+            $customUrlFromLast = $messageDate = null;
+            $activeMsg = bgerp_Notifications::getActiveMsgFor($url, $uId, $customUrlFromLast, $messageDate);
 
             if ($activeMsg && mb_strpos($activeMsg, ' |сподели|* ') !== false) {
                 if ($customUrlFromLast) {
@@ -1228,7 +1228,9 @@ class doc_Containers extends core_Manager
                     if ($customUrlFromLast) {
                         $customUrlArr[$uId] = $customUrlFromLast;
 
-                        $uActiveMsgArr[$uId] = $activeMsg;
+                        if (!$messageDate || (dt::addDays(7, $messageDate) > dt::now())) {
+                            $uActiveMsgArr[$uId] = $activeMsg;
+                        }
                     }
                 }
             }
@@ -1419,7 +1421,9 @@ class doc_Containers extends core_Manager
                 }
 
                 $messageN = $eArr[0] . $delim . $messageN;
+            }
 
+            if ($customUrlArr[$userId]) {
                 $customUrlNew = $customUrlArr[$userId];
             }
 
