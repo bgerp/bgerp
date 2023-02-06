@@ -102,6 +102,25 @@ class rack_ProductsByBatches extends batch_Items
 
 
     /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+
+        if (countR($rows)) {
+            foreach ($rows as $id => &$row) {
+                $rec = $data->recs[$id];
+
+                if ($rec->quantityOnPallets > 0) {
+                    $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'search' => $rec->batch, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този артикул и партида') . '&nbsp;' . $row->quantityOnPallets;
+                }
+            }
+        }
+    }
+
+
+    /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)

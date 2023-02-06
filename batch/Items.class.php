@@ -345,7 +345,7 @@ class batch_Items extends core_Master
     /**
      * Преди рендиране на таблицата
      */
-    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (!countR($data->rows)) {
             
