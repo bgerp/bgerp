@@ -660,23 +660,24 @@ class planning_ProductionTaskDetails extends doc_Detail
         if(!empty($centerRec->useTareFromParamId)){
             $taskWeightSubtractValue = static::getParamValue($taskId, $centerRec->useTareFromParamId, $jobProductId, $taskRec->productId);
             $paramName = cat_Params::getVerbal($centerRec->useTareFromParamId, 'typeExt');
-            if($taskWeightSubtractValue === false || is_null($taskWeightSubtractValue)) return $result;
+            if(isset($taskWeightSubtractValue) && $taskWeightSubtractValue !== false){
 
-            // Ако параметъра е формула, се прави опит за изчислението ѝ
-            if(cat_Params::haveDriver($centerRec->useTareFromParamId, 'cond_type_Formula')){
-                Mode::push('text', 'plain');
-                $taskWeightSubtractValue = cat_Params::toVerbal($centerRec->useTareFromParamId, planning_Tasks::getClassId(), $taskId, $taskWeightSubtractValue);
-                Mode::pop('text');
-                if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
-                    $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
-                    $msgType = 'warning';
+                // Ако параметъра е формула, се прави опит за изчислението ѝ
+                if(cat_Params::haveDriver($centerRec->useTareFromParamId, 'cond_type_Formula')){
+                    Mode::push('text', 'plain');
+                    $taskWeightSubtractValue = cat_Params::toVerbal($centerRec->useTareFromParamId, planning_Tasks::getClassId(), $taskId, $taskWeightSubtractValue);
+                    Mode::pop('text');
+                    if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
+                        $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
+                        $msgType = 'warning';
 
-                    return $result;
+                        return $result;
+                    }
                 }
-            }
 
-            $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
-            $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността от параметъра|* <b>{$paramName}</b> : {$subtractTareWeightValVerbal}";
+                $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
+                $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността от параметъра|* <b>{$paramName}</b> : {$subtractTareWeightValVerbal}";
+            }
         }
 
         if(!empty($centerRec->useTareFromPackagings) && empty($taskWeightSubtractValue)){
@@ -690,6 +691,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
             }
         }
+
+        if(is_null($taskWeightSubtractValue) || $taskWeightSubtractValue === false) return $result;
 
         // Приспадане и проверка
         $kgMeasureRec = cat_UoM::fetchBySysId('kg');

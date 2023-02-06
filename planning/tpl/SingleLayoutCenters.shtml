@@ -49,7 +49,9 @@
 					<!--ET_BEGIN paramExpectedNetWeight-->
 					<div>|Параметър за единично тегло|*: <b>[#paramExpectedNetWeight#]</b></div>
 					<!--ET_END paramExpectedNetWeight-->
-
+					<!--ET_BEGIN showMaxPreviousTasksInATask-->
+					<div>|За колко от предходните Операции да се визуализира готовността|*: <b>[#showMaxPreviousTasksInATask#]</b></div>
+					<!--ET_END showMaxPreviousTasksInATask-->
 					<!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
 	                <!--ET_END nkid-->

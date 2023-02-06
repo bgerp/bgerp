@@ -306,7 +306,7 @@ class planning_StepConditions extends core_Detail
     {
         $arr = is_array($taskArr) ? $taskArr : array($taskArr);
 
-        $dependantArr = $conditions = $tasks = array();
+        $dependantArr = $allTasks = $folders = $tasks = array();
         if(!countR($arr)) return $dependantArr;
 
         $ids = arr::extractValuesFromArray($arr, 'productId');
@@ -317,12 +317,16 @@ class planning_StepConditions extends core_Detail
         $taskQuery->in('originId', $originIds);
         $taskQuery->where("#state != 'rejected'");
         while($tRec = $taskQuery->fetch()){
-            $timeStart = !empty($rec->timeStart) ? $rec->timeStart : "9999-99-{$tRec->id}";
-            $tasks[$tRec->originId][$tRec->productId][$tRec->id] = array('id' => $tRec->id, 'progress' => $tRec->progress, 'timeStart' => $timeStart);
+            $folders[$tRec->folderId] = $tRec->folderId;
+            $timeStart = !empty($tRec->timeStart) ? $tRec->timeStart : "9999-99-{$tRec->id}";
+            $saoOrder = !empty($tRec->saoOrder) ? $tRec->saoOrder : 0;
+            $tasks[$tRec->originId][$tRec->productId][$tRec->id] = array('id' => $tRec->id, 'progress' => $tRec->progress, 'timeStart' => $timeStart, 'saoOrder' => $saoOrder);
         }
 
         // За всяка от посочените ОП се прави масив с предходните им ПО от същото задание
+
         foreach ($arr as $taskRec){
+            $allTasks[$taskRec->id] = $taskRec;
             $dependantArr[$taskRec->id] = array();
             if(array_key_exists($taskRec->productId, $conditions)){
                 foreach ($conditions[$taskRec->productId] as $stepId){
@@ -335,16 +339,32 @@ class planning_StepConditions extends core_Detail
                     }
                 }
 
-                arr::sortObjects($dependantArr[$taskRec->id], 'timeStart', 'ASC');
+                arr::sortObjects($dependantArr[$taskRec->id], 'saoOrder', 'DESC');
+            }
+        }
+
+        // Кеш на максималния брой предходни операции, които да се показват
+        $centerMaxPreviousArr = array();
+        if(countR($folders)){
+            $defaultPreviousTasks = planning_Setup::get('SHOW_PREVIOUS_TASK_BLOCKS');
+            $cQuery = planning_Centers::getQuery();
+            $cQuery->in('folderId', $folders);
+            $cQuery->show('maxPrevious,folderId');
+            $cQuery->XPR('maxPrevious', 'int', "COALESCE(#showMaxPreviousTasksInATask, {$defaultPreviousTasks})");
+            while($cRec = $cQuery->fetch()){
+                $centerMaxPreviousArr[$cRec->folderId] = $cRec->maxPrevious;
             }
         }
 
         $res = array();
         foreach ($dependantArr as $taskId => $depArr){
-            $count = countR($depArr);
+            $lessThen = $allTasks[$taskId]->saoOrder;
+            $subArr = array_filter($depArr, function($a) use ($lessThen) { return $a['saoOrder'] <= $lessThen;});
+            $subArr = array_splice($subArr, 0, $centerMaxPreviousArr[$allTasks[$taskId]->folderId]);
+            $count = countR($subArr);
             if($count){
                 $eachWith = 90 / $count;
-                foreach ($depArr as $depTaskArr){
+                foreach ($subArr as $depTaskArr){
                     if($verbal){
                         $depTaskArr = static::getDependantTaskBlock($eachWith, 10, $depTaskArr['progress'], $depTaskArr['id']);
                     }
