@@ -68,15 +68,48 @@ class fileman_webdrv_Ics extends fileman_webdrv_Code
     {
         // Вземаме съдържанието на файла
         $content = fileman_Files::getContent($fRec->fileHnd);
-        
+
         $content = trim($content);
         
         $content = mb_strcut($content, 0, 1000000);
         
-        $content = i18n_Charset::convertToUtf8($content);
+        $content = i18n_Charset::convertToUtf8($content, 'UTF-8');
         
         $parsedTpl = ical_Parser::renderEvents($content);
         
         return $parsedTpl;
+    }
+
+
+    /**
+     * Връща съдържанието на файла
+     *
+     * @param object $fRec - Запис на архива
+     *
+     * @return string - Съдържанието на файла, като код
+     */
+    public static function getContent($fRec)
+    {
+        // Вземаме съдържанието на файла
+        $content = fileman_Files::getContent($fRec->fileHnd);
+
+        $content = i18n_Charset::convertToUtf8($content, 'UTF-8');
+
+        // Вземаме разширението на файла, като тип
+        $type = strtolower(fileman_Files::getExt($fRec->name));
+
+        $content = mb_strcut($content, 0, 1000000);
+
+        $content = i18n_Charset::convertToUtf8($content, array('UTF-8' => 2, 'CP1251' => 0.5), true);
+
+        $content = core_Type::escape($content);
+
+        // Обвиваме съдъжанието на файла в код
+        $content = "<div class='richtext'><pre class='rich-text code {$type}'><code>{$content}</code></pre></div>";
+
+        $tpl = hljs_Adapter::enable('github');
+        $tpl->append($content);
+
+        return $tpl;
     }
 }
