@@ -1486,6 +1486,7 @@ class doc_Containers extends core_Manager
         $query->where(array("#threadId = '[#1#]'", $threadId));
         $query->where("#state != 'draft'");
         $query->where("#state != 'rejected'");
+        $query->where("#modifiedBy = #activatedBy");
         $query->orderBy('modifiedOn', 'DESC');
         
         // Масив с потребителите
