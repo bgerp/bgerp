@@ -344,13 +344,13 @@ class hr_Trips extends core_Master
         $toDate = ($cYear + 2) . '-12-31';
         
         // Префикс на ключовете за записите в календара от тази задача
-        $prefix = "TRIP-{$id}";
+        $prefix = "TRIP-{$id}-";
         
         $curDate = $rec->startDate;
         
         while ($curDate < $rec->toDate) {
             // Подготвяме запис за началната дата
-            if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
+            if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
                 $calRec = new stdClass();
                 
                 // Ключ на събитието
@@ -387,8 +387,10 @@ class hr_Trips extends core_Master
             }
             $curDate = dt::addDays(1, $curDate);
         }
+
+        $onlyDel = $rec->state == 'rejected' ? true : false;
         
-        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
     }
     
     
