@@ -49,18 +49,17 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
             $pNoteQuery = planning_DirectProductionNote::getQuery();
             $pNoteQuery->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
             $pNoteQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+            $pNoteQuery->EXT('pMeasureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
             $pNoteQuery->where("#state = 'active' AND #canConvert = 'yes'");
             if(empty($masterRec->storeId)){
                 $pNoteQuery->where("#canStore = 'no'");
             }
 
             $pNoteQuery->in('threadId', $prevTaskThreadIds);
-            $pNoteQuery->show('id,productId,threadId,packagingId,quantityInPack');
-
+            $pNoteQuery->show('id,productId,threadId,pMeasureId,quantityInPack');
             while($pRec = $pNoteQuery->fetch()){
                 $notesAll[$pRec->id] = $pRec->id;
-                $k = "{$pRec->productId}|{$pRec->packagingId}";
-                $producedProducts[$k] = array('batches' => array(), 'productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'quantityInPack' => $pRec->quantityInPack);
+                $producedProducts[$pRec->productId] = array('batches' => array(), 'productId' => $pRec->productId, 'packagingId' => $pRec->pMeasureId, 'quantityInPack' => 1);
             }
         }
 
@@ -72,11 +71,10 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                 $bQuery->where("#detailClassId = {$batchClassId}");
                 $bQuery->in("detailRecId", $notesAll);
                 while($bRec = $bQuery->fetch()){
-                    $k = "{$bRec->productId}|{$bRec->packagingId}";
                     if($batchDef = batch_Defs::getBatchDef($bRec->productId)){
                         $bArr = array_keys($batchDef->makeArray($bRec->batch));
                         foreach ($bArr as $b){
-                            $producedProducts[$k]['batches']["{$b}"] = $b;
+                            $producedProducts[$bRec->productId]['batches']["{$b}"] = $b;
                         }
                     }
                 }
@@ -90,6 +88,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
             $cQuery = planning_ConsumptionNoteDetails::getQuery();
             $cQuery->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
             $cQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+            $cQuery->EXT('pMeasureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
             $cQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
             $cQuery->EXT('state', 'planning_ConsumptionNotes', 'externalName=state,externalKey=noteId');
             $cQuery->EXT('threadId', 'planning_ConsumptionNotes', 'externalName=threadId,externalKey=noteId');
@@ -99,9 +98,8 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
             }
 
             while($cRec = $cQuery->fetch()){
-                $k = "{$cRec->productId}|{$cRec->packagingId}";
-                if(!array_key_exists($k, $producedProducts)){
-                    $producedProducts[$k] = array('batches' => array(), 'productId' => $cRec->productId, 'packagingId' => $cRec->packagingId, 'quantityInPack' => $cRec->quantityInPack);
+                if(!array_key_exists($cRec->productId, $producedProducts)){
+                    $producedProducts[$cRec->productId] = array('batches' => array(), 'productId' => $cRec->productId, 'packagingId' => $cRec->pMeasureId, 'quantityInPack' => 1);
                 }
 
                 if(core_Packs::isInstalled('batch') && isset($masterRec->storeId)){
@@ -111,7 +109,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                         if($batchDef = batch_Defs::getBatchDef($bRec->productId)){
                             $bArr = array_keys($batchDef->makeArray($bRec->batch));
                             foreach ($bArr as $b){
-                                $producedProducts[$k]['batches']["{$b}"] = $b;
+                                $producedProducts[$cRec->productId]['batches']["{$b}"] = $b;
                             }
                         }
                     }
@@ -136,7 +134,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                 $noBatchCaption = 'Без партида';
                 foreach ($pData['batches'] as $b){
                     if($batchDef = batch_Defs::getBatchDef($pData['productId'])){
-                        $key = "{$pData['productId']}|{$pData['packagingId']}|" . md5($b);
+                        $key = "{$pData['productId']}|" . md5($b);
                         $subCaption = $batchDef->toVerbal($b);
                         $form->FLD($key, 'int(min=0)', "caption={$caption}->{$subCaption}");
                         $pData['batch'] = $b;
@@ -154,7 +152,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                 }
             }
 
-            $key = "{$pData['productId']}|{$pData['packagingId']}|";
+            $key = "{$pData['productId']}|";
             $form->FLD($key, 'int(min=0)', "caption={$caption}->{$noBatchCaption}");
             $pData['batch'] = null;
             $rec->_details[$key] = $pData;
@@ -225,9 +223,9 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                                                'quantity' => 0);
                     $recs[$k] = $importRec;
                 }
-                $recs[$k]->quantity += $rec->{$key} * $data['quantityInPack'];
+                $recs[$k]->quantity += $rec->{$key};
                 if(!empty($data['batch'])){
-                    $recs[$k]->batches[$data['batch']] = $rec->{$key} * $data['quantityInPack'];
+                    $recs[$k]->batches[$data['batch']] = $rec->{$key};
                 }
             }
         }
@@ -277,18 +275,8 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
     public function checkImportForm($mvc, core_FieldSet $form)
     {
         $rec = &$form->rec;
-        $masterRec = $mvc->Master->fetch($rec->noteId);
-
         if ($form->isSubmitted()) {
             $rec->importRecs = $this->getImportRecs($mvc, $rec);
-
-            if(empty($masterRec->storeId)){
-                foreach ($rec->importRecs as $k => $iRec){
-                    bp($iRec);
-                }
-            }
-
-
         }
     }
 
