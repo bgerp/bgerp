@@ -158,6 +158,12 @@ defIfNot('PLANNING_SHOW_SALE_IN_TASK_LIST', 'no');
 
 
 /**
+ * До колко предходни операции да се показват в сингъла и листа
+ */
+defIfNot('PLANNING_SHOW_PREVIOUS_TASK_BLOCKS', '2');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -230,6 +236,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT' => array('int(Min=0)', 'caption=Максимално допустимо бруто тегло в прогреса на ПО->Максимално до,unit=кг'),
         'PLANNING_SHOW_SALE_IN_TASK_LIST' => array('enum(yes=Да,no=Не)', 'caption=Показване на продажбата в списъка на ПО->Избор'),
         'PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE' => array('enum(yes=Да,no=Не)', 'caption=Обновяване на параметрите на артикула в заданието при Пускане/Събуждане->По подразбиране'),
+        'PLANNING_SHOW_PREVIOUS_TASK_BLOCKS' => array('int(min=0)', 'caption=За колко от предходните Операции да се визуализира готовността->Брой'),
         );
 
 

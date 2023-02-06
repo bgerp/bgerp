@@ -135,7 +135,7 @@ defIfNot('CAT_GROUPS_WITH_OVERHEAD_COSTS', '');
 /**
  * Дефолтни режийни разходи за производимите артикули
  */
-defIfNot('CAT_DEFAULT_PRODUCT_OVERHEAD_COST', '0.05');
+defIfNot('CAT_DEFAULT_PRODUCT_OVERHEAD_COST', '0');
 
 
 /**
