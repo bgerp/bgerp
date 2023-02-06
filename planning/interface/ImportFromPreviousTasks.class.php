@@ -74,9 +74,9 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                 while($bRec = $bQuery->fetch()){
                     $k = "{$bRec->productId}|{$bRec->packagingId}";
                     if($batchDef = batch_Defs::getBatchDef($bRec->productId)){
-                        $bArr = $batchDef->makeArray($bRec->batch);
-                        foreach ($bArr as $b1){
-                            $producedProducts[$k]['batches']["{$b1}"] = $b1;
+                        $bArr = array_keys($batchDef->makeArray($bRec->batch));
+                        foreach ($bArr as $b){
+                            $producedProducts[$k]['batches']["{$b}"] = $b;
                         }
                     }
                 }
@@ -109,9 +109,9 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                     $bQuery->where("#detailClassId = {$batchClassId} AND #detailRecId = {$cRec->id}");
                     while($bRec = $bQuery->fetch()){
                         if($batchDef = batch_Defs::getBatchDef($bRec->productId)){
-                            $bArr = $batchDef->makeArray($bRec->batch);
-                            foreach ($bArr as $b1){
-                                $producedProducts[$k]['batches']["{$b1}"] = $b1;
+                            $bArr = array_keys($batchDef->makeArray($bRec->batch));
+                            foreach ($bArr as $b){
+                                $producedProducts[$k]['batches']["{$b}"] = $b;
                             }
                         }
                     }
