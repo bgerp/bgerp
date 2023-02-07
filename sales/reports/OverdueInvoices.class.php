@@ -149,7 +149,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $salQuery = sales_Sales::getQuery();
 
-        //$salQuery->where("(#state = 'active') OR (#closedOn IS NOT NULL AND #closedOn > '$checkDate')");
         $salQuery->where("#closedOn IS NULL OR #closedOn > '$checkDate'");
 
         //нишки на активни договори
@@ -163,7 +162,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
                 //Договора за продажба
                 $FirstDoc = doc_Threads::getFirstDocument($thread);
-                $fDocRec = $FirstDoc->fetch('dealerId');
+                $fDocRec = $FirstDoc->fetch();                       // Rec-a на договора
 
                 // масив от фактури в тази нишка към избраната дата
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
