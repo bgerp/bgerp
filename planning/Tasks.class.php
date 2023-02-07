@@ -725,6 +725,9 @@ class planning_Tasks extends core_Master
                 $row->assetId = "<span class='quiet'>N/A</span>";
                 $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!', 'warning');
             }
+
+            $taskCount = planning_Tasks::count("#originId = {$rec->originId} AND #saoOrder IS NOT NULL AND #state != 'rejected'");
+            $row->taskCount = core_Type::getByName('int')->toVerbal($taskCount);
         } else {
             if ($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])) {
                 core_RowToolbar::createIfNotExists($row->_rowTools);

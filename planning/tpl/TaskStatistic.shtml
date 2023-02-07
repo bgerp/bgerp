@@ -65,7 +65,7 @@
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
                 <td class='sum-th'><b>|Продължителност|* [#recalcBtn#]</b></td>
-                <td class='sum-th'>[#productCaption#]: <b>[#productId#]</b> <b style="color:green">[[#saoOrder#]]</b></td>
+                <td class='sum-th'>[#productCaption#]: <b>[#productId#]</b> <b>[<span style="color:blue">[#saoOrder#]</span>/<span style="color:green">[#taskCount#]</span>]</b></td>
             </tr>
             <tr>
                 <td>[#expectedTimeStart#]</td>
