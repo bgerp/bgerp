@@ -72,7 +72,6 @@ class rack_ProductsByBatches extends batch_Items
         $this->loadList = arr::make($this->loadList, true);
         unset($this->loadList['batch_Wrapper']);
         $this->loadList['rack_Wrapper'] = 'rack_Wrapper';
-        $this->loadList['plg_RowTools2'] = 'plg_RowTools2';
         parent::description();
 
         $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На палети,input=hidden,smartCenter');
