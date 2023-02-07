@@ -1247,8 +1247,11 @@ class sales_Sales extends deals_DealMaster
             $data->jobs[$jRec->id] = planning_Jobs::recToVerbal($jRec, $fields);
         }
 
-        if (planning_Jobs::haveRightFor('add', (object) array('saleId' => $rec->id)) && doc_Threads::haveRightFor('single', $rec->threadId)) {
-            $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $rec->id, 'threadId' => $rec->threadId, 'foreignId' => $rec->containerId, 'ret_url' => true);
+        if (planning_Jobs::haveRightFor('add', (object) array('saleId' => $rec->id))) {
+            $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $rec->id, 'foreignId' => $rec->containerId, 'ret_url' => true);
+            if(doc_Threads::haveRightFor('single', $rec->threadId)){
+                $data->addJobUrl['threadId'] = $rec->threadId;
+            }
         }
     }
     
@@ -1269,7 +1272,7 @@ class sales_Sales extends deals_DealMaster
         $tpl->replace($jobTpl, 'JOB_INFO');
         
         if (isset($data->addJobUrl)) {
-            $addLink = ht::createLink('', $data->addJobUrl, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
+            $addLink = ht::createLink('', $data->addJobUrl, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство от продажбата');
             $tpl->replace($addLink, 'JOB_ADD_BTN');
         }
     }
