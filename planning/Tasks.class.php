@@ -533,11 +533,11 @@ class planning_Tasks extends core_Master
             }
 
             if (!empty($rec->prevErrId)) {
-                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходната операция #{$mvc->getHandle($rec->prevErrId)}", 'img/16/red-warning.png', false);
+                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходната операция|* #{$mvc->getHandle($rec->prevErrId)}", 'img/16/red-warning.png', false);
             }
 
             if (!empty($rec->nextErrId)) {
-                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следващата операция #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
+                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следващата операция|* #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
             }
 
             if ($rec->freeTimeAfter == 'yes') {
