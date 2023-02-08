@@ -374,7 +374,7 @@ class store_Transfers extends core_Master
             }
 
             if(empty($rec->id)){
-                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
+                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy, core_Permanent::FOREVER_VALUE);
             }
 
             $rec->folderId = store_Stores::forceCoverAndFolder($rec->toStore);

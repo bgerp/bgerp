@@ -502,7 +502,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         if(empty($rec->id)){
-            core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
+            core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy, core_Permanent::FOREVER_VALUE);
         }
     }
     
