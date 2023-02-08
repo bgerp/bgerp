@@ -214,7 +214,7 @@ abstract class store_DocumentMaster extends core_Master
             $data->form->setField('prevShipment', 'input=none');
         }
 
-        $form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
+        $form->setDefault('detailOrderBy', $dealInfo->get('detailOrderBy'));
     }
     
     
@@ -250,10 +250,6 @@ abstract class store_DocumentMaster extends core_Master
 
             if ((!empty($rec->tel) || !empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) && (empty($rec->tel) || empty($rec->country) || empty($rec->pCode) || empty($rec->place) || empty($rec->address))) {
                 $form->setError('tel,country,pCode,place,address', 'Трябва или да са попълнени всички полета за адрес или нито едно');
-            }
-
-            if(empty($rec->id)){
-                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
             }
         }
     }

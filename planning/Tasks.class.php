@@ -2389,6 +2389,8 @@ class planning_Tasks extends core_Master
             $newTask = clone $taskRec;
             plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
 
+            //$coefficient =
+            //bp($taskRec, $jobRec);
             $newTask->plannedQuantity = $taskRec->plannedQuantity;
             $newTask->_isClone = true;
             $newTask->originId = $jobRec->containerId;
