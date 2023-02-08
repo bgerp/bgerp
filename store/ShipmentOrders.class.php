@@ -56,7 +56,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'detailOrderBy,note,courierApi';
+    public $changableFields = 'detailOrderBy,note,courierApi,detailOrderBy';
 
 
     /**

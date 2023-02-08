@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -122,8 +122,6 @@ class store_Transfers extends core_Master
 
     /**
      * Кой е главния детайл
-     *
-     * @var string - име на клас
      */
     public $mainDetail = 'store_TransfersDetails';
 
@@ -215,6 +213,12 @@ class store_Transfers extends core_Master
 
 
     /**
+     * Кое поле ще се оказва за подредбата на детайла
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -228,11 +232,14 @@ class store_Transfers extends core_Master
         // Доставка
         $startTime = trans_Setup::get('START_WORK_TIME');
         $this->FLD('deliveryTime', "datetime(defaultTime={$startTime})", 'caption=Товарене');
+        $this->FLD('deliveryOn', "datetime(defaultTime={$startTime})", 'caption=Доставка');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
         // Допълнително
-        $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки,after=deliveryOn');
+        $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Допълнително->Подреждане по,notNull,maxRadio=2,value=auto');
+        $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
+
         $this->FLD(
             'state',
             'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
@@ -335,6 +342,7 @@ class store_Transfers extends core_Master
         $data->form->setDefault('fromStore', store_Stores::getCurrent('id', false));
         $folderCoverId = doc_Folders::fetchCoverId($data->form->rec->folderId);
         $data->form->setDefault('toStore', $folderCoverId);
+        $data->form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
 
         if (!trans_Lines::count("#state = 'active'")) {
             $data->form->setField('lineId', 'input=none');
@@ -363,6 +371,10 @@ class store_Transfers extends core_Master
 
             if ($rec->fromStore == $rec->toStore) {
                 $form->setError('toStore', 'Складовете трябва да са различни');
+            }
+
+            if(empty($rec->id)){
+                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
             }
 
             $rec->folderId = store_Stores::forceCoverAndFolder($rec->toStore);
