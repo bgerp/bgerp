@@ -75,6 +75,26 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $detailId = $Detail->getClassId();
         $installedBatch = core_Packs::isInstalled('batch');
 
+        // Ако мастъра на детайла има поле за подреждане на редовете
+        if(isset($Detail->Master->detailOrderByField)){
+            $firstKey = key($detailsToClone);
+            if(isset($firstKey)){
+
+                // и то е за сортиране по код. Извлича се кода и се сортират
+                $masterKeyId = $detailsToClone[$firstKey]->{$Detail->masterKey};
+                $orderByField = $Detail->Master->fetchField($masterKeyId, $Detail->Master->detailOrderByField);
+                if($orderByField == 'code'){
+                    array_walk($detailsToClone, function($a) use ($Detail) {
+                        $a->_code = cat_Products::fetchField($a->{$Detail->productFld}, 'code');
+                        if(empty($a->_code)){
+                            $a->_code = "Art{$a->{$Detail->productFld}}";
+                        }
+                    });
+                    arr::sortObjects($detailsToClone, '_code', 'ASC', 'natural');
+                }
+            }
+        }
+
         foreach ($detailsToClone as $dRec) {
             if($Detail->className != $MainDetail->className && empty($dRec->{$Detail->quantityFld})) continue;
             $caption = cat_Products::getTitleById($dRec->{$Detail->productFld});
