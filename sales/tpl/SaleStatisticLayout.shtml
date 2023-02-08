@@ -74,6 +74,9 @@
                   <!--ET_BEGIN courierApi-->
                   <span style='font-weight:normal'>|Куриерско API|*</span>: [#courierApi#]<br>
                   <!--ET_END courierApi-->
+                  <!--ET_BEGIN detailOrderBy-->
+                  <span style='font-weight:normal'>|Подреждане детайли|*</span>: [#detailOrderBy#]<br>
+                  <!--ET_END detailOrderBy-->
               </td>
            </tr>
            <tr>
