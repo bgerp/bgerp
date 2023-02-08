@@ -76,7 +76,7 @@ class cat_plg_ShowCodes extends core_Plugin
 
             $detailOrderBy = $data->masterData->rec->{$mvc->Master->detailOrderByField};
             if($detailOrderBy == 'code'){
-                arr::sortObjects($data->rows, 'code', 'ASC', 'str');
+                arr::sortObjects($data->rows, 'code', 'ASC', 'natural');
             }
         }
     }
