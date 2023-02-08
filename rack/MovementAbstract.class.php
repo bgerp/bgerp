@@ -20,7 +20,7 @@ abstract class rack_MovementAbstract extends core_Manager
     /**
      * Полета по които да се търси
      */
-    public $searchFields = 'palletId,position,positionTo,note';
+    public $searchFields = 'palletId,position,positionTo,note,batch';
 
 
     /**
