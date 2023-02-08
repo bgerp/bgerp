@@ -503,6 +503,7 @@ class purchase_Purchases extends deals_DealMaster
 
         $deliveryTime = !empty($rec->deliveryTermTime) ? (dt::addSecs($rec->deliveryTermTime, $rec->valior, false) . " " . trans_Setup::get('END_WORK_TIME') . ":00") : $rec->deliveryTime;
         $result->setIfNot('deliveryTime', $deliveryTime);
+        $result->setIfNot('detailOrderBy', $rec->detailOrderBy);
 
         $result->setIfNot('amount', $rec->amountDeal);
         $result->setIfNot('currency', $rec->currencyId);
