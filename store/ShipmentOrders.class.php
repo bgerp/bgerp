@@ -56,7 +56,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'note,courierApi';
+    public $changableFields = 'detailOrderBy,note,courierApi';
 
 
     /**
@@ -271,7 +271,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         if ($origin->isInstanceOf('sales_Sales')) {
             if (!isset($rec->id)) {
-                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули, input,after=responsible');
+                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
             }
 
             $form->setField('courierApi', 'input');

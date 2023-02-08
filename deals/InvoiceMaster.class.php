@@ -166,6 +166,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode');
         $mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
         $mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Артикули->Подреждане по,notNull,maxRadio=2,value=auto');
         $mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
         $mvc->FLD('dcReason', 'richtext(rows=2)', 'input=none');
         $mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
@@ -181,7 +182,6 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6, passage)', 'caption=Допълнително->Бележки');
-        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=По код)', 'caption=Допълнително->Сортиране на детайлите,notNull,value=auto');
         $mvc->FNC('dealValueWithoutDiscount', 'double(decimals=2)', 'caption=Дан. основа,summary=amount');
         $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
@@ -881,9 +881,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $types += array('fromSource' => "Артикулите от #" . doc_Containers::getDocument($rec->sourceContainerId)->getHandle());
             }
 
-            $data->form->FNC('importProducts', "enum(" . arr::fromArray($types) . ")", 'caption=Допълнително->Артикули, input,after=additionalInfo');
+            $data->form->FNC('importProducts', "enum(" . arr::fromArray($types) . ")", 'caption=Артикули->Избор, input,after=contragentAddress');
             if(core_Packs::isInstalled('batch') && $mvc instanceof sales_Invoices){
-                $data->form->FNC('importBatches', "enum(yes=Да,no=Не)", 'caption=Допълнително->Партиди, input,after=importProducts');
+                $data->form->FNC('importBatches', "enum(yes=Да,no=Не)", 'caption=Артикули->Партиди, input,maxRadio=2,after=importProducts');
                 $data->form->setDefault('importBatches', batch_Setup::get('SHOW_IN_INVOICES'));
             }
 

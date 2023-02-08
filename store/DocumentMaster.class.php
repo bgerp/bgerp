@@ -118,7 +118,8 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
-        $mvc->FLD('note', 'richtext(bucket=Notes,passage,rows=6)', 'caption=Допълнително->Бележки');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Артикули->Подреждане по,maxRadio=2,notNull,value=auto');
+		$mvc->FLD('note', 'richtext(bucket=Notes,passage,rows=6)', 'caption=Допълнително->Бележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
@@ -134,7 +135,6 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('features', 'keylist(mvc=trans_Features,select=name)', 'caption=Адрес за доставка->Особености');
         $mvc->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Други,autohide');
         $mvc->FLD('reverseContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Връщане от,input=hidden,silent');
-        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=По код)', 'caption=Допълнително->Сортиране на детайлите,notNull,value=auto');
 
         $mvc->setDbIndex('valior');
         $mvc->setDbIndex('contragentId,contragentClassId');
