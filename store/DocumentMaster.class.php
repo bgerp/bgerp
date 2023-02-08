@@ -88,8 +88,14 @@ abstract class store_DocumentMaster extends core_Master
      * Поле за забележките
      */
     public $notesFld = 'note';
-    
-    
+
+
+    /**
+     * Кое поле ще се оказва за подредбата на детайла
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
     /**
      * След описанието на полетата
      */
@@ -112,7 +118,8 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
-        $mvc->FLD('note', 'richtext(bucket=Notes,passage,rows=6)', 'caption=Допълнително->Бележки');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Артикули->Подреждане по,maxRadio=2,notNull,value=auto');
+		$mvc->FLD('note', 'richtext(bucket=Notes,passage,rows=6)', 'caption=Допълнително->Бележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
@@ -206,6 +213,8 @@ abstract class store_DocumentMaster extends core_Master
         } else {
             $data->form->setField('prevShipment', 'input=none');
         }
+
+        $form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
     }
     
     
@@ -241,6 +250,10 @@ abstract class store_DocumentMaster extends core_Master
 
             if ((!empty($rec->tel) || !empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) && (empty($rec->tel) || empty($rec->country) || empty($rec->pCode) || empty($rec->place) || empty($rec->address))) {
                 $form->setError('tel,country,pCode,place,address', 'Трябва или да са попълнени всички полета за адрес или нито едно');
+            }
+
+            if(empty($rec->id)){
+                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
             }
         }
     }

@@ -725,6 +725,9 @@ class planning_Tasks extends core_Master
                 $row->assetId = "<span class='quiet'>N/A</span>";
                 $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!', 'warning');
             }
+
+            $taskCount = planning_Tasks::count("#originId = {$rec->originId} AND #saoOrder IS NOT NULL AND #state != 'rejected'");
+            $row->taskCount = core_Type::getByName('int')->toVerbal($taskCount);
         } else {
             if ($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])) {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -1423,11 +1426,6 @@ class planning_Tasks extends core_Master
                 core_Users::cancelSystemUser();
             }
         }
-
-        // Копиране на параметрите на артикула към операцията
-        if (is_array($rec->_params)) {
-            cat_products_Params::saveParams($mvc, $rec);
-        }
     }
 
 
@@ -1653,9 +1651,7 @@ class planning_Tasks extends core_Master
                 });
             }
 
-            if (empty($rec->id)) {
-                cat_products_Params::addProductParamsToForm($mvc, $rec->id, $originRec->productId, $rec->productId, $form);
-            }
+            cat_products_Params::addProductParamsToForm($mvc, $rec->id, $originRec->productId, $rec->productId, $form);
 
             if (isset($rec->systemId, $tasks[$rec->systemId])) {
                 $taskData = (array)$tasks[$rec->systemId];
@@ -2890,6 +2886,11 @@ class planning_Tasks extends core_Master
 
         if($rec->state == 'rejected'){
             $mvc->reorderTasksByJobIds[$rec->originId] = $rec->originId;
+        }
+
+        // Копиране на параметрите на артикула към операцията
+        if (is_array($rec->_params)) {
+            cat_products_Params::saveParams($mvc, $rec);
         }
     }
 

@@ -133,6 +133,16 @@ abstract class rack_MovementAbstract extends core_Manager
                 $row->productId = ht::createHint($row->productId, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}",  null,true, array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18));
             }
         }
+
+        if(!$fields['-inline'] && !$fields['-inline-single']){
+            if($Def = batch_Defs::getBatchDef($rec->productId)){
+                if(!empty($rec->batch)){
+                    $row->batch = $Def->toVerbal($rec->batch);
+                } else {
+                    $row->batch = "<i class='quiet'>" . tr("Без партида") . "</i>";
+                }
+            }
+        }
     }
 
 
@@ -322,6 +332,7 @@ abstract class rack_MovementAbstract extends core_Manager
             }
         }
 
+        arr::placeInAssocArray($data->listFields, array('batch' => 'Партида'), null, 'productId');
         $data->query->orderBy('orderByState=ASC,createdOn=DESC');
     }
 

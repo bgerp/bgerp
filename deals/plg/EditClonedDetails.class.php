@@ -102,15 +102,13 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 $quantity = $dRec->{$Detail->quantityFld} / $dRec->quantityInPack;
                 while ($bRec = $bQuery->fetch()) {
                     $verbal = strip_tags($Def->toVerbal($bRec->batch));
-                    $b = str_replace(',', '', $bRec->batch);
-                    $b = str_replace('.', '', $b);
-                    $b = str::removeWhiteSpace($b);
+                    $batchMd5 = md5($bRec->batch);
 
                     $bQuantity = $bRec->{$Detail->quantityFld} / $bRec->quantityInPack;
                     $quantity -= $bQuantity;
                     
                     $max = ($Def instanceof batch_definitions_Serial) ? 'max=1' : '';
-                    $key = "quantity|{$b}|{$dRec->id}|";
+                    $key = "quantity|{$batchMd5}|{$dRec->id}|";
                     $form->FLD($key, "double(Min=0,{$max})", "input,caption={$caption}->|*{$verbal}");
                     
                     $rec->details[$dRec->id]->batches[$bRec->id] = $bRec;
@@ -143,7 +141,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 
                 $rec->details["quantity||{$dRec->id}|"] = $dRec;
             }
-            
+
             $rec->cloneAndChange = true;
             $num++;
         }
@@ -220,12 +218,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 $newPackQuantity = $updatePackQuantity = 0;
                 if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
                     foreach ($det->batches as &$bRec) {
-                        $b = str_replace(',', '', $bRec->batch);
-                        $b = str_replace('.', '', $b);
-                        $b = str::removeWhiteSpace($b);
-                        $key = "quantity|{$b}|{$det->id}|";
-                        
-                        
+                        $bMd5 = md5($bRec->batch);
+                        $key = "quantity|{$bMd5}|{$det->id}|";
+
                         $q = $rec->{$key};
                         if ($q > ($bRec->quantity / $bRec->quantityInPack)) {
                             $q = $bRec->quantity / $bRec->quantityInPack;
