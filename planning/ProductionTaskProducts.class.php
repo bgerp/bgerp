@@ -655,9 +655,11 @@ class planning_ProductionTaskProducts extends core_Detail
         // Преизчисляване на планираните к-ва на базата на новото к-во в мастъра
         $oldTaskRec = planning_Tasks::fetch($oldRec->taskId);
         if($oldTaskRec->plannedQuantity != $newTaskRec->plannedQuantity){
-            $q = $oldRec->plannedQuantity / $oldTaskRec->plannedQuantity;
-            $round = cat_UoM::fetchField($rec->packagingId, 'round');
-            $rec->plannedQuantity = round($q * $newTaskRec->plannedQuantity, $round);
+            if(!empty($rec->plannedQuantity)){
+                $q = $oldRec->plannedQuantity / $oldTaskRec->plannedQuantity;
+                $round = cat_UoM::fetchField($rec->packagingId, 'round');
+                $rec->plannedQuantity = round($q * $newTaskRec->plannedQuantity, $round);
+            }
         }
     }
 
