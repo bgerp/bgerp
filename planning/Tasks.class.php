@@ -2385,13 +2385,16 @@ class planning_Tasks extends core_Master
             expect($cloneId = Request::get('cloneId', 'int'));
             planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'cloneId' => $cloneId, 'type' => 'clone'));
             expect($taskRec = $this->fetch($cloneId));
+            $oldJobRec = planning_Jobs::fetch($jobRec->oldJobId);
 
             $newTask = clone $taskRec;
             plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
 
-            //$coefficient =
-            //bp($taskRec, $jobRec);
-            $newTask->plannedQuantity = $taskRec->plannedQuantity;
+            // Преконвертиране на планираното к-во към новото от заданието, да се запази същото отношение
+            $q = $oldJobRec->quantity / $jobRec->quantity;
+            $round = cat_UoM::fetchField($newTask->measureId, 'round');
+            $newTask->plannedQuantity = round($taskRec->plannedQuantity / $q, $round);
+
             $newTask->_isClone = true;
             $newTask->originId = $jobRec->containerId;
             $newTask->state = 'draft';
