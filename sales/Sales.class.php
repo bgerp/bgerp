@@ -62,7 +62,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'reff,detailOrderBy,dealerId,initiatorId,oneTimeDelivery,courierApi,detailOrderBy';
+    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery,courierApi,detailOrderBy';
     
     
     /**
