@@ -2083,6 +2083,7 @@ class planning_Tasks extends core_Master
         $query->where("#originId = {$oldContainerId}");
         $states = arr::make($states, true);
         $query->in("state", $states);
+        $query->orderBy("saoOrder", 'ASC');
 
         $taskClassId = planning_Tasks::getClassId();
         while ($rec = $query->fetch()) {
