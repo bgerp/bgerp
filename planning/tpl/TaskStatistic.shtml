@@ -48,6 +48,9 @@
                   <!--ET_BEGIN followBatchesForFinalProduct-->
                   <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
                   <!--ET_END followBatchesForFinalProduct-->
+                  <!--ET_BEGIN previousStepIds-->
+                  <span style='font-weight:normal'>|Предх. Етапи|*</span>: [#previousStepIds#]<br>
+                  <!--ET_END previousStepIds-->
                   <!--ET_BEGIN dependantProgress-->
                   <span style='font-weight:normal'>|Предх.Оп.|*</span>: [#dependantProgress#]<br>
                   <!--ET_END dependantProgress-->
