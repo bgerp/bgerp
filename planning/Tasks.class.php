@@ -719,7 +719,13 @@ class planning_Tasks extends core_Master
             $row->taskCount = core_Type::getByName('int')->toVerbal($taskCount);
 
             if($mvc->haveRightFor('editpreviousteps', $rec)){
-                $row->previousStepIds .= ht::createLink('', array($mvc, 'editpreviousteps', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,caption=Промяна на предходните етапи');
+                $prevStepArr = array();
+                $prevStepIds = keylist::toArray($rec->previousStepIds);
+                foreach ($prevStepIds as $prevStepId){
+                    $prevStepArr[$prevStepId] = cat_Products::getHyperlink($prevStepId);
+                }
+                $row->previousStepIds = implode(', ', $prevStepArr);
+                $row->previousStepIds .= ht::createLink('', array($mvc, 'editpreviousteps', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,caption=Промяна на предходните етапи');
             }
         } else {
             if ($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])) {
