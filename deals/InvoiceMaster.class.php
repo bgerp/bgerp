@@ -730,7 +730,6 @@ abstract class deals_InvoiceMaster extends core_Master
         if (empty($form->rec->id)) {
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
             $form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-            $form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
         }
 
         // Ако ф-та не е към служебен аванс не искаме да се сменя контрагента
@@ -812,7 +811,8 @@ abstract class deals_InvoiceMaster extends core_Master
         
         if ($firstDocument->haveInterface('bgerp_DealAggregatorIntf') && !$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $aggregateInfo = $firstDocument->getAggregateDealInfo();
-            
+
+            $form->setDefault('detailOrderBy', $aggregateInfo->get('detailOrderBy'));
             $form->rec->vatRate = $aggregateInfo->get('vatType');
             $form->rec->currencyId = $aggregateInfo->get('currency');
             $form->rec->rate = $aggregateInfo->get('rate');
@@ -1033,10 +1033,6 @@ abstract class deals_InvoiceMaster extends core_Master
                 if($cData->countryId == $ukCountryId && empty($rec->contragentEori)){
                     $form->setWarning('contragentEori', 'За Великобритания, е препоръчително да има EORI №');
                 }
-            }
-
-            if(empty($rec->id)){
-                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
             }
         }
         
