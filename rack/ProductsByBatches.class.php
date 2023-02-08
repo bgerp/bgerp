@@ -72,7 +72,6 @@ class rack_ProductsByBatches extends batch_Items
         $this->loadList = arr::make($this->loadList, true);
         unset($this->loadList['batch_Wrapper']);
         $this->loadList['rack_Wrapper'] = 'rack_Wrapper';
-        $this->loadList['plg_RowTools2'] = 'plg_RowTools2';
         parent::description();
 
         $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На палети,input=hidden,smartCenter');
@@ -98,6 +97,25 @@ class rack_ProductsByBatches extends batch_Items
         }
 
         $row->quantityNotOnPallets = ht::styleIfNegative($row->quantityNotOnPallets, $rec->quantityNotOnPallets);
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+
+        if (countR($rows)) {
+            foreach ($rows as $id => &$row) {
+                $rec = $data->recs[$id];
+
+                if ($rec->quantityOnPallets > 0) {
+                    $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'search' => $rec->batch, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този артикул и партида') . '&nbsp;' . $row->quantityOnPallets;
+                }
+            }
+        }
     }
 
 

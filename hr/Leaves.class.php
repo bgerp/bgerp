@@ -552,13 +552,13 @@ class hr_Leaves extends core_Master
         $toDate = ($cYear + 2) . '-12-31';
         
         // Префикс на ключовете за записите в календара от тази задача
-        $prefix = "REQ-{$id}";
+        $prefix = "REQ-{$id}-";
         
         $curDate = $rec->leaveFrom;
 
         while ($curDate < dt::addDays(1, $rec->leaveTo) ){
             // Подготвяме запис за началната дата
-            if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
+            if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
                 $calRec = new stdClass();
                 
                 // Ключ на събитието
@@ -597,7 +597,9 @@ class hr_Leaves extends core_Master
             $curDate = dt::addDays(1, $curDate);
         }
 
-        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+        $onlyDel = $rec->state == 'rejected' ? true : false;
+
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
     }
     
     

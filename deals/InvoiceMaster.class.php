@@ -139,6 +139,12 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Кое поле ще се оказва за подредбата на детайла
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
@@ -160,6 +166,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode');
         $mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
         $mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Артикули->Подреждане по,notNull,maxRadio=2,value=auto');
         $mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
         $mvc->FLD('dcReason', 'richtext(rows=2)', 'input=none');
         $mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
@@ -723,6 +730,7 @@ abstract class deals_InvoiceMaster extends core_Master
         if (empty($form->rec->id)) {
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
             $form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+            $form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
         }
 
         // Ако ф-та не е към служебен аванс не искаме да се сменя контрагента
@@ -873,9 +881,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $types += array('fromSource' => "Артикулите от #" . doc_Containers::getDocument($rec->sourceContainerId)->getHandle());
             }
 
-            $data->form->FNC('importProducts', "enum(" . arr::fromArray($types) . ")", 'caption=Допълнително->Артикули, input,after=additionalInfo');
+            $data->form->FNC('importProducts', "enum(" . arr::fromArray($types) . ")", 'caption=Артикули->Избор, input,after=contragentAddress');
             if(core_Packs::isInstalled('batch') && $mvc instanceof sales_Invoices){
-                $data->form->FNC('importBatches', "enum(yes=Да,no=Не)", 'caption=Допълнително->Партиди, input,after=importProducts');
+                $data->form->FNC('importBatches', "enum(yes=Да,no=Не)", 'caption=Артикули->Партиди, input,maxRadio=2,after=importProducts');
                 $data->form->setDefault('importBatches', batch_Setup::get('SHOW_IN_INVOICES'));
             }
 
@@ -1025,6 +1033,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 if($cData->countryId == $ukCountryId && empty($rec->contragentEori)){
                     $form->setWarning('contragentEori', 'За Великобритания, е препоръчително да има EORI №');
                 }
+            }
+
+            if(empty($rec->id)){
+                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
             }
         }
         

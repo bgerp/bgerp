@@ -2700,13 +2700,22 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
+
+                if(isset($rec->folderId) && $res != 'no_one'){
+                    $Cover = doc_Folders::getCover($rec->folderId);
+                    if($Cover->isInstanceOf('cat_Categories')){
+                        if (!haveRole('ceo,cat')) {
+                            $res = 'no_one';
+                        }
+                    }
+                }
             }
         }
         
         // Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
-        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec' || $action == 'close') && isset($rec)) {
+        if (($action == 'edit' || $action == 'write' || $action == 'clonerec' || $action == 'close') && isset($rec)) {
             if ($rec->isPublic == 'yes') {
-                if (!haveRole('ceo,cat')) {
+                if (!haveRole('ceo,cat,catEdit')) {
                     $res = 'no_one';
                 }
             }

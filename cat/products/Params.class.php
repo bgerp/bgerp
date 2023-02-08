@@ -674,12 +674,23 @@ class cat_products_Params extends doc_Detail
     public static function addProductParamsToForm($classId, $objectId, $productId, $planningStepProductId, &$form)
     {
         // Показване на параметрите за задача във формата, като задължителни полета
-        $paramValues = cat_Products::getParams($productId);
-        $params = array_combine(array_keys($paramValues), array_keys($paramValues));
         $class = cls::get($classId);
 
+        if(isset($objectId)){
+            $params = $paramValues = array();
+            $pQuery = cat_products_Params::getQuery();
+            $pQuery->where("#classId = {$class->getClassId()} AND #productId = {$objectId}");
+            while($pRec = $pQuery->fetch()){
+                $params[$pRec->paramId] = $pRec->paramId;
+                $paramValues[$pRec->paramId] = $pRec->paramValue;
+            }
+        } else {
+            $paramValues = cat_Products::getParams($productId);
+            $params = array_combine(array_keys($paramValues), array_keys($paramValues));
+        }
+
         $stepParams = $prevRecValues = array();
-        if(isset($planningStepProductId)){
+        if(isset($planningStepProductId) && empty($objectId)){
             if($StepDriver = cat_Products::getDriver($planningStepProductId)){
                 $pData = $StepDriver->getProductionData($planningStepProductId);
                 if(is_array($pData['planningParams'])){
@@ -794,18 +805,36 @@ class cat_products_Params extends doc_Detail
     public static function saveParams($class, $rec, $paramField = '_params')
     {
         $Class = cls::get($class);
-        foreach ($rec->{$paramField} as $k => $o) {
 
+        // Извличане на старите записи
+        $newRecs = array();
+        $exQuery = static::getQuery();
+        $exQuery->where("#classId = {$Class->getClassId()} AND #productId = {$rec->id}");
+        $exRecs = $exQuery->fetchAll();
+
+        // Кои записи ще се добавят/обновяват
+        foreach ($rec->{$paramField} as $k => $o) {
             if (!isset($rec->{$k})) continue;
             $paramDriver = cat_Params::getDriver($o->paramId);
             if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image) && empty($rec->{$k})) continue;
 
             $nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $Class->getClassId(), 'productId' => $rec->id);
-            if ($id = cat_products_Params::fetchField("#classId = {$Class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')) {
-                $nRec->id = $id;
-            }
+            $newRecs[] = $nRec;
+        }
 
-            cat_products_Params::save($nRec, null, 'REPLACE');
+        // Синхронизиране
+        $synced = arr::syncArrays($newRecs, $exRecs, 'classId,objectId,paramId', 'paramValue');
+        if (countR($synced['insert'])) {
+            static::saveArray($synced['insert']);
+        }
+
+        if (countR($synced['update'])) {
+            static::saveArray($synced['update'], 'id,paramValue');
+        }
+
+        if (countR($synced['delete'])) {
+            $delete = implode(',', $synced['delete']);
+            static::delete("#id IN ({$delete})");
         }
     }
 

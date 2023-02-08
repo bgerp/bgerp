@@ -876,7 +876,7 @@ class planning_Jobs extends core_Master
             // Ако има сметнат коефициент, показва се колко е той
             if(isset($coefficient)){
                 $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
-                $hint = " 1 {$measureName} " . tr('е') . " {$coefficientVerbal} {$secondMeasureNameHint}";
+                $hint = "|* 1 {$measureName} |е|* {$coefficientVerbal} {$secondMeasureNameHint}";
                 $secondMeasureName = ht::createHint($secondMeasureName, $hint);
             }
             $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-style:italic;' class='secondMeasure'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
