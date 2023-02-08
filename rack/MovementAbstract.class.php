@@ -138,6 +138,7 @@ abstract class rack_MovementAbstract extends core_Manager
             if($Def = batch_Defs::getBatchDef($rec->productId)){
                 if(!empty($rec->batch)){
                     $row->batch = $Def->toVerbal($rec->batch);
+                    $row->batch = ht::createElement("span", array('class' => 'small'), $row->batch);
                 } else {
                     $row->batch = "<i class='quiet'>" . tr("Без партида") . "</i>";
                 }

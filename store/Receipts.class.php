@@ -54,7 +54,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'detailOrderBy,note';
+    public $changableFields = 'note,detailOrderBy';
 	
 	
 	/**
