@@ -128,8 +128,9 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $isInline = Mode::get('inlineDetail');
         if(!Mode::is('printing')){
-            $row->productId = Mode::get('inlineDetail') ?  ht::createLinkRef(cat_Products::getTitleById($rec->productId), array('cat_Products', 'single', $rec->productId)) : cat_Products::getShortHyperlink($rec->productId, true);
+            $row->productId = $isInline ?  ht::createLinkRef(cat_Products::getTitleById($rec->productId), array('cat_Products', 'single', $rec->productId)) : cat_Products::getShortHyperlink($rec->productId, true);
         }
 
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
@@ -157,6 +158,9 @@ class rack_ZoneDetails extends core_Detail
         if ($Definition = batch_Defs::getBatchDef($rec->productId)) {
             if(!empty($rec->batch)){
                 $row->batch = $Definition->toVerbal($rec->batch);
+                if(rack_ProductsByBatches::haveRightFor('list')){
+                    $row->batch = ht::createLinkRef($row->batch, array('rack_ProductsByBatches', 'list', 'search' => $rec->batch));
+                }
             } else {
                 $row->batch = "<span class='quiet'>" . tr('без партида') . "</span>";
             }
