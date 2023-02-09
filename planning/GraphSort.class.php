@@ -78,9 +78,6 @@ class planning_GraphSort extends core_Mvc
     }
 
 
-
-
-
     public function act_Test()
     {
         requireRole('debug');
