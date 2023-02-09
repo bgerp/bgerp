@@ -196,7 +196,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $cloneDetails = 'planning_ProductionTaskProducts,cat_products_Params';
+    public $cloneDetails = 'planning_ProductionTaskProducts';
 
 
     /**
