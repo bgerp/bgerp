@@ -869,4 +869,16 @@ class store_Transfers extends core_Master
 
         return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
     }
+
+
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     */
+    public static function canAddToThread($threadId)
+    {
+        $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        $folderClass = doc_Folders::fetchCoverClassName($folderId);
+
+        return cls::haveInterface('store_iface_TransferFolderCoverIntf', $folderClass);
+    }
 }
