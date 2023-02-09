@@ -49,12 +49,6 @@ class store_Transfers extends core_Master
 
 
     /**
-     * Дали може да бъде само в началото на нишка
-     */
-    public $onlyFirstInThread = true;
-
-
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'fromStore, toStore, folderId, id';
