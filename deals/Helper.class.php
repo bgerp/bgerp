@@ -873,13 +873,13 @@ abstract class deals_Helper
         if(isset($minQuantityDate) && $date <= $minQuantityDate){
             if(($state == 'pending' && $freeQuantityMin < 0) || (($mvc instanceof sales_SalesDetails) && $state == 'draft' && $quantity > $freeQuantityMin)){
                 if($showNegativeWarning){
-                    if(isset($date) && $date != dt::today()){
+                    //if(isset($date) && $date != dt::today()){
                         $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
                         $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
                         $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
-                    } else {
-                        $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
-                    }
+                    //} else {
+                       // $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                   // }
                 }
 
                 $firstCheck = true;
