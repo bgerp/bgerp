@@ -25,7 +25,7 @@ class batch_Items extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'batch_Wrapper, plg_AlignDecimals2, plg_Search, plg_Sorting, plg_State2';
+    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_AlignDecimals2, plg_Search, plg_Sorting, plg_State2';
 
 
     /**
