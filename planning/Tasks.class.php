@@ -3467,8 +3467,9 @@ class planning_Tasks extends core_Master
             $res[$tRec->id] = arr::extractValuesFromArray($foundArr, 'id');
         }
 
-        // Сортират се намерените операции
-        $sortedArr = planning_GraphSort::topologicalSort($res);
+        $orderStrategyClassId = planning_Setup::get('SORT_TASKS_IN_JOB_STRATEGY');
+        $SortInterface = cls::getInterface('planning_OrderTasksInJobStrategyIntf', $orderStrategyClassId);
+        $sortedArr = $SortInterface->order($res);
 
         $num = 1;
         $updateArr = array();
