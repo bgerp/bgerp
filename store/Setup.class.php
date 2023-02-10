@@ -105,7 +105,7 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
         'store_StockPlanning',
-        'migrate::updateShipmentNegativeRoles'
+        'migrate::updateShipmentNegativeRoles2306'
     );
     
     
@@ -245,7 +245,16 @@ class store_Setup extends core_ProtoSetup
     /**
      * Миграция на ролите за изписване от склада на минус
      */
-    public function updateShipmentNegativeRoles()
+    public function updateShipmentNegativeRoles2306()
+    {
+        core_CallOnTime::setCall('store_Setup', 'updateNegativeShipmentRoles',null, 60);
+    }
+
+
+    /**
+     * Мигриране на ролите за изписване от склада
+     */
+    public static function callback_updateNegativeShipmentRoles()
     {
         $config = core_Packs::getConfig('store');
         if(isset($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'])){
