@@ -1172,7 +1172,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if($checkSerials4Warning == 'yes' && $rec->type != 'scrap'){
                 if($recsBySerials[$rec->serial] > 1){
                     $styleWithBorder = true;
-                    $row->serial = ht::createHint($row->serial, 'Номера се повтаря в операцията|*!', 'notice');
+                    $row->serial = ht::createHint($row->serial, 'Номерът се повтаря в операцията|*!', 'notice');
                 }
             }
 
