@@ -306,13 +306,12 @@ class planning_StepConditions extends core_Detail
     {
         $arr = is_array($taskArr) ? $taskArr : array($taskArr);
 
-        $dependantArr = $allTasks = $folders = $tasks = array();
+        $dependantArr = $folders = $tasks = array();
         if(!countR($arr)) return $dependantArr;
 
-        $ids = arr::extractValuesFromArray($arr, 'productId');
         $originIds = arr::extractValuesFromArray($arr, 'originId');
-        $conditions = static::getConditionalArr($ids);
 
+        // Извличане на всички ПО по подадените задания на подадените операции
         $taskQuery = planning_Tasks::getQuery();
         $taskQuery->in('originId', $originIds);
         $taskQuery->where("#state != 'rejected'");
@@ -320,30 +319,15 @@ class planning_StepConditions extends core_Detail
             $folders[$tRec->folderId] = $tRec->folderId;
             $timeStart = !empty($tRec->timeStart) ? $tRec->timeStart : "9999-99-{$tRec->id}";
             $saoOrder = !empty($tRec->saoOrder) ? $tRec->saoOrder : 0;
-            $tasks[$tRec->originId][$tRec->productId][$tRec->id] = array('id' => $tRec->id, 'progress' => $tRec->progress, 'timeStart' => $timeStart, 'saoOrder' => $saoOrder);
+            $tasks[$tRec->originId][$tRec->id] = array('id' => $tRec->id, 'progress' => $tRec->progress, 'timeStart' => $timeStart, 'saoOrder' => $saoOrder);
         }
 
-        // За всяка от посочените ОП се прави масив с предходните им ПО от същото задание
-
-        foreach ($arr as $taskRec){
-            $allTasks[$taskRec->id] = $taskRec;
-            $dependantArr[$taskRec->id] = array();
-            if(array_key_exists($taskRec->productId, $conditions)){
-                foreach ($conditions[$taskRec->productId] as $stepId){
-                    if(is_array($tasks[$taskRec->originId])){
-                        if(array_key_exists($stepId, $tasks[$taskRec->originId])){
-                            foreach ($tasks[$taskRec->originId][$stepId] as $condTaskArr){
-                                $dependantArr[$taskRec->id][$condTaskArr['id']] = $condTaskArr;
-                            }
-                        }
-                    }
-                }
-
-                arr::sortObjects($dependantArr[$taskRec->id], 'saoOrder', 'DESC');
-            }
+        // Сортират се по подредбата им във низходящ ред
+        foreach ($tasks as &$tasksByOrigin){
+            arr::sortObjects($tasksByOrigin, 'saoOrder', 'DESC');
         }
 
-        // Кеш на максималния брой предходни операции, които да се показват
+        // Кеш на максималния брой предходни операции, които да се показват във всеки център на дейност
         $centerMaxPreviousArr = array();
         if(countR($folders)){
             $defaultPreviousTasks = planning_Setup::get('SHOW_PREVIOUS_TASK_BLOCKS');
@@ -356,11 +340,18 @@ class planning_StepConditions extends core_Detail
             }
         }
 
+        // За всяка от подадените операции
         $res = array();
-        foreach ($dependantArr as $taskId => $depArr){
-            $lessThen = $allTasks[$taskId]->saoOrder;
-            $subArr = array_filter($depArr, function($a) use ($lessThen) { return $a['saoOrder'] <= $lessThen;});
-            $subArr = array_splice($subArr, 0, $centerMaxPreviousArr[$allTasks[$taskId]->folderId]);
+        foreach ($arr as $taskRec){
+            $lessThen = $taskRec->saoOrder;
+
+            // Намират се всички ПО с подредба преди нейната
+            $subArr = array_filter($tasks[$taskRec->originId], function($a) use ($lessThen) { return $a['saoOrder'] < $lessThen;});
+
+            // От тях се оставят до изисквания брой от центъра на дейност, после се сортират от ляво на дясно
+            $subArr = array_splice($subArr, 0, $centerMaxPreviousArr[$taskRec->folderId]);
+            arr::sortObjects($subArr, 'saoOrder', 'ASC');
+
             $count = countR($subArr);
             if($count){
                 $eachWith = 90 / $count;
@@ -368,7 +359,7 @@ class planning_StepConditions extends core_Detail
                     if($verbal){
                         $depTaskArr = static::getDependantTaskBlock($eachWith, 10, $depTaskArr['progress'], $depTaskArr['id']);
                     }
-                    $res[$taskId][] = $depTaskArr;
+                    $res[$taskRec->id][] = $depTaskArr;
                 }
             }
         }
