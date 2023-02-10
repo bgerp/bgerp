@@ -14,12 +14,6 @@ defIfNot('STORE_TARIFF_NUMBER_LENGTH', '8');
 
 
 /**
- * Изписване на отрицателни наличности от склада
- */
-defIfNot('STORE_ALLOW_NEGATIVE_SHIPMENT', 'yes');
-
-
-/**
  * Подготовка преди експедиция
  */
 defIfNot('STORE_PREPARATION_BEFORE_SHIPMENT', '');
@@ -30,6 +24,11 @@ defIfNot('STORE_PREPARATION_BEFORE_SHIPMENT', '');
  */
 defIfNot('STORE_EARLIEST_SHIPMENT_READY_IN', 14);
 
+
+/**
+ * Изписване на минус -> Роли
+ */
+defIfNot('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES', '');
 
 
 /**
@@ -106,6 +105,7 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
         'store_StockPlanning',
+        'migrate::updateShipmentNegativeRoles'
     );
     
     
@@ -134,9 +134,9 @@ class store_Setup extends core_ProtoSetup
     public $configDescription = array(
         'STORE_ACC_ACCOUNTS' => array('acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)', 'caption=Складова синхронизация със счетоводството->Сметки'),
         'STORE_TARIFF_NUMBER_LENGTH' => array('int', 'caption=Групиране на тарифните номера по част от него->Първите,unit=цифри'),
-        'STORE_ALLOW_NEGATIVE_SHIPMENT' => array('enum(no=Забранено, yes=Разрешено)', 'caption=Изписване на минус от склад->Избор'),
         'STORE_PREPARATION_BEFORE_SHIPMENT' => array('time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди експедиция->Време'),
         'STORE_EARLIEST_SHIPMENT_READY_IN' => array('int(min=0)', 'caption=Изчисляване на най-ранната наличност на артикулите в ЕН-та за следващите->Дни'),
+        'STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => array('keylist(mvc=core_Roles,select=role)', 'caption=Изписване на минус->Роли'),
     );
     
     
@@ -225,8 +225,39 @@ class store_Setup extends core_ProtoSetup
         
         return $res;
     }
-    
-    
+
+
+    /**
+     * Може ли да се експедират отрицателни к-ва
+     *
+     * @param int|null $userId
+     * @return bool
+     */
+    public static function canDoShippingWhenStockIsNegative($userId = null)
+    {
+        $allowedRoles = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT_ROLES');
+        if(empty($allowedRoles)) return false;
+
+        return haveRole($allowedRoles, $userId);
+    }
+
+
+    /**
+     * Миграция на ролите за изписване от склада на минус
+     */
+    public function updateShipmentNegativeRoles()
+    {
+        $config = core_Packs::getConfig('store');
+        if(isset($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'])){
+            if($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'] == 'yes'){
+                core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
+            }
+        } else {
+            core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
+        }
+    }
+
+
     /**
      * Изтриване на кеш
      */

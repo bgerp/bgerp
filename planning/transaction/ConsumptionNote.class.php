@@ -63,8 +63,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 
         if (Mode::get('saveTransaction')) {
-            $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
-            if($allowNegativeShipment == 'no'){
+            if(!store_Setup::canDoShippingWhenStockIsNegative()){
                 if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->storeId, $rec->state)) {
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
