@@ -50,12 +50,6 @@ defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
 
 
 /**
- * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
- */
-defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
-
-
-/**
  * Автоматично приключване на активни задания към затворени артикули->При Заскладено/Планирано
  */
 defIfNot('PLANNING_JOB_AUTO_COMPLETION_PERCENT', '');
