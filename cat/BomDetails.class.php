@@ -607,14 +607,6 @@ class cat_BomDetails extends doc_Detail
                 if (!isset($selfValue)) {
                     $form->setWarning('resourceId', 'Отпадъкът няма себестойност');
                 }
-            } else {
-                
-                // Материалът може да се използва само веднъж в дадения етап
-                $cond = "#bomId = {$rec->bomId} AND #id != '{$rec->id}' AND #resourceId = {$rec->resourceId}";
-                $cond .= (empty($rec->parentId)) ? ' AND #parentId IS NULL' : " AND #parentId = '{$rec->parentId}'";
-                if (self::fetchField($cond)) {
-                    $form->setError('resourceId,parentId', 'Артикулът вече се използва в този етап');
-                }
             }
             
             $rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
@@ -622,12 +614,6 @@ class cat_BomDetails extends doc_Detail
             // Ако има артикул със същата позиция, или няма позиция добавяме нова
             if (!isset($rec->position)) {
                 $rec->position = $mvc->getDefaultPosition($rec->bomId, $rec->parentId);
-            }
-            
-            if ($rec->type == 'stage') {
-                if ($mvc->fetchField("#bomId = {$rec->bomId} AND #type = 'stage' AND #resourceId = '{$rec->resourceId}' AND #id != '{$rec->id}'")) {
-                    $form->setError('resourceId', 'Един етап може да се среща само веднъж в рецептата');
-                }
             }
             
             if (!$form->gotErrors()) {
