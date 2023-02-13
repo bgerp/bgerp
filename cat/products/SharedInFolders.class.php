@@ -87,8 +87,14 @@ class cat_products_SharedInFolders extends core_Manager
      * Кой може да изтрива
      */
     public $canDelete = 'ceo,cat,sales,purchase';
-    
-    
+
+
+    /**
+     * Кой може да променя състоянието
+     */
+    public $canChangepublicstate = 'ceo,cat';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -146,11 +152,9 @@ class cat_products_SharedInFolders extends core_Manager
         }
         
         if ($action == 'changepublicstate') {
-            $pRec = (isset($rec->productId)) ? cat_Products::fetch($rec->productId, 'state,folderId') : null;
-            $requiredRoles = cat_Products::getRequiredRoles('edit', $pRec, $userId);
-
-            if ($requiredRoles != 'no_one' && isset($rec->productId)) {
-                if ($pRec->state != 'active') {
+            if(isset($rec->productId) && $requiredRoles != 'no_one'){
+                $pRec = cat_Products::fetch($rec->productId, 'state,folderId');
+                if (!cat_Products::haveRightFor('edit', $rec->productId, $userId)) {
                     $requiredRoles = 'no_one';
                 } else {
                     $folderCover = doc_Folders::fetchCoverClassName($pRec->folderId);

@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -189,6 +189,7 @@ class planning_Centers extends core_Master
         $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично');
         $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Параметър,silent,removeAndRefreshForm=paramExpectedNetMeasureId', "unit= |по количеството от Прогреса|*");
         $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Мярка,input=hidden');
+        $this->FLD('showMaxPreviousTasksInATask', 'int', 'caption=За колко от предходните Операции да се визуализира готовността->До');
 
         $this->setDbUnique('name');
     }
@@ -233,7 +234,7 @@ class planning_Centers extends core_Master
         }
         $form->setOptions('useTareFromParamId', array('' => '') + $paramOptions);
         $form->setOptions('paramExpectedNetWeight', array('' => '') + $paramOptions);
-
+        $form->setField("showMaxPreviousTasksInATask", "placeholder=" . $mvc->getFieldType('showMaxPreviousTasksInATask')->toVerbal(planning_Setup::get('SHOW_PREVIOUS_TASK_BLOCKS')));
         $form->setField("deviationNettoWarning", "placeholder=" . $mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING')));
     }
 
@@ -243,13 +244,7 @@ class planning_Centers extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        $rec = $form->rec;
         static::checkDeviationPercents($form);
-        if($form->isSubmitted()){
-            if(!empty($rec->useTareFromParamId) && !empty($rec->useTareFromPackagings)){
-                $form->setError('useTareFromParamId,useTareFromPackagings', 'Могат да бъдат избрани или само Опаковки, или само Параметър!');
-            }
-        }
     }
 
 
@@ -325,8 +320,12 @@ class planning_Centers extends core_Master
             $row->showSerialWarningOnDuplication = $mvc->getFieldType('showSerialWarningOnDuplication')->toVerbal(planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS'));
             $row->showSerialWarningOnDuplication = ht::createHint("<span style='color:blue'>{$row->showSerialWarningOnDuplication}</span>", 'По подразбиране', 'notice', false);
         }
-
         $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span style='color:blue'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
+
+        if(empty($rec->showMaxPreviousTasksInATask)){
+            $row->showMaxPreviousTasksInATask = $mvc->getFieldType('showMaxPreviousTasksInATask')->toVerbal(planning_Setup::get('SHOW_PREVIOUS_TASK_BLOCKS'));
+            $row->showMaxPreviousTasksInATask = ht::createHint("<span style='color:blue'>{$row->showMaxPreviousTasksInATask}</span>", 'По подразбиране', 'notice', false);
+        }
 
         if(isset($rec->useTareFromParamId) && isset($row->useTareFromParamMeasureId)){
             $row->useTareFromParamId = ht::createHint($row->useTareFromParamId, $row->useTareFromParamMeasureId);

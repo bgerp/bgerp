@@ -50,18 +50,6 @@ defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
 
 
 /**
- * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
- */
-defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
-
-
-/**
- * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
- */
-defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
-
-
-/**
  * Автоматично приключване на активни задания към затворени артикули->При Заскладено/Планирано
  */
 defIfNot('PLANNING_JOB_AUTO_COMPLETION_PERCENT', '');
@@ -152,6 +140,18 @@ defIfNot('PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE', 'yes');
 
 
 /**
+ * Да се показва ли колонка за продажба в листа на ПО
+ */
+defIfNot('PLANNING_SHOW_SALE_IN_TASK_LIST', 'no');
+
+
+/**
+ * До колко предходни операции да се показват в сингъла и листа
+ */
+defIfNot('PLANNING_SHOW_PREVIOUS_TASK_BLOCKS', '2');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -222,8 +222,10 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
         'PLANNING_TASK_NET_WEIGHT_WARNING' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Предупреждение'),
         'PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT' => array('int(Min=0)', 'caption=Максимално допустимо бруто тегло в прогреса на ПО->Максимално до,unit=кг'),
+        'PLANNING_SHOW_SALE_IN_TASK_LIST' => array('enum(yes=Да,no=Не)', 'caption=Показване на продажбата в списъка на ПО->Избор'),
         'PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE' => array('enum(yes=Да,no=Не)', 'caption=Обновяване на параметрите на артикула в заданието при Пускане/Събуждане->По подразбиране'),
-    );
+        'PLANNING_SHOW_PREVIOUS_TASK_BLOCKS' => array('int(min=0)', 'caption=За колко от предходните Операции да се визуализира готовността->Брой'),
+        );
 
 
     /**
@@ -267,6 +269,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Points',
         'planning_GenericMapper',
         'planning_StepConditions',
+        'planning_GenericProductPerDocuments',
         'migrate::updateLabelType',
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
@@ -309,7 +312,8 @@ class planning_Setup extends core_ProtoSetup
     public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
-                          planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning';
+                          planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
+                          planning_interface_ImportFromPreviousTasks, planning_reports_TechnologicalTimeForMakingUnitProduct';
 
 
     /**

@@ -611,7 +611,7 @@ class rack_Zones extends core_Master
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
         $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($storeId, true);
         $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
-        $form->FLD('defaultUserId', 'user(roles=rack|ceo, allowEmpty)', 'caption=Изпълнител,placeholder=Няма');
+        $form->FLD('defaultUserId', 'user(roles=rack|ceo, rolesForAll=ceo|rackZoneSelect, rolesForTeams=ceo|rack|rackZoneSelect, allowEmpty)', 'caption=Изпълнител,placeholder=Няма');
         $zoneOptions = rack_Zones::getZones($storeId, true);
         $zoneRec = rack_Zones::fetch("#containerId = {$containerId}");
 
@@ -668,7 +668,8 @@ class rack_Zones extends core_Master
                         $msg = 'Дефолтния работник е променен успешно|*!';
                     }
 
-                    if(haveRole('ceo,rackSee')){
+                    if(haveRole('ceo,rackSee') && store_Stores::haveRightFor('select', $zoneRec->storeId)){
+
                         $redirectUrl = self::getUrlArr($fRec->zoneId);
                         if(isset($fRec->defaultUserId)){
                             $redirectUrl['additional'] = 'yes';
@@ -815,6 +816,11 @@ class rack_Zones extends core_Master
         while ($dRec = $dQuery->fetch()) {
             rack_ZoneDetails::delete($dRec->id);
             $productArr[$dRec->productId] = $dRec->productId;
+
+            // Да се преизчислят и партидите
+            if(core_Packs::isInstalled('batch')){
+                rack_ProductsByBatches::recalcQuantityOnZones($dRec->productId, $dRec->batch, $zoneRec->storeId);
+            }
         }
 
         rack_Products::recalcQuantityOnZones($productArr, $zoneRec->storeId);
@@ -1214,7 +1220,7 @@ class rack_Zones extends core_Master
                     static::$cache[$pRec->productId] = $packagings;
                 }
 
-                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId]);
+                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId], null, null, $storeId);
             } else {
                 $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             }

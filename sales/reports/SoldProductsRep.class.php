@@ -1364,25 +1364,25 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->seeCategory == 'yes') {
                 $fld->FLD('category', 'varchar', 'caption=Категория');
             }
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Продажби");
-            $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Стойност");
+            $fld->FLD('quantity', 'double(sdecimals=2)', "smartCenter,caption={$name1} Продажби");
+            $fld->FLD('primeCost', 'double(decimals=2)', "smartCenter,caption={$name1} Стойност");
 
             if ($rec->seeByContragent == 'yes') {
-                $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->количество');
-                $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
+                $fld->FLD('invQuantity', 'double(decimals=2)', 'smartCenter,caption=Фактурирано->количество');
+                $fld->FLD('invAmount', 'double(decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
             }
 
             if ($rec->seeDelta == 'yes') {
-                $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Делта");
+                $fld->FLD('delta', 'double(decimals=2)', "smartCenter,caption={$name1} Делта");
             }
 
 
             if ($rec->compare != 'no') {
-                $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Продажби,tdClass=newCol");
-                $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Стойност,tdClass=newCol");
-                $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Делта,tdClass=newCol");
-                $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна Стойност');
-                $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна Делти');
+                $fld->FLD('quantityCompare', 'double(decimals=2)', "smartCenter,caption={$name2} Продажби,tdClass=newCol");
+                $fld->FLD('primeCostCompare', 'double(decimals=2)', "smartCenter,caption={$name2} Стойност,tdClass=newCol");
+                $fld->FLD('deltaCompare', 'double(decimals=2)', "smartCenter,caption={$name2} Делта,tdClass=newCol");
+                $fld->FLD('changeSales', 'double(decimals=2)', 'smartCenter,caption=Промяна Стойност');
+                $fld->FLD('changeDeltas', 'double(decimals=2)', 'smartCenter,caption=Промяна Делти');
             }
         }
 
@@ -1870,7 +1870,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $res->primeCostCompare = $dRec->primeCostPrevious;
                 $res->deltaCompare = $dRec->deltaPrevious;
                 $res->changeSales = $dRec->primeCost - $dRec->primeCostPrevious;
-                $res->changeDeltas = ($dRec->delta - $dRec->deltaPrevious);
+                $res->changeDeltas = $dRec->delta - $dRec->deltaPrevious;
             }
 
             if ($rec->compare == 'year') {
@@ -1914,6 +1914,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $prodCategory = doc_Folders::fetch($prodFolderId)->title;
                 $res->category = $prodCategory;
             }
+            $res->productId = $dRec->productId;
         }
     }
 

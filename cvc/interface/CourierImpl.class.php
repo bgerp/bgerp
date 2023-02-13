@@ -130,6 +130,7 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->FLD('recipientPhone', 'drdata_PhoneType(type=tel,unrecognized=error)','caption=Получател->Данни за връзка,placeholder=Телефон,class=w25,mandatory');
         $form->FLD('recipientEmail', 'email','caption=Получател->-,inlineTo=recipientPhone,placeholder=Имейл,class=w75');
+        $form->FLD('recipientName', 'varchar','caption=Получател->Получател');
         $form->FLD('recipientPersonName', 'varchar','caption=Получател->Лице за контакт,mandatory');
 
         $form->FLD('recipientDeliveryType', 'enum(address=Адрес,office=Офис,hub=Хъб)','caption=Доставка->До,silent,removeAndRefreshForm=recipientCountryId|recipientOfficeId|recipientHubId|recipientPcode|recipientPlace|recipientAddress|recipientAddressNum|recipientEntrance|recipientFloor|recipientApp,maxRadio=3,columns=3');
@@ -529,7 +530,6 @@ class cvc_interface_CourierImpl extends core_Manager
             $preparedBolParams = static::prepareBolData($form->rec, 'calculate');
             $res = cvc_Adapter::calculateWb($preparedBolParams);
         } catch(core_exception_Expect $e){
-            bp($e, $preparedBolParams);
             $haveError = true;
         }
 
@@ -580,8 +580,10 @@ class cvc_interface_CourierImpl extends core_Manager
             }
         }
 
+        $senderOptions = cvc_Adapter::getSenderOptions();
+        $senderName = "{$senderOptions[$rec->customerId]}, {$rec->senderName}";
         $senderObj = (object)array('custom_location_id' => $rec->customerId,
-                                   'name' => $rec->senderName,
+                                   'name' => $senderName,
                                    'phone' => $rec->senderPhone,
                                    'email' => $rec->senderEmail);
 
@@ -609,10 +611,12 @@ class cvc_interface_CourierImpl extends core_Manager
         }
         $res['sender'] = $senderObj;
 
-        $recipientName = $rec->recipientPersonName;
-        if(!empty($rec->recipientPersonName)){
-            $recipientName .= ", {$rec->recipientName}";
+        $recipientName = "";
+        if(!empty($rec->recipientName)){
+            $recipientName = $rec->recipientName;
         }
+
+        $recipientName .= (empty($recipientName) ? '' : ', ') . $rec->recipientPersonName;
         $recipientObj = (object)array(
             'name' => $recipientName,
             'phone' => $rec->recipientPhone,
@@ -625,14 +629,10 @@ class cvc_interface_CourierImpl extends core_Manager
             $recipientObj->office_id = cvc_Offices::fetchField($rec->recipientOfficeId, 'num');
         } else {
             $recipientObj->city_id = $rec->_cityId;
-            foreach (array('zip' => 'recipientPcode', 'num' => 'recipientAddressNum', 'entr' => 'recipientEntrance', 'ap' => 'recipientApp', 'floor' => 'recipientFloor') as $theirFld => $oursFld){
+            foreach (array('zip' => 'recipientPcode', 'num' => 'recipientAddressNum', 'entr' => 'recipientEntrance', 'ap' => 'recipientApp', 'floor' => 'recipientFloor', 'street' => 'recipientAddress') as $theirFld => $oursFld){
                 if(!empty($rec->{$oursFld})){
                     $recipientObj->{$theirFld} = $rec->{$oursFld};
                 }
-            }
-
-            if(!empty($streetStr)){
-                $recipientObj->street = $streetStr;
             }
         }
 

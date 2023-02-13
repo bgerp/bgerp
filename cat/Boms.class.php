@@ -226,7 +226,7 @@ class cat_Boms extends core_Master
         $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
 
         $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
-        $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пълна рецепта,notNull,value=auto,mandatory');
+        $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Без допълване (рецептата е Пълна),no=Допълване до "Себестойност" (рецептата е Непълна))', 'caption=Себестойност,notNull,value=auto,mandatory,width=100%');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
@@ -671,12 +671,10 @@ class cat_Boms extends core_Master
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
         $row->title = $mvc->getLink($rec->id, 0);
         $row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : (($rec->type == 'instant') ? tr('Моментна рецепта') : ('Работна рецепта'));
-        
-        if ($row->quantity) {
-            $measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
-            $shortUom = cat_UoM::getShortName($measureId);
-            $row->quantity .= ' ' . $shortUom;
-        }
+
+        $measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
+        $shortUom = cat_UoM::getShortName($measureId);
+        $row->quantity .= ' ' . $shortUom;
 
         $row->title = $mvc->getHyperlink($rec, true);
         if ($fields['-single']) {
@@ -692,6 +690,18 @@ class cat_Boms extends core_Master
                     $price = 0;
                 }
 
+                $overheadCost = $rec->expenses;
+                if (empty($rec->expenses)) {
+                    $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
+                    if (!empty($defaultOverheadCost)) {
+                        $overheadCost = $defaultOverheadCost['overheadCost'];
+                        $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
+                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично|*: {$defaultOverheadCost['hint']}");
+                    } else {
+                        $row->expenses = ht::createHint("<span style='color:blue'>n/a</span>", "Не може да се определи автоматично|*!");
+                    }
+                }
+
                 if (haveRole('ceo, acc, cat, price')) {
                     $row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
                     $rec->primeCost = ($price) ? $price : 0;
@@ -705,10 +715,19 @@ class cat_Boms extends core_Master
                     } else {
                         $row->primeCost = ht::styleNumber($row->primeCost, $rec->primeCost);
                         $row->primeCost = "<b>{$row->primeCost}</b>";
+
+                        if(isset($overheadCost) && !empty($rec->primeCost)){
+                            $rec->primeCostWithOverheadCost = $rec->primeCost * (1 + $overheadCost);
+                            $row->primeCostWithOverheadCost = $Double->toVerbal($rec->primeCostWithOverheadCost);
+                        }
                     }
 
+                    $row->primeCost = currency_Currencies::decorate($row->primeCost, $baseCurrencyCode);
                     $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
-                    $row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
+                    $row->primeCost .= tr("|*, |при тираж|* {$row->quantityForPrice} {$shortUom}");
+                    if(!empty($row->primeCostWithOverheadCost)){
+                        $row->primeCostWithOverheadCost = currency_Currencies::decorate($row->primeCostWithOverheadCost, $baseCurrencyCode);
+                    }
                 }
 
                 if ($mvc->haveRightFor('recalcselfvalue', $rec)) {
@@ -719,16 +738,6 @@ class cat_Boms extends core_Master
                     $autoValue = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
                     $row->isComplete = $mvc->getFieldType('isComplete')->toVerbal($autoValue);
                     $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена');
-                }
-
-                if (empty($rec->expenses)) {
-                    $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
-                    if (!empty($defaultOverheadCost)) {
-                        $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
-                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично|*: {$defaultOverheadCost['hint']}");
-                    } else {
-                        $row->expenses = ht::createHint("<span style='color:blue'>n/a</span>", "Не може да се определи автоматично|*!");
-                    }
                 }
             }
         }
@@ -1228,7 +1237,7 @@ class cat_Boms extends core_Master
             
             // Първо проверяваме имали цена по политиката
             $price = price_ListRules::getPrice($priceListId, $productId, null, $date);
-
+            $pRec = cat_Products::fetch($productId, 'generic,canStore');
             if (!isset($price)) {
                 
                 // Ако няма, търсим по последната търговска рецепта, ако има
@@ -1238,15 +1247,16 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
+                if($pRec->generic == 'yes'){
+                    $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
+                }
             }
             
             // Ако и по рецепта няма тогава да гледа по складова
             if (!isset($price)) {
-                $pInfo = cat_Products::getProductInfo($productId);
                 
                 // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
-                if (isset($pInfo->meta['canStore'])) {
+                if ($pRec->canStore == 'yes') {
                     $price = cat_Products::getWacAmountInStore(1, $productId, $date);
                 } else {
                     $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
@@ -1257,10 +1267,9 @@ class cat_Boms extends core_Master
                 }
             }
         } else {
-            $pInfo = cat_Products::getProductInfo($productId);
-            
             // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
-            if (isset($pInfo->meta['canStore'])) {
+            $pRec = cat_Products::fetch($productId, 'generic,canStore');
+            if ($pRec->canStore == 'yes') {
                 $price = cat_Products::getWacAmountInStore(1, $productId, $date);
             } else {
                 $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
@@ -1275,7 +1284,9 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
+                if ($pRec->generic == 'yes') {
+                    $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
+                }
             }
             
             // В краен случай взимаме мениджърската себестойност
@@ -1285,14 +1296,8 @@ class cat_Boms extends core_Master
         }
         
         // Ако няма цена връщаме FALSE
-        if (!isset($price)) {
-            
-            return false;
-        }
-        if (!$quantity) {
-            
-            return false;
-        }
+        if (!isset($price)) return false;
+        if (!$quantity) return false;
         
         // Умножаваме цената по количеството
         if($quantity != cat_BomDetails::CALC_ERROR){
@@ -1301,7 +1306,6 @@ class cat_Boms extends core_Master
             return false;
         }
 
-        
         // Връщаме намерената цена
         return $price;
     }
@@ -1344,6 +1348,7 @@ class cat_Boms extends core_Master
                     'packagingId' => $rec->packagingId,
                     'quantityInPack' => $rec->quantityInPack,
                     'type' => $rec->type,
+                    'genericProductId' => planning_GenericProductPerDocuments::getRec('cat_BomDetails', $rec->id),
                 );
 
                 if ($rQuantity != cat_BomDetails::CALC_ERROR) {
@@ -1822,7 +1827,7 @@ class cat_Boms extends core_Master
             
             return $res;
         }
-
+        //bp($bomInfo);
         foreach ($bomInfo['resources'] as $pRec) {
             $productRec = cat_Products::fetch($pRec->productId, 'canStore,generic');
             if ($productRec->canStore != 'yes' || $pRec->type != 'input') {
@@ -1833,7 +1838,7 @@ class cat_Boms extends core_Master
             if (isset($storeId)) {
 
                 // Ако артикула или някой от заместителите му са налични в склада остава
-                $productArr = array_keys(planning_GenericMapper::getEquivalentProducts($pRec->productId));
+                $productArr = array_keys(planning_GenericMapper::getEquivalentProducts($pRec->productId, $pRec->genericProductId, true));
                 if(!countR($productArr)){
                     $productArr = array($pRec->productId);
                 }
@@ -1843,13 +1848,17 @@ class cat_Boms extends core_Master
 
                 if (empty($quantity)) continue;
             }
-            
-            $res[] = (object) array('productId' => $pRec->productId,
+
+            $r = (object) array('productId' => $pRec->productId,
                 'packagingId' => $pRec->packagingId,
                 'quantity' => $pRec->propQuantity,
                 'quantityInPack' => $pRec->quantityInPack);
+            if(isset($pRec->genericProductId)){
+                $r->genericProductId = $pRec->genericProductId;
+            }
+            $res[] = $r;
         }
-        
+
         return $res;
     }
 

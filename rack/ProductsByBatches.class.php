@@ -72,7 +72,6 @@ class rack_ProductsByBatches extends batch_Items
         $this->loadList = arr::make($this->loadList, true);
         unset($this->loadList['batch_Wrapper']);
         $this->loadList['rack_Wrapper'] = 'rack_Wrapper';
-        $this->loadList['plg_RowTools2'] = 'plg_RowTools2';
         parent::description();
 
         $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На палети,input=hidden,smartCenter');
@@ -93,10 +92,30 @@ class rack_ProductsByBatches extends batch_Items
         core_RowToolbar::createIfNotExists($row->_rowTools);
         if (rack_Movements::haveRightFor('add', (object)array('productId' => $rec->productId)) && $rec->quantityNotOnPallets > 0) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'batch' => $rec->batch, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
+            $link = ht::createLink('', array('rack_Movements', 'add', 'productId' => $rec->productId, 'batch' => $rec->batch, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), false, 'ef_icon=img/16/pallet1.png,title=Палетиране на партидата');
+            $row->quantityNotOnPallets = "{$link} {$row->quantityNotOnPallets}";
         }
 
         $row->quantityNotOnPallets = ht::styleIfNegative($row->quantityNotOnPallets, $rec->quantityNotOnPallets);
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+
+        if (countR($rows)) {
+            foreach ($rows as $id => &$row) {
+                $rec = $data->recs[$id];
+
+                if ($rec->quantityOnPallets > 0) {
+                    $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'search' => $rec->batch, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този артикул и партида') . '&nbsp;' . $row->quantityOnPallets;
+                }
+            }
+        }
     }
 
 
@@ -107,6 +126,7 @@ class rack_ProductsByBatches extends batch_Items
     {
         $storeId = store_Stores::getCurrent('id');
         $data->listFilter->setDefault('store', $storeId);
+        $data->query->orderBy('productId', 'ASC');
     }
 
 
@@ -116,13 +136,13 @@ class rack_ProductsByBatches extends batch_Items
     public static function recalc($productId, $storeId, $batch)
     {
         $query = rack_Pallets::getQuery();
-        $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '{$batch}' AND #state != 'closed'");
+        $query->where(array("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '[#1#]' AND #state != 'closed'", $batch));
         $query->XPR('sum', 'double', 'SUM(#quantity)');
         $query->show('sum,productId,storeId,batch');
         $sum = $query->fetch()->sum;
         $sum = ($sum) ? $sum : null;
 
-        $bRec = static::fetch("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '{$batch}'", 'id,quantityOnPallets');
+        $bRec = static::fetch(array("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '[#1#]'", $batch), 'id,quantityOnPallets');
         if($bRec){
             $bRec->quantityOnPallets = $sum;
             $bRec->state = 'active';
@@ -132,5 +152,23 @@ class rack_ProductsByBatches extends batch_Items
         }
 
         return null;
+    }
+
+
+    /**
+     * Рекалкулира какво количество на партидата по зони
+     *
+     * @param int $productId
+     * @param string $batch
+     * @param int $storeId
+     * @return void
+     */
+    public static function recalcQuantityOnZones($productId, $batch, $storeId)
+    {
+        $bItemRec = rack_ProductsByBatches::fetch(array("#productId = {$productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $batch));
+        if(is_object($bItemRec)){
+            $bItemRec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($productId, $storeId, $batch);
+            rack_ProductsByBatches::save($bItemRec, 'quantityOnZones');
+        }
     }
 }

@@ -133,7 +133,7 @@ class planning_interface_TaskLabel
             $countryCode .= ' ' . date('m/y');
         }
 
-        $code = (!empty($pRec->code)) ? $pRec->code : "Art{$productId}";
+        $code = trim(cat_Products::getVerbal($productId, 'code'));
         $name = trim(cat_Products::getVerbal($productId, 'name'));
         $date = date('m/y');
 

@@ -196,6 +196,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $docsArr = array('sales_Invoices');
 
+            //Когато се търсят неплатените фактури, и има избор за проформи, се гледат и проформите
+            //към които има изрично насочени плащания
             if ($rec->seeProformаs == 'yes' && $rec->unpaid == 'all') {
 
                 array_push($docsArr, 'sales_Proformas');
@@ -297,7 +299,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $threadsId = array();
 
                 // Синхронизира таймлимита с броя записи //
-                $maxTimeLimit = $invQuery->count() * 5;
+                $maxTimeLimit = $invQuery->count() * 10;
                 $maxTimeLimit = max(array($maxTimeLimit, 300));
                 if ($maxTimeLimit > 300) {
                     core_App::setTimeLimit($maxTimeLimit);
@@ -1595,7 +1597,119 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $res->invoiceNo = $invoiceNo;
     }
 
+    /**
+     * Връща масив неплатени фактури в активни сделки
+     *
+     * @param stdClass $rec
+     *
+     * @return array
+     */
+    public static function unpaidAktiveInvoices($rec,$checkDate)
+    {
 
-}
+        $isRec = array();
+
+        // Масив със записи от изходящи фактури
+        $sRecs = array();
+
+        $salQuery = sales_Sales::getQuery();
+
+        $salQuery->where("#closedOn IS NULL OR #closedOn > '$checkDate'");
+
+        //нишки на активни договори
+        $threadsActivSalesArr = arr::extractValuesFromArray($salQuery->fetchAll(), 'threadId');
+
+        $salesTotalOverDue = $salesTotalPayout = 0;
+        $invoiceCurrentSummArr = array();           // Rec-a на договора
+
+        if (is_array($threadsActivSalesArr)) {
+            foreach ($threadsActivSalesArr as $thread) {
+
+                //Договора за продажба
+                $FirstDoc = doc_Threads::getFirstDocument($thread);
+                $fDocRec = $FirstDoc->fetch();                       // Rec-a на договора
+
+                // масив от фактури в тази нишка към избраната дата
+                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
+
+                if (is_array($invoicePayments) && !empty($invoicePayments)) {
+
+
+                    // фактура от нишката и масив от платежни документи по тази фактура//
+                    foreach ($invoicePayments as $inv => $paydocs) {
+
+                        $invoiceCurrentSumm = 0;
+
+                        if (($paydocs->payout >= $paydocs->amount - 0.01) &&
+                            ($paydocs->payout <= $paydocs->amount + 0.01)) {
+                            continue;
+                        }
+
+                        $Invoice = doc_Containers::getDocument($inv);
+
+                        if ($Invoice->className != 'sales_Invoices') {
+                            continue;
+                        }
+
+                        $iRec = $Invoice->fetch(
+                            'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate,
+                                   contragentId,contragentName,contragentClassId, contragentCountryId'
+                        );
+
+                        $contragentClassName = core_Classes::fetch($iRec->contragentClassId)->name;
+
+                        $contragentRec = $contragentClassName::fetch($iRec->contragentId);
+
+                        $contragentFolderId = $contragentRec->folderId;
+
+                        //Филтър по контрагент
+                        if ($rec->contragent && (!in_array($contragentFolderId, keylist::toArray($rec->contragent)))) continue;
+
+                        //Филтър по дилър
+                        if ($rec->dealer && ($rec->dealer != $fDocRec->dealerId)) continue;
+
+                        //Филтър по група държави
+                        if ($rec->countryGroup) {
+                            $countriesList = drdata_CountryGroups::fetch($rec->countryGroup)->countries;
+
+                            if (!keylist::isIn($iRec->contragentCountryId, $countriesList)) {
+                                continue;
+                            }
+                        }
+
+
+
+                        $salesTotalOverDue += $paydocs->amount * $iRec->rate;      // Обща стойност на просрочените фактури преизчислени в основна валута
+                        $salesTotalPayout += $paydocs->payout * $iRec->rate;       // Обща стойност на плащанията по просрочените фактури преизчислени в основна валута
+
+                        // масива с фактурите за показване
+                        if (!array_key_exists($iRec->id, $sRecs)) {
+                            $sRecs[$iRec->id] = (object)array(
+                                'threadId' => $thread,
+                                'className' => $Invoice->className,
+                                'invoiceId' => $iRec->id,
+                                'invoiceNo' => $iRec->number,
+                                'invoiceDate' => $iRec->date,
+                                'dueDate' => $iRec->dueDate,
+                                'invoiceContainerId' => $iRec->containerId,
+                                'currencyId' => $iRec->currencyId,
+                                'rate' => $iRec->rate,
+                                'invoiceValue' => $paydocs->amount,
+                                'invoiceVAT' => $iRec->vatAmount,
+                                'invoicePayout' => $paydocs->payout,
+                                'fastMarker' => $fastMarker,
+                                'invoiceCurrentSumm' => $paydocs->amount - $paydocs->payout,//$invDiff
+                                'payDocuments' => $paydocs->used,
+                                'contragent' => $iRec->contragentName
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    }
 
 

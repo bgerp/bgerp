@@ -73,7 +73,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,leftColBtns=Запазване,rightColBtns=Действие,workerId=Изпълнител,documents,createdOn,createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'productId,movement=Движение,leftColBtns=Зап.,rightColBtns=Д-ие.,workerId=Изп.,documents,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
 
 
     /**
@@ -1465,7 +1465,7 @@ class rack_Movements extends rack_MovementAbstract
         $query->XPR('totalQuantity', 'double', 'ROUND(SUM(#quantity), 4)');
         $batchDef = batch_Defs::getBatchDef($productId);
         if(!is_null($batch)){
-            $query->where("#batch = '{$batch}'");
+            $query->where(array("#batch = '[#1#]'", $batch));
         } elseif($batchDef){
             $query->where("#batch = ''");
         }

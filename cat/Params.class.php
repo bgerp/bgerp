@@ -89,7 +89,7 @@ class cat_Params extends bgerp_ProtoParam
     public function description()
     {
         parent::setFields($this);
-        $this->FLD('valueType', 'enum(optional=Опционална,mandatory=Задължителна,readonly=Само за четене)', 'caption=Задаване на стойности на параметъра->Избор,notNull,value=optional');
+        $this->FLD('valueType', 'enum(optional=Опционална,mandatory=Задължителна,readonly=Само за четене)', 'caption=Задаване стойности на планиращ параметър при създаване на Операция->Избор,notNull,value=optional');
         $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Външни документи,notNull,value=yes,maxRadio=2');
         $this->FLD('showInTasks', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Пр. операции,notNull,value=no,maxRadio=2');
         $this->FLD('editInLabel', 'enum(yes=Да,no=Не)', 'caption=Показване на параметъра->Редакция в етикет,notNull,value=yes,maxRadio=2');

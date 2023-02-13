@@ -62,7 +62,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery,courierApi';
+    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery,courierApi,detailOrderBy';
     
     
     /**
@@ -342,7 +342,7 @@ class sales_Sales extends deals_DealMaster
         parent::setDealFields($this);
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
-        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Допълнително->Цени,notChangeableByContractor');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Артикули->Цени,before=detailOrderBy,notChangeableByContractor');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,caption=Доставка->Куриерско Api,after=deliveryCalcTransport,notChangeableIfHidden,placeholder=Автоматично');
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
@@ -715,6 +715,7 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('deliveryLocation', $rec->deliveryLocationId);
         $deliveryTime = !empty($rec->deliveryTermTime) ? (dt::addSecs($rec->deliveryTermTime, $rec->valior, false) . " " . trans_Setup::get('END_WORK_TIME') . ":00") : $rec->deliveryTime;
 
+        $result->setIfNot('detailOrderBy', $rec->detailOrderBy);
         $result->setIfNot('deliveryTime', $deliveryTime);
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
@@ -1246,9 +1247,12 @@ class sales_Sales extends deals_DealMaster
         while ($jRec = $jQuery->fetch()) {
             $data->jobs[$jRec->id] = planning_Jobs::recToVerbal($jRec, $fields);
         }
-        
+
         if (planning_Jobs::haveRightFor('add', (object) array('saleId' => $rec->id))) {
-            $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $rec->id, 'threadId' => $rec->threadId, 'foreignId' => $rec->containerId, 'ret_url' => true);
+            $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $rec->id, 'foreignId' => $rec->containerId, 'ret_url' => true);
+            if(doc_Threads::haveRightFor('single', $rec->threadId)){
+                $data->addJobUrl['threadId'] = $rec->threadId;
+            }
         }
     }
     
@@ -1269,7 +1273,7 @@ class sales_Sales extends deals_DealMaster
         $tpl->replace($jobTpl, 'JOB_INFO');
         
         if (isset($data->addJobUrl)) {
-            $addLink = ht::createLink('', $data->addJobUrl, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
+            $addLink = ht::createLink('', $data->addJobUrl, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство от продажбата');
             $tpl->replace($addLink, 'JOB_ADD_BTN');
         }
     }
@@ -1377,12 +1381,14 @@ class sales_Sales extends deals_DealMaster
 
                 // Линк към нашата банкова сметка
                 $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
-                $bankAccountRec = bank_OwnAccounts::getOwnAccountInfo($ownBankRec->id);
-                $row->bankAccountId = $bankAccountRec->iban;
-                $singleBankUrl = bank_OwnAccounts::getSingleUrlArray($ownBankRec);
-                if(countR($singleBankUrl)){
-                    $attr = !empty($ownBankRec->title) ? "title={$ownBankRec->title}" : null;
-                    $row->bankAccountId = ht::createLink($row->bankAccountId, $singleBankUrl, false, $attr);
+                if(is_object($ownBankRec)){
+                    $bankAccountRec = bank_OwnAccounts::getOwnAccountInfo($ownBankRec->id);
+                    $row->bankAccountId = $bankAccountRec->iban;
+                    $singleBankUrl = bank_OwnAccounts::getSingleUrlArray($ownBankRec);
+                    if(countR($singleBankUrl)){
+                        $attr = !empty($ownBankRec->title) ? "title={$ownBankRec->title}" : null;
+                        $row->bankAccountId = ht::createLink($row->bankAccountId, $singleBankUrl, false, $attr);
+                    }
                 }
             }
             

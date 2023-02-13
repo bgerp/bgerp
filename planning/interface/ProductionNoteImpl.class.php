@@ -177,7 +177,11 @@ class planning_interface_ProductionNoteImpl
         expect($rec = $this->class->fetchRec($id));
         $pRec = cat_Products::fetch($rec->productId, 'code,measureId');
         $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
-        $quantity = is_object($packRec) ? $packRec->quantity : 1;
+        if($series == 'label'){
+            $quantity = $rec->quantity;
+        } else {
+            $quantity = is_object($packRec) ? $packRec->quantity : 1;
+        }
         
         // Каква е мярката и количеството
         $measureId = $pRec->measureId;
@@ -285,9 +289,13 @@ class planning_interface_ProductionNoteImpl
      */
     public function getLabelEstimatedCnt($id, $series = 'label')
     {
-        $rec = $this->class->fetchRec($id);
-        
-        return $rec->packQuantity;
+        if($series == 'label'){
+            $res = 1;
+        } else {
+            $res = $this->class->fetchRec($id);
+        }
+
+        return $res;
     }
 
 

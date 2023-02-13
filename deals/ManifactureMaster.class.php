@@ -206,4 +206,31 @@ abstract class deals_ManifactureMaster extends core_Master
         
         return false;
     }
+
+
+    /**
+     * Помощна ф-я дали документа може да се добавя с подадения ориджин
+     *
+     * @param int $containerId
+     * @param int|null $userId
+     * @return bool
+     */
+    protected function canAddToOriginId($containerId, $userId = null)
+    {
+        $origin = doc_Containers::getDocument($containerId);
+        if (!$origin->isInstanceOf('planning_Tasks') && !$origin->isInstanceOf('planning_ConsumptionNotes')) {
+            return false;
+        }elseif($origin->isInstanceOf('planning_Tasks')){
+            $state = $origin->fetchField('state');
+            if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
+                return false;
+            } elseif ($state == 'closed') {
+                if (!planning_Tasks::isProductionAfterClosureAllowed($origin->that, $userId, 'taskPostProduction,ceo,consumption')) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 }

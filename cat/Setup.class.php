@@ -135,7 +135,7 @@ defIfNot('CAT_GROUPS_WITH_OVERHEAD_COSTS', '');
 /**
  * Дефолтни режийни разходи за производимите артикули
  */
-defIfNot('CAT_DEFAULT_PRODUCT_OVERHEAD_COST', '0.05');
+defIfNot('CAT_DEFAULT_PRODUCT_OVERHEAD_COST', '0');
 
 
 /**
@@ -262,7 +262,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Само в папките'),
         'CAT_TRANSPORT_WEIGHT_STRATEGY' => array('enum(paramFirst=Първо параметър после опаковка,packFirst=Първо опаковка после параметър)', 'caption=Стратегия за изчисляване на транспортния обем->Избор,customizeBy=debug'),
         'CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи които могат да имат правила за обновяване на себестойностти->Избор'),
-        'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Пълни,no=Непълни)', 'caption=Рецепти: допълване на себест-стта до очакваната по политика Себестойност при производство->Избор', array('unit' => ' (пълни = без допълване)')),
+        'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Без допълване (рецептите са Пълни),no=С допълване до "Себестойност" (рецептите са Непълни))', 'caption=Производство - допълване на себестойността до очакваната по политика "Себестойност"->Избор'),
         'CAT_DEFAULT_PRODUCT_OVERHEAD_COST' => array('percent(min=0)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Режийни разходи'), 'unit= по подразбиране общо за системата'),
         'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Задаване в групи'))
     );

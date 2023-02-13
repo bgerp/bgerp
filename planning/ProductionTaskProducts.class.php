@@ -44,7 +44,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
     
     
     /**
@@ -201,10 +201,6 @@ class planning_ProductionTaskProducts extends core_Detail
                     $form->setReadOnly('productId');
                     $form->setReadOnly('packagingId');
                 }
-                
-                if (!haveRole('ceo,planningMaster')) {
-                    $form->setReadOnly('indTime');
-                }
             }
 
             $form->setFieldTypeParams('indTime', array('measureId' => $rec->packagingId));
@@ -256,6 +252,20 @@ class planning_ProductionTaskProducts extends core_Detail
                     $form->setError('inputedQuantity,limit', "{$caption} е повече от зададения лимит");
                 }
             }
+
+            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
+                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
+            }
+
+            $taskRec = planning_Tasks::fetch($rec->taskId);
+            if(empty($rec->id) && $rec->productId == $taskRec->wasteProductId && $rec->type != 'waste'){
+                $form->setError('productId', 'Артикулът е посочен като планиран отпадък');
+            }
+
+            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
+                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
+            }
+
 
             if(!$form->gotErrors()){
                 if (!empty($rec->inputedQuantity) && !empty($rec->indTime)){
@@ -636,10 +646,20 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
         // При клониране да се пропуска прогнозния отпадъка посочен в операцията (той ще се запише при активиране)
-        $newTask = planning_Tasks::fetch($rec->taskId);
-        if($rec->type == 'waste' && $rec->productId == $newTask->wasteProductId) return false;
+        $newTaskRec = planning_Tasks::fetch($rec->taskId);
+        if($rec->type == 'waste' && $rec->productId == $newTaskRec->wasteProductId) return false;
         if($rec->type == 'production' && empty($rec->plannedQuantity)){
-            $rec->productId = planning_Jobs::fetchField("#containerId = {$newTask->originId}", 'productId');
+            $rec->productId = planning_Jobs::fetchField("#containerId = {$newTaskRec->originId}", 'productId');
+        }
+
+        // Преизчисляване на планираните к-ва на базата на новото к-во в мастъра
+        $oldTaskRec = planning_Tasks::fetch($oldRec->taskId);
+        if($oldTaskRec->plannedQuantity != $newTaskRec->plannedQuantity){
+            if(!empty($rec->plannedQuantity)){
+                $q = $oldRec->plannedQuantity / $oldTaskRec->plannedQuantity;
+                $round = cat_UoM::fetchField($rec->packagingId, 'round');
+                $rec->plannedQuantity = round($q * $newTaskRec->plannedQuantity, $round);
+            }
         }
     }
 

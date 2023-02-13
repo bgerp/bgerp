@@ -905,7 +905,7 @@ class pos_ReceiptDetails extends core_Detail
         
         if(core_Packs::isInstalled('batch')){
             if(isset($batch)){
-                $query->where("#batch = '{$batch}'");
+                $query->where(array("#batch = '[#1#]'"), $batch);
             } else {
                 $query->where("#batch IS NULL OR #batch = ''");
             }

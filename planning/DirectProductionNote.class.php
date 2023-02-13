@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -228,6 +228,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         parent::prepareEditForm_($data);
         $form = &$data->form;
         $rec = $form->rec;
+        $form->setDefault('valior', dt::today());
 
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
@@ -682,7 +683,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                                 }
 
                                 if($state == 'closed' && $requiredRoles != 'no_one'){
-                                    if(!planning_Tasks::isProductionAfterClosureAllowed($originDoc->that, $userId)){
+                                    if(!planning_Tasks::isProductionAfterClosureAllowed($originDoc->that, $userId, 'taskPostProduction,ceo,production')){
                                         $requiredRoles = 'no_one';
                                     }
                                 }

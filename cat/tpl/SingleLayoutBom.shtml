@@ -7,7 +7,10 @@
     <!--ET_BEGIN primeCost-->
     	<div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: <b>[#primeCost#]</b></div>
     <!--ET_END primeCost-->
-   
+    <!--ET_BEGIN primeCostWithOverheadCost-->
+    <div style='margin-top:5px'><span class='quiet'>|Себестойност с реж. разходи|*</span>: <b>[#primeCostWithOverheadCost#]</b></div>
+    <!--ET_END primeCostWithOverheadCost-->
+
     <!--ET_BEGIN expenses-->
     	<div style='margin-top:5px'><span class='quiet'>|Режийни разходи|*</span>: <b>[#expenses#]</b></div>
     <!--ET_END expenses-->

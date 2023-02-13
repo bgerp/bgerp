@@ -201,7 +201,7 @@ class plg_PrevAndNext extends core_Plugin
                 }
             }
         }
-        
+
         
         if ($sel = Request::get('Selected')) {
             // Превръщаме в масив, списъка с избраниуте id-та
@@ -212,7 +212,7 @@ class plg_PrevAndNext extends core_Plugin
             
             // Записваме масива в сесията, под уникален за модела ключ
             Mode::setPermanent($selKey, $selArr);
-            
+
             // Зареждаме id-то на първия запис за редактиране
             if (!$id) {
                 expect(ctype_digit($id = $selArr[0]), $selArr);

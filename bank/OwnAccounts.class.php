@@ -646,4 +646,21 @@ class bank_OwnAccounts extends core_Master
             }
         }
     }
+
+
+    /**
+     * Преди затваряне/отваряне на записа
+     */
+    protected static function on_AfterChangeState(core_Mvc $mvc, &$rec, &$newState)
+    {
+        $bRec = bank_Accounts::fetch($rec->bankAccountId);
+        if($newState == 'closed'){
+            $bRec->exState = $bRec->state;
+            $bRec->state = 'closed';
+        } else {
+            $bRec->state = $bRec->exState;
+            $bRec->exState = 'closed';
+        }
+        bank_Accounts::save($bRec, 'state,exState');
+    }
 }

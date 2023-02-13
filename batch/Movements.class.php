@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class batch_Movements extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'quantity, operation, date, document=Документ,createdOn=Създаване||Created';
+    public $listFields = 'date, document=Документ,createdOn=Създаване||Created,operation,quantity';
     
     
     /**
@@ -61,7 +61,7 @@ class batch_Movements extends core_Detail
     /**
      * Брой записи на страница
      */
-    public $listItemsPerPage = 150;
+    public $listItemsPerPage = 50;
     
     
     /**
@@ -139,18 +139,14 @@ class batch_Movements extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        if (isset($data->masterMvc) && $data->masterMvc instanceof batch_Items) {
-            
-            return;
-        }
+        if (isset($data->masterMvc) && $data->masterMvc instanceof batch_Items)  return;
+
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-        
         $data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
         $data->listFilter->FLD('searchType', 'enum(full=Точно съвпадение,notFull=Частично съвпадение)', 'caption=Търсене,silent');
         $data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
-        $data->listFilter->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул');
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
-        $data->listFilter->setOptions('productId', array('' => '') + batch_Items::getProductsWithDefs());
         $data->listFilter->FNC('action', 'enum(all=Всички,in=Влиза, out=Излиза, stay=Стои)', 'caption=Операция,input');
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
         $data->listFilter->FLD('to', 'date', 'caption=До,silent');
@@ -158,14 +154,16 @@ class batch_Movements extends core_Detail
         $showFields = arr::make('batch,searchType,productId,storeId,action,from,to,selectPeriod,document', true);
         $data->listFilter->showFields = $showFields;
         $data->listFilter->setDefault('searchType', 'full');
-        
+        if($oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate()){
+            $data->listFilter->setDefault('from', $oldestAvailableDate);
+        }
+
         if (haveRole('batch,ceo')) {
             $data->listFilter->showFields = $showFields;
         } else {
             if (Request::get('batch', 'varchar')) {
                 $data->listFilter->setField('batch', 'input=hidden');
             }
-            
             if (Request::get('productId', 'varchar')) {
                 $data->listFilter->setField('productId', 'input=hidden');
             } else {
@@ -176,22 +174,6 @@ class batch_Movements extends core_Detail
             Request::setProtected('batch');
         }
         
-        $documentSuggestions = array();
-        $query = $mvc->getQuery();
-        $query->show('docType,docId');
-        $query->groupBy('docType,docId');
-        while ($r = $query->fetch()) {
-            if (!cls::load($r->docType, true)) {
-                continue;
-            }
-            $handle = '#' . cls::get($r->docType)->getHandle($r->docId);
-            $documentSuggestions[$handle] = $handle;
-        }
-        
-        if (countR($documentSuggestions)) {
-            $data->listFilter->setSuggestions('document', array('' => '') + $documentSuggestions);
-        }
-        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
@@ -199,8 +181,7 @@ class batch_Movements extends core_Detail
         $data->query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
         $data->query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
         $data->query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
-        
-        $fields = array('RowNumb' => '№', 'batch' => 'Партида', 'productId' => 'Артикул', 'storeId' => 'Склад');
+        $fields = array('RowNumb' => '№', 'storeId' => 'Склад', 'productId' => 'Артикул', 'batch' => 'Партида');
         $data->listFields = $fields + $data->listFields;
         
         if ($fRec = $data->listFilter->rec) {
@@ -216,9 +197,9 @@ class batch_Movements extends core_Detail
             
             if (!empty($fRec->batch)) {
                 if($fRec->searchType == 'full'){
-                    $data->query->where("#batch = '{$fRec->batch}'");
+                    $data->query->where(array("#batch = '[#1#]'", $fRec->batch));
                 } else {
-                    $data->query->where("#batch LIKE '%{$fRec->batch}%'");
+                    $data->query->where(array("#batch LIKE '%[#1#]%'", $fRec->batch));
                 }
             }
             
@@ -410,12 +391,48 @@ class batch_Movements extends core_Detail
                 if (!haveRole('batch,ceo')) {
                     Request::setProtected('batch');
                 }
-                $b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
+                $b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key, 'productId' => $productId));
             }
             
             $b = ($b instanceof core_ET) ? $b->getContent() : $b;
         }
         
         return $batch;
+    }
+
+
+    /**
+     * След рендиране на лист таблицата
+     */
+    protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+        if (!countR($data->recs)) return;
+
+        // Сумиране по филтрираните артикули
+        $total = array();
+        $summaryQuery = clone $data->listSummary->query;
+        $summaryQuery->show('productId,operation,quantity');
+        while($sumRec = $summaryQuery->fetch()){
+            $sign = ($sumRec->operation == 'in') ? 1 : (($sumRec->operation == 'out') ? -1 : 0);
+            $total[$sumRec->productId] += $sign * $sumRec->quantity;
+        }
+
+        // Ако се показват повече от 1 нищо не се прави
+        if(countR($total) != 1) return;
+
+        // Ако е един се извличат данните на мярката му
+        $filteredProductId = key($total);
+        $measureId = cat_Products::fetchField($filteredProductId, 'measureId');
+        $measureShortName = cat_UoM::getShortName($measureId);
+        $round = cat_UoM::fetchField($measureId, 'round');
+
+        // Показване на обобщаващ ред за единствения листван артикул
+        $totalVerbal = core_Type::getByName("double(decimals={$round})")->toVerbal($total[$filteredProductId]);
+        $totalVerbal = ht::styleIfNegative($totalVerbal, $total[$filteredProductId]);
+        $lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='9'>[#caption#]: &nbsp;<b>[#total#]</b> &nbsp;[#measureShortName#]</td></tr>");
+        $lastRow->replace(tr('Общо'), 'caption');
+        $lastRow->replace($totalVerbal, 'total');
+        $lastRow->replace($measureShortName, 'measureShortName');
+        $tpl->append($lastRow, 'ROW_AFTER');
     }
 }
