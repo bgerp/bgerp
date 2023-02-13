@@ -105,7 +105,7 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
         'store_StockPlanning',
-        'migrate::updateShipmentNegativeRoles23131',
+        'migrate::updateShipmentNegativeRoles231311',
     );
     
     
@@ -250,14 +250,15 @@ class store_Setup extends core_ProtoSetup
     /**
      * Миграция на ролите за изписване от склада на минус
      */
-    public function updateShipmentNegativeRoles23131()
+    public function updateShipmentNegativeRoles231311()
     {
         $config = core_Packs::getConfig('store');
-        wp($config->_data);
         if(isset($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'])){
             if($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'] !== 'no'){
                 core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
             }
+        } else {
+            core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
         }
     }
 
