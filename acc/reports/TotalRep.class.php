@@ -31,7 +31,15 @@ class acc_reports_TotalRep extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('roleId', 'keylist(mvc=core_Roles,select=role,groupBy=type, orderBy=orderByRole)', 'caption=Роли');
-        $fieldset->FLD('targets', 'table(columns=month|year|target,captions=Месец|Година|Таргет,widths=8em|8em|10em,month_opt=01|02|03|04|05|06|07|08|09|10|11|12,year_opt=2017|2018|2019|2020|2021|2022)', 'caption=Цели,single=none');
+
+        $monthsArr = array_map( function( $day ) {
+            return str_pad( $day, 2, '0', STR_PAD_LEFT );
+        }, range(1, 12) );
+        $monthOpt = implode("|", $monthsArr);
+
+        $yearOpt = implode("|", range(2017, date('Y') + 3));
+
+        $fieldset->FLD('targets', "table(columns=month|year|target,captions=Месец|Година|Таргет,widths=8em|8em|10em,month_opt={$monthOpt},year_opt={$yearOpt})", 'caption=Цели,single=none');
     }
     
     
