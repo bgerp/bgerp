@@ -105,7 +105,7 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
         'store_StockPlanning',
-        'migrate::updateShipmentNegativeRoles2306'
+        'migrate::updateShipmentNegativeRoles2313',
     );
     
     
@@ -222,7 +222,11 @@ class store_Setup extends core_ProtoSetup
             core_Packs::setConfig('store', array('STORE_ACC_ACCOUNTS' => keylist::fromArray($accArray)));
             $res .= "<li style='color:green'>Дефолт счетодовни сметки за синхронизация на продуктите<b>" . implode(',', $accArray) . '</b></li>';
         }
-        
+
+        if(core_ProtoSetup::$dbInit == 'first'){
+            core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
+        }
+
         return $res;
     }
 
@@ -245,24 +249,13 @@ class store_Setup extends core_ProtoSetup
     /**
      * Миграция на ролите за изписване от склада на минус
      */
-    public function updateShipmentNegativeRoles2306()
-    {
-        core_CallOnTime::setCall('store_Setup', 'updateNegativeShipmentRoles',null, 60);
-    }
-
-
-    /**
-     * Мигриране на ролите за изписване от склада
-     */
-    public static function callback_updateNegativeShipmentRoles()
+    public function updateShipmentNegativeRoles2313()
     {
         $config = core_Packs::getConfig('store');
         if(isset($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'])){
             if($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'] == 'yes'){
                 core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
             }
-        } else {
-            core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
         }
     }
 
