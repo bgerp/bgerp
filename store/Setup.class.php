@@ -253,6 +253,7 @@ class store_Setup extends core_ProtoSetup
     public function updateShipmentNegativeRoles23131()
     {
         $config = core_Packs::getConfig('store');
+        wp($config->_data);
         if(isset($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'])){
             if($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'] !== 'no'){
                 core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
