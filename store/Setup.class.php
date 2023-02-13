@@ -211,6 +211,7 @@ class store_Setup extends core_ProtoSetup
         
         // Ако няма посочени от потребителя сметки за синхронизация
         $config = core_Packs::getConfig('store');
+
         if (strlen($config->STORE_ACC_ACCOUNTS) === 0) {
             $accArray = array();
             foreach (static::$accAccount as $accSysId) {
@@ -253,7 +254,7 @@ class store_Setup extends core_ProtoSetup
     {
         $config = core_Packs::getConfig('store');
         if(isset($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'])){
-            if($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'] == 'yes'){
+            if($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'] == 'yes' || empty($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'])){
                 core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
             }
         }
