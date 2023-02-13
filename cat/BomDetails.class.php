@@ -237,12 +237,12 @@ class cat_BomDetails extends doc_Detail
         $stages = array();
         $query = $mvc->getQuery();
         $query->where("#bomId = {$rec->bomId} AND #type = 'stage'");
-        $query->show('resourceId');
         while ($dRec = $query->fetch()) {
-            $stages[$dRec->id] = cat_Products::getTitleById($dRec->resourceId, false);
+            $code = implode('.', $mvc->getProductPath($dRec, true));
+            $stages[$dRec->id] = $code . ". " . cat_Products::getTitleById($dRec->resourceId, false);
         }
         unset($stages[$rec->id]);
-        
+
         // Добавяме намерените етапи за опции на етапите
         if (countR($stages)) {
             $form->setOptions('parentId', array('' => '') + $stages);
@@ -724,7 +724,7 @@ class cat_BomDetails extends doc_Detail
             
             $row->resourceId .= $extraBtnTpl;
         }
-        
+
         // Генерираме кода според позицията на артикула и етапите
         $codePath = $mvc->getProductPath($rec, true);
         $position = implode('.', $codePath);
