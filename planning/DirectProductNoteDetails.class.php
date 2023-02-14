@@ -133,9 +133,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : null);
         $form->setFieldType('packQuantity', 'double(Min=0)');
 
+        $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
         $productOptions = $expenseItemIdOptions = array();
         if($rec->type == 'allocated'){
-            $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
             $allocatedArr = planning_Jobs::getAllocatedServices($jobRec);
             if(!countR($allocatedArr)){
                 $form->setError('productId', 'Няма все още отнесени разходи към производствени операции по заданието');
@@ -156,6 +156,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $form->setOptions('productId', $productOptions);
             }
         }
+
         if (isset($rec->productId)) {
             $prodRec = cat_Products::fetch($rec->productId, 'canStore');
             if ($prodRec->canStore == 'yes') {
@@ -186,6 +187,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $form->setFieldTypeParams('productId', array('alwaysShow' => array($noteProductId)));
             }
             $form->setField('storeId', 'input=none');
+        } elseif($rec->type == 'input'){
+
+            // Ако ПП е в нишка на финална ПО и се произвежда друг артикул - то само този от заданието да може да се избира
+            $origin = doc_Threads::getFirstDocument($data->masterRec->threadId);
+            if($origin->isInstanceOf('planning_Tasks')){
+                $originRec = $origin->fetch('isFinal,productId');
+                if($originRec->isFinal == 'yes' && $data->masterRec->productId != $jobRec->productId){
+                    $form->setFieldTypeParams('productId', array('onlyIn' => array($jobRec->productId)));
+                }
+            }
         }
     }
     
@@ -353,17 +364,19 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     public function renderDetail_($data)
     {
         $tpl = new ET('');
-        
-        // Ако протокола е само за заготовка и няма детайли няма да се рендират
-        if(!countR($data->recs) && !planning_DirectProductionNote::isForJobProductId($data->masterData->rec)) return $tpl;
-        
+
         if (Mode::is('printing')) {
             unset($data->listFields['tools']);
         }
         
         // Рендираме таблицата с вложените материали
         $data->listFields['productId'] = 'Вложени артикули|* ';
-        
+        $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
+        if($firstDoc->isInstanceOf('planning_Tasks')){
+            $firstDocRec = $firstDoc->fetch('isFinal,productId');
+            if($firstDocRec->isFinal == 'no') return new $tpl;
+        }
+
         $fieldset = clone $this;
         $fieldset->FNC('num', 'int');
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
@@ -396,6 +409,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         // Добавяне на бутон за нов материал
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
             $tpl->append(ht::createBtn('Влагане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+        }
+        if ($this->haveRightFor('import', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
             $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
         }
         
@@ -460,19 +475,42 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'add' && isset($rec)) {
-            
-            if(!planning_DirectProductionNote::isForJobProductId($rec->noteId)){
-                $requiredRoles = 'no_one';
-            }
-        }
-        
         if($action == 'add' && isset($rec->type)){
+            $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
             if($rec->type == 'allocated'){
-                $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
                 $jobTaskCostObjectArr = planning_Jobs::getTaskCostObjectItems($jobRec);
                 if(!countR($jobTaskCostObjectArr)){
                     $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        if($action == 'import'){
+            // За да импортира някой, трябва да може да добавя
+            $requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+        }
+
+        if(in_array($action, array('add', 'import')) && isset($rec)){
+            if($requiredRoles != 'no_one'){
+
+                // Ако детайла е в ПП в нишка на финална операция
+                $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
+                $masterRec = planning_DirectProductionNote::fetch($rec->noteId);
+                $origin = doc_Containers::getDocument($masterRec->originId);
+                if($origin->isInstanceOf('planning_Tasks')){
+                    $originRec = $origin->fetch('isFinal,productId');
+                    if($originRec->isFinal == 'no'){
+                        $requiredRoles = 'no_one';
+                    } elseif($masterRec->productId != $jobRec->productId && $rec->type != 'input'){
+                        $requiredRoles = 'no_one';
+                    } elseif($action == 'import'){
+                        $requiredRoles = 'no_one';
+                    } elseif($rec->type == 'input'){
+                        $isConvertable = cat_Products::fetchField($jobRec->productId, 'canConvert');
+                        if($isConvertable != 'yes'){
+                            $requiredRoles = 'no_one';
+                        }
+                    }
                 }
             }
         }

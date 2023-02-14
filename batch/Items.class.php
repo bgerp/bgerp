@@ -195,12 +195,7 @@ class batch_Items extends core_Master
         $icon = cls::get('cat_Products')->getIcon($rec->productId);
         $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
     }
-    
 
-    function act_Test()
-    {
-        $this->updateMaster(281);
-    }
     /**
      * Обновява данни в мастъра
      *

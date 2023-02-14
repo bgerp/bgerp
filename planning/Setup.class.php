@@ -152,6 +152,12 @@ defIfNot('PLANNING_SHOW_PREVIOUS_TASK_BLOCKS', '2');
 
 
 /**
+ * Стратегия за подреждане на операциите в заданието
+ */
+defIfNot('PLANNING_SORT_TASKS_IN_JOB_STRATEGY', '');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -225,6 +231,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_SALE_IN_TASK_LIST' => array('enum(yes=Да,no=Не)', 'caption=Показване на продажбата в списъка на ПО->Избор'),
         'PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE' => array('enum(yes=Да,no=Не)', 'caption=Обновяване на параметрите на артикула в заданието при Пускане/Събуждане->По подразбиране'),
         'PLANNING_SHOW_PREVIOUS_TASK_BLOCKS' => array('int(min=0)', 'caption=За колко от предходните Операции да се визуализира готовността->Брой'),
+        'PLANNING_SORT_TASKS_IN_JOB_STRATEGY' => array('class(interface=planning_OrderTasksInJobStrategyIntf,select=title)', 'caption=Подреждане на операциите в заданието->Стратегия'),
         );
 
 
@@ -313,7 +320,7 @@ class planning_Setup extends core_ProtoSetup
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
-                          planning_interface_ImportFromPreviousTasks, planning_reports_TechnologicalTimeForMakingUnitProduct';
+                          planning_interface_ImportFromPreviousTasks, planning_reports_TechnologicalTimeForMakingUnitProduct,planning_interface_TopologicalOrderTasksInJob';
 
 
     /**
@@ -329,6 +336,13 @@ class planning_Setup extends core_ProtoSetup
 
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
+
+        $config = core_Packs::getConfig('planning');
+        if (strlen($config->PLANNING_SORT_TASKS_IN_JOB_STRATEGY) === 0) {
+            core_Classes::add('planning_interface_TopologicalOrderTasksInJob');
+            $classId = core_Classes::getId('planning_interface_TopologicalOrderTasksInJob');
+            core_Packs::setConfig('planning', array('PLANNING_SORT_TASKS_IN_JOB_STRATEGY' => $classId));
+        }
 
         return $html;
     }

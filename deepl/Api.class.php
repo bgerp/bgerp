@@ -25,24 +25,19 @@ class deepl_Api
     /**
      *
      *
-     * @param $text - стринг или масив от стрингове, които да се превеждат
-     * @param string|array $targetLang - езика на който искаме да превеждаме. Ако не е подаден се използва DEEPL_LANG
+     * @param $text - стринг, който да се превеждат
+     * @param string $targetLang - езика на който искаме да превеждаме. Ако не е подаден се използва DEEPL_LANG
      * @param null|string $sourceLang - езика на текста, от който се превежда. Ако не се подаде, си го определя само
-     * @param array $otherParams - други параметри https://www.deepl.com/docs-api/translate-text/translate-text/
-     * @param array $fRes - пълният резултат, който се връща
+     * @param boolean $cache - дали да се кешира и използва записа от кеша
+     * @param array $pArr - други параметри https://www.deepl.com/docs-api/translate-text/translate-text/
      *
      * @trows deepl_Exception
      *
      * @return string
      */
-    public static function translate($text, $targetLang = null, $sourceLang = null, $otherParams = array(), &$fRes = array())
+    public static function translate($text, $targetLang = null, $sourceLang = null, $cache = true, $pArr = array())
     {
-        $pArr = array();
-        if (!is_array($text)) {
-            $pArr['text'] = array(trim($text));
-        } else {
-            $pArr['text'] = $text;
-        }
+        $text = trim($text);
 
         if (!isset($targetLang)) {
             $targetLang = deepl_Setup::get('LANG');
@@ -57,18 +52,81 @@ class deepl_Api
             $pArr['source_lang'] = strtoupper($sourceLang);
         }
 
-        deepl_Exception::expect($pArr['text'], 'Не е подаден текст');
+        deepl_Exception::expect($text, 'Не е подаден текст');
         deepl_Exception::expect(trim($pArr['target_lang']), 'Не е подаден език');
 
-        $fRes = self::execCurl($pArr);
+        $translateArr = $noTranslateArr = $translateMap = array();
 
-        $resStr = '';
+        $stArr = preg_split('/\s*<br>\s*<br>\s*/ui', $text);
 
-        foreach ((array)$fRes as $r) {
-            $resStr .= $r->text;
+        foreach ($stArr as $k => $st) {
+            $st = trim($st);
+            $strip = strip_tags(html_entity_decode($st));
+            $strip = preg_replace('#[\xC2\xA0]#', '', $strip);
+            $strip = trim($strip);
+
+            $tText = '';
+            if ($cache) {
+                $tText = deepl_Cache::get(array('sourceText' => $st, 'sourceLg' => $sourceLang, 'translatedLg' => $targetLang));
+            }
+
+            if (strlen($tText)) {
+                $noTranslateArr[$k] = $tText;
+
+                continue;
+            } else {
+                if (!strlen($strip) || !strlen($st)) {
+                    $noTranslateArr[$k] = $st;
+
+                    continue;
+                }
+            }
+
+            $translateArr[$k] = $st;
         }
 
-        return $resStr;
+        $pArr['text'] = array_values($translateArr);
+        $translateMap = array_keys($translateArr);
+
+        $resStrArr = $allResStrArr = array();
+
+        if ($pArr['text']) {
+            try {
+                $fRes = self::execCurl($pArr);
+
+                foreach ((array)$fRes as $k => $r) {
+                    $resStrArr[$k] = $r->text;
+
+                    if ($cache) {
+                        deepl_Cache::set(array('sourceText' => $pArr['text'][$k], 'sourceLg' => $sourceLang, 'translatedText' => $r->text, 'translatedLg' => $targetLang));
+                    }
+                }
+            } catch (deepl_Exception $e) {
+                reportException($e);
+                $msg = $e->getMessage();
+                log_System::add(get_called_class(), "Грешка при превеждане: " . $msg, null, 'err');
+                if (haveRole('debug')) {
+                    status_Messages::newStatus($msg, 'warning');
+                }
+                $resStrArr = $pArr['text'];
+            }
+        }
+
+        if (!empty($noTranslateArr)) {
+            $mCnt = countR($noTranslateArr) + countR($translateArr);
+            for ($i = 0; $i < $mCnt; $i++) {
+                if (isset($translateArr[$i])) {
+                    $k = array_search($i, $translateMap);
+                    $allResStrArr[$i] = $resStrArr[$k];
+                } else {
+                    $allResStrArr[$i] = $noTranslateArr[$i];
+                }
+            }
+        } else {
+            $allResStrArr = $resStrArr;
+        }
+
+        return implode("<br><br>", $allResStrArr);
     }
 
 
@@ -78,7 +136,7 @@ class deepl_Api
      * @param string $prompt
      * @param array $pArr
      * @param boolean $useCache
-     * @param interger $index
+     * @param integer $index
      *
      * @trows deepl_Exception
      *

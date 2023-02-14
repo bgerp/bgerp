@@ -1887,8 +1887,7 @@ class sales_Sales extends deals_DealMaster
                 }
 
                 if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsToCheck, $rec->shipmentStoreId, $rec->state)) {
-                    $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
-                    if($allowNegativeShipment == 'yes'){
+                    if(store_Setup::canDoShippingWhenStockIsNegative()){
                         $form->setWarning('action', $warning);
                     } else {
                         $form->setError('action', $warning);
