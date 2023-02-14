@@ -2441,6 +2441,15 @@ class planning_Tasks extends core_Master
             if ($this->save($newTask)) {
                 $this->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
                 $this->logWrite('Клониране от предходно задание', $newTask->id);
+
+                $pQuery = cat_products_Params::getQuery();
+                $pQuery->where("#classId = {$this->getClassId()} AND #productId = {$taskRec->id}");
+                while($pRec = $pQuery->fetch()){
+                    $newParamRec = clone $pRec;
+                    unset($newParamRec->id);
+                    $newParamRec->productId = $newTask->id;
+                    cat_products_Params::save($newParamRec);
+                }
             }
 
             followRetUrl(null, 'Операцията е клонирана успешно');
