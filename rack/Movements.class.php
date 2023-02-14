@@ -73,7 +73,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,leftColBtns=Зап.,rightColBtns=Д-ие.,workerId=Изп.,documents,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
+    public $listFields = 'productId,movement=Движение,leftColBtns=Зап.,rightColBtns=Д-ие,workerId=Изп.,documents,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
 
 
     /**
