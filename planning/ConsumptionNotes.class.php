@@ -272,19 +272,21 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         // ако има източник ПО, копират се вложените неща по нея
         if(isset($rec->originId)){
             $origin = doc_Containers::getDocument($rec->originId);
-            $dQuery = planning_ProductionTaskProducts::getQuery();
-            $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-            $dQuery->where("#taskId = {$origin->that} AND #totalQuantity != 0 AND #type = 'input'");
-            if(isset($rec->storeId)){
-                $dQuery->where("(#storeId = {$rec->storeId} OR #storeId IS NULL) AND #canStore != 'no'");
-            }
-
-            while($dRec = $dQuery->fetch()){
-                $newRec = (object)array('noteId' => $rec->id, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'quantity' => $dRec->totalQuantity);
-                if($genericProductId = planning_GenericProductPerDocuments::getRec('planning_ProductionTaskProducts', $dRec->id)){
-                    $newRec->_genericProductId = $genericProductId;
+            if($origin->isInstanceOf('planning_Tasks')){
+                $dQuery = planning_ProductionTaskProducts::getQuery();
+                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                $dQuery->where("#taskId = {$origin->that} AND #totalQuantity != 0 AND #type = 'input'");
+                if(isset($rec->storeId)){
+                    $dQuery->where("(#storeId = {$rec->storeId} OR #storeId IS NULL) AND #canStore != 'no'");
                 }
-                planning_ConsumptionNoteDetails::save($newRec);
+
+                while($dRec = $dQuery->fetch()){
+                    $newRec = (object)array('noteId' => $rec->id, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'quantity' => $dRec->totalQuantity * $dRec->quantityInPack);
+                    if($genericProductId = planning_GenericProductPerDocuments::getRec('planning_ProductionTaskProducts', $dRec->id)){
+                        $newRec->_genericProductId = $genericProductId;
+                    }
+                    planning_ConsumptionNoteDetails::save($newRec);
+                }
             }
         }
     }

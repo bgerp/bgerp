@@ -5,7 +5,7 @@
  *
  *
  * @category  bgerp
- * @package   openai
+ * @package   deepl
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2023 Experta OOD
@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-class openai_Exception extends core_exception_Expect
+class deepl_Exception extends core_exception_Expect
 {
     /**
      * Генерира exception от съотв. клас, в случай че зададеното условие не е изпълнено
@@ -22,12 +22,12 @@ class openai_Exception extends core_exception_Expect
      * @param string $message
      * @param array  $options
      *
-     * @throws openai_Exception
+     * @throws deepl_Exception
      */
     public static function expect($condition, $message, $options = array())
     {
         if (!(boolean) $condition) {
-            throw new openai_Exception($message, $options);
+            throw new deepl_Exception($message, $options);
         }
     }
 }

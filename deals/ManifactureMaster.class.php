@@ -233,4 +233,20 @@ abstract class deals_ManifactureMaster extends core_Master
 
         return true;
     }
+
+
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $res
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        if(isset($data->form->rec->originId)){
+            $data->form->toolbar->removeBtn('btnNewThread');
+        }
+        $data->form->toolbar->setBtnOrder('btnPending', 10);
+    }
 }

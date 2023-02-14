@@ -30,6 +30,14 @@ abstract class rack_MovementAbstract extends core_Manager
 
 
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     * @var string
+     */
+    public $hideListFieldsIfEmpty = 'batch';
+
+
+    /**
      * Добавяне на задължителните полета в наследниците
      */
     protected static function setFields($mvc)
@@ -139,6 +147,9 @@ abstract class rack_MovementAbstract extends core_Manager
                 if(!empty($rec->batch)){
                     $row->batch = $Def->toVerbal($rec->batch);
                     $row->batch = ht::createElement("span", array('class' => 'small'), $row->batch);
+                    if(rack_ProductsByBatches::haveRightFor('list')){
+                        $row->batch = ht::createLink($row->batch, array('rack_ProductsByBatches', 'list', 'search' => $rec->batch));
+                    }
                 } else {
                     $row->batch = "<i class='quiet'>" . tr("Без партида") . "</i>";
                 }

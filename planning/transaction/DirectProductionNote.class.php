@@ -68,10 +68,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             }
 
             if (Mode::get('saveTransaction')) {
-                $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
-
                 // Ако е забранено да се изписва на минус, прави се проверка
-                if($allowNegativeShipment == 'no'){
+                if(!store_Setup::canDoShippingWhenStockIsNegative()){
                     $shippedProductsFromStores = array();
                     foreach ($rec->_details as $d){
                         if(isset($d->storeId)){

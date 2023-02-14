@@ -75,8 +75,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         $sendAll = $sendQuery->fetchAll();
 
         if (Mode::get('saveTransaction')) {
-            $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
-            if($allowNegativeShipment == 'no'){
+            if(!store_Setup::canDoShippingWhenStockIsNegative()){
                 if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($sendAll, $rec->storeId, $rec->state)) {
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }

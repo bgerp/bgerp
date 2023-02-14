@@ -207,6 +207,8 @@ class rack_MovementGenerator extends core_Manager
      */
     public function act_Test2()
     {
+        requireRole('debug');
+
         // Вземаме от по-малкият палет
         $p = ['1a1' => 200, '1b1' => 100];
         $q = ['z1' => 50, 'z2' => 40];

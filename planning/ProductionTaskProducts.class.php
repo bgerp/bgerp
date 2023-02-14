@@ -646,10 +646,20 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
         // При клониране да се пропуска прогнозния отпадъка посочен в операцията (той ще се запише при активиране)
-        $newTask = planning_Tasks::fetch($rec->taskId);
-        if($rec->type == 'waste' && $rec->productId == $newTask->wasteProductId) return false;
+        $newTaskRec = planning_Tasks::fetch($rec->taskId);
+        if($rec->type == 'waste' && $rec->productId == $newTaskRec->wasteProductId) return false;
         if($rec->type == 'production' && empty($rec->plannedQuantity)){
-            $rec->productId = planning_Jobs::fetchField("#containerId = {$newTask->originId}", 'productId');
+            $rec->productId = planning_Jobs::fetchField("#containerId = {$newTaskRec->originId}", 'productId');
+        }
+
+        // Преизчисляване на планираните к-ва на базата на новото к-во в мастъра
+        $oldTaskRec = planning_Tasks::fetch($oldRec->taskId);
+        if($oldTaskRec->plannedQuantity != $newTaskRec->plannedQuantity){
+            if(!empty($rec->plannedQuantity)){
+                $q = $oldRec->plannedQuantity / $oldTaskRec->plannedQuantity;
+                $round = cat_UoM::fetchField($rec->packagingId, 'round');
+                $rec->plannedQuantity = round($q * $newTaskRec->plannedQuantity, $round);
+            }
         }
     }
 

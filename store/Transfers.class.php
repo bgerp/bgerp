@@ -49,12 +49,6 @@ class store_Transfers extends core_Master
 
 
     /**
-     * Дали може да бъде само в началото на нишка
-     */
-    public $onlyFirstInThread = true;
-
-
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'fromStore, toStore, folderId, id';
@@ -374,7 +368,7 @@ class store_Transfers extends core_Master
             }
 
             if(empty($rec->id)){
-                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy);
+                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy, core_Permanent::FOREVER_VALUE);
             }
 
             $rec->folderId = store_Stores::forceCoverAndFolder($rec->toStore);
@@ -874,5 +868,17 @@ class store_Transfers extends core_Master
         $preparationTime = store_Stores::getShipmentPreparationTime($rec->fromStore);
 
         return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+    }
+
+
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     */
+    public static function canAddToThread($threadId)
+    {
+        $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        $folderClass = doc_Folders::fetchCoverClassName($folderId);
+
+        return cls::haveInterface('store_iface_TransferFolderCoverIntf', $folderClass);
     }
 }

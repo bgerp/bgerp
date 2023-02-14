@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class batch_Items extends core_Manager
+class batch_Items extends core_Master
 {
     /**
      * Заглавие
@@ -195,8 +195,8 @@ class batch_Items extends core_Manager
         $icon = cls::get('cat_Products')->getIcon($rec->productId);
         $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
     }
-    
-    
+
+
     /**
      * Обновява данни в мастъра
      *
