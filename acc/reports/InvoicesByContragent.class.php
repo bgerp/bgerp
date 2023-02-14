@@ -97,10 +97,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         if ($rec->unpaid == 'all') {
             $form->setDefault('fromDate', null);
-
+            unset($rec->paymentType);
             $checkDate = dt::today();
             $form->setDefault('checkDate', "{$checkDate}");
-
         }
 
 
