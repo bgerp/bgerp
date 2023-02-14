@@ -30,6 +30,14 @@ abstract class rack_MovementAbstract extends core_Manager
 
 
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     * @var string
+     */
+    public $hideListFieldsIfEmpty = 'batch';
+
+
+    /**
      * Добавяне на задължителните полета в наследниците
      */
     protected static function setFields($mvc)
