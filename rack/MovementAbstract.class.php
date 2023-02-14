@@ -34,7 +34,7 @@ abstract class rack_MovementAbstract extends core_Manager
      *
      * @var string
      */
-    public $hideListFieldsIfEmpty = 'batch';
+    public $hideListFieldsIfEmpty = 'batch, documents';
 
 
     /**
