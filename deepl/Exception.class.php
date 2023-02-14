@@ -22,12 +22,12 @@ class deepl_Exception extends core_exception_Expect
      * @param string $message
      * @param array  $options
      *
-     * @throws kone_Exception
+     * @throws deepl_Exception
      */
     public static function expect($condition, $message, $options = array())
     {
         if (!(boolean) $condition) {
-            throw new kone_Exception($message, $options);
+            throw new deepl_Exception($message, $options);
         }
     }
 }
