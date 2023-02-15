@@ -346,7 +346,10 @@ class planning_StepConditions extends core_Detail
             $lessThen = $taskRec->saoOrder;
 
             // Намират се всички ПО с подредба преди нейната
-            $subArr = array_filter($tasks[$taskRec->originId], function($a) use ($lessThen) { return $a['saoOrder'] < $lessThen;});
+            $subArr = array();
+            if(is_array($tasks[$taskRec->originId])){
+                $subArr = array_filter($tasks[$taskRec->originId], function($a) use ($lessThen) { return $a['saoOrder'] < $lessThen;});
+            }
 
             // От тях се оставят до изисквания брой от центъра на дейност, после се сортират от ляво на дясно
             $subArr = array_splice($subArr, 0, $centerMaxPreviousArr[$taskRec->folderId]);
