@@ -523,7 +523,9 @@ class rack_ZoneDetails extends core_Detail
         $form = cls::get('core_Form');
         $form->title = 'Промяната на партидите в|* ' . $Document->getFormTitleLink();
         $Def = batch_Defs::getBatchDef($rec->productId);
+        Mode::push('text', 'plain');
         $batch = $Def->toVerbal($rec->batch);
+        Mode::pop('text');
         $batchCaption = str_replace(',', ' ', $batch);
         $key = md5($rec->batch);
 
@@ -550,7 +552,11 @@ class rack_ZoneDetails extends core_Detail
             $key = md5($exBatch);
             $map[$key] = $exBatch;
 
-            $batchCaption = str_replace(',', ' ', $exBatch);
+            Mode::push('text', 'plain');
+            $batchCaption = $Def->toVerbal($exBatch);
+            $batchCaption = str_replace(',', ' ', $batchCaption);
+            Mode::pop('text');
+
             $form->FLD($key, "double(min=0)", "caption=Други партиди в склада->{$batchCaption}");
             Mode::push('text', 'plain');
             $info = "|* / " . $Double->toVerbal($exQuantity) . " " . str::getPlural($exQuantity, $measureName, true);
