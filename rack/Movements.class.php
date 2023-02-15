@@ -1185,6 +1185,7 @@ class rack_Movements extends rack_MovementAbstract
             $availableQuantity = rack_Products::getFloorQuantity($transaction->productId, $transaction->batch, $transaction->storeId);
 
             if($availableQuantity < $transaction->quantity && isset($transaction->batch)){
+                wp($availableQuantity, $transaction);
                 $availableQuantityV = core_Type::getByName('double(smartRound)')->toVerbal($availableQuantity);
                 $res->errors = "Количеството на партидата е над наличното|*: <b>{$availableQuantityV}</b>";
                 $res->errorFields[] = 'packQuantity';
