@@ -559,7 +559,7 @@ class rack_ZoneDetails extends core_Detail
 
             $form->FLD($key, "double(min=0)", "caption=Други партиди в склада->{$batchCaption}");
             Mode::push('text', 'plain');
-            $info = "|* / " . $Double->toVerbal($exQuantity) . " " . str::getPlural($exQuantity, $measureName, true);
+            $info = "|* / " . $Double->toVerbal($exQuantity / $recInfo->quantityInPack) . " " . str::getPlural($exQuantity, $measureName, true);
             $form->setField($key, "unit={$info}");
             Mode::pop('text');
         }
