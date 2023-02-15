@@ -179,22 +179,10 @@ class rack_plg_Shipments extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
+        // Заопашените за синхронизиране зони се синхронизират
         if(is_array($mvc->syncWithZone)){
             foreach ($mvc->syncWithZone as $containerId => $zoneRec){
-
-                // Синхронизиране на документа със зоната
-                rack_ZoneDetails::syncWithDoc($zoneRec->id, $containerId);
-
-                // Ще се регенерират движенията само за артикулите в тази зона
-                $zdQuery = rack_ZoneDetails::getQuery();
-                $zdQuery->XPR('documentQuantityRound', 'double', 'ROUND(COALESCE(#documentQuantity, 0), 2)');
-                $zdQuery->XPR('movementQuantityRound', 'double', 'ROUND(COALESCE(#movementQuantity, 0), 2)');
-                $zdQuery->where("#zoneId = {$zoneRec->id} AND (#documentQuantityRound != #movementQuantityRound OR #documentQuantityRound = 0)");
-                $zdQuery->show('productId');
-
-                $productIdsInZone = arr::extractValuesFromArray($zdQuery->fetchAll(), 'productId');
-                rack_Movements::logDebug("RACK ZONE ({$zoneRec->id}) UPDATE '" . implode('|', $productIdsInZone) . "'");
-                rack_Zones::pickupAll($zoneRec->storeId, $zoneRec->defaultUserId, $productIdsInZone);
+                rack_Zones::forceSync($containerId, $zoneRec);
             }
         }
     }
