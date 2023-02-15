@@ -157,7 +157,7 @@ class rack_ZoneDetails extends core_Detail
             $zonesDefault = $ZoneType->fromVerbal($zonesDefault);
 
             if(!Mode::is('printing')){
-                $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'defaultZones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
+                $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'batch' => $rec->batch, 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'defaultZones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
             }
         }
         
