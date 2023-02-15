@@ -97,16 +97,18 @@ class doc_RichTextPlg extends core_Plugin
         
         $cHtml = mb_strcut($html, $hideLen);
 
-        // Да не се прекъсва цитата по средата
-        $cHtmlBegin = mb_strcut($html, 0, $hideLen);
-        $bQuoteOpen = mb_strrpos($cHtmlBegin, '[bQuote');
-        if ($bQuoteOpen !== false) {
-            $bQuoteClose = mb_strrpos($cHtmlBegin, '[/bQuote');
-            if ($bQuoteOpen > $bQuoteClose) {
+        // Да не се прекъсва цитата и други елементи по средата по средата
+        foreach (array('bQuote') as $eName) {
+            $cHtmlBegin = mb_strcut($html, 0, $hideLen);
+            $bQuoteOpen = mb_strrpos($cHtmlBegin, "[{$eName}");
+            if ($bQuoteOpen !== false) {
+                $bQuoteClose = mb_strrpos($cHtmlBegin, "[/{$eName}");
+                if ($bQuoteOpen > $bQuoteClose) {
 
-                $hideLen = $bQuoteOpen;
+                    $hideLen = $bQuoteOpen;
 
-                $cHtml = mb_strcut($html, $hideLen);
+                    $cHtml = mb_strcut($html, $hideLen);
+                }
             }
         }
 
