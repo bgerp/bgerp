@@ -84,31 +84,48 @@ class doc_RichTextPlg extends core_Plugin
         }
         
         $hideLen = $rt->params['hideTextAfterLength'];
+
         if (!$hideLen) {
             $conf = core_Packs::getConfig('doc');
             $hideLen = $conf->DOC_HIDE_TEXT_AFTER_LENGTH;
         }
-        
+
         if (mb_strlen($html) <= $hideLen || strpos($html, '[/hide]') !== false) {
             
             return $html;
         }
         
         $cHtml = mb_strcut($html, $hideLen);
+
+        // Да не се прекъсва цитата и други елементи по средата по средата
+        foreach (array('bQuote') as $eName) {
+            $cHtmlBegin = mb_strcut($html, 0, $hideLen);
+            $bQuoteOpen = mb_strrpos($cHtmlBegin, "[{$eName}");
+            if ($bQuoteOpen !== false) {
+                $bQuoteClose = mb_strrpos($cHtmlBegin, "[/{$eName}");
+                if ($bQuoteOpen > $bQuoteClose) {
+
+                    $hideLen = $bQuoteOpen;
+
+                    $cHtml = mb_strcut($html, $hideLen);
+                }
+            }
+        }
+
         $cHtmlArr = explode("\n", $cHtml, 2);
-        
+
         if (!$cHtmlArr[1]) {
             
             return $html;
         }
-        
+
         $bHtml = mb_strcut($html, 0, $hideLen);
-        
+
         $cHtmlArr[1] = '[hide=' . tr('Вижте още') . ']' . $cHtmlArr[1] . '[/hide]';
         $cHtml = implode("\n", $cHtmlArr);
         
         $html = $bHtml . $cHtml;
-        
+
         return $html;
     }
     

@@ -372,6 +372,7 @@ class batch_BatchesInDocuments extends core_Manager
         $cIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
         if (countR($cIds)) {
             $query1 = batch_BatchesInDocuments::getQuery();
+            $query1->where("#productId = {$recInfo->productId}");
             $query1->in('containerId', $cIds);
             while ($r1 = $query1->fetch()) {
                 $batchesInThread[$r1->batch] = 0;

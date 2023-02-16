@@ -37,7 +37,7 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, plg_Sorting, plg_Printing, store_plg_Request, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning, change_Plugin';
 
 
     /**
@@ -210,6 +210,12 @@ class store_Transfers extends core_Master
      * Кое поле ще се оказва за подредбата на детайла
      */
     public $detailOrderByField = 'detailOrderBy';
+    
+     
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'note, detailOrderBy';
 
 
     /**
@@ -231,7 +237,7 @@ class store_Transfers extends core_Master
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
         // Допълнително
-        $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Допълнително->Подреждане по,notNull,maxRadio=2,value=auto');
+        $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Артикули->Подреждане по,notNull,maxRadio=2,value=auto');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
 
         $this->FLD(

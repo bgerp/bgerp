@@ -307,10 +307,6 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!crm_Companies::isOwnCompanyVatRegistered()) {
             $form->setReadOnly('chargeVat');
         }
-
-        if (empty($rec->id)) {
-            $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', false));
-        }
         
         $form->setDefault('makeInvoice', 'yes');
         
@@ -2909,5 +2905,30 @@ abstract class deals_DealMaster extends deals_DealBase
     public function cron_RecalcCurrencyRate()
     {
         $this->recalcDealsWithCurrencies();
+    }
+
+
+    /**
+     * Кой е избрания склад по дефолт
+     *
+     * @param $rec
+     * @return mixed
+     */
+    public function getDefaultShipmentStoreId($rec)
+    {
+        // Ако има склад от търговско условие - него
+        $storeIdFromCondition = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'shipmentStoreId', 'clientCondition');
+        if(isset($storeIdFromCondition)) return $storeIdFromCondition;
+
+        // Последно избрания склад от потребителя в същата папка, ако все още може да го избере
+        $storeIdFromLastDoc = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'shipmentStoreId', 'lastDocUser');
+        if(isset($storeIdFromLastDoc)){
+            if(bgerp_plg_FLB::canUse('store_Stores', $storeIdFromLastDoc, null, 'select')) return $storeIdFromLastDoc;
+        }
+
+        // Текущия склад от сесията
+        $selectedStoreId = store_Stores::getCurrent('id', false);
+
+        return $selectedStoreId;
     }
 }

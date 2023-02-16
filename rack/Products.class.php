@@ -318,7 +318,11 @@ class rack_Products extends store_Products
             $quantityBatchesOnTheFloor = $batchQuantityInStore - $batchQuantityOnPallets - $batchQuantityOnZones;
             $floorQuantity -= $quantityBatchesOnTheFloor;
         }
-        
+
+        $productMeasureId = cat_Products::fetchField($productId, 'measureId');
+        $round = cat_UoM::fetchField($productMeasureId, 'round');
+        $floorQuantity = round($floorQuantity, $round);
+
         return $floorQuantity;
     }
 }
