@@ -1074,12 +1074,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('dueDate', 'date', 'caption=Краен срок,smartCenter');
             $fld->FLD('dueDateStatus', 'varchar', 'caption=Състояние,smartCenter');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('invoiceValue', 'double(decimals=2)', 'caption=Стойност');
-            $fld->FLD('paidAmount', 'double(decimals=2)', 'caption=Платено->сума');
+            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
+            $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
             $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания,smartCenter');
             if ($rec->unpaid == 'unpaid') {
-                $fld->FLD('invoiceCurrentSumm', 'double(decimals=2)', 'caption=Състояние->Неплатено');
-                $fld->FLD('invoiceOverSumm', 'double(decimals=2)', 'caption=Състояние->Надплатено');
+                $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
+                $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
             }
         }
 
@@ -1131,7 +1131,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 $payDocumentRec = $payDocClass::fetch($Document->that);
 
-                if ($dRec->type != 'invoice') continue;
+                //if ($dRec->type != 'invoice') continue;
 
                 if ($payDocumentRec->fromContainerId) {
                     if ($dRec->invoiceContainerId != $payDocumentRec->fromContainerId) {
@@ -1168,6 +1168,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 $paidDates .= "$paidDate" . "\n\r";
             }
+
         }
 
         return $paidDates;
@@ -1585,18 +1586,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $dcMark = $dRec->invoiceValue < 0 ? -1 : 1;
         if ($dRec->type != 'invoice') {
             foreach ((array)$dRec->dcPay as $k => $val) {
-                $res->paidAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($val->amount * $dcMark) . "</br>";
+                $res->paidAmount .= $val->amount * $dcMark ;
             }
         } else {
-            $res->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+            $res->paidAmount = self::getPaidAmount($dRec);
         }
 
         if ($dRec->type != 'invoice') {
             foreach ((array)$dRec->dcPay as $k => $val) {
-                $res->paidDates .= "<span class= 'small'>" . $Date->toVerbal($val->payDate) . '</span>' . "</br>";
+                $res->paidDates .= $Date->toVerbal($val->payDate). "\n\r";
             }
         } else {
-            $res->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
+            $res->paidDates = self::getPaidDates($dRec, false);
         }
 
         $res->dueDate = self::getDueDate($dRec, false, $rec);
