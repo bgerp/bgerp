@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -185,6 +185,7 @@ class rack_Movements extends rack_MovementAbstract
                         $rec->documents = keylist::addKey($rec->documents, $rec->containerId);
                     }
 
+                    bp($rec);
                     $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
                     Mode::setPermanent($counterKey, null);
 
