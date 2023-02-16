@@ -185,7 +185,6 @@ class rack_Movements extends rack_MovementAbstract
                         $rec->documents = keylist::addKey($rec->documents, $rec->containerId);
                     }
 
-                    bp($rec);
                     $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
                     Mode::setPermanent($counterKey, null);
 
