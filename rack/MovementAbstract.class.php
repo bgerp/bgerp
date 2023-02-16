@@ -50,7 +50,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         // Палет, позиции и зони
         $mvc->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->От,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
-        $mvc->FLD('batch', 'text', 'silent,input=none,before=positionTo,removeAndRefreshForm');
+        $mvc->FLD('batch', 'text', 'silent,input=none,before=positionTo,removeAndRefreshForm,remember');
         $mvc->FLD('position', 'rack_PositionType', 'caption=Движение->От,input=none');
         $mvc->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Към,input=none');
         $mvc->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden');
