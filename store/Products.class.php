@@ -767,7 +767,6 @@ class store_Products extends core_Detail
         $toDate = Request::get('date', 'date');
         $today = dt::today();
         $recs = store_StockPlanning::getRecs($productId, $stores, $toDate, $field);
-        $totalCount = countR($recs);
         $recs = array_splice($recs, 0, static::SHOW_DOCUMENTS_IN_PLANNED_STOCK_HINT);
 
         $links = '';
