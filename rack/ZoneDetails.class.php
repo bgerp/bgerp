@@ -145,19 +145,13 @@ class rack_ZoneDetails extends core_Detail
         $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($movementQuantity);
         $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($documentQuantity);
         $moveStatusColor = (round($rec->movementQuantity, 4) < round($rec->documentQuantity, 4)) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
-        
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
-   
-        // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
-        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
-        if($overQuantity > 0){
-            $overQuantity *= -1;
-            $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
-            $zonesDefault = array('zone' => array('0' => (string)$rec->zoneId), 'quantity' => array('0' => (string)$overQuantity));
-            $zonesDefault = $ZoneType->fromVerbal($zonesDefault);
 
-            if(!Mode::is('printing')){
-                $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'batch' => $rec->batch, 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'defaultZones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
+        if(!Mode::is('printing')){
+
+            // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
+            if($mvc->haveRightFor('returnquantitymovement', $rec)){
+                $row->status = ht::createLink('', array($mvc, 'ReturnQuantityMovement', $rec->id, 'ret_url' => true), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
             }
         }
         
@@ -480,6 +474,18 @@ class rack_ZoneDetails extends core_Detail
                 }
             }
         }
+
+        if($action == 'returnquantitymovement'){
+            $requiredRoles = rack_Movements::getRequiredRoles('add', null, $userId);
+            if($requiredRoles != 'no_one'){
+                if(isset($rec)){
+                    $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
+                    if($overQuantity <= 0){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
     }
 
 
@@ -671,5 +677,63 @@ class rack_ZoneDetails extends core_Detail
 
         // Рендиране на формата
         return $tpl;
+    }
+
+
+    /**
+     * Екшън генериращ движение за връщане от зоната
+     */
+    public function act_ReturnQuantityMovement()
+    {
+        $this->requireRightFor('returnquantitymovement');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = static::fetch($id));
+        $this->requireRightFor('returnquantitymovement', $rec);
+        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
+
+        // Създава се обратно движение
+        $newRec = static::makeReturnQuantityMovement($rec->zoneId, $rec->productId, $rec->batch, $rec->packagingId, $overQuantity);
+        rack_Movements::save($newRec);
+
+        followRetUrl(null, 'Създадено е обратно движение за връщане на останалото количество в зоната');
+    }
+
+
+    /**
+     * Генериране на обратно движение за връщане на посоченото к-во от зоната
+     *
+     * @param mixed $zoneRec    - запис на зона
+     * @param int $productId    - ид на артикул
+     * @param string $batch     - партида
+     * @param bull $packagingId - ид на опаковката
+     * @param double $quantity  - к-во за връщане
+     * @param int|null $userId  - ид на работник
+     * @return object $newRec   - запис на движение
+     */
+    private static function makeReturnQuantityMovement($zoneRec, $productId, $batch, $packagingId, $quantity, $userId = null)
+    {
+        $zoneRec = rack_Zones::fetchRec($zoneRec);
+        $workerId = isset($userId) ? $userId : core_Users::getCurrent();
+        $packRec = cat_products_Packagings::getPack($productId, $packagingId);
+        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+        $newRec = (object) array('productId' => $productId,
+                                 'packagingId' => $packagingId,
+                                 'storeId' => $zoneRec->storeId,
+                                 'quantityInPack' => $quantityInPack,
+                                 'batch' => $batch,
+                                 'state' => isset($workerId) ? 'waiting' : 'pending',
+                                 'brState' => isset($workerId) ? 'pending' : 'null',
+                                 'batch' => $batch,
+                                 'workerId' => $workerId,
+                                 'quantity' => 0,
+                                 'positionTo' => rack_PositionType::FLOOR,
+        );
+
+        $zoneArr = array('zone' => array($zoneRec->id), 'quantity' => array(-1 * $quantity));
+        $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
+        $newRec->zones = $TableType->fromVerbal($zoneArr);
+
+        return $newRec;
     }
 }
