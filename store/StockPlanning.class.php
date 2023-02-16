@@ -39,7 +39,7 @@ class store_StockPlanning extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'debug';
+    public $canList = 'powerUser';
 
 
     /**
@@ -65,9 +65,9 @@ class store_StockPlanning extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore)', 'caption=Артикул,tdClass=leftAlign');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore)', 'caption=Артикул,tdClass=leftAlign,silent');
         $this->FLD('genericProductId', 'key(mvc=cat_Products,select=name)', 'caption=Генеричен,tdClass=leftAlign');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign,silent');
         $this->FLD('date', 'datetime', 'caption=Дата');
         $this->FLD('quantityIn', 'double', 'caption=Количество->Влиза');
         $this->FLD('quantityOut', 'double', 'caption=Количество->Излиза');

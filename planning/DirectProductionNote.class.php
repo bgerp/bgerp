@@ -236,13 +236,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $storeId = $originRec->storeId;
         $saleId = $originRec->saleId;
         if($originDoc->isInstanceOf('planning_Tasks')){
-
+            $defaultOriginPackField = 'measureId';
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
             $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
             unset($productOptions[$jobRec->productId]);
         } else {
+            $defaultOriginPackField = 'packagingId';
             $jobRec = $originDoc->fetch();
             $productOptions = array($originRec->productId => cat_Products::getTitleById($originRec->productId, false));
         }
@@ -272,7 +273,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $packs = array_intersect_key($packs, $secondMeasureDerivatives);
                 }
 
-                $defaultPack =  ($productRec->canStore == 'no') ? $originRec->measureId : $originRec->packagingId;
+                $defaultPack = $originRec->{$defaultOriginPackField};
             } else {
                 $packs = cat_Products::getPacks($rec->productId);
 
