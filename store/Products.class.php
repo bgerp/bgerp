@@ -807,11 +807,9 @@ class store_Products extends core_Detail
             $links .= $link->getContent();
         }
 
-        if($totalCount > static::SHOW_DOCUMENTS_IN_PLANNED_STOCK_HINT){
-            $storeId = (countR($stores) == 1) ? key($stores) : null;
-            $linkToFilter = ht::createLink(tr('Още|*....'), array('store_StockPlanning', 'list', 'storeId' => $storeId, 'productId' => $productId))->getContent();
-            $links .= "<div style='float:left;padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
-        }
+        $storeId = (countR($stores) == 1) ? key($stores) : null;
+        $linkToFilter = ht::createLink(tr('Още|*....'), array('store_StockPlanning', 'list', 'storeId' => $storeId, 'productId' => $productId))->getContent();
+        $links .= "<div style='float:left;padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
 
         $tpl = new core_ET($links);
 
