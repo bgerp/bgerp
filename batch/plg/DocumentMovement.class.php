@@ -125,8 +125,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 }
                
                 // Ако някои от тях нямат посочена партида, документа няма да се контира
-                if($checkIfBatchIsMandatory == 'yes' && $sum < $dRec->{$Detail->quantityFld}){
-                    wp($sum, $dRec->{$Detail->quantityFld});
+                if($checkIfBatchIsMandatory == 'yes' && round($sum, 3) < round($dRec->{$Detail->quantityFld}, 3)){
                     $productsWithoutBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
                 }
             }
