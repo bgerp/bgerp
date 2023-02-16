@@ -449,6 +449,8 @@ class rack_Movements extends rack_MovementAbstract
             
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $round = cat_UoM::fetchField($measureId, 'round');
 
             // Ако е от входящ документ
             if($rec->fromIncomingDocument == 'yes'){
@@ -467,11 +469,13 @@ class rack_Movements extends rack_MovementAbstract
                 // Приспадане на създаденото досега от документа
                 $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;
                 $availableQuantity -= $createdByNowQuantity;
+                $availableQuantity = round($availableQuantity, $round);
             } else {
                 $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
                 $availableQuantity = Mode::get($counterKey);
                 if(!isset($availableQuantity)){
                     $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch);
+                    $availableQuantity = round($availableQuantity, $round);
                 }
                 $form->setDefault('liveCounter', $availableQuantity);
             }

@@ -767,7 +767,6 @@ class store_Products extends core_Detail
         $toDate = Request::get('date', 'date');
         $today = dt::today();
         $recs = store_StockPlanning::getRecs($productId, $stores, $toDate, $field);
-        $totalCount = countR($recs);
         $recs = array_splice($recs, 0, static::SHOW_DOCUMENTS_IN_PLANNED_STOCK_HINT);
 
         $links = '';
@@ -808,8 +807,8 @@ class store_Products extends core_Detail
         }
 
         $storeId = (countR($stores) == 1) ? key($stores) : null;
-        $linkToFilter = ht::createLink(tr('Още|*....'), array('store_StockPlanning', 'list', 'storeId' => $storeId, 'productId' => $productId))->getContent();
-        $links .= "<div style='float:left;padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
+        $linkToFilter = ht::createLink(tr('Подробно|*....'), array('store_StockPlanning', 'list', 'storeId' => $storeId, 'productId' => $productId))->getContent();
+        $links .= "<br><div style='float:left;padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
 
         $tpl = new core_ET($links);
 
