@@ -61,6 +61,12 @@ class store_StockPlanning extends core_Manager
 
 
     /**
+     * Константа за стринг, който да се използва за кеш на изгледа
+     */
+    const LIST_CACHE_STRING = 'STOCK';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -214,10 +220,23 @@ class store_StockPlanning extends core_Manager
     {
         $data->listFilter->input(null, 'silent');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'date,productId,storeId,threadId,sourceClassId';
+        $showFields = arr::make('date,productId,storeId,threadId,sourceClassId', true);
         $data->listFilter->input();
         $data->listFilter->setFieldType('date', 'date');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $urlHash = Mode::get('stockPlanningHash');
+        if(!empty($urlHash)){
+            unset($showFields['threadId']);
+            if(Request::get('productId')){
+                unset($showFields['productId']);
+                unset($data->listFields['productId']);
+                unset($data->listFields['genericProductId']);
+            }
+        }
+
+        $data->listFilter->showFields = $showFields;
+
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)) {
                 $data->query->where("#productId = {$rec->productId}");
@@ -556,6 +575,53 @@ class store_StockPlanning extends core_Manager
         $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId,storeId');
 
         return $query->fetchAll();
+    }
+
+
+    /**
+     * Екшън даващ временен достъп до модела, ако има защитен параметър от урл-то
+     */
+    public function act_Browse()
+    {
+        Request::setProtected('hash');
+
+        // Записване в сесията на хеша за достъпа
+        $urlHash = Request::get('hash', 'varchar');
+        if(!empty($urlHash) && !haveRole('debug')){
+            Mode::setPermanent('stockPlanningHash', Request::get('hash', 'varchar'));
+        }
+
+        return parent::act_List();
+    }
+
+
+    /**
+     * Променяме wrapper
+     */
+    public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
+    {
+        if(Mode::get('stockPlanningHash')){
+            $res = $tpl;
+            return false;
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'list'){
+
+            // Ако няма записан в сесията форсиран достъп се изисква дебъг меню
+            $urlHash = Mode::get('stockPlanningHash');
+            if(empty($urlHash) || $urlHash != md5(self::LIST_CACHE_STRING)){
+                if(!haveRole('debug')){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
 }
 
