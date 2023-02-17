@@ -31,7 +31,7 @@ class store_Wrapper extends plg_ProtoWrapper
         $this->TAB('store_Transfers', 'Документи->Междускладови трансфери', 'store,ceo');
         $this->TAB('store_ConsignmentProtocols', 'Документи->Отговорно пазене', 'store,ceo');
         $this->TAB('store_InventoryNotes', 'Документи->Инвентаризация', 'store,ceo');
-        $this->TAB('store_StockPlanning', 'Документи->Хоризонти', 'powerUser');
+        $this->TAB('store_StockPlanning', 'Дебъг->Хоризонти', 'debug');
         
         $this->title = 'Склад';
     }

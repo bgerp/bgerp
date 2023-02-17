@@ -4437,7 +4437,7 @@ class cat_Products extends embed_Manager
             $overheadCostArr = cat_Groups::getDefaultOverheadCostsByProductId($productId);
             if(is_array($overheadCostArr)){
                 $overheadCost = $overheadCostArr['value'];
-                $hint = tr('от група|* ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
+                $hint = tr('от група|*: ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
             }
 
         } else {
@@ -4445,12 +4445,12 @@ class cat_Products extends embed_Manager
         }
 
         // Ако не е намерена стойност гледа се глобалната константа
-        if(empty($overheadCost)) {
+        if(!isset($overheadCost)) {
             $overheadCost = cat_Setup::get('DEFAULT_PRODUCT_OVERHEAD_COST');
             $hint = tr('от пакета "cat"<br>(обща настройка по подразбиране за системата)');
         }
 
-        $overheadCost = empty($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
+        $overheadCost = !isset($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
 
         return $overheadCost;
     }
