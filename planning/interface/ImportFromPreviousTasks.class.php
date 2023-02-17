@@ -104,7 +104,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                 if(core_Packs::isInstalled('batch') && isset($masterRec->storeId)){
                     $bQuery = batch_BatchesInDocuments::getQuery();
                     $bQuery->where("#detailClassId = {$batchClassId} AND #detailRecId = {$cRec->id}");
-                    static::addBatchDataToArray($bQuery, $producedProducts);
+                    static::addBatchDataToArray($bQuery, $producedProducts, true);
                 }
             }
         }
@@ -115,6 +115,16 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
             $caption = str_replace(',', ' ', $caption);
             $shortUom = cat_UoM::getShortName($pData['packagingId']);
             $caption = "{$caption} [{$shortUom}]";
+
+            if($Def = batch_Defs::getBatchDef($pData['productId'])){
+                $defValue = $Def->getAutoValue($mvc->Master, $masterRec->id, $masterRec->valior);
+                if(isset($defValue)){
+                    $md5DefaultVal = md5($defValue);
+                    if(!array_key_exists($md5DefaultVal, $pData)){
+                        $pData['batches'] = array($md5DefaultVal => array('batch' => $defValue, 'quantity' => 0)) + $pData['batches'];
+                    }
+                }
+            }
 
             $batchQuantities = array();
             if(core_Packs::isInstalled('batch') && isset($masterRec->storeId)){
@@ -168,11 +178,12 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
     /**
      * Помощна ф-я за добавяне на партидности към резултатите от предходните ПО
      *
-     * @param $bQuery
-     * @param $producedProducts
+     * @param core_Query $bQuery
+     * @param array $producedProducts
+     * @param bool $zeroQuantity
      * @return void
      */
-    private static function addBatchDataToArray($bQuery, &$producedProducts)
+    private static function addBatchDataToArray($bQuery, &$producedProducts, $zeroQuantity = false)
     {
         while($bRec = $bQuery->fetch()){
             if($batchDef = batch_Defs::getBatchDef($bRec->productId)){
@@ -182,7 +193,9 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                     if(!array_key_exists($bKey, $producedProducts[$bRec->productId]['batches'])){
                         $producedProducts[$bRec->productId]['batches'][$bKey] = array("batch" => $b, 'quantity' => 0);
                     }
-                    $producedProducts[$bRec->productId]['batches'][$bKey]['quantity'] += $bRec->quantity;
+                    if(!$zeroQuantity){
+                        $producedProducts[$bRec->productId]['batches'][$bKey]['quantity'] += $bRec->quantity;
+                    }
                 }
             }
         }
