@@ -270,7 +270,7 @@ class cat_Groups extends core_Master
             }
         }
 
-        if ($fields['-single'] && empty($rec->defaultOverheadCostsPercent)) {
+        if ($fields['-single'] && !isset($rec->defaultOverheadCostsPercent)) {
 
             // Ако е намерена наследена стойност
             if($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)){
@@ -561,7 +561,7 @@ class cat_Groups extends core_Master
 
                 // Ако в самата група има ръчно въведен процент - взима се той
                 $groupRec = static::fetch("#id = {$groupId}", "id,parentId,defaultOverheadCostsPercent");
-                if(!empty($groupRec->defaultOverheadCostsPercent)){
+                if(isset($groupRec->defaultOverheadCostsPercent)){
                     $groupsToCheck[$groupRec->id] = $groupRec->defaultOverheadCostsPercent;
                 } else {
                     if($overheadCostArr = $me->getDefaultOverheadCostFromParent($groupRec)){
