@@ -1,0 +1,196 @@
+<?php
+
+
+/**
+ *
+ *
+ * @category  bgerp
+ * @package   openai
+ *
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2023 Experta OOD
+ * @license   GPL 3
+ *
+ * @since     v 0.1
+ */
+class openai_Prompt extends core_Manager
+{
+
+
+    /**
+     * @var string
+     */
+    public static $extractContactDataBg = 'extract-contact-data';
+
+
+    /**
+     * @var string
+     */
+    public static $extractContactDataEn = 'extract-contact-data-en';
+
+    /**
+     * Заглавие на мениджъра
+     */
+    public $title = 'Въпроси';
+
+
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_Created, plg_Modified, openai_Wrapper, plg_Sorting, plg_Search, plg_RowTools2';
+
+
+    /**
+     * Кой има право да го променя?
+     */
+    public $canEdit = 'openai';
+
+
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'openai';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'openai';
+
+
+    /**
+     * Кой има право да изтрива?
+     */
+    public $canDelete = 'openai';
+
+
+    /**
+     * Кой може да редактира системните роли
+     */
+    public $canEditsysdata = 'openai';
+
+
+    /**
+     * Кой има право да изтрива потребителите, създадени от системата?
+     */
+    public $canDeletesysdata = 'openai';
+
+
+    /**
+     * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
+     */
+    public $searchFields = 'systemId, prompt';
+
+
+    /**
+     * Описание на модела
+     */
+    public function description()
+    {
+        $this->FLD('systemId', 'varchar(64)', 'caption=Ключ');
+        $this->FLD('prompt', 'text', 'caption=Въпрос');
+
+        $this->setDbUnique('systemId');
+    }
+
+
+    /**
+     * Връща въпроса за systemId
+     *
+     * @param $systemId
+     *
+     * @return boolean|string
+     */
+    public static function getPromptBySystemId($systemId)
+    {
+
+        return self::fetchField(array("#systemId = '[#1#]'", $systemId), 'prompt');
+    }
+
+
+    /**
+     * @param $mvc
+     * @param $data
+     * @return void
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($data->form->rec->id) {
+            $data->form->setReadOnly('systemId');
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $data->query->orderBy('modifiedOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
+    }
+
+
+    /**
+     * Само за преход между старата версия
+     */
+    public static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $recBg = $mvc->fetch(array("#systemId = '[#1#]'", static::$extractContactDataBg));
+        if (!$recBg) {
+            $recBg = new stdClass();
+            $recBg->systemId = static::$extractContactDataBg;
+            $recBg->prompt = "Извлечи следните контактни данни от по-долния имейл и от резултата премахни редовете без съвпадение:\n";
+            $recBg->prompt .= "Името на фирмата\n";
+            $recBg->prompt .= "Името на лицето\n";
+            $recBg->prompt .= "Адреса за доставка,\n";
+            $recBg->prompt .= "Имейл\n";
+            $recBg->prompt .= "Телефон\n";
+            $recBg->prompt .= "Фейсбук\n";
+            $recBg->prompt .= "Туитър\n";
+            $recBg->prompt .= "Данъчен номер\n";
+            $recBg->prompt .= "Имейл\n";
+            $recBg->prompt .= "\n\n";
+            $recBg->prompt .= "[#subject#]";
+            $recBg->prompt .= "\n";
+            $recBg->prompt .= "От: [#from#]";
+            $recBg->prompt .= "\n";
+            $recBg->prompt .= "[#email#]";
+
+            $mvc->save($recBg);
+        }
+
+        $recEn = $mvc->fetch(array("#systemId = '[#1#]'", static::$extractContactDataEn));
+        if (!$recEn) {
+            $recEn = new stdClass();
+            $recEn->systemId = static::$extractContactDataEn;
+            $recEn->prompt = "Please extract contact data from following email and remove the non-matching lines from the result:\n";
+            $recEn->prompt .= "Person name\n";
+            $recEn->prompt .= "Person gender\n";
+            $recEn->prompt .= "Job position,\n";
+            $recEn->prompt .= "Mobile\n";
+            $recEn->prompt .= "Company\n";
+            $recEn->prompt .= "Country\n";
+            $recEn->prompt .= "Postal code\n";
+            $recEn->prompt .= "Place\n";
+            $recEn->prompt .= "Street address\n";
+            $recEn->prompt .= "Company telephone\n";
+            $recEn->prompt .= "Web site\n";
+            $recEn->prompt .= "VAT number\n";
+            $recEn->prompt .= "Social media\n";
+            $recEn->prompt .= "Email\n";
+            $recEn->prompt .= "\n\n";
+            $recEn->prompt .= "[#subject#]";
+            $recEn->prompt .= "\n";
+            $recEn->prompt .= "From: [#from#]";
+            $recEn->prompt .= "\n";
+            $recEn->prompt .= "[#email#]";
+
+            $mvc->save($recEn);
+        }
+    }
+}

@@ -38,7 +38,7 @@ class openai_Cache extends core_Manager
     /**
      * Кой има право да го променя?
      */
-    public $canEdit = 'admin, openai';
+    public $canEdit = 'openai';
 
 
     /**
@@ -50,13 +50,13 @@ class openai_Cache extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin, openai';
+    public $canList = 'openai';
 
 
     /**
      * Кой има право да изтрива?
      */
-    public $canDelete = 'debug';
+    public $canDelete = 'openai';
 
 
     /**
