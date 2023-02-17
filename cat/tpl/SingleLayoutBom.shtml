@@ -19,7 +19,7 @@
     	<div style='margin-top:5px'><span class='quiet'>|Показване в артикула|*</span>: <b>[#showInProduct#]</b></div>
     <!--ET_END showInProduct-->
 
-    <div style='margin-top:5px'><span class='quiet'>|Пълна рецепта|*</span>: [#isComplete#]</div>
+    <div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: [#isComplete#]</div>
     <div style='margin-top:5px'><span class='quiet'>|Модифициранe|*</span>: <b>[#modifiedOn#]</b> |от|* [#modifiedBy#]</div>
     
     <div class="scrolling-holder" style='margin:10px 0'>
