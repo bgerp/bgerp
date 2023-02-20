@@ -135,9 +135,9 @@ class batch_Setup extends core_ProtoSetup
             'description' => 'Затваряне на старите партиди по които не е имало движение',
             'controller' => 'batch_Items',
             'action' => 'closeOldBatches',
-            'period' => 5,
+            'period' => 3,
             'offset' => 1,
-            'timeLimit' => 100
+            'timeLimit' => 60
         ),
     );
     
