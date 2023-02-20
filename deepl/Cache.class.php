@@ -50,7 +50,7 @@ class deepl_Cache extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin, deepl';
+    public $canList = 'deepl';
 
 
     /**
