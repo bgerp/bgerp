@@ -251,7 +251,17 @@ class email_Mime extends core_BaseClass
             if ($defLg != 'en' && !preg_match('/\p{Cyrillic}/ui', $this->textPart)) {
                 $defLgArr['en'] = 3;
             }
-            
+
+            // Към приоритетите добавяме и стрингове от началото
+            $priorityLen = 512;
+            if (mb_strlen($this->textPart) > ($priorityLen * 1.5)) {
+                $tPart = mb_substr($this->textPart, 0, $priorityLen);
+                $dLang = i18n_Language::detect($tPart);
+                if ($dLang) {
+                    $defLgArr[$dLang] += 3;
+                }
+            }
+
             $this->lg = i18n_Language::detect($this->textPart, $defLgArr);
         }
         
