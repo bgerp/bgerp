@@ -57,7 +57,7 @@ class store_StockPlanning extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productId,genericProductId,storeId,date,quantityOut,quantityIn,sourceId=Източник->Основен,reffId=Източник->Допълнителен,state=Източник->Състояние,threadId=Източник->Нишка,createdOn';
+    public $listFields = 'id,productId,genericProductId,storeId,date,quantityOut,quantityIn,sourceId=Източник->Основен,reffId=Източник->Допълнителен,state=Източник->Състояние,threadId=Източник->Нишка,createdOn,createdBy';
 
 
     /**
@@ -170,7 +170,8 @@ class store_StockPlanning extends core_Manager
             $threadId = $sourceRec->threadId;
         }
 
-        array_walk($array, function($a) use ($now, $classId, $threadId, $id) {$a->createdOn = $now; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId;});
+        $cu = core_Users::getCurrent();
+        array_walk($array, function($a) use ($now, $classId, $threadId, $id, $cu) {$a->createdOn = $now; $a->createdBy = $cu; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId;});
     }
 
 
@@ -228,6 +229,9 @@ class store_StockPlanning extends core_Manager
         $urlHash = Mode::get('stockPlanningHash');
         if(!empty($urlHash)){
             unset($showFields['threadId']);
+            unset($data->listFields['id']);
+            unset($data->listFields['threadId']);
+            unset($data->listFields['state']);
             if(Request::get('productId')){
                 unset($showFields['productId']);
                 unset($data->listFields['productId']);
@@ -612,7 +616,7 @@ class store_StockPlanning extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'list'){
+        if($action == 'list' || $action == 'reject'){
 
             // Ако няма записан в сесията форсиран достъп се изисква дебъг меню
             $urlHash = Mode::get('stockPlanningHash');
