@@ -137,7 +137,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                 $noBatchCaption = 'Без партида';
                 foreach ($pData['batches'] as $bArr){
                     if($batchDef = batch_Defs::getBatchDef($pData['productId'])){
-                        $totalQuantity -= $bArr['quantity'];
+
 
                         $key = "{$pData['productId']}|" . md5($bArr['batch']);
                         $subCaption = $batchDef->toVerbal($bArr['batch']);
@@ -146,13 +146,20 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
                         $rec->_details[$key] = $pData;
 
                         if(isset($batchQuantities[$bArr['batch']])){
-                            $batchQuantityDefault = min($batchQuantities[$bArr['batch']], $bArr['quantity']);
+                            if(!empty($batchQuantities[$bArr['batch']]) && !empty($bArr['quantity'])){
+                                $batchQuantityDefault = min($batchQuantities[$bArr['batch']], $bArr['quantity']);
+                            } else {
+                                $batchQuantityDefault = !empty($batchQuantities[$bArr['batch']]) ? $batchQuantities[$bArr['batch']] : $bArr['quantity'];
+                            }
+                            $totalQuantity -= $batchQuantityDefault;
                             if($batchQuantityDefault > 0){
                                 $fRec = batch_BatchesInDocuments::fetch(array("#containerId = {$masterRec->containerId} AND #productId = {$pData['productId']} AND #packagingId = {$pData['packagingId']} AND #batch = '[#1#]'", $bArr['batch']));
                                 if(!$fRec){
                                     $form->setDefault($key, $batchQuantities[$bArr['batch']]);
                                 }
                             }
+                        } else {
+                            $totalQuantity -= $bArr['quantity'];
                         }
                     }
                 }
