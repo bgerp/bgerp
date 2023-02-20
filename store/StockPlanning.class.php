@@ -232,7 +232,9 @@ class store_StockPlanning extends core_Manager
             unset($data->listFields['id']);
             unset($data->listFields['threadId']);
             unset($data->listFields['state']);
-            if(Request::get('productId')){
+            if($productId = Request::get('productId')){
+                $productId = cat_Products::getTitleById($productId, false);
+                $data->title = "Хоризонти|*: <b style='color:green'>{$productId}</b>";
                 unset($showFields['productId']);
                 unset($data->listFields['productId']);
                 unset($data->listFields['genericProductId']);
