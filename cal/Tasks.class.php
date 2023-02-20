@@ -1721,7 +1721,7 @@ class cal_Tasks extends embed_Manager
      */
     public static function getNumbPriority($rec)
     {
-        if ($rec->state == 'active' || $rec->state == 'waiting') {
+        if ($rec->state == 'active' || $rec->state == 'waiting' || $rec->state == 'pending') {
             switch ($rec->priority) {
                 case 'low':
                     $res = 100;
