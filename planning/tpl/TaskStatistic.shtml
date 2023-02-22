@@ -49,7 +49,7 @@
                   <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
                   <!--ET_END followBatchesForFinalProduct-->
                   <!--ET_BEGIN previousStepIds-->
-                  <span style='font-weight:normal'>|Предх. Етапи|*</span>: [#previousStepIds#]<br>
+                  <span style='font-weight:normal'>|Предх. операция|*</span>: [#manualPreviousTask#]<br>
                   <!--ET_END previousStepIds-->
                   <!--ET_BEGIN dependantProgress-->
                   <span style='font-weight:normal'>|Предх.Оп.|*</span>: [#dependantProgress#]<br>
@@ -68,7 +68,7 @@
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
                 <td class='sum-th'><b>|Продължителност|* [#recalcBtn#]</b></td>
-                <td class='sum-th'>[#productCaption#]: <b>[#productId#]</b> <b>[<span style="color:blue">[#saoOrder#]</span>/<span style="color:green">[#taskCount#]</span>]</b></td>
+                <td class='sum-th'>[#productCaption#]: <b>[#productId#]</b> <!--ET_BEGIN saoOrder--><b>[<span style="color:blue">[#saoOrder#]</span>/<span style="color:green">[#taskCount#]</span>]</b><!--ET_END saoOrder--></td>
             </tr>
             <tr>
                 <td>[#expectedTimeStart#]</td>
