@@ -721,7 +721,6 @@ class rack_ZoneDetails extends core_Detail
                                  'packagingId' => $packagingId,
                                  'storeId' => $zoneRec->storeId,
                                  'quantityInPack' => $quantityInPack,
-                                 'batch' => $batch,
                                  'state' => isset($workerId) ? 'waiting' : 'pending',
                                  'brState' => isset($workerId) ? 'pending' : 'null',
                                  'batch' => $batch,
@@ -730,7 +729,7 @@ class rack_ZoneDetails extends core_Detail
                                  'positionTo' => rack_PositionType::FLOOR,
         );
 
-        $zoneArr = array('zone' => array($zoneRec->id), 'quantity' => array(-1 * $quantity));
+        $zoneArr = array('zone' => array($zoneRec->id), 'quantity' => array(-1 * $quantity / $quantityInPack));
         $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
         $newRec->zones = $TableType->fromVerbal($zoneArr);
 
