@@ -303,8 +303,9 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
         $serviceOptions = array();
         if((isset($formRec->receiverCountryId) && !empty($formRec->receiverPCode)) || !empty($formRec->receiverSpeedyOffice)){
+
             try{
-                $serviceOptions = speedy_Adapter::getServiceOptions($formRec->senderClientId, $formRec->receiverCountryId, $formRec->receiverPCode, $formRec->receiverSpeedyOffice, $formRec->isPrivatePerson);
+                $serviceOptions = speedy_Adapter::getServiceOptions($formRec->senderClientId, $formRec->receiverCountryId, $formRec->receiverPCode, $formRec->receiverPlace, $formRec->receiverSpeedyOffice, $formRec->isPrivatePerson);
             } catch(core_exception_Expect $e){
                 $serviceOptions = array();
             }
