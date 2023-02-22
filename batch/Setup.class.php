@@ -36,7 +36,7 @@ defIfNot('BATCH_SHOW_IN_INVOICES', 'yes');
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -135,9 +135,9 @@ class batch_Setup extends core_ProtoSetup
             'description' => 'Затваряне на старите партиди по които не е имало движение',
             'controller' => 'batch_Items',
             'action' => 'closeOldBatches',
-            'period' => 1440,
-            'offset' => 20,
-            'timeLimit' => 100
+            'period' => 3,
+            'offset' => 1,
+            'timeLimit' => 60
         ),
     );
     

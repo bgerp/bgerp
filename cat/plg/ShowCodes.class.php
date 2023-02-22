@@ -98,4 +98,51 @@ class cat_plg_ShowCodes extends core_Plugin
             $data->listTableMvc->FNC('reff', 'varchar', 'tdClass=small-field morePadding nowrap');
         }
     }
+
+
+    /**
+     * Метод по подразбиране за извличане на детайлите в правилната подредба за бутоните напред/назад
+     *
+     * @param core_Detail $DetailMvc
+     * @param array $res
+     * @param int $detailId
+     * @return void
+     */
+    public static function on_BeforeGetPrevAndNextDetailQuery($DetailMvc, &$res, $detailId)
+    {
+        // Извличане на записа и мастъра
+        $masterId = $DetailMvc->fetchField($detailId, $DetailMvc->masterKey);
+        $masterRec = $DetailMvc->Master->fetch($masterId);
+        $dQuery = $DetailMvc->getQuery();
+        $dQuery->where("#{$DetailMvc->masterKey} = {$masterId}");
+
+        $res = array();
+
+        // Ако в мастъра има посочено поле за сортиране на детайла
+        if(isset($DetailMvc->Master->detailOrderByField)) {
+            if($masterRec->{$DetailMvc->Master->detailOrderByField} == 'code'){
+                if(isset($DetailMvc->productFieldName)){
+                    $dRecs = array();
+
+                    // Извличат се кодовете на артикулите, за да може да се сортира по тях
+                    $cloneQuery = clone $dQuery;
+                    $cloneQuery->EXT('code', 'cat_Products', "externalName=code,externalKey={$DetailMvc->productFieldName}");
+                    $cloneQuery->XPR('codeCalc', 'varchar', "COALESCE(#code, CONCAT('Art', #{$DetailMvc->productFieldName}))");
+                    while($dRec = $cloneQuery->fetch()){
+                        $dRecs[] = array('id' => $dRec->id, 'code' => $dRec->codeCalc);
+                    }
+                    arr::sortObjects($dRecs, 'code', 'ASC', 'natural');
+                    foreach ($dRecs as $dRec1){
+                        $res[] = $dRec1['id'];
+                    }
+                }
+            }
+
+            // Иначе ще си се сортират по реда на създаване
+            if(!countR($res)){
+                $dQuery->orderBy('id', 'ASC');
+                $res = arr::extractValuesFromArray($dQuery->fetchAll(), 'id');
+            }
+        }
+    }
 }

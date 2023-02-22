@@ -729,14 +729,10 @@ class batch_BatchesInDocuments extends core_Manager
     private static function getBatchModifiableRecs($Detail, $detailRecId, $storeId)
     {
         $modifiableRecs = array();
-        $masterId = $Detail->fetchField($detailRecId, $Detail->masterKey);
-        $dQuery = $Detail->getQuery();
-        $dQuery->where("#{$Detail->masterKey} = {$masterId}");
-        $dQuery->show('id');
-        $dQuery->orderBy('id', 'ASC');
-        while($dRec = $dQuery->fetch()){
-            if(batch_BatchesInDocuments::haveRightFor('modify', (object) array('detailClassId' => $Detail->getClassId(), 'detailRecId' => $dRec->id, 'storeId' => $storeId))) {
-                $modifiableRecs[] = $dRec->id;
+        $detailIds = $Detail->getPrevAndNextDetailQuery($detailRecId);
+        foreach($detailIds as $dId){
+            if(batch_BatchesInDocuments::haveRightFor('modify', (object) array('detailClassId' => $Detail->getClassId(), 'detailRecId' => $dId, 'storeId' => $storeId))) {
+                $modifiableRecs[] = $dId;
             }
         }
 

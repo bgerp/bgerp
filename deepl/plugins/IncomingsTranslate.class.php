@@ -40,9 +40,11 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
 
         $rLg = strtolower($rec->lg);
 
+        $isGoodToTranslate = (boolean)($rLg != deepl_Setup::get('LANG'));
+
         if (empty($translateLgCodeArr) || $translateLgCodeArr[$rLg]) {
-            if ($rLg != deepl_Setup::get('LANG') && !(Mode::is('text', 'xhtml')
-                && !Mode::is('printing')) && !Mode::is('text', 'plain') && $fields['-single'] && trim($row->textPart)) {
+            if (!(Mode::is('text', 'xhtml') && !Mode::is('printing')) && !Mode::is('text', 'plain')
+                && $fields['-single'] && trim($row->textPart) && $isGoodToTranslate) {
 
                 if ($mvc->haveRightFor('single', $rec->id)) {
                     $tr = Request::get('tr');
@@ -65,7 +67,7 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
                     $row->subject = new ET($cTextSubject);
 
                     if (!$cText) {
-                        $text = $tr ? 'Оригинал' : 'Превеждане';
+                        $text = $tr ? 'Оригинал' : 'Превод';
 
                         $link = ht::createLink(tr($text), $url, false,
                             array("style" => 'position: relative; float: right;', 'onclick' => 'return startUrlFromDataAttr(this, true);', 'data-url' => toUrl($url, 'local')));
@@ -134,8 +136,8 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
                         $subject = $subjectC;
                     }
                 } else {
-                    $textPart = deepl_Api::translate($textPart, null, $rec->lg);
-                    $subject = deepl_Api::translate($subject, null, $rec->lg);
+                    $textPart = deepl_Api::translate($textPart);
+                    $subject = deepl_Api::translate($subject);
 
                     core_Cache::set('deepltranslate', $handle, $textPart, 100);
                     core_Cache::set('deepltranslateSubject', $handle, $subject, 100);

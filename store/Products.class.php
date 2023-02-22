@@ -808,7 +808,7 @@ class store_Products extends core_Detail
 
         $storeId = (countR($stores) == 1) ? key($stores) : null;
         Request::setProtected('hash');
-        $linkToFilter = ht::createLink(tr('Подробно|*....'), array('store_StockPlanning', 'Browse', 'storeId' => $storeId, 'productId' => $productId, 'hash' => md5(store_StockPlanning::LIST_CACHE_STRING)))->getContent();
+        $linkToFilter = ht::createLink(tr('Още|* ...'), array('store_StockPlanning', 'Browse', 'storeId' => $storeId, 'productId' => $productId, 'hash' => md5(store_StockPlanning::LIST_CACHE_STRING)))->getContent();
         Request::removeProtected('hash');
         $links .= "<br><div style='float:left;padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
 

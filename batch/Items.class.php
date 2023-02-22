@@ -207,14 +207,10 @@ class batch_Items extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-        
-        if (!$rec) {
-            
-            return;
-        }
-        $quantity = 0;
-        
+        if (!$rec) return;
+
         // Ъпдейтваме к-та спрямо движенията по партидата
+        $quantity = 0;
         $dQuery = batch_Movements::getQuery();
         $dQuery->where("#itemId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
@@ -227,12 +223,12 @@ class batch_Items extends core_Master
                 // Ако операцията е 'излизане' намаляваме к-то
                 $quantity -= $dRec->quantity;
             }
-            
-            // Ако операцията е 'стои', не правим нищо
         }
         
         // Опресняваме количеството
-        $rec->quantity = $quantity;
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+        $round = cat_UoM::fetchField($measureId, 'round');
+        $rec->quantity = round($quantity, $round);
         
         if ($rec->quantity == 0) {
             $rec->nullifiedDate = dt::now();
@@ -256,7 +252,8 @@ class batch_Items extends core_Master
     public function cron_closeOldBatches()
     {
         $query = self::getQuery();
-        $query->where("#quantity = 0 AND #state != 'closed'");
+        $query->XPR('quantityCalc', 'double', 'ROUND(#quantity, 4)');
+        $query->where("#quantityCalc = 0 AND #state != 'closed'");
         $before = core_Packs::getConfigValue('batch', 'BATCH_CLOSE_OLD_BATCHES');
         $before = dt::addSecs(-1 * $before, dt::now());
         

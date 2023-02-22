@@ -82,14 +82,6 @@ class deepl_Setup extends core_ProtoSetup
 
 
     /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(3.981, 'Система', 'DEEPL', 'deepl_Cache', 'default', 'deepl, admin'),
-    );
-
-
-    /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(

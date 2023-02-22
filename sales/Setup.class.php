@@ -258,6 +258,12 @@ defIfNot('SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS', 'no');
 
 
 /**
+ * Продажба дали да се избира единствената налична банкова сметка
+ */
+defIfNot('SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE', 'yes');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -434,6 +440,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
         'SALES_RECALC_PRICE_IN_CURRENCY_INTERVAL' => array('int(min=0)', 'caption=Рекалкулиране на валутните продажби за осредняване на курса и изравняване на статистиката->На всеки,placeholder=Изключено,unit=минути (0 за стоп)'),
         'SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS' => array('enum(no=Без фактуриране,yes=Фактуриране)', 'caption=Аванси от чуждестранни клиенти->Избор'),
+        'SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE' => array('enum(no=Да не се избира,yes=Автоматичен избор)', 'caption=Автоматичен избор на наша сметка в продажбите ако е само една достъпна->Избор'),
     );
     
     
