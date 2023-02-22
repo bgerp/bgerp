@@ -980,7 +980,7 @@ abstract class deals_DealBase extends core_Master
         $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
         $iQuery->EXT('lastAutoRecalcRate', $this->className, 'externalName=lastAutoRecalcRate,externalKey=objectId');
         $iQuery->XPR('lastAutoRecalcRateCalc', 'double', "COALESCE(#lastAutoRecalcRate, '0000-00-00 00:00:00')");
-        $iQuery->where("#currencyId != 'BGN' AND #currencyId != 'EUR' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
+        $iQuery->where("#currencyId != 'BGN' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
         $iQuery->where("#lastUseOn >= #lastAutoRecalcRateCalc");
 
         $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
