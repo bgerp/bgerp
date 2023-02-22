@@ -1515,8 +1515,7 @@ class cal_Tasks extends embed_Manager
         }
         
         // Ако отговаря на условията да се активира, вместо да е заявка
-        if (($oldRec->state == 'pending' && $newRec->state == 'pending') || 
-            ($oldRec->state == 'waiting' && $newRec->state == 'waiting') ||
+        if (($oldRec->state == 'waiting' && $newRec->state == 'waiting') ||
             ($oldRec->state == 'active' && $newRec->state == 'active')) {
             $canActivate = $mvc->canActivateTask($newRec);
             
@@ -1721,7 +1720,7 @@ class cal_Tasks extends embed_Manager
      */
     public static function getNumbPriority($rec)
     {
-        if ($rec->state == 'active' || $rec->state == 'waiting') {
+        if ($rec->state == 'active' || $rec->state == 'waiting' || $rec->state == 'pending') {
             switch ($rec->priority) {
                 case 'low':
                     $res = 100;

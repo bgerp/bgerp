@@ -255,7 +255,9 @@ class deals_Setup extends core_ProtoSetup
                         
                         // Подготовка на текста на нотификацията
                         $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($dRec->amount);
+                        Mode::push('text', 'plain');
                         $amountVerbal = currency_Currencies::decorate($amountVerbal, $dRec->currencyId);
+                        Mode::pop('text');
                         $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
                         $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
                         $msg = "|Просрочен документ|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";

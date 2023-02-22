@@ -1951,8 +1951,12 @@ class planning_Tasks extends core_Master
             while ($nRec = $nQuery->fetch()) {
                 $notes[] = planning_DirectProductionNote::getLink($nRec->id, 0);
             }
-            if (countR($notes)) {
-                $row->info .= "<div style='padding-bottom:7px' class='small'>" . implode(' | ', $notes) . "</div>";
+            $countNotes = countR($notes);
+            if ($countNotes) {
+                $row->info .= "<div style='padding-bottom:7px;' class='taskInJobListRow small pnotes{$rec->id}'>" . implode(' | ', $notes) . "</div>";
+                if(!Mode::isReadOnly()){
+                    $row->producedQuantity = "{$row->producedQuantity}&nbsp;<a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','pnotes{$rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>";
+                }
             }
 
             // Линк към разходите, ако ПО е разходен обект
@@ -1967,6 +1971,8 @@ class planning_Tasks extends core_Master
                 $costsCount = core_Type::getByName('int')->toVerbal($costsCount);
                 $row->costsCount = ht::createLinkRef($costsCount, $linkArr, false, 'title=Показване на разходите към документа');
             }
+
+
 
             $data->rows[$rec->id] = $row;
         }

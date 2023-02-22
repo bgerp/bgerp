@@ -63,17 +63,10 @@ class openai_Setup extends core_ProtoSetup
 
 
     /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(3.98, 'Система', 'AI', 'openai_Cache', 'default', 'openai, admin'),
-    );
-
-
-    /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
         'openai_Cache',
+        'openai_Prompt',
     );
 }

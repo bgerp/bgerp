@@ -730,10 +730,13 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($Driver = cat_Products::getDriver($serialProductId)) {
 
                 // Генериране на сериен номер, ако може
-                $serial = $Driver->generateSerial($serialProductId, 'planning_Tasks', $rec->taskId);
-                if(isset($serial)){
-                    $rec->serial = $serial;
-                    $rec->serialType = 'generated';
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore == 'yes') {
+                    $serial = $Driver->generateSerial($serialProductId, 'planning_Tasks', $rec->taskId);
+                    if(isset($serial)){
+                        $rec->serial = $serial;
+                        $rec->serialType = 'generated';
+                    }
                 }
             }
         } else {

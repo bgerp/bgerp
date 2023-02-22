@@ -15,29 +15,6 @@
  */
 class openai_ExtractContactInfo
 {
-    /**
-     * Въпросите за полетата на имейлите
-     */
-    static $extractQuestions = 'Името на фирмата, Името на лицето, Адреса за доставка, Имейл, Телефон, Фейсбук, Туитър, Данъчен номер';
-
-
-    /**
-     * Въпросите за полетата на имейлите EN
-     */
-    static $extractQuestionsEn = 'Person name, Person gender, Job position, Mobile, Company, Country, Postal code, Place,
-                                  Street address, Company telephone, Web site, VAT number, Social media';
-
-
-    /**
-     * Въпроса за извличане
-     */
-    static $extractText = 'Извлечи следните данни от по-долния имейл';
-
-
-    /**
-     * Въпроса за извличане ЕН
-     */
-    static $extractTextEn = 'Please extract contact data from following email';
 
 
     /**
@@ -107,53 +84,41 @@ class openai_ExtractContactInfo
             $textPart = $mime->justTextPart;
         }
 
-        $subject = $lg == 'bg' ? 'Относно' : 'Subject';
-        $from = $lg == 'bg' ? 'От' : 'From';
+        $placeArr = array();
+        $placeArr['subject'] = $mime->getSubject();
+        $placeArr['from'] = $mime->getFromName();
+        $placeArr['fromEmail'] = $mime->getFromEmail();
+        $placeArr['email'] = $textPart;
 
-        $textPart = $subject . ': ' . $mime->getSubject() . "\n" . $from . ': ' . $mime->getFromName() . "\n" .  $textPart;
-
-        return self::extractEmailDataFromText($textPart, $lg);
+        return self::extractEmailDataFromText($placeArr, $lg);
     }
 
 
     /**
      * Връща контактните данни от текстовата част
      *
-     * @param $emlFile
-     * @param $lg
+     * @param $placeArr $placeArr
+     * @param null|string $lg
      * @return false|string
      * @throws core_exception_Expect
      */
-    public static function extractEmailDataFromText($text, $lg = null)
+    public static function extractEmailDataFromText($placeArr, $lg = null)
     {
-        expect($text);
-
         if (!isset($lg)) {
             $lg = core_Lg::getCurrent();
         }
 
         if ($lg == 'bg') {
-            $qArr = explode(',', self::$extractQuestions);
-            $qStr = self::$extractText;
+            $text = openai_Prompt::getPromptBySystemId(openai_Prompt::$extractContactDataBg);
         } else {
-            $qArr = explode(',', self::$extractQuestionsEn);
-            $qStr = self::$extractTextEn;
+            $text = openai_Prompt::getPromptBySystemId(openai_Prompt::$extractContactDataEn);
         }
 
-        $qStr = trim($qStr);
-        $qStr .= ': ';
-        foreach ($qArr as $q) {
-            $q = trim($q);
+        expect($text);
 
-            $qStr .= "\n";
+        $text = new ET($text);
+        $text->placeArray($placeArr);
 
-            $qStr .= $q . ': ';
-        }
-
-        $qStr .= "\n\n";
-
-        $qStr .= $text;
-
-        return openai_Api::getRes($qStr);
+        return openai_Api::getRes($text->getContent());
     }
 }
