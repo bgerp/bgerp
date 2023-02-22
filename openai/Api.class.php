@@ -21,7 +21,7 @@ class openai_Api
      *
      * @param string $prompt
      * @param array $pArr
-     * @param boolean $useCache
+     * @param boolean|string $useCache
      * @param interger $index
      *
      * @trows openai_Exception
@@ -49,7 +49,7 @@ class openai_Api
      * Помощна функция за правена на GET заявки
      *
      * @param array $params
-     * @param boolean $useCache
+     * @param boolean|string $useCache
      *
      * @return mixed
      */
@@ -60,23 +60,33 @@ class openai_Api
             $responseJson = openai_Cache::get($params);
         }
 
-        if ($responseJson === false) {
-            $url = openai_Setup::get('URL');
+        if ($useCache !== 'only') {
+            if ($responseJson === false) {
+                $url = openai_Setup::get('URL');
 
-            openai_Exception::expect($url, 'Не е настроен пакета');
+                openai_Exception::expect($url, 'Не е настроен пакета');
 
-            $curl = self::prepareCurl($url);
+                $curl = self::prepareCurl($url);
 
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
 
-            curl_setopt($curl, CURLOPT_POSTFIELDS, @json_encode($params));
+                curl_setopt($curl, CURLOPT_POSTFIELDS, @json_encode($params));
 
-            core_Debug::startTimer('OPENAI_EXEC');
-            $responseJson = @curl_exec($curl);
-            core_Debug::stopTimer('OPENAI_EXEC');
+                curl_setopt($curl, CURLOPT_TIMEOUT_MS, 7000);
 
-            if ($useCache === true) {
-                openai_Cache::set($params, $responseJson);
+                core_Debug::startTimer('OPENAI_EXEC');
+
+                $responseJson = @curl_exec($curl);
+                core_Debug::stopTimer('OPENAI_EXEC');
+
+                if ($useCache === true) {
+                    openai_Cache::set($params, $responseJson);
+                }
+            }
+        } else {
+            if ($responseJson === false) {
+
+                return false;
             }
         }
 
