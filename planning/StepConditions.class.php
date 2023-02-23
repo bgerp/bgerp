@@ -298,11 +298,13 @@ class planning_StepConditions extends core_Detail
     /**
      * Върща масив с прогреса на предходните операции на подадените такива
      *
-     * @param array|stdClass $taskArr
+     * @param array $taskArr
      * @param bool $verbal
-     * @return array $res
+     * @param int|null $totalWidth
+     * @param int|null $height
+     * @return array
      */
-    public static function getDependantTasksProgress($taskArr, $verbal = false)
+    public static function getDependantTasksProgress($taskArr, $verbal = false, $totalWidth = 90, $height = 10)
     {
         $arr = is_array($taskArr) ? $taskArr : array($taskArr);
 
@@ -357,10 +359,10 @@ class planning_StepConditions extends core_Detail
 
             $count = countR($subArr);
             if($count){
-                $eachWith = 90 / $count;
+                $eachWith = $totalWidth / $count;
                 foreach ($subArr as $depTaskArr){
                     if($verbal){
-                        $depTaskArr = static::getDependantTaskBlock($eachWith, 10, $depTaskArr['progress'], $depTaskArr['id']);
+                        $depTaskArr = static::getDependantTaskBlock($eachWith, $height, $depTaskArr['progress'], $depTaskArr['id']);
                     }
                     $res[$taskRec->id][] = $depTaskArr;
                 }

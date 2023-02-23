@@ -565,7 +565,7 @@ class planning_Tasks extends core_Master
             $row->deviationNettoNotice = $eFields['notice'];
             $row->deviationNettoWarning = $eFields['warning'];
             $row->deviationNettoCritical = $eFields['critical'];
-            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true);
+            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true, 150, 15);
             if (is_array($dependentTasks[$rec->id])) {
                 $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
             }
@@ -737,6 +737,25 @@ class planning_Tasks extends core_Master
 
             if($mvc->haveRightFor('editprevioustask', $rec)){
                 $row->manualPreviousTask .= ht::createLink('', array($mvc, 'editprevioustask', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,caption=Промяна на предходните етапи');
+            }
+
+            // Показване на невложеното от предходна ПО
+            $notConvertedFromPreviousTasks = array();
+            $previousTaskIds = $mvc->getPreviousTaskIds($rec);
+            foreach ($previousTaskIds as $prevTaskId){
+                $leftOver = $mvc->getLeftOverQuantityInStock($prevTaskId);
+                if(!empty($leftOver)){
+                    $prevTaskRec = $mvc->fetch($prevTaskId);
+                    $prevRecStepMeasureId = cat_Products::fetchField($prevTaskRec->productId, 'measureId');
+                    $prevRecStepMeasureVerbal = cat_UoM::getShortName($prevRecStepMeasureId);
+                    $tmpString = "{$prevTaskRec->saoOrder}. " . cat_Products::getTitleById($prevTaskRec->productId) . ": <b>{$leftOver} {$prevRecStepMeasureVerbal}</b>";
+                    $notConvertedFromPreviousTasks[] = $tmpString;
+                }
+            }
+            if(countR($notConvertedFromPreviousTasks)){
+                $row->notConvertedFromPreviousTasks = implode('<br>', $notConvertedFromPreviousTasks);
+            } else {
+                $row->notConvertedFromPreviousTasks = tr("Няма");
             }
         } else {
             if ($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])) {
@@ -1915,6 +1934,7 @@ class planning_Tasks extends core_Master
      */
     private function getLeftOverQuantityInStock($rec)
     {
+        $rec = $this->fetchRec($rec);
         $notConvertedQuantity = null;
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
         if($productRec->canStore == 'yes'){
