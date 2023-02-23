@@ -1019,40 +1019,53 @@ class cal_Reminders extends core_Master
                 }
             }
         }
-        
+
         $rec2 = clone($rec);
-        
+
         if (empty($rec2->repetitionEach)) {
             if (empty($rec2->timePreviously)) {
-                
+
                 return;
             }
-            
+
             if ($usePreviously) {
-                
+
                 return dt::timestamp2Mysql(dt::mysql2timestamp($rec2->timeStart) - $rec2->timePreviously);
             } else {
-                
+
                 return $rec2->timeStart;
             }
         }
-        
+
         if ($usePreviously) {
             $nextStartTime = dt::timestamp2Mysql(dt::mysql2timestamp($rec2->timeStart) - $rec2->timePreviously);
         } else {
             $nextStartTime = $rec2->timeStart;
         }
-        
+
         if ($nextStartTime > dt::now()) {
-            
+
             return $nextStartTime;
         }
-        
+
         do {
             $exTimeStart = $rec2->timeStart;
             $rec2->timeStart = self::calcNextStartTime($rec2, $usePreviously);
         } while ($rec2->timeStart <= dt::now() && ($exTimeStart < $rec2->timeStart));
-        
+
+        // Фикс за зацикляне
+        if ($rec2->timeStart < dt::now()) {
+            if (isset($rec->repetitionEach, $rec->repetitionType)) {
+                if (isset($rec->timePreviously)) {
+                    $secRepetitionType = static::$map[$rec->repetitionType];
+                    $repetitionSec = $rec->repetitionEach * $secRepetitionType;
+                    if ($rec->timePreviously > $repetitionSec) {
+                        $rec2->timeStart = $rec->timeStart;
+                    }
+                }
+            }
+        }
+
         return $rec2->timeStart;
     }
     
