@@ -325,7 +325,7 @@ class speedy_Adapter extends core_BaseClass
             unset($jsonData['recipient']['addressLocation']);
         } else {
             $toCountryId = static::getCountryId($toCountry);
-            $jsonData['recipient']['addressLocation'] = array('countryId' => $toCountryId, 'postCode' => $toPCode);
+            $jsonData['recipient']['addressLocation'] = array('countryId' => $toCountryId, 'postCode' => $toPCode, 'siteName' => $receiverPlace);
         }
 
         $res = array();
