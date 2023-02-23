@@ -57,7 +57,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
 
-
             $returnProductArr = array_filter($rec->_details, function($a) { return $a->type == 'pop';});
             if(countR($returnProductArr)){
                 $returnProductArr = arr::extractValuesFromArray($returnProductArr, 'productId');
