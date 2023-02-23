@@ -3468,6 +3468,7 @@ class planning_Tasks extends core_Master
         $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'rejected'");
         $tQuery->orderBy('saoOrder', "ASC");
         $allTasks = $tQuery->fetchAll();
+
         if(!countR($allTasks)) return;
 
         // Извличане на предходните етапи от етапите на операциите
@@ -3547,19 +3548,24 @@ class planning_Tasks extends core_Master
         $form->setOptions('manualPreviousTask', array('' => '') + $options);
         $form->setDefault('manualPreviousTask', $rec->manualPreviousTask);
         $autoPreviousTaskId = $this->getPreviousTaskId($rec);
-        if(!empty($autoPreviousTaskId)){
-            $form->setField('manualPreviousTask', 'placeholder=' . planning_Tasks::getTitleById($autoPreviousTaskId));
-        }
+        $form->setDefault('manualPreviousTask', $autoPreviousTaskId);
 
         $form->input();
         if ($form->isSubmitted()) {
             $msg = null;
             $fRec = $form->rec;
-            if ($fRec->manualPreviousTask != $rec->manualPreviousTask) {
-                $sRec = (object) array('id' => $id, 'manualPreviousTask' => $fRec->manualPreviousTask);
-                $this->save_($sRec, 'manualPreviousTask');
+
+            if (empty($fRec->manualPreviousTask) || ($fRec->manualPreviousTask != $rec->manualPreviousTask && $autoPreviousTaskId != $fRec->manualPreviousTask)) {
+                if(empty($fRec->manualPreviousTask)){
+                    $sRec = (object) array('id' => $id, 'saoOrder' => 0.5);
+                    $this->save_($sRec, 'saoOrder');
+                } else {
+                    $sRec = (object) array('id' => $id, 'manualPreviousTask' => $fRec->manualPreviousTask);
+                    $this->save_($sRec, 'manualPreviousTask');
+                }
+
                 $this->logInAct('Ръчно избиране на предходна операция', $rec);
-                $this->reorderTasksByJobIds[$rec->originId] = $rec->originId;
+                $this->reorderTasksInJob($rec->originId);
                 $msg = 'Предходната операция е избрана успешно|*!';
             }
 
