@@ -470,6 +470,9 @@ class planning_Tasks extends core_Master
         }
 
         if (in_array($rec->state, array('closed', 'rejected'))) {
+            if(isset($fields['-detail'])){
+                $row->state = ($rec->state == 'closed') ? tr("Прикл.") : $row->state;
+            }
             $row->expectedTimeStart = "<i class = 'quiet'>{$row->state}</i>";
             $row->expectedTimeEnd = "<i class = 'quiet'>{$row->state}</i>";
         } else {
@@ -2005,7 +2008,7 @@ class planning_Tasks extends core_Master
         $listTableMvc->FNC('costsCount', 'int');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = arr::make('saoOrder=Ред,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info');
+        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,costsCount=Разходи, assetId=Оборудв.,info=@info');
         if ($data->masterMvc instanceof planning_AssetResources) {
             unset($fields['assetId']);
         }
