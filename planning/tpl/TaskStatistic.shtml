@@ -17,7 +17,10 @@
              <td class = 'sum-th'>
                  [#producedCaption#], [#measureId#]
              </td>
-             
+              <td class = 'sum-th'>
+                 |Невложено|*, [#measureId#]
+              </td>
+
              <td class = 'sum-th'>
                  |Информация|*
              </td>
@@ -27,7 +30,7 @@
               <td class = 'nowrap'>[#totalQuantity#]</td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td class = 'nowrap'>[#producedQuantity#]</td>
-              
+              <td class = 'nowrap'>[#notConvertedQuantity#]</td>
               <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
                   <div style='font-size: 1em;width:99%' class="state-[#jobState#] document-handler">
                       <div><span style='font-weight:normal'>|Задание|*</span>: [#originId#]</div>
@@ -56,7 +59,7 @@
                   <!--ET_END dependantProgress-->
     			</td>
            </tr>
-           <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
+           <tr><td colspan='5'>[#progressBar#] [#progress#]</td></tr>
        </table>
     </div>
 </div>

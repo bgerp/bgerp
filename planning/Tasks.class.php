@@ -460,7 +460,12 @@ class planning_Tasks extends core_Master
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
         }
 
-        foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity') as $quantityFld) {
+        $rec->notConvertedQuantity = $mvc->getLeftOverQuantityInStock($rec);
+
+        $row->notConvertedQuantity = core_Type::getByName('double(smartRound,Min=0)')->toVerbal($rec->notConvertedQuantity);
+        $row->notConvertedQuantity = "<b class='red'>{$row->notConvertedQuantity} {$row->measureId}</b>";
+
+        foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity', 'notConvertedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
             $row->{$quantityFld} = ht::styleNumber($row->{$quantityFld}, $rec->{$quantityFld});
         }
@@ -719,7 +724,7 @@ class planning_Tasks extends core_Master
             $prevTaskHint = false;
             $prevTaskId = $rec->manualPreviousTask;
             if(empty($row->manualPreviousTask)){
-                $prevTaskId = $mvc->getPreviousTaskId($rec);
+                $prevTaskId = key($mvc->getPreviousTaskIds($rec, 1));
                 $prevTaskHint = true;
             }
             if(!empty($prevTaskId)){
@@ -779,17 +784,17 @@ class planning_Tasks extends core_Master
      * Коя е предходната ПО в рамките на заданието
      *
      * @param stdClass|int $rec
+     * @param int|null $limit
      * @return int|null
      */
-    private function getPreviousTaskId($rec)
+    private function getPreviousTaskIds($rec, $limit = null)
     {
         $rec = $this->fetchRec($rec);
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#saoOrder < '{$rec->saoOrder}' AND #originId = {$rec->originId} AND #state != 'rejected' AND #id != '{$rec->id}'");
         $tQuery->orderBy('saoOrder', "DESC");
-        $prevRec = $tQuery->fetch();
 
-        return is_object($prevRec) ? $prevRec->id : null;
+        return arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
     }
 
 
@@ -1904,6 +1909,36 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Показване на остатъчната наличност на невложеното но произведено по операцията
+     *
+     * @param stdClass $rec
+     * @return double|null
+     */
+    private function getLeftOverQuantityInStock($rec)
+    {
+        $notConvertedQuantity = null;
+        $productRec = cat_Products::fetch($rec->productId, 'canStore');
+        if($productRec->canStore == 'yes'){
+            if(core_Packs::isInstalled('batch')){
+                if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+                    $autoTaskBatchValue = $BatchDef->getAutoValue('planning_Tasks', $rec->id, null, null);
+                    if(!empty($autoTaskBatchValue)){
+                        $batches = batch_Items::getBatchQuantitiesInStore($rec->productId);
+                        if(array_key_exists($autoTaskBatchValue, $batches)){
+                            $notConvertedQuantity = $batches[$autoTaskBatchValue];
+                        }
+                    }
+                }
+            } else {
+                $notConvertedQuantity = store_Products::getQuantities($rec->productId)->free;
+            }
+        }
+
+        return $notConvertedQuantity;
+    }
+
+
+    /**
      * Подготвя задачите към заданията
      */
     public function prepareTasks($data)
@@ -1943,6 +1978,11 @@ class planning_Tasks extends core_Master
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
+            if(!empty($rec->notConvertedQuantity)){
+                $row->notConvertedQuantity .= " " . $row->measureId;
+            } else {
+                unset($row->notConvertedQuantity);
+            }
 
             // Показване на протоколите за производство
             $notes = array();
@@ -2006,14 +2046,15 @@ class planning_Tasks extends core_Master
         // Рендиране на таблицата с намерените задачи
         $listTableMvc = clone $this;
         $listTableMvc->FNC('costsCount', 'int');
+        $listTableMvc->FNC('notConvertedQuantity', 'int');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,costsCount=Разходи, assetId=Оборудв.,info=@info');
+        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невложено,costsCount=Разходи, assetId=Оборудв.,info=@info');
         if ($data->masterMvc instanceof planning_AssetResources) {
             unset($fields['assetId']);
         }
 
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount,notConvertedQuantity');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $contentTpl = $table->get($data->rows, $data->listFields);
         if (isset($data->pager)) {
@@ -3550,7 +3591,7 @@ class planning_Tasks extends core_Master
         }
         $form->setOptions('manualPreviousTask', array('' => '') + $options);
         $form->setDefault('manualPreviousTask', $rec->manualPreviousTask);
-        $autoPreviousTaskId = $this->getPreviousTaskId($rec);
+        $autoPreviousTaskId = key($this->getPreviousTaskIds($rec, 1));
         $form->setDefault('manualPreviousTask', $autoPreviousTaskId);
 
         $form->input();
