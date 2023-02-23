@@ -352,24 +352,11 @@ class cal_Reminders extends core_Master
                     // Добавяме съобщение за грешка
                     $form->setWarning('timeStart', 'Датата за напомняне трябва да е след|* ' . dt::mysql2verbal($now));
                 }
-                
-                if (isset($form->rec->repetitionEach, $form->rec->repetitionType)) {
-                    if (isset($form->rec->timePreviously)) {
-                        $secRepetitionType = static::$map[$form->rec->repetitionType];
-                        $repetitionSec = $form->rec->repetitionEach * $secRepetitionType;
-                        
-                        if ($form->rec->timePreviously >= $repetitionSec) {
-                            // Добавяме съобщение за грешка
-                            $form->setError('timePreviously', 'Не може да се направи напомняне с предварително време по-голямо от повторението|* ');
-                        }
-                    }
-                }
             } else {
                 if (!$form->rec->id) {
                     $form->rec->timeStart = $now;
                 }
             }
-            
             
             if ($form->rec->id) {
                 $exState = self::fetchField($form->rec->id, 'state');
