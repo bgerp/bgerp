@@ -66,11 +66,14 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 }
             }
 
-            $manifacturableProductsToConvert = array();
-            array_walk($rec->_details, function($a) use (&$manifacturableProductsToConvert) {if($a->canManifacture == 'yes' && isset($a->storeId)) {$manifacturableProductsToConvert[] = cat_Products::getTitleById($a->productId);}});
-            if(countR($manifacturableProductsToConvert)){
-                $manifacturableProductsToConvertStr = implode(',', $manifacturableProductsToConvert);
-                acc_journal_RejectRedirect::expect(false, "Следните артикули са производими и не може да бъдат влагани директно от склад в Протокол за производство! Вложете ги в Незавършеното производство с Протокол за влагане!:|* {$manifacturableProductsToConvertStr}");
+            $canConvertProducedProduct = cat_Products::fetchField($rec->productId, 'canConvert');
+            if($canConvertProducedProduct == 'yes'){
+                $manifacturableProductsToConvert = array();
+                array_walk($rec->_details, function($a) use (&$manifacturableProductsToConvert) {if($a->canManifacture == 'yes' && isset($a->storeId)) {$manifacturableProductsToConvert[] = cat_Products::getTitleById($a->productId);}});
+                if(countR($manifacturableProductsToConvert)){
+                    $manifacturableProductsToConvertStr = implode(',', $manifacturableProductsToConvert);
+                    acc_journal_RejectRedirect::expect(false, "Следните артикули са производими и не може да бъдат влагани директно от склад в Протокол за производство! Вложете ги в Незавършеното производство с Протокол за влагане!:|* {$manifacturableProductsToConvertStr}");
+                }
             }
 
             // Ако е забранено да се изписва на минус, прави се проверка
