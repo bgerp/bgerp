@@ -461,7 +461,6 @@ class planning_Tasks extends core_Master
         }
 
         $rec->notConvertedQuantity = $mvc->getLeftOverQuantityInStock($rec);
-
         $row->notConvertedQuantity = core_Type::getByName('double(smartRound,Min=0)')->toVerbal($rec->notConvertedQuantity);
         $row->notConvertedQuantity = "<b class='red'>{$row->notConvertedQuantity} {$row->measureId}</b>";
 
