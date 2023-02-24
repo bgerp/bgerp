@@ -993,6 +993,9 @@ abstract class deals_DealBase extends core_Master
         $query->in('id', $dealIds);
         $updateRecs = array();
         while($rec = $query->fetch()){
+            if($rec->state != 'active'){
+                wp("Неактивна с активно перо", $rec);
+            }
 
             // Осредняване на курса
             if($averageRate =  $this->getAverageRateInThread($rec)){
