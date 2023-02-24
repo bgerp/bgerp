@@ -144,7 +144,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             }
         }
         
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             
             // Ако има грешки, при контиране прекъсваме
             if (countR($errorArr)) {

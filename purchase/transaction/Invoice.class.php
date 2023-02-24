@@ -44,7 +44,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
             'entries' => array(),
         );
         
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if (empty($rec->number)) {
                 if ($rec->type == 'dc_note') {
                     $name = ($rec->dealValue <= 0) ? 'Кредитното известие' : 'Дебитното известие';
@@ -79,13 +79,13 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
             $origin = $origin->getOrigin();
             
             // Ако е Ди или Ки без промяна не може да се контира
-            if (Mode::get('saveTransaction')) {
+            if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
                 if (!$rec->dealValue) {
                     acc_journal_RejectRedirect::expect(false, 'Дебитното/кредитното известие не може да бъде контирано, докато сумата е нула');
                 }
             }
         } else {
-            if (Mode::get('saveTransaction')) {
+            if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
                 $noZeroQuantity = purchase_InvoiceDetails::fetch("#invoiceId = {$rec->id} AND (#quantity IS NOT NULL && #quantity != '' && #quantity != 0)");
                 if (empty($noZeroQuantity) && empty($rec->dpAmount)) {
                     acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
@@ -126,7 +126,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
             }
             
             // Проверка дали артикулите отговарят на нужните свойства
-            if (Mode::get('saveTransaction') && countR($productArr)) {
+            if (acc_Journal::throwErrorsIfFoundWhenTryingToPost() && countR($productArr)) {
                 if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canBuy', 'generic', 'трябва да са купуваеми и да не са генерични')){
                     
                     acc_journal_RejectRedirect::expect(false, $redirectError);

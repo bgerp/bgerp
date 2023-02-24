@@ -174,7 +174,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
         }
         
         // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if (countR($errorArr)) {
                 $errorArr = implode(', ', $errorArr);
                 acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат произведени, защото нямат задания или рецепти избрани в протокола");

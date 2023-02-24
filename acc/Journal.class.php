@@ -1017,4 +1017,15 @@ class acc_Journal extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Помощен метод проверяващ дали да се троуне грешка при опит за контиране
+     *
+     * @return bool
+     */
+    public static function throwErrorsIfFoundWhenTryingToPost()
+    {
+        return (Mode::is('saveTransaction') && !Mode::is('recontoTransaction'));
+    }
 }
