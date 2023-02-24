@@ -470,8 +470,14 @@ class acc_Journal extends core_Master
         
         // Изтриваме всички записи направени в журнала от документа
         while ($rec = $query->fetch()) {
-            acc_JournalDetails::delete("#journalId = {$rec->id}");
+            // Запомняне на изтрития запис от журнала + детайлите
             $deletedRec = $rec;
+            $dQuery = acc_JournalDetails::getQuery();
+            $dQuery->where("#journalId = {$rec->id}");
+            $dQuery->orderBy('id', 'ASC');
+            $deletedRec->_details = $dQuery->fetchAll();
+
+            acc_JournalDetails::delete("#journalId = {$rec->id}");
             static::delete($rec->id);
             
             // Инвалидираме балансите, които се променят от този вальор
@@ -1016,5 +1022,148 @@ class acc_Journal extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Помощен метод проверяващ дали да се троуне грешка при опит за контиране
+     *
+     * @return bool
+     */
+    public static function throwErrorsIfFoundWhenTryingToPost()
+    {
+        return (Mode::is('saveTransaction') && !Mode::is('recontoTransaction'));
+    }
+
+
+    /**
+     * Възстановяване на изтрит журнал
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $deletedRec
+     * @param array $deletedDetails
+     * @return void
+     */
+    public static function restoreDeleted($mvc, $id, $deletedRec, $deletedDetails)
+    {
+        // Ако документа няма журнал - възстановява се стария му
+        if(!acc_Journal::fetchByDoc($mvc, $id)){
+            unset($deletedRec->id);
+            unset($deletedRec->_details);
+            cls::get('acc_Journal')->save_($deletedRec);
+            if(is_array($deletedDetails)){
+                array_walk($deletedDetails, function($a) use ($deletedRec){unset($a->id); $a->journalId = $deletedRec->id;});
+                cls::get('acc_JournalDetails')->saveArray($deletedDetails);
+            }
+        }
+    }
+
+
+    /**
+     * Дебъг екшън за поправяне на документи
+     */
+    function act_fixDocsWithoutJournal()
+    {
+        requireRole('admin,ceo');
+        $documents = static::getPostedDocumentsWithoutJournal();
+        if(!countR($documents)) followRetUrl(null, "Няма контирани документи без журнал|*!");
+
+        $tpl = new core_ET("");
+        foreach ($documents as $class => $res){
+            $Class = cls::get($class);
+            foreach ($res as $docId){
+                $tpl->append("<li>");
+                $tpl->append($Class->getLink($docId, 0));
+                if($Class->haveRightFor('debugreconto', $docId)){
+                    $tpl->append(" -> ");
+                    $tpl->append(ht::createLink('', array($Class, 'debugreconto', $docId, 'ret_url' => true), 'Наистина ли желаете да реконтирате документа|*?', 'ef_icon=img/16/arrow_refresh.png,title=Реконтиране на документа'));
+                }
+            }
+        }
+
+        return $tpl;
+    }
+
+
+    /**
+     * Кои са контираните документи без журнал
+     *
+     * @param array $res
+     */
+    private static function getPostedDocumentsWithoutJournal()
+    {
+        $documents = array('sales_Sales', 'purchase_Purchases', 'store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'sales_Invoices', 'purchase_Invoices', 'sales_Services', 'purchase_Services', 'acc_Articles');
+
+        $res = array();
+        foreach ($documents as $docId){
+            $Class = cls::get($docId);
+
+            $jRecs = array();
+            $jQuery = acc_Journal::getQuery();
+            $jQuery->where("#docType = {$Class->getClassId()}");
+            $jQuery->show('id,docId');
+            while($jRec = $jQuery->fetch()){
+                $jRecs[$jRec->docId] = $jRec->docId;
+            }
+
+            if(countR($jRecs)){
+                $query = $Class->getQuery();
+                $query->in("state", array('closed', 'active'));
+                $query->show('id');
+                $query->notIn('id', $jRecs);
+                if($Class instanceof sales_Sales || $Class instanceof purchase_Purchases){
+                    $query->show('id,contoActions');
+                    $query->where("#contoActions != '' AND #contoActions != 'activate'");
+                }
+
+                while($rec = $query->fetch()){
+                    if($Class instanceof store_ShipmentOrders || $Class instanceof store_Receipts){
+                        $Detail = cls::get($Class->mainDetail);
+                        if(!$Detail->count("#{$Detail->masterKey} = {$rec->id}")) continue;
+                    }
+                    if(!array_key_exists($Class->className, $res)){
+                        $res[$Class->className] = array();
+                    }
+                    $res[$Class->className][$rec->id] = $rec->id;
+                }
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Екшън визуализиращ приключените сделки с активни пера
+     */
+    function act_findDeals()
+    {
+        requireRole('admin,ceo');
+
+        $listId = acc_Lists::fetchBySystemId('deals')->id;
+        $tpl = new core_ET("");
+        foreach (array('purchase_Purchases', 'sales_Sales', 'findeals_Deals') as $class){
+            $Class = cls::get($class);
+            $classId = $Class->getClassId();
+
+            $iQuery = acc_Items::getQuery();
+            $iQuery->where("#state = 'active' AND #classId = {$classId}");
+            $ids = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+
+            $query = $Class->getQuery();
+            $query->in('id', $ids);
+            $query->where("#state != 'active'");
+            while($rec = $query->fetch()){
+                $tpl->append("<li>");
+                $tpl->append($Class->getLink($rec->id, 0));
+
+                $handle = "#" . $Class->getHandle($rec->id);
+                $itemLink = array('acc_Items', 'list', 'listId' => $listId, 'search' => $handle);
+                $tpl->append(" -> " . ht::createLink('Перо', $itemLink));
+            }
+        }
+
+        return $tpl;
     }
 }

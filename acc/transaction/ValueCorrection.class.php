@@ -36,7 +36,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             'entries' => array()
         );
 
-        if(Mode::get('saveTransaction')){
+        if(acc_Journal::throwErrorsIfFoundWhenTryingToPost()){
             $rec->valior = $this->class->getDefaultValior($rec);
             $result->valior = $rec->valior;
             if(empty($rec->valior)){

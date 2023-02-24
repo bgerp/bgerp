@@ -2070,7 +2070,7 @@ class planning_Tasks extends core_Master
         $listTableMvc->FNC('notConvertedQuantity', 'int');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невложено,costsCount=Разходи, assetId=Оборудв.,info=@info');
+        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи, assetId=Оборудв.,info=@info');
         if ($data->masterMvc instanceof planning_AssetResources) {
             unset($fields['assetId']);
         }

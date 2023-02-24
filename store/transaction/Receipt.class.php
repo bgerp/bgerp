@@ -45,7 +45,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         
         $error = null;
         $rec = $this->fetchShipmentData($id, $error);
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if ($error === true) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }

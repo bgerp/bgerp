@@ -43,7 +43,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $result->entries = $entries;
         }
 
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $notAllocatedInputProductArr = array_filter($rec->_details, function($a) { return $a->type != 'allocated';});
             $productArr = arr::extractValuesFromArray($rec->_details, 'productId');
             $notAllocatedInputProductArr = arr::extractValuesFromArray($notAllocatedInputProductArr, 'productId');
