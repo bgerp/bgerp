@@ -565,7 +565,7 @@ class planning_Tasks extends core_Master
             $row->deviationNettoNotice = $eFields['notice'];
             $row->deviationNettoWarning = $eFields['warning'];
             $row->deviationNettoCritical = $eFields['critical'];
-            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true, 150, 15);
+            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true, 150, 10);
             if (is_array($dependentTasks[$rec->id])) {
                 $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
             }
@@ -748,12 +748,13 @@ class planning_Tasks extends core_Master
                     $prevTaskRec = $mvc->fetch($prevTaskId);
                     $prevRecStepMeasureId = cat_Products::fetchField($prevTaskRec->productId, 'measureId');
                     $prevRecStepMeasureVerbal = cat_UoM::getShortName($prevRecStepMeasureId);
-                    $tmpString = "{$prevTaskRec->saoOrder}. " . cat_Products::getTitleById($prevTaskRec->productId) . ": <b>{$leftOver} {$prevRecStepMeasureVerbal}</b>";
+                    $tmpString = "{$prevTaskRec->saoOrder}. " . cat_Products::getTitleById($prevTaskRec->productId) . ": {$leftOver} {$prevRecStepMeasureVerbal}";
                     $notConvertedFromPreviousTasks[] = $tmpString;
                 }
             }
             if(countR($notConvertedFromPreviousTasks)){
                 $row->notConvertedFromPreviousTasks = implode('<br>', $notConvertedFromPreviousTasks);
+                $row->notConvertedFromPreviousTasks = "<b class='red'>{$row->notConvertedFromPreviousTasks}</b>";
             } else {
                 $row->notConvertedFromPreviousTasks = tr("Няма");
             }
