@@ -63,7 +63,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         
         $rec = $this->fetchShipmentData($id, $error);
         
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if ($error === true) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }
@@ -100,7 +100,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             }
         }
 
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if($rec->isReverse == 'no'){
                 $shipped = array();
                 foreach ($entries as $d){

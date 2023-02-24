@@ -64,7 +64,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
             'entries' => $entries,
         );
         
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $property = ($rec->isReverse == 'yes') ? 'canSell' : 'canBuy';
             
             $productArr = arr::extractValuesFromArray($rec->details, 'productId');

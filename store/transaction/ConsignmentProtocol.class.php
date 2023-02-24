@@ -74,7 +74,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         $sendQuery->where("#protocolId = {$rec->id}");
         $sendAll = $sendQuery->fetchAll();
 
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if(!store_Setup::canDoShippingWhenStockIsNegative()){
                 if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($sendAll, $rec->storeId, $rec->state)) {
                     acc_journal_RejectRedirect::expect(false, $warning);
@@ -168,7 +168,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         $sendProductsArr = arr::extractValuesFromArray($sendArr, 'productId');
         $receivedProductsArr = arr::extractValuesFromArray($receivedArr, 'productId');
 
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if($redirectError = deals_Helper::getContoRedirectError($sendProductsArr, 'canStore,canSell', 'generic', 'трябва да са складируеми и продаваеми и да не са генерични')){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
