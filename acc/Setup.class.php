@@ -408,7 +408,7 @@ class acc_Setup extends core_ProtoSetup
             )
         ),
         array(
-            'title' => 'Поправка',
+            'title' => 'Док. без журнал',
             'url' => array(
                 'acc_Journal',
                 'fixDocsWithoutJournal',
@@ -416,6 +416,18 @@ class acc_Setup extends core_ProtoSetup
             ),
             'params' => array(
                 'title' => 'Поправка на контирани документи без журнал',
+                'ef_icon' => 'img/16/arrow_refresh.png'
+            )
+        ),
+        array(
+            'title' => 'Прикл. сделки с активни пера',
+            'url' => array(
+                'acc_Journal',
+                'findDeals',
+                'ret_url' => true
+            ),
+            'params' => array(
+                'title' => 'Има ли неактивни сделки с приключени пера',
                 'ef_icon' => 'img/16/arrow_refresh.png'
             )
         )

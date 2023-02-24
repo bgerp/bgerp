@@ -1132,4 +1132,38 @@ class acc_Journal extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Екшън визуализиращ приключените сделки с активни пера
+     */
+    function act_findDeals()
+    {
+        requireRole('admin,ceo');
+
+        $listId = acc_Lists::fetchBySystemId('deals')->id;
+        $tpl = new core_ET("");
+        foreach (array('purchase_Purchases', 'sales_Sales', 'findeals_Deals') as $class){
+            $Class = cls::get($class);
+            $classId = $Class->getClassId();
+
+            $iQuery = acc_Items::getQuery();
+            $iQuery->where("#state = 'active' AND #classId = {$classId}");
+            $ids = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+
+            $query = $Class->getQuery();
+            $query->in('id', $ids);
+            $query->where("#state != 'active'");
+            while($rec = $query->fetch()){
+                $tpl->append("<li>");
+                $tpl->append($Class->getLink($rec->id, 0));
+
+                $handle = "#" . $Class->getHandle($rec->id);
+                $itemLink = array('acc_Items', 'list', 'listId' => $listId, 'search' => $handle);
+                $tpl->append(" -> " . ht::createLink('Перо', $itemLink));
+            }
+        }
+
+        return $tpl;
+    }
 }
