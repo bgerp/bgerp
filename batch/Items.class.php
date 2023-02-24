@@ -589,7 +589,7 @@ class batch_Items extends core_Master
      * Изчислява количествата на партидите на артикул към дадена дата и склад
      *
      * @param int           $productId - ид на артикул
-     * @param int           $storeId   - ид на склад
+     * @param int|null      $storeId   - ид на склад
      * @param datetime|NULL $date      - към дата, ако е празно текущата
      * @param int|NULL      $limit     - лимит на резултатите
      * @param array         $except    - кой документ да се игнорира
@@ -598,7 +598,7 @@ class batch_Items extends core_Master
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false)
+    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false)
     {
         $res = array();
         $date = (isset($date)) ? $date : dt::today();
@@ -613,7 +613,10 @@ class batch_Items extends core_Master
         $query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
         $query->where("#state != 'closed'");
         $query->show('batch,quantity,operation,date,docType,docId');
-        $query->where("#productId = {$productId} AND #storeId = {$storeId}");
+        $query->where("#productId = {$productId}");
+        if(isset($storeId)){
+            $query->where("#storeId = {$storeId}");
+        }
         $query->where("#date <= '{$date}'");
 
         if (countR($except) == 2) {
@@ -647,7 +650,10 @@ class batch_Items extends core_Master
         // Добавяне и на партидите от активни документи в черновата на журнала
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        $bQuery->where("#storeId = {$storeId} AND #productId = {$productId}");
+        $bQuery->where("#productId = {$productId}");
+        if(isset($storeId)){
+            $bQuery->where("#storeId = {$storeId}");
+        }
         $bQuery->where("#state = 'active'");
         $bQuery->groupBy('batch');
         $bQuery->notIn('batch', array_keys($res));

@@ -352,24 +352,11 @@ class cal_Reminders extends core_Master
                     // Добавяме съобщение за грешка
                     $form->setWarning('timeStart', 'Датата за напомняне трябва да е след|* ' . dt::mysql2verbal($now));
                 }
-                
-                if (isset($form->rec->repetitionEach, $form->rec->repetitionType)) {
-                    if (isset($form->rec->timePreviously)) {
-                        $secRepetitionType = static::$map[$form->rec->repetitionType];
-                        $repetitionSec = $form->rec->repetitionEach * $secRepetitionType;
-                        
-                        if ($form->rec->timePreviously >= $repetitionSec) {
-                            // Добавяме съобщение за грешка
-                            $form->setError('timePreviously', 'Не може да се направи напомняне с предварително време по-голямо от повторението|* ');
-                        }
-                    }
-                }
             } else {
                 if (!$form->rec->id) {
                     $form->rec->timeStart = $now;
                 }
             }
-            
             
             if ($form->rec->id) {
                 $exState = self::fetchField($form->rec->id, 'state');
@@ -1032,40 +1019,53 @@ class cal_Reminders extends core_Master
                 }
             }
         }
-        
+
         $rec2 = clone($rec);
-        
+
         if (empty($rec2->repetitionEach)) {
             if (empty($rec2->timePreviously)) {
-                
+
                 return;
             }
-            
+
             if ($usePreviously) {
-                
+
                 return dt::timestamp2Mysql(dt::mysql2timestamp($rec2->timeStart) - $rec2->timePreviously);
             } else {
-                
+
                 return $rec2->timeStart;
             }
         }
-        
+
         if ($usePreviously) {
             $nextStartTime = dt::timestamp2Mysql(dt::mysql2timestamp($rec2->timeStart) - $rec2->timePreviously);
         } else {
             $nextStartTime = $rec2->timeStart;
         }
-        
+
         if ($nextStartTime > dt::now()) {
-            
+
             return $nextStartTime;
         }
-        
+
         do {
             $exTimeStart = $rec2->timeStart;
             $rec2->timeStart = self::calcNextStartTime($rec2, $usePreviously);
         } while ($rec2->timeStart <= dt::now() && ($exTimeStart < $rec2->timeStart));
-        
+
+        // Фикс за зацикляне
+        if ($rec2->timeStart < dt::now()) {
+            if (isset($rec->repetitionEach, $rec->repetitionType)) {
+                if (isset($rec->timePreviously)) {
+                    $secRepetitionType = static::$map[$rec->repetitionType];
+                    $repetitionSec = $rec->repetitionEach * $secRepetitionType;
+                    if ($rec->timePreviously > $repetitionSec) {
+                        $rec2->timeStart = $rec->timeStart;
+                    }
+                }
+            }
+        }
+
         return $rec2->timeStart;
     }
     

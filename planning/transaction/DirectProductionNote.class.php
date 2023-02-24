@@ -45,7 +45,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
         if (Mode::get('saveTransaction')) {
             $notAllocatedInputProductArr = array_filter($rec->_details, function($a) { return $a->type != 'allocated';});
-
             $productArr = arr::extractValuesFromArray($rec->_details, 'productId');
             $notAllocatedInputProductArr = arr::extractValuesFromArray($notAllocatedInputProductArr, 'productId');
             unset($notAllocatedInputProductArr[$rec->productId]);
@@ -58,7 +57,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
 
-
             $returnProductArr = array_filter($rec->_details, function($a) { return $a->type == 'pop';});
             if(countR($returnProductArr)){
                 $returnProductArr = arr::extractValuesFromArray($returnProductArr, 'productId');
@@ -67,20 +65,28 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 }
             }
 
-            if (Mode::get('saveTransaction')) {
-                // Ако е забранено да се изписва на минус, прави се проверка
-                if(!store_Setup::canDoShippingWhenStockIsNegative()){
-                    $shippedProductsFromStores = array();
-                    foreach ($rec->_details as $d){
-                        if(isset($d->storeId)){
-                            $shippedProductsFromStores[$d->storeId][] = $d;
-                        }
-                    }
+            $canConvertProducedProduct = cat_Products::fetchField($rec->productId, 'canConvert');
+            if($canConvertProducedProduct == 'yes'){
+                $manifacturableProductsToConvert = array();
+                array_walk($rec->_details, function($a) use (&$manifacturableProductsToConvert) {if($a->canManifacture == 'yes' && isset($a->storeId)) {$manifacturableProductsToConvert[] = cat_Products::getTitleById($a->productId);}});
+                if(countR($manifacturableProductsToConvert)){
+                    $manifacturableProductsToConvertStr = implode(',', $manifacturableProductsToConvert);
+                    acc_journal_RejectRedirect::expect(false, "Следните артикули са производими и не може да бъдат влагани директно от склад в Протокол за производство! Вложете ги в Незавършеното производство с Протокол за влагане!:|* {$manifacturableProductsToConvertStr}");
+                }
+            }
 
-                    foreach ($shippedProductsFromStores as $storeId => $arr){
-                        if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($arr, $storeId, $rec->state)) {
-                            acc_journal_RejectRedirect::expect(false, $warning);
-                        }
+            // Ако е забранено да се изписва на минус, прави се проверка
+            if(!store_Setup::canDoShippingWhenStockIsNegative()){
+                $shippedProductsFromStores = array();
+                foreach ($rec->_details as $d){
+                    if(isset($d->storeId)){
+                        $shippedProductsFromStores[$d->storeId][] = $d;
+                    }
+                }
+
+                foreach ($shippedProductsFromStores as $storeId => $arr){
+                    if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($arr, $storeId, $rec->state)) {
+                        acc_journal_RejectRedirect::expect(false, $warning);
                     }
                 }
             }
@@ -154,6 +160,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         if (isset($rec->id)) {
             $dQuery = planning_DirectProductNoteDetails::getQuery();
             $dQuery->where("#noteId = {$rec->id}");
+            $dQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
             $dQuery->orderBy('id,type', 'ASC');
             $dRecs = $dQuery->fetchAll();
             $rec->_details = $dRecs;

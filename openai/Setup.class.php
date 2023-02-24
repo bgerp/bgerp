@@ -68,5 +68,32 @@ class openai_Setup extends core_ProtoSetup
     public $managers = array(
         'openai_Cache',
         'openai_Prompt',
+        'migrate::promptTruncate2308',
     );
+
+
+    /**
+     * Миграция за изчистване на данните
+     */
+    public static function promptTruncate2308()
+    {
+        openai_Prompt::delete(array("#systemId = '[#1#]'", openai_Prompt::$extractContactDataBg));
+        openai_Prompt::delete(array("#systemId = '[#1#]'", openai_Prompt::$extractContactDataEn));
+
+        openai_Prompt::addDefaultParams();
+    }
+
+
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+
+        // Инсталиране на плъгин за превод на входящата поща
+        $html .= core_Plugins::installPlugin('Email parse contragent data', 'openai_plugins_IncomingsContragentData', 'email_Incomings', 'private');
+
+        return $html;
+    }
 }

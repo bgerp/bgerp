@@ -484,6 +484,7 @@ class planning_Steps extends core_Extender
     {
         $data->listFilter->FLD('finalType', 'enum(all=Всички,no=Междинен етап,yes=Финален етап)');
         $data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
+        $data->listFilter->setFieldType('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)');
         $data->listFilter->setOptions('assetId', planning_AssetResources::getByFolderId());
         $data->listFilter->setDefault('finalType', 'all');
         $data->listFilter->showFields = 'search,centerId,assetId,finalType';

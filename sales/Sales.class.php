@@ -479,10 +479,12 @@ class sales_Sales extends deals_DealMaster
         
         $form->setOptions('bankAccountId', $options);
         $form->setDefault('bankAccountId', $defaultBankAccountId);
-        if(countR($options) == 1 && $form->cmd != 'refresh') {
+        $defaultOptions = $options;
+        unset($defaultOptions['']);
+        if(countR($defaultOptions) == 1 && $form->cmd != 'refresh') {
             $autoSelectAccount = sales_Setup::get('AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE');
             if($autoSelectAccount == 'yes'){
-                $form->setDefault('bankAccountId', key($options));
+                $form->setDefault('bankAccountId', key($defaultOptions));
             }
         }
 

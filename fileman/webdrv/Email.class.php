@@ -135,7 +135,12 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         if (openai_Setup::get('TOKEN')) {
             $cTab = Request::get('currentTab');
             if ($cTab == 'emailData') {
-                $parsedData = openai_ExtractContactInfo::extractEmailDataFromEmlFile($source);
+                try {
+                    $parsedData = openai_ExtractContactInfo::extractEmailDataFromEmlFile($source);
+                } catch (openai_Exception $e) {
+                    $parsedData = tr('Грешка при извличане');
+                    reportException($e);
+                }
             }
             $parsedData = trim($parsedData);
             $parsedData = str_replace("\n", '<br />', $parsedData);

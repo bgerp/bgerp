@@ -242,7 +242,6 @@ class store_StockPlanning extends core_Manager
         }
 
         $data->listFilter->showFields = $showFields;
-
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)) {
                 $data->query->where("#productId = {$rec->productId}");
@@ -250,6 +249,7 @@ class store_StockPlanning extends core_Manager
 
             if (!empty($rec->storeId)) {
                 $data->query->where("#storeId = {$rec->storeId}");
+                unset($data->listFields['storeId']);
             }
 
             if (!empty($rec->sourceClassId)) {
@@ -598,18 +598,6 @@ class store_StockPlanning extends core_Manager
         }
 
         return parent::act_List();
-    }
-
-
-    /**
-     * Променяме wrapper
-     */
-    public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
-    {
-        if(Mode::get('stockPlanningHash')){
-            $res = $tpl;
-            return false;
-        }
     }
 
 

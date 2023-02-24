@@ -1354,7 +1354,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
 
             $fld->FLD('code', 'varchar', 'caption=Код');
-            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
 
             if ($rec->engName == 'yes') {
                 $fld->FLD('engName', 'varchar', 'caption=Артикул[EN]');
@@ -1859,9 +1859,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+
         $res->group = self::getGroups($dRec, false, $rec);
         if (isset($dRec->measure)) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
+        }
+        if(isset($dRec->productId)){
+            $res->productId = cat_Products::fetch($dRec->productId)->name;
         }
 
         if ($rec->compare != 'no') {
@@ -1882,7 +1886,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         } else {
             if ($rec->seeByContragent == 'yes') {
-                $res->contragent = doc_Folders::getTitleById($dRec->contragent);
+                if (isset($res->contragent)){
+                    $res->contragent = doc_Folders::fetch($dRec->contragent)->title;
+                }
+
             }
         }
 

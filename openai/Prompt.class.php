@@ -140,57 +140,68 @@ class openai_Prompt extends core_Manager
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
-        $recBg = $mvc->fetch(array("#systemId = '[#1#]'", static::$extractContactDataBg));
+        self::addDefaultParams();
+    }
+
+
+    /**
+     * Помощна функция за добавяне на дефолтни параметри
+     */
+    public static function addDefaultParams()
+    {
+        $recBg = self::fetch(array("#systemId = '[#1#]'", static::$extractContactDataBg));
+
         if (!$recBg) {
             $recBg = new stdClass();
             $recBg->systemId = static::$extractContactDataBg;
             $recBg->prompt = "Извлечи следните контактни данни от по-долния имейл и от резултата премахни редовете без съвпадение:\n";
-            $recBg->prompt .= "Името на фирмата\n";
-            $recBg->prompt .= "Името на лицето\n";
-            $recBg->prompt .= "Адреса за доставка,\n";
-            $recBg->prompt .= "Имейл\n";
-            $recBg->prompt .= "Телефон\n";
+            $recBg->prompt .= "Име на фирмата->recipient\n";
+            $recBg->prompt .= "Име на лицето->attn\n";
+            $recBg->prompt .= "Адреса за доставка->address\n";
+            $recBg->prompt .= "Имейл->email\n";
+            $recBg->prompt .= "Телефон->tel\n";
+            $recBg->prompt .= "Мобилен->pMobile\n";
             $recBg->prompt .= "Фейсбук\n";
             $recBg->prompt .= "Туитър\n";
-            $recBg->prompt .= "Данъчен номер\n";
-            $recBg->prompt .= "Имейл\n";
+            $recBg->prompt .= "Данъчен номер->vatNo\n";
+            $recBg->prompt .= "Имейл->email\n";
             $recBg->prompt .= "\n\n";
             $recBg->prompt .= "[#subject#]";
             $recBg->prompt .= "\n";
-            $recBg->prompt .= "От: [#from#]";
+            $recBg->prompt .= "От: [#fromEmail#] ([#from#])";
             $recBg->prompt .= "\n";
             $recBg->prompt .= "[#email#]";
 
-            $mvc->save($recBg);
+            self::save($recBg);
         }
 
-        $recEn = $mvc->fetch(array("#systemId = '[#1#]'", static::$extractContactDataEn));
+        $recEn = self::fetch(array("#systemId = '[#1#]'", static::$extractContactDataEn));
         if (!$recEn) {
             $recEn = new stdClass();
             $recEn->systemId = static::$extractContactDataEn;
             $recEn->prompt = "Please extract contact data from following email and remove the non-matching lines from the result:\n";
-            $recEn->prompt .= "Person name\n";
+            $recEn->prompt .= "Person name->attn\n";
             $recEn->prompt .= "Person gender\n";
             $recEn->prompt .= "Job position,\n";
-            $recEn->prompt .= "Mobile\n";
-            $recEn->prompt .= "Company\n";
-            $recEn->prompt .= "Country\n";
-            $recEn->prompt .= "Postal code\n";
-            $recEn->prompt .= "Place\n";
-            $recEn->prompt .= "Street address\n";
-            $recEn->prompt .= "Company telephone\n";
+            $recEn->prompt .= "Mobile->pMobile\n";
+            $recEn->prompt .= "Company->recipient\n";
+            $recEn->prompt .= "Country->country\n";
+            $recEn->prompt .= "Postal code->pcode\n";
+            $recEn->prompt .= "Place->place\n";
+            $recEn->prompt .= "Street address->address\n";
+            $recEn->prompt .= "Company telephone->tel\n";
             $recEn->prompt .= "Web site\n";
-            $recEn->prompt .= "VAT number\n";
+            $recEn->prompt .= "VAT number->vatNo\n";
             $recEn->prompt .= "Social media\n";
-            $recEn->prompt .= "Email\n";
+            $recEn->prompt .= "Email->email\n";
             $recEn->prompt .= "\n\n";
             $recEn->prompt .= "[#subject#]";
             $recEn->prompt .= "\n";
-            $recEn->prompt .= "From: [#from#]";
+            $recEn->prompt .= "From: [#fromEmail#] ([#from#])";
             $recEn->prompt .= "\n";
             $recEn->prompt .= "[#email#]";
 
-            $mvc->save($recEn);
+            self::save($recEn);
         }
     }
 }
