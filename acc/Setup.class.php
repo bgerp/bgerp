@@ -406,10 +406,22 @@ class acc_Setup extends core_ProtoSetup
                 'title' => 'Реконтиране на документите',
                 'ef_icon' => 'img/16/arrow_refresh.png'
             )
+        ),
+        array(
+            'title' => 'Поправка',
+            'url' => array(
+                'acc_Journal',
+                'fixDocsWithoutJournal',
+                'ret_url' => true
+            ),
+            'params' => array(
+                'title' => 'Поправка на контирани документи без журнал',
+                'ef_icon' => 'img/16/arrow_refresh.png'
+            )
         )
     );
-    
-    
+
+
     /**
      * Настройки за Cron
      */

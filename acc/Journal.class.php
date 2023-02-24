@@ -1058,4 +1058,78 @@ class acc_Journal extends core_Master
             }
         }
     }
+
+
+    /**
+     * Дебъг екшън за поправяне на документи
+     */
+    function act_fixDocsWithoutJournal()
+    {
+        requireRole('admin,ceo');
+        $documents = static::getPostedDocumentsWithoutJournal();
+        if(!countR($documents)) followRetUrl(null, "Няма контирани документи без журнал|*!");
+
+        $tpl = new core_ET("");
+        foreach ($documents as $class => $res){
+            $Class = cls::get($class);
+            foreach ($res as $docId){
+                $tpl->append("<li>");
+                $tpl->append($Class->getLink($docId, 0));
+                if($Class->haveRightFor('debugreconto', $docId)){
+                    $tpl->append(" -> ");
+                    $tpl->append(ht::createLink('', array($Class, 'debugreconto', $docId, 'ret_url' => true), 'Наистина ли желаете да реконтирате документа|*?', 'ef_icon=img/16/arrow_refresh.png,title=Реконтиране на документа'));
+                }
+            }
+        }
+
+        return $tpl;
+    }
+
+
+    /**
+     * Кои са контираните документи без журнал
+     *
+     * @param array $res
+     */
+    private static function getPostedDocumentsWithoutJournal()
+    {
+        $documents = array('sales_Sales', 'purchase_Purchases', 'store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'sales_Invoices', 'purchase_Invoices', 'sales_Services', 'purchase_Services', 'acc_Articles');
+
+        $res = array();
+        foreach ($documents as $docId){
+            $Class = cls::get($docId);
+
+            $jRecs = array();
+            $jQuery = acc_Journal::getQuery();
+            $jQuery->where("#docType = {$Class->getClassId()}");
+            $jQuery->show('id,docId');
+            while($jRec = $jQuery->fetch()){
+                $jRecs[$jRec->docId] = $jRec->docId;
+            }
+
+            if(countR($jRecs)){
+                $query = $Class->getQuery();
+                $query->in("state", array('closed', 'active'));
+                $query->show('id');
+                $query->notIn('id', $jRecs);
+                if($Class instanceof sales_Sales || $Class instanceof purchase_Purchases){
+                    $query->show('id,contoActions');
+                    $query->where("#contoActions != '' AND #contoActions != 'activate'");
+                }
+
+                while($rec = $query->fetch()){
+                    if($Class instanceof store_ShipmentOrders || $Class instanceof store_Receipts){
+                        $Detail = cls::get($Class->mainDetail);
+                        if(!$Detail->count("#{$Detail->masterKey} = {$rec->id}")) continue;
+                    }
+                    if(!array_key_exists($Class->className, $res)){
+                        $res[$Class->className] = array();
+                    }
+                    $res[$Class->className][$rec->id] = $rec->id;
+                }
+            }
+        }
+
+        return $res;
+    }
 }
