@@ -425,11 +425,12 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 $recipientArr['addressLocation'] = array('countryId' => $theirCountryId, 'siteId' => key($sites));
             } else {
                 $recipientAddressArray = array('countryId' => $theirCountryId);
-                foreach (array('postCode' => 'receiverPCode', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'apartmentNo') as $theirFld => $ourFld){
+                foreach (array('postCode' => 'receiverPCode', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'apartmentNo', 'siteName' => 'receiverPlace') as $theirFld => $ourFld){
                     if(!empty($formRec->{$ourFld})){
                         $recipientAddressArray[$theirFld] = $formRec->{$ourFld};
                     }
                 }
+
                 $addressNote = $formRec->receiverAddress . (!empty($formRec->receiverNotes) ? ", {$formRec->receiverNotes}" : "");
                 if(!empty($addressNote)){
                     $recipientAddressArray['addressNote'] = $addressNote;
