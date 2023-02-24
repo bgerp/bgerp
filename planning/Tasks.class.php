@@ -462,7 +462,7 @@ class planning_Tasks extends core_Master
 
         $rec->notConvertedQuantity = $mvc->getLeftOverQuantityInStock($rec);
         $row->notConvertedQuantity = core_Type::getByName('double(smartRound,Min=0)')->toVerbal($rec->notConvertedQuantity);
-        $row->notConvertedQuantity = "<b class='red'>{$row->notConvertedQuantity} {$row->measureId}</b>";
+        $row->notConvertedQuantity = "<b class='red'>{$row->notConvertedQuantity}</b>";
 
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity', 'notConvertedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
@@ -731,11 +731,10 @@ class planning_Tasks extends core_Master
                 if($prevTaskHint){
                     $row->manualPreviousTask = ht::createHint($row->manualPreviousTask, 'Автоматично определена', 'notice', false);
                 }
-            } else {
-                $row->manualPreviousTask = "<i>" . tr("Няма") . "</i>";
             }
 
             if($mvc->haveRightFor('editprevioustask', $rec)){
+                $rec->_hasManualPreviousTask = true;
                 $row->manualPreviousTask .= ht::createLink('', array($mvc, 'editprevioustask', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,caption=Промяна на предходните етапи');
             }
 
@@ -756,7 +755,9 @@ class planning_Tasks extends core_Master
                 $row->notConvertedFromPreviousTasks = implode('<br>', $notConvertedFromPreviousTasks);
                 $row->notConvertedFromPreviousTasks = "<b class='red'>{$row->notConvertedFromPreviousTasks}</b>";
             } else {
-                $row->notConvertedFromPreviousTasks = tr("Няма");
+                if(!empty($row->manualPreviousTask)){
+                    $row->notConvertedFromPreviousTasks = tr("Няма");
+                }
             }
         } else {
             if ($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])) {
