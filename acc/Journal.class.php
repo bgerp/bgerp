@@ -470,8 +470,14 @@ class acc_Journal extends core_Master
         
         // Изтриваме всички записи направени в журнала от документа
         while ($rec = $query->fetch()) {
-            acc_JournalDetails::delete("#journalId = {$rec->id}");
+            // Запомняне на изтрития запис от журнала + детайлите
             $deletedRec = $rec;
+            $dQuery = acc_JournalDetails::getQuery();
+            $dQuery->where("#journalId = {$rec->id}");
+            $dQuery->orderBy('id', 'ASC');
+            $deletedRec->_details = $dQuery->fetchAll();
+
+            acc_JournalDetails::delete("#journalId = {$rec->id}");
             static::delete($rec->id);
             
             // Инвалидираме балансите, които се променят от този вальор
@@ -1027,5 +1033,29 @@ class acc_Journal extends core_Master
     public static function throwErrorsIfFoundWhenTryingToPost()
     {
         return (Mode::is('saveTransaction') && !Mode::is('recontoTransaction'));
+    }
+
+
+    /**
+     * Възстановяване на изтрит журнал
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $deletedRec
+     * @param array $deletedDetails
+     * @return void
+     */
+    public static function restoreDeleted($mvc, $id, $deletedRec, $deletedDetails)
+    {
+        // Ако документа няма журнал - възстановява се стария му
+        if(!acc_Journal::fetchByDoc($mvc, $id)){
+            unset($deletedRec->id);
+            unset($deletedRec->_details);
+            cls::get('acc_Journal')->save_($deletedRec);
+            if(is_array($deletedDetails)){
+                array_walk($deletedDetails, function($a) use ($deletedRec){unset($a->id); $a->journalId = $deletedRec->id;});
+                cls::get('acc_JournalDetails')->saveArray($deletedDetails);
+            }
+        }
     }
 }
