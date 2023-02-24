@@ -141,7 +141,7 @@ class cat_plg_ShowCodes extends core_Plugin
             // Иначе ще си се сортират по реда на създаване
             if(!countR($res)){
                 $dQuery->orderBy('id', 'ASC');
-                $res = arr::extractValuesFromArray($dQuery->fetchAll(), 'id');
+                $res = array_values(arr::extractValuesFromArray($dQuery->fetchAll(), 'id'));
             }
         }
     }

@@ -17,7 +17,7 @@
              <td class = 'sum-th'>
                  [#producedCaption#], [#measureId#]
              </td>
-             
+
              <td class = 'sum-th'>
                  |Информация|*
              </td>
@@ -27,7 +27,6 @@
               <td class = 'nowrap'>[#totalQuantity#]</td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td class = 'nowrap'>[#producedQuantity#]</td>
-              
               <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
                   <div style='font-size: 1em;width:99%' class="state-[#jobState#] document-handler">
                       <div><span style='font-weight:normal'>|Задание|*</span>: [#originId#]</div>
@@ -48,18 +47,30 @@
                   <!--ET_BEGIN followBatchesForFinalProduct-->
                   <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
                   <!--ET_END followBatchesForFinalProduct-->
-                  <!--ET_BEGIN previousStepIds-->
-                  <span style='font-weight:normal'>|Предх. Етапи|*</span>: [#previousStepIds#]<br>
-                  <!--ET_END previousStepIds-->
-                  <!--ET_BEGIN dependantProgress-->
-                  <span style='font-weight:normal'>|Предх.Оп.|*</span>: [#dependantProgress#]<br>
-                  <!--ET_END dependantProgress-->
     			</td>
            </tr>
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
        </table>
     </div>
 </div>
+
+<!--ET_BEGIN PREVIOUS_TASKS_BLOCK-->
+<div class="scrolling-holder">
+    <div class='sale-summary'>
+        <table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:2px'>
+            <tr>
+                <td class='sum-th'><b>|Предходни операции|*</b></td>
+                <td class='sum-th'>|Невложено от предходни операции|*</td>
+            </tr>
+            <tr>
+                <td style='font-weight:normal;font-size: 0.8em;'>[#dependantProgress#] [#manualPreviousTask#]</td>
+                <td style='font-weight:normal;font-size: 0.8em;'>[#notConvertedFromPreviousTasks#]</td>
+            </tr>
+        </table>
+    </div>
+</div>
+[#PREVIOUS_TASKS_BLOCK#]
+<!--ET_END PREVIOUS_TASKS_BLOCK-->
 
 <div class="scrolling-holder">
     <div class='sale-summary'>
@@ -68,7 +79,7 @@
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
                 <td class='sum-th'><b>|Продължителност|* [#recalcBtn#]</b></td>
-                <td class='sum-th'>[#productCaption#]: <b>[#productId#]</b> <b>[<span style="color:blue">[#saoOrder#]</span>/<span style="color:green">[#taskCount#]</span>]</b></td>
+                <td class='sum-th'>[#productCaption#]: <b>[#productId#]</b> <!--ET_BEGIN saoOrder--><b>[<span style="color:blue">[#saoOrder#]</span>/<span style="color:green">[#taskCount#]</span>]</b><!--ET_END saoOrder--></td>
             </tr>
             <tr>
                 <td>[#expectedTimeStart#]</td>

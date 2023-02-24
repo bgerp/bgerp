@@ -703,6 +703,10 @@ class planning_Jobs extends core_Master
             $pUrl = array('planning_ReturnNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => true);
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието');
         }
+
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Преподреди', array($mvc, 'manualreorder', $rec->id), 'ef_icon = img/16/bug.png,title=Преподреждане на операциите в заданието');
+        }
     }
     
     
@@ -2177,5 +2181,20 @@ class planning_Jobs extends core_Master
             $defaultUpdateProductParams = planning_Setup::get('JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE');
             $form->setDefault('updateProductParams', $defaultUpdateProductParams);
         }
+    }
+
+
+    /**
+     * Екшън за ръчно преподреждане
+     */
+    public function act_manualreorder()
+    {
+        requireRole('debug');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetchRec($id));
+        $Tasks = cls::get('planning_Tasks');
+
+        $res = $Tasks->reorderTasksInJob($rec->containerId);
+        bp($res['debug'], $res['updated']);
     }
 }

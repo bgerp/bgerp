@@ -284,6 +284,7 @@ class speedy_Adapter extends core_BaseClass
      * @param int $senderClientId               - ид на обекта от който ще се взима
      * @param int $toCountry                    - към коя държава
      * @param int|null $toPCode                 - към кой пощенски код
+     * @param string $receiverPlace             - име на населеното място
      * @param int|null $toOfficeId              - до кой офис
      * @param boolean $isRecepientPrivatePerson - дали получателя е частно лице
      * @param date|null $date                   - към коя дата
@@ -310,7 +311,7 @@ class speedy_Adapter extends core_BaseClass
      *      -> returnVoucher (stdClass) - връщане на ваучер Forbidden/Allowed/REQUIRED
      *
      */
-    public static function getServicesBySites($senderClientId, $toCountry, $toPCode, $toOfficeId, $isRecepientPrivatePerson = false, $date = null)
+    public static function getServicesBySites($senderClientId, $toCountry, $toPCode, $receiverPlace, $toOfficeId, $isRecepientPrivatePerson = false, $date = null)
     {
         $date = isset($date) ? $date : date('Y-m-d');
         $jsonData = array(
@@ -324,7 +325,7 @@ class speedy_Adapter extends core_BaseClass
             unset($jsonData['recipient']['addressLocation']);
         } else {
             $toCountryId = static::getCountryId($toCountry);
-            $jsonData['recipient']['addressLocation'] = array('countryId' => $toCountryId, 'postCode' => $toPCode);
+            $jsonData['recipient']['addressLocation'] = array('countryId' => $toCountryId, 'postCode' => $toPCode, 'siteName' => $receiverPlace);
         }
 
         $res = array();
@@ -356,6 +357,7 @@ class speedy_Adapter extends core_BaseClass
      * @param int $senderClientId               - ид на обекта от който ще се взима
      * @param int $toCountry                    - към коя държава
      * @param int|null $toPCode                 - към кой пощенски код
+     * @param string $receiverPlace           - към кой пощенски код
      * @param int|null $toOfficeId              - до кой офис
      * @param boolean $isRecepientPrivatePerson - дали получателя е частно лице
      * @param date|null $date                   - към коя дата
@@ -363,10 +365,10 @@ class speedy_Adapter extends core_BaseClass
      * @return array $res
      *
      */
-    public static function getServiceOptions($senderClientId, $toCountry, $toPCode, $toOfficeId, $isRecepientPrivatePerson = false, $date = null)
+    public static function getServiceOptions($senderClientId, $toCountry, $toPCode, $receiverPlace, $toOfficeId, $isRecepientPrivatePerson = false, $date = null)
     {
         $res = array();
-        $services = static::getServicesBySites($senderClientId, $toCountry, $toPCode, $toOfficeId, $isRecepientPrivatePerson, $date);
+        $services = static::getServicesBySites($senderClientId, $toCountry, $toPCode, $receiverPlace, $toOfficeId, $isRecepientPrivatePerson, $date);
         $lg = core_Lg::getCurrent();
         $nameFld = ($lg == 'bg') ? 'name' : 'nameEn';
         foreach ($services as $serviceId => $service){
