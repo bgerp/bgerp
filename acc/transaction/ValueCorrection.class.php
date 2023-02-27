@@ -36,9 +36,9 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             'entries' => array()
         );
 
+        $rec->valior = $this->class->getDefaultValior($rec);
+        $result->valior = $rec->valior;
         if(acc_Journal::throwErrorsIfFoundWhenTryingToPost()){
-            $rec->valior = $this->class->getDefaultValior($rec);
-            $result->valior = $rec->valior;
             if(empty($rec->valior)){
                 acc_journal_RejectRedirect::expect(false, 'Едновременно могат да се коригират само артикули, които са експедирани/доставени едновременно - в рамките на един счетоводен период (месец). При необходимост създайте повече от един документ за корекция.', 'error');
             }
