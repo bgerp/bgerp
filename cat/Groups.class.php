@@ -611,32 +611,34 @@ class cat_Groups extends core_Master
     function act_Test()
     {
 
-        $grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'");
-        $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
-        $q = cat_Products::getQuery();
-        $q->where("#isPublic = 'no'");
-        $q->like('groups', "|{$grRecOld->id}|");
+        if(!haveRole('admin')) {
+            return "Недостатъчни права";
+        }
+            $grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'");
+            $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
+            $q = cat_Products::getQuery();
+            $q->where("#isPublic = 'no'");
+            $q->like('groups', "|{$grRecOld->id}|");
 
-        while ($pRec = $q->fetch()) {
+            while ($pRec = $q->fetch()) {
 
-            $groupsArr = keylist::toArray($pRec->groups);
+                $groupsArr = keylist::toArray($pRec->groups);
 
-            if (!key_exists($grRecNew->id, $groupsArr)) {
-                $groupsArr[$grRecNew->id] = $grRecNew->id;
+                if (!key_exists($grRecNew->id, $groupsArr)) {
+                    $groupsArr[$grRecNew->id] = $grRecNew->id;
+                }
+
+                unset($groupsArr[$grRecOld->id]);
+
+                $pRec->groups = type_Keylist::fromArray($groupsArr);
+
+                cls::get('cat_Products')->save_($pRec, 'groups');
             }
+            $queryGr = cat_Groups::getQuery();
 
-            unset($groupsArr[$grRecOld->id]);
-
-            $pRec->groups = type_Keylist::fromArray($groupsArr);
-
-            cls::get('cat_Products')->save_($pRec, 'groups');
+            if (isset($grRecOld->id)) {
+                $queryGr->delete("#id = $grRecOld->id");
+            }
         }
-        $queryGr = cat_Groups::getQuery();
-
-        if (isset($grRecOld->id)) {
-            $queryGr->delete("#id = $grRecOld->id");
-        }
-
-    }
 
 }
