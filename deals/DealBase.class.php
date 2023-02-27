@@ -838,7 +838,7 @@ abstract class deals_DealBase extends core_Master
             $fRec = $form->rec;
             try{
                 $this->recalcDocumentsWithNewRate($rec, $fRec->newRate);
-            } catch(acc_journal_RejectRedirect $e){
+            } catch(acc_journal_Exception $e){
                 $url = $this->getSingleUrlArray($rec->id);
                 redirect($url, false, 'Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
             }
@@ -1009,7 +1009,7 @@ abstract class deals_DealBase extends core_Master
             if($averageRate =  $this->getAverageRateInThread($rec)){
                 try{
                     $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                } catch(acc_journal_RejectRedirect $e){
+                } catch(acc_journal_Exception $e){
                     $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
                     $this->logErr($errorMsg, $rec->id);
                     continue;
