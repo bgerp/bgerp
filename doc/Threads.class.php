@@ -2151,7 +2151,7 @@ class doc_Threads extends core_Manager
 
                 try{
                     acc_Journal::saveTransaction($cRec->docClass, $cRec->docId);
-                } catch (acc_journal_RejectRedirect $e) {
+                } catch (acc_journal_Exception $e) {
                     $url = $Class->getSingleUrlArray($cRec->docId);
                     redirect($url, false, '|' . $e->getMessage(), 'error');
                 }
