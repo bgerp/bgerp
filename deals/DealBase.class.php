@@ -1012,7 +1012,6 @@ abstract class deals_DealBase extends core_Master
                 } catch(acc_journal_Exception $e){
                     $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
                     $this->logErr($errorMsg, $rec->id);
-                    continue;
                 }
 
                 $rec->lastAutoRecalcRate = $lastCalcedWithDiff;
