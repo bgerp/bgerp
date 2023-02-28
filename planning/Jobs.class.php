@@ -2197,4 +2197,30 @@ class planning_Jobs extends core_Master
         $res = $Tasks->reorderTasksInJob($rec->containerId);
         bp($res['debug'], $res['updated']);
     }
+
+
+    /**
+     * Помощен екшън връщащ произведеното по партиди от операции за този артикул по това задание
+     *
+     * @param int $containerId
+     * @param int $productId
+     * @return array $res
+     */
+    public static function getProducedBatchesByProductId($containerId, $productId)
+    {
+        $res = array();
+        if(core_Packs::isInstalled('batch')){
+            $taskDetailQuery = planning_ProductionTaskDetails::getQuery();
+            $taskDetailQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+            $taskDetailQuery->EXT('tState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
+            $taskDetailQuery->where("#originId = {$containerId} AND #productId = {$productId} AND #state != 'rejected' AND #tState IN ('active', 'wakeup', 'closed') AND #type IN ('scrap', 'production')");
+            $taskDetailQuery->where("#batch != ''");
+            while($dRec = $taskDetailQuery->fetch()){
+                $sign = ($dRec->type == 'scrap') ? -1 : 1;
+                $res["{$dRec->batch}"] += $dRec->quantity * $sign;
+            }
+        }
+
+        return $res;
+    }
 }

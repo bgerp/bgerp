@@ -607,4 +607,38 @@ class cat_Groups extends core_Master
 
         return false;
     }
+
+    function act_Test()
+    {
+
+        if(!haveRole('admin')) {
+            return "Недостатъчни права";
+        }
+            $grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'");
+            $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
+            $q = cat_Products::getQuery();
+            $q->where("#isPublic = 'no'");
+            $q->like('groups', "|{$grRecOld->id}|");
+
+            while ($pRec = $q->fetch()) {
+
+                $groupsArr = keylist::toArray($pRec->groups);
+
+                if (!key_exists($grRecNew->id, $groupsArr)) {
+                    $groupsArr[$grRecNew->id] = $grRecNew->id;
+                }
+
+                unset($groupsArr[$grRecOld->id]);
+
+                $pRec->groups = type_Keylist::fromArray($groupsArr);
+
+                cls::get('cat_Products')->save_($pRec, 'groups');
+            }
+            $queryGr = cat_Groups::getQuery();
+
+            if (isset($grRecOld->id)) {
+                $queryGr->delete("#id = $grRecOld->id");
+            }
+        }
+
 }
