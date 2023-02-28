@@ -1009,14 +1009,15 @@ abstract class deals_DealBase extends core_Master
             }
 
             // Осредняване на курса
+            $skip = '';
             if($averageRate =  $this->getAverageRateInThread($rec)){
                 $valueToCompare = max($rec->amountInvoiced, $rec->amountDelivered, $rec->amountDeal);
                 $valueToCompareDividedByOldRate = $valueToCompare / $rec->currencyRate;
                 $newValToCompare = $valueToCompareDividedByOldRate * $averageRate;
                 $change = abs($valueToCompare - $newValToCompare);
                 $itemRec = acc_Items::fetchItem($this, $rec);
-                if(round($change, 2) > 0.01){
 
+                if(round($change, 2) > 0.01){
                     try{
                         $this->recalcDocumentsWithNewRate($rec, $averageRate);
                     } catch(acc_journal_Exception $e){
@@ -1028,14 +1029,14 @@ abstract class deals_DealBase extends core_Master
                         acc_Items::notifyObject($itemRec);
                     }
                     $Items->flushTouched();
-                    $itemLastUseOn = acc_Items::fetchField("#classId = {$this->getClassId()} AND #objectId = {$rec->objectId}", 'lastUseOn', false);
-                    $rec->lastAutoRecalcRate = dt::addSecs(2, $itemLastUseOn);
-                    $this->save_($rec, 'lastAutoRecalcRate');
-
-                    $this->logDebug("CH RATE: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:'{$itemRec->lastUseOn}',NUSEON: '{$itemLastUseOn}', LC:'{$rec->lastAutoRecalcRate}'", $rec->id);
                 } else {
-                    $this->logDebug("CH RATE SKIP: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:{$itemRec->lastUseOn},LC:'{{$rec->lastAutoRecalcRate}}'", $rec->id);
+                    $skip = 'SKIP';
                 }
+
+                $this->logDebug("CH RATE {$skip}: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:'{$itemRec->lastUseOn}',NUSEON: '{$itemLastUseOn}', LC:'{$rec->lastAutoRecalcRate}'", $rec->id);
+                $itemLastUseOn = acc_Items::fetchField("#classId = {$this->getClassId()} AND #objectId = {$rec->objectId}", 'lastUseOn', false);
+                $rec->lastAutoRecalcRate = dt::addSecs(2, $itemLastUseOn);
+                $this->save_($rec, 'lastAutoRecalcRate');
             }
         }
     }
