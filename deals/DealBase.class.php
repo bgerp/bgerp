@@ -1007,7 +1007,7 @@ abstract class deals_DealBase extends core_Master
 
             // Осредняване на курса
             if($averageRate =  $this->getAverageRateInThread($rec)){
-                bp($averageRate);
+
                 try{
                     $this->recalcDocumentsWithNewRate($rec, $averageRate);
                 } catch(acc_journal_Exception $e){
