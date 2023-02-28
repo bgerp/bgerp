@@ -1010,20 +1010,29 @@ abstract class deals_DealBase extends core_Master
 
             // Осредняване на курса
             if($averageRate =  $this->getAverageRateInThread($rec)){
-
-                try{
-                    $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                } catch(acc_journal_Exception $e){
-                    $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
-                    $this->logErr($errorMsg, $rec->id);
-                }
-                $updateRecs[$rec->id] = $rec;
-
+                $valueToCompare = max($rec->amountInvoiced, $rec->amountDelivered, $rec->amountDeal);
+                $valueToCompareDividedByOldRate = $valueToCompare / $rec->currencyRate;
+                $newValToCompare = $valueToCompareDividedByOldRate * $averageRate;
+                $change = abs($valueToCompare - $newValToCompare);
                 $itemRec = acc_Items::fetchItem($this, $rec);
-                if($itemRec){
-                    acc_Items::notifyObject($itemRec);
+                if(round($change, 2) > 0.1){
+                    $this->logDebug("CH RATE: CH:'{$change}', NR:'{$averageRate}', OR:'{$rec->currencyRate}': USEON:{$itemRec->lastUseOn}, LC:'{{$rec->lastAutoRecalcRate}}'", $rec->id);
+
+                    try{
+                        $this->recalcDocumentsWithNewRate($rec, $averageRate);
+                    } catch(acc_journal_Exception $e){
+                        $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
+                        $this->logErr($errorMsg, $rec->id);
+                    }
+                    $updateRecs[$rec->id] = $rec;
+
+                    if($itemRec){
+                        acc_Items::notifyObject($itemRec);
+                    }
+                    $Items->flushTouched();
+                } else {
+                    $this->logDebug("CH RATE SKIP: CH:'{$change}', NR:'{$averageRate}', OR:'{$rec->currencyRate}': USEON:{$itemRec->lastUseOn}, LC:'{{$rec->lastAutoRecalcRate}}'", $rec->id);
                 }
-                $Items->flushTouched();
             }
         }
 
