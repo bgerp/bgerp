@@ -611,44 +611,58 @@ class cat_Groups extends core_Master
     function act_Test()
     {
 
-        if (!haveRole('admin')) {
-            return "Недостатъчни права";
-        }
+
         $grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'");
         $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
+        $artGr = cat_Groups::fetch("#name = 'Нестандартни' AND #parentId IS NULL");
+
         $q = cat_Products::getQuery();
         $q->where("#isPublic = 'no'");
         $q->like('groups', "|{$grRecOld->id}|");
+        $q->show('id,name,groups,groupsInput');
 
         while ($pRec = $q->fetch()) {
 
             $groupsArr = keylist::toArray($pRec->groups);
+            $groupsInputArr = keylist::toArray($pRec->groupsInput);
 
-            if (!key_exists($grRecNew->id, $groupsArr)) {
+            if (key_exists($grRecNew->id, $groupsArr)) {
+
+                foreach ($groupsArr as $gr) {
+
+                    if (cat_Groups::fetch($gr)->parentId == $grRecOld->id) {
+
+                        unset($groupsArr[$gr]);
+                        unset($groupsInputArr[$gr]);
+
+                    }
+                }
+
+                unset($groupsArr[$grRecOld->id]);
+
+            } else {
                 $groupsArr[$grRecNew->id] = $grRecNew->id;
             }
 
-            unset($groupsArr[$grRecOld->id]);
-
             $pRec->groups = type_Keylist::fromArray($groupsArr);
+            $pRec->groupsInput = type_Keylist::fromArray($groupsInputArr);
 
-            cls::get('cat_Products')->save_($pRec, 'groups');
+            cls::get('cat_Products')->save_($pRec, 'groups,groupsInput');
         }
+
         $queryGr = cat_Groups::getQuery();
-
-        if (isset($grRecOld->id)) {
-            $queryGr->delete("#id = $grRecOld->id");
-        }
-        $allGrArr = arr::extractValuesFromArray($queryGr->fetchAll(), 'id');
+        $queryGr->where("#parentId = $grRecOld->id");
 
         while ($grRec = $queryGr->fetch()) {
 
-            if ($grRec->parentId == $grRecOld->id || !in_array($grRec->parentId, $allGrArr)) {
+            if ($grRec->parentId == $grRecOld->id) {
 
                 $grRec->parentId = $grRecNew->id;
+
                 cls::get('cat_Groups')->save_($grRec, 'parentId');
             }
         }
+
     }
 
 }
