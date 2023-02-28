@@ -1034,7 +1034,7 @@ abstract class deals_DealBase extends core_Master
                 }
 
                 $this->logDebug("CH RATE {$skip}: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:'{$itemRec->lastUseOn}',NUSEON: '{$itemLastUseOn}', LC:'{$rec->lastAutoRecalcRate}'", $rec->id);
-                $itemLastUseOn = acc_Items::fetchField("#classId = {$this->getClassId()} AND #objectId = {$rec->objectId}", 'lastUseOn', false);
+                $itemLastUseOn = acc_Items::fetchField("#classId = {$this->getClassId()} AND #objectId = {$rec->id}", 'lastUseOn', false);
                 $rec->lastAutoRecalcRate = dt::addSecs(2, $itemLastUseOn);
                 $this->save_($rec, 'lastAutoRecalcRate');
             }
