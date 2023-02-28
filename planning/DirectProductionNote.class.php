@@ -881,6 +881,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         // Ако записа е клониран не правим нищо
         if ($rec->_isClone === true) return;
+        $rec->_isCreated = true;
 
         $details = $mvc->getDefaultDetails($rec);
         if(countR($details)) {
@@ -927,6 +928,23 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
 
             doc_DocumentCache::threadCacheInvalidation($rec->threadId);
+        }
+
+        // Ако за артикула има произведени партиди в другите операции да се прехвърлят
+        if(empty($rec->batch) && $rec->_isCreated){
+            if(core_Packs::isInstalled('batch')){
+                $jobRec = static::getJobRec($rec->id);
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore == 'yes'){
+                    $producedBatches = planning_Jobs::getProducedBatchesByProductId($jobRec->containerId, $rec->productId);
+                    if(countR($producedBatches)){
+                        $batchSum = array_sum($producedBatches);
+                        if($rec->quantity >= $batchSum){
+                            batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $producedBatches, true);
+                        }
+                    }
+                }
+            }
         }
     }
 
