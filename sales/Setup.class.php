@@ -431,10 +431,10 @@ class sales_Setup extends core_ProtoSetup
         'SALES_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен търговец в продажбите->Избор'),
         'SALES_SHOW_PRICE_IN_PRODUCT_SELECTION' => array('enum(no=Изключено,measureId=Основна мярка,basePack=Избраната за основна мярка/опаковка)', 'caption=Показване на продажната цена при избор на артикул в документи->Избор'),
 
-        'SALES_DEFAULT_BLAST_BODY_BG' => array('richtext(rows=5,bucket=Blast)', 'caption=Текст на циркулярен имейл за просрочени плащания->На български, customizeBy=blast'),
-        'SALES_DEFAULT_BLAST_SUBJECT_BG' => array('varchar', 'caption=Subject на циркулярен имейл за просрочени плащания->На български, customizeBy=blast'),
-        'SALES_DEFAULT_BLAST_BODY_EN' => array('richtext(rows=5,bucket=Blast)', 'caption=Текст на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
-        'SALES_DEFAULT_BLAST_SUBJECT_EN' => array('varchar', 'caption=Subject на циркулярен имейл за просрочени плащания->На английски, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_SUBJECT_BG' => array('varchar', 'caption=Циркулярен имейл за просрочени плащания->Subject BG, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_SUBJECT_EN' => array('varchar', 'caption=Циркулярен имейл за просрочени плащания->Subject EN, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_BODY_BG' => array('richtext(rows=5,bucket=Blast)', 'caption=Циркулярен имейл за просрочени плащания->Текст BG, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_BODY_EN' => array('richtext(rows=5,bucket=Blast)', 'caption=Циркулярен имейл за просрочени плащания->Текст EN, customizeBy=blast'),
 
         'SALES_DELTA_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->От,unit=назад'),
         'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
