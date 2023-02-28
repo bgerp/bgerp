@@ -611,10 +611,12 @@ class cat_Groups extends core_Master
     function act_Test()
     {
 
+        if(!haveRole('admin')){
+            return "Недостатъчни права";
+        }
 
         $grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'");
         $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
-        $artGr = cat_Groups::fetch("#name = 'Нестандартни' AND #parentId IS NULL");
 
         $q = cat_Products::getQuery();
         $q->where("#isPublic = 'no'");
