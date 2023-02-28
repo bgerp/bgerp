@@ -2086,10 +2086,9 @@ abstract class deals_Helper
      */
     public static function getAvailableQuantityAfter($productId, $storeId, $quantity)
     {
-        $stRec = store_Products::fetch("#productId = '{$productId}' AND #storeId = {$storeId}", 'quantity,reservedQuantity');
-        $quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
-        
-        return $quantityInStore - $quantity;
+        $stRec = store_Products::fetch("#productId = '{$productId}' AND #storeId = {$storeId}", 'quantity');
+
+        return $stRec->quantity - $quantity;
     }
     
     
