@@ -992,11 +992,14 @@ abstract class deals_DealBase extends core_Master
         $iQuery->where("#lastUseOn >= #lastAutoRecalcRateCalc");
 
         $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
-        if(!countR($dealIds)) return;
+        $count = countR($dealIds);
+        if(!$count) return;
+        core_App::setTimeLimit(0.6 * $count, false, 200);
 
         // Ако има намерени сделки
+        $Items = cls::get('acc_Items');
         $now = dt::now();
-        $lastCalcedWithDiff = dt::addSecs(5, $now);
+
         $query = $this->getQuery();
         $query->in('id', $dealIds);
         $updateRecs = array();
@@ -1014,19 +1017,20 @@ abstract class deals_DealBase extends core_Master
                     $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
                     $this->logErr($errorMsg, $rec->id);
                 }
-
-                $rec->lastAutoRecalcRate = $lastCalcedWithDiff;
                 $updateRecs[$rec->id] = $rec;
 
                 $itemRec = acc_Items::fetchItem($this, $rec);
                 if($itemRec){
                     acc_Items::notifyObject($itemRec);
                 }
+                $Items->flushTouched();
             }
         }
 
         // Обновяване на сделките кога последно е осреднен курса
         if(countR($updateRecs)){
+            $lastCalcedWithDiff = dt::addSecs(15, $now);
+            array_walk($updateRecs, function($a) use (&$lastCalcedWithDiff) {$a->lastAutoRecalcRate = $lastCalcedWithDiff;});
             $this->saveArray($updateRecs, 'id,lastAutoRecalcRate');
         }
     }

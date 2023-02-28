@@ -659,9 +659,9 @@ class acc_Items extends core_Manager
         if (countR($this->touched)) {
             $timeLimit = countR($this->touched) * 2;
             core_App::setTimeLimit($timeLimit);
-            
             foreach ($this->touched as $rec) {
                 $this->save_($rec, 'lastUseOn');
+                unset($this->touched[$rec->id]);
             }
         }
     }
