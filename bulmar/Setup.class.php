@@ -32,6 +32,18 @@ defIfNot('BULMAR_INV_DEBIT_SALE', 'D411');
 
 
 /**
+ * Аналитичност за плащане с пощенски паричен превод
+ */
+defIfNot('BULMAR_INV_PPT_ANAL', '2349');
+
+
+/**
+ * Аналитичност за плащане с карта
+ */
+defIfNot('BULMAR_INV_CARD_PAYMENT_ANAL', '2350');
+
+
+/**
  * кредитна сметка на продажбата на стока в Bulmar Office
  */
 defIfNot('BULMAR_INV_FIRST_CREDIT_SALE_PRODUCTS', 'K702');
@@ -317,6 +329,8 @@ class bulmar_Setup extends core_ProtoSetup
         'BULMAR_INV_DEBIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Дебитна сметка плащане'),
         'BULMAR_INV_CREDIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Кредитна сметка плащане'),
         'BULMAR_INV_CREDIT_AV' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Кредитна сметка за авансово плащане'),
+        'BULMAR_INV_PPT_ANAL' => array('int', 'caption=Експорт на ИЗХОДЯЩИ фактури->Аналитичност за плащане с ППП'),
+        'BULMAR_INV_CARD_PAYMENT_ANAL' => array('int', 'caption=Експорт на ИЗХОДЯЩИ фактури->Аналитичност за плащане с карта'),
 
         'BULMAR_PURINV_CONTR_FOLDER' => array('double', 'caption=Експорт на ВХОДЯЩИ фактури->Папка'),
         'BULMAR_PURINV_PURCHASE_PRODUCTS_OPER' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Сч. Операция на покупка на стока №'),
