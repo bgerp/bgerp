@@ -993,12 +993,12 @@ abstract class deals_DealBase extends core_Master
 
         $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
         $count = countR($dealIds);
+
         if(!$count) return;
         core_App::setTimeLimit(0.6 * $count, false, 200);
 
         // Ако има намерени сделки
         $Items = cls::get('acc_Items');
-        $now = dt::now();
 
         $query = $this->getQuery();
         $query->in('id', $dealIds);
@@ -1029,8 +1029,9 @@ abstract class deals_DealBase extends core_Master
 
         // Обновяване на сделките кога последно е осреднен курса
         if(countR($updateRecs)){
-            $lastCalcedWithDiff = dt::addSecs(15, $now);
-            array_walk($updateRecs, function($a) use (&$lastCalcedWithDiff) {$a->lastAutoRecalcRate = $lastCalcedWithDiff;});
+            $now = dt::now();
+            $lastCalcedWithDiff = dt::addSecs(20, $now);
+            array_walk($updateRecs, function(&$a) use (&$lastCalcedWithDiff) {$a->lastAutoRecalcRate = $lastCalcedWithDiff;});
             $this->saveArray($updateRecs, 'id,lastAutoRecalcRate');
         }
     }
