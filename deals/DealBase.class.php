@@ -993,12 +993,12 @@ abstract class deals_DealBase extends core_Master
 
         $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
         $count = countR($dealIds);
+
         if(!$count) return;
         core_App::setTimeLimit(0.6 * $count, false, 200);
 
         // Ако има намерени сделки
         $Items = cls::get('acc_Items');
-        $now = dt::now();
 
         $query = $this->getQuery();
         $query->in('id', $dealIds);
@@ -1010,27 +1010,37 @@ abstract class deals_DealBase extends core_Master
 
             // Осредняване на курса
             if($averageRate =  $this->getAverageRateInThread($rec)){
-
-                try{
-                    $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                } catch(acc_journal_Exception $e){
-                    $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
-                    $this->logErr($errorMsg, $rec->id);
-                }
-                $updateRecs[$rec->id] = $rec;
-
+                $valueToCompare = max($rec->amountInvoiced, $rec->amountDelivered, $rec->amountDeal);
+                $valueToCompareDividedByOldRate = $valueToCompare / $rec->currencyRate;
+                $newValToCompare = $valueToCompareDividedByOldRate * $averageRate;
+                $change = abs($valueToCompare - $newValToCompare);
                 $itemRec = acc_Items::fetchItem($this, $rec);
-                if($itemRec){
-                    acc_Items::notifyObject($itemRec);
+                if(round($change, 2) > 0.01){
+                    $this->logDebug("CH RATE: CH:'{$change}', NR:'{$averageRate}', OR:'{$rec->currencyRate}': USEON:{$itemRec->lastUseOn}, LC:'{{$rec->lastAutoRecalcRate}}'", $rec->id);
+
+                    try{
+                        $this->recalcDocumentsWithNewRate($rec, $averageRate);
+                    } catch(acc_journal_Exception $e){
+                        $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
+                        $this->logErr($errorMsg, $rec->id);
+                    }
+                    $updateRecs[$rec->id] = $rec;
+
+                    if($itemRec){
+                        acc_Items::notifyObject($itemRec);
+                    }
+                    $Items->flushTouched();
+                } else {
+                    $this->logDebug("CH RATE SKIP: CH:'{$change}', NR:'{$averageRate}', OR:'{$rec->currencyRate}': USEON:{$itemRec->lastUseOn}, LC:'{{$rec->lastAutoRecalcRate}}'", $rec->id);
                 }
-                $Items->flushTouched();
             }
         }
 
         // Обновяване на сделките кога последно е осреднен курса
         if(countR($updateRecs)){
-            $lastCalcedWithDiff = dt::addSecs(15, $now);
-            array_walk($updateRecs, function($a) use (&$lastCalcedWithDiff) {$a->lastAutoRecalcRate = $lastCalcedWithDiff;});
+            $now = dt::now();
+            $lastCalcedWithDiff = dt::addSecs(20, $now);
+            array_walk($updateRecs, function(&$a) use (&$lastCalcedWithDiff) {$a->lastAutoRecalcRate = $lastCalcedWithDiff;});
             $this->saveArray($updateRecs, 'id,lastAutoRecalcRate');
         }
     }
