@@ -1034,7 +1034,7 @@ abstract class deals_DealBase extends core_Master
 
                     $this->logDebug("CH RATE: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:'{$itemRec->lastUseOn}',NUSEON: '{$itemLastUseOn}', LC:'{$rec->lastAutoRecalcRate}'", $rec->id);
                 } else {
-                    $this->logDebug("CH RATE SKIP: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:{$itemRec->lastUseOn},LC:'{{$rec->lastAutoRecalcRate}}'", $rec->id);
+                    $this->logDebug("CH RATE SKIP: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:{$itemRec->lastUseOn},LC:'{$rec->lastAutoRecalcRate}'", $rec->id);
                 }
             }
         }
