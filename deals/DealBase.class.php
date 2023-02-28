@@ -1015,7 +1015,7 @@ abstract class deals_DealBase extends core_Master
                 $newValToCompare = $valueToCompareDividedByOldRate * $averageRate;
                 $change = abs($valueToCompare - $newValToCompare);
                 $itemRec = acc_Items::fetchItem($this, $rec);
-                if(round($change, 2) > 0.1){
+                if(round($change, 2) > 0.01){
                     $this->logDebug("CH RATE: CH:'{$change}', NR:'{$averageRate}', OR:'{$rec->currencyRate}': USEON:{$itemRec->lastUseOn}, LC:'{{$rec->lastAutoRecalcRate}}'", $rec->id);
 
                     try{
