@@ -20,44 +20,44 @@ class cat_Groups extends core_Master
      * Заглавие
      */
     public $title = 'Групи на артикулите';
-    
-    
+
+
     /**
      * Страница от менюто
      */
     public $pageMenu = 'Каталог';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject, core_UserTranslatePlg';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name=Наименование,productCnt,orderProductBy,createdOn,createdBy';
-    
-    
+
+
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     public $searchFields = 'sysId, name, productCnt';
-    
-    
+
+
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Група';
-    
-    
+
+
     /**
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'cat,ceo';
-    
-    
+
+
     /**
      * Кой има право да променя?
      */
@@ -68,20 +68,20 @@ class cat_Groups extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'cat,ceo';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'cat,ceo,sales,purchase';
-    
-    
+
+
     /**
      * Кой може да качва файлове
      */
     public $canWrite = 'cat,ceo';
-    
-    
+
+
     /**
      * Кой има право да го изтрие?
      */
@@ -155,7 +155,7 @@ class cat_Groups extends core_Master
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
         						canManifacture=Производими,generic=Генерични)', 'caption=Свойства->Списък,columns=2,input=none');
-        
+
         $this->setDbUnique('sysId');
         $this->setDbIndex('parentId');
     }
@@ -173,11 +173,11 @@ class cat_Groups extends core_Master
         $form->setField('parentId', 'silent,removeAndRefreshForm=defaultOverheadCostsPercent');
 
         // На системните групи само определени полета може да се променят
-        if(isset($rec->sysId)){
-            foreach (array('name', 'nameEn', 'parentId') as $fld){
+        if (isset($rec->sysId)) {
+            foreach (array('name', 'nameEn', 'parentId') as $fld) {
                 $form->setReadOnly($fld);
             }
-            foreach (array('orderProductBy', 'meta', 'makeDescendantsFeatures') as $fld){
+            foreach (array('orderProductBy', 'meta', 'makeDescendantsFeatures') as $fld) {
                 $form->setField($fld, 'input=hidden');
             }
         }
@@ -186,7 +186,7 @@ class cat_Groups extends core_Master
         $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
         $parentsArr = cls::get('cat_Groups')->getParentsArray($rec->parentId);
         $intersectedParents = array_intersect_key($groupsWithOverheadCosts, $parentsArr);
-        if(array_key_exists($rec->id, $groupsWithOverheadCosts) || countR($intersectedParents)) {
+        if (array_key_exists($rec->id, $groupsWithOverheadCosts) || countR($intersectedParents)) {
             $form->setField('defaultOverheadCostsPercent', 'input');
         }
     }
@@ -202,21 +202,21 @@ class cat_Groups extends core_Master
         if ($form->isSubmitted()) {
             $condition = "#name = '[#1#]' AND #id != '{$rec->id}' AND ";
             $condition .= isset($rec->parentId) ? "#parentId = {$rec->parentId}" : ' #parentId IS NULL';
-            
+
             if ($mvc->fetchField(array($condition, $rec->name))) {
                 $form->setError('name,parentId', 'Вече съществува запис със същите данни');
             }
 
-            if(isset($rec->id)){
+            if (isset($rec->id)) {
                 $exParentId = $mvc->fetchField($rec->id, 'parentId', false);
-                if($rec->parentId != $exParentId){
+                if ($rec->parentId != $exParentId) {
 
                     // Група с правило не може да бъде преместена към група без правила
-                    if(price_Updates::fetch("#type = 'group' AND #objectId = {$rec->id}")){
+                    if (price_Updates::fetch("#type = 'group' AND #objectId = {$rec->id}")) {
                         $defaultGroups = keylist::toArray(cat_Setup::get('GROUPS_WITH_PRICE_UPDATE_RULES'));
                         $parentsArr = cls::get('cat_Groups')->getParentsArray($rec->parentId);
                         $intersectedParents = array_intersect_key($defaultGroups, $parentsArr);
-                        if(!array_key_exists($rec->id, $defaultGroups) && !countR($intersectedParents)) {
+                        if (!array_key_exists($rec->id, $defaultGroups) && !countR($intersectedParents)) {
                             $form->setError('parentId', 'Групата има зададено правило за обновяване на себестойностти и трябва да остане в състава на група, на чиите поднива може да се задават правила за обновяване|*!');
                         }
                     }
@@ -224,8 +224,8 @@ class cat_Groups extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
@@ -239,26 +239,26 @@ class cat_Groups extends core_Master
         $data->listFilter->view = 'horizontal';
         //$data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
+
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields = 'search';
         $data->listFilter->input(null, 'silent');
-        
+
         $data->query->orderBy('#name');
         if ($data->listFilter->rec->product) {
             $groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
             $data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
         }
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if(cat_Products::haveRightFor('list')){
+        if (cat_Products::haveRightFor('list')) {
             if ($fields['-list']) {
                 $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
@@ -273,8 +273,8 @@ class cat_Groups extends core_Master
         if ($fields['-single'] && !isset($rec->defaultOverheadCostsPercent)) {
 
             // Ако е намерена наследена стойност
-            if($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)){
-                if(!empty($overheadCostArr['overheadCost'])){
+            if ($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)) {
+                if (!empty($overheadCostArr['overheadCost'])) {
                     $row->defaultOverheadCostsPercent = $mvc->getFieldType('defaultOverheadCostsPercent')->toVerbal($overheadCostArr['overheadCost']);
                     $row->defaultOverheadCostsPercent = "<span style='color:blue'>{$row->defaultOverheadCostsPercent}</span>";
                     $hint = "Наследено от|*: " . $mvc->getVerbal($overheadCostArr['groupId'], 'name');
@@ -289,10 +289,10 @@ class cat_Groups extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string   $requiredRoles
-     * @param string   $action
+     * @param string $requiredRoles
+     * @param string $action
      * @param stdClass $rec
-     * @param int      $userId
+     * @param int $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
@@ -301,8 +301,8 @@ class cat_Groups extends core_Master
             $requiredRoles = 'no_one';
         }
     }
-    
-    
+
+
     /**
      * Преди импорт на записи
      */
@@ -316,8 +316,8 @@ class cat_Groups extends core_Master
         }
         $rec->productCnt = 0;
     }
-    
-    
+
+
     /**
      * След обновяване на модела
      */
@@ -330,14 +330,14 @@ class cat_Groups extends core_Master
             2 => 'csv_parentId',
             3 => 'nameEn',
         );
-        
+
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         $res .= $cntObj->html;
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Връща кейлист от систем ид-та на групите
      *
@@ -348,35 +348,35 @@ class cat_Groups extends core_Master
     {
         $kList = '';
         $sysIds = arr::make($sysIds);
-        
+
         if (!countR($sysIds)) {
-            
+
             return $kList;
         }
-        
+
         foreach ($sysIds as $grId) {
             $kList = keylist::addKey($kList, self::fetchField("#sysId = '{$grId}'", 'id'));
         }
-        
+
         return $kList;
     }
-    
-    
+
+
     /**
      * Форсира група (маркер) от каталога
      *
-     * @param string $name     Име на групата. Съдържа целия път
-     * @param int|null    $parentId Id на родител
-     * @param bool   $force
+     * @param string $name Име на групата. Съдържа целия път
+     * @param int|null $parentId Id на родител
+     * @param bool $force
      *
      * @return int|NULL id на групата
      */
     public static function forceGroup($name, $parentId = null, $force = true)
     {
         static $groups = array();
-        
-        $parentIdNumb = (int) $parentId;
-        
+
+        $parentIdNumb = (int)$parentId;
+
         if (!($res = $groups[$parentIdNumb][$name])) {
             if (strpos($name, '»')) {
                 $gArr = explode('»', $name);
@@ -384,46 +384,46 @@ class cat_Groups extends core_Master
                     $gName = trim($gName);
                     $parentId = self::forceGroup($gName, $parentId, $force);
                 }
-                
+
                 $res = $parentId;
             } else {
                 if ($parentId === null) {
                     $cond = 'AND #parentId IS NULL';
                 } else {
                     expect(is_numeric($parentId), $parentId);
-                    
+
                     $cond = "AND #parentId = {$parentId}";
                 }
-                
+
                 $gRec = cat_Groups::fetch(array("LOWER(#name) = LOWER('[#1#]'){$cond}", $name));
-                
+
                 if (isset($gRec->name)) {
                     $res = $gRec->id;
                 } else {
                     if ($force) {
-                        $gRec = (object) array('name' => $name, 'orderProductBy' => 'code', 'meta' => 'canSell,canBuy,canStore,canConvert,canManifacture', 'parentId' => $parentId);
-                        
+                        $gRec = (object)array('name' => $name, 'orderProductBy' => 'code', 'meta' => 'canSell,canBuy,canStore,canConvert,canManifacture', 'parentId' => $parentId);
+
                         cat_Groups::save($gRec);
-                        
+
                         $res = $gRec->id;
                     } else {
                         $res = null;
                     }
                 }
             }
-            
+
             $groups[$parentIdNumb][$name] = $res;
         }
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Връщане на списъка от групи като линк
      *
      * @param string $keylist - списък от групи
-     * @param string $class   - клас на линковете
+     * @param string $class - клас на линковете
      *
      * @return array $res     - масив от линкове
      */
@@ -432,10 +432,10 @@ class cat_Groups extends core_Master
         $res = array();
         $groups = (is_array($keylist)) ? $keylist : keylist::toArray($keylist);
         if (!countR($groups)) {
-            
+
             return $res;
         }
-        
+
         $makeLink = (cat_Products::haveRightFor('list') && !Mode::isReadOnly());
         foreach ($groups as $grId) {
             $groupTitle = self::getVerbal($grId, 'name');
@@ -448,11 +448,11 @@ class cat_Groups extends core_Master
 
             $res[] = $groupTitle;
         }
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Има ли в подадените групи, такива които са наследници на друга група от списъка
      *
@@ -464,22 +464,22 @@ class cat_Groups extends core_Master
     {
         $groups = (is_array($groupList)) ? $groupList : keylist::toArray($groupList);
         if (!countR($groups)) {
-            
+
             return false;
         }
-        
+
         $notAllowed = array();
         foreach ($groups as $grId) {
             if (array_key_exists($grId, $notAllowed)) {
-                
+
                 return true;
             }
-            
+
             // Иначе добавяме него и наследниците му към недопустимите групи
             $descendant = cat_Groups::getDescendantArray($grId);
             $notAllowed += $descendant;
         }
-        
+
         return false;
     }
 
@@ -503,14 +503,14 @@ class cat_Groups extends core_Master
         // Ще се обновява броя артикули в група, само ако има промяна
         $updateGroups = array();
         $query = cat_Groups::getQuery();
-        if(countR($groupArr)){
+        if (countR($groupArr)) {
             $query->in('id', $groupArr);
         }
 
         while ($rec = $query->fetch()) {
             if ($gCntArr[$rec->id] != $rec->productCnt) {
                 $rec->productCnt = $gCntArr[$rec->id];
-                if(empty($rec->productCnt)){
+                if (empty($rec->productCnt)) {
                     $rec->productCnt = 0;
                 }
                 $updateGroups[$rec->id] = $rec;
@@ -518,7 +518,7 @@ class cat_Groups extends core_Master
         }
 
         // Обновяване на групите с промяна
-        if(countR($updateGroups)){
+        if (countR($updateGroups)) {
             cls::get('cat_Groups')->saveArray($updateGroups, 'id,productCnt');
         }
     }
@@ -551,20 +551,20 @@ class cat_Groups extends core_Master
         // Кои са дефолтния групи с режийни разходи
         $groupsToCheck = array();
         $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
-        foreach ($productGroups as $groupId){
+        foreach ($productGroups as $groupId) {
 
             // За всяка от ръчно въведените групи на артикула, ако някой от бащите ѝ е в избраните групи
             $parents = $me->getParentsArray($groupId);
             $intersected = array_intersect_key($groupsWithOverheadCosts, $parents);
 
-            if(countR($intersected)){
+            if (countR($intersected)) {
 
                 // Ако в самата група има ръчно въведен процент - взима се той
                 $groupRec = static::fetch("#id = {$groupId}", "id,parentId,defaultOverheadCostsPercent");
-                if(isset($groupRec->defaultOverheadCostsPercent)){
+                if (isset($groupRec->defaultOverheadCostsPercent)) {
                     $groupsToCheck[$groupRec->id] = $groupRec->defaultOverheadCostsPercent;
                 } else {
-                    if($overheadCostArr = $me->getDefaultOverheadCostFromParent($groupRec)){
+                    if ($overheadCostArr = $me->getDefaultOverheadCostFromParent($groupRec)) {
                         $groupsToCheck[$groupRec->id] = $overheadCostArr['overheadCost'];
                     }
                 }
@@ -573,7 +573,7 @@ class cat_Groups extends core_Master
 
         // Ако има намерени - в;ръща се най-големия процент
         arsort($groupsToCheck);
-        if(countR($groupsToCheck)) return array('groupId' => key($groupsToCheck), 'value' => $groupsToCheck[key($groupsToCheck)]);
+        if (countR($groupsToCheck)) return array('groupId' => key($groupsToCheck), 'value' => $groupsToCheck[key($groupsToCheck)]);
 
         return null;
     }
@@ -593,12 +593,12 @@ class cat_Groups extends core_Master
         $parent = $rec->parentId;
         $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
         while ($parent && ($pRec = static::fetch("#id = {$parent}", "id,parentId,defaultOverheadCostsPercent"))) {
-            if(!empty($pRec->defaultOverheadCostsPercent)){
+            if (!empty($pRec->defaultOverheadCostsPercent)) {
                 $parentsArr = cls::get('cat_Groups')->getParentsArray($pRec->parentId);
                 $intersectedParents = array_intersect_key($groupsWithOverheadCosts, $parentsArr);
 
                 // Ако е намерен процент, все пак се проверява дали текущия баща или бащите му са в посочените
-                if(array_key_exists($pRec->id, $groupsWithOverheadCosts) || countR($intersectedParents)){
+                if (array_key_exists($pRec->id, $groupsWithOverheadCosts) || countR($intersectedParents)) {
                     return array('groupId' => $rec->id, 'overheadCost' => $pRec->defaultOverheadCostsPercent);
                 }
             }
@@ -611,34 +611,44 @@ class cat_Groups extends core_Master
     function act_Test()
     {
 
-        if(!haveRole('admin')) {
+        if (!haveRole('admin')) {
             return "Недостатъчни права";
         }
-            $grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'");
-            $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
-            $q = cat_Products::getQuery();
-            $q->where("#isPublic = 'no'");
-            $q->like('groups', "|{$grRecOld->id}|");
+        $grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'");
+        $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
+        $q = cat_Products::getQuery();
+        $q->where("#isPublic = 'no'");
+        $q->like('groups', "|{$grRecOld->id}|");
 
-            while ($pRec = $q->fetch()) {
+        while ($pRec = $q->fetch()) {
 
-                $groupsArr = keylist::toArray($pRec->groups);
+            $groupsArr = keylist::toArray($pRec->groups);
 
-                if (!key_exists($grRecNew->id, $groupsArr)) {
-                    $groupsArr[$grRecNew->id] = $grRecNew->id;
-                }
-
-                unset($groupsArr[$grRecOld->id]);
-
-                $pRec->groups = type_Keylist::fromArray($groupsArr);
-
-                cls::get('cat_Products')->save_($pRec, 'groups');
+            if (!key_exists($grRecNew->id, $groupsArr)) {
+                $groupsArr[$grRecNew->id] = $grRecNew->id;
             }
-            $queryGr = cat_Groups::getQuery();
 
-            if (isset($grRecOld->id)) {
-                $queryGr->delete("#id = $grRecOld->id");
+            unset($groupsArr[$grRecOld->id]);
+
+            $pRec->groups = type_Keylist::fromArray($groupsArr);
+
+            cls::get('cat_Products')->save_($pRec, 'groups');
+        }
+        $queryGr = cat_Groups::getQuery();
+
+        if (isset($grRecOld->id)) {
+            $queryGr->delete("#id = $grRecOld->id");
+        }
+        $allGrArr = arr::extractValuesFromArray($queryGr->fetchAll(), 'id');
+
+        while ($grRec = $queryGr->fetch()) {
+
+            if ($grRec->parentId == $grRecOld->id || !in_array($grRec->parentId, $allGrArr)) {
+
+                $grRec->parentId = $grRecNew->id;
+                cls::get('cat_Groups')->save_($grRec, 'parentId');
             }
         }
+    }
 
 }
