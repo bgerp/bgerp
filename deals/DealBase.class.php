@@ -988,7 +988,7 @@ abstract class deals_DealBase extends core_Master
         $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
         $iQuery->EXT('lastAutoRecalcRate', $this->className, 'externalName=lastAutoRecalcRate,externalKey=objectId');
         $iQuery->XPR('lastAutoRecalcRateCalc', 'double', "COALESCE(#lastAutoRecalcRate, '0000-00-00 00:00:00')");
-        $iQuery->where("#currencyId != 'BGN' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
+        $iQuery->where("#currencyId != 'BGN' AND ADDDATE(#lastUseOn, INTERVAL 600 SECOND) <= '{$lastCalculate}'");
         $iQuery->where("#lastUseOn >= #lastAutoRecalcRateCalc");
 
         $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
@@ -1034,7 +1034,7 @@ abstract class deals_DealBase extends core_Master
                 }
 
                 $this->logDebug("CH RATE {$skip}: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:'{$itemRec->lastUseOn}',NUSEON: '{$itemLastUseOn}', LC:'{$rec->lastAutoRecalcRate}'", $rec->id);
-                $itemLastUseOn = acc_Items::fetchField("#classId = {$this->getClassId()} AND #objectId = {$rec->objectId}", 'lastUseOn', false);
+                $itemLastUseOn = acc_Items::fetchField("#classId = {$this->getClassId()} AND #objectId = {$rec->id}", 'lastUseOn', false);
                 $rec->lastAutoRecalcRate = dt::addSecs(2, $itemLastUseOn);
                 $this->save_($rec, 'lastAutoRecalcRate');
             }
