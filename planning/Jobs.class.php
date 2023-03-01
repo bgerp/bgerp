@@ -2202,22 +2202,32 @@ class planning_Jobs extends core_Master
     /**
      * Помощен екшън връщащ произведеното по партиди от операции за този артикул по това задание
      *
-     * @param int $containerId
+     * @param mixed $jobRec
      * @param int $productId
      * @return array $res
      */
-    public static function getProducedBatchesByProductId($containerId, $productId)
+    public static function getProducedBatchesByProductId($jobRec, $productId)
     {
         $res = array();
+        $jobRec = static::fetchRec($jobRec);
         if(core_Packs::isInstalled('batch')){
             $taskDetailQuery = planning_ProductionTaskDetails::getQuery();
             $taskDetailQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
             $taskDetailQuery->EXT('tState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
-            $taskDetailQuery->where("#originId = {$containerId} AND #productId = {$productId} AND #state != 'rejected' AND #tState IN ('active', 'wakeup', 'closed') AND #type IN ('scrap', 'production')");
+            $taskDetailQuery->where("#originId = {$jobRec->containerId} AND #productId = {$productId} AND #state != 'rejected' AND #tState IN ('active', 'wakeup', 'closed') AND #type IN ('scrap', 'production')");
             $taskDetailQuery->where("#batch != ''");
             while($dRec = $taskDetailQuery->fetch()){
                 $sign = ($dRec->type == 'scrap') ? -1 : 1;
                 $res["{$dRec->batch}"] += $dRec->quantity * $sign;
+            }
+
+            if(!countR($res)){
+                $me = cls::get(get_called_class());
+                $bQuery = batch_BatchesInDocuments::getQuery();
+                $bQuery->where("#detailClassId={$me->getClassId()} AND #detailRecId = {$jobRec->id}");
+                while($bRec = $bQuery->fetch()){
+                    $res["{$bRec->batch}"] += $bRec->quantity;
+                }
             }
         }
 
