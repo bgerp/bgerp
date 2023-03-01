@@ -1017,7 +1017,7 @@ abstract class deals_DealBase extends core_Master
                 $change = abs($valueToCompare - $newValToCompare);
                 $itemRec = acc_Items::fetchItem($this, $rec);
 
-                if(round($change, 2) > 0.01){
+                if(round($change, 2) >= 0.01){
                     try{
                         $this->recalcDocumentsWithNewRate($rec, $averageRate);
                     } catch(acc_journal_Exception $e){

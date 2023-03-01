@@ -141,7 +141,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
 
                         $key = "{$pData['productId']}|" . md5($bArr['batch']);
                         $subCaption = $batchDef->toVerbal($bArr['batch']);
-                        $form->FLD($key, 'int(min=0)', "caption={$caption}->{$subCaption}");
+                        $form->FLD($key, 'double(min=0)', "caption={$caption}->{$subCaption}");
                         $pData['batch'] = $bArr['batch'];
                         $rec->_details[$key] = $pData;
 
@@ -167,7 +167,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
 
             // Даване и възможност за без партида
             $key = "{$pData['productId']}|";
-            $form->FLD($key, 'int(min=0)', "caption={$caption}->{$noBatchCaption}");
+            $form->FLD($key, 'double(min=0)', "caption={$caption}->{$noBatchCaption}");
             $pData['batch'] = null;
             $rec->_details[$key] = $pData;
 
