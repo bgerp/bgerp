@@ -936,7 +936,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $jobRec = static::getJobRec($rec->id);
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
                 if($canStore == 'yes'){
-                    $producedBatches = planning_Jobs::getProducedBatchesByProductId($jobRec->containerId, $rec->productId);
+                    $producedBatches = planning_Jobs::getProducedBatchesByProductId($jobRec, $rec->productId);
                     if(countR($producedBatches)){
                         $batchSum = array_sum($producedBatches);
                         if($rec->quantity >= $batchSum){
