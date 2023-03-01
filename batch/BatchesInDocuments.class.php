@@ -361,7 +361,7 @@ class batch_BatchesInDocuments extends core_Manager
         $storeId = $recInfo->operation[key($recInfo->operation)];
 
         // Кои са наличните партиди към момента
-        $batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date);
+        $batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date, null, array(), true);
 
         // Ако има други споменати партиди в нишката добавят се и те като достъпни
         $batchesInThread = array();
@@ -370,20 +370,14 @@ class batch_BatchesInDocuments extends core_Manager
         $cQuery->where("#threadId = {$threadId} AND #id != {$recInfo->containerId}");
         $cQuery->show('id');
         $cIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
+        $additionalBatches = array();
+
         if (countR($cIds)) {
             $query1 = batch_BatchesInDocuments::getQuery();
-            $query1->where("#productId = {$recInfo->productId}");
+            $query1->where("#productId = {$recInfo->productId} AND #batch != ''");
             $query1->in('containerId', $cIds);
             while ($r1 = $query1->fetch()) {
-                $batchesInThread[$r1->batch] = 0;
-            }
-        }
-
-        $batches = $batches + $batchesInThread;
-        foreach ($batches as $i => $v) {
-            $itemState = batch_Items::fetchField(array("#productId = {$recInfo->productId} AND #storeId = {$storeId} AND #batch = '[#1#]'", $i), 'state');
-            if ($itemState == 'closed') {
-                unset($batches[$i]);
+                $additionalBatches[$r1->batch] = $r1->batch;
             }
         }
 
@@ -395,6 +389,18 @@ class batch_BatchesInDocuments extends core_Manager
             $foundBatches[$dRec->batch] = $dRec->quantity;
             if (!array_key_exists($dRec->batch, $batches)) {
                 $batches[$dRec->batch] = $dRec->quantity;
+            }
+        }
+        $sumFoundBatches = array_sum($foundBatches);
+
+        // Ако има без партида да се показват и последните затворени партиди
+        if(round($recInfo->quantity - $sumFoundBatches, 3) > 0){
+            $additionalBatches += batch_Items::getLastClosedBatches($recInfo->productId, $storeId, null, 5);
+        }
+
+        foreach ($additionalBatches as $additionalBatch){
+            if(!array_key_exists($additionalBatch, $batches)){
+                $batches[$additionalBatch] = 0;
             }
         }
 
