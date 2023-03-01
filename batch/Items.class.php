@@ -718,4 +718,30 @@ class batch_Items extends core_Master
 
         return $allocatedArr;
     }
+
+
+    /**
+     * Помощна ф-я връщаща затворените партиди преди подадена дата
+     *
+     * @param int $productId
+     * @param int $storeId
+     * @param date|null $date
+     * @param int|null $limit
+     * @return array
+     */
+    public static function getLastClosedBatches($productId, $storeId, $date = null, $limit = null)
+    {
+        $date = isset($date) ? $date : dt::now();
+
+        $query = static::getQuery();
+        $query->where("#storeId = {$storeId} AND #productId = {$productId}");
+        $query->where("(#nullifiedDate <= '{$date}' OR #nullifiedDate IS NULL) AND #state = 'closed'");
+        $query->orderBy('nullifiedDate', 'DESC');
+        $query->show('batch');
+        if(isset($limit)){
+            $query->limit($limit);
+        }
+
+        return arr::extractValuesFromArray($query->fetchAll(), 'batch');
+    }
 }
