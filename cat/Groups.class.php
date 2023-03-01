@@ -610,7 +610,6 @@ class cat_Groups extends core_Master
 
     function act_Test()
     {
-
         if(!haveRole('admin')){
             return "Недостатъчни права";
         }
@@ -633,17 +632,53 @@ class cat_Groups extends core_Master
                 foreach ($groupsArr as $gr) {
 
                     if (cat_Groups::fetch($gr)->parentId == $grRecOld->id) {
-
                         unset($groupsArr[$gr]);
                         unset($groupsInputArr[$gr]);
-
                     }
                 }
 
                 unset($groupsArr[$grRecOld->id]);
 
             } else {
+
+                foreach ($groupsInputArr as $gr) {
+
+                    $nameForCheck = cat_Groups::fetch($gr)->name;
+                    $queryGr = cat_Groups::getQuery();
+                    $queryGr->where("#name = '$nameForCheck' AND #id != '$gr' AND #parentId = $grRecNew->id");
+
+                    if($queryGr->count() > 1){
+                        return "Има повече от една група 03. Куриерски и онлайн пликове>>Куриерски пликове ";
+                    }
+
+                    if ($queryGr->count()>0){
+                        $newInputGrId = $queryGr->fetch()->id;
+
+                    }else{
+                        $newInputGrId = null;
+                    }
+
+                    $recGr = cat_Groups::fetch($gr);
+
+                    if ($recGr->parentId == $grRecOld->id) {
+
+                        if ($newInputGrId){
+                            unset($groupsInputArr[$gr]);
+                            $groupsInputArr[$newInputGrId] = $newInputGrId;
+                        }else{
+
+                            //Ако не съществува на старата само и сменяме parentId-то
+                            $recGr->parentId = $grRecNew->id;
+                            cls::get('cat_Groups')->save_($recGr, 'parentId');
+                        }
+
+                    }
+
+                }
+
+                unset($groupsArr[$grRecOld->id]);
                 $groupsArr[$grRecNew->id] = $grRecNew->id;
+
             }
 
             $pRec->groups = type_Keylist::fromArray($groupsArr);
@@ -654,16 +689,7 @@ class cat_Groups extends core_Master
 
         $queryGr = cat_Groups::getQuery();
         $queryGr->where("#parentId = $grRecOld->id");
-
-        while ($grRec = $queryGr->fetch()) {
-
-            if ($grRec->parentId == $grRecOld->id) {
-
-                $grRec->parentId = $grRecNew->id;
-
-                cls::get('cat_Groups')->save_($grRec, 'parentId');
-            }
-        }
+        $queryGr->delete("#parentId = $grRecOld->id");
 
     }
 
