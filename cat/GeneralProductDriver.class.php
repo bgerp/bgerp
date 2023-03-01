@@ -208,10 +208,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         foreach ($arr as $key => $value) {
             if (strpos($key, 'paramcat') !== false) {
                 $paramId = substr($key, 8);
-                if (!empty($value)) {
-                    $dRec = (object) array('productId' => $rec->id, 'classId' => $classId, 'paramId' => $paramId, 'paramValue' => $value);
-                    $updateRecs[] = $dRec;
-                }
+
+                if (!isset($value)) continue;
+                $paramDriver = cat_Params::getDriver($paramId);
+                if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image) && empty($value)) continue;
+
+                $dRec = (object) array('productId' => $rec->id, 'classId' => $classId, 'paramId' => $paramId, 'paramValue' => $value);
+                $updateRecs[] = $dRec;
             }
         }
 
