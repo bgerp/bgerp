@@ -1,11 +1,17 @@
 <h4>Приема HTTP GET заявка с данни и параметри за печат.</h4>
-Ако не може да извлече данните от GET заявката ги взима от конфигурационни константи.
-Ако искаме да печатаме на IP адрес, `$conf->DEVICE` трябва да е празно.
+Ако не може да извлече данните от GET заявката ги взима от конфигурационни константи. <br \>
+Ако искаме да печатаме на IP адрес, `$conf->DEVICE` трябва да е празно. <br \>
+<br \>
+Инсталиране:<br \>
+Сваля се скрипта от github с командата:<br \>
 
-Инсталиране:
+`wget https://raw.githubusercontent.com/bgerp/bgerp/DC1/escpos/service/escpos.php`
 
-`sudo php -S localhost:8080 -t /home/user /home/user/escpos.php`
+Добавя се в крона на root потребителя:<br \>
 
+`php -S localhost:8080 -t /home/user /home/user/escpos.php`
+ 
+ <br \>
 
 Примерен код за печатане на `php`:
 
