@@ -4,7 +4,7 @@
 
 Инсталиране:
 
-`sudo php -S localhost:8080 -t /home/user escpos.php`
+`sudo php -S localhost:8080 -t /home/user /home/user/escpos.php`
 
 
 Примерен код за печатане на `php`:
