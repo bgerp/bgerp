@@ -13,6 +13,49 @@ defIfNot('OPENAI_URL', 'https://api.openai.com/v1/completions');
 
 
 /**
+ * Настройка на API
+ * model
+ */
+defIfNot('OPENAI_API_MODEL', 'text-davinci-003');
+
+
+/**
+ * Настройка на API
+ * api_temperature
+ */
+defIfNot('OPENAI_API_TEMPERATURE', 0.7);
+
+
+/**
+ * Настройка на API
+ * api_max_tokens
+ */
+defIfNot('OPENAI_API_MAX_TOKENS', 256);
+
+
+/**
+ * Настройка на API
+ * api_top_p
+ */
+defIfNot('OPENAI_API_TOP_P', 1);
+
+
+/**
+ * Настройка на API
+ * api_frequency_penalty
+ */
+defIfNot('OPENAI_API_FREQUENCY_PENALTY', 0);
+
+
+/**
+ * Настройка на API
+ * api_presence_penalty
+ */
+defIfNot('OPENAI_API_PRESENCE_PENALTY', 0);
+
+
+
+/**
  *
  *
  * @category  bgerp
@@ -45,6 +88,12 @@ class openai_Setup extends core_ProtoSetup
     public $configDescription = array(
         'OPENAI_TOKEN' => array('password(show)', 'caption=Ключ,class=w100'),
         'OPENAI_URL' => array('url', 'caption=УРЛ'),
+        'OPENAI_API_MODEL' => array('varchar(64)', 'caption=API настройка->model'),
+        'OPENAI_API_TEMPERATURE' => array('double', 'caption=API настройка->temperature'),
+        'OPENAI_API_MAX_TOKENS' => array('int', 'caption=API настройка->max_tokens'),
+        'OPENAI_API_TOP_P' => array('int', 'caption=API настройка->top_p'),
+        'OPENAI_API_FREQUENCY_PENALTY' => array('int', 'caption=API настройка->frequency_penalty'),
+        'OPENAI_API_PRESENCE_PENALTY' => array('int', 'caption=API настройка->presence_penalty'),
     );
 
 

@@ -250,6 +250,13 @@ class store_Receipts extends store_DocumentMaster
     {
         $form = &$data->form;
         $form->setField('locationId', 'caption=Обект от');
+
+        $origin = static::getOrigin($form->rec);
+        if ($origin->isInstanceOf('purchase_Purchases')) {
+            if (!isset($rec->id)) {
+                $data->form->FNC('importProducts', 'enum(notshipped=Недоставени (Всички),notshippedstorable=Недоставени (Складируеми),notshippedservices=Недоставени (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
+            }
+        }
     }
     
     

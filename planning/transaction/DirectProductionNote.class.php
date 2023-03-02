@@ -227,7 +227,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $entries[] = $entry;
                 
             } else {
-                
+
                 foreach ($details as $dRec) {
                     
                     // Влагаме артикула, само ако е складируем, ако не е
@@ -239,8 +239,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                             if (empty($dRec->storeId)) {
                                 continue;
                             }
-                            
-                            $entry = array('debit' => array('61101',
+
+                            $entry = array('debit' => array('61103',
+                                                      array($classId, $documentId),
                                                       array('cat_Products', $dRec->productId),
                                                      'quantity' => $dRec->quantity),
                                            'credit' => array('321',
@@ -303,9 +304,14 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         
                         $array['quantity'] = $quantityD;
                         $entry['debit'] = $array;
-                        
-                        $entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
-                            'quantity' => $dRec1->quantity);
+
+                        if(isset($dRec1->storeId)){
+                            $entry['credit'] = array('61103', array($classId, $documentId), array('cat_Products', $dRec1->productId),
+                                'quantity' => $dRec1->quantity);
+                        } else {
+                            $entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
+                                'quantity' => $dRec1->quantity);
+                        }
                         $entry['reason'] = $reason;
                         
                         $entries[] = $entry;

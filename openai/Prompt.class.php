@@ -43,37 +43,37 @@ class openai_Prompt extends core_Manager
     /**
      * Кой има право да го променя?
      */
-    public $canEdit = 'openai';
+    public $canEdit = 'openai, admin';
 
 
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'openai';
+    public $canAdd = 'openai, admin';
 
 
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'openai';
+    public $canList = 'openai, admin';
 
 
     /**
      * Кой има право да изтрива?
      */
-    public $canDelete = 'openai';
+    public $canDelete = 'openai, admin';
 
 
     /**
      * Кой може да редактира системните роли
      */
-    public $canEditsysdata = 'openai';
+    public $canEditsysdata = 'openai, admin';
 
 
     /**
      * Кой има право да изтрива потребителите, създадени от системата?
      */
-    public $canDeletesysdata = 'openai';
+    public $canDeletesysdata = 'openai, admin';
 
 
     /**

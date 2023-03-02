@@ -38,7 +38,7 @@ class openai_Cache extends core_Manager
     /**
      * Кой има право да го променя?
      */
-    public $canEdit = 'openai';
+    public $canEdit = 'openai, admin';
 
 
     /**
@@ -50,13 +50,13 @@ class openai_Cache extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'openai';
+    public $canList = 'openai, admin';
 
 
     /**
      * Кой има право да изтрива?
      */
-    public $canDelete = 'openai';
+    public $canDelete = 'openai, admin';
 
 
     /**
@@ -144,6 +144,14 @@ class openai_Cache extends core_Manager
         $keyObj['prompt'] = preg_replace('/[\W]/ui', '', $keyObj['prompt']);
 
         $keyObj['API_VERSION'] = self::API_VERSION;
+
+        setIfNot($keyObj['model'], openai_Setup::get('API_MODEL'));
+        setIfNot($keyObj['temperature'], openai_Setup::get('API_TEMPERATURE'));
+        setIfNot($keyObj['max_tokens'], openai_Setup::get('API_MAX_TOKENS'));
+        setIfNot($keyObj['top_p'], openai_Setup::get('API_TOP_P'));
+        setIfNot($keyObj['frequency_penalty'], openai_Setup::get('API_FREQUENCY_PENALTY'));
+        setIfNot($keyObj['presence_penalty'], openai_Setup::get('API_PRESENCE_PENALTY'));
+
         ksort($keyObj);
 
         $keyObj = serialize($keyObj);
