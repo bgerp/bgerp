@@ -30,12 +30,12 @@ class openai_Api
      */
     public static function getRes($prompt, $pArr = array(), $useCache = true, $index = 0)
     {
-        setIfNot($pArr['model'], 'text-davinci-003');
-        setIfNot($pArr['temperature'], 0.7);
-        setIfNot($pArr['max_tokens'], 256);
-        setIfNot($pArr['top_p'], 1);
-        setIfNot($pArr['frequency_penalty'], 0);
-        setIfNot($pArr['presence_penalty'], 0);
+        setIfNot($pArr['model'], openai_Setup::get('API_MODEL'));
+        setIfNot($pArr['temperature'], openai_Setup::get('API_TEMPERATURE'));
+        setIfNot($pArr['max_tokens'], openai_Setup::get('API_MAX_TOKENS'));
+        setIfNot($pArr['top_p'], openai_Setup::get('API_TOP_P'));
+        setIfNot($pArr['frequency_penalty'], openai_Setup::get('API_FREQUENCY_PENALTY'));
+        setIfNot($pArr['presence_penalty'], openai_Setup::get('API_PRESENCE_PENALTY'));
 
         $pArr['prompt'] = $prompt;
 
