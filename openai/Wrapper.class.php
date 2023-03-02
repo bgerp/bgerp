@@ -23,7 +23,7 @@ class openai_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('openai_Cache', 'Кеш', 'openai');
-        $this->TAB('openai_Prompt', 'Въпроси', 'openai');
+        $this->TAB('openai_Cache', 'Кеш', 'openai, admin');
+        $this->TAB('openai_Prompt', 'Въпроси', 'openai, admin');
     }
 }

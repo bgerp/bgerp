@@ -38,7 +38,7 @@ class deepl_Cache extends core_Manager
     /**
      * Кой има право да го променя?
      */
-    public $canEdit = 'deepl';
+    public $canEdit = 'deepl, admin';
 
 
     /**
@@ -50,7 +50,7 @@ class deepl_Cache extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'deepl';
+    public $canList = 'deepl, admin';
 
 
     /**
