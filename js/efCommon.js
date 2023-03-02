@@ -2224,7 +2224,12 @@ function appendQuote(id, line, useParagraph) {
                             isBegin = false;
                         } else {
                             lastVal = newText.pop();
-                            newText.push(lastVal + "[/bQuote]");
+
+                            if (!isBegin) {
+                                lastVal += "[/bQuote]";
+                            }
+
+                            newText.push(lastVal);
                             isBegin = true;
                         }
                     });
