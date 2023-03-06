@@ -610,7 +610,7 @@ class cat_Groups extends core_Master
 
     function act_Test()
     {
-        if(!haveRole('admin')){
+        if (!haveRole('admin')) {
             return "Недостатъчни права";
         }
 
@@ -620,52 +620,64 @@ class cat_Groups extends core_Master
         $q = cat_Products::getQuery();
         $q->where("#isPublic = 'no'");
         $q->like('groups', "|{$grRecOld->id}|");
+        $q->limit(10);
         $q->show('id,name,groups,groupsInput');
+        $logArr = array();
 
         while ($pRec = $q->fetch()) {
 
             $groupsArr = keylist::toArray($pRec->groups);
             $groupsInputArr = keylist::toArray($pRec->groupsInput);
 
+            //Ако артикула го има в сарата и в новата група
             if (key_exists($grRecNew->id, $groupsArr)) {
-
+                //Премахваме всички групи чийто баща е старата група от grous и groupsInput
                 foreach ($groupsArr as $gr) {
 
                     if (cat_Groups::fetch($gr)->parentId == $grRecOld->id) {
+
                         unset($groupsArr[$gr]);
                         unset($groupsInputArr[$gr]);
+
                     }
                 }
 
+                //От groups премахваме старата група и остава само новата
                 unset($groupsArr[$grRecOld->id]);
 
             } else {
 
+                //Ако е само в старата група
+                // В groupsInput трябва да останат само тези групи чиито баща е Новата група
                 foreach ($groupsInputArr as $gr) {
 
+                    //Проверяваме, дали вече има създадена група със същото име
                     $nameForCheck = cat_Groups::fetch($gr)->name;
                     $queryGr = cat_Groups::getQuery();
                     $queryGr->where("#name = '$nameForCheck' AND #id != '$gr' AND #parentId = $grRecNew->id");
 
-                    if($queryGr->count() > 1){
+                    if ($queryGr->count() > 1) {
                         return "Има повече от една група 03. Куриерски и онлайн пликове>>Куриерски пликове ";
                     }
 
-                    if ($queryGr->count()>0){
+                    if ($queryGr->count() > 0) {
                         $newInputGrId = $queryGr->fetch()->id;
 
-                    }else{
+                    } else {
                         $newInputGrId = null;
                     }
 
                     $recGr = cat_Groups::fetch($gr);
 
+                    //Ако в groupsInput  има група , чийто баща е старата група и има вече създадена
+                    //такава група със същото име
+                    //Изтривам старата и вкарвам новата със същото име ако съществува такава
                     if ($recGr->parentId == $grRecOld->id) {
 
-                        if ($newInputGrId){
+                        if ($newInputGrId) {
                             unset($groupsInputArr[$gr]);
                             $groupsInputArr[$newInputGrId] = $newInputGrId;
-                        }else{
+                        } else {
 
                             //Ако не съществува на старата само и сменяме parentId-то
                             $recGr->parentId = $grRecNew->id;
@@ -681,11 +693,17 @@ class cat_Groups extends core_Master
 
             }
 
+            $logArr[$pRec->id] = $pRec->name;
             $pRec->groups = type_Keylist::fromArray($groupsArr);
             $pRec->groupsInput = type_Keylist::fromArray($groupsInputArr);
 
             cls::get('cat_Products')->save_($pRec, 'groups,groupsInput');
         }
+
+        if (!empty($logArr)) {
+            wp('Артикули с коригирани групи', $logArr);
+        }
+
 
         $queryGr = cat_Groups::getQuery();
         $queryGr->where("#parentId = $grRecOld->id");
