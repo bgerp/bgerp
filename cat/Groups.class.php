@@ -658,7 +658,7 @@ class cat_Groups extends core_Master
                     $queryGr->where("#name = '$nameForCheck' AND #id != '$gr' AND #parentId = $grRecNew->id");
 
                     if ($queryGr->count() > 1) {
-                        return "Има повече от една група 03. Куриерски и онлайн пликове>>Куриерски пликове ";
+                        wp('Има повече от една група 03. Куриерски и онлайн пликове>>Куриерски пликове', $queryGr->fetchAll());
                     }
 
                     if ($queryGr->count() > 0) {
