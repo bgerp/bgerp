@@ -18,6 +18,12 @@
 class cond_type_Formula extends cond_type_Text
 {
     /**
+     * Работен кеш
+     */
+    static $cache = array();
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -63,23 +69,32 @@ class cond_type_Formula extends cond_type_Text
         $params = array();
         if (isset($domainClass)) {
             $Domain = cls::get($domainClass);
+            $key = "{$Domain->getClassId()}|{$domainId}";
             if ($Domain instanceof cat_Products) {
                 if(isset($domainId)){
-                    $params = $Domain->getParams($domainId);
+                    if(!array_key_exists($key, static::$cache)){
+                        static::$cache[$key] = $Domain->getParams($domainId);
+                    }
+                    $params = static::$cache[$key];
                 }
             } elseif ($Domain instanceof planning_Tasks) {
                 if(isset($domainId)){
-                    // Ако е ПО, прави се обединение между нейните и на артикула от заданието параметрите
-                    $tRec = $Domain->fetch($domainId, 'originId,productId');
-                    $jobProductId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
-                    $params = cat_Products::getParams($jobProductId);
+                    if(!array_key_exists($key, static::$cache)){
 
-                    $tQuery = cat_products_Params::getQuery();
-                    $tQuery->where("#classId = {$Domain->getClassId()} AND #productId = {$domainId}");
-                    $tQuery->show('paramId,paramValue');
-                    while ($tRec = $tQuery->fetch()) {
-                        $params[$tRec->paramId] = $tRec->paramValue;
+                        // Ако е ПО, прави се обединение между нейните и на артикула от заданието параметрите
+                        $tRec = $Domain->fetch($domainId, 'originId,productId');
+                        $jobProductId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
+                        $params = cat_Products::getParams($jobProductId);
+
+                        $tQuery = cat_products_Params::getQuery();
+                        $tQuery->where("#classId = {$Domain->getClassId()} AND #productId = {$domainId}");
+                        $tQuery->show('paramId,paramValue');
+                        while ($tRec = $tQuery->fetch()) {
+                            $params[$tRec->paramId] = $tRec->paramValue;
+                        }
+                        static::$cache[$key] = $params;
                     }
+                    $params = static::$cache[$key];
                 }
             }
 
@@ -183,6 +198,9 @@ class cond_type_Formula extends cond_type_Text
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
+        core_Debug::startTimer("RENDER_FORMULA_{$rec->id}");
+        core_Debug::log("START RENDER_FORMULA_{$rec->id}");
+
         $idToNameArr = array();
         $params = static::getParamsFromDomain($domainClass, $domainId);
         $paramMap = cat_Params::getFormulaParamMap($params, $idToNameArr);
@@ -201,6 +219,9 @@ class cond_type_Formula extends cond_type_Text
                 $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}", 'notice', false);
             }
         }
+
+        core_Debug::stopTimer("RENDER_FORMULA_{$rec->id}");
+        core_Debug::log("END RENDER_FORMULA_{$rec->id}: " . round(core_Debug::$timers["RENDER_FORMULA_{$rec->id}"]->workingTime, 2));
 
         return $verbal;
     }
