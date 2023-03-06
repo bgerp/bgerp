@@ -198,7 +198,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $this->setField('deadline', 'caption=Информация->Срок до');
         $this->setField('storeId', 'caption=Информация->Засклаждане в,silent,removeAndRefreshForm');
-        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Информация->Влагане от,input');
+        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Информация->Влагане от,input,silent,removeAndRefreshForm=inputServicesFrom');
+        $this->FLD('inputServicesFrom', 'enum(unfinished=Незавършено производство,all=Разходи за услуги (всички))', 'caption=Информация->Влагане услуги,maxRadio=2');
         $this->FLD('debitAmount', 'double(decimals=2)', 'input=none');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Разходен обект / Продажба->Избор');
 
@@ -416,8 +417,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
         }
-
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
+        if(isset($rec->inputStoreId)){
+            $form->setDefault('inputServicesFrom', 'all');
+        } else {
+            $form->setDefault('inputServicesFrom', 'unfinished');
+        }
 
         return $data;
     }

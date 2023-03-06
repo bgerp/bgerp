@@ -79,6 +79,12 @@
                                                 <td>[#inputStoreId#]</td>
                                             </tr>
                                             <!--ET_END inputStoreId-->
+                                            <!--ET_BEGIN inputServicesFrom-->
+                                            <tr>
+                                                <td class='quiet nowrap aright'>|Влагане услуги|*:</td>
+                                                <td>[#inputServicesFrom#]</td>
+                                            </tr>
+                                            <!--ET_END inputServicesFrom-->
                                             <!--ET_BEGIN deadline-->
                                             <tr>
                                                 <td class='quiet nowrap aright'>|Срок до|*:</td>

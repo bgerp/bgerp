@@ -252,10 +252,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         } else {
                             if(empty($dRec->fromAccId)) continue;
                             $item = isset($dRec->expenseItemId) ? $dRec->expenseItemId : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
-                            $entry = array('debit' => array('61101',
+                            $entry = array('debit' => array('61103',
                                                       array('cat_Products', $dRec->productId),
                                                       'quantity' => $dRec->quantity),
-                                           'credit' => array('60201', 
+                                           'credit' => array('60201',
                                                              $item,
                                                        array('cat_Products', $dRec->productId),
                                                       'quantity' => $dRec->quantity),
@@ -305,7 +305,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         $array['quantity'] = $quantityD;
                         $entry['debit'] = $array;
 
-                        if(isset($dRec1->storeId)){
+                        if(isset($dRec1->storeId) || !empty($dRec1->fromAccId)){
                             $entry['credit'] = array('61103', array($classId, $documentId), array('cat_Products', $dRec1->productId),
                                 'quantity' => $dRec1->quantity);
                         } else {
