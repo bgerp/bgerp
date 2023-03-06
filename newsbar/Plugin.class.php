@@ -49,8 +49,8 @@ class newsbar_Plugin extends core_Plugin
         // Показваме всички добавяни данни в сесията
         $newsArr = Mode::get(self::$newsArrToShowName);
         if ($newsArr) {
-            $className = 'newsbar ';
             foreach ($newsArr as $nRec) {
+                $className = 'newsbar ';
                 switch ($nRec->position) {
                     case 'bottomHeader':
                         $placeholderName = 'BOTTOM_HEADER';
