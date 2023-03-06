@@ -622,6 +622,7 @@ class cat_Groups extends core_Master
         $q->like('groups', "|{$grRecOld->id}|");
         $q->limit(10);
         $q->show('id,name,groups,groupsInput');
+
         $logArr = array();
 
         while ($pRec = $q->fetch()) {
@@ -676,11 +677,15 @@ class cat_Groups extends core_Master
 
                         if ($newInputGrId) {
                             unset($groupsInputArr[$gr]);
+                            unset($groupsArr[$gr]);
                             $groupsInputArr[$newInputGrId] = $newInputGrId;
+                            $groupsArr[$newInputGrId] = $newInputGrId;
+
                         } else {
 
                             //Ако не съществува на старата само и сменяме parentId-то
                             $recGr->parentId = $grRecNew->id;
+
                             cls::get('cat_Groups')->save_($recGr, 'parentId');
                         }
 
