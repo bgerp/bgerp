@@ -83,7 +83,8 @@ class cond_type_Formula extends cond_type_Text
                         $tRec = $Domain->fetch($domainId, 'originId,productId');
                         $productId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
                     } else {
-                        $productId = $Domain->fetchField($domainId, 'resourceId');
+                        $bomId = $Domain->fetchField($domainId, 'bomId');
+                        $productId = cat_Boms::fetchField($bomId, 'productId');
                     }
 
                     if(!array_key_exists($key, static::$cache)){
