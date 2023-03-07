@@ -243,7 +243,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('document', 'varchar', 'caption=Документ,tdClass=centered');
             $fld->FLD('date', 'varchar', 'caption=Падеж,tdClass=centered');
-            $fld->FLD('note', 'varchar', 'caption=Забележка,tdClass=centered');
+            $fld->FLD('note', 'varchar', 'caption=Поръчка,tdClass=centered');
             $fld->FLD('store', 'varchar', 'caption=Склад,tdClass=centered');
             $fld->FLD('docReservedQuantyti', 'varchar', 'caption=Количество->Запазено,smartCenter');
             $fld->FLD('docExpectedQuantyti', 'varchar', 'caption=Количество->Очаквано,smartCenter');
@@ -462,10 +462,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                  // Маркер за първи ред на нов артикул, за да могат да се
-                  // обединят редовете за един артикул при експорта
-          //      $markFirst = 1;
-
                 foreach ($dRec->documentsReserved as $docReserved) {
 
                     $dCloneRec = clone $dRec;
@@ -473,19 +469,28 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $DocumentRez = cls::get($docReserved->sourceClassId);
                     $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
-
-                    //Определя се първия ред за дадения артикул, за да не се отпечатва в следващите редове при експорта
-//                    if ($markFirst == 1) {
-//                        $dCloneRec->markFirst = true;
-//                    } else {
-//                        $dCloneRec->markFirst = false;
-//                    }
-
                     $dCloneRec->date = $docReserved->date;
 
                     $dCloneRec->document = $DocumentRez->abbr . $docReserved->sourceId;
 
-                    $dCloneRec->note = ($docClassName === 'planning_Jobs') ? $docRec->notes : $docRec->note;
+                    //Определяме note
+                    if($docClassName === 'planning_Jobs'){
+                        if($docRec->saleId){
+                            $note = sales_Sales::fetch($docRec->saleId)->reff;
+                        }else{
+                            $note = $docRec->notes;
+                        }
+                    }else{
+                        $firstDokument = doc_Threads::getFirstDocument($docRec->threadId);
+
+                        if($firstDokument->isInstanceOf('sales_Sales')){
+                            $note = $firstDokument->fetch()->reff;
+                        }else{
+                            $note = $docRec->note;
+                        }
+                    }
+
+                    $dCloneRec->note = $note;
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
@@ -509,18 +514,27 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $docRec = $docClassName::fetch($docExpected->sourceId);
 
-                      //Определя се първия ред за дадения артикул, за да не се отпечатва в следващите редове при експорта
-//                    if ($markFirst == 1) {
-//                        $dCloneRec->markFirst = true;
-//                    } else {
-//                        $dCloneRec->markFirst = false;
-//                    }
-
                     $dCloneRec->date = $docExpected->date;
 
                     $dCloneRec->document = $Document->abbr . $docExpected->sourceId;
 
-                    $dCloneRec->note = ($docClassName === 'planning_Jobs') ? $docRec->notes : $docRec->note;
+                    //Определяме note
+                    if($docClassName === 'planning_Jobs'){
+                        if($docRec->saleId){
+                            $note = sales_Sales::fetch($docRec->saleId)->reff;
+                        }else{
+                            $note = $docRec->notes;
+                        }
+                    }else{
+                        $firstDokument = doc_Threads::getFirstDocument($docRec->threadId);
+                        if($firstDokument->isInstanceOf('sales_Sales')){
+                            $note = $firstDokument->fetch()->reff;
+                        }else{
+                            $note = $docRec->note;
+                        }
+                    }
+
+                    $dCloneRec->note = $note;
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
