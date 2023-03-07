@@ -81,8 +81,14 @@ class cat_Params extends bgerp_ProtoParam
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'ceo,admin';
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    protected static $cacheNormalizedNames = array();
+
+
     /**
      * Описание на модела
      */
@@ -148,21 +154,26 @@ class cat_Params extends bgerp_ProtoParam
      */
     public static function getNormalizedName($rec, $upperCase = false, $lg = 'bg')
     {
-        $rec = cat_Params::fetchRec($rec, 'name,suffix,group');
+        $id = is_numeric($rec) ? $rec : $rec->id;
+        $key = "{$id}_{$lg}";
+        if(!array_key_exists($key, static::$cacheNormalizedNames)){
+            $rec = cat_Params::fetchRec($rec, 'name,suffix,group');
 
-        core_Lg::push($lg);
-        $name = tr($rec->name) . ((!empty($rec->suffix)) ? ' (' . tr($rec->suffix) . ')': '');
-        if(!empty($rec->group)) {
-            $group = tr($rec->group);
-            $name = "{$group} {$name}";
+            core_Lg::push($lg);
+            $name = tr($rec->name) . ((!empty($rec->suffix)) ? ' (' . tr($rec->suffix) . ')': '');
+            if(!empty($rec->group)) {
+                $group = tr($rec->group);
+                $name = "{$group} {$name}";
+            }
+            $name = preg_replace('/\s+/', '_', $name);
+            $name = str_replace('/', '_', $name);
+            $name = str_replace('.', '_', $name);
+            $name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
+            core_Lg::pop();
+            static::$cacheNormalizedNames[$key] = $name;
         }
-        $name = preg_replace('/\s+/', '_', $name);
-        $name = str_replace('/', '_', $name);
-        $name = str_replace('.', '_', $name);
-        $name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
-        core_Lg::pop();
-        
-        return $name;
+
+        return static::$cacheNormalizedNames[$key];
     }
     
     
