@@ -112,13 +112,9 @@ class cond_type_Formula extends cond_type_Text
                             $cloneParams = $params;
                             $paramCloneMap = cat_Params::getFormulaParamMap($cloneParams, $idToNameArr);
 
-                            core_Debug::stopTimer("CALC_FORMULA_{$domainId}");
-                            core_Debug::log("END CALC_FORMULA_{$domainId}: " . round(core_Debug::$timers["CALC_FORMULA_{$domainId}"]->workingTime, 2));
-
+                            core_Debug::startTimer("CALC_FORMULA_{$domainId}");
                             $calced = cat_BomDetails::calcExpr($paramVal, $paramCloneMap);
-
                             core_Debug::stopTimer("CALC_FORMULA_{$domainId}");
-                            core_Debug::log("END CALC_FORMULA_{$domainId}: " . round(core_Debug::$timers["CALC_FORMULA_{$domainId}"]->workingTime, 2));
 
                             if ($paramVal != $calced) {
                                 $params[$paramId] = $calced;
