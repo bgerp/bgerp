@@ -526,9 +526,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                             $note = $docRec->notes;
                         }
                     }else{
-                        $firstDokument = doc_Threads::getFirstDocument($docRec->threadId);
-                        if($firstDokument->isInstanceOf('sales_Sales')){
-                            $note = $firstDokument->fetch()->reff;
+                        $firstDocument = doc_Threads::getFirstDocument($docRec->threadId);
+                        if($firstDocument->isInstanceOf('sales_Sales')){
+                            $note = $firstDocument->fetch()->reff;
                         }else{
                             $note = $docRec->note;
                         }
