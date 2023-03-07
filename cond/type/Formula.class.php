@@ -103,13 +103,22 @@ class cond_type_Formula extends cond_type_Text
                 // Преизчисляват се формулите докато има промяна
                 $hasChange = false;
                 $tries++;
+
                 foreach ($params as $paramId => $paramVal) {
-                    if (cat_Params::haveDriver($paramId, 'cond_type_Formula')) {
-                        if (!is_numeric($paramVal)) {
+                    if (!is_numeric($paramVal)) {
+                        if (cat_Params::haveDriver($paramId, 'cond_type_Formula')) {
+                            if($paramVal == cat_BomDetails::CALC_ERROR) continue;
                             $idToNameArr = array();
                             $cloneParams = $params;
                             $paramCloneMap = cat_Params::getFormulaParamMap($cloneParams, $idToNameArr);
+
+                            core_Debug::stopTimer("CALC_FORMULA_{$domainId}");
+                            core_Debug::log("END CALC_FORMULA_{$domainId}: " . round(core_Debug::$timers["CALC_FORMULA_{$domainId}"]->workingTime, 2));
+
                             $calced = cat_BomDetails::calcExpr($paramVal, $paramCloneMap);
+
+                            core_Debug::stopTimer("CALC_FORMULA_{$domainId}");
+                            core_Debug::log("END CALC_FORMULA_{$domainId}: " . round(core_Debug::$timers["CALC_FORMULA_{$domainId}"]->workingTime, 2));
 
                             if ($paramVal != $calced) {
                                 $params[$paramId] = $calced;
@@ -118,7 +127,9 @@ class cond_type_Formula extends cond_type_Text
                         }
                     }
                 }
-            } while($hasChange || $tries <= 50);
+
+                if(!$hasChange) break;
+            } while($tries <= 50);
         }
 
         return $params;
