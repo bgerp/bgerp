@@ -735,7 +735,10 @@ class planning_Tasks extends core_Master
 
             if($mvc->haveRightFor('editprevioustask', $rec)){
                 $rec->_hasManualPreviousTask = true;
-                $row->manualPreviousTask .= ht::createLink('', array($mvc, 'editprevioustask', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,caption=Промяна на предходните етапи');
+                if(empty($row->manualPreviousTask)){
+                    $row->manualPreviousTask = tr('Няма');
+                }
+                $row->manualPreviousTask .= ht::createLink('', array($mvc, 'editprevioustask', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Задаване/промяна на предходен етап|*!');
             }
 
             // Показване на невложеното от предходна ПО
