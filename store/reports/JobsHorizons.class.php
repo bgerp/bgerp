@@ -483,7 +483,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     }else{
                         $firstDocument = doc_Threads::getFirstDocument($docRec->threadId);
 
-                        if($firstDocument->isInstanceOf('sales_Sales')){
+                        if($firstDocument && $firstDocument->isInstanceOf('sales_Sales')){
                             $note = $firstDocument->fetch()->reff;
                         }else{
                             $note = $docRec->note;
@@ -527,7 +527,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                         }
                     }else{
                         $firstDocument = doc_Threads::getFirstDocument($docRec->threadId);
-                        if($firstDocument->isInstanceOf('sales_Sales')){
+                        if($firstDocument && $firstDocument->isInstanceOf('sales_Sales')){
                             $note = $firstDocument->fetch()->reff;
                         }else{
                             $note = $docRec->note;
