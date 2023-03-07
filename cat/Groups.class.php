@@ -621,6 +621,7 @@ class cat_Groups extends core_Master
         $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
         if(!$grRecNew){
             $grRecNew = cat_Groups::forceGroup('03. Куриерски и онлайн пликове',$parentId = $grRecOld->parentId,$force = true);
+            cat_Groups::save($grRecNew);
         }
         $q = cat_Products::getQuery();
         $q->where("#isPublic = 'no'");
