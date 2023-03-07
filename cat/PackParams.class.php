@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -32,7 +32,7 @@ class cat_PackParams extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Search, plg_State2, plg_SaveAndNew, plg_Sorting, plg_Created, plg_Modified';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_State2, plg_SaveAndNew, plg_Sorting, plg_Created, plg_Modified';
     
     
     /**
