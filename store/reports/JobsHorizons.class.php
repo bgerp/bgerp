@@ -245,13 +245,13 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('date', 'varchar', 'caption=Падеж,tdClass=centered');
             $fld->FLD('note', 'varchar', 'caption=Поръчка,tdClass=centered');
             $fld->FLD('store', 'varchar', 'caption=Склад,tdClass=centered');
-            $fld->FLD('docReservedQuantyti', 'varchar', 'caption=Количество->Запазено,smartCenter');
-            $fld->FLD('docExpectedQuantyti', 'varchar', 'caption=Количество->Очаквано,smartCenter');
+            $fld->FLD('docReservedQuantyti', 'double(decimals=2)', 'caption=Количество->Запазено,smartCenter');
+            $fld->FLD('docExpectedQuantyti', 'double(decimals=2)', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество Общо->Налично,smartCenter');
-            $fld->FLD('reserved', 'varchar', 'caption=Количество Общо->Запазено,smartCenter');
-            $fld->FLD('expected', 'varchar', 'caption=Количество Общо->Очаквано,smartCenter');
-            $fld->FLD('free', 'varchar', 'caption=Количество Об що->Разполагаемо,smartCenter');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество Общо->Налично,smartCenter');
+            $fld->FLD('reserved', 'double(decimals=2)', 'caption=Количество Общо->Запазено,smartCenter');
+            $fld->FLD('expected', 'double(decimals=2)', 'caption=Количество Общо->Очаквано,smartCenter');
+            $fld->FLD('free', 'double(decimals=2)', 'caption=Количество Об що->Разполагаемо,smartCenter');
 
         }
 
@@ -571,24 +571,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
-        // Ако е първи ред за аретикула ще се експортират всичките колони
-        //след това кода и името на артикула се обединяват
-       // if ($dRec->markFirst) {
             $res->productId = $pRec->name;
             $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
-            $res->quantity = $Double->toVerbal($dRec->quantity);
-            $res->free = $Double->toVerbal($dRec->free);
+            $res->quantity = $dRec->quantity;
+            $res->free =$dRec->free;
             $res->expected = $dRec->expected;
             $res->reserved = $dRec->reserved;
-//        } else {
-//            $res->productId = '';
-//            $res->code = '';
-//            $res->quantity = '';
-//            $res->free = '';
-//            $res->expected = '';
-//            $res->reserved = '';
-//        }
-
 
         if ($dRec->measure) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
@@ -597,8 +585,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $res->date = $Date->toVerbal($dRec->date);
         $res->note = $dRec->note;
 
-        $res->docExpectedQuantyti = $Double->toVerbal($dRec->docExpectedQuantyti);
-        $res->docReservedQuantyti = $Double->toVerbal($dRec->docReservedQuantyti);
+        $res->docExpectedQuantyti = $dRec->docExpectedQuantyti;
+        $res->docReservedQuantyti = $dRec->docReservedQuantyti;
 
         if ($dRec->store) {
             $res->store = store_Stores::fetch($dRec->store)->name;
