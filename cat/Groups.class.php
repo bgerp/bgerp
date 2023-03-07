@@ -622,7 +622,8 @@ class cat_Groups extends core_Master
         $q->like('groups', "|{$grRecOld->id}|");
         $q->limit(10);
         $q->show('id,name,groups,groupsInput');
-        $logArr = array();
+
+        $logArr = $artForDel = array();
 
         while ($pRec = $q->fetch()) {
 
@@ -657,7 +658,7 @@ class cat_Groups extends core_Master
                     $queryGr->where("#name = '$nameForCheck' AND #id != '$gr' AND #parentId = $grRecNew->id");
 
                     if ($queryGr->count() > 1) {
-                        return "Има повече от една група 03. Куриерски и онлайн пликове>>Куриерски пликове ";
+                        wp('Има повече от една група 03. Куриерски и онлайн пликове>>Куриерски пликове', $queryGr->fetchAll());
                     }
 
                     if ($queryGr->count() > 0) {
@@ -676,11 +677,15 @@ class cat_Groups extends core_Master
 
                         if ($newInputGrId) {
                             unset($groupsInputArr[$gr]);
+                            unset($groupsArr[$gr]);
                             $groupsInputArr[$newInputGrId] = $newInputGrId;
+                            $groupsArr[$newInputGrId] = $newInputGrId;
+
                         } else {
 
                             //Ако не съществува на старата само и сменяме parentId-то
                             $recGr->parentId = $grRecNew->id;
+
                             cls::get('cat_Groups')->save_($recGr, 'parentId');
                         }
 
@@ -706,7 +711,7 @@ class cat_Groups extends core_Master
 
 
         $queryGr = cat_Groups::getQuery();
-        $queryGr->where("#parentId = $grRecOld->id");
+        $queryGr->where("#productCnt = 0 AND #parentId = $grRecOld->id");
         $queryGr->delete("#parentId = $grRecOld->id");
 
     }
