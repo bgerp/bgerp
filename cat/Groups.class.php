@@ -614,16 +614,21 @@ class cat_Groups extends core_Master
             return "Недостатъчни права";
         }
 
-        $grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'");
-        $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
+        if(!$grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'")){
+            return "Липсва стара група";
+        }
 
+        $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
+        if(!$grRecNew){
+            $grRecNew = cat_Groups::forceGroup('03. Куриерски и онлайн пликове',$parentId = $grRecOld->id,$force = true);
+        }
         $q = cat_Products::getQuery();
         $q->where("#isPublic = 'no'");
         $q->like('groups', "|{$grRecOld->id}|");
         $q->limit(10);
         $q->show('id,name,groups,groupsInput');
 
-        $logArr = $artForDel = array();
+        $logArr = array();
 
         while ($pRec = $q->fetch()) {
 
@@ -658,7 +663,7 @@ class cat_Groups extends core_Master
                     $queryGr->where("#name = '$nameForCheck' AND #id != '$gr' AND #parentId = $grRecNew->id");
 
                     if ($queryGr->count() > 1) {
-                        wp('Има повече от една група 03. Куриерски и онлайн пликове>>Куриерски пликове', $queryGr->fetchAll());
+                        return "Има повече от една група 03. Куриерски и онлайн пликове>>Куриерски пликове ";
                     }
 
                     if ($queryGr->count() > 0) {
@@ -709,10 +714,11 @@ class cat_Groups extends core_Master
             wp('Артикули с коригирани групи', $logArr);
         }
 
+        if ($grRecOld->id){
+            $queryGr = cat_Groups::getQuery();
+            $queryGr->delete("#productCnt = 0 AND #parentId = $grRecOld->id");
+        }
 
-        $queryGr = cat_Groups::getQuery();
-        $queryGr->where("#productCnt = 0 AND #parentId = $grRecOld->id");
-        $queryGr->delete("#parentId = $grRecOld->id");
 
     }
 
