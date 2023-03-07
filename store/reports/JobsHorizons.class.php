@@ -82,14 +82,14 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,silent,single=none');
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,silent,single=none');
 
         $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=date');
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,mandatory,silent,single=none');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=stores,mandatory,silent,single=none');
 
         //Подредба на резултатите
-        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
+        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=groups,single=none');
     }
 
 
@@ -576,8 +576,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
        // if ($dRec->markFirst) {
             $res->productId = $pRec->name;
             $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
-            $res->quantity = $dRec->quantity;
-            $res->free = $dRec->free;
+            $res->quantity = $Double->toVerbal($dRec->quantity);
+            $res->free = $Double->toVerbal($dRec->free);
             $res->expected = $dRec->expected;
             $res->reserved = $dRec->reserved;
 //        } else {
@@ -597,8 +597,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $res->date = $Date->toVerbal($dRec->date);
         $res->note = $dRec->note;
 
-        $res->docExpectedQuantyti = $dRec->docExpectedQuantyti;
-        $res->docReservedQuantyti = $dRec->docReservedQuantyti;
+        $res->docExpectedQuantyti = $Double->toVerbal($dRec->docExpectedQuantyti);
+        $res->docReservedQuantyti = $Double->toVerbal($dRec->docReservedQuantyti);
 
         if ($dRec->store) {
             $res->store = store_Stores::fetch($dRec->store)->name;
