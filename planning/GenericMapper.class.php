@@ -393,8 +393,37 @@ class planning_GenericMapper extends core_Manager
         
         return $selfValue;
     }
-    
-    
+
+
+
+    /**
+     * Връща среднопритеглената цена на артикула в сметката за разходите за услуги
+     *
+     * @param int  $quantity - к-во
+     * @param int  $objectId - ид на артикул
+     * @param datetime $date     - към коя дата
+     * @param null|int $costObjectItemId     - към коя дата
+     * @return float $selfValue - среднопритеглената цена
+     */
+    public static function getWacAmountInAllCostsAcc($quantity, $objectId, $date, $costObjectItemId = null)
+    {
+        // Ако не е складируем взимаме среднопритеглената му цена в производството
+        $item = acc_Items::fetchItem('cat_Products', $objectId)->id;
+        if (isset($item)) {
+            // Намираме сумата която струва к-то от артикула в склада
+            $costItemId = isset($costObjectItemId) ? $costObjectItemId : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+            $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
+            $selfValue = acc_strategy_WAC::getAmount($quantity, $date, '60201', $costItemId, $item, null, $maxTry);
+
+            if ($selfValue) {
+                $selfValue = round($selfValue, 4);
+            }
+        }
+
+        return $selfValue;
+    }
+
+
     /**
      * Намира средната еденична цена на всички заместващи артикули на подаден артикул
      *
