@@ -227,6 +227,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $entries[] = $entry;
                 
             } else {
+                arr::sortObjects($details, 'type');
 
                 foreach ($details as $dRec) {
                     
@@ -266,9 +267,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         $entries[] = $entry;
                     }
                 }
-                
-                arr::sortObjects($details, 'type');
-               // bp($details);
+
                 $costAmount = $index = 0;
                 foreach ($details as $dRec1) {
                     $sign = ($dRec1->type == 'pop') ? -1 : 1;
