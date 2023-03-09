@@ -207,7 +207,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'migrate::updateLabelType',
-        'migrate::checkParams0910',
+        'migrate::checkParams1010',
     );
     
     
@@ -428,8 +428,10 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Миграция на несъответстващи параметри
      */
-    public function checkParams0910()
+    public function checkParams1010()
     {
+        bgerp_Notifications::delete("#msg LIKE '%Възможен проблем с параметрите на артикула%'");
+
         $prQuery = cat_Products::getQuery();
         $prQuery->XPR('maxId', 'double', 'MAX(#id)');
         $maxId = $prQuery->fetch()->maxId;
