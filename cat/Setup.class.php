@@ -207,7 +207,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'migrate::updateLabelType',
-        'migrate::checkParams1010',
+        'migrate::checkParams1110',
     );
     
     
@@ -428,9 +428,9 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Миграция на несъответстващи параметри
      */
-    public function checkParams1010()
+    public function checkParams1110()
     {
-        bgerp_Notifications::delete("#msg LIKE '%Възможен проблем с параметрите на артикула%'");
+        bgerp_Notifications::delete("#msg LIKE '%Възможен проблем с параметрите на артикул%'");
 
         $prQuery = cat_Products::getQuery();
         $prQuery->XPR('maxId', 'double', 'MAX(#id)');
@@ -472,7 +472,7 @@ class cat_Setup extends core_ProtoSetup
         // Ако има ще се сетнат предупреждения
         foreach($foundRecs as $lRec){
             $productsToCheck[] = $lRec;
-            log_System::add('cat_Products', 'Възможен проблем с параметрите на артикула', $lRec->objectId, 'warning');
+            log_System::add('cat_Products', 'Възможен проблем с параметрите на артикула', $lRec->objectId, 'error');
 
             $url = array('cat_Products', 'single', $lRec->objectId);
             bgerp_Notifications::add("Възможен проблем с параметрите на артикул|*: #Art{$lRec->objectId}", $url, $lRec->productCreatedBy, 'normal');
