@@ -472,7 +472,7 @@ class cat_Setup extends core_ProtoSetup
         // Ако има ще се сетнат предупреждения
         foreach($foundRecs as $lRec){
             $productsToCheck[] = $lRec;
-            log_System::add('cat_Products', 'Възможен проблем с параметрите на артикула', $lRec->objectId, 'error');
+            log_System::add('cat_Products', 'Възможен проблем с параметрите на артикула', $lRec->objectId, 'err');
 
             $url = array('cat_Products', 'single', $lRec->objectId);
             bgerp_Notifications::add("Възможен проблем с параметрите на артикул|*: #Art{$lRec->objectId}", $url, $lRec->productCreatedBy, 'normal');
