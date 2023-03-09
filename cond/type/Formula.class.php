@@ -18,6 +18,12 @@
 class cond_type_Formula extends cond_type_Text
 {
     /**
+     * Работен кеш
+     */
+    static $cache = array();
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -63,23 +69,35 @@ class cond_type_Formula extends cond_type_Text
         $params = array();
         if (isset($domainClass)) {
             $Domain = cls::get($domainClass);
+            $key = "{$Domain->getClassId()}|{$domainId}";
             if ($Domain instanceof cat_Products) {
                 if(isset($domainId)){
-                    $params = $Domain->getParams($domainId);
-                }
-            } elseif ($Domain instanceof planning_Tasks) {
-                if(isset($domainId)){
-                    // Ако е ПО, прави се обединение между нейните и на артикула от заданието параметрите
-                    $tRec = $Domain->fetch($domainId, 'originId,productId');
-                    $jobProductId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
-                    $params = cat_Products::getParams($jobProductId);
-
-                    $tQuery = cat_products_Params::getQuery();
-                    $tQuery->where("#classId = {$Domain->getClassId()} AND #productId = {$domainId}");
-                    $tQuery->show('paramId,paramValue');
-                    while ($tRec = $tQuery->fetch()) {
-                        $params[$tRec->paramId] = $tRec->paramValue;
+                    if(!array_key_exists($key, static::$cache)){
+                        static::$cache[$key] = $Domain->getParams($domainId);
                     }
+                    $params = static::$cache[$key];
+                }
+            } elseif (($Domain instanceof planning_Tasks) || ($Domain instanceof cat_BomDetails)) {
+                if(isset($domainId)){
+                    if($Domain instanceof planning_Tasks){
+                        $tRec = $Domain->fetch($domainId, 'originId,productId');
+                        $productId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
+                    } else {
+                        $bomId = $Domain->fetchField($domainId, 'bomId');
+                        $productId = cat_Boms::fetchField($bomId, 'productId');
+                    }
+
+                    if(!array_key_exists($key, static::$cache)){
+                        $params = cat_Products::getParams($productId);
+                        $tQuery = cat_products_Params::getQuery();
+                        $tQuery->where("#classId = {$Domain->getClassId()} AND #productId = {$domainId}");
+                        $tQuery->show('paramId,paramValue');
+                        while ($tRec = $tQuery->fetch()) {
+                            $params[$tRec->paramId] = $tRec->paramValue;
+                        }
+                        static::$cache[$key] = $params;
+                    }
+                    $params = static::$cache[$key];
                 }
             }
 
@@ -88,13 +106,18 @@ class cond_type_Formula extends cond_type_Text
                 // Преизчисляват се формулите докато има промяна
                 $hasChange = false;
                 $tries++;
+
                 foreach ($params as $paramId => $paramVal) {
-                    if (cat_Params::haveDriver($paramId, 'cond_type_Formula')) {
-                        if (!is_numeric($paramVal)) {
+                    if (!is_numeric($paramVal)) {
+                        if (cat_Params::haveDriver($paramId, 'cond_type_Formula')) {
+                            if($paramVal == cat_BomDetails::CALC_ERROR) continue;
                             $idToNameArr = array();
                             $cloneParams = $params;
                             $paramCloneMap = cat_Params::getFormulaParamMap($cloneParams, $idToNameArr);
+
+                            core_Debug::startTimer("CALC_FORMULA_{$domainId}");
                             $calced = cat_BomDetails::calcExpr($paramVal, $paramCloneMap);
+                            core_Debug::stopTimer("CALC_FORMULA_{$domainId}");
 
                             if ($paramVal != $calced) {
                                 $params[$paramId] = $calced;
@@ -103,7 +126,9 @@ class cond_type_Formula extends cond_type_Text
                         }
                     }
                 }
-            } while($hasChange || $tries <= 50);
+
+                if(!$hasChange) break;
+            } while($tries <= 50);
         }
 
         return $params;
@@ -183,6 +208,9 @@ class cond_type_Formula extends cond_type_Text
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
+        core_Debug::startTimer("RENDER_FORMULA_{$rec->id}");
+        core_Debug::log("START RENDER_FORMULA_{$rec->id}");
+
         $idToNameArr = array();
         $params = static::getParamsFromDomain($domainClass, $domainId);
         $paramMap = cat_Params::getFormulaParamMap($params, $idToNameArr);
@@ -201,6 +229,9 @@ class cond_type_Formula extends cond_type_Text
                 $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}", 'notice', false);
             }
         }
+
+        core_Debug::stopTimer("RENDER_FORMULA_{$rec->id}");
+        core_Debug::log("END RENDER_FORMULA_{$rec->id}: " . round(core_Debug::$timers["RENDER_FORMULA_{$rec->id}"]->workingTime, 2));
 
         return $verbal;
     }

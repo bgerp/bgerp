@@ -195,10 +195,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $this->FLD('additionalMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Избор', 'input=none,after=expenses');
         $this->FLD('additionalMeasureQuantity', 'double(Min=0,smartRound)', 'caption=Втора мярка->Количество,input=none');
-
-        $this->setField('deadline', 'caption=Информация->Срок до');
-        $this->setField('storeId', 'caption=Информация->Засклаждане в,silent,removeAndRefreshForm');
-        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Информация->Влагане от,input');
+        
+        $this->setField('storeId', 'caption=Произвеждане (заприхождаване на произведеното)->В склад,silent,removeAndRefreshForm');
+        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->ОТ склад'),'input,silent,removeAndRefreshForm=inputServicesFrom,placeholder=Незавършено производство,after=storeId');
+        $this->FLD('inputServicesFrom', 'enum(unfinished=Незавършено производство,all=Разходи за услуги (без влагане))', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Услуги от'),'maxRadio=2');
+		
+		$this->setField('deadline', 'caption=Информация->Срок до');
         $this->FLD('debitAmount', 'double(decimals=2)', 'input=none');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Разходен обект / Продажба->Избор');
 
@@ -416,8 +418,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
         }
-
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
+        if(isset($rec->inputStoreId)){
+            $form->setDefault('inputServicesFrom', 'all');
+        } else {
+            $form->setDefault('inputServicesFrom', 'unfinished');
+        }
 
         return $data;
     }

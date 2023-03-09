@@ -48,7 +48,6 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
 
                 if ($mvc->haveRightFor('single', $rec->id)) {
                     $tr = Request::get('tr');
-                    $url = array($mvc, 'deepltranslate', $rec->id, 'tr' => !$tr ? 1 : 0);
 
                     if (!isset($tr)) {
                         $handle = $mvc->className . '|' . $rec->id;
@@ -67,17 +66,15 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
                     $row->subject = new ET($cTextSubject);
 
                     if (!$cText) {
-                        $text = $tr ? 'Оригинал' : 'Превод';
-
-                        $link = ht::createLink(tr($text), $url, false,
-                            array("style" => 'position: relative; float: right;', 'onclick' => 'return startUrlFromDataAttr(this, true);', 'data-url' => toUrl($url, 'local')));
-
-                        $row->textPart->prepend($link);
+                        if (!isset($tr) || ($tr == '0')) {
+                            self::addTranslateHeader($mvc, $row->textPart, $rec->id);
+                        }
                     } else {
                         $row->textPart = new ET($cText);
                     }
 
                     if (!Request::get('ajax_mode')) {
+
                         $row->textPart->prepend("<div id='deepltranslate{$rec->id}'>");
                         $row->textPart->append("</div>");
 
@@ -139,6 +136,10 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
                     $textPart = deepl_Api::translate($textPart);
                     $subject = deepl_Api::translate($subject);
 
+                    $textPart = new ET($textPart);
+                    self::addTranslateHeader($mvc, $textPart, $rec->id);
+                    $textPart = $textPart->getContent();
+
                     core_Cache::set('deepltranslate', $handle, $textPart, 100);
                     core_Cache::set('deepltranslateSubject', $handle, $subject, 100);
                 }
@@ -159,5 +160,27 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
 
             return false;
         }
+    }
+
+
+    /**
+     * Помощна фунцикция за добавяне на линка за превеждане
+     *
+     * @param core_Mvc $mvc
+     * @param core_ET $textPart
+     * @param integer $id
+     */
+    protected static function addTranslateHeader($mvc, &$textPart, $id)
+    {
+        $tr = Request::get('tr');
+
+        $url = array($mvc, 'deepltranslate', $id, 'tr' => !$tr ? 1 : 0);
+
+        $text = $tr ? 'Оригинал' : 'Превод';
+
+        $link = ht::createLink(tr($text), $url, false,
+            array("style" => 'position: relative; float: right;', 'onclick' => 'return startUrlFromDataAttr(this, true);', 'data-url' => toUrl($url, 'local')));
+
+        $textPart->prepend($link);
     }
 }

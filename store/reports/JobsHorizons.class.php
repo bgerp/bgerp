@@ -82,14 +82,14 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,silent,single=none');
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,silent,single=none');
 
         $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=date');
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,mandatory,silent,single=none');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=stores,mandatory,silent,single=none');
 
         //Подредба на резултатите
-        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
+        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=groups,single=none');
     }
 
 
@@ -243,15 +243,15 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('document', 'varchar', 'caption=Документ,tdClass=centered');
             $fld->FLD('date', 'varchar', 'caption=Падеж,tdClass=centered');
-            $fld->FLD('note', 'varchar', 'caption=Забележка,tdClass=centered');
+            $fld->FLD('note', 'varchar', 'caption=Поръчка,tdClass=centered');
             $fld->FLD('store', 'varchar', 'caption=Склад,tdClass=centered');
-            $fld->FLD('docReservedQuantyti', 'varchar', 'caption=Количество->Запазено,smartCenter');
-            $fld->FLD('docExpectedQuantyti', 'varchar', 'caption=Количество->Очаквано,smartCenter');
+            $fld->FLD('docReservedQuantyti', 'double(decimals=2)', 'caption=Количество->Запазено,smartCenter');
+            $fld->FLD('docExpectedQuantyti', 'double(decimals=2)', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество Общо->Налично,smartCenter');
-            $fld->FLD('reserved', 'varchar', 'caption=Количество Общо->Запазено,smartCenter');
-            $fld->FLD('expected', 'varchar', 'caption=Количество Общо->Очаквано,smartCenter');
-            $fld->FLD('free', 'varchar', 'caption=Количество Об що->Разполагаемо,smartCenter');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество Общо->Налично,smartCenter');
+            $fld->FLD('reserved', 'double(decimals=2)', 'caption=Количество Общо->Запазено,smartCenter');
+            $fld->FLD('expected', 'double(decimals=2)', 'caption=Количество Общо->Очаквано,smartCenter');
+            $fld->FLD('free', 'double(decimals=2)', 'caption=Количество Об що->Разполагаемо,smartCenter');
 
         }
 
@@ -462,10 +462,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                  // Маркер за първи ред на нов артикул, за да могат да се
-                  // обединят редовете за един артикул при експорта
-          //      $markFirst = 1;
-
                 foreach ($dRec->documentsReserved as $docReserved) {
 
                     $dCloneRec = clone $dRec;
@@ -473,19 +469,28 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $DocumentRez = cls::get($docReserved->sourceClassId);
                     $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
-
-                    //Определя се първия ред за дадения артикул, за да не се отпечатва в следващите редове при експорта
-//                    if ($markFirst == 1) {
-//                        $dCloneRec->markFirst = true;
-//                    } else {
-//                        $dCloneRec->markFirst = false;
-//                    }
-
                     $dCloneRec->date = $docReserved->date;
 
                     $dCloneRec->document = $DocumentRez->abbr . $docReserved->sourceId;
 
-                    $dCloneRec->note = ($docClassName === 'planning_Jobs') ? $docRec->notes : $docRec->note;
+                    //Определяме note
+                    if($docClassName === 'planning_Jobs'){
+                        if($docRec->saleId){
+                            $note = sales_Sales::fetch($docRec->saleId)->reff;
+                        }else{
+                            $note = $docRec->notes;
+                        }
+                    }else{
+                        $firstDocument = doc_Threads::getFirstDocument($docRec->threadId);
+
+                        if($firstDocument && $firstDocument->isInstanceOf('sales_Sales')){
+                            $note = $firstDocument->fetch()->reff;
+                        }else{
+                            $note = $docRec->note;
+                        }
+                    }
+
+                    $dCloneRec->note = $note;
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
@@ -509,18 +514,27 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $docRec = $docClassName::fetch($docExpected->sourceId);
 
-                      //Определя се първия ред за дадения артикул, за да не се отпечатва в следващите редове при експорта
-//                    if ($markFirst == 1) {
-//                        $dCloneRec->markFirst = true;
-//                    } else {
-//                        $dCloneRec->markFirst = false;
-//                    }
-
                     $dCloneRec->date = $docExpected->date;
 
                     $dCloneRec->document = $Document->abbr . $docExpected->sourceId;
 
-                    $dCloneRec->note = ($docClassName === 'planning_Jobs') ? $docRec->notes : $docRec->note;
+                    //Определяме note
+                    if($docClassName === 'planning_Jobs'){
+                        if($docRec->saleId){
+                            $note = sales_Sales::fetch($docRec->saleId)->reff;
+                        }else{
+                            $note = $docRec->notes;
+                        }
+                    }else{
+                        $firstDocument = doc_Threads::getFirstDocument($docRec->threadId);
+                        if($firstDocument && $firstDocument->isInstanceOf('sales_Sales')){
+                            $note = $firstDocument->fetch()->reff;
+                        }else{
+                            $note = $docRec->note;
+                        }
+                    }
+
+                    $dCloneRec->note = $note;
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
@@ -557,24 +571,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
-        // Ако е първи ред за аретикула ще се експортират всичките колони
-        //след това кода и името на артикула се обединяват
-       // if ($dRec->markFirst) {
             $res->productId = $pRec->name;
             $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
             $res->quantity = $dRec->quantity;
-            $res->free = $dRec->free;
+            $res->free =$dRec->free;
             $res->expected = $dRec->expected;
             $res->reserved = $dRec->reserved;
-//        } else {
-//            $res->productId = '';
-//            $res->code = '';
-//            $res->quantity = '';
-//            $res->free = '';
-//            $res->expected = '';
-//            $res->reserved = '';
-//        }
-
 
         if ($dRec->measure) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');

@@ -227,6 +227,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $entries[] = $entry;
                 
             } else {
+                arr::sortObjects($details, 'type');
 
                 foreach ($details as $dRec) {
                     
@@ -252,10 +253,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         } else {
                             if(empty($dRec->fromAccId)) continue;
                             $item = isset($dRec->expenseItemId) ? $dRec->expenseItemId : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
-                            $entry = array('debit' => array('61101',
+                            $entry = array('debit' => array('61103',
+                                                      array($classId, $documentId),
                                                       array('cat_Products', $dRec->productId),
                                                       'quantity' => $dRec->quantity),
-                                           'credit' => array('60201', 
+                                           'credit' => array('60201',
                                                              $item,
                                                        array('cat_Products', $dRec->productId),
                                                       'quantity' => $dRec->quantity),
@@ -265,9 +267,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         $entries[] = $entry;
                     }
                 }
-                
-                arr::sortObjects($details, 'type');
-                
+
                 $costAmount = $index = 0;
                 foreach ($details as $dRec1) {
                     $sign = ($dRec1->type == 'pop') ? -1 : 1;
@@ -278,7 +278,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         if ($canStore == 'yes') {
                             $primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $valior, $dRec1->storeId);
                         } else {
-                            $primeCost = planning_GenericMapper::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
+                            if(empty($dRec1->fromAccId)){
+                                $primeCost = planning_GenericMapper::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
+                            } else {
+                                $primeCost = planning_GenericMapper::getWacAmountInAllCostsAcc($dRec1->quantity, $dRec1->productId, $valior, $dRec1->expenseItemId);
+                            }
                         }
 
                         //@todo ами разпределените услуги?
@@ -305,7 +309,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         $array['quantity'] = $quantityD;
                         $entry['debit'] = $array;
 
-                        if(isset($dRec1->storeId)){
+                        if(isset($dRec1->storeId) || !empty($dRec1->fromAccId)){
                             $entry['credit'] = array('61103', array($classId, $documentId), array('cat_Products', $dRec1->productId),
                                 'quantity' => $dRec1->quantity);
                         } else {
