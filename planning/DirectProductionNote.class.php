@@ -869,8 +869,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $dRec->quantity = core_Math::roundNumber($roundQuantity, $uomRec->round, $uomRec->roundSignificant);
             $dRec->quantityFromBom = $dRec->quantity;
 
-            $pInfo = cat_Products::getProductInfo($resource->productId);
-            $dRec->measureId = $pInfo->productRec->measureId;
+            $pRec = cat_Products::fetch($resource->productId, 'measureId,canStore');
+            if($pRec->canStore != 'yes' && $rec->inputServicesFrom == 'all'){
+                $dRec->fromAccId = '61102';
+            }
+            $dRec->measureId = $pRec->measureId;
             $index = $dRec->productId . '|' . $dRec->type;
             $details[$index] = $dRec;
         }

@@ -176,7 +176,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                     $form->setDefault('fromAccId', '61102');
                     $form->setReadOnly('fromAccId');
                 } elseif($data->masterRec->inputServicesFrom == 'all'){
-                    $form->setDefault('fromAccId', '61102');
+                    if(empty($rec->id)){
+                        $form->setDefault('fromAccId', '61102');
+                    }
                 }
             }
         }
