@@ -126,6 +126,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $recs = array();
         $pRecs = array();
         $arr = array();
+        $numberOfLeavesDays = $numberOfTripsesDays = 0;
         
         $typeOfAbsent = explode(',', $rec->type);
         
