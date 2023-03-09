@@ -207,6 +207,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'migrate::updateLabelType',
+        'migrate::checkParams0910',
     );
     
     
@@ -421,5 +422,59 @@ class cat_Setup extends core_ProtoSetup
         $labelTypeColName = str::phpToMysqlName('labelType');
         $query = "UPDATE {$Boms->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
         $Boms->db->query($query);
+    }
+
+
+    /**
+     * Миграция на несъответстващи параметри
+     */
+    public function checkParams0910()
+    {
+        $prQuery = cat_Products::getQuery();
+        $prQuery->XPR('maxId', 'double', 'MAX(#id)');
+        $maxId = $prQuery->fetch()->maxId;
+        $deleted = array();
+        if(isset($maxId)){
+
+            // Изтриват се тези продуктови параметри, чиито ид-та са по-големи от най-голямото ид в артикула
+            $productClassId = cat_Products::getClassId();
+            $pQuery = cat_products_Params::getQuery();
+            $pQuery->where("#classId = {$productClassId} AND #productId > {$maxId}");
+            $pQuery->show('id');
+            $idsToDelete = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+
+            if(countR($idsToDelete)){
+                $deleted = $idsToDelete;
+                $idsToDeleteString = implode(',', $idsToDelete);
+                cat_products_Params::delete("#id IN ({$idsToDeleteString})");
+            }
+        }
+
+        $classCrc = log_Classes::getClassCrc('cat_Products');
+        $lQuery = log_Data::getQuery();
+        $lQuery->where("#classCrc = {$classCrc}");
+
+        // Проверка има ли артикули със запис в лога за добавени/редактирани параметри преди създаването на артикула
+        $actCrc1 = log_Actions::getActionCrc('Добавяне на параметър');
+        $actCrc2 = log_Actions::getActionCrc('Редактиране на параметър');
+        $lQuery->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=objectId');
+        $lQuery->EXT('productCreatedBy', 'cat_Products', 'externalName=createdBy,externalKey=objectId');
+        $lQuery->where(array("#actionCrc IN ('[#1#]', '[#2#]')", $actCrc1, $actCrc2));
+        $lQuery->XPR('timeDate', 'datetime', "DATE_SUB(DATE_FORMAT(FROM_UNIXTIME(#time), '%Y-%m-%d %H:%i:%s'), INTERVAL 30 SECOND)");
+        $lQuery->where("#timeDate < #productCreatedOn");
+        $productsToCheck = array();
+
+        // Ако има ще се сетнат предупреждения
+        while($lRec = $lQuery->fetch()){
+            $productsToCheck[] = $productsToCheck;
+            log_System::add('cat_Products', 'Възможен проблем с параметрите на артикула', $lRec->objectId, 'warning');
+
+            $url = array('cat_Products', 'single', $lRec->objectId);
+            bgerp_Notifications::add("Възможен проблем с параметрите на артикул|*: #Art{$lRec->objectId}", $url, $lRec->productCreatedBy, 'normal');
+        }
+
+        if(countR($deleted) || countR($productsToCheck)){
+            wp("МИГРАЦИЯ ПАРАМЕТРИ", $deleted, $productsToCheck);
+        }
     }
 }
