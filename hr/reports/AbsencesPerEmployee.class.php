@@ -317,6 +317,8 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             unset($tripsQuery);
             
             $pRecs = array();
+
+            $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays = 0;
             
             $period++;
         } while ($period <= $rec->numberOfPeriods);
