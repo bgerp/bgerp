@@ -473,6 +473,8 @@ class cat_Setup extends core_ProtoSetup
             bgerp_Notifications::add("Възможен проблем с параметрите на артикул|*: #Art{$lRec->objectId}", $url, $lRec->productCreatedBy, 'normal');
         }
 
-        wp("МИГРАЦИЯ ПАРАМЕТРИ", $deleted, $productsToCheck);
+        if(countR($deleted) || countR($productsToCheck)){
+            wp("МИГРАЦИЯ ПАРАМЕТРИ", $deleted, $productsToCheck);
+        }
     }
 }
