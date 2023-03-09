@@ -102,9 +102,12 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
 
                 // Ако има партиди към документите, извличат се данните от тях
                 if(core_Packs::isInstalled('batch') && isset($masterRec->storeId)){
-                    $bQuery = batch_BatchesInDocuments::getQuery();
-                    $bQuery->where("#detailClassId = {$batchClassId} AND #detailRecId = {$cRec->id}");
-                    static::addBatchDataToArray($bQuery, $producedProducts, true);
+                    $BatchDef = batch_Defs::getBatchDef($cRec->productId);
+                    if(!($BatchDef instanceof batch_definitions_Job)){
+                        $bQuery = batch_BatchesInDocuments::getQuery();
+                        $bQuery->where("#detailClassId = {$batchClassId} AND #detailRecId = {$cRec->id}");
+                        static::addBatchDataToArray($bQuery, $producedProducts, true);
+                    }
                 }
             }
         }

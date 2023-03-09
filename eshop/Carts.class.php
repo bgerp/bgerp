@@ -2796,7 +2796,7 @@ class eshop_Carts extends core_Master
         $rec = $data->rec;
         
         if (self::haveRightFor('makenewsale', $rec)) {
-            $data->toolbar->addBtn('Нова продажба', array($mvc, 'makenewsale', 'id' => $rec->id, 'ret_url' => true, ''), null, 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към количката');
+            $data->toolbar->addBtn('Нова продажба', array($mvc, 'makenewsale', 'id' => $rec->id, 'ret_url' => true), null, 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към количката');
         }
         
         if (log_System::haveRightFor('list')) {

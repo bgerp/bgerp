@@ -77,15 +77,18 @@ class cond_type_Formula extends cond_type_Text
                     }
                     $params = static::$cache[$key];
                 }
-            } elseif ($Domain instanceof planning_Tasks) {
+            } elseif (($Domain instanceof planning_Tasks) || ($Domain instanceof cat_BomDetails)) {
                 if(isset($domainId)){
-                    if(!array_key_exists($key, static::$cache)){
-
-                        // Ако е ПО, прави се обединение между нейните и на артикула от заданието параметрите
+                    if($Domain instanceof planning_Tasks){
                         $tRec = $Domain->fetch($domainId, 'originId,productId');
-                        $jobProductId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
-                        $params = cat_Products::getParams($jobProductId);
+                        $productId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
+                    } else {
+                        $bomId = $Domain->fetchField($domainId, 'bomId');
+                        $productId = cat_Boms::fetchField($bomId, 'productId');
+                    }
 
+                    if(!array_key_exists($key, static::$cache)){
+                        $params = cat_Products::getParams($productId);
                         $tQuery = cat_products_Params::getQuery();
                         $tQuery->where("#classId = {$Domain->getClassId()} AND #productId = {$domainId}");
                         $tQuery->show('paramId,paramValue');

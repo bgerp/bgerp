@@ -1394,6 +1394,7 @@ abstract class deals_Helper
             Mode::pop("stopMasterUpdate{$rec->id}");
 
             $updateMaster = true;
+            $oldRate = $rec->{$rateFld};
             $rec->{$rateFld} = $newRate;
             if ($masterMvc instanceof deals_InvoiceMaster) {
                 $rec->displayRate = $newRate;
@@ -1408,7 +1409,12 @@ abstract class deals_Helper
                         $vat = 0;
                     }
 
-                    $diff = $rec->changeAmount * $newRate;
+                    if(isset($rec->dpAmount)){
+                        $diff = ($rec->dpAmount / $oldRate) * $newRate;
+                    } else {
+                        $diff = $rec->changeAmount * $newRate;
+                    }
+
                     $rec->vatAmount = $diff * $vat;
 
                     // Стойността е променената сума
