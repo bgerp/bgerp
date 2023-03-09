@@ -460,13 +460,16 @@ class cat_Setup extends core_ProtoSetup
         $lQuery->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=objectId');
         $lQuery->EXT('productCreatedBy', 'cat_Products', 'externalName=createdBy,externalKey=objectId');
         $lQuery->where(array("#actionCrc IN ('[#1#]', '[#2#]')", $actCrc1, $actCrc2));
-        $lQuery->XPR('timeDate', 'datetime', "DATE_SUB(DATE_FORMAT(FROM_UNIXTIME(#time), '%Y-%m-%d %H:%i:%s'), INTERVAL 30 SECOND)");
+        $lQuery->XPR('timeDate', 'datetime', "DATE_SUB(DATE_FORMAT(FROM_UNIXTIME(#time), '%Y-%m-%d %H:%i:%s'), INTERVAL 60 SECOND)");
         $lQuery->where("#timeDate < #productCreatedOn");
         $productsToCheck = array();
+        $foundRecs = $lQuery->fetchAll();
+        $count = countR($foundRecs);
+        core_App::setTimeLimit($count * 0.4, false,300);
 
         // Ако има ще се сетнат предупреждения
-        while($lRec = $lQuery->fetch()){
-            $productsToCheck[] = $productsToCheck;
+        foreach($foundRecs as $lRec){
+            $productsToCheck[] = $lRec;
             log_System::add('cat_Products', 'Възможен проблем с параметрите на артикула', $lRec->objectId, 'warning');
 
             $url = array('cat_Products', 'single', $lRec->objectId);
