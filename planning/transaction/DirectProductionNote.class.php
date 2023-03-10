@@ -270,7 +270,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
                 $costAmount = $index = 0;
                 foreach ($details as $dRec1) {
-                    $sign = ($dRec1->type == 'pop') ? -1 : 1;
                     $canStore = cat_Products::fetchField($dRec1->productId, 'canStore');
                     
                     if ($dRec1->type == 'input' || $dRec1->type == 'allocated') {
@@ -280,12 +279,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         } else {
                             if(empty($dRec1->fromAccId)){
                                 $primeCost = planning_GenericMapper::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
-                            } else {
+                            }
+                            if(empty($primeCost)){
                                 $primeCost = planning_GenericMapper::getWacAmountInAllCostsAcc($dRec1->quantity, $dRec1->productId, $valior, $dRec1->expenseItemId);
                             }
                         }
 
-                        //@todo ами разпределените услуги?
                         $sign = 1;
                     } else {
                         $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec1->productId, null, $valior);
