@@ -1031,11 +1031,7 @@ class acc_BalanceDetails extends core_Detail
             // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
             if ($rec->blQuantity >= 0 || $feedWithNegativeBlQuantity == 'yes') {
                 if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
-                    if ($rec->blQuantity < 0 && $rec->blAmount < 0) {
-                    $strategy->feed(abs($rec->blQuantity), abs($rec->blAmount));    
-                    } else {
                     $strategy->feed($rec->blQuantity, $rec->blAmount);
-                    }
                 }
             }
             
