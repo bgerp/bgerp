@@ -532,7 +532,6 @@ class cat_BomDetails extends doc_Detail
         // Ако има избран ресурс, добавяме му мярката до полетата за количества
         if (isset($rec->resourceId)) {
             $params = cat_Boms::getProductParams($masterProductId);
-
             $path = $mvc->getProductPath($rec);
             foreach ($path as $pId) {
                 $newParams = cat_Boms::getProductParams($pId);
