@@ -636,7 +636,6 @@ class cat_Groups extends core_Master
         $logArr = array();
 
         while ($pRec = $q->fetch()) {
-            if ($pRec->id != 3623)continue;
 
             $groupsArr = keylist::toArray($pRec->groups);
             $groupsInputArr = keylist::toArray($pRec->groupsInput);
