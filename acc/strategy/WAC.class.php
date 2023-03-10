@@ -48,8 +48,8 @@ class acc_strategy_WAC extends acc_strategy_Strategy
         // Ако сумата или к-то са отрицателни не захранваме стратегията
         //if($quantity < 0 || $amount < 0) return;
         
-        $this->quantity += abs($quantity);
-        $this->amount += abs($amount);
+        $this->quantity += $quantity;
+        $this->amount += $amount;
     }
     
     
@@ -68,7 +68,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
             return;
         }
 
-        return $quantity * ($this->amount / $this->quantity);
+        return $quantity * abs($this->amount / $this->quantity);
     }
     
     
