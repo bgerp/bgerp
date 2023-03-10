@@ -464,7 +464,7 @@ class rack_Movements extends rack_MovementAbstract
                 if(rack_Movements::haveRightFor('list')){
                     $quantityStr = ht::createLinkRef($quantityStr, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($rec->containerId)->getHandle()));
                 }
-                $form->info = "Създадени движения от документа за сега: <b>{$quantityStr}</b>";
+                $form->info = tr("Създадени движения от документа за сега|*: <b>{$quantityStr}</b>");
 
                 // Приспадане на създаденото досега от документа
                 $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;
@@ -514,7 +514,7 @@ class rack_Movements extends rack_MovementAbstract
                 Mode::push('text', 'plain');
                 $placeholderPackQuantity = core_Type::getByName('double(smartRound)')->toVerbal($availableQuantity);
                 Mode::pop('text');
-                $form->setField('packQuantity', "placeholder={$placeholderPackQuantity}");
+                $form->setField('packQuantity', "placeholder=|*{$placeholderPackQuantity}");
                 $form->rec->defaultPackQuantity = $availableQuantity;
             }
             

@@ -301,7 +301,7 @@ class cat_BomDetails extends doc_Detail
                     // К-то в опаковката като хинт
                     $packRec = cat_products_Packagings::getPack($rec->resourceId, $rec->labelPackagingId);
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                    $form->setField("labelQuantityInPack", "placeholder={$quantityInPack}");
+                    $form->setField("labelQuantityInPack", "placeholder=|*{$quantityInPack}");
                 }
 
                 // Ако има избран център на дейност да се добавят наличните оборудвания и оператори в него
