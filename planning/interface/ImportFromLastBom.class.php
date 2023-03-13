@@ -58,6 +58,9 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
 
             // Ако е към задание ще се импортират материалите от заданието
             $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $masterRec->storeId);
+            foreach ($details as $d1){
+                $d1->quantity /= $d1->quantityInPack;
+            }
         } else {
             $details = array();
             $dQuery = planning_ProductionTaskProducts::getQuery();

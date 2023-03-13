@@ -24,9 +24,9 @@ class pwa_Manifest extends core_Mvc
         
         $domainId = cms_Domains::fetchField("#domain = 'localhost' AND #lang = 'bg'", 'id');
         
-        if(core_Webroot::isExists('android-chrome-512x512.png', $domainId)) {
+        if (core_Webroot::isExists('android-chrome-512x512.png', $domainId)) {
             $imageUrl = str_replace('/xxx', '', toUrl(array('xxx'), 'absolute')) . '/android-chrome-512x512.png';
-        } elseif(core_Webroot::isExists('favicon.png', $domainId)) {
+        } elseif (core_Webroot::isExists('favicon.png', $domainId)) {
             $imageUrl = str_replace('/xxx', '', toUrl(array('xxx'), 'absolute')) . '/favicon.png';
         }
         
@@ -40,7 +40,7 @@ class pwa_Manifest extends core_Mvc
             } else {
                 $tempArray['src'] = sbf("pwa/icons/icon-{$size}x{$size}.png", '');
             }
-
+            
             $tempArray['sizes'] = $size .  'x' . $size;
             $tempArray['type'] = 'image/png';
             $iconInfoArr[] = $tempArray;
@@ -71,13 +71,13 @@ class pwa_Manifest extends core_Mvc
                 'action' => '/pwa_Share/Target',
                 'method' => 'POST',
                 'enctype' => 'multipart/form-data',
-                'params' => array (
+                'params' => array(
                     'title' => 'name',
                     'text' => 'description',
                     'url' => 'link',
                     'files' => array(
                         array('name' => 'file',
-                              'accept' => array('*/*')
+                            'accept' => array('*/*')
                         ),
                     ),
                 )
@@ -85,5 +85,38 @@ class pwa_Manifest extends core_Mvc
         );
         
         core_App::outputJson($json);
+    }
+
+
+    /**
+     * Помощна фунцкция за проверка дали може да се използва PWA
+     *
+     * @return string - yes|no
+     */
+    public static function canUse()
+    {
+        $bridVar = log_Browsers::getVars(array('pwaOnOff'));
+
+        if (!empty($bridVar)) {
+            if ($bridVar['pwaOnOff'] == 'yes') {
+
+                return 'yes';
+            }
+        } else {
+            $defSettings = pwa_Setup::get('DEFAULT_ACTIVE');
+            if ($defSettings == 'yes') {
+
+                return 'yes';
+            }
+
+            if ($defSettings == 'yesMobile') {
+                if (Mode::is('screenMode', 'narrow')) {
+
+                    return 'yes';
+                }
+            }
+        }
+
+        return 'no';
     }
 }

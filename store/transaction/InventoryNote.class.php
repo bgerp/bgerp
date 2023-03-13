@@ -96,20 +96,22 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                     }
 
                 } else {
+                    $amount = 0;
 
-                    // Ако не се занулява, ще се засклади с мениджърската сб-ст или със складовата, ако първата не е зададена
-                    $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
-                    if (!$amount) {
-                        if (Mode::get('saveTransaction')) {
-                            $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
-                        } else {
-                            $amount = 0;
+                    // Винаги първо ще се търси цената по стратегия (само при контирането)
+                    if (Mode::get('saveTransaction')) {
+                        $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+                    }
+
+                    if(!$amount){
+
+                        // Ако няма чак тогава се търси мениджърската себестойност
+                        $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
+                        if(!empty($amount)){
+                            $amount = $dRec->delta * $amount;
                         }
-                    } else {
-                        $amount = $dRec->delta * $amount;
                     }
                 }
-
                 if (!isset($amount)) {
                     $errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                 }
