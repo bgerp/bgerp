@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureQuantity,productViewCacheDate';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureQuantity,productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation';
 
 
     /**
@@ -276,6 +276,9 @@ class planning_Jobs extends core_Master
         $this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,autohide');
         $this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
         $this->FLD('productViewCacheDate', 'datetime(format=smartTime)', 'caption=Към коя дата е кеширан изгледа на артикула,input=none');
+        $this->FLD('salesBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Търговска рецепта при активиране,input=none');
+        $this->FLD('instantBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Моментна рецепта при активиране,input=none');
+        $this->FLD('productionBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Работна рецепта при активиране,input=none');
 
         $this->setDbIndex('state');
         $this->setDbIndex('productId');
@@ -980,21 +983,19 @@ class planning_Jobs extends core_Master
             if (isset($rec->deliveryPlace)) {
                 $row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, true);
             }
-            
+
             if (isset($rec->oldJobId)) {
                 $row->oldJobId = planning_Jobs::getLink($rec->oldJobId, 0);
             }
-            
-            if ($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id) {
-                $row->sBomId = cat_Boms::getLink($sBomId, 0);
-            }
-            
-            if ($sBomId = cat_Products::getLastActiveBom($rec->productId, 'instant')->id) {
-                $row->iBomId = cat_Boms::getLink($sBomId, 0);
-            }
-            
-            if ($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id) {
-                $row->pBomId = cat_Boms::getLink($pBomId, 0);
+
+            foreach (array('sBomId' => array('salesBomIdOnActivation', 'sales'), 'iBomId' => array('instantBomIdOnActivation', 'instant'), 'pBomId' =>  array('productionBomIdOnActivation', 'production')) as $bomFld => $activationBomArr) {
+                if ($bomId = cat_Products::getLastActiveBom($rec->productId, $activationBomArr[1])->id) {
+                    $row->{$bomFld} = cat_Boms::getLink($bomId, 0);
+                    if(isset($rec->{$activationBomArr[0]}) && $bomId != $rec->{$activationBomArr[0]}){
+                        $oldBomHandle = cat_Boms::getHandle($rec->{$activationBomArr[0]});
+                        $row->{$bomFld} = ht::createHint($row->{$bomFld}, "Рецептата при активиране е била|*: #{$oldBomHandle}", 'warning');
+                    }
+                }
             }
 
             $date = ($rec->state == 'draft') ? null : (!empty($rec->productViewCacheDate) ? $rec->productViewCacheDate : $rec->modifiedOn);
@@ -1167,8 +1168,15 @@ class planning_Jobs extends core_Master
             }
         }
 
+        // Кеширане на актуалните рецепти към момента на активиране
+        foreach (array('salesBomIdOnActivation' => 'sales', 'instantBomIdOnActivation' => 'instant', 'productionBomIdOnActivation' => 'production') as $bomFld => $bomType){
+            if ($bId = cat_Products::getLastActiveBom($rec->productId, $bomType)->id) {
+                $rec->{$bomFld} = $bId;
+            }
+        }
+
         $rec->productViewCacheDate = dt::now();
-        $mvc->save_($rec, 'productViewCacheDate');
+        $mvc->save_($rec, 'productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation');
     }
     
     
