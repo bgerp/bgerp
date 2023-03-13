@@ -1168,6 +1168,7 @@ class planning_Jobs extends core_Master
             }
         }
 
+        // Кеширане на актуалните рецепти към момента на активиране
         foreach (array('salesBomIdOnActivation' => 'sales', 'instantBomIdOnActivation' => 'instant', 'productionBomIdOnActivation' => 'production') as $bomFld => $bomType){
             if ($bId = cat_Products::getLastActiveBom($rec->productId, $bomType)->id) {
                 $rec->{$bomFld} = $bId;

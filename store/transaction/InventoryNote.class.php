@@ -84,53 +84,39 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             if ($dRec->delta > 0) {
                 $productsArr[$dRec->productId] = $dRec->productId;
 
-                if($dRec->quantity == 0){
+                // Ако ще се занулява отрицателно к-во винаги ще е със складовата себестойност към момента
+                Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
+                $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+                Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
 
-                    // Ако ще се занулява отрицателно к-во винаги ще е със складовата себестойност към момента
-                    Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
-                    $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
-                    Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
-
-                    if (!isset($amount)) {
-                        $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
-                    }
-
+                if (isset($amount)) {
+                    $entries[] = array(
+                        'debit' => array('799'),
+                        'credit' => array('321', array('store_Stores', $rec->storeId),
+                            array('cat_Products', $dRec->productId),
+                            'quantity' => -1 * $dRec->delta),
+                        'reason' => 'Заприходени излишъци на стоково-материални запаси',
+                    );
                 } else {
-                    $amount = 0;
-
-                    // Винаги първо ще се търси цената по стратегия (само при контирането)
-                    if (Mode::get('saveTransaction')) {
-                        $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+                    $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
+                    if (!isset($amount)) {
+                        $errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
 
-                    if(!$amount){
-
-                        // Ако няма чак тогава се търси мениджърската себестойност
-                        $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
-                        if(!empty($amount)){
-                            $amount = $dRec->delta * $amount;
-                        }
+                    if ($amount == -0) {
+                        $amount = 0;
                     }
+                    $amount = round($amount, 2);
+                    $total += $amount;
+
+                    $entries[] = array('amount' => $amount,
+                        'debit' => array('321', array('store_Stores', $rec->storeId),
+                            array('cat_Products', $dRec->productId),
+                            'quantity' => $dRec->delta),
+                        'credit' => array('799'),
+                        'reason' => 'Заприходени излишъци на стоково-материални запаси',
+                    );
                 }
-                if (!isset($amount)) {
-                    $errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
-                }
-                if($amount == -0){
-                    $amount = 0;
-                }
-                $amount = round($amount, 2);
-                $total += $amount;
-                
-                $entries[] = array(
-                    'amount' => $amount,
-                    'debit' => array('321', array('store_Stores', $rec->storeId),
-                        array('cat_Products', $dRec->productId),
-                        'quantity' => $dRec->delta),
-                    'credit' => array('799'),
-                    'reason' => 'Заприходени излишъци на стоково-материални запаси',
-                );
-            
-            // Ако разликата е отрицателна, имаме липса
             } elseif ($dRec->delta < 0) {
                 $productsArr[$dRec->productId] = $dRec->productId;
                 $delta = abs($dRec->delta);
