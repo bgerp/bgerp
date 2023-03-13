@@ -1,9 +1,11 @@
 <?php
 
+
 /**
  * Мобилното приложение активно ли е?
  */
-defIfNot('PWA_ACTIVE', 'no');
+defIfNot('PWA_DEFAULT_ACTIVE', 'no');
+
 
 /**
  * Клас 'pwa_Setup' -  bgERP progressive web application
@@ -20,13 +22,15 @@ defIfNot('PWA_ACTIVE', 'no');
 class pwa_Setup extends core_ProtoSetup
 {
     public $info = 'bgERP progressive web application';
-    
+
+
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'PWA_ACTIVE' => array('enum(no=Не,yes=Да)', 'caption=Мобилно приложение->Активиране,customizeBy=user'),
-        );
+        'PWA_DEFAULT_ACTIVE' => array('enum(no=Не,yesMobile=Да (Само в мобилен), yes=Да (Винаги))', 'caption=Мобилно приложение->Активиране'),
+    );
+
     
     /**
      * Инсталиране на пакета
@@ -40,7 +44,8 @@ class pwa_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина към страницата
         $html .= $Plugins->installPlugin('bgERP PWA', 'pwa_Plugin', 'core_page_Active', 'family');
-        
+        $html .= $Plugins->installPlugin('bgERP PWA Button', 'pwa_ButtonPlugin', 'crm_Profiles', 'private');
+
         $html .= fileman_Buckets::createBucket('pwa', 'Файлове качени с PWA', '', '100MB', 'user', 'every_one');
         
         $sw = getFileContent('pwa/js/sw.js');
