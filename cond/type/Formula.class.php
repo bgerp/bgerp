@@ -46,15 +46,15 @@ class cond_type_Formula extends cond_type_Text
      *
      * @return array $res
      */
-     private static function getGlobalParamIds()
-     {
-         $pQuery = cat_Params::getQuery();
-         $pQuery->where("#state != 'rejected'");
-         $pQuery->show('id');
-         $res = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+    private static function getGlobalParamIds()
+    {
+        $pQuery = cat_Params::getQuery();
+        $pQuery->where("#state != 'rejected'");
+        $pQuery->show('id');
+        $res = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
 
-         return $res;
-     }
+        return $res;
+    }
 
 
     /**
@@ -71,15 +71,15 @@ class cond_type_Formula extends cond_type_Text
             $Domain = cls::get($domainClass);
             $key = "{$Domain->getClassId()}|{$domainId}";
             if ($Domain instanceof cat_Products) {
-                if(isset($domainId)){
-                    if(!array_key_exists($key, static::$cache)){
+                if (isset($domainId)) {
+                    if (!array_key_exists($key, static::$cache)) {
                         static::$cache[$key] = $Domain->getParams($domainId);
                     }
                     $params = static::$cache[$key];
                 }
             } elseif (($Domain instanceof planning_Tasks) || ($Domain instanceof cat_BomDetails)) {
-                if(isset($domainId)){
-                    if($Domain instanceof planning_Tasks){
+                if (isset($domainId)) {
+                    if ($Domain instanceof planning_Tasks) {
                         $tRec = $Domain->fetch($domainId, 'originId,productId');
                         $productId = planning_Jobs::fetchField("#containerId = {$tRec->originId}", 'productId');
                     } else {
@@ -87,7 +87,7 @@ class cond_type_Formula extends cond_type_Text
                         $productId = cat_Boms::fetchField($bomId, 'productId');
                     }
 
-                    if(!array_key_exists($key, static::$cache)){
+                    if (!array_key_exists($key, static::$cache)) {
                         $params = cat_Products::getParams($productId);
                         $tQuery = cat_products_Params::getQuery();
                         $tQuery->where("#classId = {$Domain->getClassId()} AND #productId = {$domainId}");
@@ -101,35 +101,41 @@ class cond_type_Formula extends cond_type_Text
                 }
             }
 
-            $tries = 0;
-            do {
-                // Преизчисляват се формулите докато има промяна
-                $hasChange = false;
-                $tries++;
+            $params = static::tryToCalcAllFormulas($params);
 
-                foreach ($params as $paramId => $paramVal) {
-                    if (!is_numeric($paramVal)) {
-                        if (cat_Params::haveDriver($paramId, 'cond_type_Formula')) {
-                            if($paramVal == cat_BomDetails::CALC_ERROR) continue;
-                            $idToNameArr = array();
-                            $cloneParams = $params;
-                            $paramCloneMap = cat_Params::getFormulaParamMap($cloneParams, $idToNameArr);
+        }
 
-                            core_Debug::startTimer("CALC_FORMULA_{$domainId}");
-                            $calced = cat_BomDetails::calcExpr($paramVal, $paramCloneMap);
-                            core_Debug::stopTimer("CALC_FORMULA_{$domainId}");
+        return $params;
+    }
 
-                            if ($paramVal != $calced) {
-                                $params[$paramId] = $calced;
-                                $hasChange = true;
-                            }
+
+    public static function tryToCalcAllFormulas($params, $maxTries = 50)
+    {
+        $tries = 0;
+        do {
+            // Преизчисляват се формулите докато има промяна
+            $hasChange = false;
+            $tries++;
+
+            foreach ($params as $paramId => $paramVal) {
+                if (!is_numeric($paramVal)) {
+                    if (cat_Params::haveDriver($paramId, 'cond_type_Formula')) {
+                        if ($paramVal == cat_BomDetails::CALC_ERROR) continue;
+                        $idToNameArr = array();
+                        $cloneParams = $params;
+                        $paramCloneMap = cat_Params::getFormulaParamMap($cloneParams, $idToNameArr);
+                        $calced = cat_BomDetails::calcExpr($paramVal, $paramCloneMap);
+
+                        if ($paramVal != $calced) {
+                            $params[$paramId] = $calced;
+                            $hasChange = true;
                         }
                     }
                 }
+            }
 
-                if(!$hasChange) break;
-            } while($tries <= 50);
-        }
+            if (!$hasChange) break;
+        } while ($tries <= $maxTries);
 
         return $params;
     }

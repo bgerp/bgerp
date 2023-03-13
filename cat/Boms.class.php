@@ -482,7 +482,7 @@ class cat_Boms extends core_Master
                 }
                 
                 if ($idCount) {
-                    core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
+                    core_Statuses::newStatus("|Затворени рецепти|*: {$idCount}");
                 }
 
                 // Ако има задания към артикула да се обновят запазените им количества
@@ -1155,6 +1155,7 @@ class cat_Boms extends core_Master
     public static function getProductParams($productId)
     {
         $params = cat_Products::getParams($productId);
+        $params = cond_type_Formula::tryToCalcAllFormulas($params);
         $res = cat_Params::getFormulaParamMap($params);
 
         if (countR($res)) return array($productId => $res);
