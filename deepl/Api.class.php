@@ -37,6 +37,9 @@ class deepl_Api
      */
     public static function translate($text, $targetLang = null, $sourceLang = null, $cache = true, $pArr = array())
     {
+        // Езици, които използват кирилица
+        $cyrillicLangArr = array('bg' => 'bg', 'ru' => 'ru', 'md' => 'md', 'sr' => 'sr');
+
         $text = trim($text);
 
         if (!isset($targetLang)) {
@@ -45,6 +48,12 @@ class deepl_Api
 
         if (!isset($targetLang)) {
             $targetLang = core_Lg::getCurrentLanguage();
+        }
+
+        $isCyrillic = false;
+        $targetLangLower = strtolower($targetLang);
+        if (isset($cyrillicLangArr[$targetLangLower])) {
+            $isCyrillic = true;
         }
 
         $pArr['target_lang'] = strtoupper($targetLang);
@@ -64,6 +73,13 @@ class deepl_Api
             $strip = strip_tags(html_entity_decode($st));
             $strip = preg_replace('#[\xC2\xA0]#', '', $strip);
             $strip = trim($strip);
+
+            $hasWords = core_String::hasWords($st, $isCyrillic);
+            if (!$hasWords) {
+                $noTranslateArr[$k] = $st;
+
+                continue;
+            }
 
             $tText = '';
             if ($cache) {

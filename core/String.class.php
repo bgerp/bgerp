@@ -1455,4 +1455,25 @@ class core_String
         
         return (json_last_error() == JSON_ERROR_NONE);
     }
+
+
+    /**
+     * Проверява дали има дума в подадения стринг
+     *
+     * @param $str
+     * @param $skipCyrillic - дали да се игнорира кирилицата от проверката
+     *
+     * @return int
+     */
+    public static function hasWords($str, $skipCyrillic = false)
+    {
+        $str = html_entity_decode($str);
+        $str = strip_tags($str);
+
+        if($skipCyrillic) {
+            $str = preg_replace('/[\\x{0400}-\\x{04FF}]/u', ' ', $str);
+        }
+
+        return preg_match('/(?:^|[^\\p{L}0-9])\\p{L}+(?:$|[^\\p{L}0-9])/u', ' ' . $str . ' ', $matches);
+    }
 }
