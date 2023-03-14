@@ -203,6 +203,9 @@ class openai_ExtractContactInfo
 
             if ($mp = $mapArr[$prompt]) {
                 $cData->{$mp} = $r;
+            } else {
+                $promptLower = mb_strtolower($prompt);
+                $cData->{$promptLower} = $r;
             }
 
             $newResArr[] = $prompt . ': ' . $r;

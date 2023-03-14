@@ -123,14 +123,14 @@ class openai_Setup extends core_ProtoSetup
     public $managers = array(
         'openai_Cache',
         'openai_Prompt',
-        'migrate::promptTruncate2308',
+        'migrate::promptTruncate2311',
     );
 
 
     /**
      * Миграция за изчистване на данните
      */
-    public static function promptTruncate2308()
+    public static function promptTruncate2311()
     {
         openai_Prompt::delete(array("#systemId = '[#1#]'", openai_Prompt::$extractContactDataBg));
         openai_Prompt::delete(array("#systemId = '[#1#]'", openai_Prompt::$extractContactDataEn));
