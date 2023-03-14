@@ -6,17 +6,24 @@
  */
 defIfNot('OPENAI_TOKEN', '');
 
+
 /**
  * Парола
  */
-defIfNot('OPENAI_URL', 'https://api.openai.com/v1/completions');
+defIfNot('OPENAI_URL', 'https://api.openai.com/v1');
+
+
+/**
+ * Версия
+ */
+defIfNot('OPENAI_VERSION', '0.1.6');
 
 
 /**
  * Настройка на API
  * model
  */
-defIfNot('OPENAI_API_MODEL', 'text-davinci-003');
+defIfNot('OPENAI_API_MODEL_VERSION', 'GPT 3.5 TURBO');
 
 
 /**
@@ -87,8 +94,7 @@ class openai_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'OPENAI_TOKEN' => array('password(show)', 'caption=Ключ,class=w100'),
-        'OPENAI_URL' => array('url', 'caption=УРЛ'),
-        'OPENAI_API_MODEL' => array('varchar(64)', 'caption=API настройка->model'),
+        'OPENAI_API_MODEL_VERSION' => array('enum(GPT 3.5 TURBO, TEXT DAVINCI 003)', 'caption=API настройка->Модел'),
         'OPENAI_API_TEMPERATURE' => array('double', 'caption=API настройка->temperature'),
         'OPENAI_API_MAX_TOKENS' => array('int', 'caption=API настройка->max_tokens'),
         'OPENAI_API_TOP_P' => array('int', 'caption=API настройка->top_p'),

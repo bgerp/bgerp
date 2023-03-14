@@ -19,7 +19,7 @@ class openai_ExtractContactInfo
      * Масив с елементите, които могат да се игнорират
      * @var string[]
      */
-    public static $ignoreArr = array('-', 'none', 'N/A', 'Unknown', 'Not Specified');
+    public static $ignoreArr = array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)');
 
 
     /**
@@ -140,6 +140,7 @@ class openai_ExtractContactInfo
 
         $ignoreArr = self::$ignoreArr;
         $ignoreArr = arr::make($ignoreArr, true);
+        $ignoreArr = array_change_key_case($ignoreArr, CASE_LOWER);
 
         $mapArr = array();
 
@@ -157,7 +158,15 @@ class openai_ExtractContactInfo
         $text = new ET($text);
         $text->placeArray($placeArr);
 
-        $oRes =  openai_Api::getRes($text->getContent(), array(), $useCache);
+        $aiModel = openai_Setup::get('API_MODEL_VERSION');
+
+        if ($aiModel == 'GPT 3.5 TURBO') {
+            $oRes =  openai_Api::getChatRes($text->getContent(), array(), $useCache);
+        } elseif ($aiModel == 'TEXT DAVINCI 003') {
+            $oRes =  openai_Api::getRes($text->getContent(), array(), $useCache);
+        } else {
+            expect(false, $aiModel);
+        }
 
         if ($oRes === false) {
 
@@ -166,7 +175,7 @@ class openai_ExtractContactInfo
 
         $oResArr = explode("\n", $oRes);
         $newResArr = array();
-        foreach ($oResArr as $key => $oStr) {
+        foreach ($oResArr as $oStr) {
             $oStr = trim($oStr);
             if (!strlen($oStr)) {
 
@@ -179,12 +188,15 @@ class openai_ExtractContactInfo
             $r = $oStrArr[1];
 
             $r = trim($r);
+
             if (!strlen($r)) {
 
                 continue;
             }
 
-            if (isset($ignoreArr[$r])) {
+            $rCompare = mb_strtolower($r);
+
+            if (isset($ignoreArr[$rCompare])) {
 
                 continue;
             }
