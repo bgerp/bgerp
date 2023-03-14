@@ -2544,6 +2544,11 @@ class planning_Tasks extends core_Master
                     $newTask->originId = $jobRec->containerId;
                     $newTask->systemId = $sysId;
                     $newTask->state = 'pending';
+                    if(empty($defaultTask->plannedQuantity)){
+                        $newTask->plannedQuantity = $jobRec->quantity;
+                        $newTask->quantityInPack = 1;
+                        $newTask->measureId = cat_Products::fetchField($defaultTask->productId, 'measureId');
+                    }
 
                     // Ако има едно оборудване попълва се то по-дефолт
                     $assets = keylist::toArray($defaultTask->fixedAssets);
