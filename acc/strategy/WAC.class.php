@@ -73,9 +73,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
             return;
         }
 
-        $currentAmountRound = round($this->amount, 2);
-
-        return $quantity * ($currentAmountRound / $this->quantity);
+        return $quantity * ($this->amount / $this->quantity);
     }
     
     
