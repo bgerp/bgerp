@@ -1433,7 +1433,6 @@ class cat_Boms extends core_Master
             
             // За всеки детайл
             while ($dRec = $query->fetch()) {
-                $dRec->delta = core_Math::roundNumber($dRec->delta);
 
                 // Опитваме се да намерим цената му
                 if($rQuantity != cat_BomDetails::CALC_ERROR){
