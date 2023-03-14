@@ -981,10 +981,12 @@ class core_Debug
                     'header' => "Content-type: application/x-www-form-urlencoded\r\n",
                     'method' => 'POST',
                     'content' => http_build_query($data),
+                    'timeout' => 5,
                 ),
                 'ssl' => array(
                     'verify_peer' => false,
                     'verify_peer_name' => false,
+                    'allow_self_signed' => true,
                 ),
             );
             $context = stream_context_create($options);

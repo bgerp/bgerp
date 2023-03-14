@@ -1433,10 +1433,15 @@ class cat_Boms extends core_Master
             
             // За всеки детайл
             while ($dRec = $query->fetch()) {
-                
+                $dRec->delta = core_Math::roundNumber($dRec->delta);
+
                 // Опитваме се да намерим цената му
-                $dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
-                
+                if($rQuantity != cat_BomDetails::CALC_ERROR){
+                    $dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
+                } else {
+                    $dRec->primeCost = null;
+                }
+
                 // Ако няма цена връщаме FALSE
                 if ($dRec->primeCost === false) {
                     $price = false;
