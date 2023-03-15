@@ -617,6 +617,9 @@ class cat_Groups extends core_Master
         if(!$grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'")){
             return "Липсва стара група";
         }
+        if($grRecOld->productCnt == 0){
+            return "Липсват артикули в стара група";
+        }
 
         $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
         if(!$grRecNew && $grRecOld){
@@ -722,7 +725,6 @@ class cat_Groups extends core_Master
             $queryGr = cat_Groups::getQuery();
             $queryGr->delete("#productCnt = 0 AND #parentId = $grRecOld->id");
         }
-
 
     }
 
