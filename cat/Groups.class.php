@@ -619,18 +619,17 @@ class cat_Groups extends core_Master
         }
 
         $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
-        if(!$grRecNew){
+        if(!$grRecNew && $grRecOld){
 
             $grNewId = cat_Groups::forceGroup('03. Куриерски и онлайн пликове',$parentId = $grRecOld->parentId,$force = true);
             $grRecNew = cat_Groups::fetch($grNewId);
 
         }
 
-
         $q = cat_Products::getQuery();
         $q->where("#isPublic = 'no'");
         $q->like('groups', "|{$grRecOld->id}|");
-        $q->limit(10);
+        $q->limit(100);
         $q->show('id,name,groups,groupsInput');
 
         $logArr = array();
