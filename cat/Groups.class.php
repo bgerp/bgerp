@@ -614,6 +614,7 @@ class cat_Groups extends core_Master
             return "Недостатъчни права";
         }
 
+        bp(cat_Products::fetch(4238),cat_Products::fetch(4178));
         if(!$grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'")){
             return "Липсва стара група";
         }
