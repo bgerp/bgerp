@@ -114,7 +114,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             if ($vatType == 'yes' || $vatType == 'separate') {
                 $debitArr['quantity'] = currency_CurrencyRates::convertAmount($vatAmount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
                 $debitArr['quantity'] = $sign * currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
-                
+
                 $entries[] = array('amount' => round($sign * $vatAmount, 2),
                     'debit' => $debitArr,
                     'credit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
