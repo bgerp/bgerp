@@ -2568,12 +2568,6 @@ class planning_Tasks extends core_Master
 
                     // Ако има параметри от рецептата се прехвърлят 1 към 1
                     $saveParams = array();
-                    if(is_array($defaultTask->params)){
-                        foreach ($defaultTask->params as $pId => $pVal){
-                            $paramRec = (object)array('classId' => $this->getClassId(), 'productId' => $newTask->id, 'paramId' => $pId, 'paramValue' => $pVal);
-                            $saveParams[$pId] = $paramRec;
-                        }
-                    }
 
                     $paramValues = cat_Products::getParams($jobRec->productId);
                     $stepParams = cat_Products::getParams($defaultTask->productId);
@@ -2597,6 +2591,13 @@ class planning_Tasks extends core_Master
                                     $saveParams[$pId] = $paramRec;
                                 }
                             }
+                        }
+                    }
+
+                    if(is_array($defaultTask->params)){
+                        foreach ($defaultTask->params as $pId => $pVal){
+                            $paramRec = (object)array('classId' => $this->getClassId(), 'productId' => $newTask->id, 'paramId' => $pId, 'paramValue' => $pVal);
+                            $saveParams[$pId] = $paramRec;
                         }
                     }
 
