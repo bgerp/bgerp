@@ -1713,11 +1713,12 @@ class planning_Tasks extends core_Master
 
             cat_products_Params::addProductParamsToForm($mvc, $rec->id, $originRec->productId, $rec->productId, $form);
 
+            // Ако дефолтите са от шаблонна операция, то нейните параметри са с приоритет
             if (isset($rec->systemId, $tasks[$rec->systemId])) {
                 $taskData = (array)$tasks[$rec->systemId];
                 if (countR($taskData['params'])) {
                     foreach ($taskData['params'] as $pId => $pVal) {
-                        $form->setDefault("paramcat{$pId}", $pVal);
+                        $form->rec->{"paramcat{$pId}"} = $pVal;
                     }
                 }
             }
