@@ -77,6 +77,10 @@ class cat_plg_ShowCodes extends core_Plugin
             $detailOrderBy = $data->masterData->rec->{$mvc->Master->detailOrderByField};
             if($detailOrderBy == 'code'){
                 arr::sortObjects($data->rows, 'code', 'ASC', 'natural');
+            } elseif($detailOrderBy == 'reff' && isset($listId)){
+
+                // Ако е избрано филтриране по ваш номер и има ид на лист - филтрира се по него
+                arr::sortObjects($data->rows, 'reff', 'ASC', 'natural');
             }
         }
     }

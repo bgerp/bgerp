@@ -57,6 +57,12 @@ class sales_SalesDetails extends deals_DealDetail
 
 
     /**
+     * Да се показва ли вашия номер
+     */
+    public $showReffCode = true;
+
+
+    /**
      * Полета за скриване/показване от шаблоните
      */
     public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума';
