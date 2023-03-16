@@ -2567,11 +2567,41 @@ class planning_Tasks extends core_Master
                     $this->save($newTask);
 
                     // Ако има параметри от рецептата се прехвърлят 1 към 1
+                    $saveParams = array();
                     if(is_array($defaultTask->params)){
                         foreach ($defaultTask->params as $pId => $pVal){
                             $paramRec = (object)array('classId' => $this->getClassId(), 'productId' => $newTask->id, 'paramId' => $pId, 'paramValue' => $pVal);
-                            cat_products_Params::save($paramRec);
+                            $saveParams[$pId] = $paramRec;
                         }
+                    }
+
+                    $paramValues = cat_Products::getParams($jobRec->productId);
+                    $stepParams = cat_Products::getParams($defaultTask->productId);
+                    if($StepDriver = cat_Products::getDriver($defaultTask->productId)) {
+                        $pData = $StepDriver->getProductionData($defaultTask->productId);
+                        $prevTaskRecs = static::getPrevParamValues($jobRec->containerId, $pData['planningParams']);
+                        if(is_array($pData['planningParams'])){
+                            foreach ($pData['planningParams'] as $pId){
+                                if(array_key_exists($pId, $paramValues)){
+                                    $v = $paramValues[$pId];
+                                } elseif(array_key_exists($pId, $stepParams)){
+                                    $v = $stepParams[$pId];
+                                } elseif(array_key_exists($pId, $prevTaskRecs)){
+                                    $v = $prevTaskRecs[$pId];
+                                } else {
+                                    $v = cat_Params::getDefaultValue($pId, $this->getClassId(), $newTask->id);
+                                }
+
+                                if(isset($v)){
+                                    $paramRec = (object)array('classId' => $this->getClassId(), 'productId' => $newTask->id, 'paramId' => $pId, 'paramValue' => $v);
+                                    $saveParams[$pId] = $paramRec;
+                                }
+                            }
+                        }
+                    }
+
+                    foreach ($saveParams as $pRec){
+                        cat_products_Params::save($pRec);
                     }
 
                     $this->logWrite('Автоматично създаване от задание', $newTask->id);
