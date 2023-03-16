@@ -168,7 +168,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
         $equalizePrimeCost = $rec->equalizePrimeCost == 'yes';
         $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs, $rec->jobQuantity, $equalizePrimeCost);
-        
+
         return $entries;
     }
     
@@ -193,7 +193,22 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
     {
         $entries = $array = array();
         $prodRec = cat_Products::fetch($productId, 'fixedAsset,canStore');
-        
+
+        $foundConvertedProducedRecs = array_filter($details, function($a) use ($productId){return $a->productId == $productId && $a->type == 'input' && isset($a->storeId);});
+        $foundOtherInputedRecs = array_filter($details, function($a) use ($productId){return $a->productId != $productId && $a->type == 'input';});
+
+        if(acc_Journal::throwErrorsIfFoundWhenTryingToPost()){
+            if(countR($foundConvertedProducedRecs)){
+                $convertedQuantity = arr::sumValuesArray($foundConvertedProducedRecs, 'quantity');
+                $halfQuantity = $quantity / 2;
+                if($convertedQuantity > $halfQuantity){
+                    if(!empty($expenses) || countR($foundOtherInputedRecs)){
+                        acc_journal_RejectRedirect::expect(false, "При разпределяне на режийни разходи или влагане и на други Артикули, вложеното количество от произвеждания артикул не може да бъде повече от 50% от произвежданото количество!");
+                    }
+                }
+            }
+        }
+
         if ($prodRec->canStore == 'yes') {
             $array = array('321', array('store_Stores', $storeId), array('cat_Products', $productId));
         } else {
@@ -211,7 +226,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             
             $array = array('60201', $expenseItem, array('cat_Products', $productId));
         }
-        
+
         if (is_array($details)) {
             if (!countR($details)) {
                 $debitAmount = ($debitAmount) ? round($debitAmount, 2) : 0;
