@@ -700,24 +700,7 @@ class cat_products_Params extends doc_Detail
             }
 
             if($class instanceof planning_Tasks){
-                $tQuery = planning_Tasks::getQuery();
-                $tQuery->where("#state NOT IN ('draft', 'rejected') AND #originId = {$form->rec->originId}");
-                $tQuery->show('id');
-
-                $prevTaskIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
-                if(countR($prevTaskIds)){
-
-                    // Какви са предишните стойности на параметрите от ПО-та за този етап
-                    $prevParamQuery = cat_products_Params::getQuery();
-                    $prevParamQuery->where("#classId = {$class->getClassId()}");
-                    $prevParamQuery->in('productId', $prevTaskIds);
-                    $prevParamQuery->in("paramId", $params);
-                    $prevParamQuery->orderBy('id', 'ASC');
-                    $prevParamQuery->show('paramValue,paramId');
-                    while($prevRec = $prevParamQuery->fetch()){
-                        $prevRecValues[$prevRec->paramId] = $prevRec->paramValue;
-                    }
-                }
+                $prevRecValues = planning_Tasks::getPrevParamValues($form->rec->originId, $params);
             }
         }
 

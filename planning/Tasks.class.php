@@ -3667,4 +3667,38 @@ class planning_Tasks extends core_Master
         $rec->saoOrder = $maxSaoOrder + 0.5;
         $this->save_($rec, 'saoOrder');
     }
+
+
+    /**
+     * Помощна ф-я извличаща предишните стойности на параметрите от заданието
+     *
+     * @param int $originId
+     * @param array $params
+     * @return array
+     */
+    public static function getPrevParamValues($originId, $params)
+    {
+        $prevRecValues = array();
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#state NOT IN ('draft', 'rejected') AND #originId = {$originId}");
+        $tQuery->show('id');
+
+        $prevTaskIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
+        if(countR($prevTaskIds)){
+
+            // Какви са предишните стойности на параметрите от ПО-та за този етап
+            $me = cls::get(get_called_class());
+            $prevParamQuery = cat_products_Params::getQuery();
+            $prevParamQuery->where("#classId = {$me->getClassId()}");
+            $prevParamQuery->in('productId', $prevTaskIds);
+            $prevParamQuery->in("paramId", $params);
+            $prevParamQuery->orderBy('id', 'ASC');
+            $prevParamQuery->show('paramValue,paramId');
+            while($prevRec = $prevParamQuery->fetch()){
+                $prevRecValues[$prevRec->paramId] = $prevRec->paramValue;
+            }
+        }
+
+        return $prevRecValues;
+    }
 }
