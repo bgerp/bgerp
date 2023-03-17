@@ -629,14 +629,20 @@ class cat_Groups extends core_Master
         $q->where("#isPublic = 'no'");
         $q->like('groups', "|{$gRecNO->id}|");
         $q->show('id,name,groups,groupsInput');
+
         while ($pRec = $q->fetch()) {
 
             $sGrArr = keylist::toArray($pRec->groups);
             $sGrInputArr = keylist::toArray($pRec->groupsInput);
             unset($sGrArr[$gRecNO->id]);
             unset($sGrInputArr[$gRecNO->id]);
-            $sGrArr[$gRecYES->id] = $gRecYES->id;
-            $sGrInputArr[$gRecYES->id] = $gRecYES->id;
+            if (!in_array($gRecYES->id,$sGrArr)){
+                $sGrArr[$gRecYES->id] = $gRecYES->id;
+            }
+            if (!in_array($gRecYES->id,$sGrInputArr)){
+                $sGrInputArr[$gRecYES->id] = $gRecYES->id;
+            }
+
             $pRec->groups = type_Keylist::fromArray($sGrArr);
             $pRec->groupsInput = type_Keylist::fromArray($sGrInputArr);
             cls::get('cat_Products')->save_($pRec, 'groups,groupsInput');
