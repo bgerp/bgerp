@@ -63,13 +63,15 @@ class plg_Sorting extends core_Plugin
                         }
                     } elseif ($mvc->fields[$f]->kind != 'FNC' && strtolower(get_class($mvc->fields[$f]->type)) == 'type_key2') {
                         $type = $mvc->fields[$f]->type;
-                        if (($kField = $type->params['titleFld']) && ($kMvc = $type->params['mvc'])) {
+                        if (($kField = $type->params['select']) && ($kMvc = $type->params['mvc'])) {
                             // Ще се филтрира само по-полета, които не са XPR и FNC
                             $kFieldType = cls::get($type->params['mvc'])->getField($kField);
                             if (in_array($kFieldType->kind, array('FNC', 'XPR'))) {
                                 continue;
                             }
                             $dbField = $f . '_' . 'sort';
+
+
                         } else {
                             continue;
                         }
