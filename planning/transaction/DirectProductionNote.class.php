@@ -269,10 +269,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                             Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
                             $amountCheck = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $valior, $dRec->storeId);
                             Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
-                            if(empty($amountCheck)){
+                            if(!empty($amountCheck)){
                                 $entry['amount'] = $amountCheck;
                             }
-
                         } else {
                             if(empty($dRec->fromAccId)) continue;
                             $item = isset($dRec->expenseItemId) ? $dRec->expenseItemId : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
