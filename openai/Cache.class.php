@@ -174,11 +174,11 @@ class openai_Cache extends core_Manager
         $form->input('_pModel');
 
         if ($form->rec->_pModel == 'TEXT DAVINCI 003') {
-            $form->FLD('__prompt', 'text', 'caption=Параметри->prompt');
+            $form->FLD('__prompt', 'text', 'caption=Параметри->prompt (Текст), mandatory');
         } else {
-            $form->FLD('__mContentRole', 'text', 'caption=Параметър USER->MESSAGE');
-            $form->FLD('__mContentSystem', 'text', 'caption=Параметър SYSTEM->MESSAGE');
-            $form->FLD('__mContentAssistant', 'text', 'caption=Параметър ASSISTANT->MESSAGE');
+            $form->FLD('__mContentRole', 'text', 'caption=Параметър USER (Въпросът|&#44; |*който задаваме)->Текст, mandatory');
+            $form->FLD('__mContentSystem', 'text', 'caption=Параметър SYSTEM (Домейн на въпроса)->Текст');
+            $form->FLD('__mContentAssistant', 'text', 'caption=Параметър ASSISTANT (Насочващ отговор)->Текст');
         }
 
         if (isset($rec->id)) {
