@@ -629,7 +629,7 @@ class cat_Groups extends core_Master
         $q->where("#isPublic = 'no'");
         $q->like('groups', "|{$gRecNO->id}|");
         $q->show('id,name,groups,groupsInput');
-       // bp($gRecNO,$gRecYES,$q->fetchAll());
+
         while ($pRec = $q->fetch()) {
 
             $sGrArr = keylist::toArray($pRec->groups);
@@ -670,7 +670,6 @@ class cat_Groups extends core_Master
         $q = cat_Products::getQuery();
         $q->where("#isPublic = 'no'");
         $q->like('groups', "|{$grRecOld->id}|");
-        $q->limit(100);
         $q->show('id,name,groups,groupsInput');
 
         $logArr = array();
