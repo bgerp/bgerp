@@ -267,15 +267,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                            'reason' => 'Влагане на материал в производството');
 
                             Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
-                            $amountCheck = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $valior, $dRec->storeId, 1);
+                            $amountCheck = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $valior, $dRec->storeId);
                             Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
                             if(empty($amountCheck)){
-                                Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
-                                $amountCheck = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $valior, $dRec->storeId, 20);
-                                Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
-                                if(!empty($amountCheck)){
-                                    $entry['amount'] = $amountCheck;
-                                }
+                                $entry['amount'] = $amountCheck;
                             }
 
                         } else {
