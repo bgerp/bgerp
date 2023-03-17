@@ -83,6 +83,7 @@ class core_Pager extends core_BaseClass
     public function init($params = array())
     {
         parent::init($params);
+        setIfNot($this->exactPaging, false);
         setIfNot($this->itemsPerPage, 20);
         setIfNot($this->pageVar, 'P');
         if (Mode::is('screenMode', 'narrow')) {
@@ -102,7 +103,7 @@ class core_Pager extends core_BaseClass
         $this->rangeStart = null;
         $this->rangeEnd = null;
         $this->pagesCount = null;
-        
+
         if (!($this->itemsCount >= 0)) {
             $this->itemsPerPage = 0;
         }
@@ -110,14 +111,22 @@ class core_Pager extends core_BaseClass
         if (Mode::is('printing') || Mode::is('exporting')) {
             $this->itemsPerPage = max(core_Setup::get('MAX_ROWS_FOR_PRINTING'), $this->itemsPerPage);
         }
-        
-        $maxPages = max(1, round($this->itemsCount / $this->itemsPerPage));
-        
+
+        if($this->exactPaging){
+            $maxPages = max(1, ceil($this->itemsCount / $this->itemsPerPage));
+        } else {
+            $maxPages = max(1, round($this->itemsCount / $this->itemsPerPage));
+        }
+
         if ($this->page > $maxPages) {
             $this->page = $maxPages;
         }
-        
-        $this->pagesCount = round($this->itemsCount / $this->itemsPerPage);
+
+        if($this->exactPaging) {
+            $this->pagesCount = ceil($this->itemsCount / $this->itemsPerPage);
+        } else {
+            $this->pagesCount = round($this->itemsCount / $this->itemsPerPage);
+        }
 
         if ($this->itemsCount > 0 && $this->pagesCount == 0) {
             $this->pagesCount = 1;
@@ -219,7 +228,7 @@ class core_Pager extends core_BaseClass
         
         // Опитваме се да извлечем резултатите от кеша
         $this->itemsCount = PHP_INT_MAX;
-        
+
         if (!$useCache && !$query->mvc->simplePaging) {
             $query->addOption('SQL_CALC_FOUND_ROWS');
         } else {
@@ -228,7 +237,7 @@ class core_Pager extends core_BaseClass
                 $this->itemsCount = $resCntCache;
             }
         }
-
+       // bp($this->itemsCount);
         if(!$this->itemsCount && $query->mvc->simplePaging) {
             $this->itemsCount = $qCnt->count();
         }
