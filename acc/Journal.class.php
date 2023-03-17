@@ -735,10 +735,10 @@ class acc_Journal extends core_Master
         // Групираме записите по документи
         $query->show('docId,docType,valior');
         $query->groupBy('docId,docType');
-        
         $recs = $query->fetchAll();
 
         // За всеки запис ако има
+        $deletedRecs = array();
         if (countR($recs)) {
             foreach ($recs as $rec) {
                 
@@ -749,13 +749,28 @@ class acc_Journal extends core_Master
                 }
                 
                 // Изтриваме му транзакцията
-                acc_Journal::deleteTransaction($rec->docType, $rec->docId);
+                $deletedRec = null;
+                acc_Journal::deleteTransaction($rec->docType, $rec->docId, $deletedRec);
+                $deletedRecs[$rec->docType][$rec->docId] = $deletedRec;
             }
-            
-            // Преизчисляваме баланса
+
+            // Преизчисляване на балансите
             cls::get('acc_Balances')->recalc();
             foreach ($recs as $rec) {
-                $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
+                try{
+                    if(is_object($deletedRecs[$rec->docType][$rec->docId])){
+                        Mode::push('recontoWithCreatedOnDate', $deletedRecs[$rec->docType][$rec->docId]->createdOn);
+                    }
+                    $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
+                    if(is_object($deletedRecs[$rec->docType][$rec->docId])){
+                        Mode::pop('recontoWithCreatedOnDate');
+                    }
+                } catch(acc_journal_Exception $e){
+                    if(is_object($deletedRecs[$rec->docType][$rec->docId])){
+                        acc_Journal::restoreDeleted($rec->docType, $rec->docId, $deletedRecs[$rec->docType][$rec->docId], $deletedRecs[$rec->docType][$rec->docId]->_details);
+                    }
+                    wp($e);
+                }
             }
         }
 

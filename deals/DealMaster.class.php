@@ -251,7 +251,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         
         // Артикули
-		$mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Артикули->Подреждане по,notNull,maxRadio=2,value=auto');
+		$mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         		
 		// Доставка
         $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor,removeAndRefreshForm=deliveryLocationId|deliveryAdress|deliveryData|deliveryCalcTransport|courierApi,silent');
