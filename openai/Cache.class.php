@@ -177,7 +177,7 @@ class openai_Cache extends core_Manager
             $form->FLD('__prompt', 'text', 'caption=Параметри->prompt (Текст), mandatory');
         } else {
             $form->FLD('__mContentRole', 'text', 'caption=Параметър USER (Въпросът|&#44; |*който задаваме)->Текст, mandatory');
-            $form->FLD('__mContentSystem', 'text', 'caption=Параметър SYSTEM (Домейн на въпроса)->Текст');
+            $form->FLD('__mContentSystem', 'text', 'caption=Параметър SYSTEM (Област на въпроса)->Текст');
             $form->FLD('__mContentAssistant', 'text', 'caption=Параметър ASSISTANT (Насочващ отговор)->Текст');
         }
 
