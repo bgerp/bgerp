@@ -265,6 +265,19 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                                        array('cat_Products', $dRec->productId),
                                                      'quantity' => $dRec->quantity),
                                            'reason' => 'Влагане на материал в производството');
+
+                            Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
+                            $amountCheck = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $valior, $dRec->storeId, 1);
+                            Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
+                            if(empty($amountCheck)){
+                                Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
+                                $amountCheck = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $valior, $dRec->storeId, 20);
+                                Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
+                                if(!empty($amountCheck)){
+                                    $entry['amount'] = $amountCheck;
+                                }
+                            }
+
                         } else {
                             if(empty($dRec->fromAccId)) continue;
                             $item = isset($dRec->expenseItemId) ? $dRec->expenseItemId : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
@@ -319,7 +332,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     // Ако е материал го изписваме към произведения продукт
                     if ($dRec1->type != 'pop') {
                         $reason = ($index == 0) ? 'Засклаждане на произведен артикул' : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
-                        
                         $array['quantity'] = $quantityD;
                         $entry['debit'] = $array;
 
