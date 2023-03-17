@@ -672,7 +672,7 @@ class cat_Groups extends core_Master
         $q->like('groups', "|{$grRecOld->id}|");
         $q->show('id,name,groups,groupsInput');
 
-        bp($q->fetchAll(),$grRecOld,$grRecNew,$q->count());
+       // bp($q->fetchAll(),$grRecOld,$grRecNew,$q->count());
 
         $logArr = array();
 
