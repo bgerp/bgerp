@@ -23,12 +23,13 @@ class openai_Api
      * ['prompt'] - въпорсът, който задаваме
      * @param boolean|string $useCache
      * @param interger $index
+     * @param null|string $cKey
      *
      * @trows openai_Exception
      *
      * @return string|false
      */
-    public static function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0)
+    public static function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null)
     {
         self::setDefaultParams($pArr);
         setIfNot($pArr['__endpoint'], 'completions');
@@ -40,7 +41,7 @@ class openai_Api
 
         expect($pArr['prompt'], $pArr);
 
-        $resObj = self::execCurl($pArr, $useCache);
+        $resObj = self::execCurl($pArr, $useCache, $cKey);
 
         return $resObj->choices[$index]->text ? $resObj->choices[$index]->text : false;
     }
@@ -57,12 +58,13 @@ class openai_Api
      * ['messages'][['role' => 'assistant', 'content' => 'Prev answer']]
      * @param boolean|string $useCache
      * @param interger $index
+     * @param null|string $cKey
      *
      * @trows openai_Exception
      *
      * @return string|false
      */
-    public static function getChatRes($prompt = null, $pArr = array(), $useCache = true, $index = 0)
+    public static function getChatRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null)
     {
         self::setDefaultParams($pArr);
         setIfNot($pArr['__endpoint'], 'chat/completions');
@@ -74,7 +76,7 @@ class openai_Api
 
         expect($pArr['messages'], $pArr);
 
-        $resObj = self::execCurl($pArr, $useCache);
+        $resObj = self::execCurl($pArr, $useCache, $cKey);
 
         return $resObj->choices[$index]->message ? $resObj->choices[$index]->message->content : false;
     }
@@ -136,10 +138,11 @@ class openai_Api
      *
      * @param array $params
      * @param boolean|string $useCache
+     * @param null|string $cKey
      *
      * @return mixed
      */
-    protected static  function execCurl($params, $useCache)
+    protected static  function execCurl($params, $useCache, &$cKey = null)
     {
         setIfNot($params['__method'], 'POST');
         expect($params['__endpoint']);
@@ -147,7 +150,7 @@ class openai_Api
 
         $responseJson = false;
         if ($useCache !== false) {
-            $responseJson = openai_Cache::get($cParams);
+            $responseJson = openai_Cache::get($cParams, $cKey);
         }
 
         if ($useCache !== 'only') {
@@ -171,10 +174,13 @@ class openai_Api
                 core_Debug::startTimer('OPENAI_EXEC');
 
                 $responseJson = @curl_exec($curl);
+
                 core_Debug::stopTimer('OPENAI_EXEC');
 
                 if ($useCache === true) {
-                    openai_Cache::set($cParams, $responseJson);
+                    if ($responseJson !== false) {
+                        $cKey = openai_Cache::set($cParams, $responseJson);
+                    }
                 }
             }
         } else {
@@ -184,7 +190,7 @@ class openai_Api
             }
         }
 
-        return self::prepareRes($responseJson);
+        return self::prepareRes($responseJson, $curl);
     }
 
 
@@ -229,14 +235,40 @@ class openai_Api
      *
      * @return mixed
      */
-    public static function prepareRes($json)
+    public static function prepareRes($json, $curl = null)
     {
-        openai_Exception::expect($json, 'Празен резултат');
+        if ($json === false) {
+            self::logErr('Празен резултат от сървъра', $curl);
+
+            openai_Exception::expect($json, 'Празен резултат');
+        }
 
         $response = @json_decode($json);
 
+        if ($response === false) {
+            self::logErr('Грешен резултат: ' . core_Type::mixedToString($json), $curl);
+        }
         openai_Exception::expect($response, 'Грешен резултат: ' . core_Type::mixedToString($json), $json);
 
         return $response;
+    }
+
+
+    /**
+     * Помощна функция за репортване на грешка
+     *
+     * @param string $msg
+     */
+    protected static function logErr($msg, $curl = null)
+    {
+        if ($curl) {
+            $msg .= ' ' . curl_errno($curl) . ': ' . curl_error($curl);
+        }
+
+        if (haveRole('debug')) {
+            log_System::add(get_called_class(), $msg, null, 'warning');
+        }
+
+        status_Messages::newStatus($msg, 'warning');
     }
 }
