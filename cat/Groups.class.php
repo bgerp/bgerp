@@ -614,7 +614,7 @@ class cat_Groups extends core_Master
             return "Недостатъчни права";
         }
 
-        $gRecNO = cat_Groups::fetch("#name = 'Пликове за e-Commers с изрязани дръжки'");
+        $gRecNO = cat_Groups::fetch("#name = 'Пликове за e-Commers с изрязани дръжки' AND #productCnt != 0");
         $gRecYES = cat_Groups::fetch("#name = 'Пликове за e-Commerce с изрязани дръжки'");
 
         if (!$gRecNO){
@@ -629,7 +629,7 @@ class cat_Groups extends core_Master
         $q->where("#isPublic = 'no'");
         $q->like('groups', "|{$gRecNO->id}|");
         $q->show('id,name,groups,groupsInput');
-
+        bp($gRecNO,$gRecYES,$q->fetchAll());
         while ($pRec = $q->fetch()) {
 
             $sGrArr = keylist::toArray($pRec->groups);
