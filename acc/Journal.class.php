@@ -843,6 +843,9 @@ class acc_Journal extends core_Master
         $form->FLD('to', 'date', 'caption=До,mandatory');
         $form->FLD('accounts', 'acc_type_Accounts', 'caption=Сметки');
         $form->FLD('types', 'keylist(mvc=core_Classes)', 'caption=Документи');
+
+        $form->setDefault('from', Mode::get('recontoJournalLastDateFrom'));
+        $form->setDefault('to', Mode::get('recontoJournalLastDateTo'));
         $form->setSuggestions('types', core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title'));
         
         $form->input();
@@ -871,9 +874,11 @@ class acc_Journal extends core_Master
                     $accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
                 }
                 $res = $this->recontoAll($accounts, $rec->from, $rec->to, $types);
-                
-                $this->logWrite('Реконтиране на документ', $rec->id);
-                
+                $this->logWrite('Реконтиране на документи', $rec->id);
+
+                Mode::setPermanent('recontoJournalLastDateFrom', $rec->from);
+                Mode::setPermanent('recontoJournalLastDateTo', $rec->to);
+
                 return followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"), 'warning');
             }
         }
