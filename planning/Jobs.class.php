@@ -1346,6 +1346,7 @@ class planning_Jobs extends core_Master
         $options = array();
 
         $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+
         if(countR($defaultTasks)){
             $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Шаблонни операции за артикула'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
 

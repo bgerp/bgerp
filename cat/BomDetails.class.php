@@ -670,7 +670,7 @@ class cat_BomDetails extends doc_Detail
      *
      * @return array - масив с последователноста на пътя на записа в позиции или ид-та на артикули
      */
-    private function getProductPath($rec, $position = false)
+    public function getProductPath($rec, $position = false)
     {
         $path = array();
         $path[] = ($position) ? $rec->position : $rec->resourceId;

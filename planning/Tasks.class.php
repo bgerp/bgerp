@@ -1713,11 +1713,12 @@ class planning_Tasks extends core_Master
 
             cat_products_Params::addProductParamsToForm($mvc, $rec->id, $originRec->productId, $rec->productId, $form);
 
+            // Ако дефолтите са от шаблонна операция, то нейните параметри са с приоритет
             if (isset($rec->systemId, $tasks[$rec->systemId])) {
                 $taskData = (array)$tasks[$rec->systemId];
                 if (countR($taskData['params'])) {
                     foreach ($taskData['params'] as $pId => $pVal) {
-                        $form->setDefault("paramcat{$pId}", $pVal);
+                        $form->rec->{"paramcat{$pId}"} = $pVal;
                     }
                 }
             }
@@ -2544,6 +2545,11 @@ class planning_Tasks extends core_Master
                     $newTask->originId = $jobRec->containerId;
                     $newTask->systemId = $sysId;
                     $newTask->state = 'pending';
+                    if(empty($defaultTask->plannedQuantity)){
+                        $newTask->plannedQuantity = $jobRec->quantity;
+                        $newTask->quantityInPack = 1;
+                        $newTask->measureId = cat_Products::fetchField($defaultTask->productId, 'measureId');
+                    }
 
                     // Ако има едно оборудване попълва се то по-дефолт
                     $assets = keylist::toArray($defaultTask->fixedAssets);
@@ -2561,11 +2567,42 @@ class planning_Tasks extends core_Master
                     $this->save($newTask);
 
                     // Ако има параметри от рецептата се прехвърлят 1 към 1
+                    $saveParams = array();
+
+                    $paramValues = cat_Products::getParams($jobRec->productId);
+                    $stepParams = cat_Products::getParams($defaultTask->productId);
+                    if($StepDriver = cat_Products::getDriver($defaultTask->productId)) {
+                        $pData = $StepDriver->getProductionData($defaultTask->productId);
+                        $prevTaskRecs = static::getPrevParamValues($jobRec->containerId, $pData['planningParams']);
+                        if(is_array($pData['planningParams'])){
+                            foreach ($pData['planningParams'] as $pId){
+                                if(array_key_exists($pId, $paramValues)){
+                                    $v = $paramValues[$pId];
+                                } elseif(array_key_exists($pId, $stepParams)){
+                                    $v = $stepParams[$pId];
+                                } elseif(array_key_exists($pId, $prevTaskRecs)){
+                                    $v = $prevTaskRecs[$pId];
+                                } else {
+                                    $v = cat_Params::getDefaultValue($pId, $this->getClassId(), $newTask->id);
+                                }
+
+                                if(isset($v)){
+                                    $paramRec = (object)array('classId' => $this->getClassId(), 'productId' => $newTask->id, 'paramId' => $pId, 'paramValue' => $v);
+                                    $saveParams[$pId] = $paramRec;
+                                }
+                            }
+                        }
+                    }
+
                     if(is_array($defaultTask->params)){
                         foreach ($defaultTask->params as $pId => $pVal){
                             $paramRec = (object)array('classId' => $this->getClassId(), 'productId' => $newTask->id, 'paramId' => $pId, 'paramValue' => $pVal);
-                            cat_products_Params::save($paramRec);
+                            $saveParams[$pId] = $paramRec;
                         }
+                    }
+
+                    foreach ($saveParams as $pRec){
+                        cat_products_Params::save($pRec);
                     }
 
                     $this->logWrite('Автоматично създаване от задание', $newTask->id);
@@ -3661,5 +3698,39 @@ class planning_Tasks extends core_Master
         $maxSaoOrder = isset($maxSaoOrder) ? $maxSaoOrder : 0;
         $rec->saoOrder = $maxSaoOrder + 0.5;
         $this->save_($rec, 'saoOrder');
+    }
+
+
+    /**
+     * Помощна ф-я извличаща предишните стойности на параметрите от заданието
+     *
+     * @param int $originId
+     * @param array $params
+     * @return array
+     */
+    public static function getPrevParamValues($originId, $params)
+    {
+        $prevRecValues = array();
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#state NOT IN ('draft', 'rejected') AND #originId = {$originId}");
+        $tQuery->show('id');
+
+        $prevTaskIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
+        if(countR($prevTaskIds)){
+
+            // Какви са предишните стойности на параметрите от ПО-та за този етап
+            $me = cls::get(get_called_class());
+            $prevParamQuery = cat_products_Params::getQuery();
+            $prevParamQuery->where("#classId = {$me->getClassId()}");
+            $prevParamQuery->in('productId', $prevTaskIds);
+            $prevParamQuery->in("paramId", $params);
+            $prevParamQuery->orderBy('id', 'ASC');
+            $prevParamQuery->show('paramValue,paramId');
+            while($prevRec = $prevParamQuery->fetch()){
+                $prevRecValues[$prevRec->paramId] = $prevRec->paramValue;
+            }
+        }
+
+        return $prevRecValues;
     }
 }

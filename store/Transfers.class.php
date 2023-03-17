@@ -237,7 +237,7 @@ class store_Transfers extends core_Master
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
         // Допълнително
-        $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Артикули->Подреждане по,notNull,maxRadio=2,value=auto');
+        $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
 
         $this->FLD(
