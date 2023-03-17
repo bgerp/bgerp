@@ -1519,7 +1519,13 @@ class cat_products_Packagings extends core_Detail
         $packQuery->where('#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL');
         $packQuery->orderBy('quantity', 'DESC');
         $packQuery->limit(1);
-        $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
+
+        // Ако има посочени опаковки за игнориране - игнорират се
+        $ignorePackIds = keylist::toArray(cat_Setup::get('PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC'));
+        if(countR($ignorePackIds)){
+            $packQuery->notIn('packagingId', $ignorePackIds);
+        }
+        $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity,packagingId');
         $packRec = $packQuery->fetch();
 
         // Ако няма опаковка с въведени габарити, няма да се изчислява нищо
