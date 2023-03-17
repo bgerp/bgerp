@@ -250,6 +250,14 @@ class openai_Api
         }
         openai_Exception::expect($response, 'Грешен резултат: ' . core_Type::mixedToString($json), $json);
 
+        // Ако върне грешка
+        if ($response->error) {
+
+            self::logErr($response->error->type . ': ' .$response->error->message, $curl);
+
+            openai_Exception::expect(false, $response->error->message, $json, $response->error);
+        }
+
         return $response;
     }
 
