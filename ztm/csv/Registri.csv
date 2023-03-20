@@ -257,7 +257,7 @@
 "vent.op_setpoint_1","int","0.0/100.0","Ventilation","both",0,"Operators panel set point"
 "vent.hvac_setpoint_1","int","-100.0/100.0","Ventilation","system",0,"HVAC set point"
 "vent.ac_setpoint_1","int","0.0/100.0","Ventilation","system",0,"AC set point"
-"vent.fan.power_gpio","str","","Ventilation","system","U0:ID2:FC16:R0:BIT3","Fans power GPIO."
+"vent.power_gpio_1","str","","Ventilation","system","U0:ID2:FC16:R0:BIT3","Fans power GPIO."
 "vent.lower_1.fan.settings","json","","Ventilation","system","{""vendor"": ""HangzhouAirflowElectricApplications"", ""model"": ""f3p146ec072600"", ""options"": {""output"": ""AO0""}}","Lower fan settings"
 "vent.lower_1.fan.min_speed","float","0.0/100.0","Ventilation","system",0.0,"Lower fan minimum speed [%]"
 "vent.lower_1.fan.max_speed","float","0.0/100.0","Ventilation","system",30.0,"Lower fan maximum speed [%]"
