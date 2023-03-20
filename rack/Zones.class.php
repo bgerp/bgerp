@@ -1109,8 +1109,9 @@ class rack_Zones extends core_Master
      * @param null $workerId - ид на дефолтен товарач
      * @param array|null $productIds - ид-та на артикули
      * @param boolean $deletePendingSystemMovementsInZoneFirst - да се изтрият ли първи системните движения
+     * @param int|null $currentZoneId - от коя зона сме тръгнали
      */
-    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true, $currentZoneId = false)
+    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true, $currentZoneId = null)
     {
         // Ако се иска да се изтрият движенията към зоната
         if($deletePendingSystemMovementsInZoneFirst){
