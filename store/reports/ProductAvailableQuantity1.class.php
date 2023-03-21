@@ -412,7 +412,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('orderMeasure', 'double(decimals=3)', 'caption=За поръчка->Мярка,tdClass=centered');
+            $fld->FLD('orderMeasure', 'varchar', 'caption=За поръчка->Мярка,tdClass=centered');
             $fld->FLD('packOrder', 'double(decimals=3)', 'caption=За поръчка->Опаковки,smartCenter');
         }
         return $fld;

@@ -113,7 +113,11 @@ class acc_plg_Contable extends core_Plugin
                     $rec->contoActions = null;
                     $mvc->save_($rec, 'contoActions');
                 }
-                
+
+                if(is_object($deletedRec)){
+                    acc_Journal::restoreDeleted($mvc, $rec->id, $deletedRec, $deletedRec->_details);
+                }
+
                 $url = $mvc->getSingleUrlArray($rec->id);
                 redirect($url, false, '|' . $e->getMessage(), 'error');
             }

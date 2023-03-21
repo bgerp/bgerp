@@ -772,11 +772,6 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function generateSerial($id, $sourceClassId = null, $sourceObjectId = null)
     {
-        if(isset($sourceClassId) && cls::get($sourceClassId) instanceof planning_Tasks){
-            $canStore = cat_Products::fetchField($id, 'canStore');
-            if($canStore == 'no') return;
-        }
-
         return cat_Serials::generateSerial($sourceClassId, $sourceObjectId);
     }
     

@@ -579,8 +579,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
 
                     if($rec->type == 'production'){
-                        if(static::fetchField("#type = 'production' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
-                            $form->setError('serial,weight,quantity,employees', "Има вече същия прогрес с тези данни|*!");
+                        if(!empty($rec->serial)){
+                            if(static::fetchField("#type = 'production' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
+                                $form->setError('serial,weight,quantity,employees', "Има вече същия прогрес с тези данни|*!");
+                            }
                         }
                     }
 
@@ -730,10 +732,13 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($Driver = cat_Products::getDriver($serialProductId)) {
 
                 // Генериране на сериен номер, ако може
-                $serial = $Driver->generateSerial($serialProductId, 'planning_Tasks', $rec->taskId);
-                if(isset($serial)){
-                    $rec->serial = $serial;
-                    $rec->serialType = 'generated';
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore == 'yes') {
+                    $serial = $Driver->generateSerial($serialProductId, 'planning_Tasks', $rec->taskId);
+                    if(isset($serial)){
+                        $rec->serial = $serial;
+                        $rec->serialType = 'generated';
+                    }
                 }
             }
         } else {
@@ -1140,11 +1145,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviation);
                             $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? ' (критично!!)' : ($iconHint == 'warning' ? ' (значително!)' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
-                            $msg = tr("|*{$deviationVerbal} |разминаване|*{$hintMsg}<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!");
+                            $msg = "|*{$deviationVerbal} |разминаване|*{$hintMsg}<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!";
                             if(haveRole('debug')){
                                 $msg .= "<br><br>debug info:<br>NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$qInPack}-Q:{$rec->quantity}";
                             }
-
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
                         }
                     } else {

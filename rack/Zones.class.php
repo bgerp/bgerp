@@ -737,7 +737,7 @@ class rack_Zones extends core_Master
         }
 
         // Генериране нови движения след отразяване на промяната
-        self::pickupOrder($zoneRec->storeId, $selectedZones, $defaultUserId);
+        self::pickupOrder($zoneRec->storeId, $selectedZones, $defaultUserId, null, true, $zoneId);
     }
 
 
@@ -1109,8 +1109,9 @@ class rack_Zones extends core_Master
      * @param null $workerId - ид на дефолтен товарач
      * @param array|null $productIds - ид-та на артикули
      * @param boolean $deletePendingSystemMovementsInZoneFirst - да се изтрият ли първи системните движения
+     * @param int|null $currentZoneId - от коя зона сме тръгнали
      */
-    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true)
+    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true, $currentZoneId = null)
     {
         // Ако се иска да се изтрият движенията към зоната
         if($deletePendingSystemMovementsInZoneFirst){
@@ -1226,7 +1227,7 @@ class rack_Zones extends core_Master
             }
 
             // Ако има генерирани движения се записват
-            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId);
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId, $currentZoneId);
 
             // Движенията се създават от името на системата
             $isOriginalSystemUser = core_Users::isSystemUser();
@@ -1504,5 +1505,30 @@ class rack_Zones extends core_Master
         if($data->action == 'manage' && $data->form->cmd != 'save_n_new'){
             $data->retUrl = array('rack_Zones', 'list');
         }
+    }
+
+
+    /**
+     * Форсиране на синхронизирането на зоната и документа и регенериране на движенията към нея
+     *
+     * @param int $containerId - ид на контейнер на документ
+     * @param stdClass $zoneRec - запис на зона
+     * @return void
+     */
+    public static function forceSync($containerId, $zoneRec)
+    {
+        // Синхронизиране на документа със зоната
+        rack_ZoneDetails::syncWithDoc($zoneRec->id, $containerId);
+
+        // Ще се регенерират движенията само за артикулите в тази зона
+        $zdQuery = rack_ZoneDetails::getQuery();
+        $zdQuery->XPR('documentQuantityRound', 'double', 'ROUND(COALESCE(#documentQuantity, 0), 2)');
+        $zdQuery->XPR('movementQuantityRound', 'double', 'ROUND(COALESCE(#movementQuantity, 0), 2)');
+        $zdQuery->where("#zoneId = {$zoneRec->id} AND (#documentQuantityRound != #movementQuantityRound OR #documentQuantityRound = 0)");
+        $zdQuery->show('productId');
+
+        $productIdsInZone = arr::extractValuesFromArray($zdQuery->fetchAll(), 'productId');
+        rack_Movements::logDebug("RACK ZONE ({$zoneRec->id}) UPDATE '" . implode('|', $productIdsInZone) . "'");
+        rack_Zones::pickupAll($zoneRec->storeId, $zoneRec->defaultUserId, $productIdsInZone);
     }
 }

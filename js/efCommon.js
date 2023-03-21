@@ -1,5 +1,5 @@
 var shortURL;
-
+var useServiceWorker;
 
 function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
@@ -2224,7 +2224,12 @@ function appendQuote(id, line, useParagraph) {
                             isBegin = false;
                         } else {
                             lastVal = newText.pop();
-                            newText.push(lastVal + "[/bQuote]");
+
+                            if (!isBegin) {
+                                lastVal += "[/bQuote]";
+                            }
+
+                            newText.push(lastVal);
                             isBegin = true;
                         }
                     });
@@ -5802,13 +5807,17 @@ JSON.parse = JSON.parse || function (str) {
  */
 function syncServiceWorker() {
 
+    if (typeof useServiceWorker === 'undefined') {
+        useServiceWorker = 'no';
+    }
+
     if(!isIE() && ('serviceWorker' in navigator)) {
 
         if(typeof navigator.serviceWorker !== 'undefined') {
             navigator.serviceWorker.getRegistrations().then(function(r) {
                 r.forEach(function(sw) {
                     if(typeof serviceWorkerURL !== 'undefined') {
-                        if (sw.active.scriptURL.indexOf(serviceWorkerURL) != -1) {
+                        if (useServiceWorker == 'yes' && (sw.active.scriptURL.indexOf(serviceWorkerURL) != -1)) {
                             console.log('ServiceWorker registration skiped: ' + serviceWorkerURL);
                             serviceWorkerURL = false;
                         } else {
@@ -5817,6 +5826,11 @@ function syncServiceWorker() {
                         }
                     }
                 });
+
+                if (useServiceWorker == 'no') {
+
+                    return ;
+                }
 
                 // Рефистрираме новия ServiceWorker
                 if((typeof serviceWorkerURL !== 'undefined') && (serviceWorkerURL !== false)) {

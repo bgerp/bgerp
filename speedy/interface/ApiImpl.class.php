@@ -303,8 +303,9 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
         $serviceOptions = array();
         if((isset($formRec->receiverCountryId) && !empty($formRec->receiverPCode)) || !empty($formRec->receiverSpeedyOffice)){
+
             try{
-                $serviceOptions = speedy_Adapter::getServiceOptions($formRec->senderClientId, $formRec->receiverCountryId, $formRec->receiverPCode, $formRec->receiverSpeedyOffice, $formRec->isPrivatePerson);
+                $serviceOptions = speedy_Adapter::getServiceOptions($formRec->senderClientId, $formRec->receiverCountryId, $formRec->receiverPCode, $formRec->receiverPlace, $formRec->receiverSpeedyOffice, $formRec->isPrivatePerson);
             } catch(core_exception_Expect $e){
                 $serviceOptions = array();
             }
@@ -424,11 +425,12 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 $recipientArr['addressLocation'] = array('countryId' => $theirCountryId, 'siteId' => key($sites));
             } else {
                 $recipientAddressArray = array('countryId' => $theirCountryId);
-                foreach (array('postCode' => 'receiverPCode', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'apartmentNo') as $theirFld => $ourFld){
+                foreach (array('postCode' => 'receiverPCode', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'apartmentNo', 'siteName' => 'receiverPlace') as $theirFld => $ourFld){
                     if(!empty($formRec->{$ourFld})){
                         $recipientAddressArray[$theirFld] = $formRec->{$ourFld};
                     }
                 }
+
                 $addressNote = $formRec->receiverAddress . (!empty($formRec->receiverNotes) ? ", {$formRec->receiverNotes}" : "");
                 if(!empty($addressNote)){
                     $recipientAddressArray['addressNote'] = $addressNote;

@@ -94,6 +94,12 @@ class store_Products extends core_Detail
 
 
     /**
+     * По колко максимум документа да се показват в хинта за запазващите документи
+     */
+    const SHOW_DOCUMENTS_IN_PLANNED_STOCK_HINT = 15;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -761,6 +767,7 @@ class store_Products extends core_Detail
         $toDate = Request::get('date', 'date');
         $today = dt::today();
         $recs = store_StockPlanning::getRecs($productId, $stores, $toDate, $field);
+        $recs = array_splice($recs, 0, static::SHOW_DOCUMENTS_IN_PLANNED_STOCK_HINT);
 
         $links = '';
         foreach($recs as $dRec){
@@ -798,6 +805,12 @@ class store_Products extends core_Detail
             $link->placeObject($row);
             $links .= $link->getContent();
         }
+
+        $storeId = (countR($stores) == 1) ? key($stores) : null;
+        Request::setProtected('hash');
+        $linkToFilter = ht::createLink(tr('Още|* ...'), array('store_StockPlanning', 'Browse', 'storeId' => $storeId, 'productId' => $productId, 'hash' => md5(store_StockPlanning::LIST_CACHE_STRING)))->getContent();
+        Request::removeProtected('hash');
+        $links .= "<br><div style='float:left;padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
 
         $tpl = new core_ET($links);
 

@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureQuantity,productViewCacheDate';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureQuantity,productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation';
 
 
     /**
@@ -276,6 +276,9 @@ class planning_Jobs extends core_Master
         $this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,autohide');
         $this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
         $this->FLD('productViewCacheDate', 'datetime(format=smartTime)', 'caption=Към коя дата е кеширан изгледа на артикула,input=none');
+        $this->FLD('salesBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Търговска рецепта при активиране,input=none');
+        $this->FLD('instantBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Моментна рецепта при активиране,input=none');
+        $this->FLD('productionBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Работна рецепта при активиране,input=none');
 
         $this->setDbIndex('state');
         $this->setDbIndex('productId');
@@ -703,6 +706,10 @@ class planning_Jobs extends core_Master
             $pUrl = array('planning_ReturnNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => true);
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието');
         }
+
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Преподреди', array($mvc, 'manualreorder', $rec->id), 'ef_icon = img/16/bug.png,title=Преподреждане на операциите в заданието');
+        }
     }
     
     
@@ -976,21 +983,19 @@ class planning_Jobs extends core_Master
             if (isset($rec->deliveryPlace)) {
                 $row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, true);
             }
-            
+
             if (isset($rec->oldJobId)) {
                 $row->oldJobId = planning_Jobs::getLink($rec->oldJobId, 0);
             }
-            
-            if ($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id) {
-                $row->sBomId = cat_Boms::getLink($sBomId, 0);
-            }
-            
-            if ($sBomId = cat_Products::getLastActiveBom($rec->productId, 'instant')->id) {
-                $row->iBomId = cat_Boms::getLink($sBomId, 0);
-            }
-            
-            if ($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id) {
-                $row->pBomId = cat_Boms::getLink($pBomId, 0);
+
+            foreach (array('sBomId' => array('salesBomIdOnActivation', 'sales'), 'iBomId' => array('instantBomIdOnActivation', 'instant'), 'pBomId' =>  array('productionBomIdOnActivation', 'production')) as $bomFld => $activationBomArr) {
+                if ($bomId = cat_Products::getLastActiveBom($rec->productId, $activationBomArr[1])->id) {
+                    $row->{$bomFld} = cat_Boms::getLink($bomId, 0);
+                    if(isset($rec->{$activationBomArr[0]}) && $bomId != $rec->{$activationBomArr[0]}){
+                        $oldBomHandle = cat_Boms::getHandle($rec->{$activationBomArr[0]});
+                        $row->{$bomFld} = ht::createHint($row->{$bomFld}, "Рецептата при активиране е била|*: #{$oldBomHandle}", 'warning');
+                    }
+                }
             }
 
             $date = ($rec->state == 'draft') ? null : (!empty($rec->productViewCacheDate) ? $rec->productViewCacheDate : $rec->modifiedOn);
@@ -1163,8 +1168,15 @@ class planning_Jobs extends core_Master
             }
         }
 
+        // Кеширане на актуалните рецепти към момента на активиране
+        foreach (array('salesBomIdOnActivation' => 'sales', 'instantBomIdOnActivation' => 'instant', 'productionBomIdOnActivation' => 'production') as $bomFld => $bomType){
+            if ($bId = cat_Products::getLastActiveBom($rec->productId, $bomType)->id) {
+                $rec->{$bomFld} = $bId;
+            }
+        }
+
         $rec->productViewCacheDate = dt::now();
-        $mvc->save_($rec, 'productViewCacheDate');
+        $mvc->save_($rec, 'productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation');
     }
     
     
@@ -1334,6 +1346,7 @@ class planning_Jobs extends core_Master
         $options = array();
 
         $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+
         if(countR($defaultTasks)){
             $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Шаблонни операции за артикула'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
 
@@ -2177,5 +2190,56 @@ class planning_Jobs extends core_Master
             $defaultUpdateProductParams = planning_Setup::get('JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE');
             $form->setDefault('updateProductParams', $defaultUpdateProductParams);
         }
+    }
+
+
+    /**
+     * Екшън за ръчно преподреждане
+     */
+    public function act_manualreorder()
+    {
+        requireRole('debug');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetchRec($id));
+        $Tasks = cls::get('planning_Tasks');
+
+        $res = $Tasks->reorderTasksInJob($rec->containerId);
+        bp($res['debug'], $res['updated']);
+    }
+
+
+    /**
+     * Помощен екшън връщащ произведеното по партиди от операции за този артикул по това задание
+     *
+     * @param mixed $jobRec
+     * @param int $productId
+     * @return array $res
+     */
+    public static function getProducedBatchesByProductId($jobRec, $productId)
+    {
+        $res = array();
+        $jobRec = static::fetchRec($jobRec);
+        if(core_Packs::isInstalled('batch')){
+            $taskDetailQuery = planning_ProductionTaskDetails::getQuery();
+            $taskDetailQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+            $taskDetailQuery->EXT('tState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
+            $taskDetailQuery->where("#originId = {$jobRec->containerId} AND #productId = {$productId} AND #state != 'rejected' AND #tState IN ('active', 'wakeup', 'closed') AND #type IN ('scrap', 'production')");
+            $taskDetailQuery->where("#batch != ''");
+            while($dRec = $taskDetailQuery->fetch()){
+                $sign = ($dRec->type == 'scrap') ? -1 : 1;
+                $res["{$dRec->batch}"] += $dRec->quantity * $sign;
+            }
+
+            if(!countR($res)){
+                $me = cls::get(get_called_class());
+                $bQuery = batch_BatchesInDocuments::getQuery();
+                $bQuery->where("#detailClassId={$me->getClassId()} AND #detailRecId = {$jobRec->id}");
+                while($bRec = $bQuery->fetch()){
+                    $res["{$bRec->batch}"] += $bRec->quantity;
+                }
+            }
+        }
+
+        return $res;
     }
 }

@@ -1104,7 +1104,7 @@ class core_Packs extends core_Manager
 
             $callOnConfigChange = array();
             foreach ($description as $field => $params) {
-                
+
                 $sysDefault = defined($field) ? constant($field) : '';
                 $fType = $form->getFieldType($field, false);
 
@@ -1124,6 +1124,8 @@ class core_Packs extends core_Manager
                         $data[$field] = null;
                     } elseif ($form->rec->{$field} !== null) {
                         $data[$field] = $form->rec->{$field};
+                    } elseif (!isset($form->rec->{$field})) {
+                        $data[$field] = null;
                     }
                 } else {
                     $data[$field] = '';

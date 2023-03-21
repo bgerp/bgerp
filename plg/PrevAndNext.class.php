@@ -171,8 +171,33 @@ class plg_PrevAndNext extends core_Plugin
             Request::push(array('id' => $id));
         }
     }
-    
-    
+
+
+    /**
+     * След извличане на записите, които да може да се обхождат с бутоните напред/назад
+     *
+     * @param core_Detail $DetailMvc
+     * @param array $res
+     * @param int $detailId
+     * @return void
+     */
+    public static function on_AfterGetPrevAndNextDetailQuery($DetailMvc, &$res, $detailId)
+    {
+        if(empty($res)){
+            $selArr = array();
+            $rec = $DetailMvc->fetch($detailId);
+            if ($DetailMvc->masterKey && ($masterId = $rec->{$DetailMvc->masterKey})) {
+                $query = $DetailMvc->getQuery();
+                $query->orderBy('id');
+                while ($dRec = $query->fetch("#{$DetailMvc->masterKey} = ${masterId}")) {
+                    $selArr[] = $dRec->id;
+                }
+            }
+            $res = $selArr;
+        }
+    }
+
+
     /**
      * Подготовка на формата
      *
@@ -187,21 +212,11 @@ class plg_PrevAndNext extends core_Plugin
         $Cmd = Request::get('Cmd');
         
         $selArr = array();
-        
         if (is_a($mvc, 'core_Detail')) {
             if ($id = Request::get('id', 'int')) {
-                $rec = $mvc->fetch($id);
-                $key = $mvc->masterKey;
-                if ($key && ($masterId = $rec->{$key})) {
-                    $query = $mvc->getQuery();
-                    $query->orderBy('id');
-                    while ($dRec = $query->fetch("#{$key} = ${masterId}")) {
-                        $selArr[] = $dRec->id;
-                    }
-                }
+                $selArr = $mvc->getPrevAndNextDetailQuery($id);
             }
         }
-
         
         if ($sel = Request::get('Selected')) {
             // Превръщаме в масив, списъка с избраниуте id-та

@@ -16,45 +16,29 @@
 class openai_ExtractContactInfo
 {
     /**
-     * Въпросите за полетата на имейлите
+     * Масив с елементите, които могат да се игнорират
+     * @var string[]
      */
-    static $extractQuestions = 'Името на фирмата, Името на лицето, Адреса за доставка, Имейл, Телефон, Фейсбук, Туитър, Данъчен номер';
-
-
-    /**
-     * Въпросите за полетата на имейлите EN
-     */
-    static $extractQuestionsEn = 'Person name, Person gender, Job position, Mobile, Company, Country, Postal code, Place,
-                                  Street address, Company telephone, Web site, VAT number, Social media';
-
-
-    /**
-     * Въпроса за извличане
-     */
-    static $extractText = 'Извлечи следните данни от по-долния имейл';
-
-
-    /**
-     * Въпроса за извличане ЕН
-     */
-    static $extractTextEn = 'Please extract contact data from following email';
+    public static $ignoreArr = array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)');
 
 
     /**
      * Връща контактните данни от имейла
      *
      * @param $id
+     * @param null|stdClass $cData
+     * @param boolean|string $useCache
      *
      * @return false|string
      * @throws core_exception_Expect
      */
-    public static function extractEmailData($id)
+    public static function extractEmailData($id, &$cData = null, $useCache = true)
     {
         $rec = email_Incomings::fetchRec($id);
 
         expect($rec && $rec->emlFile);
 
-        return self::extractEmailDataFromEml($rec->emlFile, $rec->lg);
+        return self::extractEmailDataFromEml($rec->emlFile, $rec->lg, $cData, $useCache);
     }
 
 
@@ -63,10 +47,14 @@ class openai_ExtractContactInfo
      *
      * @param $emlFile
      * @param $lg
+     * @param null|stdClass $cData
+     * @param boolean|string $useCache
+     *
+     *
      * @return false|string
      * @throws core_exception_Expect
      */
-    public static function extractEmailDataFromEml($emlFile, $lg = null)
+    public static function extractEmailDataFromEml($emlFile, $lg = null, &$cData = null, $useCache = true)
     {
         $fRec = fileman::fetch($emlFile);
 
@@ -74,7 +62,7 @@ class openai_ExtractContactInfo
 
         $source = fileman_Files::getContent($fRec->fileHnd);
 
-        return self::extractEmailDataFromEmlFile($source, $lg);
+        return self::extractEmailDataFromEmlFile($source, $lg, $cData, $useCache);
     }
 
 
@@ -83,10 +71,14 @@ class openai_ExtractContactInfo
      *
      * @param $emlFile
      * @param $lg
+     * @param null|stdClass $cData
+     * @param boolean|string $useCache
+     *
+     *
      * @return false|string
      * @throws core_exception_Expect
      */
-    public static function extractEmailDataFromEmlFile($emlSource, $lg = null)
+    public static function extractEmailDataFromEmlFile($emlSource, $lg = null, &$cData = null, $useCache = true)
     {
         expect($emlSource);
 
@@ -107,53 +99,118 @@ class openai_ExtractContactInfo
             $textPart = $mime->justTextPart;
         }
 
-        $subject = $lg == 'bg' ? 'Относно' : 'Subject';
-        $from = $lg == 'bg' ? 'От' : 'From';
+        $placeArr = array();
+        $placeArr['subject'] = $mime->getSubject();
+        $placeArr['from'] = $mime->getFromName();
+        $placeArr['fromEmail'] = $mime->getFromEmail();
+        $placeArr['email'] = $textPart;
 
-        $textPart = $subject . ': ' . $mime->getSubject() . "\n" . $from . ': ' . $mime->getFromName() . "\n" .  $textPart;
-
-        return self::extractEmailDataFromText($textPart, $lg);
+        return self::extractEmailDataFromText($placeArr, $lg, $cData, $useCache);
     }
 
 
     /**
      * Връща контактните данни от текстовата част
      *
-     * @param $emlFile
-     * @param $lg
+     * @param $placeArr $placeArr
+     * @param null|string $lg
+     * @param null|stdClass $cData
+     * @param boolean|string $useCache
+     *
      * @return false|string
      * @throws core_exception_Expect
      */
-    public static function extractEmailDataFromText($text, $lg = null)
+    public static function extractEmailDataFromText($placeArr, $lg = null, &$cData = null, $useCache = true)
     {
-        expect($text);
+        if (!is_object($cData)) {
+            $cData = new stdClass();
+        }
 
         if (!isset($lg)) {
             $lg = core_Lg::getCurrent();
         }
 
         if ($lg == 'bg') {
-            $qArr = explode(',', self::$extractQuestions);
-            $qStr = self::$extractText;
+            $text = openai_Prompt::getPromptBySystemId(openai_Prompt::$extractContactDataBg);
         } else {
-            $qArr = explode(',', self::$extractQuestionsEn);
-            $qStr = self::$extractTextEn;
+            $text = openai_Prompt::getPromptBySystemId(openai_Prompt::$extractContactDataEn);
         }
 
-        $qStr = trim($qStr);
-        $qStr .= ': ';
-        foreach ($qArr as $q) {
-            $q = trim($q);
+        expect($text);
 
-            $qStr .= "\n";
+        $ignoreArr = self::$ignoreArr;
+        $ignoreArr = arr::make($ignoreArr, true);
+        $ignoreArr = array_change_key_case($ignoreArr, CASE_LOWER);
 
-            $qStr .= $q . ': ';
+        $mapArr = array();
+
+        $textArr = explode("\n", $text);
+        foreach ($textArr as $key => $tStr) {
+            $mArr = explode('->', $tStr);
+            if ($mArr[1]) {
+                $mapArr[$mArr[0]] = $mArr[1];
+                $textArr[$key] = $mArr[0];
+            }
         }
 
-        $qStr .= "\n\n";
+        $text = implode("\n", $textArr);
 
-        $qStr .= $text;
+        $text = new ET($text);
+        $text->placeArray($placeArr);
 
-        return openai_Api::getRes($qStr);
+        $aiModel = openai_Setup::get('API_MODEL_VERSION');
+
+        if ($aiModel == 'GPT 3.5 TURBO') {
+            $oRes =  openai_Api::getChatRes($text->getContent(), array(), $useCache);
+        } elseif ($aiModel == 'TEXT DAVINCI 003') {
+            $oRes =  openai_Api::getRes($text->getContent(), array(), $useCache);
+        } else {
+            expect(false, $aiModel);
+        }
+
+        if ($oRes === false) {
+
+            return false;
+        }
+
+        $oResArr = explode("\n", $oRes);
+        $newResArr = array();
+        foreach ($oResArr as $oStr) {
+            $oStr = trim($oStr);
+            if (!strlen($oStr)) {
+
+                continue;
+            }
+
+            $oStrArr = explode(":", $oStr, 2);
+
+            $prompt = $oStrArr[0];
+            $r = $oStrArr[1];
+
+            $r = trim($r);
+
+            if (!strlen($r)) {
+
+                continue;
+            }
+
+            $rCompare = mb_strtolower($r);
+
+            if (isset($ignoreArr[$rCompare])) {
+
+                continue;
+            }
+
+            if ($mp = $mapArr[$prompt]) {
+                $cData->{$mp} = $r;
+            } else {
+                $promptLower = mb_strtolower($prompt);
+                $cData->{$promptLower} = $r;
+            }
+
+            $newResArr[] = $prompt . ': ' . $r;
+        }
+
+        return implode("\n", $newResArr);
     }
 }

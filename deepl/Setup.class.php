@@ -67,6 +67,27 @@ class deepl_Setup extends core_ProtoSetup
         'DEEPL_LANG' => array('enum()', 'caption=Целеви език при превеждане->Език, customizeBy=powerUser, optionsFunc=deepl_Setup::getCountries'),
     );
 
+    /**
+     * Мениджър - входна точка в пакета
+     */
+    public $startCtr = 'deepl_Cache';
+
+
+    /**
+     * Роли за достъп до модула
+     */
+    public $roles = array(
+        array('deepl'),
+    );
+
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+        'deepl_Cache',
+    );
+
 
     /**
      * Всички възможни езици, на които мож да се превежда
@@ -104,7 +125,6 @@ class deepl_Setup extends core_ProtoSetup
 
         // Инсталиране на плъгин за превод на входящата поща
         $html .= $Plugins->installPlugin('Email Translate', 'deepl_plugins_IncomingsTranslate', 'email_Incomings', 'private');
-
 
         return $html;
     }

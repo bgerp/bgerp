@@ -36,9 +36,9 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             'entries' => array()
         );
 
-        if(Mode::get('saveTransaction')){
-            $rec->valior = $this->class->getDefaultValior($rec);
-            $result->valior = $rec->valior;
+        $rec->valior = $this->class->getDefaultValior($rec);
+        $result->valior = $rec->valior;
+        if(acc_Journal::throwErrorsIfFoundWhenTryingToPost()){
             if(empty($rec->valior)){
                 acc_journal_RejectRedirect::expect(false, 'Едновременно могат да се коригират само артикули, които са експедирани/доставени едновременно - в рамките на един счетоводен период (месец). При необходимост създайте повече от един документ за корекция.', 'error');
             }
@@ -114,7 +114,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             if ($vatType == 'yes' || $vatType == 'separate') {
                 $debitArr['quantity'] = currency_CurrencyRates::convertAmount($vatAmount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
                 $debitArr['quantity'] = $sign * currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
-                
+
                 $entries[] = array('amount' => round($sign * $vatAmount, 2),
                     'debit' => $debitArr,
                     'credit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),

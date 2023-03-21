@@ -1394,6 +1394,7 @@ abstract class deals_Helper
             Mode::pop("stopMasterUpdate{$rec->id}");
 
             $updateMaster = true;
+            $oldRate = $rec->{$rateFld};
             $rec->{$rateFld} = $newRate;
             if ($masterMvc instanceof deals_InvoiceMaster) {
                 $rec->displayRate = $newRate;
@@ -1408,7 +1409,12 @@ abstract class deals_Helper
                         $vat = 0;
                     }
 
-                    $diff = $rec->changeAmount * $newRate;
+                    if(isset($rec->dpAmount)){
+                        $diff = ($rec->dpAmount / $oldRate) * $newRate;
+                    } else {
+                        $diff = $rec->changeAmount * $newRate;
+                    }
+
                     $rec->vatAmount = $diff * $vat;
 
                     // Стойността е променената сума
@@ -1429,16 +1435,25 @@ abstract class deals_Helper
 
             $deletedRec = null;
             acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id, $deletedRec);
-            if(is_object($deletedRec)){
-                Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+
+            try{
+                if(is_object($deletedRec)){
+                    Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                }
+                Mode::push('recontoTransaction', true);
+                acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
+                Mode::pop('recontoTransaction');
+                if(is_object($deletedRec)){
+                    Mode::pop('recontoWithCreatedOnDate');
+                }
+                $logMsg = 'Реконтиране след промяна на курса';
+            } catch(acc_journal_RejectRedirect  $e) {
+                if(is_object($deletedRec)) {
+                    acc_Journal::restoreDeleted($masterMvc->getClassId(), $rec->id, $deletedRec, $deletedRec->_details);
+                }
+                wp($e);
+                $logMsg = 'Грешка при опит за реконтиране';
             }
-            Mode::push('recontoTransaction', true);
-            acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
-            Mode::pop('recontoTransaction');
-            if(is_object($deletedRec)){
-                Mode::pop('recontoWithCreatedOnDate');
-            }
-            $logMsg = 'Реконтиране след промяна на курса';
         }
 
         $masterMvc->logWrite($logMsg, $rec->id);
@@ -2077,10 +2092,9 @@ abstract class deals_Helper
      */
     public static function getAvailableQuantityAfter($productId, $storeId, $quantity)
     {
-        $stRec = store_Products::fetch("#productId = '{$productId}' AND #storeId = {$storeId}", 'quantity,reservedQuantity');
-        $quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
-        
-        return $quantityInStore - $quantity;
+        $stRec = store_Products::fetch("#productId = '{$productId}' AND #storeId = {$storeId}", 'quantity');
+
+        return $stRec->quantity - $quantity;
     }
     
     

@@ -44,8 +44,14 @@ class rack_ZoneDetails extends core_Detail
      * Кой може да го изтрие?
      */
     public $canDelete = 'no_one';
-    
-    
+
+
+    /**
+     * Кой може да променя партидите?
+     */
+    public $canModifybatch = 'ceo,rack';
+
+
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -139,19 +145,13 @@ class rack_ZoneDetails extends core_Detail
         $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($movementQuantity);
         $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($documentQuantity);
         $moveStatusColor = (round($rec->movementQuantity, 4) < round($rec->documentQuantity, 4)) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
-        
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
-   
-        // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
-        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
-        if($overQuantity > 0){
-            $overQuantity *= -1;
-            $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
-            $zonesDefault = array('zone' => array('0' => (string)$rec->zoneId), 'quantity' => array('0' => (string)$overQuantity));
-            $zonesDefault = $ZoneType->fromVerbal($zonesDefault);
 
-            if(!Mode::is('printing')){
-                $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'defaultZones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
+        if(!Mode::is('printing')){
+
+            // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
+            if($mvc->haveRightFor('returnquantitymovement', $rec)){
+                $row->status = ht::createLink('', array($mvc, 'ReturnQuantityMovement', $rec->id, 'ret_url' => true), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
             }
         }
         
@@ -163,6 +163,10 @@ class rack_ZoneDetails extends core_Detail
                 }
             } else {
                 $row->batch = "<span class='quiet'>" . tr('без партида') . "</span>";
+            }
+
+            if($mvc->haveRightFor('modifybatch', $rec)){
+                $row->batch .= ht::createLink('', array($mvc, 'modifybatch', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Промяна на партидата');
             }
         } else {
             $row->batch = null;
@@ -445,5 +449,290 @@ class rack_ZoneDetails extends core_Detail
         $tpl->removePendings('COMMON_ROW_ATTR');
         
         return $tpl;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'modifybatch' && isset($rec)){
+            $zoneRec = rack_Zones::fetch($rec->zoneId);
+            if(empty($zoneRec->containerId)){
+                $requiredRoles = 'no_one';
+            } else {
+                $Document = doc_Containers::getDocument($zoneRec->containerId);
+                if(!$Document->haveRightFor('edit')){
+                    $requiredRoles = 'no_one';
+                } else {
+                    $containerId = $Document->fetchField('containerId');
+                    $batchRec = batch_BatchesInDocuments::fetch(array("#containerId = {$containerId} AND #productId = {$rec->productId} AND #batch = '[#1#]' AND #storeId = {$zoneRec->storeId}", $rec->batch));
+                    if(!is_object($batchRec)){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
+
+        if($action == 'returnquantitymovement'){
+            $requiredRoles = rack_Movements::getRequiredRoles('add', null, $userId);
+            if($requiredRoles != 'no_one'){
+                if(isset($rec)){
+                    $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
+                    if($overQuantity <= 0){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Екшън за промяна на редовете от документа
+     *
+     * @return Redirect
+     * @throws core_exception_Expect
+     */
+    public function act_modifybatch()
+    {
+        $this->requireRightFor('modifybatch');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = static::fetch($id));
+        $rId = Request::get('rId', 'int');
+        $this->requireRightFor('modifybatch', $rec);
+        $zoneRec = rack_Zones::fetch($rec->zoneId);
+        $Document = doc_Containers::getDocument($zoneRec->containerId);
+        $retUrl = getRetUrl();
+
+        // Кои са записите от документа отговарящи на посочените артикул+партида
+        $order = $dRecs = array();
+        $bQuery = batch_BatchesInDocuments::getQuery();
+        $bQuery->where("#containerId = {$zoneRec->containerId}");
+        $bQuery->where(array("#productId = {$rec->productId} AND #storeId = {$zoneRec->storeId} AND #batch = '[#1#]'", $rec->batch));
+        $bQuery->orderBy('id', 'ASC');
+        while ($bRec = $bQuery->fetch()) {
+            $dRecs[$bRec->detailRecId] = array('detailClassId' => $bRec->detailClassId, 'detailRecId' => $bRec->detailRecId, 'quantity' => $bRec->quantity, 'quantityInPack' => $bRec->quantityInPack, 'packagingId' => $bRec->packagingId);
+            $order[] = $bRec->detailRecId;
+        }
+
+        // Кои са предходните и следващата
+        $rId = isset($rId) ? $rId : key($dRecs);
+        $index = array_search($rId, $order);
+        $nextNum = $index + 1;
+        $prevNum = $index - 1;
+        $dRec = $dRecs[$rId];
+        $recInfo = cls::get($dRec['detailClassId'])->getRowInfo($dRec['detailRecId']);
+
+        // Подготовка на формата
+        $form = cls::get('core_Form');
+        $form->title = 'Промяната на партидите в|* ' . $Document->getFormTitleLink();
+        $Def = batch_Defs::getBatchDef($rec->productId);
+        Mode::push('text', 'plain');
+        $batch = $Def->toVerbal($rec->batch);
+        Mode::pop('text');
+        $batchCaption = str_replace(',', ' ', $batch);
+        $key = md5($rec->batch);
+
+        // Добавяне на партидата от изходния ред
+        $map = array($key => $rec->batch);
+        $measureName = cat_UoM::getShortName($dRec['packagingId']);
+        $pCaption = cat_Products::getTitleById($rec->productId);
+        $pCaption = "{$pCaption} / {$measureName}";
+
+        $form->FLD($key, "double(min=0)", "caption={$pCaption}->{$batchCaption}");
+        $form->setDefault($key, $dRec['quantity'] / $dRec['quantityInPack']);
+
+        $round = cat_UoM::fetchField($dRec['packagingId'], 'round');
+        $Double = core_Type::getByName("double(decimals={$round})");
+
+        $quantityPack = $recInfo->quantity / $recInfo->quantityInPack;
+        $form->info = tr("Общо на реда|*: <b>") . $Double->toVerbal($quantityPack) . "</b> " . str::getPlural($quantityPack, $measureName, true);
+
+        // Показване на съществуващите налични партиди в склада
+        $exBatchArr = batch_Items::getBatchQuantitiesInStore($rec->productId, $zoneRec->storeId, null, null, null, true);
+        unset($exBatchArr[$rec->batch]);
+        foreach ($exBatchArr as $exBatch => $exQuantity) {
+            if($exQuantity <= 0) continue;
+            $key = md5($exBatch);
+            $map[$key] = $exBatch;
+
+            Mode::push('text', 'plain');
+            $batchCaption = $Def->toVerbal($exBatch);
+            $batchCaption = str_replace(',', ' ', $batchCaption);
+            Mode::pop('text');
+
+            $form->FLD($key, "double(min=0)", "caption=Други партиди в склада->{$batchCaption}");
+            Mode::push('text', 'plain');
+            $info = "|* / " . $Double->toVerbal($exQuantity / $recInfo->quantityInPack) . " " . str::getPlural($exQuantity, $measureName, true);
+            $form->setField($key, "unit={$info}");
+            Mode::pop('text');
+        }
+        $form->input();
+
+        if($form->isSubmitted()){
+            $syncArr = array();
+            $newArr = (array)$form->rec;
+            $msg = "Редът от документа е редактиран успешно|*!";
+            $noChange = true;
+            $deleteId = null;
+
+            // За всяка инпутната партида
+            foreach ($newArr as $k => $v){
+                $batch = $map[$k];
+
+                // Ако има съществуващ запис
+                $exRec = batch_BatchesInDocuments::fetch(array("#detailClassId = {$dRec['detailClassId']} AND #detailRecId = {$dRec['detailRecId']} AND #batch = '[#1#]'", $batch));
+                if($exRec){
+                    if($batch == $rec->batch){
+                        if(empty($v)){
+
+                            // Ако на изходната партида е посочено празно количество - ще се изтрива
+                            $noChange = false;
+                            $deleteId = $exRec->id;
+                        } else {
+
+                            // Ако изходната партида е променена - ще се обновява
+                            $newQuantity = $v * $exRec->quantityInPack;
+                            if(round($newQuantity, $round) != round($exRec->quantity, $round)){
+                                $syncArr[$batch] = $newQuantity;
+                            }
+                        }
+                    } else {
+
+                        // Ако е посочена друга партида, к-то се добавя към вече съществуваното от нея
+                        if(!empty($v)){
+                            $syncArr[$batch] = $exRec->quantity + $v * $exRec->quantityInPack;
+                        }
+                    }
+                } elseif(!empty($v)){
+                    // Ако е изцяло нова партида ще се добавя
+                    $syncArr[$batch] = $v * $dRec['quantityInPack'];
+                }
+            }
+
+            $sum = array_sum($syncArr);
+            if(round($sum, $round) > round($recInfo->quantity, $round)){
+                $fieldsError = array();
+                $mapReverse = array_flip($map);
+                array_walk($syncArr, function ($a, $k) use (&$fieldsError, $mapReverse){$fieldsError[] = $mapReverse[$k];});
+                $form->setError(implode(',', $fieldsError), 'Общото количество е над допустимото за реда|*!');
+            }
+
+            if(!$form->gotErrors()){
+                // Ако има партиди за добавяне/обновяване
+                if(countR($syncArr)){
+                    $noChange = false;
+                    batch_BatchesInDocuments::saveBatches($dRec['detailClassId'], $dRec['detailRecId'], $syncArr);
+                }
+                if(isset($deleteId)){
+                    batch_BatchesInDocuments::delete($deleteId);
+                }
+
+                if($form->cmd == 'save_n_prev'){
+                    $redirectNum =  $order[$prevNum];
+                } elseif($form->cmd == 'save_n_next'){
+                    $redirectNum =  $order[$nextNum];
+                }
+
+                if($noChange){
+                    $msg = "Редът не е променен, защото няма промяна|*!";
+                } else {
+                    rack_Zones::forceSync($zoneRec->containerId, $zoneRec);
+                }
+
+                // Ако формата е събмитната от бутоните за следващ/предходен редирект към следващия/предходния
+                if(isset($redirectNum)){
+                    return new redirect(array($this, 'modifybatch', 'id' => $id, 'rId' => $redirectNum, 'ret_url' => $retUrl), $msg);
+                }
+
+                followRetUrl(null, $msg);
+            }
+        }
+
+        $batchCount = countR($dRecs);
+
+        // Бутони за напред/назад
+        if($batchCount > 1){
+            if (isset($order[$nextNum])) {
+                $form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=noicon fright,order=30, title = Следващ');
+            } else {
+                $form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-disabled noicon fright,disabled,order=30, title = Следващ');
+            }
+            $prevAndNextIndicator = ($index + 1) . "/{$batchCount}";
+            $form->toolbar->addFnBtn($prevAndNextIndicator, '', 'class=noicon fright,order=30');
+            if (isset($order[$prevNum])) {
+                $form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30, title = Предишен');
+            } else {
+                $form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-disabled noicon fright,disabled,order=30, title = Предишен');
+            }
+        }
+
+        $form->toolbar->addSbBtn('Промяна', 'save', 'id=btnSave,ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'id=back,ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+        $tpl = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($tpl, $form);
+
+        // Рендиране на формата
+        return $tpl;
+    }
+
+
+    /**
+     * Екшън генериращ движение за връщане от зоната
+     */
+    public function act_ReturnQuantityMovement()
+    {
+        $this->requireRightFor('returnquantitymovement');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = static::fetch($id));
+        $this->requireRightFor('returnquantitymovement', $rec);
+        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
+
+        // Създава се обратно движение
+        $newRec = static::makeReturnQuantityMovement($rec->zoneId, $rec->productId, $rec->batch, $rec->packagingId, $overQuantity);
+        rack_Movements::save($newRec);
+
+        followRetUrl(null, 'Създадено е обратно движение за връщане на останалото количество в зоната');
+    }
+
+
+    /**
+     * Генериране на обратно движение за връщане на посоченото к-во от зоната
+     *
+     * @param mixed $zoneRec    - запис на зона
+     * @param int $productId    - ид на артикул
+     * @param string $batch     - партида
+     * @param bull $packagingId - ид на опаковката
+     * @param double $quantity  - к-во за връщане
+     * @param int|null $userId  - ид на работник
+     * @return object $newRec   - запис на движение
+     */
+    private static function makeReturnQuantityMovement($zoneRec, $productId, $batch, $packagingId, $quantity, $userId = null)
+    {
+        $zoneRec = rack_Zones::fetchRec($zoneRec);
+        $workerId = isset($userId) ? $userId : core_Users::getCurrent();
+        $packRec = cat_products_Packagings::getPack($productId, $packagingId);
+        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+        $newRec = (object) array('productId' => $productId,
+                                 'packagingId' => $packagingId,
+                                 'storeId' => $zoneRec->storeId,
+                                 'quantityInPack' => $quantityInPack,
+                                 'state' => isset($workerId) ? 'waiting' : 'pending',
+                                 'brState' => isset($workerId) ? 'pending' : 'null',
+                                 'batch' => $batch,
+                                 'workerId' => $workerId,
+                                 'quantity' => 0,
+                                 'positionTo' => rack_PositionType::FLOOR,
+        );
+
+        $zoneArr = array('zone' => array($zoneRec->id), 'quantity' => array(-1 * $quantity / $quantityInPack));
+        $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
+        $newRec->zones = $TableType->fromVerbal($zoneArr);
+
+        return $newRec;
     }
 }

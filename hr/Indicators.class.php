@@ -486,7 +486,9 @@ class hr_Indicators extends core_Manager
             
             return;
         }
-        
+
+        $formula = '';
+        $indicators = array();
         if (!empty($contractRec->positionId)) {
             
             // Ако има формула за заплата
@@ -530,8 +532,9 @@ class hr_Indicators extends core_Manager
         while ($rec = $data->IData->query->fetch()) {
             $data->IData->recs[$rec->id] = $rec;
             $data->IData->rows[$rec->id] = $this->recToVerbal($rec);
+            $data->IData->rows[$rec->id]->value = core_Type::getByName('double(smartRound,maxDecimals=2)')->toVerbal($rec->value);
         }
-        
+
         // Сумиране на индикаторите
         $data->IData->summaryRecs = $data->IData->summaryRows = array();
         while ($sRec = $data->IData->fullQuery->fetch()) {
@@ -549,7 +552,7 @@ class hr_Indicators extends core_Manager
             $context['$' . $indicatorVerbal] = $value;
             $data->IData->summaryRows[$iId] = (object) array('indicatorId' => $indicatorVerbal, 'value' => core_Type::getByName('double(smartRound,maxDecimals=2)')->toVerbal($value));
         }
-        
+
         if (!empty($contractRec->salaryBase)) {
             $context['$' . 'BaseSalary'] = $contractRec->salaryBase;
         }

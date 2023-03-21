@@ -58,6 +58,9 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
 
             // Ако е към задание ще се импортират материалите от заданието
             $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $masterRec->storeId);
+            foreach ($details as $d1){
+                $d1->quantity /= $d1->quantityInPack;
+            }
         } else {
             $details = array();
             $dQuery = planning_ProductionTaskProducts::getQuery();
@@ -65,10 +68,11 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             $dQuery->where("#taskId = {$firstDoc->that} AND #type = 'input' AND #canStore = 'yes'");
 
             $plannedQuantity = $firstDoc->fetchField('plannedQuantity');
+            $ratio = $rec->forQuantity / $plannedQuantity;
+
             while($dRec = $dQuery->fetch()){
-                $ratio = $plannedQuantity / $dRec->plannedQuantity;
                 $round = cat_UoM::fetchField($dRec->packagingId, 'round');
-                $newQuantity = round($rec->forQuantity / $ratio, $round);
+                $newQuantity = round($dRec->plannedQuantity * $ratio, $round);
                 $details[$dRec->id] = (object)array('productId' => $dRec->productId, 'quantity' => $newQuantity, 'quantityInPack' => $dRec->quantityInPack, 'packagingId' => $dRec->packagingId);
             }
         }
@@ -89,7 +93,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             }
 
             $form->FLD($key, 'double(Min=0)', "input,caption={$dRec->caption}->К-во,unit={$shortUom}");
-            $form->setDefault($key, $dRec->quantity / $dRec->quantityInPack);
+            $form->setDefault($key, $dRec->quantity);
             $rec->detailsDef[$key] = $dRec;
         }
 

@@ -44,9 +44,8 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
         $details = $dQuery->fetchAll();
 
         // Ако ще се доведе до отрицателна, количност и не е разрешено да се сетне грешка
-        if (Mode::get('saveTransaction')) {
-            $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
-            if($allowNegativeShipment == 'no'){
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            if(!store_Setup::canDoShippingWhenStockIsNegative()){
                 if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->fromStore, $rec->state, 'newProductId')) {
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
@@ -80,7 +79,7 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
             );
         }
         
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canStore', 'generic', 'трябва да са складируеми и да не са генерични')){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             } elseif ($error === true) {

@@ -63,7 +63,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         
         $rec = $this->fetchShipmentData($id, $error);
         
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if ($error === true) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }
@@ -100,7 +100,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             }
         }
 
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if($rec->isReverse == 'no'){
                 $shipped = array();
                 foreach ($entries as $d){
@@ -112,10 +112,8 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                 }
 
                 if(countR($shipped)){
-
                     // Ако ще се доведе до отрицателна, количност и не е разрешено да се сетне грешка
-                    $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
-                    if($allowNegativeShipment == 'no'){
+                    if(!store_Setup::canDoShippingWhenStockIsNegative()){
                         if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
                             acc_journal_RejectRedirect::expect(false, $warning);
                         }
@@ -353,8 +351,8 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             // Вложимите кредит 706, другите 701
             $debitAccId = '701';
             $creditAccId = '321';
-            
-            $entries[] = array(
+
+            $entry = array(
                 'debit' => array(
                     $debitAccId,
                     array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
@@ -370,6 +368,15 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                     'quantity' => $sign * $detailRec->quantity, // Количество продукт в основна мярка
                 ),
             );
+
+            if($reverse){
+                $amountInStore = cat_Products::getWacAmountInStore($detailRec->quantity, $detailRec->productId, $rec->valior, $rec->storeId);
+                if(isset($amountInStore)){
+                    $entry['amount'] = -1 * $amountInStore;
+                }
+            }
+
+            $entries[] = $entry;
         }
         
         return $entries;

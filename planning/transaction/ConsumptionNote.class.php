@@ -62,9 +62,8 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
         $details = $dQuery->fetchAll();
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 
-        if (Mode::get('saveTransaction')) {
-            $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
-            if($allowNegativeShipment == 'no'){
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            if(!store_Setup::canDoShippingWhenStockIsNegative()){
                 if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->storeId, $rec->state)) {
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
@@ -103,7 +102,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
             $entries[] = array('debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
         }
         
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             
             // Проверка на артикулите
             if (countR($productsArr)) {

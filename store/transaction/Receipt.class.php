@@ -45,7 +45,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         
         $error = null;
         $rec = $this->fetchShipmentData($id, $error);
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if ($error === true) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }
@@ -205,16 +205,26 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                     array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
                     'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
                 );
-                
+
+                $cQuantity = $sign * $amount;
+                $amount = $sign * $amount * $rec->currencyRate;
+
+                if($reverse){
+                    $amountInStore = cat_Products::getWacAmountInStore($detailRec->quantity, $detailRec->productId, $rec->valior, $rec->storeId);
+                    if(isset($amountInStore)){
+                        $amount = $sign * $amountInStore;
+                    }
+                }
+
                 $entries[] = array(
-                    'amount' => $sign * $amount * $rec->currencyRate,
+                    'amount' => $amount,
                     'debit' => $debit,
                     'credit' => array(
                         $rec->accountId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
                         array($origin->className, $origin->that),		   // Перо 2 - Сделка
                         array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                        'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
+                        'quantity' => $cQuantity, // "брой пари" във валутата на покупката
                     ),
                 );
             }

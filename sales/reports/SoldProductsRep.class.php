@@ -99,7 +99,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=seeWeight');
+        $fieldset->FLD('orderBy', 'enum(code=Код, groups=Групи, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=6,columns=3,after=seeWeight');
         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
     }
 
@@ -1354,7 +1354,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
 
             $fld->FLD('code', 'varchar', 'caption=Код');
-            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
 
             if ($rec->engName == 'yes') {
                 $fld->FLD('engName', 'varchar', 'caption=Артикул[EN]');
@@ -1438,7 +1438,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $group = cat_Groups::getVerbal($dRec->group, 'name');
             }
         }
-
+;
         return $group;
     }
 
@@ -1859,9 +1859,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+
         $res->group = self::getGroups($dRec, false, $rec);
         if (isset($dRec->measure)) {
-            $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
+            $res->measure = $dRec->measure;
+        }
+        if(isset($dRec->productId)){
+            $res->productId = cat_Products::fetch($dRec->productId)->name;
         }
 
         if ($rec->compare != 'no') {
@@ -1882,7 +1886,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         } else {
             if ($rec->seeByContragent == 'yes') {
-                $res->contragent = doc_Folders::getTitleById($dRec->contragent);
+                if (isset($res->contragent)){
+                    $res->contragent = doc_Folders::fetch($dRec->contragent)->title;
+                }
+
             }
         }
 

@@ -838,7 +838,7 @@ abstract class deals_DealBase extends core_Master
             $fRec = $form->rec;
             try{
                 $this->recalcDocumentsWithNewRate($rec, $fRec->newRate);
-            } catch(acc_journal_RejectRedirect $e){
+            } catch(acc_journal_Exception $e){
                 $url = $this->getSingleUrlArray($rec->id);
                 redirect($url, false, 'Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
             }
@@ -881,14 +881,22 @@ abstract class deals_DealBase extends core_Master
                 if ($rec->state == 'active') {
                     $deletedRec = null;
                     acc_Journal::deleteTransaction($this->getClassId(), $rec->id, $deletedRec);
-                    if(is_object($deletedRec)){
-                        Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
-                    }
-                    Mode::push('recontoTransaction', true);
-                    acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
-                    Mode::push('recontoTransaction');
-                    if(is_object($deletedRec)){
-                        Mode::pop('recontoWithCreatedOnDate');
+
+                    try{
+                        if(is_object($deletedRec)){
+                            Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                        }
+                        Mode::push('recontoTransaction', true);
+                        acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
+                        Mode::push('recontoTransaction');
+                        if(is_object($deletedRec)){
+                            Mode::pop('recontoWithCreatedOnDate');
+                        }
+                    } catch(acc_journal_RejectRedirect  $e){
+                        if(is_object($deletedRec)) {
+                            acc_Journal::restoreDeleted($this->getClassId(), $rec->id, $deletedRec, $deletedRec->_details);
+                        }
+                        wp($e);
                     }
                 }
             } else {
@@ -980,43 +988,56 @@ abstract class deals_DealBase extends core_Master
         $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
         $iQuery->EXT('lastAutoRecalcRate', $this->className, 'externalName=lastAutoRecalcRate,externalKey=objectId');
         $iQuery->XPR('lastAutoRecalcRateCalc', 'double', "COALESCE(#lastAutoRecalcRate, '0000-00-00 00:00:00')");
-        $iQuery->where("#currencyId != 'BGN' AND #currencyId != 'EUR' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
+        $iQuery->where("#currencyId != 'BGN' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
         $iQuery->where("#lastUseOn >= #lastAutoRecalcRateCalc");
 
         $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
-        if(!countR($dealIds)) return;
+        $count = countR($dealIds);
+
+        if(!$count) return;
+        core_App::setTimeLimit(0.6 * $count, false, 200);
 
         // Ако има намерени сделки
-        $now = dt::now();
-        $lastCalcedWithDiff = dt::addSecs(5, $now);
+        $Items = cls::get('acc_Items');
+
         $query = $this->getQuery();
         $query->in('id', $dealIds);
         $updateRecs = array();
         while($rec = $query->fetch()){
+            if($rec->state != 'active'){
+                wp("Неактивна с активно перо", $rec);
+            }
 
             // Осредняване на курса
+            $skip = '';
             if($averageRate =  $this->getAverageRateInThread($rec)){
-                try{
-                    $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                } catch(acc_journal_RejectRedirect $e){
-                    $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
-                    $this->logErr($errorMsg, $rec->id);
-                    continue;
-                }
-
-                $rec->lastAutoRecalcRate = $lastCalcedWithDiff;
-                $updateRecs[$rec->id] = $rec;
-
+                $valueToCompare = max($rec->amountInvoiced, $rec->amountDelivered, $rec->amountDeal);
+                $valueToCompareDividedByOldRate = $valueToCompare / $rec->currencyRate;
+                $newValToCompare = $valueToCompareDividedByOldRate * $averageRate;
+                $change = abs($valueToCompare - $newValToCompare);
                 $itemRec = acc_Items::fetchItem($this, $rec);
-                if($itemRec){
-                    acc_Items::notifyObject($itemRec);
-                }
-            }
-        }
 
-        // Обновяване на сделките кога последно е осреднен курса
-        if(countR($updateRecs)){
-            $this->saveArray($updateRecs, 'id,lastAutoRecalcRate');
+                if(round($change, 2) >= 0.01){
+                    try{
+                        $this->recalcDocumentsWithNewRate($rec, $averageRate);
+                    } catch(acc_journal_Exception $e){
+                        $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
+                        $this->logErr($errorMsg, $rec->id);
+                    }
+
+                    if($itemRec){
+                        acc_Items::notifyObject($itemRec);
+                    }
+                    $Items->flushTouched();
+                } else {
+                    $skip = 'SKIP';
+                }
+
+                $this->logDebug("CH RATE {$skip}: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:'{$itemRec->lastUseOn}',NUSEON: '{$itemLastUseOn}', LC:'{$rec->lastAutoRecalcRate}'", $rec->id);
+                $itemLastUseOn = acc_Items::fetchField("#classId = {$this->getClassId()} AND #objectId = {$rec->id}", 'lastUseOn', false);
+                $rec->lastAutoRecalcRate = dt::addSecs(2, $itemLastUseOn);
+                $this->save_($rec, 'lastAutoRecalcRate');
+            }
         }
     }
 }

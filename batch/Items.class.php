@@ -195,12 +195,7 @@ class batch_Items extends core_Master
         $icon = cls::get('cat_Products')->getIcon($rec->productId);
         $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
     }
-    
 
-    function act_Test()
-    {
-        $this->updateMaster(281);
-    }
     /**
      * Обновява данни в мастъра
      *
@@ -211,14 +206,10 @@ class batch_Items extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-        
-        if (!$rec) {
-            
-            return;
-        }
-        $quantity = 0;
-        
+        if (!$rec) return;
+
         // Ъпдейтваме к-та спрямо движенията по партидата
+        $quantity = 0;
         $dQuery = batch_Movements::getQuery();
         $dQuery->where("#itemId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
@@ -231,12 +222,12 @@ class batch_Items extends core_Master
                 // Ако операцията е 'излизане' намаляваме к-то
                 $quantity -= $dRec->quantity;
             }
-            
-            // Ако операцията е 'стои', не правим нищо
         }
         
         // Опресняваме количеството
-        $rec->quantity = $quantity;
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+        $round = cat_UoM::fetchField($measureId, 'round');
+        $rec->quantity = round($quantity, $round);
         
         if ($rec->quantity == 0) {
             $rec->nullifiedDate = dt::now();
@@ -260,7 +251,8 @@ class batch_Items extends core_Master
     public function cron_closeOldBatches()
     {
         $query = self::getQuery();
-        $query->where("#quantity = 0 AND #state != 'closed'");
+        $query->XPR('quantityCalc', 'double', 'ROUND(#quantity, 4)');
+        $query->where("#quantityCalc = 0 AND #state != 'closed'");
         $before = core_Packs::getConfigValue('batch', 'BATCH_CLOSE_OLD_BATCHES');
         $before = dt::addSecs(-1 * $before, dt::now());
         
@@ -596,7 +588,7 @@ class batch_Items extends core_Master
      * Изчислява количествата на партидите на артикул към дадена дата и склад
      *
      * @param int           $productId - ид на артикул
-     * @param int           $storeId   - ид на склад
+     * @param int|null      $storeId   - ид на склад
      * @param datetime|NULL $date      - към дата, ако е празно текущата
      * @param int|NULL      $limit     - лимит на резултатите
      * @param array         $except    - кой документ да се игнорира
@@ -605,7 +597,7 @@ class batch_Items extends core_Master
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false)
+    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false)
     {
         $res = array();
         $date = (isset($date)) ? $date : dt::today();
@@ -620,7 +612,10 @@ class batch_Items extends core_Master
         $query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
         $query->where("#state != 'closed'");
         $query->show('batch,quantity,operation,date,docType,docId');
-        $query->where("#productId = {$productId} AND #storeId = {$storeId}");
+        $query->where("#productId = {$productId}");
+        if(isset($storeId)){
+            $query->where("#storeId = {$storeId}");
+        }
         $query->where("#date <= '{$date}'");
 
         if (countR($except) == 2) {
@@ -654,7 +649,10 @@ class batch_Items extends core_Master
         // Добавяне и на партидите от активни документи в черновата на журнала
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        $bQuery->where("#storeId = {$storeId} AND #productId = {$productId}");
+        $bQuery->where("#productId = {$productId}");
+        if(isset($storeId)){
+            $bQuery->where("#storeId = {$storeId}");
+        }
         $bQuery->where("#state = 'active'");
         $bQuery->groupBy('batch');
         $bQuery->notIn('batch', array_keys($res));
@@ -718,5 +716,31 @@ class batch_Items extends core_Master
         }
 
         return $allocatedArr;
+    }
+
+
+    /**
+     * Помощна ф-я връщаща затворените партиди преди подадена дата
+     *
+     * @param int $productId
+     * @param int $storeId
+     * @param date|null $date
+     * @param int|null $limit
+     * @return array
+     */
+    public static function getLastClosedBatches($productId, $storeId, $date = null, $limit = null)
+    {
+        $date = isset($date) ? $date : dt::now();
+
+        $query = static::getQuery();
+        $query->where("#storeId = {$storeId} AND #productId = {$productId}");
+        $query->where("(#nullifiedDate <= '{$date}' OR #nullifiedDate IS NULL) AND #state = 'closed'");
+        $query->orderBy('nullifiedDate', 'DESC');
+        $query->show('batch');
+        if(isset($limit)){
+            $query->limit($limit);
+        }
+
+        return arr::extractValuesFromArray($query->fetchAll(), 'batch');
     }
 }

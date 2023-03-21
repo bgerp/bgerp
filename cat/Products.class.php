@@ -3034,10 +3034,11 @@ class cat_Products extends embed_Manager
      * @param int      $productId - ид на артикула
      * @param datetime $date      - към коя дата
      * @param string   $stores    - склад или складове или '*' за всички
+     * @param int|null   $maxTry  - брой максимални опити за търсене ако не се намери в текущия период
      *
      * @return mixed $amount   - сумата или NULL ако няма
      */
-    public static function getWacAmountInStore($quantity, $productId, $date, $stores = array())
+    public static function getWacAmountInStore($quantity, $productId, $date, $stores = array(), $maxTry = null)
     {
         $item2 = acc_Items::fetchItem('cat_Products', $productId)->id;
         if (!$item2) {
@@ -3055,8 +3056,7 @@ class cat_Products extends embed_Manager
         }
         
         // Намираме сумата която струва к-то от артикула в склада
-        $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
-        
+        $maxTry = isset($maxTry) ? $maxTry : core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
         $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
         
         if (isset($amount)) {
@@ -4441,7 +4441,7 @@ class cat_Products extends embed_Manager
             $overheadCostArr = cat_Groups::getDefaultOverheadCostsByProductId($productId);
             if(is_array($overheadCostArr)){
                 $overheadCost = $overheadCostArr['value'];
-                $hint = tr('от група|* ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
+                $hint = tr('от група|*: ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
             }
 
         } else {
@@ -4449,12 +4449,12 @@ class cat_Products extends embed_Manager
         }
 
         // Ако не е намерена стойност гледа се глобалната константа
-        if(empty($overheadCost)) {
+        if(!isset($overheadCost)) {
             $overheadCost = cat_Setup::get('DEFAULT_PRODUCT_OVERHEAD_COST');
             $hint = tr('от пакета "cat"<br>(обща настройка по подразбиране за системата)');
         }
 
-        $overheadCost = empty($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
+        $overheadCost = !isset($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
 
         return $overheadCost;
     }

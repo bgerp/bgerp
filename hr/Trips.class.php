@@ -371,19 +371,21 @@ class hr_Trips extends core_Master
                 $calRec->title = "Командировка: {$personName}";
                 
                 $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
-                $personId = array($personProfile->userId => 0);
-                $user = keylist::fromArray($personId);
-                
-                // В чии календари да влезе?
-                $calRec->users = $user;
-                
-                // Статус на задачата
-                $calRec->state = $rec->state;
-                
-                // Url на задачата
-                $calRec->url = array('hr_Trips', 'Single', $id);
-                
-                $events[] = $calRec;
+                if ($personProfile) {
+                    $personId = array($personProfile->userId => 0);
+                    $user = keylist::fromArray($personId);
+
+                    // В чии календари да влезе?
+                    $calRec->users = $user;
+
+                    // Статус на задачата
+                    $calRec->state = $rec->state;
+
+                    // Url на задачата
+                    $calRec->url = array('hr_Trips', 'Single', $id);
+
+                    $events[] = $calRec;
+                }
             }
             $curDate = dt::addDays(1, $curDate);
         }

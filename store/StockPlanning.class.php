@@ -39,7 +39,7 @@ class store_StockPlanning extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'debug';
+    public $canList = 'powerUser';
 
 
     /**
@@ -57,7 +57,13 @@ class store_StockPlanning extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productId,genericProductId,storeId,date,quantityOut,quantityIn,sourceId=Източник->Основен,reffId=Източник->Допълнителен,state=Източник->Състояние,threadId=Източник->Нишка,createdOn';
+    public $listFields = 'id,productId,genericProductId,storeId,date,quantityOut,quantityIn,sourceId=Източник->Основен,reffId=Източник->Допълнителен,state=Източник->Състояние,threadId=Източник->Нишка,createdOn,createdBy';
+
+
+    /**
+     * Константа за стринг, който да се използва за кеш на изгледа
+     */
+    const LIST_CACHE_STRING = 'STOCK';
 
 
     /**
@@ -65,9 +71,9 @@ class store_StockPlanning extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore)', 'caption=Артикул,tdClass=leftAlign');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore)', 'caption=Артикул,tdClass=leftAlign,silent');
         $this->FLD('genericProductId', 'key(mvc=cat_Products,select=name)', 'caption=Генеричен,tdClass=leftAlign');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign,silent');
         $this->FLD('date', 'datetime', 'caption=Дата');
         $this->FLD('quantityIn', 'double', 'caption=Количество->Влиза');
         $this->FLD('quantityOut', 'double', 'caption=Количество->Излиза');
@@ -164,7 +170,8 @@ class store_StockPlanning extends core_Manager
             $threadId = $sourceRec->threadId;
         }
 
-        array_walk($array, function($a) use ($now, $classId, $threadId, $id) {$a->createdOn = $now; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId;});
+        $cu = core_Users::getCurrent();
+        array_walk($array, function($a) use ($now, $classId, $threadId, $id, $cu) {$a->createdOn = $now; $a->createdBy = $cu; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId;});
     }
 
 
@@ -214,10 +221,27 @@ class store_StockPlanning extends core_Manager
     {
         $data->listFilter->input(null, 'silent');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'date,productId,storeId,threadId,sourceClassId';
+        $showFields = arr::make('date,productId,storeId,threadId,sourceClassId', true);
         $data->listFilter->input();
         $data->listFilter->setFieldType('date', 'date');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $urlHash = Mode::get('stockPlanningHash');
+        if(!empty($urlHash)){
+            unset($showFields['threadId']);
+            unset($data->listFields['id']);
+            unset($data->listFields['threadId']);
+            unset($data->listFields['state']);
+            if($productId = Request::get('productId')){
+                $productId = cat_Products::getTitleById($productId, false);
+                $data->title = "Хоризонти|*: <b style='color:green'>{$productId}</b>";
+                unset($showFields['productId']);
+                unset($data->listFields['productId']);
+                unset($data->listFields['genericProductId']);
+            }
+        }
+
+        $data->listFilter->showFields = $showFields;
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)) {
                 $data->query->where("#productId = {$rec->productId}");
@@ -225,6 +249,7 @@ class store_StockPlanning extends core_Manager
 
             if (!empty($rec->storeId)) {
                 $data->query->where("#storeId = {$rec->storeId}");
+                unset($data->listFields['storeId']);
             }
 
             if (!empty($rec->sourceClassId)) {
@@ -556,6 +581,41 @@ class store_StockPlanning extends core_Manager
         $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId,storeId');
 
         return $query->fetchAll();
+    }
+
+
+    /**
+     * Екшън даващ временен достъп до модела, ако има защитен параметър от урл-то
+     */
+    public function act_Browse()
+    {
+        Request::setProtected('hash');
+
+        // Записване в сесията на хеша за достъпа
+        $urlHash = Request::get('hash', 'varchar');
+        if(!empty($urlHash) && !haveRole('debug')){
+            Mode::setPermanent('stockPlanningHash', Request::get('hash', 'varchar'));
+        }
+
+        return parent::act_List();
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'list' || $action == 'reject'){
+
+            // Ако няма записан в сесията форсиран достъп се изисква дебъг меню
+            $urlHash = Mode::get('stockPlanningHash');
+            if(empty($urlHash) || $urlHash != md5(self::LIST_CACHE_STRING)){
+                if(!haveRole('debug')){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
 }
 

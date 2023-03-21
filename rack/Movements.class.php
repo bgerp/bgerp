@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -73,7 +73,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,leftColBtns=Зап.,rightColBtns=Д-ие.,workerId=Изп.,documents,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
+    public $listFields = 'productId,movement=Движение,leftColBtns=Зап.,rightColBtns=Д-ие,workerId=Изп.,documents,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
 
 
     /**
@@ -449,6 +449,8 @@ class rack_Movements extends rack_MovementAbstract
             
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $round = cat_UoM::fetchField($measureId, 'round');
 
             // Ако е от входящ документ
             if($rec->fromIncomingDocument == 'yes'){
@@ -462,16 +464,18 @@ class rack_Movements extends rack_MovementAbstract
                 if(rack_Movements::haveRightFor('list')){
                     $quantityStr = ht::createLinkRef($quantityStr, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($rec->containerId)->getHandle()));
                 }
-                $form->info = "Създадени движения от документа за сега: <b>{$quantityStr}</b>";
+                $form->info = tr("Създадени движения от документа за сега|*: <b>{$quantityStr}</b>");
 
                 // Приспадане на създаденото досега от документа
                 $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;
                 $availableQuantity -= $createdByNowQuantity;
+                $availableQuantity = round($availableQuantity, $round);
             } else {
                 $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
                 $availableQuantity = Mode::get($counterKey);
                 if(!isset($availableQuantity)){
                     $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch);
+                    $availableQuantity = round($availableQuantity, $round);
                 }
                 $form->setDefault('liveCounter', $availableQuantity);
             }
@@ -510,7 +514,7 @@ class rack_Movements extends rack_MovementAbstract
                 Mode::push('text', 'plain');
                 $placeholderPackQuantity = core_Type::getByName('double(smartRound)')->toVerbal($availableQuantity);
                 Mode::pop('text');
-                $form->setField('packQuantity', "placeholder={$placeholderPackQuantity}");
+                $form->setField('packQuantity', "placeholder=|*{$placeholderPackQuantity}");
                 $form->rec->defaultPackQuantity = $availableQuantity;
             }
             
@@ -1135,12 +1139,10 @@ class rack_Movements extends rack_MovementAbstract
         // Проверяване и на движенията по зоните
         $zoneErrors = $zoneWarnings = array();
         foreach ($transaction->zonesQuantityArr as $zone) {
-            $movementQuantity = $documentQuantity = null;
-            $zRec = rack_ZoneDetails::fetch("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId}");
+            $zRec = rack_ZoneDetails::fetch("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId} AND #batch = '{$transaction->batch}'");
             $movementQuantity = is_object($zRec) ? $zRec->movementQuantity : null;
             $documentQuantity = is_object($zRec) ? $zRec->documentQuantity : null;
             $diff = round($movementQuantity, 4) + round($zone->quantity, 4);
-            
             if ($diff < 0) {
                 $zoneErrors[] = rack_Zones::getHyperlink($zone->zone, false);
             }

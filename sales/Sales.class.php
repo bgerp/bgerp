@@ -487,7 +487,6 @@ class sales_Sales extends deals_DealMaster
                 $form->setDefault('bankAccountId', key($defaultOptions));
             }
         }
-        
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
@@ -865,14 +864,17 @@ class sales_Sales extends deals_DealMaster
             $threads = deals_Helper::getCombinedThreads($rec->threadId);
             
             // Извличане на движенията по ЕН и Продажби
+            $batchWhere = '';
             $otherSaleQuery = sales_Sales::getQuery();
             $otherSaleQuery->where("#state IN ('active', 'closed')");
             $otherSaleQuery->in("threadId", $threads);
             $saleIds = arr::extractValuesFromArray($otherSaleQuery->fetchAll(), 'id');
-            $saleIds = implode(',', $saleIds);
-            $saleClassId = sales_Sales::getClassId();
-            $batchWhere = "(#docType={$saleClassId} AND #docId IN ({$saleIds}))";
-            
+            if(countR($saleIds)){
+                $saleIds = implode(',', $saleIds);
+                $saleClassId = sales_Sales::getClassId();
+                $batchWhere = "(#docType={$saleClassId} AND #docId IN ({$saleIds}))";
+            }
+
             $sQuery = store_ShipmentOrders::getQuery();
             $sQuery->in("threadId", $threads);
             $sQuery->where("#state = 'active'");
@@ -883,24 +885,26 @@ class sales_Sales extends deals_DealMaster
                 $soClassId = store_ShipmentOrders::getClassId();
                 $batchWhere .= "OR (#docType={$soClassId} AND #docId IN ({$soIds}))";
             }
-            
-            $batches = array();
-            $bQuery = batch_Movements::getQuery();
-            $bQuery->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
-            $bQuery->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
-            $bQuery->where($batchWhere);
-            $bQuery->where("#operation = 'out'");
-            $bQuery->show('quantity,batch,productId');
-            while ($batchRec = $bQuery->fetch()){
-                if(!array_key_exists($batchRec->productId, $batches)){
-                    $batches[$batchRec->productId] = array();
+
+            if(!empty($batchWhere)){
+                $batches = array();
+                $bQuery = batch_Movements::getQuery();
+                $bQuery->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
+                $bQuery->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
+                $bQuery->where($batchWhere);
+                $bQuery->where("#operation = 'out'");
+                $bQuery->show('quantity,batch,productId');
+                while ($batchRec = $bQuery->fetch()){
+                    if(!array_key_exists($batchRec->productId, $batches)){
+                        $batches[$batchRec->productId] = array();
+                    }
+                    $batches[$batchRec->productId][$batchRec->batch] += $batchRec->quantity;
                 }
-                $batches[$batchRec->productId][$batchRec->batch] += $batchRec->quantity;
-            }
-            
-            // Добавя се информация за експедираните партиди към данните за експедираните артикули
-            foreach ($shippedProducts as &$shipped){
-                $shipped->batches = array_key_exists($shipped->productId, $batches) ? $batches[$shipped->productId] : array();
+
+                // Добавя се информация за експедираните партиди към данните за експедираните артикули
+                foreach ($shippedProducts as &$shipped){
+                    $shipped->batches = array_key_exists($shipped->productId, $batches) ? $batches[$shipped->productId] : array();
+                }
             }
         }
         

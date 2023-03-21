@@ -189,16 +189,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'mandatory,input=hidden,before=packQuantity,silent,removeAndRefreshForm=additionalMeasureId|additionalMeasureQuantity|packQuantity|quantityInPack|quantity');
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
 
-        $this->FLD('expenses', 'percent(Min=0)', 'caption=Реж. разходи,after=packQuantity');
+        $this->FLD('expenses', 'percent(min=0)', 'caption=Реж. разходи,after=packQuantity');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,input=none');
 
         $this->FLD('additionalMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Избор', 'input=none,after=expenses');
         $this->FLD('additionalMeasureQuantity', 'double(Min=0,smartRound)', 'caption=Втора мярка->Количество,input=none');
-
-        $this->setField('deadline', 'caption=Информация->Срок до');
-        $this->setField('storeId', 'caption=Информация->Засклаждане в,silent,removeAndRefreshForm');
-        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Информация->Влагане от,input');
+        
+        $this->setField('storeId', 'caption=Произвеждане (заприхождаване на произведеното)->В склад,silent,removeAndRefreshForm');
+        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->ОТ склад'),'input,silent,removeAndRefreshForm=inputServicesFrom,placeholder=Незавършено производство,after=storeId');
+        $this->FLD('inputServicesFrom', 'enum(unfinished=Незавършено производство,all=Разходи за услуги (без влагане))', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Услуги от'),'maxRadio=2');
+		
+		$this->setField('deadline', 'caption=Информация->Срок до');
         $this->FLD('debitAmount', 'double(decimals=2)', 'input=none');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Разходен обект / Продажба->Избор');
 
@@ -236,13 +238,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $storeId = $originRec->storeId;
         $saleId = $originRec->saleId;
         if($originDoc->isInstanceOf('planning_Tasks')){
-
+            $defaultOriginPackField = 'measureId';
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
             $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
             unset($productOptions[$jobRec->productId]);
         } else {
+            $defaultOriginPackField = 'packagingId';
             $jobRec = $originDoc->fetch();
             $productOptions = array($originRec->productId => cat_Products::getTitleById($originRec->productId, false));
         }
@@ -272,7 +275,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $packs = array_intersect_key($packs, $secondMeasureDerivatives);
                 }
 
-                $defaultPack =  ($productRec->canStore == 'no') ? $originRec->measureId : $originRec->packagingId;
+                $defaultPack = $originRec->{$defaultOriginPackField};
             } else {
                 $packs = cat_Products::getPacks($rec->productId);
 
@@ -415,8 +418,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
         }
-
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
+        if(isset($rec->inputStoreId)){
+            $form->setDefault('inputServicesFrom', 'all');
+        } else {
+            $form->setDefault('inputServicesFrom', 'unfinished');
+        }
 
         return $data;
     }
@@ -862,8 +869,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $dRec->quantity = core_Math::roundNumber($roundQuantity, $uomRec->round, $uomRec->roundSignificant);
             $dRec->quantityFromBom = $dRec->quantity;
 
-            $pInfo = cat_Products::getProductInfo($resource->productId);
-            $dRec->measureId = $pInfo->productRec->measureId;
+            $pRec = cat_Products::fetch($resource->productId, 'measureId,canStore');
+            if($pRec->canStore != 'yes' && $rec->inputServicesFrom == 'all'){
+                $dRec->fromAccId = '61102';
+            }
+            $dRec->measureId = $pRec->measureId;
             $index = $dRec->productId . '|' . $dRec->type;
             $details[$index] = $dRec;
         }
@@ -880,6 +890,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         // Ако записа е клониран не правим нищо
         if ($rec->_isClone === true) return;
+        $rec->_isCreated = true;
 
         $details = $mvc->getDefaultDetails($rec);
         if(countR($details)) {
@@ -926,6 +937,23 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
 
             doc_DocumentCache::threadCacheInvalidation($rec->threadId);
+        }
+
+        // Ако за артикула има произведени партиди в другите операции да се прехвърлят
+        if(empty($rec->batch) && $rec->_isCreated){
+            if(core_Packs::isInstalled('batch')){
+                $jobRec = static::getJobRec($rec->id);
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore == 'yes'){
+                    $producedBatches = planning_Jobs::getProducedBatchesByProductId($jobRec, $rec->productId);
+                    if(countR($producedBatches)){
+                        $batchSum = array_sum($producedBatches);
+                        if($rec->quantity >= $batchSum){
+                            batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $producedBatches, true);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1516,19 +1544,5 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return null;
-    }
-
-
-    /**
-     * Изпълнява се преди контиране на документа
-     */
-    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #productId = {$rec->productId} AND #storeId IS NOT NULL")) {
-            core_Statuses::newStatus('Произвежданият артикул не може да бъде влаган директно от склад в същия протокол|*!', 'error');
-
-            return false;
-        }
     }
 }
