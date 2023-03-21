@@ -478,10 +478,11 @@ class rack_MovementGenerator extends core_Manager
      * @param string   $batch Партида
      * @param int      $storeId ИД na склада
      * @param int|null $workerId - ид на потребител
+     * @param int|null $currentZoneId - изходна зона
      *
      * @return array
      */
-    public static function getMovements($allocatedArr, $productId, $packagingId, $batch, $storeId, $workerId = null)
+    public static function getMovements($allocatedArr, $productId, $packagingId, $batch, $storeId, $workerId = null, $currentZoneId = null)
     {
         $res = array();
         if (!is_array($allocatedArr)) {
@@ -491,16 +492,32 @@ class rack_MovementGenerator extends core_Manager
 
         $packRec = cat_products_Packagings::getPack($productId, $packagingId);
         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-        
+
         foreach ($allocatedArr as $obj) {
+            $currentWorkerId = $workerId;
+            if(!countR($obj->zones)){
+                wp($allocatedArr, $productId, $packagingId, $batch);
+                continue;
+            }
+
+            $zoneArr = array('zone' => array(), 'quantity' => array());
+            foreach ($obj->zones as $zoneId => $zoneQuantity) {
+                $zoneArr['zone'][] = $zoneId;
+                $zoneArr['quantity'][] = $zoneQuantity / $quantityInPack;
+            }
+
+            if(isset($currentZoneId) && !array_key_exists($currentZoneId, $obj->zones)){
+                $currentWorkerId = null;
+            }
+
             $newRec = (object) array('productId' => $productId,
                 'packagingId' => $packagingId,
                 'storeId' => $storeId,
                 'quantityInPack' => $quantityInPack,
-                'state' => isset($workerId) ? 'waiting' : 'pending',
-                'brState' => isset($workerId) ? 'pending' : 'null',
+                'state' => isset($currentWorkerId) ? 'waiting' : 'pending',
+                'brState' => isset($currentWorkerId) ? 'pending' : 'null',
                 'batch' => $batch,
-                'workerId' => $workerId,
+                'workerId' => $currentWorkerId,
                 'quantity' => $obj->quantity,
                 'position' => $obj->pallet,
             );
@@ -514,18 +531,7 @@ class rack_MovementGenerator extends core_Manager
                 // Липсва палет в движението
                 wp($allocatedArr, $productId, $packagingId, $batch);
             }
-            
-            if(!countR($obj->zones)){
-                wp($allocatedArr, $productId, $packagingId, $batch);
-                continue;
-            }
-            
-            $zoneArr = array('zone' => array(), 'quantity' => array());
-            foreach ($obj->zones as $zoneId => $zoneQuantity) {
-                $zoneArr['zone'][] = $zoneId;
-                $zoneArr['quantity'][] = $zoneQuantity / $quantityInPack ;
-            }
-            
+
             $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
             $newRec->zones = $TableType->fromVerbal($zoneArr);
             
