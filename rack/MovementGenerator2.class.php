@@ -521,9 +521,7 @@ class rack_MovementGenerator2 extends core_Manager
      */
     private static function timeToCount($s, $d, $packs)
     {  
-        set_time_limit(5);
-
-        expect($pallet >= $q);
+//        expect($pallet >= $q);
         
         $sec = rack_Setup::get('TIME_COUNT');
 
