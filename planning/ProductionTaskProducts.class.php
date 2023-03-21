@@ -437,6 +437,7 @@ class planning_ProductionTaskProducts extends core_Detail
 
                 $options[$rec->serial] = cls::get('planning_ProductionTaskDetails')->getVerbal($rec, 'serial');
             }
+
         } else {
             $query = self::getQuery();
             $query->where("#taskId = {$taskId}");
