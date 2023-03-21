@@ -108,7 +108,7 @@ class acc_plg_Contable extends core_Plugin
                     Mode::pop('recontoWithCreatedOnDate');
                 }
                 Mode::pop('recontoTransaction');
-            } catch(acc_journal_RejectRedirect  $e){
+            } catch(core_exception_Expect  $e){
                 if($mvc instanceof deals_DealMaster){
                     $rec->contoActions = null;
                     $mvc->save_($rec, 'contoActions');

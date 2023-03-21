@@ -139,6 +139,12 @@ defIfNot('CAT_DEFAULT_PRODUCT_OVERHEAD_COST', '0');
 
 
 /**
+ * Кои продуктови опаковки да се пропускат при търсене на опаковката с най-голям обем
+ */
+defIfNot('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', '');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -265,7 +271,9 @@ class cat_Setup extends core_ProtoSetup
         'CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи които могат да имат правила за обновяване на себестойностти->Избор'),
         'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Без допълване (рецептите са Пълни),no=С допълване до "Себестойност" (рецептите са Непълни))', 'caption=Производство - допълване на себестойността до очакваната по политика "Себестойност"->Избор'),
         'CAT_DEFAULT_PRODUCT_OVERHEAD_COST' => array('percent(min=0)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Режийни разходи'), 'unit= по подразбиране общо за системата'),
-        'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Задаване в групи'))
+        'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Задаване в групи')),
+        'CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC' => array('keylist(mvc=cat_UoM,select=name)', array('caption' => 'Кои опаковки да се пропускат, при избор на опаковка за транспортен обем->Избор')),
+
     );
     
     
@@ -331,6 +339,9 @@ class cat_Setup extends core_ProtoSetup
     {
         $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
         $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
+
+        $packSuggestions = cat_UoM::getPackagingOptions();
+        $configForm->setSuggestions('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', $packSuggestions);
     }
 
 

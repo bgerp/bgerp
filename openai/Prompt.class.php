@@ -155,7 +155,7 @@ class openai_Prompt extends core_Manager
             $recBg = new stdClass();
             $recBg->systemId = static::$extractContactDataBg;
             $recBg->prompt = "Извлечи следните контактни данни от по-долния имейл и от резултата премахни редовете без съвпадение:\n";
-            $recBg->prompt .= "Име на фирмата->recipient\n";
+            $recBg->prompt .= "Име на фирмата->company\n";
             $recBg->prompt .= "Име на лицето->attn\n";
             $recBg->prompt .= "Адреса за доставка->address\n";
             $recBg->prompt .= "Имейл->email\n";
@@ -184,7 +184,7 @@ class openai_Prompt extends core_Manager
             $recEn->prompt .= "Person gender\n";
             $recEn->prompt .= "Job position,\n";
             $recEn->prompt .= "Mobile->pMobile\n";
-            $recEn->prompt .= "Company->recipient\n";
+            $recEn->prompt .= "Company\n";
             $recEn->prompt .= "Country->country\n";
             $recEn->prompt .= "Postal code->pcode\n";
             $recEn->prompt .= "Place->place\n";

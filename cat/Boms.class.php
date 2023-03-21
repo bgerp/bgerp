@@ -482,7 +482,7 @@ class cat_Boms extends core_Master
                 }
                 
                 if ($idCount) {
-                    core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
+                    core_Statuses::newStatus("|Затворени рецепти|*: {$idCount}");
                 }
 
                 // Ако има задания към артикула да се обновят запазените им количества
@@ -1433,10 +1433,14 @@ class cat_Boms extends core_Master
             
             // За всеки детайл
             while ($dRec = $query->fetch()) {
-                
+
                 // Опитваме се да намерим цената му
-                $dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
-                
+                if($rQuantity != cat_BomDetails::CALC_ERROR){
+                    $dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
+                } else {
+                    $dRec->primeCost = null;
+                }
+
                 // Ако няма цена връщаме FALSE
                 if ($dRec->primeCost === false) {
                     $price = false;
@@ -1694,28 +1698,27 @@ class cat_Boms extends core_Master
             $quantityP = (($quantityP) / $rec) * $quantity;
             $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
-            // Подготвяне задачата за етапа, с него за производим
-            $obj = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
-                'plannedQuantity' => $q1,
-                'measureId' => cat_Products::fetchField($dRec->resourceId, 'measureId'),
-                'productId' => $dRec->resourceId,
-                'packagingId' => $dRec->packagingId,
-                'quantityInPack' => $dRec->quantityInPack,
-                'storeId' => $dRec->storeIn,
-                'centerId' => $dRec->centerId,
-                'fixedAssets' => $dRec->fixedAssets,
-                'employees' => $dRec->employees,
-                'indTime' => $dRec->norm,
-                '_dId' => $dRec->id,
-                '_parentId' => $dRec->parentId,
-                '_position' => $dRec->position,
-                'description' =>  $dRec->description,
-                'labelPackagingId' => $dRec->labelPackagingId,
-                'labelQuantityInPack' => $dRec->labelQuantityInPack,
-                'labelType' => $dRec->labelType,
-                'labelTemplate' => $dRec->labelTemplate,
-                'params' => array(),
-                'products' => array('input' => array(), 'waste' => array()));
+            $obj = (object) array('title' => cat_Products::getTitleById($dRec->resourceId, false),
+                                  'plannedQuantity' => $q1,
+                                  'measureId' => cat_Products::fetchField($dRec->resourceId, 'measureId'),
+                                  'productId' => $dRec->resourceId,
+                                  'packagingId' => $dRec->packagingId,
+                                  'quantityInPack' => $dRec->quantityInPack,
+                                  'storeId' => $dRec->storeIn,
+                                  'centerId' => $dRec->centerId,
+                                  'fixedAssets' => $dRec->fixedAssets,
+                                  'employees' => $dRec->employees,
+                                  'indTime' => $dRec->norm,
+                                  '_dId' => $dRec->id,
+                                  '_parentId' => $dRec->parentId,
+                                  '_position' => $dRec->position,
+                                  'description' =>  $dRec->description,
+                                  'labelPackagingId' => $dRec->labelPackagingId,
+                                  'labelQuantityInPack' => $dRec->labelQuantityInPack,
+                                  'labelType' => $dRec->labelType,
+                                  'labelTemplate' => $dRec->labelTemplate,
+                                  'params' => array(),
+                                  'products' => array('input' => array(), 'waste' => array()));
 
             $pQuery = cat_products_Params::getQuery();
             $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");

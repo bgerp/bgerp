@@ -737,7 +737,7 @@ class rack_Zones extends core_Master
         }
 
         // Генериране нови движения след отразяване на промяната
-        self::pickupOrder($zoneRec->storeId, $selectedZones, $defaultUserId);
+        self::pickupOrder($zoneRec->storeId, $selectedZones, $defaultUserId, null, true, $zoneId);
     }
 
 
@@ -1109,8 +1109,9 @@ class rack_Zones extends core_Master
      * @param null $workerId - ид на дефолтен товарач
      * @param array|null $productIds - ид-та на артикули
      * @param boolean $deletePendingSystemMovementsInZoneFirst - да се изтрият ли първи системните движения
+     * @param int|null $currentZoneId - от коя зона сме тръгнали
      */
-    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true)
+    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true, $currentZoneId = null)
     {
         // Ако се иска да се изтрият движенията към зоната
         if($deletePendingSystemMovementsInZoneFirst){
@@ -1226,7 +1227,7 @@ class rack_Zones extends core_Master
             }
 
             // Ако има генерирани движения се записват
-            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId);
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId, $currentZoneId);
 
             // Движенията се създават от името на системата
             $isOriginalSystemUser = core_Users::isSystemUser();
