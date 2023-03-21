@@ -210,8 +210,10 @@ class batch_Defs extends core_Manager
         
         // Намираме записа за артикула
         $rec = self::fetch("#productId = '{$productId}'");
-        $canStore = cat_Products::fetchField($productId, 'canStore');
-        if($canStore != 'yes') return null;
+        if(isset($productId)){
+            $canStore = cat_Products::fetchField($productId, 'canStore');
+            if($canStore != 'yes') return null;
+        }
 
         if (isset($rec->templateId)) {
             $template = batch_Templates::fetch($rec->templateId);

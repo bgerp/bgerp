@@ -283,12 +283,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         if ($rec->type == 'scrap') {
-            $scrapProductId = planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}'", 'productId');
+            $scrapProductId = isset($rec->scrapRecId) ? $mvc->fetchField($rec->scrapRecId, 'productId') : planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}'", 'productId');
             $form->setOptions('productId', array($scrapProductId => cat_Products::getTitleById($scrapProductId, false)));
             $form->setDefault('productId', $scrapProductId);
             $form->setField('quantity', 'caption=Брак');
             $form->setField('weight', 'caption=Тегло');
-            $availableScrap = static::getAvailableScrap($rec->serial, $rec->taskId);
+            $availableScrap = static::getAvailableScrap($rec->serial, $rec->taskId, $scrapProductId);
 
             $defaultScrapQuantity = $availableScrap['quantity'];
             $defaultWeight = $availableScrap['weight'];
@@ -1401,6 +1401,9 @@ class planning_ProductionTaskDetails extends doc_Detail
         if ($action == 'add' && isset($rec->type)) {
             if ($requiredRoles != 'no_one') {
                 $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
+                if(!isset($rec->scrapRecId)){
+                    unset($pOptions['']);
+                }
                 if (!countR($pOptions)) {
                     $requiredRoles = 'no_one';
                 }
@@ -1860,14 +1863,16 @@ class planning_ProductionTaskDetails extends doc_Detail
      *
      * @param string $serial
      * @param int $taskId
+     * @param int $productId
      * @return array $res
      */
-    public static function getAvailableScrap($serial, $taskId)
+    public static function getAvailableScrap($serial, $taskId, $productId)
     {
         $produced = $scrapped = $weightScrapped = $weightProduced = $netWeightScrapped = $netWeightProduced = 0;
         $query = static::getQuery();
         $query->EXT('quantityInPack', 'planning_Tasks', 'externalName=quantityInPack,externalKey=taskId');
-        $query->where(array("#taskId = {$taskId} AND #state != 'rejected' AND #serial = '[#1#]' AND #type IN ('production', 'scrap')", $serial));
+        $query->where("#taskId = {$taskId} AND #productId = {$productId} AND #state != 'rejected' AND #type IN ('production', 'scrap')");
+        $query->where(array("#serial = '[#1#]'", $serial));
 
         while($rec = $query->fetch()){
             $quantityInPack = 1;
