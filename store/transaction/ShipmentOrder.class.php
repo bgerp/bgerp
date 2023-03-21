@@ -351,8 +351,8 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             // Вложимите кредит 706, другите 701
             $debitAccId = '701';
             $creditAccId = '321';
-            
-            $entries[] = array(
+
+            $entry = array(
                 'debit' => array(
                     $debitAccId,
                     array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
@@ -368,6 +368,15 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                     'quantity' => $sign * $detailRec->quantity, // Количество продукт в основна мярка
                 ),
             );
+
+            if($reverse){
+                $amountInStore = cat_Products::getWacAmountInStore($detailRec->quantity, $detailRec->productId, $rec->valior, $rec->storeId);
+                if(isset($amountInStore)){
+                    $entry['amount'] = -1 * $amountInStore;
+                }
+            }
+
+            $entries[] = $entry;
         }
         
         return $entries;

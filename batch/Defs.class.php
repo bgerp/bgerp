@@ -204,14 +204,15 @@ class batch_Defs extends core_Manager
     {
         // Имали кеширана стойност
         if (array_key_exists($productId, self::$cache)) {
-            
             return self::$cache[$productId];
         }
         self::$cache[$productId] = false;
         
         // Намираме записа за артикула
         $rec = self::fetch("#productId = '{$productId}'");
-        
+        $canStore = cat_Products::fetchField($productId, 'canStore');
+        if($canStore != 'yes') return null;
+
         if (isset($rec->templateId)) {
             $template = batch_Templates::fetch($rec->templateId);
             if (cls::load($template->driverClass, true)) {
