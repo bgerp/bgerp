@@ -177,6 +177,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако с бракува конкретен ред, задават се дефолтите от предишните
         if ($rec->type == 'scrap' && isset($rec->scrapRecId)) {
             $scrapRec = $mvc->fetch($rec->scrapRecId);
+            $canStore = cat_Products::fetchField($scrapRec->productId, 'canStore');
+            if($canStore == 'no'){
+                $form->setField('serial', 'input=none');
+            }
             $form->setDefault('serial', $scrapRec->serial);
             $form->setDefault('employees', $scrapRec->employees);
             $form->setDefault('fixedAsset', $scrapRec->fixedAsset);
@@ -231,11 +235,18 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $options = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         if ($rec->type == 'scrap') {
+            if(empty($rec->scrapRecId)){
+                unset($options['']);
+            }
             $optionField = 'serial';
             $form->setField('serial', 'removeAndRefreshForm=productId|quantity|scrapRecId');
             $form->setFieldType('serial', "enum(" . arr::fromArray($options) . ")");
             $form->setFieldTypeParams('serial', 'minimumResultsForSearch=0');
             $form->setDefault('serial', key($options));
+
+            if(isset($rec->scrapRecId)){
+                $form->setReadOnly('serial');
+            }
         } else {
             $optionField = 'productId';
             $form->setOptions('productId', array('' => '') + $options);
