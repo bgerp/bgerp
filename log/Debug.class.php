@@ -498,6 +498,10 @@ class log_Debug extends core_Manager
                     'method' => 'POST',
                     'content' => http_build_query($dataArr),
                 ),
+                "ssl"=>array(
+                    "verify_peer"=>false,
+                    "verify_peer_name"=>false,
+                )
             );
             $context = stream_context_create($options);
             $url = help_Setup::get('BGERP_SUPPORT_URL', true);
