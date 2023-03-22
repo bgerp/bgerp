@@ -10,7 +10,7 @@ defIfNot('OPENAI_TOKEN', '');
 /**
  * Парола
  */
-defIfNot('OPENAI_URL', 'https://api.openai.com/v1');
+defIfNot('OPENAI_BASE_URL', 'https://api.openai.com/v1');
 
 
 /**
