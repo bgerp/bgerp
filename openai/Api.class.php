@@ -274,9 +274,8 @@ class openai_Api
         }
 
         if (haveRole('debug')) {
-            log_System::add(get_called_class(), $msg, null, 'warning');
+            status_Messages::newStatus($msg, 'warning');
         }
-
-        status_Messages::newStatus($msg, 'warning');
+        log_System::add(get_called_class(), $msg, null, 'warning');
     }
 }
