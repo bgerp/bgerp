@@ -554,6 +554,8 @@ class rack_MovementGenerator2 extends core_Manager
         $sI = $dI = $i;
 
  //bp($sArr, $dArr, $pArr, $s, $d, $res);
+        $maxTries = 10;
+        $try = 1;
 
         while($sI > 0 && $dI > 0) {
             $sQ = $sArr[$sI] * $pArr[$sI];
@@ -587,7 +589,12 @@ class rack_MovementGenerator2 extends core_Manager
             if($dArr[$dI] <= 0) {
                 $dI--;
             }
-            
+
+            if($try >= $maxTries)  {
+                wp($sArr, $dArr, $sI, $dI, $s, $d, $packs);
+                break;
+            }
+            $try++;
             // if($i++ > 10)  bp($sArr, $dArr, $sI, $dI);
         }
 
