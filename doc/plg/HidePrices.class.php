@@ -210,7 +210,9 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function getBuriedElement()
     {
-        return "<span class='confidential-field'>" . tr('заличено||buried'). "</span>";
+        $title = tr('Нямате права да виждате сумата/цената');
+
+        return "<span class='confidential-field' title = {$title}>" . tr('заличено||buried'). "</span>";
     }
 
 
