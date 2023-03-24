@@ -846,10 +846,13 @@ abstract class deals_DealBase extends core_Master
 
             // Нотифициране на обекта за да се преизчисли статистиката за всеки случай
             $itemRec = acc_Items::fetchItem($this, $rec);
+            if($itemRec){
+                acc_Items::notifyObject($itemRec);
+            }
+
             cls::get('acc_Balances')->recalc();
 
             acc_RatesDifferences::create($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
-
             if($itemRec){
                 acc_Items::notifyObject($itemRec);
             }
@@ -931,7 +934,6 @@ abstract class deals_DealBase extends core_Master
                         //if(in_array($docRec->operationSysId, array('')))
                     }
                 } elseif($this->className == 'purchase_Purchases'){
-
                     if(in_array($d->className, array('cash_Rko', 'bank_SpendingDocuments'))){
                         if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
                     } elseif(in_array($d->className, array('cash_Pko', 'bank_IncomeDocuments'))){

@@ -86,14 +86,24 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 }
 
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
-                $strategyRate = acc_strategy_WAC::getAmount(1, $rec->valior, $creditAccId, $item1Id, $currencyItemId, null);
+                $strategyRate = acc_strategy_WAC::getAmount(1, $rec->valior, $creditAccId, $item1Id, $currencyItemId, null, 1);
+               // bp($strategyRate, 1, $rec->valior, $creditAccId, $item1Id, $currencyItemId, null);
+
+
                 if(round($docRec->amountDeal, 2) != round($docRec->amount, 2)){
                     $strategyRate = acc_strategy_WAC::getAmount(1, $rec->valior, $creditAccId, $item1Id, $currencyItemId, null);
                     $delta = $docRec->amount / $docRec->amountDeal;
                     $strategyRate = $strategyRate * $delta;
                 }
 
-                $diffRate = round($rate - $strategyRate, 5);
+
+
+              //  $diffAmount = ($docRec->amountDeal * $rate) - ($docRec->amountDeal * $strategyRate);
+
+
+                $diffRate = round($rate - $strategyRate, 7);
+                //bp($docRec->amountDeal, $rate, $strategyRate);
+
                 $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
                 $totalAmount += $finalAmount;
                 $debitQuantity = $docRec->amountDeal;
