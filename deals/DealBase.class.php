@@ -236,7 +236,7 @@ abstract class deals_DealBase extends core_Master
         }
         
         if ($mvc->haveRightFor('changerate', $rec)) {
-            $data->toolbar->addBtn('Промяна на курса', array($mvc, 'changeRate', $rec->id, 'ret_url' => true), 'id=changeRateBtn,row=2', 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на курса на документите в нишката');
+            $data->toolbar->addBtn('Промяна на курса', array($mvc, 'changeRate', $rec->id, 'ret_url' => true), 'id=changeRateBtn,row=2', 'ef_icon = img/16/bug.png,title=Преизчисляване на курса на документите в нишката');
         }
     }
     
@@ -827,13 +827,14 @@ abstract class deals_DealBase extends core_Master
         $form->info = "<div style='margin-left:7px'>" . tr("Стар курс|*: <i style='color:green'>{$rec->currencyRate}</i>") . "</div>";
         $form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
 
-        if($averageRate =  $this->getAverageRateInThread($rec)){
-            $form->info .= "<div style='margin-left:7px'>" . tr("Среден курс|*: <i style='color:green'>{$averageRate}</i>") . "</div>";
-            $form->setDefault('newRate', $averageRate);
-        }
+        $today = dt::today();
+        $newCurrencyRate = currency_CurrencyRates::getRate($today, $rec->currencyId, null);
+        $todayVerbal = dt::mysql2verbal($today);
+        $form->info .= "<div style='margin-left:7px'>" . tr("Кърс към|* {$todayVerbal}: <i style='color:green'>{$newCurrencyRate}</i>") . "</div>";
+        $form->setDefault('newRate', $newCurrencyRate);
 
         $form->input();
-        
+
         if ($form->isSubmitted()) {
             $fRec = $form->rec;
             try{
@@ -845,13 +846,17 @@ abstract class deals_DealBase extends core_Master
 
             // Нотифициране на обекта за да се преизчисли статистиката за всеки случай
             $itemRec = acc_Items::fetchItem($this, $rec);
+            cls::get('acc_Balances')->recalc();
+
+            acc_RatesDifferences::create($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
+
             if($itemRec){
                 acc_Items::notifyObject($itemRec);
             }
 
             followRetUrl(null, 'Документите са преизчислени успешно|*!');
         }
-        
+
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс,order=9');
         $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png,order=911');
         
@@ -907,10 +912,33 @@ abstract class deals_DealBase extends core_Master
         // Рекалкулиране на определени документи в нишката и
         $dealDocuments = $this->getDescendants($rec->id);
 
-        $arr = array(cash_Pko::getClassId(), bank_IncomeDocuments::getClassId(), findeals_DebitDocuments::getClassId(), findeals_CreditDocuments::getClassId(), store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId(), acc_ValueCorrections::getClassId());
+        $paymentDocumentClasses = array(cash_Rko::getClassId(), cash_Pko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
+        $arr = array('cash_Rko', 'cash_Pko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_DebitDocuments', 'findeals_CreditDocuments', 'store_ShipmentOrders', 'store_Receipts', 'sales_Services', 'purchase_Services', 'sales_Invoices', 'purchase_Invoices', 'acc_ValueCorrections');
         foreach ($dealDocuments as $d) {
-            if (!in_array($d->getClassId(), $arr)) {
+            if (!in_array($d->className, $arr)) {
                 continue;
+            }
+
+            if($d->isInstanceOf('deals_PaymentDocument')){
+                $docRec = $d->fetch('isReverse,operationSysId,amount,amountDeal');
+
+                if($this->className == 'sales_Sales'){
+                    if(in_array($d->className, array('cash_Pko', 'bank_IncomeDocuments'))){
+                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
+                    } elseif(in_array($d->className, array('cash_Rko', 'bank_SpendingDocuments'))){
+                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
+
+                        //if(in_array($docRec->operationSysId, array('')))
+                    }
+                } elseif($this->className == 'purchase_Purchases'){
+
+                    if(in_array($d->className, array('cash_Rko', 'bank_SpendingDocuments'))){
+                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
+                    } elseif(in_array($d->className, array('cash_Pko', 'bank_IncomeDocuments'))){
+                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
+                        if(in_array($docRec->operationSysId, array('supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'))) continue;
+                    }
+                }
             }
 
             // Ако вальора е в затворен период - пропуска се

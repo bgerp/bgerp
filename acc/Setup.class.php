@@ -196,6 +196,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
+        'acc_RatesDifferences',
         'migrate::updatePriceRoles2247',
     );
     

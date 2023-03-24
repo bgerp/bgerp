@@ -1376,6 +1376,7 @@ abstract class deals_Helper
                 $rec->rate = $newRate;
             }
         } elseif(isset($masterMvc->mainDetail)) {
+
             $Detail = cls::get($masterMvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");

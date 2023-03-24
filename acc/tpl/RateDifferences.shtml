@@ -1,0 +1,26 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<table class='styled-table'>
+    <tr>
+        <td>|Вальор|*</td>
+        <td>[#valior#]</td>
+    </tr>
+    <tr>
+        <td>|Валута|*</td>
+        <td><span class="cCode">[#currencyId#]</span></td>
+    </tr>
+    <tr>
+        <td>|Общо|*</td>
+        <td>[#total#]</td>
+    </tr>
+    <tr>
+        <td>|Сделка|*</td>
+        <td>[#dealOriginId#]</td>
+    </tr>
+    <tr>
+        <td>|Текущ курс към|* [#valior#]</td>
+        <td>[#b#] <span class="cCode">[#currencyId#]</span> |за|* <span class="cCode">[#baseCurrencyCode#]</span></td>
+    </tr>
+</table>
+[#data#]
+<div style="margin-top:10px">[#reason#]</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
