@@ -56,7 +56,8 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
             }
         }
 
-        $this->class->save_($rec, 'data');
+        $rec->total = array_sum($rec->data);
+        $this->class->save_($rec, 'data,total');
 
         return $result;
     }
@@ -130,10 +131,9 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                     array('currency_Currencies', $currencyId),
                     'quantity' => $sign * round($debitQuantity, 2)),
                 'credit' => array('481',
-                    $currencyItemId,
-                    'quantity' => $sign * round($creditQuantity, 2)),
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $sign * round($debitQuantity, 2)),
                 'reason' => "Валутни разлики " . $Doc->getHandle());
-
         }
 
         return $entries;

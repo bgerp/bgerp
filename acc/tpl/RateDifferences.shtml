@@ -10,7 +10,7 @@
     </tr>
     <tr>
         <td>|Общо|*</td>
-        <td>[#total#]</td>
+        <td>[#total#] <span class="cCode">[#baseCurrencyCode#]</span></td>
     </tr>
     <tr>
         <td>|Сделка|*</td>

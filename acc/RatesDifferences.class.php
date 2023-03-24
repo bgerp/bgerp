@@ -188,6 +188,7 @@ class acc_RatesDifferences extends core_Master
         $row->dealOriginId = doc_Containers::getDocument($rec->dealOriginId)->getLink(0);
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 
+        $row->total = ht::styleIfNegative($row->total, $rec->total);
         if(is_array($rec->data)){
             $displayRes = "<table style='width:300px'>";
             foreach ($rec->data as $containerId => $amountCorrected){
