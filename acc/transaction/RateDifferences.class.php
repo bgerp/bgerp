@@ -48,18 +48,74 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
         $Deal = doc_Containers::getDocument($rec->dealOriginId);
         $dealRec = $Deal->fetch();
-
+        $entries = array();
         if($Deal->isInstanceOf('purchase_Purchases')){
             $entries = $this->getPurchaseEntries($rec, $documents, $dealRec, $result->totalAmount, $rec->data);
-            if(countR($entries)){
-                $result->entries = $entries;
-            }
+        } elseif($Deal->isInstanceOf('sales_Sales')){
+            $entries = $this->getSaleEntries($rec, $documents, $dealRec, $result->totalAmount, $rec->data);
+        }
+        if(countR($entries)){
+            $result->entries = $entries;
         }
 
         $rec->total = array_sum($rec->data);
         $this->class->save_($rec, 'data,total');
 
         return $result;
+    }
+
+    private function getSaleEntries($rec, $documents, $dealRec, &$totalAmount, &$data)
+    {
+        $entries = array();
+
+        foreach ($documents as $d) {
+            $Doc = doc_Containers::getDocument($d->id);
+            $docRec = $Doc->fetch();
+            $rate = $rec->rate;
+
+            if($Doc->isInstanceOf('deals_PaymentDocument')){
+
+                $sign = ($docRec->isReverse == 'yes') ? -1 : 1;
+                $currencyId = currency_Currencies::getIdByCode($dealRec->currencyId);
+                $currencyCode = currency_Currencies::getCodeById($docRec->currencyId);
+                $strategyRate = currency_CurrencyRates::getRate($docRec->valior, $currencyCode, null);
+                if($docRec->isReverse == 'yes' && in_array($docRec->operationSysId, array('case2customerRet', 'bank2customerRet', 'caseAdvance2customerRet', 'bankAdvance2customerRet'))){
+                    continue;
+                }
+
+                if($Doc->isInstanceOf('bank_Document')){
+                    $creditAccId = $docRec->creditAccId;
+                } else {
+                    $creditAccId = $docRec->creditAccount;
+                }
+
+                if(round($docRec->amountDeal, 2) != round($docRec->amount, 2)){
+                    $delta = $docRec->amount / $docRec->amountDeal;
+                    $strategyRate = $strategyRate * $delta;
+                }
+
+                $diffRate = round($rate - $strategyRate, 5);
+                $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
+                if($finalAmount){
+                    $totalAmount += $finalAmount;
+
+                    $data[$docRec->containerId] = $finalAmount;
+
+                    $entries[] = array('amount' => $finalAmount,
+                        'credit' => array($creditAccId,
+                            array($dealRec->contragentClassId, $dealRec->contragentId),
+                            array('sales_Sales', $dealRec->id),
+                            array('currency_Currencies', $currencyId),
+                            'quantity' => $sign * round($docRec->amountDeal, 2)),
+                        'debit' => array('481',
+                            array('currency_Currencies', $currencyId),
+                            'quantity' => $sign * round($docRec->amountDeal, 2)),
+                        'reason' => "Валутни разлики");
+                }
+            }
+        }
+
+        return $entries;
     }
 
 
@@ -86,15 +142,17 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 }
 
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
-                $strategyRate = acc_strategy_WAC::getAmount(1, $rec->valior, $creditAccId, $item1Id, $currencyItemId, null, 1);
+                $strategyRate = acc_strategy_WAC::getAmount(1, $rec->valior, $creditAccId, $item1Id, $currencyItemId, null);
+                if(empty($strategyRate)){
+                    $strategyRate = currency_CurrencyRates::getRate($rec->valior, currency_Currencies::getCodeById($docRec->currencyId), null);
+                }
 
                 if(round($docRec->amountDeal, 2) != round($docRec->amount, 2)){
-                    $strategyRate = acc_strategy_WAC::getAmount(1, $rec->valior, $creditAccId, $item1Id, $currencyItemId, null);
                     $delta = $docRec->amount / $docRec->amountDeal;
                     $strategyRate = $strategyRate * $delta;
                 }
 
-                $diffRate = round($rate - $strategyRate, 7);
+                $diffRate = round($rate - $strategyRate, 5);
 
                 $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
                 $totalAmount += $finalAmount;
@@ -135,7 +193,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 'credit' => array('481',
                     array('currency_Currencies', $currencyId),
                     'quantity' => $sign * round($debitQuantity, 2)),
-                'reason' => "Валутни разлики " . $Doc->getHandle());
+                'reason' => "Валутни разлики");
         }
 
         return $entries;

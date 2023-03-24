@@ -927,11 +927,10 @@ abstract class deals_DealBase extends core_Master
 
                 if($this->className == 'sales_Sales'){
                     if(in_array($d->className, array('cash_Pko', 'bank_IncomeDocuments'))){
-                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
+                        continue;
                     } elseif(in_array($d->className, array('cash_Rko', 'bank_SpendingDocuments'))){
                         if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
-
-                        //if(in_array($docRec->operationSysId, array('')))
+                        if(in_array($docRec->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer'))) continue;
                     }
                 } elseif($this->className == 'purchase_Purchases'){
                     if(in_array($d->className, array('cash_Rko', 'bank_SpendingDocuments'))){

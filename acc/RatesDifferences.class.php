@@ -116,7 +116,7 @@ class acc_RatesDifferences extends core_Master
         $this->FLD('dealOriginId', 'key(mvc=doc_Containers,select=id)', 'caption=Документ,mandatory');
         $this->FLD('rate', 'double(decimals=5)', 'caption=Курс,mandatory');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
-        $this->FLD('total', 'double', 'caption=Общо,mandatory');
+        $this->FLD('total', 'double(decimals=2)', 'caption=Общо,mandatory');
     }
 
 
@@ -191,15 +191,19 @@ class acc_RatesDifferences extends core_Master
         $row->total = ht::styleIfNegative($row->total, $rec->total);
         if(is_array($rec->data)){
             $displayRes = "<table style='width:300px'>";
-            foreach ($rec->data as $containerId => $amountCorrected){
-                $doc = doc_Containers::getDocument($containerId);
-                $docLink = $doc->getLink(0)->getContent();
-                $amountCorrectedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountCorrected);
-                $amountCorrectedVerbal = ht::styleIfNegative($amountCorrectedVerbal, $amountCorrected);
-                $displayRes .= "<tr><td>{$docLink}</td> <td style='text-align:right'>{$amountCorrectedVerbal} <span class='cCode'>{$row->baseCurrencyCode}</span></td></tr>";
+            if(countR($rec->data)){
+                foreach ($rec->data as $containerId => $amountCorrected){
+                    $doc = doc_Containers::getDocument($containerId);
+                    $docLink = $doc->getLink(0)->getContent();
+                    $amountCorrectedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountCorrected);
+                    $amountCorrectedVerbal = ht::styleIfNegative($amountCorrectedVerbal, $amountCorrected);
+                    $displayRes .= "<tr><td>{$docLink}</td> <td style='text-align:right'>{$amountCorrectedVerbal} <span class='cCode'>{$row->baseCurrencyCode}</span></td></tr>";
+                }
+                $displayRes .= "</table>";
+                $row->data = $displayRes;
+            } else {
+                $row->data = "<b>" . tr("Няма") . "</b>";
             }
-            $displayRes .= "</table>";
-            $row->data = $displayRes;
         }
     }
 
