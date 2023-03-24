@@ -830,7 +830,7 @@ abstract class deals_DealBase extends core_Master
         $today = dt::today();
         $newCurrencyRate = currency_CurrencyRates::getRate($today, $rec->currencyId, null);
         $todayVerbal = dt::mysql2verbal($today);
-        $form->info .= "<div style='margin-left:7px'>" . tr("Кърс към|* {$todayVerbal}: <i style='color:green'>{$newCurrencyRate}</i>") . "</div>";
+        $form->info .= "<div style='margin-left:7px'>" . tr("Курс към|* {$todayVerbal}: <i style='color:green'>{$newCurrencyRate}</i>") . "</div>";
         $form->setDefault('newRate', $newCurrencyRate);
 
         $form->input();
