@@ -17,7 +17,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'acc_TransactionSourceIntf=acc_transaction_RateDifferences, doc_DocumentIntf';
+    public $interfaces = 'acc_TransactionSourceIntf=acc_transaction_RateDifferences, doc_DocumentIntf,acc_Wrapper';
 
 
     /**
@@ -90,7 +90,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'no_one';
+    public $canList = 'ceo,acc';
 
 
     /**
@@ -117,6 +117,10 @@ class acc_RatesDifferences extends core_Master
         $this->FLD('rate', 'double(decimals=5)', 'caption=Курс,mandatory');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
         $this->FLD('total', 'double(decimals=2)', 'caption=Общо,mandatory');
+        $this->FLD('lastRecalced', 'datetime(format=smartTime)', 'caption=Последно преизчисляване,mandatory');
+
+        $this->setDbIndex('dealOriginId');
+        $this->setDbIndex('lastRecalced');
     }
 
 
@@ -126,7 +130,7 @@ class acc_RatesDifferences extends core_Master
         expect($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases'));
 
         $isCreated = true;
-        $rec = (object)array('reason' => $reason, 'threadId' => $threadId, 'currencyId' => $currencyCode, 'rate' => $rate, 'dealOriginId' => $firstDoc->fetchField('containerId'));
+        $rec = (object)array('reason' => $reason, 'threadId' => $threadId, 'currencyId' => $currencyCode, 'rate' => $rate, 'dealOriginId' => $firstDoc->fetchField('containerId'), 'lastRecalced' => dt::now());
         if($exId = static::fetchField("#threadId = {$threadId} AND #state = 'active'")){
             $rec->id = $exId;
             $isCreated = false;
@@ -209,6 +213,24 @@ class acc_RatesDifferences extends core_Master
 
 
     /**
+     * Интерфейсен метод на doc_DocumentInterface
+     */
+    public function getDocumentRow_($id)
+    {
+        $rec = $this->fetch($id);
+        $row = new stdClass();
+
+        $row->title = $this->getRecTitle($rec);
+        $row->authorId = $rec->createdBy;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->recTitle = $row->title;
+        $row->state = $rec->state;
+
+        return $row;
+    }
+
+
+    /**
      * Кой е дефолтния вальор на документа
      *
      * @param $rec
@@ -217,5 +239,94 @@ class acc_RatesDifferences extends core_Master
     public function getDefaultValior($rec)
     {
         return dt::today();
+    }
+
+
+    /**
+     * Реконтиране на валутните разлики по разписание
+     */
+    public function cron_RecontoActive()
+    {
+        $dealClasses = array(sales_Sales::getClassId(), purchase_Purchases::getClassId());
+        $cronPeriod = 60; // @todo да се вземе времето на крон процеса като се добави
+        $add = ($cronPeriod + 5) * 60; // Добавят се 5 минути толеранс
+
+        // Кои сделки са с модифицирани пера след последното минаване на крона
+        $now = dt::now();
+        $foundDeals = array();
+        $after = dt::addSecs(-1 * $add, $now);
+        $iQuery = acc_Items::getQuery();
+        $iQuery->in("classId", $dealClasses);
+        $iQuery->where("#lastUseOn >= '{$after}' AND #state = 'active'");
+        while($iRec = $iQuery->fetch()){
+            $foundDeals[$iRec->classId][] = $iRec->objectId;
+        }
+
+        if(!countR($foundDeals)) return;
+
+        // Кои са техните контейнери
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#state = 'active'");
+        $cQuery->show('id');
+        $i = 1;
+        foreach ($foundDeals as $dealClassId => $dealIds){
+            $or = !(($i == 1));
+            $dealIdsArr = implode(',', $dealIds);
+            $cQuery->where("#docClass = {$dealClassId} AND #docId IN ({$dealIdsArr})", $or);
+            $i++;
+        }
+        $dealContainerIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
+        if(!countR($dealContainerIds)) return;
+
+        // Реконтиране само на тези курсови разлики в нишки на активни засегнати сделки
+        $query = static::getQuery();
+        $query->EXT('dealState', 'doc_Containers', 'externalName=state,externalKey=dealOriginId');
+        $query->where("#state = 'active' AND #dealState = 'active'");
+        $iQuery->XPR('lastRecalcedCalc', 'double', "COALESCE(#lastAutoRecalcRate, '0000-00-00 00:00:00')");
+        $query->in('dealOriginId', $dealContainerIds);
+
+        // Подсигуряване, че не са в затворен период
+        $lastClosedPeriod = acc_Periods::getLastClosed();
+        if($lastClosedPeriod){
+            $after = dt::addDays(1, $lastClosedPeriod->end);
+            $query->where("#valior >= '{$after}'");
+        }
+
+        $recontoItems = array();
+        $recs = $query->fetchAll();
+        core_App::setTimeLimit(countR($recs) * 0.5, false, 100);
+        foreach ($recs as $rec){
+            $doc = doc_Containers::getDocument($rec->dealOriginId);
+
+            // Ако перото на сделката е използвано преди последното преизчисляване се пропуска
+            $itemRec = acc_Items::fetchItem($doc->getInstance(), $doc->that);
+            if($itemRec->lastUseOn <= $rec-> lastRecalcedCalc) continue;
+
+            try{
+                acc_Journal::reconto($rec->containerId);
+                if(is_object($itemRec)){
+                    $recontoItems[$itemRec->id] = $itemRec;
+                }
+            } catch(acc_journal_Exception $e){
+                wp($e);
+                static::logErr('Грешка при реконтиране', $rec->id);
+            }
+        }
+
+        // Форсиране на рекалкулиране на балансите
+        cls::get('acc_Balances')->recalc();
+
+        // Нотифициране на сделките да им се опресни статистиката
+        foreach ($recontoItems as $itemRec){
+            acc_Items::notifyObject($itemRec);
+        }
+    }
+
+
+    function act_RecontoAll()
+    {
+        requireRole('debug');
+
+        $this->cron_RecontoActive();
     }
 }

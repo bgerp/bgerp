@@ -482,9 +482,18 @@ class acc_Setup extends core_ProtoSetup
             'offset' => 1,
             'timeLimit' => 60
         )
+        /*array(
+            'systemId' => 'RecontoRateDiffs',
+            'description' => 'Рекалкулиране на курсовите разлики',
+            'controller' => 'acc_RatesDifferences',
+            'action' => 'RecontoActive',
+            'period' => 30,
+            'offset' => 1,
+            'timeLimit' => 100
+        )*/
     );
-    
-    
+
+
     /**
      * Дефинирани класове, които имат интерфейси
      */

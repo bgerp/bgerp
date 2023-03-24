@@ -20,6 +20,10 @@
         <td>|Текущ курс към|* [#valior#]</td>
         <td><b>[#rate#]</b> <span class="cCode">[#currencyId#]</span> |за|* <span class="cCode">[#baseCurrencyCode#]</span></td>
     </tr>
+    <tr>
+        <td>|Актуално към|*</td>
+        <td>[#lastRecalced#]</td>
+    </tr>
 </table>
 [#data#]
 <div style="margin-top:10px">[#reason#]</div>
