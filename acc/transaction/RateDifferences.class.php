@@ -184,6 +184,8 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 continue;
             }
 
+            if(empty($finalAmount)) continue;
+
             $data[$docRec->containerId] = $finalAmount;
             $entries[] = array('amount' => $finalAmount,
                 'debit' => array($debitAccId,
