@@ -629,6 +629,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $categoryId = doc_Folders::fetch($recPrime->prodFolderId)->coverId;
 
+            //rec-a на артикула
+            $prodRec = cat_Products::fetch($recPrime->productId);
+
             //Ключ на масива
             $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId : $recPrime->productId;
 
@@ -636,7 +639,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $artCode = $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}";
 
             //Мярка на артикула
-            $measureArt = cat_Products::fetch($recPrime->productId)->measureId;
+            $measureArt = $prodRec->measureId;
 
             //Данни за ПРЕДХОДЕН ПЕРИОД или МЕСЕЦ
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
@@ -656,10 +659,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                         // приемаме че, себестойността е 95% от продажната цена
-                        if($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0){
+                        if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
                             $deltaPrevious = $recPrime->sellCost * 0.95 * $recPrime->quantity;
-                        }else{
-                            $deltaPrevious = $recPrime->delta ;
+                        } else {
+                            $deltaPrevious = $recPrime->delta;
                         }
 
 
@@ -704,10 +707,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                         // приемаме че, себестойността е 95% от продажната цена
-                        if($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0){
+                        if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
                             $deltaLastYear = $recPrime->sellCost * 0.95 * $recPrime->quantity;
-                        }else{
-                            $deltaLastYear = $recPrime->delta ;
+                        } else {
+                            $deltaLastYear = $recPrime->delta;
                         }
 
                     } elseif ($DetClass instanceof sales_InvoiceDetails) {
@@ -749,10 +752,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                     // приемаме че, себестойността е 95% от продажната цена
-                    if($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0){
+                    if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
                         $delta = $recPrime->sellCost * 0.95 * $recPrime->quantity;
-                    }else{
-                        $delta = $recPrime->delta ;
+                    } else {
+                        $delta = $recPrime->delta;
                     }
 
                 } elseif ($DetClass instanceof sales_InvoiceDetails) {
@@ -842,7 +845,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $obj->deltaLastYear += $deltaLastYear;
             }
         }
-
+        unset($prodRec);
         //Отчитане на ДИ и КИ без детайли
 
         if ($rec->quantityType == 'invoiced') {
@@ -1450,8 +1453,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             } else {
                 $group = cat_Groups::getVerbal($dRec->group, 'name');
             }
-        }
-;
+        };
         return $group;
     }
 
@@ -1877,7 +1879,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (isset($dRec->measure)) {
             $res->measure = $dRec->measure;
         }
-        if(isset($dRec->productId)){
+        if (isset($dRec->productId)) {
             $res->productId = cat_Products::fetch($dRec->productId)->name;
         }
 
@@ -1899,7 +1901,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         } else {
             if ($rec->seeByContragent == 'yes') {
-                if (isset($res->contragent)){
+                if (isset($res->contragent)) {
                     $res->contragent = doc_Folders::fetch($dRec->contragent)->title;
                 }
 
