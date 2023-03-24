@@ -248,7 +248,9 @@ class acc_RatesDifferences extends core_Master
     public function cron_RecontoActive()
     {
         $dealClasses = array(sales_Sales::getClassId(), purchase_Purchases::getClassId());
-        $cronPeriod = 60; // @todo да се вземе времето на крон процеса като се добави
+
+        $cronRec = core_Cron::getRecForSystemId('RecontoRateDiffs');
+        $cronPeriod = $cronRec->period;
         $add = ($cronPeriod + 5) * 60; // Добавят се 5 минути толеранс
 
         // Кои сделки са с модифицирани пера след последното минаване на крона

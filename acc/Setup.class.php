@@ -481,8 +481,8 @@ class acc_Setup extends core_ProtoSetup
             'period' => 480,
             'offset' => 1,
             'timeLimit' => 60
-        )
-        /*array(
+        ),
+        array(
             'systemId' => 'RecontoRateDiffs',
             'description' => 'Рекалкулиране на курсовите разлики',
             'controller' => 'acc_RatesDifferences',
@@ -490,7 +490,7 @@ class acc_Setup extends core_ProtoSetup
             'period' => 30,
             'offset' => 1,
             'timeLimit' => 100
-        )*/
+        )
     );
 
 
