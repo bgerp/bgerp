@@ -1006,19 +1006,10 @@ abstract class deals_DealBase extends core_Master
      */
     public function recalcDealsWithCurrencies()
     {
-        // Кога последно е преизчисляван баланса
-        $lastBalanceRec = acc_Balances::getLastBalance();
-        $lastCalculate = (empty($lastBalanceRec->lastCalculate)) ? '0000-00-00' : $lastBalanceRec->lastCalculate;
-
-        // Търсят се перата на тези сделки, които са активни не са в Евро или Лева
-        // и перото им е бутано преди промяната на баланса и са използвани след последното преизчисляване
         $iQuery = acc_Items::getQuery();
         $iQuery->where("#classId = {$this->getClassId()} AND #state = 'active'");
         $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
-        $iQuery->EXT('lastAutoRecalcRate', $this->className, 'externalName=lastAutoRecalcRate,externalKey=objectId');
-        $iQuery->XPR('lastAutoRecalcRateCalc', 'double', "COALESCE(#lastAutoRecalcRate, '0000-00-00 00:00:00')");
-        $iQuery->where("#currencyId != 'BGN' AND ADDDATE(#lastUseOn, INTERVAL 300 SECOND) <= '{$lastCalculate}'");
-        $iQuery->where("#lastUseOn >= #lastAutoRecalcRateCalc");
+        $iQuery->where("#currencyId != 'BGN'");
 
         $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
         $count = countR($dealIds);
@@ -1029,44 +1020,48 @@ abstract class deals_DealBase extends core_Master
         // Ако има намерени сделки
         $Items = cls::get('acc_Items');
 
+        $now = dt::now();
         $query = $this->getQuery();
         $query->in('id', $dealIds);
-        $updateRecs = array();
+
+        ///@todo да го махна в последствие
+        $query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
+
+        $recalcedItems = $saved = array();
         while($rec = $query->fetch()){
-            if($rec->state != 'active'){
-                wp("Неактивна с активно перо", $rec);
+            $newRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
+            try{
+                $this->recalcDocumentsWithNewRate($rec, $newRate);
+            } catch(acc_journal_Exception $e){
+                $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
+                $this->logErr($errorMsg, $rec->id);
             }
 
-            // Осредняване на курса
-            $skip = '';
-            if($averageRate =  $this->getAverageRateInThread($rec)){
-                $valueToCompare = max($rec->amountInvoiced, $rec->amountDelivered, $rec->amountDeal);
-                $valueToCompareDividedByOldRate = $valueToCompare / $rec->currencyRate;
-                $newValToCompare = $valueToCompareDividedByOldRate * $averageRate;
-                $change = abs($valueToCompare - $newValToCompare);
-                $itemRec = acc_Items::fetchItem($this, $rec);
-
-                if(round($change, 2) >= 0.01){
-                    try{
-                        $this->recalcDocumentsWithNewRate($rec, $averageRate);
-                    } catch(acc_journal_Exception $e){
-                        $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
-                        $this->logErr($errorMsg, $rec->id);
-                    }
-
-                    if($itemRec){
-                        acc_Items::notifyObject($itemRec);
-                    }
-                    $Items->flushTouched();
-                } else {
-                    $skip = 'SKIP';
-                }
-
-                $this->logDebug("CH RATE {$skip}: CH:'{$change}',NR:'{$averageRate}',OR:'{$rec->currencyRate}',USEON:'{$itemRec->lastUseOn}',NUSEON: '{$itemLastUseOn}', LC:'{$rec->lastAutoRecalcRate}'", $rec->id);
-                $itemLastUseOn = acc_Items::fetchField("#classId = {$this->getClassId()} AND #objectId = {$rec->id}", 'lastUseOn', false);
-                $rec->lastAutoRecalcRate = dt::addSecs(2, $itemLastUseOn);
-                $this->save_($rec, 'lastAutoRecalcRate');
+            $rec->__newRate = $newRate;
+            $rec->lastAutoRecalcRate = $now;
+            $saved[$rec->id] = $rec;
+            $itemRec = acc_Items::fetchItem($this, $rec->id);
+            if($itemRec){
+                $recalcedItems[$rec->id] = $itemRec;
             }
+        }
+
+        foreach ($recalcedItems as $itemRec){
+            acc_Items::notifyObject($itemRec);
+        }
+        $Items->flushTouched();
+
+        cls::get('acc_Balances')->recalc();
+
+        if(countR($saved)){
+            $this->saveArray($saved, 'id,lastAutoRecalcRate');
+            foreach ($saved as $rec){
+                acc_RatesDifferences::create($rec->threadId, $rec->currencyId, $rec->__newRate, 'Автоматична корекция на курсови разлики');
+            }
+        }
+
+        foreach ($recalcedItems as $itemRec){
+            acc_Items::notifyObject($itemRec);
         }
     }
 }
