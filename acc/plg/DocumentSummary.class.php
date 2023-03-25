@@ -328,7 +328,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if($mvc->filterAllowState){
                 if($mvc->getField('state', false)){
                     $stateOptions = $mvc->getFieldType('state')->options;
-                    $stateOptions = array_intersect_key($stateOptions, arr::make(array('draft', 'pending', 'active', 'waiting', 'stopped', 'wakeup', 'closed'), true));
+                    $stateOptions = array_intersect_key($stateOptions, arr::make(array('draft', 'pending', 'active', 'waiting', 'stopped', 'wakeup', 'closed', 'template'), true));
                     foreach ($stateOptions as $k => $v){
                         $stateOptions[$k] = is_object($v) ? $v->title : $v;
                     }

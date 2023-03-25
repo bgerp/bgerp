@@ -155,7 +155,7 @@ class openai_Api
 
         if ($useCache !== 'only') {
             if ($responseJson === false) {
-                $url = rtrim(openai_Setup::get('URL'), '/') . '/' .  ltrim($params['__endpoint'], '/');
+                $url = rtrim(openai_Setup::get('BASE_URL'), '/') . '/' .  ltrim($params['__endpoint'], '/');
 
                 unset($params['__endpoint']);
                 openai_Exception::expect($url, 'Не е настроен пакета');
@@ -274,9 +274,8 @@ class openai_Api
         }
 
         if (haveRole('debug')) {
-            log_System::add(get_called_class(), $msg, null, 'warning');
+            status_Messages::newStatus($msg, 'warning');
         }
-
-        status_Messages::newStatus($msg, 'warning');
+        log_System::add(get_called_class(), $msg, null, 'warning');
     }
 }

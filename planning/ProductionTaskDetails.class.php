@@ -1868,11 +1868,16 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     public static function getAvailableScrap($serial, $taskId, $productId)
     {
+        $taskSerialType = planning_Tasks::fetchField($taskId, 'labelType');
         $produced = $scrapped = $weightScrapped = $weightProduced = $netWeightScrapped = $netWeightProduced = 0;
         $query = static::getQuery();
         $query->EXT('quantityInPack', 'planning_Tasks', 'externalName=quantityInPack,externalKey=taskId');
         $query->where("#taskId = {$taskId} AND #productId = {$productId} AND #state != 'rejected' AND #type IN ('production', 'scrap')");
-        $query->where(array("#serial = '[#1#]'", $serial));
+        if($taskSerialType == 'print' && empty($serial)){
+            $query->where("#serial IS NULL");
+        } else {
+            $query->where(array("#serial = '[#1#]'", $serial));
+        }
 
         while($rec = $query->fetch()){
             $quantityInPack = 1;

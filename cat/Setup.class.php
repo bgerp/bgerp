@@ -57,7 +57,7 @@ defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
 /**
  * При търсене на складова себестойност до колко месеца на зад да се търси
  */
-defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 3);
+defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 36);
 
 
 /**
