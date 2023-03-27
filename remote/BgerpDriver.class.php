@@ -281,7 +281,13 @@ class remote_BgerpDriver extends core_Mvc
             
             $url .= "/remote_BgerpDriver/AuthConfirm/?authId={$rec->data->rId}&Fw=" . $Fw;
             
-            $confirm = file_get_contents($url);
+            $options = array(
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                )
+            );
+            $confirm = file_get_contents($url, false, stream_context_create($options));
             
             
             if ($confirm == md5($rec->data->rKey . $rec->rKeyCC)) {
