@@ -53,13 +53,29 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
             
         }
     }
-    
+
+    /**
+     *
+     * Връща урл за взимане на снимка от камерата в зависимост от вида и
+     */
     protected function getPictureUrl()
     {
         $scheme = parse_url($this->mediaSnapshotUri, PHP_URL_SCHEME);
         $this->mediaSnapshotUri = str_replace($scheme . "://", $scheme . "://" . $this->user . ":" . $this->password . "@", $this->mediaSnapshotUri);
         
         return $this->mediaSnapshotUri;
+    }
+    
+    /**
+     *
+     * Връща урл към видео стрийма на камерата в зависимост от вида и
+     */
+    protected function getStreamUrl()
+    {
+        $scheme = parse_url($this->$mediaUri, PHP_URL_SCHEME);
+        $this->$mediaUri = str_replace($scheme . "://", $scheme . "://" . $this->user . ":" . $this->password . "@", $this->$mediaUri);
+        
+        return $this->$mediaUri;
     }
     
     /**
