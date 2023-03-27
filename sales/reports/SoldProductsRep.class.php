@@ -660,7 +660,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                         // приемаме че, себестойността е 95% от продажната цена
                         if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
-                            $deltaPrevious = $recPrime->sellCost * 0.95 * $recPrime->quantity;
+                            $deltaPrevious = $recPrime->sellCost * 0.05 * $recPrime->quantity;
                         } else {
                             $deltaPrevious = $recPrime->delta;
                         }
@@ -708,7 +708,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                         // приемаме че, себестойността е 95% от продажната цена
                         if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
-                            $deltaLastYear = $recPrime->sellCost * 0.95 * $recPrime->quantity;
+                            $deltaLastYear = $recPrime->sellCost * 0.05 * $recPrime->quantity;
                         } else {
                             $deltaLastYear = $recPrime->delta;
                         }
@@ -753,7 +753,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                     // приемаме че, себестойността е 95% от продажната цена
                     if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
-                        $delta = $recPrime->sellCost * 0.95 * $recPrime->quantity;
+                        $delta = $recPrime->sellCost * 0.05 * $recPrime->quantity;
                     } else {
                         $delta = $recPrime->delta;
                     }
@@ -845,7 +845,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $obj->deltaLastYear += $deltaLastYear;
             }
         }
-        unset($prodRec);
+
         //Отчитане на ДИ и КИ без детайли
 
         if ($rec->quantityType == 'invoiced') {
@@ -1453,7 +1453,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             } else {
                 $group = cat_Groups::getVerbal($dRec->group, 'name');
             }
-        };
+        }
+;
         return $group;
     }
 
@@ -1879,7 +1880,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (isset($dRec->measure)) {
             $res->measure = $dRec->measure;
         }
-        if (isset($dRec->productId)) {
+        if(isset($dRec->productId)){
             $res->productId = cat_Products::fetch($dRec->productId)->name;
         }
 
@@ -1901,7 +1902,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         } else {
             if ($rec->seeByContragent == 'yes') {
-                if (isset($res->contragent)) {
+                if (isset($res->contragent)){
                     $res->contragent = doc_Folders::fetch($dRec->contragent)->title;
                 }
 
