@@ -3927,6 +3927,12 @@ class cat_Products extends embed_Manager
             $dQuery->orderBy('id', 'ASC');
 
             while ($dRec = $dQuery->fetch()) {
+                if (!$dInst || !$dInst->productFld) {
+                    wp('Лоши данни при експорт', $dName, $dInst, $dInst->productFld, $dRec);
+
+                    continue;
+                }
+
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
                     $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};

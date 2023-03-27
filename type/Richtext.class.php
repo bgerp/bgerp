@@ -324,10 +324,10 @@ class type_Richtext extends type_Blob
         
         // Заменя таговете с HTML такива
         $html = $this->replaceTags($html);
-        
+
         // Обработваме елементите [color=????]
         $html = preg_replace_callback("/\[color(=([^\]]*)|)\]/si", array($this, '_catchColor'), $html);
-        
+
         // Обработваме елементите [bg=????]
         $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]/si", array($this, '_catchBg'), $html);
         
@@ -336,7 +336,7 @@ class type_Richtext extends type_Blob
         
         // Обработваме елемента [li]
         $html = self::replaceList($html);
-        
+
         // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код \[bQuote
         // Ако възникне грешка при обработката, да не се прави никаква обработка
         if ($bQHtml = preg_replace_callback(self::QUOTE_PATTERN, array($this, '_catchBQuote'), $html)) {
@@ -363,7 +363,7 @@ class type_Richtext extends type_Blob
         
         // Обработваме имейлите, зададени в явен вид
         $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.({$tdlPtr})\b/i", array($this, '_catchEmails'), $html);
-        
+
         if (!Mode::is('text', 'plain')) {
             Debug::startTimer('RichtextReplaceIntervals');
             
@@ -631,8 +631,8 @@ class type_Richtext extends type_Blob
         $textMode = Mode::get('text');
         
         if ($textMode != 'plain') {
-            $to = array("\n", "\n", "\n", "<br>\n", '<nbsp><nbsp><nbsp><nbsp>', '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>', '<div class="richtext-message richtext-tip">', '</div>', '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span class="strike-text">', '</span>', '<small>', '</small>', '<div style="text-align: left">', '</div>', '<div style="text-align: center">', '</div>','<div style="text-align: right">', '</div>','<div style="text-align: justify">', '</div>', );
-        
+            $to = array("\n", "\n", "\n", "<br>\n", '<nbsp><nbsp><nbsp><nbsp>', '<nbsp>', "\n" . '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>', '<div class="richtext-message richtext-tip">', '</div>', '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span class="strike-text">', '</span>', '<small>', '</small>', '<div style="text-align: left">', '</div>', '<div style="text-align: center">', '</div>','<div style="text-align: right">', '</div>','<div style="text-align: justify">', '</div>', );
+
         // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } elseif (Mode::is('ClearFormat')) {
             $to = array("\n",   "\n",   "\n",  "\n", '    ', $nbspUtf8, '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", '', '');
@@ -645,7 +645,7 @@ class type_Richtext extends type_Blob
         }
         
         $html = str_replace($from, $to, $html);
-        
+
         return $html;
     }
     

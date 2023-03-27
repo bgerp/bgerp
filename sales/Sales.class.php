@@ -883,7 +883,8 @@ class sales_Sales extends deals_DealMaster
             if(countR($soIds)){
                 $soIds = implode(',', $soIds);
                 $soClassId = store_ShipmentOrders::getClassId();
-                $batchWhere .= "OR (#docType={$soClassId} AND #docId IN ({$soIds}))";
+                $or = empty($batchWhere) ? '' : ' OR ';
+                $batchWhere .= "{$or}(#docType={$soClassId} AND #docId IN ({$soIds}))";
             }
 
             if(!empty($batchWhere)){

@@ -96,10 +96,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('engName', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Име EN,after=seeByContragent,single=none');
         $fieldset->FLD('seeDelta', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи делти,after=engName,single=none');
         $fieldset->FLD('seeWeight', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи тегло,after=seeDelta,single=none');
+        $fieldset->FLD('primeCostType', 'enum(standartPrimeCost=Стандартна, dealerPrimeCost=Дилърска)', 'caption=Показване->Себестойност,after=seeWeight,single=none');
 
 
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, groups=Групи, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=6,columns=3,after=seeWeight');
+        $fieldset->FLD('orderBy', 'enum(code=Код, groups=Групи, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=6,columns=3,after=primeCostType');
         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
     }
 
@@ -248,6 +249,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setDefault('order', 'desc');
 
         $form->setDefault('quantityType', 'shipped');
+
+        $form->setDefault('primeCostType', 'standartPrimeCost');
 
         if ($rec->quantityType != 'invoiced') {
 
@@ -429,20 +432,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $invQuantity = $correctionArray['quanttity'];
                     $invAmount = $correctionArray['amount'];
 
-//                    $originId = doc_Containers::getDocument($invDetRec->originId)->that;
-//                    $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$invDetRec->productId}");
-//                    $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
-//                    $changeQuatity = $invQuantity - $originQuantity;
-//                    $changePrice = $invDetRec->price - $originDetRec->price;
-//
-//                    if ($changeQuatity == 0 && $changePrice == 0) {
-//                        continue;
-//                    }
-//                    $invQuantity = $changeQuatity != 0 ? $changeQuatity :0;
-//                    $invAmount = $changeQuatity == 0 ? $changePrice * $invDetRec->quantity * $invDetRec->quantityInPack : $invDetRec->price * $invQuantity;
-//                    if ($invDetRec->discount) {
-//                        $invAmount = $invAmount * (1 - $invDetRec->discount);
-//                    }
                 }
 
                 // Запис в масива с фактурираните артикули $invProd
@@ -640,6 +629,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $categoryId = doc_Folders::fetch($recPrime->prodFolderId)->coverId;
 
+            //rec-a на артикула
+            $prodRec = cat_Products::fetch($recPrime->productId);
+
             //Ключ на масива
             $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId : $recPrime->productId;
 
@@ -647,7 +639,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $artCode = $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}";
 
             //Мярка на артикула
-            $measureArt = cat_Products::fetch($recPrime->productId)->measureId;
+            $measureArt = $prodRec->measureId;
 
             //Данни за ПРЕДХОДЕН ПЕРИОД или МЕСЕЦ
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
@@ -657,12 +649,22 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                         $quantityPrevious = (-1) * $recPrime->quantity;
                         $primeCostPrevious = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
+
+                        //@todo: на складовите разписки делтата е отрцателна по дефиниция. Как да се реагира?
                         $deltaPrevious = (-1) * $recPrime->delta;
 
                     } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
                         $quantityPrevious = $recPrime->quantity;
                         $primeCostPrevious = $recPrime->{"${price}"} * $recPrime->quantity;
-                        $deltaPrevious = $recPrime->delta;
+
+                        //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
+                        // приемаме че, себестойността е 95% от продажната цена
+                        if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
+                            $deltaPrevious = $recPrime->sellCost * 0.05 * $recPrime->quantity;
+                        } else {
+                            $deltaPrevious = $recPrime->delta;
+                        }
+
 
                     } elseif ($DetClass instanceof sales_InvoiceDetails) {
 
@@ -702,7 +704,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                         $quantityLastYear = $recPrime->quantity;
                         $primeCostLastYear = $recPrime->{"${price}"} * $recPrime->quantity;
-                        $deltaLastYear = $recPrime->delta;
+
+                        //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
+                        // приемаме че, себестойността е 95% от продажната цена
+                        if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
+                            $deltaLastYear = $recPrime->sellCost * 0.05 * $recPrime->quantity;
+                        } else {
+                            $deltaLastYear = $recPrime->delta;
+                        }
 
                     } elseif ($DetClass instanceof sales_InvoiceDetails) {
 
@@ -741,7 +750,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     $primeCost = $recPrime->{"${price}"} * $recPrime->quantity;
 
-                    $delta = $recPrime->delta;
+                    //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
+                    // приемаме че, себестойността е 95% от продажната цена
+                    if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
+                        $delta = $recPrime->sellCost * 0.05 * $recPrime->quantity;
+                    } else {
+                        $delta = $recPrime->delta;
+                    }
+
                 } elseif ($DetClass instanceof sales_InvoiceDetails) {
 
                     if ($recPrime->type == 'invoice') {

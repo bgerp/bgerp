@@ -806,9 +806,17 @@ class cat_BomDetails extends doc_Detail
         }
         
         $rec->rowQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $rec->params);
-        
-        $highlightedExpr = static::highlightExpr($propQuantity, $rec->params, $coefficient);
-        $row->propQuantity = $highlightedExpr;
+        $row->propQuantity = static::highlightExpr($propQuantity, $rec->params, $coefficient);
+
+        if(!is_numeric($propQuantity)){
+            if(mb_strlen($rec->propQuantity) > 80){
+                $formula = "<i>" . tr('Покажи') . "</i>" . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+                $highlightedExpr = static::highlightExpr($propQuantity, $rec->params, $coefficient);
+                $divContent = ($highlightedExpr instanceof core_ET) ? $highlightedExpr->getContent() : $highlightedExpr;
+                $formula .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;display:none' id='{$rec->id}inf'>{$divContent}</div>";
+                $row->propQuantity = $formula;
+            }
+        }
         
         if ($rec->rowQuantity == static::CALC_ERROR) {
             $row->rowQuantity = "<span class='red'>???</span>";

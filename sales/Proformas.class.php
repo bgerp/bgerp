@@ -142,7 +142,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'number, date, place, folderId, dealValue, vatAmount';
+    public $listFields = 'number, date, place, folderId, dealValue=Общо, vatAmount';
     
     
     /**
