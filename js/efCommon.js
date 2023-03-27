@@ -5818,7 +5818,7 @@ function syncServiceWorker() {
                 r.forEach(function(sw) {
                     if(typeof serviceWorkerURL !== 'undefined') {
                         if (useServiceWorker == 'yes' && (sw.active.scriptURL.indexOf(serviceWorkerURL) != -1)) {
-                            console.log('ServiceWorker registration skiped: ' + serviceWorkerURL);
+                            console.log('ServiceWorker registration skipped: ' + serviceWorkerURL);
                             serviceWorkerURL = false;
                         } else {
                             sw.unregister();
