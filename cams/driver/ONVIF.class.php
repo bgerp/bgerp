@@ -31,7 +31,7 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
         parent::init($params);
 
         setIfNot($this->user, 'user');
-        setIfNot($this->password, 'Admin555');
+        setIfNot($this->password, '');
         
         require_once (EF_ROOT_PATH . '/' . EF_APP_CODE_NAME . '/cams/ponvif/lib/class.ponvif.php');
         
