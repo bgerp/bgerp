@@ -137,6 +137,7 @@ class cams_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
+        $html .= core_Classes::add('cams_driver_ONVIF');
         $html .= core_Classes::add('cams_driver_UIC');
         $html .= core_Classes::add('cams_driver_UIC9272');
         $html .= core_Classes::add('cams_driver_Edimax');
