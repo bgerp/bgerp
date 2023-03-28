@@ -641,6 +641,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             //Мярка на артикула
             $measureArt = $prodRec->measureId;
 
+            $conf = core_Packs::getConfig('sales');
+            $deltaMinCoef = (!is_numeric($conf->SALES_DELTA_MIN_PERCENT)) ? 0 : $conf->SALES_DELTA_MIN_PERCENT;
+
             //Данни за ПРЕДХОДЕН ПЕРИОД или МЕСЕЦ
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                 if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
@@ -657,10 +660,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $quantityPrevious = $recPrime->quantity;
                         $primeCostPrevious = $recPrime->{"${price}"} * $recPrime->quantity;
 
+
+
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                         // приемаме че, себестойността е 95% от продажната цена
                         if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
-                            $deltaPrevious = $recPrime->sellCost * 0.05 * $recPrime->quantity;
+                            $deltaPrevious = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity;
                         } else {
                             $deltaPrevious = $recPrime->delta;
                         }
@@ -708,7 +713,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                         // приемаме че, себестойността е 95% от продажната цена
                         if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
-                            $deltaLastYear = $recPrime->sellCost * 0.05 * $recPrime->quantity;
+                            $deltaLastYear = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity;
                         } else {
                             $deltaLastYear = $recPrime->delta;
                         }
@@ -753,7 +758,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                     // приемаме че, себестойността е 95% от продажната цена
                     if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
-                        $delta = $recPrime->sellCost * 0.05 * $recPrime->quantity;
+                        $delta = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity;
                     } else {
                         $delta = $recPrime->delta;
                     }
@@ -1751,6 +1756,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                         <!--ET_BEGIN art--><div>|Артикули|*: [#art#]</div><!--ET_END art-->
                                         <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
                                         <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
+                                        <!--ET_BEGIN minDelta--><div>|Мин. делта|*: [#minDelta#]</div><!--ET_END minDelta-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -1860,6 +1866,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $fieldTpl->append('<b>' . $baseCurrency . ' (основна)' . '</b>', 'currency');
         }
+
+        if ($data->rec->primeCostType == 'dealerPrimeCost'){
+            $coefDelta = core_Packs::getConfig('sales')->SALES_DELTA_MIN_PERCENT;
+            $fieldTpl->append('<b>' . $coefDelta*100 .'%'. '</b>', 'minDelta');
+
+        }
+
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }

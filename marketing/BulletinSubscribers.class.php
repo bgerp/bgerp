@@ -33,7 +33,7 @@ class marketing_BulletinSubscribers extends core_Detail
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'plg_RowTools, plg_Created, marketing_Wrapper';
+    public $loadList = 'plg_RowTools, plg_Created, blast_Wrapper';
     
     
     /**
