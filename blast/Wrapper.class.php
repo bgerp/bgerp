@@ -25,8 +25,9 @@ class blast_Wrapper extends plg_ProtoWrapper
         $this->TAB('blast_Lists', 'Списъци', 'blast,ceo,admin');
         $this->TAB('blast_Emails', 'Имейли', 'ceo, blast');
         $this->TAB('blast_Letters', 'Писма', 'ceo, blast');
-        $this->TAB('blast_BlockedDomains', 'Блокирани->Домейни', 'ceo,blast,admin');
         $this->TAB('blast_Redirect', 'Редиректи', 'ceo,blast');
+        $this->TAB('marketing_Bulletins', 'Абонаменти->Бюлетини', 'ceo,marketing');
+        $this->TAB('marketing_BulletinSubscribers', 'Абонаменти->Аботнати', 'ceo,marketing');
         
         $this->title = 'Масово разпращане';
         Mode::set('menuPage', 'Разпращане');
