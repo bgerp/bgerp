@@ -64,7 +64,7 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
             $this->height = $encodersList[0][0]['ResolutionsAvailable'][0]['Height'];
             
         } catch (Exception $e) {
-            
+            echo 'Caught exception: ',  $e->getMessage(), "\n";
         }
     }
 
@@ -86,10 +86,10 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
      */
     protected function getStreamUrl()
     {
-        $scheme = parse_url($this->$mediaUri, PHP_URL_SCHEME);
-        $this->$mediaUri = str_replace($scheme . "://", $scheme . "://" . $this->user . ":" . $this->password . "@", $this->$mediaUri);
+        $scheme = parse_url($this->mediaUri, PHP_URL_SCHEME);
+        $this->mediaUri = str_replace($scheme . "://", $scheme . "://" . $this->user . ":" . $this->password . "@", $this->mediaUri);
         
-        return $this->$mediaUri;
+        return $this->mediaUri;
     }
     
     /**
