@@ -18,6 +18,12 @@
 class store_InventoryNoteSummary extends doc_Detail
 {
     /**
+     * @var string
+     */
+    public $productFld = 'productId';
+
+
+    /**
      * Заглавие
      */
     public $title = 'Детайли на протокола за инвентаризация';
