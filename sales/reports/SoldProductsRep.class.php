@@ -1756,6 +1756,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                         <!--ET_BEGIN art--><div>|Артикули|*: [#art#]</div><!--ET_END art-->
                                         <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
                                         <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
+                                        <!--ET_BEGIN minDelta--><div>|Мин. делта|*: [#minDelta#]</div><!--ET_END minDelta-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -1865,6 +1866,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $fieldTpl->append('<b>' . $baseCurrency . ' (основна)' . '</b>', 'currency');
         }
+
+        if ($data->rec->primeCostType == 'dealerPrimeCost'){
+            $coefDelta = core_Packs::getConfig('sales')->SALES_DELTA_MIN_PERCENT;
+            $fieldTpl->append('<b>' . $coefDelta*100 .'%'. '</b>', 'minDelta');
+
+        }
+
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
