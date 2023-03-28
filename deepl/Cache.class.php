@@ -26,7 +26,7 @@ class deepl_Cache extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'Кешове';
+    public $title = 'Преведени фрагменти';
 
 
     /**
