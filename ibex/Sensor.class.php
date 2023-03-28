@@ -27,7 +27,7 @@ class ibex_Sensor extends sens2_ProtoDriver
      */
     public $inputs = array(
         'HOUR' => array('caption' => 'Текуща цена', 'uom' => 'BGN'),
-        'BASE' => array('caption' => 'Дневна цена', 'uom' => 'BGN'),
+        //'BASE' => array('caption' => 'Дневна цена', 'uom' => 'BGN'),
 
     );
     
@@ -74,7 +74,6 @@ class ibex_Sensor extends sens2_ProtoDriver
 
         $date = dt::now(false);
  
-        $res['BASE'] = ibex_Register::fetchField("#date = '{$date}' AND #kind = '00-24'", 'price');
         $res['HOUR'] = ibex_Register::fetchField("#date = '{$date}' AND #kind = '{$h}'", 'price');
  
         return $res;
