@@ -22,6 +22,12 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
     
     private $mediaSnapshotUri;
     
+    public $width;
+    
+    public $height;
+    
+    public $FPS;
+    
     
     /**
      * Инициализиране на обекта
@@ -32,6 +38,10 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
 
         setIfNot($this->user, 'user');
         setIfNot($this->password, '');
+//         setIfNot($this->width, 1280);
+//         setIfNot($this->height, 720);
+        setIfNot($this->FPS, 5);
+        
         
         require_once (EF_ROOT_PATH . '/' . EF_APP_CODE_NAME . '/cams/ponvif/lib/class.ponvif.php');
         
@@ -49,6 +59,10 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
             $this->profileToken = $sources[0][0]['profiletoken'];
             $this->mediaUri = $this->onvif->media_GetStreamUri($this->profileToken);
             $this->mediaSnapshotUri = $this->onvif->media_GetSnapshotUri($this->profileToken);
+            $encodersList = $this->onvif->getCodecEncoders('H264');
+            $this->width = $encodersList[0][0]['ResolutionsAvailable'][0]['Width'];
+            $this->height = $encodersList[0][0]['ResolutionsAvailable'][0]['Height'];
+            
         } catch (Exception $e) {
             
         }
@@ -90,6 +104,11 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
         );
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете ONVIF потребител на камерата,input');
         $form->FNC('password', 'password(show)', 'caption=Парола,hint=Въведете паролата ,input');
+        
+        $form->FNC('width', 'int(min=352,max=1920)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
+        $form->FNC('height', 'int(min=288,max=1080)', 'caption=Вертикал,hint=Вертикална резолюция,input');
+        $form->FNC('FPS', 'int(min=1,max=50)', 'caption=Скорост,hint=Скорост на записа (fps),input');
+        
         $form->FNC('ptzControl', 'enum(yes=Има,no=Няма)', 'caption=PTZ контрол,hint=Има ли камерата PTZ контрол?,input');
         $form->FNC('running', 'enum(yes=Активно,no=Спряно)', 'caption=Състояние,hint=Дали камерата да се наблюдава?,input');
     }
