@@ -64,7 +64,7 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
             $this->height = $encodersList[0][0]['ResolutionsAvailable'][0]['Height'];
             
         } catch (Exception $e) {
-            echo 'Caught exception: ',  $e->getMessage(), "\n";
+            self::logErr("Грешка при инициализиране на камера: {$e->getMessage()}");
         }
     }
 

@@ -51,9 +51,6 @@ class pwa_Manifest extends core_Mvc
         $text = tr('интегрирана система за управление');
         
         $cu = str::checkHash(Request::get('u'));
-        if (!$cu) {
-            wp(Request::get('u'));
-        }
         $bVals = (int) $cu . '_' . dt::mysql2timestamp() . '_' . log_Browsers::getBrid();
         $bVals = core_String::addHash($bVals);
         $pwaActionUrl = '/pwa_Share/Portal/?v=' . $bVals;
@@ -95,25 +92,26 @@ class pwa_Manifest extends core_Mvc
      */
     public static function canUse()
     {
-        $bridVar = log_Browsers::getVars(array('pwaOnOff'));
+        $defSettings = pwa_Setup::get('DOMAINS');
+        if (empty($defSettings)) {
 
-        if (!empty($bridVar)) {
-            if ($bridVar['pwaOnOff'] == 'yes') {
+            return 'no';
+        }
+
+        $defSettings = keylist::toArray($defSettings);
+        if (empty($defSettings)) {
+
+            return 'no';
+        }
+
+        $pDomain = cms_Domains::getPublicDomain('domain');
+
+        foreach ($defSettings as &$domainId) {
+            $domainId = cms_Domains::fetchField($domainId, 'domain');
+
+            if ($pDomain == $domainId) {
 
                 return 'yes';
-            }
-        } else {
-            $defSettings = pwa_Setup::get('DEFAULT_ACTIVE');
-            if ($defSettings == 'yes') {
-
-                return 'yes';
-            }
-
-            if ($defSettings == 'yesMobile') {
-                if (Mode::is('screenMode', 'narrow')) {
-
-                    return 'yes';
-                }
             }
         }
 
