@@ -447,7 +447,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = &$form->rec;
         
         if (empty($rec->currencyRate)) {
-            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            // Ако няма курс винаги е този към днешна дата
+            $rec->currencyRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
             if (!$rec->currencyRate) {
                 $form->setError('currencyRate', 'Не може да се изчисли курс');
             }
@@ -858,7 +859,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
         
         if (empty($rec->currencyRate)) {
-            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            $rec->currencyRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
         }
 
         if(isset($rec->id)){

@@ -202,7 +202,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да превалутира документите в нишката
      */
-    public $canChangerate = 'ceo, salesMaster';
+    public $canChangerate = 'debug';
     
     
     /**

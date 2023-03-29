@@ -196,6 +196,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
+        'acc_RatesDifferences',
         'migrate::updatePriceRoles2247',
     );
     
@@ -480,10 +481,19 @@ class acc_Setup extends core_ProtoSetup
             'period' => 480,
             'offset' => 1,
             'timeLimit' => 60
+        ),
+        array(
+            'systemId' => 'RecontoRateDiffs',
+            'description' => 'Рекалкулиране на курсовите разлики',
+            'controller' => 'acc_RatesDifferences',
+            'action' => 'RecontoActive',
+            'period' => 30,
+            'offset' => 1,
+            'timeLimit' => 100
         )
     );
-    
-    
+
+
     /**
      * Дефинирани класове, които имат интерфейси
      */
