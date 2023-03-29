@@ -101,7 +101,7 @@ class cams_driver_IpDevice extends core_BaseClass
 //        $cmd = dirname (__FILE__) . "/vlcschedule.sh {$url} " .
 //        "{$savePath} {$duration} " . $this->vlcCodec["$this->codec"] . " < /dev/null > /dev/null 2>&1 &";
         
-        $cmd = dirname(__FILE__) . "/LIVE555.sh {$url} " .
+        $cmd = dirname(__FILE__) . "/LIVE555.sh \"{$url}\" " .
         "{$savePath} {$duration} {$this->width} {$this->height} {$this->FPS} < /dev/null > /dev/null 2>&1 &";
         
         exec($cmd, $arrOutput);
