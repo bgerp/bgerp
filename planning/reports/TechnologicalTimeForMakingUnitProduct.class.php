@@ -211,39 +211,65 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
     {
         $recs = array();
 
-        if ($rec->jType == 'jobsInPeriod') return $recs;
+      //  if ($rec->jType == 'jobsInPeriod') return $recs;
+
+        if($rec->jType == 'jobsInPeriod'){
+
+            $stateArr = array('active', 'wakeup', 'closed');
+
+            $jQuery = planning_Jobs::getQuery();
+
+            $jQuery->in('state', $stateArr);
+
+            $jQuery->where(array(
+                "#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'",
+                $rec->start . ' 00:00:00', $rec->to . ' 23:59:59'));
+
+            $jQuery->where("#productId = $rec->product");
+            $jobsArr = arr::extractValuesFromArray($jQuery->fetchAll(),'id');
+
+
+
+        }else{
+            $jobsArr[$rec->jobs] = $rec->jobs;
+        }
 
         $Job = cls::get('planning_Jobs');
 
-        $jobRec = $Job->fetch($rec->jobs, 'id,productId,containerId');
+        foreach ($jobsArr as $jobId) {
 
-        $taskQuery = planning_Tasks::getQuery();
+            $jobRec = $Job->fetch($jobId, 'id,productId,containerId');
 
-        $taskQuery->where("#originId = $jobRec->containerId");
+            $taskQuery = planning_Tasks::getQuery();
 
-        $taskQuery->in('id', keylist::toArray($rec->tasks), true);
+            $taskQuery->where("#originId = $jobRec->containerId");
 
-        $sumNormTime = 0;
-        while ($tRec = $taskQuery->fetch()) {
+            if($rec->jType == 'oneJob') {
+                $taskQuery->in('id', keylist::toArray($rec->tasks), true);
+            }
+            $sumNormTime = 0;
+            while ($tRec = $taskQuery->fetch()) {
 
 
-            $normTime = planning_type_ProductionRate::getInSecsByQuantity($tRec->indTime, 1);
+                $normTime = planning_type_ProductionRate::getInSecsByQuantity($tRec->indTime, 1);
 
-            $tasksArr[$tRec->id] = $normTime;
+                $tasksArr[$tRec->id] = $normTime;
 
-            $sumNormTime += $normTime;
+                $sumNormTime += $normTime;
 
-            unset($normTime);
+                unset($normTime);
 
+            }
+
+            $recs[$jobRec->id] = (object)array(
+
+                'jobs' => $jobRec->id,
+                'sumNormTime' => $sumNormTime,
+                'product' => $jobRec->productId,
+                'tasks' => $tasksArr,
+            );
         }
 
-        $recs[$jobRec->id] = (object)array(
-
-            'jobs' => $jobRec->id,
-            'sumNormTime' => $sumNormTime,
-            'product' => $jobRec->productId,
-            'tasks' => $tasksArr,
-        );
 
         return $recs;
     }
@@ -302,11 +328,12 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
         $row->jobs = planning_Jobs::getHyperlink($dRec->jobs);
         $row->sumNormTime = $Time->toVerbal($dRec->sumNormTime);
 
-        $row->tasks ='';
-        foreach ($dRec->tasks as $k =>$v){
-            $row->tasks .= planning_Tasks::getHyperlink($k).' - '.$Time->toVerbal($v).'</br>';
+        if(isset($dRec->tasks)) {
+            $row->tasks = '';
+            foreach ($dRec->tasks as $k => $v) {
+                $row->tasks .= planning_Tasks::getHyperlink($k) . ' - ' . $Time->toVerbal($v) . '</br>';
+            }
         }
-
 
         return $row;
     }
@@ -342,7 +369,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
                 $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
             }
 
-            if (isset($data->rec->tasks)) {
+            if (isset($data->rec->tasks) && $data->rec->jType != 'jobsInPeriod') {
                 $marker = 0;
                 $taskVerb = '';
                 foreach (type_Keylist::toArray($data->rec->tasks) as $task) {
