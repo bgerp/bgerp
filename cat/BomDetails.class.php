@@ -144,14 +144,15 @@ class cat_BomDetails extends doc_Detail
     public function description()
     {
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
+        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|subTitle|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
         $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Подетап на,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
         $this->FLD('position', 'int(Min=0)', 'caption=Позиция,tdClass=leftCol');
         $this->FLD('propQuantity', 'text(rows=2, maxOptionsShowCount=20)', 'caption=Формула,tdClass=accCell,mandatory');
-        $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
+        $this->FLD('subTitle', 'varchar(20)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
+		$this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
         $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Произвеждане В,input=none');
@@ -731,6 +732,9 @@ class cat_BomDetails extends doc_Detail
         $row->position = $position;
 
         $descriptionArr = array();
+		if (!empty($rec->subTitle)) {
+            $descriptionArr[] = tr("|*<tr><td>|Подзаглавие|*:</td><td><b>") . $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle) . "</b></td></tr>";
+        }
         if ($rec->type == 'stage') {
             if(!empty($rec->centerId)){
                 $descriptionArr[] = tr("|*<tr><td>|Център на дейност|*:</td><td>") . planning_Centers::getHyperlink($rec->centerId, true) . "</td></tr>";
