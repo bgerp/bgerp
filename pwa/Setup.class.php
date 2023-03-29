@@ -4,7 +4,7 @@
 /**
  * Мобилното приложение активно ли е?
  */
-defIfNot('PWA_DEFAULT_ACTIVE', 'no');
+defIfNot('PWA_DOMAINS', '');
 
 
 /**
@@ -28,7 +28,7 @@ class pwa_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'PWA_DEFAULT_ACTIVE' => array('enum(no=Не,yesMobile=Да (Само в мобилен), yes=Да (Винаги))', 'caption=Мобилно приложение->Активиране'),
+        'PWA_DOMAINS' => array('keylist(mvc=cms_Domains, select=domain, forceGroupBy=domain)', 'caption=Мобилно приложение->Домейни'),
     );
 
     
@@ -44,7 +44,6 @@ class pwa_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина към страницата
         $html .= $Plugins->installPlugin('bgERP PWA', 'pwa_Plugin', 'core_page_Active', 'family');
-        $html .= $Plugins->installPlugin('bgERP PWA Button', 'pwa_ButtonPlugin', 'crm_Profiles', 'private');
 
         $html .= fileman_Buckets::createBucket('pwa', 'Файлове качени с PWA', '', '100MB', 'user', 'every_one');
         
