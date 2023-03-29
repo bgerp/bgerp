@@ -358,9 +358,11 @@ class deals_Setup extends core_ProtoSetup
                     $exRec->state = 'free';
                     $saveCronFields[] = 'state';
                 }
-                if($exRec->period != $interval){
+                if($exRec->period != $interval || $exRec->offset != $params['offset']){
+                    $exRec->offset = $params['offset'];
                     $exRec->period = $interval;
                     $exRec->timeLimit = $interval * 2;
+                    $saveCronFields[] = 'offset';
                     $saveCronFields[] = 'period';
                     $saveCronFields[] = 'timeLimit';
                 }
