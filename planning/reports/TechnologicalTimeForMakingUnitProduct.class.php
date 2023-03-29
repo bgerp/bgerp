@@ -46,7 +46,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField ;
+    protected $groupByField;
 
 
     /**
@@ -84,14 +84,20 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('start', 'date', 'caption=От,after=title,single=none,mandatory');
-        $fieldset->FLD('to', 'date', 'caption=До,after=start,single=none,mandatory');
+        $fieldset->FLD('start', 'date', 'caption=От,after=title,single=none,silent,mandatory');
+        $fieldset->FLD('to', 'date', 'caption=До,after=start,single=none,silent,mandatory');
+
+        //Тип на отчета
+        $fieldset->FLD('jType', 'enum(oneJob=За задание,jobsInPeriod=За период)', 'caption=Тип отчет,removeAndRefreshForm,after=to,silent');
 
         //Артикули
-        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholder=Избери,removeAndRefreshForm,silent,mandatory,after=to,single=none,class=w100');
+        $fieldset->FLD('product', 'key(mvc=cat_Products ,select=name,allowEmpty)', 'caption=Артикул,placeholder=Избери,removeAndRefreshForm,silent,mandatory,after=jType,single=none,class=w100');
 
         //Задание
-        $fieldset->FLD('jobs', 'keylist(mvc=planning_Jobs)', 'caption=Заданиe,placeholder=Избери,mandatory,after=productId,silent,single=none');
+        $fieldset->FLD('jobs', 'key(mvc=planning_Jobs)', 'caption=Заданиe,placeholder=Избери,mandatory,removeAndRefreshForm,after=product,silent,input=none,single=none');
+
+        //Операции които да се изключат
+        $fieldset->FLD('tasks', 'keylist(mvc=planning_Tasks,select=title,allowEmpty)', 'caption=Изключи операции,placeholder=Всички операции включени,after=jobs,silent,input=none,single=none');
 
     }
 
@@ -109,28 +115,67 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
         $form = $data->form;
         $rec = $form->rec;
 
-        $suggestions = array();
-        foreach (keylist::toArray($rec->jobs) as $val) {
-       //     $suggestions[$val] = planning_Jobs::getTitleById($val);
+        $form->setDefault('jType', 'jobsInPeriod');
+
+        if ($rec->jType == 'oneJob') {
+            $form->setField('jobs', 'input');
+            if ($rec->jobs) {
+                $form->setField('tasks', 'input');
+            }
+
         }
 
         $stateArr = array('active', 'wakeup', 'closed');
 
         $jQuery = planning_Jobs::getQuery();
+
         $jQuery->in('state', $stateArr);
-        $jQuery->where("#productId = $rec->productId");
-     //   $jQuery->show('productId');
+
+        $jQuery->where(array(
+            "#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'",
+            $rec->start . ' 00:00:00', $rec->to . ' 23:59:59'));
+
         while ($jRec = $jQuery->fetch()) {
-            if (!array_key_exists($jRec->id, $suggestions)) {
-                $suggestions[$jRec->id] = planning_Jobs::getTitleById($jRec->id);
-            }
+            $prodsArr[$jRec->productId] = $jRec->productId;
         }
 
-        asort($suggestions);
+        $prodQuery = cat_Products::getQuery();
+        $prodQuery->in('id', $prodsArr);
+        while ($prodRec = $prodQuery->fetch()) {
+            $options[$prodRec->id] = $prodRec->name;
+        }
+        $form->setOptions('product', $options);
+        unset($options);
 
-        $form->setSuggestions('jobs', $suggestions);
+        if ($rec->jType == 'oneJob') {
+            $jQuery = planning_Jobs::getQuery();
+
+            $jQuery->in('state', $stateArr);
+            $jQuery->where("#productId = $rec->product");
+
+            while ($jRec = $jQuery->fetch()) {
+                $options[$jRec->id] = 'Задание: ' . $jRec->id . ' / ' . $jRec->createdOn;
+            }
+
+            $form->setOptions('jobs', $options);
+
+            unset($options);
+
+            if ($rec->jobs && $rec->product) {
+                $jobContainer = planning_Jobs::fetch($rec->jobs)->containerId;
 
 
+                $taskQuery = planning_Tasks::getQuery();
+
+                $taskQuery->where("#originId = $jobContainer");
+
+                while ($taskRec = $taskQuery->fetch()) {
+                    $suggestions[$taskRec->id] = 'Опрерация: ' . $taskRec->title;
+                }
+                $form->setSuggestions('tasks', $suggestions);
+                unset($suggestions);
+            }
+        }
     }
 
 
@@ -166,27 +211,36 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
     {
         $recs = array();
 
-//        $jRec = planning_Jobs::fetch(trim($rec->jobs,'|'));
-//
-//        $query = planning_ProductionTaskDetails::getQuery();
-//
-//        $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
-//        $query->EXT('folderId', 'planning_Tasks', 'externalName=folderId,externalKey=taskId');
-//        $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
-//
-//        $query->where("#state != 'rejected' ");
-//
-//        $taskQuery = planning_Tasks::getQuery();
-//        $taskQuery->where("#originId = $jRec->containerId");
-//        while ($tRec = $taskQuery->fetch()){
-//            $normTime = planning_ProductionTaskDetails::calcNormByRec($tRec);
-//            if ($tRec->indTime)bp($normTime,$tRec->indTime);
-//        }
+        if ($rec->jType == 'jobsInPeriod') return $recs;
+
+        $Job = cls::get('planning_Jobs');
+
+        $jobRec = $Job->fetch($rec->jobs, 'id,productId,containerId');
+
+        $taskQuery = planning_Tasks::getQuery();
+
+        $taskQuery->where("#originId = $jobRec->containerId");
+
+        $taskQuery->in('id', keylist::toArray($rec->tasks), true);
+
+        $sumNormTime = 0;
+        while ($tRec = $taskQuery->fetch()) {
 
 
+            $normTime = planning_type_ProductionRate::getInSecsByQuantity($tRec->indTime, 1);
 
+            $sumNormTime += $normTime;
 
-     //   bp($jRec,$taskQuery->fetchAll(),$rec);
+            unset($normTime);
+
+        }
+
+        $recs[$jobRec->id] = (object)array(
+
+            'jobs' => $jobRec->id,
+            'sumNormTime' => $sumNormTime,
+            'product' => $jobRec->productId,
+        );
 
         return $recs;
     }
@@ -207,12 +261,13 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
 
         if ($export === false) {
 
-                $fld->FLD('jobs', 'varchar', 'caption=Задание');
+            $fld->FLD('jobs', 'varchar', 'caption=Задание / Артикул');
+            $fld->FLD('sumNormTime', 'varchar', 'caption=Време');
 
         } else {
 
-                $fld->FLD('jobs', 'varchar', 'caption=Задание');
-                $fld->FLD('taskId', 'varchar', 'caption=Операция');
+            $fld->FLD('jobs', 'varchar', 'caption=Задание');
+            $fld->FLD('sumNormTime', 'varchar', 'caption=Време');
 
         }
 
@@ -235,8 +290,14 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
 
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+        $Time = cls::get('type_Time');
 
         $row = new stdClass();
+
+
+        $row->jobs = planning_Jobs::getHyperlink($dRec->jobs);
+        $row->sumNormTime = $Time->toVerbal($dRec->sumNormTime);
+
 
         return $row;
     }
@@ -252,7 +313,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-        $Date = cls::get('type_Datetime');
+        $Date = cls::get('type_Date');
         {
             $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
