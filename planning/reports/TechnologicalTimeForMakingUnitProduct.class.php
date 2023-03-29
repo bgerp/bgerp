@@ -248,6 +248,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
                 $taskQuery->in('id', keylist::toArray($rec->tasks), true);
             }
             $sumNormTime = 0;
+            $tasksArr = array();
             while ($tRec = $taskQuery->fetch()) {
 
 
