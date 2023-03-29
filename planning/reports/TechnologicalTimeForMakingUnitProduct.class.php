@@ -229,6 +229,8 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
 
             $normTime = planning_type_ProductionRate::getInSecsByQuantity($tRec->indTime, 1);
 
+            $tasksArr[$tRec->id] = $normTime;
+
             $sumNormTime += $normTime;
 
             unset($normTime);
@@ -240,6 +242,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
             'jobs' => $jobRec->id,
             'sumNormTime' => $sumNormTime,
             'product' => $jobRec->productId,
+            'tasks' => $tasksArr,
         );
 
         return $recs;
@@ -262,7 +265,8 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
         if ($export === false) {
 
             $fld->FLD('jobs', 'varchar', 'caption=Задание / Артикул');
-            $fld->FLD('sumNormTime', 'varchar', 'caption=Време');
+            $fld->FLD('sumNormTime', 'varchar', 'caption=Време->Общо');
+            $fld->FLD('tasks', 'varchar', 'caption=Време->По операции');
 
         } else {
 
@@ -298,6 +302,11 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
         $row->jobs = planning_Jobs::getHyperlink($dRec->jobs);
         $row->sumNormTime = $Time->toVerbal($dRec->sumNormTime);
 
+        $row->tasks ='';
+        foreach ($dRec->tasks as $k =>$v){
+            $row->tasks .= planning_Tasks::getHyperlink($k).' - '.$Time->toVerbal($v).'</br>';
+        }
+
 
         return $row;
     }
@@ -320,6 +329,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
                                     <div class='small'>
                                         <!--ET_BEGIN start--><div>|От|*: [#start#]</div><!--ET_END start-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN tasks--><div>|Изключени операции|*: [#tasks#]</div><!--ET_END tasks-->
                                        
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -330,6 +340,21 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
 
             if (isset($data->rec->to)) {
                 $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
+            }
+
+            if (isset($data->rec->tasks)) {
+                $marker = 0;
+                $taskVerb = '';
+                foreach (type_Keylist::toArray($data->rec->tasks) as $task) {
+                    $marker++;
+
+                    $taskVerb .= (planning_Tasks::getHyperlink($task));
+
+                    if ((countR(type_Keylist::toArray($data->rec->tasks))) - $marker != 0) {
+                        $taskVerb .= ', ';
+                    }
+                }
+                $fieldTpl->append('<b>' . $taskVerb . '</b>', 'tasks');
             }
 
 
