@@ -142,7 +142,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
         $prodQuery = cat_Products::getQuery();
         $prodQuery->in('id', $prodsArr);
         while ($prodRec = $prodQuery->fetch()) {
-            $options[$prodRec->id] = $prodRec->name;
+            $options[$prodRec->id] = cat_Products::getTitleById($prodRec->id);
         }
         $form->setOptions('product', $options);
         unset($options);
