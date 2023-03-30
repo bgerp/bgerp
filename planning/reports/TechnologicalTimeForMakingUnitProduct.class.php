@@ -84,8 +84,8 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('start', 'date', 'caption=От,after=title,single=none,silent,mandatory');
-        $fieldset->FLD('to', 'date', 'caption=До,after=start,single=none,silent,mandatory');
+        $fieldset->FLD('start', 'date', 'caption=От,after=title,removeAndRefreshForm,single=none,silent,mandatory');
+        $fieldset->FLD('to', 'date', 'caption=До,after=start,removeAndRefreshForm,single=none,silent,mandatory');
 
         //Тип на отчета
         $fieldset->FLD('jType', 'enum(oneJob=За задание,jobsInPeriod=За период)', 'caption=Тип отчет,removeAndRefreshForm,after=to,silent');
