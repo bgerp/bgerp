@@ -117,12 +117,17 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
 
         $form->setDefault('jType', 'jobsInPeriod');
 
+        if (!$rec->product) {
+            $form->setError('product', 'Няма въведен артикул.');
+        }
+
         if ($rec->jType == 'oneJob') {
+
+
             $form->setField('jobs', 'input');
             if ($rec->jobs) {
                 $form->setField('tasks', 'input');
             }
-
         }
 
         $stateArr = array('active', 'wakeup', 'closed');
@@ -140,21 +145,33 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
         }
 
         $prodQuery = cat_Products::getQuery();
+
         $prodQuery->in('id', $prodsArr);
+
         while ($prodRec = $prodQuery->fetch()) {
             $options[$prodRec->id] = cat_Products::getTitleById($prodRec->id);
         }
+
         $form->setOptions('product', $options);
+
         unset($options);
 
         if ($rec->jType == 'oneJob') {
-            $jQuery = planning_Jobs::getQuery();
 
-            $jQuery->in('state', $stateArr);
-            $jQuery->where("#productId = $rec->product");
+            if ($rec->product) {
 
-            while ($jRec = $jQuery->fetch()) {
-                $options[$jRec->id] = 'Задание: ' . $jRec->id . ' / ' . $jRec->createdOn;
+                $jQuery = planning_Jobs::getQuery();
+
+                $jQuery->in('state', $stateArr);
+
+                $jQuery->where("#productId = $rec->product");
+
+                while ($jRec = $jQuery->fetch()) {
+                    $options[$jRec->id] = 'Задание: ' . $jRec->id . ' / ' . $jRec->createdOn;
+                }
+
+            } else {
+                $options = array('' => '');
             }
 
             $form->setOptions('jobs', $options);
@@ -162,8 +179,8 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
             unset($options);
 
             if ($rec->jobs && $rec->product) {
-                $jobContainer = planning_Jobs::fetch($rec->jobs)->containerId;
 
+                $jobContainer = planning_Jobs::fetch($rec->jobs)->containerId;
 
                 $taskQuery = planning_Tasks::getQuery();
 
@@ -172,7 +189,9 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
                 while ($taskRec = $taskQuery->fetch()) {
                     $suggestions[$taskRec->id] = 'Опрерация: ' . $taskRec->title;
                 }
+
                 $form->setSuggestions('tasks', $suggestions);
+
                 unset($suggestions);
             }
         }
@@ -195,6 +214,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
             if (isset($form->rec->start, $form->rec->to) && ($form->rec->start > $form->rec->to)) {
                 $form->setError('start,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
+
         }
     }
 
@@ -211,9 +231,9 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
     {
         $recs = array();
 
-      //  if ($rec->jType == 'jobsInPeriod') return $recs;
+        //  if ($rec->jType == 'jobsInPeriod') return $recs;
 
-        if($rec->jType == 'jobsInPeriod'){
+        if ($rec->jType == 'jobsInPeriod') {
 
             $stateArr = array('active', 'wakeup', 'closed');
 
@@ -226,11 +246,10 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
                 $rec->start . ' 00:00:00', $rec->to . ' 23:59:59'));
 
             $jQuery->where("#productId = $rec->product");
-            $jobsArr = arr::extractValuesFromArray($jQuery->fetchAll(),'id');
+            $jobsArr = arr::extractValuesFromArray($jQuery->fetchAll(), 'id');
 
 
-
-        }else{
+        } else {
             $jobsArr[$rec->jobs] = $rec->jobs;
         }
 
@@ -244,7 +263,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
 
             $taskQuery->where("#originId = $jobRec->containerId");
 
-            if($rec->jType == 'oneJob') {
+            if ($rec->jType == 'oneJob') {
                 $taskQuery->in('id', keylist::toArray($rec->tasks), true);
             }
             $sumNormTime = 0;
@@ -329,7 +348,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
         $row->jobs = planning_Jobs::getHyperlink($dRec->jobs);
         $row->sumNormTime = $Time->toVerbal($dRec->sumNormTime);
 
-        if(isset($dRec->tasks)) {
+        if (isset($dRec->tasks)) {
             $row->tasks = '';
             foreach ($dRec->tasks as $k => $v) {
                 $row->tasks .= planning_Tasks::getHyperlink($k) . ' - ' . $Time->toVerbal($v) . '</br>';
