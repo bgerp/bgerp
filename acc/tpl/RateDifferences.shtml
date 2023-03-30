@@ -18,7 +18,7 @@
     </tr>
     <tr>
         <td>|Текущ курс към|* [#valior#]</td>
-        <td><b>[#rate#]</b> <span class="cCode">[#currencyId#]</span> |за|* <span class="cCode">[#baseCurrencyCode#]</span></td>
+        <td><b>[#rate#]</b> <span class="cCode">[#baseCurrencyCode#]</span> / <span class="cCode">[#currencyId#]</span></td>
     </tr>
     <tr>
         <td>|Актуално към|*</td>
