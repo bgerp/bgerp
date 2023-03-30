@@ -93,7 +93,7 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
         //Артикули
         $fieldset->FLD('product', 'key(mvc=cat_Products ,select=name,allowEmpty)', 'caption=Артикул,placeholder=Избери,removeAndRefreshForm,silent,mandatory,after=jType,single=none,class=w100');
 
-        //Задание
+         //Задание
         $fieldset->FLD('jobs', 'key(mvc=planning_Jobs)', 'caption=Заданиe,placeholder=Избери,mandatory,removeAndRefreshForm,after=product,silent,input=none,single=none');
 
         //Операции които да се изключат
@@ -117,7 +117,9 @@ class planning_reports_TechnologicalTimeForMakingUnitProduct extends frame2_driv
 
         $form->setDefault('jType', 'jobsInPeriod');
 
-        if (!$rec->product) {
+
+
+        if (($rec->id && !$rec->product) ||(!$rec->product && $rec->jType == 'oneJob')) {
             $form->setError('product', 'Няма въведен артикул.');
         }
 
