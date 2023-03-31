@@ -164,6 +164,11 @@ class openai_Cache extends core_Manager
         $form = $data->form;
         $rec = $form->rec;
 
+        $fRecClone = clone $rec;
+        if ($fRecClone->id) {
+            $fRecClone = $mvc->fetch($fRecClone->id);
+        }
+
         $form->FLD('_pModel', 'enum(GPT 3.5 TURBO, TEXT DAVINCI 003)', 'caption=Параметри->Модел, removeAndRefreshForm=__prompt|__mContentRole|__mContentSystem|__mContentAssistant');
         $form->FLD('__temperature', 'double', 'caption=Параметри->temperature');
         $form->FLD('__max_tokens', 'double', 'caption=Параметри->max_tokens');
@@ -171,21 +176,11 @@ class openai_Cache extends core_Manager
         $form->FLD('__frequency_penalty', 'double', 'caption=Параметри->frequency_penalty');
         $form->FLD('__presence_penalty', 'double', 'caption=Параметри->presence_penalty');
 
-        $form->input('_pModel');
-
-        if ($form->rec->_pModel == 'TEXT DAVINCI 003') {
-            $form->FLD('__prompt', 'text', 'caption=Параметри->prompt (Текст), mandatory');
-        } else {
-            $form->FLD('__mContentRole', 'text', 'caption=Параметър USER (Въпросът|&#44; |*който задаваме)->Текст, mandatory');
-            $form->FLD('__mContentSystem', 'text', 'caption=Параметър SYSTEM (Област на въпроса)->Текст');
-            $form->FLD('__mContentAssistant', 'text', 'caption=Параметър ASSISTANT (Насочващ отговор)->Текст');
-        }
-
         if (isset($rec->id)) {
-            if ($rec->promptParams) {
+            if ($fRecClone->promptParams) {
                 $defModel = 'TEXT DAVINCI 003';
 
-                foreach ($rec->promptParams as $fName => $prompt) {
+                foreach ($fRecClone->promptParams as $fName => $prompt) {
                     if (strpos($fName, '__') === 0) {
                         continue;
                     }
@@ -226,6 +221,24 @@ class openai_Cache extends core_Manager
             $form->setDefault('__top_p', openai_Setup::get('API_TOP_P'));
             $form->setDefault('__frequency_penalty', openai_Setup::get('API_FREQUENCY_PENALTY'));
             $form->setDefault('__presence_penalty', openai_Setup::get('API_PRESENCE_PENALTY'));
+        }
+
+        $form->input('_pModel');
+
+        if ($form->rec->_pModel == 'TEXT DAVINCI 003') {
+            $form->FLD('__prompt', 'text', 'caption=Параметри->prompt (Текст), mandatory');
+
+            if (isset($fRecClone->promptParams['messages'][0]['content'])) {
+                $form->setDefault('__prompt', $fRecClone->promptParams['messages'][0]['content']);
+            }
+        } else {
+            $form->FLD('__mContentRole', 'text', 'caption=Параметър USER (Въпросът|&#44; |*който задаваме)->Текст, mandatory');
+            $form->FLD('__mContentSystem', 'text', 'caption=Параметър SYSTEM (Област на въпроса)->Текст');
+            $form->FLD('__mContentAssistant', 'text', 'caption=Параметър ASSISTANT (Насочващ отговор)->Текст');
+
+            if (isset($fRecClone->promptParams['prompt'])) {
+                $form->setDefault('__mContentRole', $fRecClone->promptParams['prompt']);
+            }
         }
     }
 

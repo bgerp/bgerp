@@ -73,12 +73,13 @@ class openai_ExtractContactInfo
      * @param $lg
      * @param null|stdClass $cData
      * @param boolean|string $useCache
+     * @param boolean|string $fixTextPart
      *
      *
      * @return false|string
      * @throws core_exception_Expect
      */
-    public static function extractEmailDataFromEmlFile($emlSource, $lg = null, &$cData = null, $useCache = true)
+    public static function extractEmailDataFromEmlFile($emlSource, $lg = null, &$cData = null, $useCache = true, $fixTextPart = true)
     {
         expect($emlSource);
 
@@ -97,6 +98,29 @@ class openai_ExtractContactInfo
             Mode::pop('text');
         } else {
             $textPart = $mime->justTextPart;
+        }
+
+        if ($fixTextPart) {
+            // От текстовата част премахваме редовете, които започват с >
+            $textPart = preg_replace('/^\s*(?:>).*$/mu', '', $textPart);
+
+            // Премахваме текста след Links:
+            $textPart = preg_replace('/^\s*(?:Links:).*/muis', '', $textPart);
+
+            // Премахваме повтарящите се празни редове
+            $textPart = preg_replace('/\n+\s*\n+/ui', "\n", $textPart);
+
+            // Ако са зададени думи за игнориране
+            $ignoreWords = openai_Setup::get('EMAIL_IGNORE_WORDS');
+            if (trim($ignoreWords)) {
+                $ignoreWords = explode("\n", $ignoreWords);
+                foreach ($ignoreWords as $w) {
+                    $w = preg_replace("/\r/", '', $w);
+                    $w = preg_quote($w, '/');
+                    $w = mb_strtolower($w);
+                    $textPart = preg_replace("/{$w}/ui", " ", $textPart);
+                }
+            }
         }
 
         $placeArr = array();
@@ -209,6 +233,20 @@ class openai_ExtractContactInfo
             }
 
             $newResArr[] = $prompt . ': ' . $r;
+        }
+
+        if ($lg == 'bg') {
+            if (!isset($cData->country)) {
+                $cData->country = 'България';
+            }
+        }
+
+        if ($cData->country == 'CN') {
+            $cData->country = 'China';
+        }
+
+        if ($cData->country == 'China CN') {
+            $cData->country = 'China';
         }
 
         return implode("\n", $newResArr);

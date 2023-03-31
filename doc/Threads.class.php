@@ -1217,7 +1217,7 @@ class doc_Threads extends core_Manager
         $exp->ASSUME('#country', "getContragentData(#threadId, 'countryId')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#company', "getContragentData(#threadId, 'company')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#name', "getContragentData(#threadId, 'attn')", "#dest == 'newPerson'");
-        $exp->ASSUME('#tel', "getContragentData(#threadId, 'tel')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#tel', "getContragentData(#threadId, 'tel|pMobile')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#fax', "getContragentData(#threadId, 'fax')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#pCode', "getContragentData(#threadId, 'pCode')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#place', "getContragentData(#threadId, 'place')", "#dest == 'newCompany' || #dest == 'newPerson'");
@@ -2685,6 +2685,23 @@ class doc_Threads extends core_Manager
         }
 
         if ($field) {
+
+            // Възможност за конкатенация на полета
+            if (stripos($field, '|') !== false) {
+                $fArr = explode('|', $field);
+                $bFieldVal = '';
+
+                foreach ($fArr as $f) {
+                    if ($bestContragentData->{$f}) {
+                        $bFieldVal .= $bestContragentData->{$f} . ', ';
+                    }
+                }
+
+                $bFieldVal = trim($bFieldVal);
+                $bFieldVal = trim($bFieldVal, ',');
+
+                return $bFieldVal;
+            }
 
             return $bestContragentData->{$field};
         }
