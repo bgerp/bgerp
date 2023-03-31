@@ -62,7 +62,7 @@
                   <span style='font-weight:normal'>|Клонирано от|*</span>: [#clonedFromId#]<br>
                   <!--ET_END clonedFromId-->
                   <!--ET_BEGIN lastAutoRecalcRate-->
-                  <span style='font-weight:normal'>|Авт. осредняване на курсове|*</span>: [#lastAutoRecalcRate#]<br>
+                  <span style='font-weight:normal'>|Актуализиран валутен курс|*</span>: [#lastAutoRecalcRate#]<br>
                   <!--ET_END lastAutoRecalcRate-->
                   <!--ET_BEGIN detailOrderBy-->
                   <span style='font-weight:normal'>|Подреждане детайли|*</span>: [#detailOrderBy#]<br>
