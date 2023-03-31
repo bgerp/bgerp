@@ -29,7 +29,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'acc_plg_Contable, doc_DocumentPlg, plg_Select, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation';
+    public $loadList = 'plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Select, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation';
 
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
@@ -42,7 +42,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title= Документ, valior, rate, total, lastRecalced, dealOriginId, currencyId';
+    public $listFields = 'title= Документ, valior, rate, total=Корекция BGN, lastRecalced=Последно, dealOriginId=Сделка, currencyId';
 
 
     /**
