@@ -625,8 +625,15 @@ class remote_BgerpDriver extends core_Mvc
         $url = self::prepareQuestionUrl($auth, $ctr, $act, $args);
         
         ini_set('default_socket_timeout', 5);
-        
-        $res = @file_get_contents($url);
+
+        $options = array(
+            'ssl' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            )
+        );
+
+        $res = @file_get_contents($url, false, stream_context_create($options));
         
         if ($res) {
             $params = self::decode($auth, $res, 'answer');

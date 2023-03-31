@@ -174,9 +174,13 @@ class fileman_Get extends core_Manager
                     "DNT: 1\r\n" .
                     "Connection: close\r\n"
                 ),
+            ),
+            'ssl' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
             )
         );
-        
+
         $context = stream_context_create($opts);
         
         // Вземаме данните от посоченото URL
