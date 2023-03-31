@@ -56,7 +56,11 @@ class type_Email extends type_Varchar
             
             return false;
         }
-        
+
+        if (!$this->params['showOriginal']) {
+            $value = email_AddressesInfo::getEmail($value);
+        }
+
         return $value;
     }
     
@@ -90,7 +94,11 @@ class type_Email extends type_Varchar
         if (Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
             $attr['type'] = 'email';
         }
-        
+
+        if (!$this->params['showOriginal']) {
+            $value = email_AddressesInfo::getEmail($value);
+        }
+
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -138,7 +146,15 @@ class type_Email extends type_Varchar
         }
         
         $email = self::removeBadPart($email);
-        
+
+        if (!$this->params['showOriginal']) {
+            $emailOrig = $email;
+            $email = email_AddressesInfo::getEmail($email);
+            if (trim($email) != trim($emailOrig)) {
+                $email .= " ({$emailOrig})";
+            }
+        }
+
         $cu = core_Users::getCurrent();
         if (!haveRole('user') && !Mode::is('text', 'plain') && ($cu != -1)) {
             $verbal = str_replace('@', ' [аt] ', $email); //CyrLat

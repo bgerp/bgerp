@@ -21,78 +21,184 @@ class email_AddressesInfo extends core_Manager
      * Заглавие
      */
     public $title = 'Информация за имейл адресите';
-    
-    
+
+
     /**
      * Кой има право да чете?
      */
     protected $canRead = 'ceo, blast, email, admin';
-    
-    
+
+
     /**
      * Кой има право да променя?
      */
     protected $canEdit = 'ceo, blast, email, admin';
-    
-    
+
+
     /**
      * Кой има право да добавя?
      */
     protected $canAdd = 'ceo, blast, email, admin';
-    
-    
+
+
     /**
      * Кой може да го види?
      */
     protected $canView = 'ceo, blast, email, admin';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     protected $canList = 'ceo, blast, email, admin';
-    
-    
+
+
     /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'ceo, blast, email, admin';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'email_Wrapper, plg_RowTools2, plg_Sorting, bgerp_plg_Import';
-    
-    
+
+
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'blast_BlockedEmails';
-    
-    
+
+
     /**
      * Стойност по подразбиране при импортиране на csv
      */
     public $expOnExist = 'update';
-    
-    
+
+
     /**
      * Описание на модела
      */
     protected function description()
     {
-        $this->FLD('email', 'email', 'caption=Имейл, mandatory');
+        $this->FLD('email', 'email(showOriginal)', 'caption=Имейл, mandatory, silent');
+        $this->FLD('redirection', 'email', 'caption=Пренасочване');
         $this->FLD('state', 'enum(,ok=OK, blocked=Блокирано, error=Грешка)', 'caption=Състояние');
-//         $this->FLD('state', 'enum(,ok=Разрешено, blocked=Забранено, error=Дава грешка)', 'caption=Статус за изпращане на циркулярни имейли->Изпращане');
         $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Последно->Проверка, input=none');
         $this->FLD('lastSent', 'datetime(format=smartTime)', 'caption=Последно->Изпращане, input=none');
         $this->FLD('checkPoint', 'int', 'caption=Проверка->Точки, input=none');
-        
+
         $this->setDbUnique('email');
     }
-    
-    
+
+
+    /**
+     * Връща имейла, към който да се изпраща
+     * С приоритет е пренасоченият имейл
+     *
+     * @param string $email
+     * @return string
+     */
+    public static function getEmail($email)
+    {
+        $oEmail = $email;
+        $email = trim($email);
+        $email = mb_strtolower($email);
+        $rEmail = self::fetchField(array("LOWER(#email) = '[#1#]'", $email), 'redirection');
+        if (trim($rEmail)) {
+            $oEmail = $rEmail;
+        }
+
+        return $oEmail;
+    }
+
+
+    /**
+     * Редиректва към създване/редактиране на запис
+     *
+     * @return Redirect
+     * @throws core_exception_Expect
+     */
+    function act_AddEmail()
+    {
+        $eId = Request::get('docId', 'int');
+
+        expect($eId);
+
+        $eRec = email_Incomings::fetch($eId);
+
+        expect($eRec);
+
+        email_Incomings::requireRightFor('single', $eRec);
+
+        $this->requireRightFor('add');
+
+        // Вземаме имейлите от копи и до
+        email_Incomings::calcAllToAndCc($eRec);
+        $allEmailsArr = array_merge($eRec->AllTo, $eRec->AllCc);
+        $emailArr = array();
+        foreach ($allEmailsArr as $allTo) {
+            $email = $allTo['address'];
+            $email = trim($email);
+            $emailArr[$email] = $email;
+        }
+
+        // Вземаме имейлите от текстовата част
+        $emailsFromText = email_Mime::getAllEmailsFromStr($eRec->textPart, true);
+        $emailsFromTextArr = type_Emails::toArray($emailsFromText);
+        $emailsFromTextArr = arr::make($emailsFromTextArr, true);
+        $emailArr = array_merge($emailArr, $emailsFromTextArr);
+
+        unset($emailArr[$eRec->fromEml]);
+
+        if (!empty($emailArr)) {
+            $emailArr = email_Inboxes::removeOurEmails($emailArr);
+        }
+
+        $emailsStr = '';
+        if (!empty($emailArr)) {
+            $emailsStr = type_Emails::fromArray($emailArr);
+        }
+
+        $email = trim($eRec->fromEml);
+
+        expect(strlen($email), $email);
+
+        $email = mb_strtolower($email);
+        $oRecId = self::fetchField(array("LOWER(#email) = '[#1#]'", $email));
+
+        if (isset($oRecId)) {
+
+            $this->requireRightFor('edit', $oRecId);
+
+            return new Redirect(array($this, 'edit', $oRecId, 'eSugg' => $emailsStr, 'ret_url' => getRetUrl()));
+        }
+
+        return new Redirect(array($this, 'add', 'email' => $email, 'eSugg' => $emailsStr, 'ret_url' => getRetUrl()));
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $eSugg = Request::get('eSugg');
+        if (isset($eSugg)) {
+            $eSuggArr = type_Emails::toArray($eSugg);
+            if (!empty($eSuggArr)) {
+                array_unshift($eSuggArr , '');
+                $eSuggArr = arr::make($eSuggArr, true);
+                $data->form->setSuggestions('redirection', $eSuggArr);
+            }
+        }
+    }
+
+
     /**
      *
      *
