@@ -614,8 +614,6 @@ class cat_Groups extends core_Master
             return "Недостатъчни права";
         }
 
-        return;
-
         $gRecNO = cat_Groups::fetch("#name = 'Пликове за e-Commers с изрязани дръжки' AND #productCnt != 0");
         $gRecYES = cat_Groups::fetch("#name = 'Пликове за e-Commerce с изрязани дръжки'");
 
