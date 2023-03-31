@@ -42,7 +42,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title= Документ, valior, rate, total, lastRecalced, dealOriginId, currencyId';
+    public $listFields = 'title= Документ, valior, rate, total=Корекция BGN, lastRecalced=Последно, dealOriginId=Сделка, currencyId';
 
 
     /**
