@@ -769,6 +769,8 @@ class purchase_Purchases extends deals_DealMaster
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }
+		
+		$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
     }
 
 
