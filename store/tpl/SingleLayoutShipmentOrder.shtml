@@ -136,7 +136,6 @@
                      <td>[#lineVehicleId#]</td>
                   </tr>
                   <!--ET_END lineVehicleId-->
-                  [#InvoicesToDocuments#]
                   <!--ET_BEGIN note-->
                   <tr>
                      <td colspan="2" >
@@ -163,6 +162,10 @@
                      <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
                   </tr>
                   <!--ET_END logisticInfo-->
+               </table>
+			   <table>
+				  <hr>
+                    [#InvoicesToDocuments#]
                </table>
             </td>
             <td>

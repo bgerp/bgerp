@@ -1450,6 +1450,8 @@ class sales_Sales extends deals_DealMaster
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
+			
+			$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
             
             core_Lg::pop();
             $row->transportCurrencyId = $row->currencyId;

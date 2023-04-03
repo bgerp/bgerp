@@ -21,7 +21,8 @@
              </td>
              <!--ET_END INVOICE_DOWNPAYMENT_TH-->
              <td class = 'sum-th'>
-                 |Информация|*
+                 |Информация|* [#detailOrderBy#]
+				 
              </td>
           </tr>
           <tr>
@@ -64,9 +65,6 @@
                   <!--ET_BEGIN lastAutoRecalcRate-->
                   <span style='font-weight:normal'>|Актуализиран валутен курс|*</span>: [#lastAutoRecalcRate#]<br>
                   <!--ET_END lastAutoRecalcRate-->
-                  <!--ET_BEGIN detailOrderBy-->
-                  <span style='font-weight:normal'>|Подреждане детайли|*</span>: [#detailOrderBy#]<br>
-                  <!--ET_END detailOrderBy-->
               </td>
            </tr>
            <tr>
