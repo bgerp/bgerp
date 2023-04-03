@@ -61,6 +61,11 @@ defIfNot('OPENAI_API_FREQUENCY_PENALTY', 0);
 defIfNot('OPENAI_API_PRESENCE_PENALTY', 0);
 
 
+/**
+ * Дими за игнориране във входящите имйли
+ */
+defIfNot('OPENAI_EMAIL_IGNORE_WORDS', '');
+
 
 /**
  *
@@ -100,6 +105,7 @@ class openai_Setup extends core_ProtoSetup
         'OPENAI_API_TOP_P' => array('int', 'caption=API настройка->top_p'),
         'OPENAI_API_FREQUENCY_PENALTY' => array('int', 'caption=API настройка->frequency_penalty'),
         'OPENAI_API_PRESENCE_PENALTY' => array('int', 'caption=API настройка->presence_penalty'),
+        'OPENAI_EMAIL_IGNORE_WORDS' => array('text(rows=4)', 'caption=Думи за игнорине във входящите имейли->Думи'),
     );
 
 
@@ -123,14 +129,14 @@ class openai_Setup extends core_ProtoSetup
     public $managers = array(
         'openai_Cache',
         'openai_Prompt',
-        'migrate::promptTruncate2311',
+        'migrate::promptTruncate2313',
     );
 
 
     /**
      * Миграция за изчистване на данните
      */
-    public static function promptTruncate2311()
+    public static function promptTruncate2313()
     {
         openai_Prompt::delete(array("#systemId = '[#1#]'", openai_Prompt::$extractContactDataBg));
         openai_Prompt::delete(array("#systemId = '[#1#]'", openai_Prompt::$extractContactDataEn));
