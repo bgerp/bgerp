@@ -50,7 +50,6 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
         $this->onvif->setUsername($this->user);
         $this->onvif->setPassword($this->password);
         $this->onvif->setIPAddress($this->ip);
-        
         try
         {
             $this->onvif->initialize();
@@ -163,4 +162,15 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
     public function normalizeCameraId()
     {
     }
+
+    
+    /**
+     * Взимаме настройките на камерата за резолюцията и скоростта на записа
+     */
+    public function getParamsFromCam($params)
+    {
+            
+        return $params;
+    }
+        
 }
