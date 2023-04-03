@@ -651,7 +651,7 @@ class cat_Groups extends core_Master
 //
 //        return 'Изпразване на групата Пликове за e-Commers с изрязани дръжки';
 
-        if (!$grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове' AND #productCnt != 0")) {
+        if (!$grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'")) {
             return "Липсва стара група";
         }
         if ($grRecOld->productCnt == 0) {
@@ -759,6 +759,7 @@ class cat_Groups extends core_Master
         }
 
         if (!empty($logArr)) {
+            $logArr['count'] = countR($logArr);
             wp('Артикули с коригирани групи', $logArr);
         }
 
