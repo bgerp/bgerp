@@ -34,17 +34,17 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
      */
     public function init($params = array())
     {
+        static $cnt;
+        $cnt = $cnt +1;
         parent::init($params);
 
         setIfNot($this->user, 'user');
         setIfNot($this->password, '');
 //         setIfNot($this->width, 1280);
 //         setIfNot($this->height, 720);
-        setIfNot($this->FPS, 5);
-        
+        setIfNot($this->FPS, 25);
         
         require_once (EF_ROOT_PATH . '/' . EF_APP_CODE_NAME . '/cams/ponvif/lib/class.ponvif.php');
-        
         $this->onvif = new Ponvif();
         
         $this->onvif->setUsername($this->user);
@@ -58,9 +58,13 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
             $this->profileToken = $sources[0][0]['profiletoken'];
             $this->mediaUri = $this->onvif->media_GetStreamUri($this->profileToken);
             $this->mediaSnapshotUri = $this->onvif->media_GetSnapshotUri($this->profileToken);
-            $encodersList = $this->onvif->getCodecEncoders('H264');
-            $this->width = $encodersList[0][0]['ResolutionsAvailable'][0]['Width'];
-            $this->height = $encodersList[0][0]['ResolutionsAvailable'][0]['Height'];
+            $configs = $this->onvif->media_GetVideoEncoderConfigurations($this->profileToken);
+            //$encodersList = $this->onvif->getCodecEncoders('H264');
+//             $this->width = $encodersList[0][0]['ResolutionsAvailable'][0]['Width'];
+//             $this->height = $encodersList[0][0]['ResolutionsAvailable'][0]['Height'];
+            $this->width = $configs['Resolution']['Width'];
+            $this->height = $configs['Resolution']['Height'];
+            $this->FPS = $configs['Resolution']['FrameRateLimit'];
             
         } catch (Exception $e) {
             log_System::add(get_called_class(), "Грешка при инициализиране на камера: {$e->getMessage()}", null, 'err');
@@ -169,7 +173,11 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
      */
     public function getParamsFromCam($params)
     {
-            
+        $configs = $this->onvif->media_GetVideoEncoderConfigurations($this->profileToken);
+        $params->width = $configs['Resolution']['Width'];
+        $params->height = $configs['Resolution']['Height'];
+        $params->FPS = $configs['RateControl']['FrameRateLimit'];
+        
         return $params;
     }
         
