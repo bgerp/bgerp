@@ -19,7 +19,7 @@ class openai_ExtractContactInfo
      * Масив с елементите, които могат да се игнорират
      * @var string[]
      */
-    public static $ignoreArr = array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)');
+    public static $ignoreArr = array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)', 'Not provided');
 
 
     /**
