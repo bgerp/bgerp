@@ -159,7 +159,9 @@
                   </tr>
                   <!--ET_BEGIN logisticInfo-->
                   <tr>
-                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+                     <td colspan="2" >
+						<hr>
+						<span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
                   </tr>
                   <!--ET_END logisticInfo-->
                </table>

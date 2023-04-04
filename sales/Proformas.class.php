@@ -191,7 +191,7 @@ class sales_Proformas extends deals_InvoiceMaster
         
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка');
-        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
+		$this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
         $this->FLD('number', 'int', 'caption=Номер, export=Csv,after=reff');
         $this->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData,after=place');
         
@@ -226,7 +226,6 @@ class sales_Proformas extends deals_InvoiceMaster
             $form->setDefault('importProducts', 'onlyFromDeal');
         }
 
-        $form->setField('paymentType', 'input=none');
         foreach (array('deliveryPlaceId', 'vatDate') as $fld) {
             $form->setField($fld, 'input=hidden');
         }
@@ -237,6 +236,7 @@ class sales_Proformas extends deals_InvoiceMaster
         
         if ($data->aggregateInfo) {
             $form->setDefault('reff', $data->aggregateInfo->get('reff'));
+			$form->setDefault('paymentType', $data->aggregateInfo->get('paymentType'));
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
                 $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
             }
@@ -333,13 +333,14 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-single']) {
+
+        parent::getVerbalInvoice($mvc, $rec, $row, $fields);
+        
+		if ($fields['-single']) {
             if(isset($rec->paymentMethodId)){
                 $rec->paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
             }
         }
-
-        parent::getVerbalInvoice($mvc, $rec, $row, $fields);
         
         if ($fields['-single']) {
 
