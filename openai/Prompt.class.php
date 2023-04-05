@@ -89,6 +89,7 @@ class openai_Prompt extends core_Manager
     {
         $this->FLD('systemId', 'varchar(64)', 'caption=Ключ');
         $this->FLD('prompt', 'text', 'caption=Въпрос');
+        $this->FLD('ignoreWords', 'text', 'caption=Думи за игнориране от отговора->Думи');
 
         $this->setDbUnique('systemId');
     }
@@ -171,6 +172,7 @@ class openai_Prompt extends core_Manager
             $recBg->prompt .= "От: [#fromEmail#] ([#from#])";
             $recBg->prompt .= "\n";
             $recBg->prompt .= "[#email#]";
+            $recBg->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)', 'Not provided'));
 
             self::save($recBg);
         }
@@ -199,6 +201,7 @@ class openai_Prompt extends core_Manager
             $recEn->prompt .= "From: [#fromEmail#] ([#from#])";
             $recEn->prompt .= "\n";
             $recEn->prompt .= "[#email#]";
+            $recBg->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)', 'Not provided'));
 
             self::save($recEn);
         }
