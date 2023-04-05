@@ -79,7 +79,7 @@ class cams_driver_IpDevice extends core_BaseClass
             $img = core_Url::loadUrl($url);
             
             if (!empty($img)) {
-                $img = imagecreatefromstring($img);
+                $img = @imagecreatefromstring($img);
             }
             
             if (!$img) {

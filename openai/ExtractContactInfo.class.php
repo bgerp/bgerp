@@ -158,9 +158,14 @@ class openai_ExtractContactInfo
         expect($text);
 
         $ignoreStr = openai_Prompt::fetchField(array("#systemId = '[#1#]'", $cDataKey), 'ignoreWords');
+        $ignoreRegex = '';
         foreach (explode("\n", $ignoreStr) as $iStr) {
             $iStr = trim($iStr);
             $iStr = mb_strtolower($iStr);
+            $ignoreRegex .= $ignoreRegex ? '|' : '';
+            $ignoreRegex .= '^' . preg_quote($iStr, '/') . '$';
+            $ignoreRegex = str_replace('\*', '.*', $ignoreRegex);
+
             $ignoreArr[$iStr] = $iStr;
         }
 
@@ -224,6 +229,11 @@ class openai_ExtractContactInfo
             $rCompare = mb_strtolower($r);
 
             if (isset($ignoreArr[$rCompare])) {
+
+                continue;
+            }
+
+            if (strlen($ignoreRegex) && preg_match("/{$ignoreRegex}/ui", $rCompare)) {
 
                 continue;
             }

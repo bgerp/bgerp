@@ -173,7 +173,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         // Синхронизира таймлимита с броя записи
-        $timeLimit = $pQuery->count() * 0.05;
+        $timeLimit = $pQuery->count() * 0.2;
 
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
@@ -371,7 +371,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         if (isset($dRec->reversibility)) {
-            $row->reversibility = core_Type::getByName('percent(smartRound,decimals=2)')->toVerbal($dRec->reversibility);
+            $row->reversibility = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->reversibility);
         }
 
         return $row;
