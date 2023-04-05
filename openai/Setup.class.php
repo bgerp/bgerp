@@ -153,7 +153,7 @@ class openai_Setup extends core_ProtoSetup
     {
         $query = openai_Prompt::getQuery();
         while ($rec = $query->fetch()) {
-                $rec->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)', 'Not provided'));
+                $rec->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*'));
                 openai_Prompt::save($rec, 'ignoreWords');
         }
     }
