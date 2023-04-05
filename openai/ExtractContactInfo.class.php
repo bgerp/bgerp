@@ -15,11 +15,6 @@
  */
 class openai_ExtractContactInfo
 {
-    /**
-     * Масив с елементите, които могат да се игнорират
-     * @var string[]
-     */
-    public static $ignoreArr = array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)');
 
 
     /**
@@ -154,23 +149,31 @@ class openai_ExtractContactInfo
             $lg = core_Lg::getCurrent();
         }
 
+        $cDataKey = openai_Prompt::$extractContactDataEn;
         if ($lg == 'bg') {
-            $text = openai_Prompt::getPromptBySystemId(openai_Prompt::$extractContactDataBg);
-        } else {
-            $text = openai_Prompt::getPromptBySystemId(openai_Prompt::$extractContactDataEn);
+            $cDataKey = openai_Prompt::$extractContactDataBg;
         }
+        $text = openai_Prompt::getPromptBySystemId($cDataKey);
 
         expect($text);
 
-        $ignoreArr = self::$ignoreArr;
-        $ignoreArr = arr::make($ignoreArr, true);
-        $ignoreArr = array_change_key_case($ignoreArr, CASE_LOWER);
+        $ignoreStr = openai_Prompt::fetchField(array("#systemId = '[#1#]'", $cDataKey), 'ignoreWords');
+        foreach (explode("\n", $ignoreStr) as $iStr) {
+            $iStr = trim($iStr);
+            $iStr = mb_strtolower($iStr);
+            $ignoreArr[$iStr] = $iStr;
+        }
 
         $mapArr = array();
 
         $textArr = explode("\n", $text);
         foreach ($textArr as $key => $tStr) {
+            $tStr = trim($tStr);
             $mArr = explode('->', $tStr);
+
+            $mArr[0] = trim($mArr[0]);
+            $mArr[1] = trim($mArr[1]);
+
             if ($mArr[1]) {
                 $mapArr[$mArr[0]] = $mArr[1];
                 $textArr[$key] = $mArr[0];

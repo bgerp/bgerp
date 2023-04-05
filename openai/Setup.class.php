@@ -130,6 +130,7 @@ class openai_Setup extends core_ProtoSetup
         'openai_Cache',
         'openai_Prompt',
         'migrate::promptTruncate2313',
+        'migrate::promptAddIgnoreWords2314',
     );
 
 
@@ -142,6 +143,19 @@ class openai_Setup extends core_ProtoSetup
         openai_Prompt::delete(array("#systemId = '[#1#]'", openai_Prompt::$extractContactDataEn));
 
         openai_Prompt::addDefaultParams();
+    }
+
+
+    /**
+     * Миграция за изчистване на данните
+     */
+    public static function promptAddIgnoreWords2314()
+    {
+        $query = openai_Prompt::getQuery();
+        while ($rec = $query->fetch()) {
+                $rec->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)', 'Not provided'));
+                openai_Prompt::save($rec, 'ignoreWords');
+        }
     }
 
 
