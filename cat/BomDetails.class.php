@@ -151,8 +151,8 @@ class cat_BomDetails extends doc_Detail
         
         $this->FLD('position', 'int(Min=0)', 'caption=Позиция,tdClass=leftCol');
         $this->FLD('propQuantity', 'text(rows=2, maxOptionsShowCount=20)', 'caption=Формула,tdClass=accCell,mandatory');
-        $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
-	$this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
+        $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently,input=none');
+	    $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
         $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Произвеждане В,input=none');
@@ -252,6 +252,7 @@ class cat_BomDetails extends doc_Detail
         }
 
         if($rec->type == 'stage'){
+            $form->setField('subTitle', 'input');
             if(isset($rec->resourceId)){
 
                 // Ако има данни за производство
@@ -695,12 +696,22 @@ class cat_BomDetails extends doc_Detail
     {
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
-        $row->resourceId = cat_Products::getAutoProductDesc($rec->resourceId, null, 'short', 'internal');
+        $row->resourceId = cat_Products::getTitleById($rec->resourceId);
+        if (!empty($rec->subTitle)) {
+            $subTitleVerbal = $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle);
+            $row->resourceId .= " <i>{$subTitleVerbal}</i>";
+        }
+        $singleProductUrlArray = cat_Products::getSingleUrlArray($rec->resourceId);
+        if(countR($singleProductUrlArray)){
+            $row->resourceId = ht::createLinkRef($row->resourceId, $singleProductUrlArray);
+        }
+
         if(isset($fields['bomId'])){
             $row->bomId = cat_Boms::getHyperlink($rec->bomId, true);
         }
 
         if ($rec->type == 'stage') {
+            $row->resourceId = "<b>{$row->resourceId}</b>";
             $row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
             $row->ROW_ATTR['title'] = tr('Етап');
         } else {
@@ -732,9 +743,6 @@ class cat_BomDetails extends doc_Detail
         $row->position = $position;
 
         $descriptionArr = array();
-		if (!empty($rec->subTitle)) {
-            $descriptionArr[] = tr("|*<tr><td>|Подзаглавие|*:</td><td><b>") . $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle) . "</b></td></tr>";
-        }
         if ($rec->type == 'stage') {
             if(!empty($rec->centerId)){
                 $descriptionArr[] = tr("|*<tr><td>|Център на дейност|*:</td><td>") . planning_Centers::getHyperlink($rec->centerId, true) . "</td></tr>";
@@ -786,7 +794,7 @@ class cat_BomDetails extends doc_Detail
 
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $row->resourceId .= "<div class='small'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $row->resourceId .= "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
         }
 
         if($rec->type == 'stage'){

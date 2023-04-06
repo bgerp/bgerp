@@ -1698,9 +1698,10 @@ class cat_Boms extends core_Master
             $quantityP = (($quantityP) / $rec) * $quantity;
             $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
+            $pRec = cat_Products::fetch($dRec->resourceId);
             $obj = (object) array('title' => cat_Products::getTitleById($dRec->resourceId, false),
                                   'plannedQuantity' => $q1,
-                                  'measureId' => cat_Products::fetchField($dRec->resourceId, 'measureId'),
+                                  'measureId' => $pRec->measureId,
                                   'productId' => $dRec->resourceId,
                                   'packagingId' => $dRec->packagingId,
                                   'quantityInPack' => $dRec->quantityInPack,
@@ -1718,6 +1719,7 @@ class cat_Boms extends core_Master
                                   'labelQuantityInPack' => $dRec->labelQuantityInPack,
                                   'labelType' => $dRec->labelType,
                                   'labelTemplate' => $dRec->labelTemplate,
+                                  'showadditionalUom' => ($pRec->planning_Steps_calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $pRec->planning_Steps_calcWeightMode,
                                   'params' => array(),
                                   'products' => array('input' => array(), 'waste' => array()));
 
