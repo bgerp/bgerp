@@ -1023,8 +1023,9 @@ abstract class deals_DealBase extends core_Master
         $now = dt::now();
         $query = $this->getQuery();
         $query->in('id', $dealIds);
+        $query->where("#state = 'active'");
 
-        ///@todo да го махна в последствие
+        //@todo да го махна в последствие
         $query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
 
         $recalcedItems = $saved = array();

@@ -609,7 +609,7 @@ class cat_Categories extends core_Master
             
             if(core_Packs::isInstalled('eshop')){
                 if(!isset($metasArr['canSell']) && eshop_ProductDetails::count("#productId = {$productId}")){
-                    $error = "Артикулът се използва е Е-маг. Трябва да остане продаваем|*!";
+                    $error = "Артикулът се използва в Е-маг. Трябва да остане продаваем|*!";
                 }
             }
 
