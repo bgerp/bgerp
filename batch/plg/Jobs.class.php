@@ -165,10 +165,13 @@ class batch_plg_Jobs extends core_Plugin
     public function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         if($rec->_isCreated){
-            static::modifyBatches($mvc, $rec, 'add');
+            if(!$rec->_activateAfterCreation){
+                static::modifyBatches($mvc, $rec, 'add');
+            }
         } elseif(empty($rec->storeId) && isset($rec->_oldStoreId)){
             batch_BatchesInDocuments::delete("#containerId = {$rec->containerId}");
         } elseif($rec->storeId && $rec->storeId != $rec->_oldStoreId){
+            core_Statuses::newStatus("UP " . time(), 'warning');
             static::modifyBatches($mvc, $rec, 'update');
         }
     }
