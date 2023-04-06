@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,7 +25,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'batch_Wrapper';
+    public $loadList = 'batch_Wrapper,plg_RowTools2';
 
 
     /**
@@ -37,7 +37,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Кой може да променя?
      */
-    public $canWrite = 'no_one';
+    public $canWrite = 'debug';
 
 
     /**
