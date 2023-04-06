@@ -107,10 +107,12 @@ class batch_plg_Jobs extends core_Plugin
                         $saveBatches = array();
                         $bQuery = batch_BatchesInDocuments::getQuery();
                         $bQuery->EXT('threadId', 'doc_Containers', "externalName=threadId,externalKey=containerId");
+                        $bQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
                         $bQuery->where("#threadId = {$threadId} AND #productId = {$rec->productId} AND #storeId = {$rec->storeId}");
-                        $bQuery->show('batch,quantity');
+                        $bQuery->groupBy('batch');
+                        $bQuery->show('batch,sumQuantity');
                         while($bRec = $bQuery->fetch()){
-                            $saveBatches["{$bRec->batch}"] = $bRec->quantity;
+                            $saveBatches["{$bRec->batch}"] = $bRec->sumQuantity;
                         }
 
                         if(countR($saveBatches)){
