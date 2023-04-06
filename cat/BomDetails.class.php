@@ -699,7 +699,7 @@ class cat_BomDetails extends doc_Detail
         $row->resourceId = cat_Products::getTitleById($rec->resourceId);
         if (!empty($rec->subTitle)) {
             $subTitleVerbal = $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle);
-            $row->resourceId .= "<i>, {$subTitleVerbal}</i>";
+            $row->resourceId .= " <i>{$subTitleVerbal}</i>";
         }
         $singleProductUrlArray = cat_Products::getSingleUrlArray($rec->resourceId);
         if(countR($singleProductUrlArray)){
@@ -793,7 +793,7 @@ class cat_BomDetails extends doc_Detail
 
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $row->resourceId .= "<div class='small'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $row->resourceId .= "<div class='small' style='margin-top:5px'><table class='bomProductionStepTable'>{$description}</table></div>";
         }
 
         if($rec->type == 'stage'){
