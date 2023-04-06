@@ -151,7 +151,7 @@ class cat_BomDetails extends doc_Detail
         
         $this->FLD('position', 'int(Min=0)', 'caption=Позиция,tdClass=leftCol');
         $this->FLD('propQuantity', 'text(rows=2, maxOptionsShowCount=20)', 'caption=Формула,tdClass=accCell,mandatory');
-        $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
+        $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently,input=none');
 	    $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
@@ -252,6 +252,7 @@ class cat_BomDetails extends doc_Detail
         }
 
         if($rec->type == 'stage'){
+            $form->setField('subTitle', 'input');
             if(isset($rec->resourceId)){
 
                 // Ако има данни за производство
