@@ -711,6 +711,7 @@ class cat_BomDetails extends doc_Detail
         }
 
         if ($rec->type == 'stage') {
+            $row->resourceId = "<b>{$row->resourceId}</b>";
             $row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
             $row->ROW_ATTR['title'] = tr('Етап');
         } else {
@@ -793,7 +794,7 @@ class cat_BomDetails extends doc_Detail
 
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $row->resourceId .= "<div class='small' style='margin-top:5px'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $row->resourceId .= "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
         }
 
         if($rec->type == 'stage'){
