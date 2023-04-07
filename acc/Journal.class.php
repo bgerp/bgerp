@@ -795,8 +795,12 @@ class acc_Journal extends core_Master
 
                 // Да се реконтират и те
                 while($dRec = $query->fetch()){
-                    $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
-                    $count++;
+                    try{
+                        $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
+                        $count++;
+                    } catch(core_exception_Expect $e){
+                        wp($e);
+                    }
                 }
             }
         }
