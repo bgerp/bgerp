@@ -89,7 +89,8 @@ class openai_Prompt extends core_Manager
     {
         $this->FLD('systemId', 'varchar(64)', 'caption=Ключ');
         $this->FLD('prompt', 'text', 'caption=Въпрос');
-        $this->FLD('ignoreWords', 'text', 'caption=Думи за игнориране от отговора->Думи');
+        $this->FLD('emailIgnoreWords', 'text', 'caption=Думи за игнориране->От имейла');
+        $this->FLD('ignoreWords', 'text', 'caption=Думи за игнориране->От отговора');
 
         $this->setDbUnique('systemId');
     }

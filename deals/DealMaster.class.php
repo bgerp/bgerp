@@ -1293,7 +1293,11 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if (!empty($rec->paymentType)) {
-                $row->paymentMethodId = "{$row->paymentType}, {$row->paymentMethodId}";
+                if(empty($rec->paymentMethodId)) {
+                    $row->paymentMethodId = "<b>{$row->paymentType}</b>";
+                } else {
+                    $row->paymentMethodId = "<b>{$row->paymentType}</b>, {$row->paymentMethodId}";
+                }
             }
             
             core_Lg::pop();

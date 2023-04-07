@@ -1057,7 +1057,21 @@ class core_Packs extends core_Manager
             
             // Полето ще се въвежда
             $params['input'] = 'input';
-            
+
+            // Ако няма права да вижда полето
+            if (isset($params['canView'])) {
+                if (!haveRole($params['canView'])) {
+                    continue;
+                }
+            }
+
+            // Ако няма права да редактира полето
+            if (isset($params['canEdit'])) {
+                if (!haveRole($params['canEdit'])) {
+                    $params['readOnly'] = true;
+                }
+            }
+
             // Ако не е зададено, заглавието на полето е неговото име
             setIfNot($params['caption'], '|*' . $field);
             
@@ -1176,7 +1190,10 @@ class core_Packs extends core_Manager
         // Добавяне на допълнителни системни действия
         if (countR($setup->systemActions)) {
             foreach ($setup->systemActions as $sysActArr) {
-                $form->toolbar->addBtn($sysActArr['title'], $sysActArr['url'], $sysActArr['params']);
+                setIfNot($sysActArr['roles'], 'admin');
+                if(haveRole($sysActArr['roles'])){
+                    $form->toolbar->addBtn($sysActArr['title'], $sysActArr['url'], $sysActArr['params']);
+                }
             }
         }
         

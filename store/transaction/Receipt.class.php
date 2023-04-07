@@ -155,7 +155,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $currencyId = currency_Currencies::getIdByCode($currencyCode);
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
         $dClass = ($reverse) ? 'store_ShipmentOrderDetails' : 'store_ReceiptDetails';
-       
+
         foreach ($rec->details as $detailRec) {
             if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
                 continue;
@@ -164,11 +164,11 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
-            
+
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
                 $splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $detailRec->id, $detailRec->productId, $detailRec->quantity, $amount, $detailRec->discount);
-                
+
                 foreach ($splitRecs as $dRec1) {
                     $amount = $dRec1->amount;
                     $amountAllocated = $amount * $rec->currencyRate;
@@ -198,7 +198,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 }
             } else {
                 $debitAccId = '321';
-                
+
                 $debit = array(
                     $debitAccId,
                     array('store_Stores', $rec->storeId), // Перо 1 - Склад
@@ -208,13 +208,6 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
 
                 $cQuantity = $sign * $amount;
                 $amount = $sign * $amount * $rec->currencyRate;
-
-                if($reverse){
-                    $amountInStore = cat_Products::getWacAmountInStore($detailRec->quantity, $detailRec->productId, $rec->valior, $rec->storeId);
-                    if(isset($amountInStore)){
-                        $amount = $sign * $amountInStore;
-                    }
-                }
 
                 $entries[] = array(
                     'amount' => $amount,
