@@ -1446,11 +1446,13 @@ class sales_Sales extends deals_DealMaster
                 $row->visiblePricesByAllInThread =  $mvc->getFieldType('visiblePricesByAllInThread')->toVerbal($visiblePrices);
             }
 
+            $row->visiblePricesByAllInThread = mb_strtolower($row->visiblePricesByAllInThread);
             $row->visiblePricesByAllInThread = ht::createHint("", "Цени и суми в нишката|*: |{$row->visiblePricesByAllInThread}|*");
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
-			
+
+            $row->detailOrderBy = mb_strtolower($row->detailOrderBy);
 			$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
             
             core_Lg::pop();
