@@ -86,6 +86,10 @@ class openai_ExtractContactInfo
             $lg = $mime->getLg();
         }
 
+        if (!isset($lg)) {
+            $lg = core_Lg::getCurrent();
+        }
+
         if ($mime->textPart) {
             Mode::push('text', 'plain');
             $rt = new type_Richtext();
@@ -105,8 +109,15 @@ class openai_ExtractContactInfo
             // Премахваме повтарящите се празни редове
             $textPart = preg_replace('/\n+\s*\n+/ui', "\n", $textPart);
 
+            $cDataKey = openai_Prompt::$extractContactDataEn;
+            if ($lg == 'bg') {
+                $cDataKey = openai_Prompt::$extractContactDataBg;
+            }
+            $ignoreWords = openai_Prompt::getPromptBySystemId($cDataKey);
+
             // Ако са зададени думи за игнориране
-            $ignoreWords = openai_Setup::get('EMAIL_IGNORE_WORDS');
+            $ignoreWords = openai_Prompt::fetchField(array("#systemId = '[#1#]'", $cDataKey), 'emailIgnoreWords');
+
             if (trim($ignoreWords)) {
                 $ignoreWords = explode("\n", $ignoreWords);
                 foreach ($ignoreWords as $w) {
@@ -246,12 +257,6 @@ class openai_ExtractContactInfo
             }
 
             $newResArr[] = $prompt . ': ' . $r;
-        }
-
-        if ($lg == 'bg') {
-            if (!isset($cData->country)) {
-                $cData->country = 'България';
-            }
         }
 
         if ($cData->country == 'CN') {
