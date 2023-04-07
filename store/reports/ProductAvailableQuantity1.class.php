@@ -431,6 +431,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 3;
@@ -441,18 +442,19 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if ($rec->seeByStores != 'yes') {
             if (isset($dRec->quantity)) {
 
-                $row->quantity = $Double->toVerbal($dRec->quantity);
-                $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
+                $quantityStr = $Double->toVerbal($dRec->quantity);
+                $row->quantity .= ht::styleIfNegative($quantityStr, $dRec->quantity);
             }
         } else {
 
-            $row->quantity = '<b>' . 'Общо: ' . $Double->toVerbal($dRec->quantity) . '</b>' . "</br>";
-
+            $quantityStr = '<b>' . 'Общо: ' . $Double->toVerbal($dRec->quantity) . '</b>' . "</br>";
+            $row->quantity .= ht::styleIfNegative($quantityStr, $dRec->quantity);
             foreach ($dRec->storesQuatity as $val) {
 
                 list($storeId, $stQuantity) = explode('|', $val);
-                $row->quantity .= store_Stores::getTitleById($storeId) . ': ' . ($stQuantity) . "</br>";
-                $row->quantity = ht::styleIfNegative($row->quantity, $stQuantity);
+
+                $quantityStr = store_Stores::getTitleById($storeId) . ': ' .$Double->toVerbal($stQuantity) . "</br>";
+                $row->quantity .= ht::styleIfNegative($quantityStr, $stQuantity);
             }
         }
 
