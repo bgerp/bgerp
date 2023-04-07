@@ -738,6 +738,7 @@ class acc_Journal extends core_Master
         $recs = $query->fetchAll();
 
         // За всеки запис ако има
+        $count = 0;
         $deletedRecs = array();
         if (countR($recs)) {
             foreach ($recs as $rec) {
@@ -762,10 +763,11 @@ class acc_Journal extends core_Master
                         Mode::push('recontoWithCreatedOnDate', $deletedRecs[$rec->docType][$rec->docId]->createdOn);
                     }
                     $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
+                    $count++;
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
                         Mode::pop('recontoWithCreatedOnDate');
                     }
-                } catch(acc_journal_Exception $e){
+                } catch(core_exception_Expect $e){
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
                         acc_Journal::restoreDeleted($rec->docType, $rec->docId, $deletedRecs[$rec->docType][$rec->docId], $deletedRecs[$rec->docType][$rec->docId]->_details);
                     }
@@ -794,12 +796,13 @@ class acc_Journal extends core_Master
                 // Да се реконтират и те
                 while($dRec = $query->fetch()){
                     $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
+                    $count++;
                 }
             }
         }
 
-        // Засегнатите документи
-        return countR($recs);
+        // Реконтираните документи
+        return $count;
     }
 
 
