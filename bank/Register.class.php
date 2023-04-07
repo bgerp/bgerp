@@ -17,69 +17,69 @@
 class bank_Register extends core_Manager
 {
     public $title = 'Регистър за банковите трансакции';
-    
+
     public $singleTitle = 'Банкова трансакция';
 
     /**
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'bank_Wrapper, plg_State, plg_Created, plg_Modified, plg_GroupByField,plg_RowTools2,import2_Plugin';
-    
-    
+
+
     /**
      * Интерфейс на драйверите за импортиране
      */
     public $importInterface = 'bank_ImportTransactionsIntf';
-    
-    
+
+
     /**
      * По кое поле да се направи групиране
      */
     public $groupByField = 'valiorAndIban';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valiorAndIban, amount, contragentName=Контрагент, info=Осчетоводяване';
-    
-    
+
+
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'bank, ceo';
-    
-    
+
+
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'bank, ceo';
-    
-    
+
+
     /**
      * Кой може да създава?
      */
     public $canAdd = 'bank, ceo';
-    
-    
+
+
     /**
      * Кой може да редактира?
      */
     public $canEdit = 'bank, ceo';
-    
-    
+
+
     /**
      * Кой може да го контира?
      */
     public $canConto = 'bank, ceo';
-    
-    
+
+
     /**
      * Добавяне на дефолтни полета
      *
@@ -91,26 +91,26 @@ class bank_Register extends core_Manager
     {
         $this->FLD('serviceId', 'varchar(32)', 'caption=Услуга');
         $this->FLD('transactionId', 'varchar(32)', 'caption=Услуга');
-        
+
         $this->FLD('type', 'enum(incoming=Входящ,outgoing=Изходящ)', 'caption=Вид');
         $this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
         $this->FLD('ownAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Наша сметка');
         $this->FLD('reason', 'varchar', 'caption=Основание');
-        
+
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Име');
         $this->FLD('contragentIban', 'varchar(255)', 'caption=Контрагент->Сметка');
-        
+
         $this->FLD('matches', 'blob(compress,serialize)', 'caption=Съответствия,input=none,oldFieldName=accounting');
-        
+
         $this->FLD('state', 'enum(waiting=Чакащ, active=Активиран, rejected=Оттеглен)', 'caption=Състояние');
-        
+
         $this->FNC('valiorAndIban', 'varchar', 'captin=Дата и IBAN');
-        
+
         $this->setDbUnique('transactionId');
     }
-    
-    
+
+
     /**
      * Поддръжка на функционално поле
      */
@@ -118,25 +118,25 @@ class bank_Register extends core_Manager
     {
         $rec->valiorAndIban = $rec->valior . '|' . $rec->ownAccountId;
     }
-    
-    
+
+
     /**
      * Вербализира групата
      */
     public function renderGroupName($data, $groupId, $groupVerbal)
     {
         list($valior, $ownBankAccId) = explode('|', $groupId);
-        
+
         $valior = dt::mysql2verbal($valior, 'd/m/Y');
-        
+
         $ownBankAcc = bank_OwnAccounts::getTitleById($ownBankAccId);
-        
+
         $res = "<h3>{$valior}, {$ownBankAcc}</h3>";
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -152,35 +152,35 @@ class bank_Register extends core_Manager
         if (!empty($rec->reason)) {
             $row->contragentName .= ($row->contragentName ? '<br>' : '') . '<small>' . $mvc->getVerbal($rec, 'reason') . '<small>';
         }
-        
+
         $row->amount .= '<br><small>' . mb_strtolower($mvc->getVerbal($rec, 'type')) . '</small>';
-        
+
         if ($rec->type == 'outgoing') {
             $color = '#800';
         } else {
             $color = '#008';
         }
-        
+
         if ($folderId = $rec->matches['folderId']) {
             $params = array();
             $params['folderId'] = $folderId;
-            
+
             $folder = doc_Folders::getVerbalLink($params);
-            
+
             if ($folder === false) {
                 $folder = tr('Липсващ обект');
             } else {
                 $folder = $folder->getContent();
             }
-            
+
             $row->info = $folder;
         }
-        
+
         if (is_array($rec->matches['rows'])) {
             foreach ($rec->matches['rows'] as $r) {
                 $t .= "\n<tr>";
                 $parts = array('head', 'prof', 'inv', 'bdoc');
-                
+
                 foreach ($parts as $part) {
                     // Проформите
                     $t .= '<td>';
@@ -200,7 +200,22 @@ class bank_Register extends core_Manager
                     }
                     if ($part == 'bdoc') {
                         $mvc = ($rec->type == 'incoming') ? 'bank_IncomeDocuments' : 'bank_PaymentOrders';
-                        $url = array($mvc, 'add', 'originId' => $r->containerId, 'ret_url' => true);
+
+                        $Document = doc_Containers::getDocument($r->containerId);
+                        $FirstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
+                        $dealCurrencyId = $FirstDoc->fetchField('currencyId');
+
+                        $ownAccountCurrencyId = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccountId)->currencyId;
+                        $ownAccountCurrencyCode = currency_Currencies::getCodeById($ownAccountCurrencyId);
+                        $inDealCurrencyAmount = currency_CurrencyRates::convertAmount($rec->amount, null, $ownAccountCurrencyCode, $dealCurrencyId);
+                        $inDealCurrencyAmount = round($inDealCurrencyAmount, 2);
+                        $rec->amount = round($rec->amount, 2);
+
+                        $url = array($mvc, 'add', 'originId' => $FirstDoc->fetchField('containerId'),  'amountDeal' =>  $inDealCurrencyAmount, 'fromContainerId' => $r->containerId, 'ret_url' => true);
+                        if($rec->amount != $inDealCurrencyAmount){
+                            $url['amount'] = $rec->amount;
+                        }
+
                         $link = ht::createLink('+', $url) ;
                         $t .= $first ? '' : '<br>';
                         $t .= $link->getContent();
@@ -210,14 +225,14 @@ class bank_Register extends core_Manager
                 }
                 $t .= '</tr>';
             }
-            
+
             $row->info .= "<table style='font-size:0.8em' class='listTable'>" . $t . '</table>';
         }
-        
+
         $row->ROW_ATTR['style'] .= "color:{$color};";
     }
-    
-    
+
+
     /**
      * Импортира подготвени редове в модела
      */
@@ -225,7 +240,7 @@ class bank_Register extends core_Manager
     {
         $usedIds = array();
         $ins = $skip = 0;
-        
+
         foreach ($recs as $rec) {
             if ($serviceId) {
                 $rec->serviceId = $serviceId;
@@ -236,9 +251,9 @@ class bank_Register extends core_Manager
                 $rec->transactionId = md5("{$rec->valior}|{$rec->type}|{$rec->amount}|{$rec->contragentIban}|{$rec->ownAccountId}|{$ind}");
                 $ind++;
             } while ($usedIds[$rec->transactionId]);
-            
+
             $usedIds[$rec->transactionId] = true;
-            
+
             if (self::fetch("#transactionId = '{$rec->transactionId}'")) {
                 $skip++;
             } else {
@@ -246,13 +261,13 @@ class bank_Register extends core_Manager
                 $ins++;
             }
         }
-        
+
         $status = "Импортирани {$ins} трансакции, пропуснати {$skip}";
-        
+
         return $status;
     }
-    
-    
+
+
     /**
      * Намира съответствията на документи и папки и ги записва в полето `matches`
      */
@@ -260,21 +275,21 @@ class bank_Register extends core_Manager
     {
         list($documents, $folderIds) = self::getDocuments();
         $folders = self::getFolders();
-        
+
         $query = self::getQuery();
-        
+
         $timeLine = dt::addSecs(-1 * 24 * 60 * 60);
-        
+
         if (is_array($ids) && countR($ids)) {
             $ids = implode(',', $ids);
             $query->where("#id IN ({$ids}),");
         } else {
             $query->where("#state = 'waiting' AND #createdOn > '{$timeLine}'");
         }
-         
+
         while ($rec = $query->fetch()) {
             $cnt++;
-            
+
             // Вадим номерата от основанието
             $matches = array();
             preg_match_all('/([1-9][0-9]+)/', $rec->reason, $matches);
@@ -283,11 +298,11 @@ class bank_Register extends core_Manager
             } else {
                 $numbers = array();
             }
-            
+
             $rec->matches = array();
-            
+
             $ourAcc = bank_OwnAccounts::fetch($rec->ownAccountId);
-            
+
             // Намираме папката на контрагента по ИБАН-а
             if ($i = $rec->contragentIban) {
                 $i = strtoupper(preg_replace('/[^a-z0-9]/i', '', $i));
@@ -297,7 +312,7 @@ class bank_Register extends core_Manager
                 }
                 if ($bAcc) {
                     $rec->matches['bAcc'] = $bAcc;
-                    
+
                     // Ако е наша сметката
                     if ($ibanAcc = bank_OwnAccounts::fetch("#bankAccountId = {$bAcc->id}")) {
                         if ($rec->type == 'outgoing') {
@@ -312,11 +327,11 @@ class bank_Register extends core_Manager
                     }
                 }
             }
-            
+
             // Намираме папката по името на контрагента
             if (empty($rec->matches['folderId']) && ($contragent = $rec->contragentName)) {
                 $contragent = trim(strtolower(self::transliterate(str_replace('.', '', $contragent))));
-                
+
                 if ($folderId = $folders[$contragent]) {
                     $rec->matches['folderId'] = $folderId;
                 } else {
@@ -325,26 +340,26 @@ class bank_Register extends core_Manager
                     }
                 }
             }
-            
+
             foreach ($documents as $d) {
-                
+
                 // Ако типа на документа и на плащането не съвпадат - прескачаме
                 if ($rec->type != $d->type) {
                     continue;
                 }
-                
+
                 // Ако имаме папка, прескачаме документите, които не са в нея
                 if (isset($rec->matches['folderId']) && $rec->matches['folderId'] != $d->folderId) {
                     continue;
                 }
-                
+
                 // Ако валутата на документа не съвпада с тази на трансакцията - прескачаме
                 if ($d->currencyId != $rec->currencyId && $d->currencyId2 != $rec->currencyId) {
                     continue;
                 }
-                
+
                 $p = 0;
-                
+
                 // Номер на документа
                 if (strlen($d->number) && stripos($rec->reason, $d->number) !== false) {
                     $p += max(0, 1 - 2.8 / strlen($d->number));
@@ -352,7 +367,7 @@ class bank_Register extends core_Manager
                         $p += max(0, 1 - 1.3 / strlen($d->number));
                     }
                 }
-                
+
                 // Сумата на документа
                 $delta = abs($d->amount - $rec->amount) / max($d->amount, $rec->amount);
                 if ($delta < 0.001) {
@@ -360,18 +375,18 @@ class bank_Register extends core_Manager
                 } elseif ($delta < 0.03) {
                     $p += 0.11;
                 }
-                
+
                 // Дата на докуемнта
                 if ($d->date) {
                     $delta = abs(dt::secsBetween($d->date, $rec->valior));
-                    
+
                     if ($delta <= 24 * 60 * 60) {
                         $p += 0.32;
                     } elseif ($delta < 3 * 24 * 60 * 60) {
                         $p += 0.12;
                     }
                 }
-                
+
                 // Папка на документа
                 if (!isset($rec->matches['folderId']) && $p >= 0.4 && $contragent) {
                     list($folderName) = array_keys($folders, $d->folderId);
@@ -381,22 +396,22 @@ class bank_Register extends core_Manager
                         $p -= 0.2;
                     }
                 }
-                
+
                 if ($p >= 0.5) {
                     $d->p = $p;
                     $rec->matches['docs'][] = $d;
                 }
             }
-            
+
             // Ако имаме документи, но нямаме папка, опитваме се да я определим от най-вероятните документи
             if (empty($rec->matches['folderId']) && is_array($rec->matches['docs'])) {
                 $foldersTmp = array();
                 foreach ($rec->matches['docs'] as $d) {
                     $foldersTmp[$d->folderId] += $d->p;
                 }
-                
+
                 list($rec->matches['folderId']) = array_keys($foldersTmp, max($foldersTmp));
-                
+
                 if ($rec->matches['folderId']) {
                     foreach ($rec->matches['docs'] as $id => $d) {
                         if ($d->folderId != $rec->matches['folderId']) {
@@ -405,20 +420,20 @@ class bank_Register extends core_Manager
                     }
                 }
             }
-            
+
             if (is_array($rec->matches['docs'])) {
                 foreach ($rec->matches['docs'] as $d) {
                     if (!isset($rec->matches['rows'][$d->threadId])) {
                         $rec->matches['rows'][$d->threadId] = new stdClass();
                     }
-                    
+
                     $row = &$rec->matches['rows'][$d->threadId];
                     if (!isset($row->head[1])) {
                         $row->head[1] = $documents['T' . $d->threadId];
                         $dRec = $row->head[1]->documentMvc->fetch($row->head[1]->documentId);
                         $row->containerId = $dRec->containerId;
                     }
-                    
+
                     switch ($d->documentMvc->className) {
                         case 'sales_Proformas':
                             $row->prof[] = $d;
@@ -433,17 +448,17 @@ class bank_Register extends core_Manager
                     }
                 }
             }
-            
-            
+
+
             if (is_array($rec->matches['rows']) || $rec->matches['folderId'] || true) {
                 self::save($rec);
             }
         }
-        
+
         return $cnt;
     }
 
-    
+
     /**
      * Транслитерация по правила UniCredit
      */
@@ -481,68 +496,77 @@ class bank_Register extends core_Manager
         $code['ь'] = 'j';
         $code['ю'] = 'yu';
         $code['я'] = 'ya';
-        
+
         $keys = array_keys($code);
-        
+
         $string = mb_strtolower($string);
-        
+
         $res = preg_replace('/[^a-z0-9]+/i', ' ', str_replace($keys, $code, $string));
-        
+
         $res = str_replace(array(' ood ood', 'ad ad', ' eood eood', 'ead ead'), array(' ood', ' ad', ' eood', ' ead'), $res);
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Връща масив с папки, където може да има плащания
      */
     public static function getFolders($inThePast = null)
     {
         $hnd = 'BANK_FOLDERS_REGISTER';
-        
+
         if (!$inThePast) {
             $inThePast = 60 * 60 * 24 * 1980;
         }
-        
+
         $cachedFolders = core_Cache::get('BANK', 'ACTIVE_FOLDERS');
-        
+
         if (is_array($cachedFolders)) {
             $inThePast = 60 * 60 * 24 * 1;
         } else {
             $cachedFolders = array();
         }
-        
+
         $query = crm_Companies::getQuery();
         $query->EXT('last', 'doc_Folders', 'externalKey=folderId');
         $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
-        
+
         $query->where('#coverClass = ' . core_Classes::getId('crm_Companies'));
         $query->where("#state = 'active' OR #state = 'opened'");
         $query->where('#folderId > 0');
-        
+
         $lastDateActivity = DT::addSecs(-$inThePast);
         $query->where("#last > '${lastDateActivity}'");
-        
+
         $res = array();
-        
+
         while ($rec = $query->fetch()) {
             $title = self::transliterate(str_replace('.', '', $rec->name));
             if (!$res[$title] && !$cachedFolders[$title]) {
                 $res[$title] = $rec->folderId;
             }
         }
-        
+
         $res1 = array_merge($res, $cachedFolders);
-        
+
         if (countR($res)) {
             core_Cache::set('BANK', 'ACTIVE_FOLDERS', $res1, 24 * 60);
         }
-        
+
         return $res1;
     }
-    
-    
+
+    public function act_TestFolders()
+    {
+        requireRole('admin');
+
+        $res = $this->getFolders();
+
+        bp($res);
+    }
+
+
     /**
      * Връща масив със записи за всички отворени документи
      *
@@ -554,16 +578,16 @@ class bank_Register extends core_Manager
     {
         // Обикаляме по всичко отворени Продажби и такива, в които имаме затваряне
         $earlyClosed = dt::addSecs(-5 * 24 * 60 * 60);
-        
+
         $query = sales_Sales::getQuery();
         $query->where("#state = 'active' OR (#state = 'closed' AND #closedOn >= '{$earlyClosed}')");
         $query->orderBy('createdOn', 'DESC');
         while ($rec = $query->fetch()) {
             // Извличаме всички проформи, фактури и документи за плащане в посочените нишки
-            
+
             $threads[] = $rec->threadId;
             $folders[$rec->folderId] = $rec->folderId;
-            
+
             $o = new stdClass();
             $o->type = 'incoming';
             $o->number = $rec->id;
@@ -573,10 +597,10 @@ class bank_Register extends core_Manager
             $o->threadId = $rec->threadId;
             $o->documentMvc = $query->mvc;
             $o->documentId = $rec->id;
-            
+
             $docs['T' . $rec->threadId] = $o;
         }
-        
+
         // Обикаляме по всички Финансови сделики
         $query = findeals_Deals::getQuery();
         $query->where("#state = 'active' OR (#state = 'closed' AND #closedOn >= '{$earlyClosed}')");
@@ -584,7 +608,7 @@ class bank_Register extends core_Manager
         while ($rec = $query->fetch()) {
             $threads[] = $rec->threadId;
             $folders[$rec->folderId] = $rec->folderId;
-            
+
             $o = new stdClass();
             $o->type = $rec->amountDeal > 0 ? 'incoming' : 'outgoing';
             $o->number = $rec->id;
@@ -594,19 +618,19 @@ class bank_Register extends core_Manager
             $o->threadId = $rec->threadId;
             $o->documentMvc = $query->mvc;
             $o->documentId = $rec->id;
-            
+
             $docs['T' . $rec->threadId] = $o;
         }
-        
+
         // Обикаляме по всички Покупки
-        
+
         $query = purchase_Purchases::getQuery();
         $query->where("#state = 'active' OR (#state = 'closed' AND #closedOn >= '{$earlyClosed}')");
         $query->orderBy('createdOn', 'DESC');
         while ($rec = $query->fetch()) {
             $threads[] = $rec->threadId;
             $folders[$rec->folderId] = $rec->folderId;
-            
+
             $o->type = 'outgoing';
             $o->number = $rec->id;
             $o->amount = round(($rec->amountBl ? $rec->amountBl : $rec->amountDeal - $rec->amountDiscount + $rec->amountVat) / self::getCurrencyRate($rec), 2);
@@ -615,12 +639,12 @@ class bank_Register extends core_Manager
             $o->threadId = $rec->threadId;
             $o->documentMvc = $query->mvc;
             $o->documentId = $rec->id;
-            
+
             $docs['T' . $rec->threadId] = $o;
         }
-        
+
         $threadIds = implode(',', $threads);
-        
+
         $query = sales_Invoices::getQuery();
         $query->orderBy('createdOn', 'DESC');
         while ($rec = $query->fetch("#threadId IN ({$threadIds}) AND #state = 'active'")) {
@@ -636,7 +660,7 @@ class bank_Register extends core_Manager
             $o->documentId = $rec->id;
             $docs[] = $o;
         }
-        
+
         $query = sales_Proformas::getQuery();
         $query->orderBy('createdOn', 'DESC');
         while ($rec = $query->fetch("#threadId IN ({$threadIds}) AND #state = 'active'")) {
@@ -652,7 +676,7 @@ class bank_Register extends core_Manager
             $o->documentId = $rec->id;
             $docs[] = $o;
         }
-        
+
         // Входящи банкови документи
         $query = bank_IncomeDocuments::getQuery();
         $query->orderBy('createdOn', 'DESC');
@@ -669,21 +693,21 @@ class bank_Register extends core_Manager
             $o->documentId = $rec->id;
             $docs[] = $o;
         }
-        
+
         return array($docs, $folders);
     }
-    
-    
+
+
     public function act_Match()
     {
         requireRole('admin,ceo,bank');
-        
+
         $res = self::findMatches();
-        
+
         return new Redirect(array('bank_register'), "Обработени {$res} записа");
     }
-    
-    
+
+
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -693,8 +717,8 @@ class bank_Register extends core_Manager
             $data->toolbar->addBtn('Разнасяне', array($mvc, 'Match', 'ret_url' => true), 'ef_icon=img/16/briefcase.png, title=Намиране на съответствия');
         }
     }
-    
-    
+
+
     /**
      * Разстояние между фрази, без значение на подредбата на думите в тях
      */
@@ -706,7 +730,7 @@ class bank_Register extends core_Manager
             $s1Arr = explode(' ', strtolower(trim(preg_replace('/[^a-z0-9]+/i', ' ', $s1))));
         }
         $s2Arr = explode(' ', strtolower(trim(preg_replace('/[^a-z0-9]+/i', ' ', $s2))));
-        
+
         foreach ($s1Arr as $w1) {
             $m = 0;
             foreach ($s2Arr as $w2) {
@@ -715,53 +739,53 @@ class bank_Register extends core_Manager
             }
             $s += $m;
         }
-        
+
         $res = $s / countR($s1Arr);
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Връща валутния курс
      */
     public static function getCurrencyRate($rec)
     {
         if ($rec->currencyRate) {
-            
+
             return $rec->currencyRate;
         }
-        
+
         if ($rec->currencyId) {
             $rate = currency_CurrencyRates::getRate($rec->createdOn, $rec->currencyId, null);
-            
+
             if ($rate) {
-                
+
                 return $rate;
             }
         }
-        
+
         return 1;
     }
-    
-    
+
+
     /**
      * Намира най-близката папка
      */
     public static function findFolder($name, $folders)
     {
         if (!strlen($name)) {
-            
+
             return;
         }
-        
+
         // Разбиваме името на парчета
         $parts = explode(' ', $name);
-        
+
         list($longPart) = self::findLongString($parts);
-        
+
         $id = null;
-        
+
         foreach ($folders as $title => $id) {
             if (strpos($title, $longPart) !== false) {
                 $rate = self::phraseDistance($parts, $title);
@@ -771,26 +795,26 @@ class bank_Register extends core_Manager
                 }
             }
         }
-        
+
         return $bestId;
     }
-    
-    
+
+
     public static function findLongString($array)
     {
         $mapping = array_combine($array, array_map('strlen', $array));
-        
+
         return array_keys($mapping, max($mapping));
     }
-    
-    
+
+
     /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Подготовка на филтъра
-        
+
         $data->query->orderBy('#valior=DESC,ownAccountId,id');
     }
 }
