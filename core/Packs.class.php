@@ -1057,7 +1057,21 @@ class core_Packs extends core_Manager
             
             // Полето ще се въвежда
             $params['input'] = 'input';
-            
+
+            // Ако няма права да вижда полето
+            if (isset($params['canView'])) {
+                if (!haveRole($params['canView'])) {
+                    continue;
+                }
+            }
+
+            // Ако няма права да редактира полето
+            if (isset($params['canEdit'])) {
+                if (!haveRole($params['canEdit'])) {
+                    $params['readOnly'] = true;
+                }
+            }
+
             // Ако не е зададено, заглавието на полето е неговото име
             setIfNot($params['caption'], '|*' . $field);
             
