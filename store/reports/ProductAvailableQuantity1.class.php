@@ -431,6 +431,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 3;
