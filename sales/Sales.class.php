@@ -1517,11 +1517,14 @@ class sales_Sales extends deals_DealMaster
                 }
             }
 
-            
-            if(!empty($errorStr)){
+            if(!empty($errorStr) && $rec->paymentType != 'cash'){
                 $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
                 $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
             }
+        }
+
+        if($rec->paymentType == 'cash' && !empty($row->bankAccountId)){
+            $row->BANK_BLOCK_CLASS = 'quiet saleBankBlock';
         }
 
         core_Lg::pop();

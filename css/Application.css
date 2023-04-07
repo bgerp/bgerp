@@ -7448,3 +7448,7 @@ table.bomProductionStepTable td {
 .taskInJobListRow {
   display: none; }
 
+.saleBankBlock a:link,
+.saleBankBlock a:visited {
+  color: #888888; }
+
