@@ -2612,7 +2612,9 @@ class doc_Threads extends core_Manager
                     }
 
                     $contragentData = $className::getContragentData($rec->docId);
-                    
+
+                    self::fillCountry($bestContragentData, $contragentData);
+
                     $rate = self::calcPoints($contragentData);
                     
                     // Даваме предпочитания на документите, създадени от потребители на системата
@@ -2632,6 +2634,8 @@ class doc_Threads extends core_Manager
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
             
             $contragentData = doc_Folders::getContragentData($folderId);
+
+            self::fillCountry($bestContragentData, $contragentData);
             
             if ($contragentData) {
                 $rate = self::calcPoints($contragentData) + 4;
@@ -2710,7 +2714,40 @@ class doc_Threads extends core_Manager
 
         return $bestContragentData;
     }
-    
+
+
+    /**
+     * Попълване на държавата
+     *
+     * @param $bestContragentData
+     * @param $contragentData
+     * @return void
+     */
+    protected static function fillCountry(&$bestContragentData, &$contragentData)
+    {
+        if (!$bestContragentData->countryId && $bestContragentData->country) {
+            $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+        }
+
+        if (!$bestContragentData->countryId && $bestContragentData->country) {
+            $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#formalName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+        }
+
+        if (!$bestContragentData->countryId && $bestContragentData->country) {
+            $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+        }
+
+        if (!isset($bestContragentData->countryId)) {
+            if ($contragentData->countryId) {
+                $bestContragentData->countryId = $contragentData->countryId;
+            }
+
+            if ($contragentData->country) {
+                $bestContragentData->country = $contragentData->country;
+            }
+        }
+    }
+
     
     /**
      * Изчислява точките (рейтинга) на подадения масив

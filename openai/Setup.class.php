@@ -62,12 +62,6 @@ defIfNot('OPENAI_API_PRESENCE_PENALTY', 0);
 
 
 /**
- * Дими за игнориране във входящите имйли
- */
-defIfNot('OPENAI_EMAIL_IGNORE_WORDS', '');
-
-
-/**
  *
  *
  * @category  bgerp
@@ -105,7 +99,6 @@ class openai_Setup extends core_ProtoSetup
         'OPENAI_API_TOP_P' => array('int', 'caption=API настройка->top_p'),
         'OPENAI_API_FREQUENCY_PENALTY' => array('int', 'caption=API настройка->frequency_penalty'),
         'OPENAI_API_PRESENCE_PENALTY' => array('int', 'caption=API настройка->presence_penalty'),
-        'OPENAI_EMAIL_IGNORE_WORDS' => array('text(rows=4)', 'caption=Думи за игнорине във входящите имейли->Думи'),
     );
 
 
@@ -131,6 +124,7 @@ class openai_Setup extends core_ProtoSetup
         'openai_Prompt',
         'migrate::promptTruncate2313',
         'migrate::promptAddIgnoreWords2314',
+        'migrate::promptAddIgnoreWordsFromEmail2314',
     );
 
 
@@ -147,7 +141,7 @@ class openai_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция за изчистване на данните
+     * Миграция за попълване на данните за игнориране от данните на компанията в резултата при парсиране на имейла
      */
     public static function promptAddIgnoreWords2314()
     {
@@ -155,6 +149,35 @@ class openai_Setup extends core_ProtoSetup
         while ($rec = $query->fetch()) {
                 $rec->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*'));
                 openai_Prompt::save($rec, 'ignoreWords');
+        }
+    }
+
+
+    /**
+     * Миграция за попълване на данните за игнориране от данните на компанията в имейла
+     */
+    public static function promptAddIgnoreWordsFromEmail2314()
+    {
+        $query = openai_Prompt::getQuery();
+        while ($rec = $query->fetch()) {
+            $lg = 'bg';
+            if ($rec->systemId == openai_Prompt::$extractContactDataEn) {
+                $lg = 'en';
+            }
+
+            core_Lg::push($lg);
+            $oRec = crm_Companies::fetchOwnCompany();
+            core_Lg::pop();
+
+            $aArr = array();
+            foreach (array('company', 'companyVerb', 'email', 'website', 'groupEmails', 'tel', 'fax', 'eori', 'uicId', 'vatNo') as $fld) {
+                $oRec->{$fld} = trim($oRec->{$fld});
+                if (empty($oRec->{$fld})) continue;
+                $aArr[$oRec->{$fld}] = $oRec->{$fld};
+            }
+
+            $rec->emailIgnoreWords = implode("\n", $aArr);
+            openai_Prompt::save($rec, 'emailIgnoreWords');
         }
     }
 
