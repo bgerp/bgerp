@@ -835,7 +835,7 @@ class acc_Journal extends core_Master
      */
     public function act_Reconto()
     {
-        requireRole('admin,ceo');
+        requireRole('debug');
         
         $form = cls::get('core_Form');
         $form->title = tr('Реконтиране на документи');
@@ -1085,7 +1085,7 @@ class acc_Journal extends core_Master
      */
     function act_fixDocsWithoutJournal()
     {
-        requireRole('admin,ceo');
+        requireRole('debug');
         $documents = static::getPostedDocumentsWithoutJournal();
         if(!countR($documents)) followRetUrl(null, "Няма контирани документи без журнал|*!");
 
@@ -1159,7 +1159,7 @@ class acc_Journal extends core_Master
      */
     function act_findDeals()
     {
-        requireRole('admin,ceo');
+        requireRole('debug');
 
         $listId = acc_Lists::fetchBySystemId('deals')->id;
         $tpl = new core_ET("");
