@@ -1120,7 +1120,7 @@ class acc_Journal extends core_Master
      */
     private static function getPostedDocumentsWithoutJournal()
     {
-        $documents = array('sales_Sales', 'purchase_Purchases', 'store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'sales_Invoices', 'purchase_Invoices', 'sales_Services', 'purchase_Services', 'acc_Articles', 'planning_DirectProductionNote', 'planning_ConsumptionNotes', 'planning_ReturnNotes');
+        $documents = array('sales_Sales', 'purchase_Purchases', 'store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'sales_Invoices', 'purchase_Invoices', 'sales_Services', 'purchase_Services', 'acc_Articles', 'planning_DirectProductionNote', 'planning_ConsumptionNotes', 'planning_ReturnNotes', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'cash_Pko', 'cash_Rko');
 
         $res = array();
         foreach ($documents as $docId){
