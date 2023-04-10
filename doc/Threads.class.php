@@ -2725,6 +2725,11 @@ class doc_Threads extends core_Manager
      */
     protected static function fillCountry(&$bestContragentData, &$contragentData)
     {
+        if (!$bestContragentData) {
+
+            return ;
+        }
+
         if (!$bestContragentData->countryId && $bestContragentData->country) {
             $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
         }
@@ -2737,7 +2742,7 @@ class doc_Threads extends core_Manager
             $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
         }
 
-        if (!isset($bestContragentData->countryId)) {
+        if (!isset($bestContragentData->countryId) && $contragentData) {
             if ($contragentData->countryId) {
                 $bestContragentData->countryId = $contragentData->countryId;
             }
