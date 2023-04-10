@@ -204,4 +204,26 @@ class sales_LastSaleByContragents extends core_Manager
 
         sales_LastSaleByContragents::updateDates($pIds,  $masterRec->folderId);
     }
+
+
+    public function act_Test()
+    {
+        requireRole('debug');
+
+        $monthsBefore = sales_Setup::get('DELTA_NEW_PRODUCT_TO');
+        $date = dt::getLastDayOfMonth(dt::addMonths(-1 * $monthsBefore));
+        $dateFrom = dt::getLastDayOfMonth(dt::addDays(-420));
+
+        $result = array();
+        $sQuery = sales_PrimeCostByDocument::getQuery();
+        $sQuery->where("#valior >= '{$dateFrom}' AND #valior <= '{$date}' AND #state IN ('active', 'closed')");
+        $sQuery->show('productId,containerId,valior,folderId');
+        $sQuery->orderBy('valior=DESC,id=DESC');
+        while($sRec = $sQuery->fetch()){
+            if(array_key_exists("{$sRec->productId}|{$sRec->folderId}", $result)) continue;
+            $result["{$sRec->productId}|{$sRec->folderId}"] = (object)array('productId' => $sRec->productId, 'folderId' => $sRec->folderId, 'lastDate' => $sRec->valior, 'lastDateContainerId' => $sRec->containerId);
+        }
+
+        bp($result);
+    }
 }
