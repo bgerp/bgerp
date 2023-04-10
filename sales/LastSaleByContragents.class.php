@@ -219,11 +219,17 @@ class sales_LastSaleByContragents extends core_Manager
         $sQuery->where("#valior >= '{$dateFrom}' AND #valior <= '{$date}' AND #state IN ('active', 'closed')");
         $sQuery->show('productId,containerId,valior,folderId');
         $sQuery->orderBy('valior=DESC,id=DESC');
-        while($sRec = $sQuery->fetch()){
+        $allFound = $sQuery->fetchAll();
+        $count = countR($allFound);
+        core_App::setTimeLimit($count * 0.2, false, 400);
+        foreach($allFound as $sRec){
             if(array_key_exists("{$sRec->productId}|{$sRec->folderId}", $result)) continue;
             $result["{$sRec->productId}|{$sRec->folderId}"] = (object)array('productId' => $sRec->productId, 'folderId' => $sRec->folderId, 'lastDate' => $sRec->valior, 'lastDateContainerId' => $sRec->containerId);
         }
 
-        bp($result);
+        $oQuery = static::getQuery();
+        $exRecs = $oQuery->fetchAll();
+        $res = arr::syncArrays($result, $exRecs, 'productId,folderId', 'lastDate,lastDateContainerId');
+        bp($res['insert']);
     }
 }
