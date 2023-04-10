@@ -333,4 +333,17 @@ class acc_RatesDifferences extends core_Master
 
         $this->cron_RecontoActive();
     }
+
+
+    /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     *
+     * @param int $id
+     *
+     * @return NULL|string
+     */
+    public static function getThreadState($id)
+    {
+        return null;
+    }
 }
