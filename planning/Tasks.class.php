@@ -453,7 +453,7 @@ class planning_Tasks extends core_Master
 
         $row->productId = $mvc->getStepTitle($rec->productId);
         if (!empty($rec->subTitle)) {
-            $row->productId .= ", <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
+            $row->productId .= " <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
         }
 
         if (!Mode::isReadOnly()) {
@@ -896,7 +896,7 @@ class planning_Tasks extends core_Master
         $me = cls::get(get_called_class());
         $title = "Opr{$rec->id} - {$me->getStepTitle($rec->productId)}";
         if (!empty($rec->subTitle)) {
-            $title .= " [{$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}]";
+            $title .= " <i>{$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
         }
 
         return $title;
