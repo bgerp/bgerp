@@ -1013,10 +1013,6 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setError('date,dueDate,dueTime', 'Невъзможна стойност на датите');
                 }
             }
-
-            if ($rec->paymentType == 'cash' && isset($rec->accountId)) {
-                $form->setWarning('accountId', 'Избрана е банкова сметка при начин на плащане в брой');
-            }
             
             if (!empty($rec->vatReason)) {
                 if (mb_strlen($rec->vatReason) < 15) {
