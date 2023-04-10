@@ -1122,6 +1122,24 @@ class cat_BomDetails extends doc_Detail
 
 
     /**
+     * Метод по подразбиране за извличане на детайлите в правилната подредба за бутоните напред/назад
+     *
+     * @param core_Detail $DetailMvc
+     * @param array $res
+     * @param int $detailId
+     * @return void
+     */
+    protected static function on_BeforeGetPrevAndNextDetailQuery($DetailMvc, &$res, $detailId)
+    {
+        $bomId = static::fetchField($detailId, 'bomId');
+        $orderedDetails = self::getOrderedBomDetails($bomId);
+        foreach ($orderedDetails as $rec){
+            $res[] = $rec->id;
+        }
+    }
+
+
+    /**
      * Ако няма записи не вади таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
@@ -1174,6 +1192,10 @@ class cat_BomDetails extends doc_Detail
         if (empty($rec->id) && $rec->type == 'stage') {
             $rec->stageAdded = true;
         }
+
+        if(isset($rec->id)){
+            $rec->_exPosition = $mvc->fetchField($rec->id, 'position');
+        }
     }
     
     
@@ -1194,7 +1216,7 @@ class cat_BomDetails extends doc_Detail
         $query->XPR('maxPosition', 'int', 'MAX(#position)');
         $position = $query->fetch()->maxPosition;
         ++$position;
-        
+
         return $position;
     }
     
@@ -1225,14 +1247,16 @@ class cat_BomDetails extends doc_Detail
     {
         // Ако има позиция, шифтваме всички с по-голяма или равна позиция напред
         if (isset($rec->position)) {
-            $query = $mvc->getQuery();
-            $cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
-            $cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : '#parentId IS NULL';
-            
-            $query->where($cond);
-            while ($nRec = $query->fetch()) {
-                $nRec->position++;
-                $mvc->save_($nRec, 'position');
+            if($rec->position != $rec->_exPosition){
+                $query = $mvc->getQuery();
+                $cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
+                $cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : '#parentId IS NULL';
+                core_Statuses::newStatus('shift ' . $rec->id);
+                $query->where($cond);
+                while ($nRec = $query->fetch()) {
+                    $nRec->position++;
+                    $mvc->save_($nRec, 'position');
+                }
             }
         }
         
