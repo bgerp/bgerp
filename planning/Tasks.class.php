@@ -896,7 +896,7 @@ class planning_Tasks extends core_Master
         $me = cls::get(get_called_class());
         $title = "Opr{$rec->id} - {$me->getStepTitle($rec->productId)}";
         if (!empty($rec->subTitle)) {
-            $title .= " <i>{$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
+            $title .= " {$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
         }
 
         return $title;
