@@ -1217,7 +1217,7 @@ class doc_Threads extends core_Manager
         $exp->ASSUME('#country', "getContragentData(#threadId, 'countryId')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#company', "getContragentData(#threadId, 'company')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#name', "getContragentData(#threadId, 'attn')", "#dest == 'newPerson'");
-        $exp->ASSUME('#tel', "getContragentData(#threadId, 'tel')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#tel', "getContragentData(#threadId, 'tel|pMobile')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#fax', "getContragentData(#threadId, 'fax')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#pCode', "getContragentData(#threadId, 'pCode')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#place', "getContragentData(#threadId, 'place')", "#dest == 'newCompany' || #dest == 'newPerson'");
@@ -2619,7 +2619,9 @@ class doc_Threads extends core_Manager
                     }
 
                     $contragentData = $className::getContragentData($rec->docId);
-                    
+
+                    self::fillCountry($bestContragentData, $contragentData);
+
                     $rate = self::calcPoints($contragentData);
                     
                     // Даваме предпочитания на документите, създадени от потребители на системата
@@ -2639,6 +2641,8 @@ class doc_Threads extends core_Manager
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
             
             $contragentData = doc_Folders::getContragentData($folderId);
+
+            self::fillCountry($bestContragentData, $contragentData);
             
             if ($contragentData) {
                 $rate = self::calcPoints($contragentData) + 4;
@@ -2693,6 +2697,23 @@ class doc_Threads extends core_Manager
 
         if ($field) {
 
+            // Възможност за конкатенация на полета
+            if (stripos($field, '|') !== false) {
+                $fArr = explode('|', $field);
+                $bFieldVal = '';
+
+                foreach ($fArr as $f) {
+                    if ($bestContragentData->{$f}) {
+                        $bFieldVal .= $bestContragentData->{$f} . ', ';
+                    }
+                }
+
+                $bFieldVal = trim($bFieldVal);
+                $bFieldVal = trim($bFieldVal, ',');
+
+                return $bFieldVal;
+            }
+
             return $bestContragentData->{$field};
         }
 
@@ -2700,7 +2721,40 @@ class doc_Threads extends core_Manager
 
         return $bestContragentData;
     }
-    
+
+
+    /**
+     * Попълване на държавата
+     *
+     * @param $bestContragentData
+     * @param $contragentData
+     * @return void
+     */
+    protected static function fillCountry(&$bestContragentData, &$contragentData)
+    {
+        if (!$bestContragentData->countryId && $bestContragentData->country) {
+            $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+        }
+
+        if (!$bestContragentData->countryId && $bestContragentData->country) {
+            $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#formalName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+        }
+
+        if (!$bestContragentData->countryId && $bestContragentData->country) {
+            $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+        }
+
+        if (!isset($bestContragentData->countryId)) {
+            if ($contragentData->countryId) {
+                $bestContragentData->countryId = $contragentData->countryId;
+            }
+
+            if ($contragentData->country) {
+                $bestContragentData->country = $contragentData->country;
+            }
+        }
+    }
+
     
     /**
      * Изчислява точките (рейтинга) на подадения масив

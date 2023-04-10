@@ -22,25 +22,34 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
     
     private $mediaSnapshotUri;
     
+    public $width;
+    
+    public $height;
+    
+    public $FPS;
+    
     
     /**
      * Инициализиране на обекта
      */
     public function init($params = array())
     {
+        static $cnt;
+        $cnt = $cnt +1;
         parent::init($params);
 
         setIfNot($this->user, 'user');
         setIfNot($this->password, '');
+//         setIfNot($this->width, 1280);
+//         setIfNot($this->height, 720);
+        setIfNot($this->FPS, 25);
         
         require_once (EF_ROOT_PATH . '/' . EF_APP_CODE_NAME . '/cams/ponvif/lib/class.ponvif.php');
-        
         $this->onvif = new Ponvif();
         
         $this->onvif->setUsername($this->user);
         $this->onvif->setPassword($this->password);
         $this->onvif->setIPAddress($this->ip);
-        
         try
         {
             $this->onvif->initialize();
@@ -49,8 +58,16 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
             $this->profileToken = $sources[0][0]['profiletoken'];
             $this->mediaUri = $this->onvif->media_GetStreamUri($this->profileToken);
             $this->mediaSnapshotUri = $this->onvif->media_GetSnapshotUri($this->profileToken);
-        } catch (Exception $e) {
+            $configs = $this->onvif->media_GetVideoEncoderConfigurations($this->profileToken);
+            //$encodersList = $this->onvif->getCodecEncoders('H264');
+//             $this->width = $encodersList[0][0]['ResolutionsAvailable'][0]['Width'];
+//             $this->height = $encodersList[0][0]['ResolutionsAvailable'][0]['Height'];
+            $this->width = $configs['Resolution']['Width'];
+            $this->height = $configs['Resolution']['Height'];
+            $this->FPS = $configs['Resolution']['FrameRateLimit'];
             
+        } catch (Exception $e) {
+            log_System::add(get_called_class(), "Грешка при инициализиране на камера: {$e->getMessage()}", null, 'err');
         }
     }
 
@@ -72,10 +89,10 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
      */
     protected function getStreamUrl()
     {
-        $scheme = parse_url($this->$mediaUri, PHP_URL_SCHEME);
-        $this->$mediaUri = str_replace($scheme . "://", $scheme . "://" . $this->user . ":" . $this->password . "@", $this->$mediaUri);
+        $scheme = parse_url($this->mediaUri, PHP_URL_SCHEME);
+        $this->mediaUri = str_replace($scheme . "://", $scheme . "://" . $this->user . ":" . $this->password . "@", $this->mediaUri);
         
-        return $this->$mediaUri;
+        return $this->mediaUri;
     }
     
     /**
@@ -90,6 +107,11 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
         );
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете ONVIF потребител на камерата,input');
         $form->FNC('password', 'password(show)', 'caption=Парола,hint=Въведете паролата ,input');
+        
+        $form->FNC('width', 'int(min=352,max=1920)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
+        $form->FNC('height', 'int(min=288,max=1080)', 'caption=Вертикал,hint=Вертикална резолюция,input');
+        $form->FNC('FPS', 'int(min=1,max=50)', 'caption=Скорост,hint=Скорост на записа (fps),input');
+        
         $form->FNC('ptzControl', 'enum(yes=Има,no=Няма)', 'caption=PTZ контрол,hint=Има ли камерата PTZ контрол?,input');
         $form->FNC('running', 'enum(yes=Активно,no=Спряно)', 'caption=Състояние,hint=Дали камерата да се наблюдава?,input');
     }
@@ -144,4 +166,19 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
     public function normalizeCameraId()
     {
     }
+
+    
+    /**
+     * Взимаме настройките на камерата за резолюцията и скоростта на записа
+     */
+    public function getParamsFromCam($params)
+    {
+        $configs = $this->onvif->media_GetVideoEncoderConfigurations($this->profileToken);
+        $params->width = $configs['Resolution']['Width'];
+        $params->height = $configs['Resolution']['Height'];
+        $params->FPS = $configs['RateControl']['FrameRateLimit'];
+        
+        return $params;
+    }
+        
 }

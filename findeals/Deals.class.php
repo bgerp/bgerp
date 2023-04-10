@@ -165,7 +165,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Кой може да превалутира документите в нишката
      */
-    public $canChangerate = 'ceo, findealsMaster';
+    public $canChangerate = 'debug';
     
     
     /**

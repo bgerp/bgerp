@@ -31,11 +31,11 @@ class pwa_Plugin extends core_Plugin
         }
         
         $canUse = pwa_Manifest::canUse();
-        
+
         // Ако е активирана опцията за мобилно приложение - манифестираме го
-        if ($canUse == 'yes' && cms_Domains::getPublicDomain('domain') == 'localhost') {
+        if ($canUse == 'yes') {
             $invoker->appendOnce("\n<script>\n    var serviceWorkerURL = '/{$name}';\n</script>\n", 'HEAD');
-            
+
             $cu = (int) core_Users::getCurrent();
             $cu = str::addHash($cu);
             $manifestUrl = toUrl(array('pwa_Manifest', 'Default', 'u' => $cu));

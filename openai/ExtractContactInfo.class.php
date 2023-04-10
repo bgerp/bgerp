@@ -15,11 +15,6 @@
  */
 class openai_ExtractContactInfo
 {
-    /**
-     * Масив с елементите, които могат да се игнорират
-     * @var string[]
-     */
-    public static $ignoreArr = array('-', 'none', 'N/A', 'Unknown', 'Not Specified', 'N/A (not provided)');
 
 
     /**
@@ -73,12 +68,13 @@ class openai_ExtractContactInfo
      * @param $lg
      * @param null|stdClass $cData
      * @param boolean|string $useCache
+     * @param boolean|string $fixTextPart
      *
      *
      * @return false|string
      * @throws core_exception_Expect
      */
-    public static function extractEmailDataFromEmlFile($emlSource, $lg = null, &$cData = null, $useCache = true)
+    public static function extractEmailDataFromEmlFile($emlSource, $lg = null, &$cData = null, $useCache = true, $fixTextPart = true)
     {
         expect($emlSource);
 
@@ -90,6 +86,10 @@ class openai_ExtractContactInfo
             $lg = $mime->getLg();
         }
 
+        if (!isset($lg)) {
+            $lg = core_Lg::getCurrent();
+        }
+
         if ($mime->textPart) {
             Mode::push('text', 'plain');
             $rt = new type_Richtext();
@@ -97,6 +97,36 @@ class openai_ExtractContactInfo
             Mode::pop('text');
         } else {
             $textPart = $mime->justTextPart;
+        }
+
+        if ($fixTextPart) {
+            // От текстовата част премахваме редовете, които започват с >
+            $textPart = preg_replace('/^\s*(?:>).*$/mu', '', $textPart);
+
+            // Премахваме текста след Links:
+            $textPart = preg_replace('/^\s*(?:Links:).*/muis', '', $textPart);
+
+            // Премахваме повтарящите се празни редове
+            $textPart = preg_replace('/\n+\s*\n+/ui', "\n", $textPart);
+
+            $cDataKey = openai_Prompt::$extractContactDataEn;
+            if ($lg == 'bg') {
+                $cDataKey = openai_Prompt::$extractContactDataBg;
+            }
+            $ignoreWords = openai_Prompt::getPromptBySystemId($cDataKey);
+
+            // Ако са зададени думи за игнориране
+            $ignoreWords = openai_Prompt::fetchField(array("#systemId = '[#1#]'", $cDataKey), 'emailIgnoreWords');
+
+            if (trim($ignoreWords)) {
+                $ignoreWords = explode("\n", $ignoreWords);
+                foreach ($ignoreWords as $w) {
+                    $w = preg_replace("/\r/", '', $w);
+                    $w = preg_quote($w, '/');
+                    $w = mb_strtolower($w);
+                    $textPart = preg_replace("/{$w}/ui", " ", $textPart);
+                }
+            }
         }
 
         $placeArr = array();
@@ -130,23 +160,36 @@ class openai_ExtractContactInfo
             $lg = core_Lg::getCurrent();
         }
 
+        $cDataKey = openai_Prompt::$extractContactDataEn;
         if ($lg == 'bg') {
-            $text = openai_Prompt::getPromptBySystemId(openai_Prompt::$extractContactDataBg);
-        } else {
-            $text = openai_Prompt::getPromptBySystemId(openai_Prompt::$extractContactDataEn);
+            $cDataKey = openai_Prompt::$extractContactDataBg;
         }
+        $text = openai_Prompt::getPromptBySystemId($cDataKey);
 
         expect($text);
 
-        $ignoreArr = self::$ignoreArr;
-        $ignoreArr = arr::make($ignoreArr, true);
-        $ignoreArr = array_change_key_case($ignoreArr, CASE_LOWER);
+        $ignoreStr = openai_Prompt::fetchField(array("#systemId = '[#1#]'", $cDataKey), 'ignoreWords');
+        $ignoreRegex = '';
+        foreach (explode("\n", $ignoreStr) as $iStr) {
+            $iStr = trim($iStr);
+            $iStr = mb_strtolower($iStr);
+            $ignoreRegex .= $ignoreRegex ? '|' : '';
+            $ignoreRegex .= '^' . preg_quote($iStr, '/') . '$';
+            $ignoreRegex = str_replace('\*', '.*', $ignoreRegex);
+
+            $ignoreArr[$iStr] = $iStr;
+        }
 
         $mapArr = array();
 
         $textArr = explode("\n", $text);
         foreach ($textArr as $key => $tStr) {
+            $tStr = trim($tStr);
             $mArr = explode('->', $tStr);
+
+            $mArr[0] = trim($mArr[0]);
+            $mArr[1] = trim($mArr[1]);
+
             if ($mArr[1]) {
                 $mapArr[$mArr[0]] = $mArr[1];
                 $textArr[$key] = $mArr[0];
@@ -201,6 +244,11 @@ class openai_ExtractContactInfo
                 continue;
             }
 
+            if (strlen($ignoreRegex) && preg_match("/{$ignoreRegex}/ui", $rCompare)) {
+
+                continue;
+            }
+
             if ($mp = $mapArr[$prompt]) {
                 $cData->{$mp} = $r;
             } else {
@@ -209,6 +257,14 @@ class openai_ExtractContactInfo
             }
 
             $newResArr[] = $prompt . ': ' . $r;
+        }
+
+        if ($cData->country == 'CN') {
+            $cData->country = 'China';
+        }
+
+        if ($cData->country == 'China CN') {
+            $cData->country = 'China';
         }
 
         return implode("\n", $newResArr);

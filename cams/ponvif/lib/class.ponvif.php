@@ -935,7 +935,7 @@ class Ponvif {
 		return $REQ;
 	}
 
-	protected function _send_request($url,$post_string) {
+	protected function _send_request($url,$post_string) { static $cnt; $cnt = $cnt+1;
 		$soap_do = curl_init();
 		curl_setopt($soap_do, CURLOPT_URL,            $url );
 		if ($this->proxyhost!='' && $this->proxyport!='') {
@@ -952,8 +952,7 @@ class Ponvif {
 		curl_setopt($soap_do, CURLOPT_POST,           true );
 		curl_setopt($soap_do, CURLOPT_POSTFIELDS,    $post_string);
 		curl_setopt($soap_do, CURLOPT_HTTPHEADER,     array('Content-Type: text/xml; charset=utf-8', 'Content-Length: '.strlen($post_string) ));
-		//curl_setopt($soap_do, CURLOPT_USERPWD, $user . ":" . $password); // HTTP authentication
-		curl_setopt($soap_do, CURLOPT_USERPWD, 'admin' . ":" . 'Admin555'); // HTTP authentication
+		curl_setopt($soap_do, CURLOPT_USERPWD, $this->username . ":" . $this->password); // HTTP authentication
 		if ( ($result = curl_exec($soap_do)) === false) {
 			$err = curl_error($soap_do);
 			$this->lastresponse=array("Fault"=>$err);

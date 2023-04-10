@@ -196,6 +196,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
+        'acc_RatesDifferences',
         'migrate::updatePriceRoles2247',
     );
     
@@ -405,7 +406,8 @@ class acc_Setup extends core_ProtoSetup
             'params' => array(
                 'title' => 'Реконтиране на документите',
                 'ef_icon' => 'img/16/arrow_refresh.png'
-            )
+            ),
+            'roles' => 'debug',
         ),
         array(
             'title' => 'Док. без журнал',
@@ -417,7 +419,8 @@ class acc_Setup extends core_ProtoSetup
             'params' => array(
                 'title' => 'Поправка на контирани документи без журнал',
                 'ef_icon' => 'img/16/arrow_refresh.png'
-            )
+            ),
+            'roles' => 'debug',
         ),
         array(
             'title' => 'Прикл. сделки с активни пера',
@@ -429,7 +432,8 @@ class acc_Setup extends core_ProtoSetup
             'params' => array(
                 'title' => 'Има ли неактивни сделки с приключени пера',
                 'ef_icon' => 'img/16/arrow_refresh.png'
-            )
+            ),
+            'roles' => 'debug',
         )
     );
 
@@ -480,10 +484,19 @@ class acc_Setup extends core_ProtoSetup
             'period' => 480,
             'offset' => 1,
             'timeLimit' => 60
+        ),
+        array(
+            'systemId' => 'RecontoRateDiffs',
+            'description' => 'Рекалкулиране на курсовите разлики',
+            'controller' => 'acc_RatesDifferences',
+            'action' => 'RecontoActive',
+            'period' => 30,
+            'offset' => 1,
+            'timeLimit' => 100
         )
     );
-    
-    
+
+
     /**
      * Дефинирани класове, които имат интерфейси
      */

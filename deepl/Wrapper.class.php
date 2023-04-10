@@ -23,6 +23,6 @@ class deepl_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('deepl_Cache', 'Кеш', 'deepl, admin');
+        $this->TAB('deepl_Cache', 'Преводи', 'deepl, admin');
     }
 }

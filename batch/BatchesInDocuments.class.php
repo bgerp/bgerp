@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,7 +25,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'batch_Wrapper';
+    public $loadList = 'batch_Wrapper,plg_RowTools2';
 
 
     /**
@@ -37,7 +37,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Кой може да променя?
      */
-    public $canWrite = 'no_one';
+    public $canWrite = 'debug';
 
 
     /**
@@ -63,7 +63,7 @@ class batch_BatchesInDocuments extends core_Manager
      */
     public function description()
     {
-        $this->FLD('detailClassId', 'class(interface=core_ManagerIntf)', 'caption=Детайл,mandatory,silent,input=hidden,remember');
+        $this->FLD('detailClassId', 'class(interface=core_ManagerIntf,select=title,allowEmpty)', 'caption=Клас,mandatory,silent,remember');
         $this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory,silent,input=hidden,remember');
         $this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory,silent,input=hidden,remember');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
@@ -903,8 +903,8 @@ class batch_BatchesInDocuments extends core_Manager
     {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
-        $data->listFilter->showFields = 'document';
-        
+        $data->listFilter->showFields = 'document,detailClassId';
+
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         $data->query->orderBy('id', 'DESC');
@@ -915,6 +915,10 @@ class batch_BatchesInDocuments extends core_Manager
                 if (is_object($document)) {
                     $data->query->where("#containerId = {$document->fetchField('containerId')}");
                 }
+            }
+
+            if (isset($fRec->detailClassId)) {
+                $data->query->where("#detailClassId = {$fRec->detailClassId}");
             }
         }
     }

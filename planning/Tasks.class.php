@@ -326,7 +326,7 @@ class planning_Tasks extends core_Master
         $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRoun)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
         $this->FLD('deviationNettoCritical', 'percent(Min=0,smartRoun)', 'caption=Прагове при разминаване на нетото в прогреса->Критично,autohide');
 
-        $this->FLD('subTitle', 'varchar(20)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
+        $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
         $this->FLD('saoOrder', 'double(smartRound)', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
@@ -1444,6 +1444,7 @@ class planning_Tasks extends core_Master
         // Ако записа е създаден с клониране не се прави нищо
         if ($rec->_isClone === true) return;
 
+        $saveProducts = array();
         if (isset($rec->originId)) {
             $originDoc = doc_Containers::getDocument($rec->originId);
             $originRec = $originDoc->fetch();
@@ -1467,23 +1468,49 @@ class planning_Tasks extends core_Master
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
-
-                                core_Users::forceSystemUser();
-                                planning_ProductionTaskProducts::save($nRec);
-                                core_Users::cancelSystemUser();
+                                $saveProducts[] = $nRec;
                             }
                         }
                     }
                 }
-            } elseif ($rec->isFinal == 'yes') {
-                $nRec = new stdClass();
-                $nRec->taskId = $rec->id;
-                $nRec->productId = $originRec->productId;
-                $nRec->type = 'production';
-                core_Users::forceSystemUser();
-                planning_ProductionTaskProducts::save($nRec);
-                core_Users::cancelSystemUser();
+            } else {
+                if ($rec->isFinal == 'yes') {
+                    $nRec = new stdClass();
+                    $nRec->taskId = $rec->id;
+                    $nRec->productId = $originRec->productId;
+                    $nRec->type = 'production';
+                    $saveProducts[] = $nRec;
+                }
+
+                $lastProductBomRec = cat_Products::getLastActiveBom($rec->productId);
+                if(is_object($lastProductBomRec)){
+                    $bQuery = cat_BomDetails::getQuery();
+                    $bQuery->where("#bomId = {$lastProductBomRec->id} AND #parentId IS NULL");
+                    while($bRec = $bQuery->fetch()){
+                        $quantityP = cat_BomDetails::calcExpr($bRec->propQuantity, $bRec->params);
+                        if ($quantityP == cat_BomDetails::CALC_ERROR) {
+                            $quantityP = 0;
+                        }
+
+                        $nRec = new stdClass();
+                        $nRec->taskId = $rec->id;
+                        $nRec->packagingId = $bRec->packagingId;
+                        $nRec->quantityInPack = $bRec->quantityInPack;
+                        $nRec->plannedQuantity = $quantityP * $rec->plannedQuantity;
+                        $nRec->productId = $bRec->resourceId;
+                        $nRec->type = ($bRec->type == 'pop') ? 'pop' : 'input';
+                        $saveProducts[] = $nRec;
+                    }
+                }
             }
+        }
+
+        if(countR($saveProducts)){
+            core_Users::forceSystemUser();
+            foreach ($saveProducts as $pRec){
+                planning_ProductionTaskProducts::save($nRec);
+            }
+            core_Users::cancelSystemUser();
         }
     }
 
@@ -1591,7 +1618,7 @@ class planning_Tasks extends core_Master
                 $productionData = $Driver->getProductionData($rec->productId);
             }
 
-            if (empty($rec->systemId) && empty($rec->id)) {
+            if (!isset($rec->systemId) && empty($rec->id)) {
                 $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode");
                 foreach ($defFields as $fld => $val) {
                     $form->setDefault($fld, $productionData[$val]);

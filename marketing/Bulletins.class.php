@@ -80,7 +80,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'marketing_Wrapper,  plg_RowTools2, plg_Created, plg_State2, plg_Sorting';
+    public $loadList = 'blast_Wrapper,  plg_RowTools2, plg_Created, plg_State2, plg_Sorting';
     
     
     /**

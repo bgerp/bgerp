@@ -67,7 +67,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, marketing_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, drdata_PhonePlg';
     
     
