@@ -1369,7 +1369,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $row->paymentType = tr('Плащане ' . $arr[$rec->paymentType]);
                 }
 
-                if(in_array($rec->paymentType, array('postal', 'cash', 'intercept'))){
+                if(in_array($rec->paymentType, array('postal', 'cash', 'card'))){
                     $row->BANK_BLOCK_CLASS = 'quiet';
                 }
             }

@@ -1525,7 +1525,7 @@ class sales_Sales extends deals_DealMaster
             }
         }
 
-        if(in_array($rec->paymentType, array('postal', 'cash', 'intercept')) && !empty($row->bankAccountId)){
+        if(in_array($rec->paymentType, array('postal', 'cash', 'card')) && !empty($row->bankAccountId)){
             $row->BANK_BLOCK_CLASS = 'quiet saleBankBlock';
         }
 
