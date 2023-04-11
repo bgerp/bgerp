@@ -1442,20 +1442,25 @@ abstract class deals_Helper
             $deletedRec = null;
             acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id, $deletedRec);
 
+            $pop = false;
             try{
                 if(is_object($deletedRec)){
+                    $pop = true;
                     Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
                 }
                 Mode::push('recontoTransaction', true);
                 acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
                 Mode::pop('recontoTransaction');
-                if(is_object($deletedRec)){
+                if($pop){
                     Mode::pop('recontoWithCreatedOnDate');
                 }
                 $logMsg = 'Реконтиране след промяна на курса';
             } catch(acc_journal_RejectRedirect  $e) {
                 if(is_object($deletedRec)) {
                     acc_Journal::restoreDeleted($masterMvc->getClassId(), $rec->id, $deletedRec, $deletedRec->_details);
+                }
+                if($pop){
+                    Mode::pop('recontoWithCreatedOnDate');
                 }
                 wp($e);
                 $logMsg = 'Грешка при опит за реконтиране';

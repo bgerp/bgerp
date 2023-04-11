@@ -890,21 +890,25 @@ abstract class deals_DealBase extends core_Master
                     $deletedRec = null;
                     acc_Journal::deleteTransaction($this->getClassId(), $rec->id, $deletedRec);
 
+                    $pop = false;
                     try{
                         if(is_object($deletedRec)){
                             Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                            $pop = true;
                         }
                         Mode::push('recontoTransaction', true);
                         acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
                         Mode::pop('recontoTransaction');
-                        if(is_object($deletedRec)){
+                        if($pop){
                             Mode::pop('recontoWithCreatedOnDate');
                         }
                     } catch(acc_journal_RejectRedirect  $e){
                         if(is_object($deletedRec)) {
                             acc_Journal::restoreDeleted($this->getClassId(), $rec->id, $deletedRec, $deletedRec->_details);
                         }
-                        wp($e);
+                        if($pop){
+                            Mode::pop('recontoWithCreatedOnDate');
+                        }
                     }
                 }
             } else {
