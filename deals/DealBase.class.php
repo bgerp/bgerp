@@ -1051,10 +1051,6 @@ abstract class deals_DealBase extends core_Master
                 $this->logErr($errorMsg, $rec->id);
             }
 
-            if(Mode::is("{$this->className}_migrateCurrencyDeals")){
-                $this->logWrite('Промяна на курса от миграция', $rec->id);
-            }
-
             $rec->__newRate = $newRate;
             $rec->lastAutoRecalcRate = $now;
             $saved[$rec->id] = $rec;

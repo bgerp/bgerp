@@ -657,8 +657,6 @@ class sales_Setup extends core_ProtoSetup
      */
     public function recalcCurrencySales1115()
     {
-        Mode::push("sales_Sales_migrateCurrencyDeals", true);
         cls::get('sales_Sales')->recalcDealsWithCurrencies(true);
-        Mode::pop("sales_Sales_migrateCurrencyDeals");
     }
 }

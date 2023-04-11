@@ -259,8 +259,6 @@ class purchase_Setup extends core_ProtoSetup
      */
     public function recalcCurrencyPurchases1115()
     {
-        Mode::push("purchase_Purchases_migrateCurrencyDeals", true);
         cls::get('purchase_Purchases')->recalcDealsWithCurrencies(true);
-        Mode::pop("purchase_Purchases_migrateCurrencyDeals");
     }
 }
