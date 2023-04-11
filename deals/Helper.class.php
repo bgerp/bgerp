@@ -1442,24 +1442,30 @@ abstract class deals_Helper
             $deletedRec = null;
             acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id, $deletedRec);
 
-            $pop = false;
+            $popReconto = $popRecontoDate = false;
             try{
                 if(is_object($deletedRec)){
-                    $pop = true;
                     Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                    $popRecontoDate = true;
                 }
                 Mode::push('recontoTransaction', true);
+                $popReconto = true;
                 acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
                 Mode::pop('recontoTransaction');
-                if($pop){
+                $popReconto = false;
+                if($popRecontoDate){
                     Mode::pop('recontoWithCreatedOnDate');
+                    $popRecontoDate = false;
                 }
                 $logMsg = 'Реконтиране след промяна на курса';
             } catch(acc_journal_RejectRedirect  $e) {
                 if(is_object($deletedRec)) {
                     acc_Journal::restoreDeleted($masterMvc->getClassId(), $rec->id, $deletedRec, $deletedRec->_details);
                 }
-                if($pop){
+                if($popReconto){
+                    Mode::pop('recontoTransaction');
+                }
+                if($popRecontoDate){
                     Mode::pop('recontoWithCreatedOnDate');
                 }
                 wp($e);
