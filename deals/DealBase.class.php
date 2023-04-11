@@ -896,7 +896,7 @@ abstract class deals_DealBase extends core_Master
                         }
                         Mode::push('recontoTransaction', true);
                         acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
-                        Mode::push('recontoTransaction');
+                        Mode::pop('recontoTransaction');
                         if(is_object($deletedRec)){
                             Mode::pop('recontoWithCreatedOnDate');
                         }
