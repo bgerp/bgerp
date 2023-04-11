@@ -1387,6 +1387,7 @@ abstract class deals_Helper
                     $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
                 } else {
                     $dRec->{$priceFld} = $dRec->{$priceFld} * $newRate;
+                    wp($dRec, $rec, $rateFld);
                 }
 
                 if ($masterMvc instanceof deals_InvoiceMaster) {
