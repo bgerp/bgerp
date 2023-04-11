@@ -1002,9 +1002,10 @@ abstract class deals_DealBase extends core_Master
     /**
      * Осреднява валутните курсове на сделките при нужда
      *
-     * @return void;
+     * @return bool $recalcAll
+     * @return void
      */
-    public function recalcDealsWithCurrencies()
+    public function recalcDealsWithCurrencies($recalcAll = false)
     {
         $iQuery = acc_Items::getQuery();
         $iQuery->where("#classId = {$this->getClassId()} AND #state = 'active'");
@@ -1030,37 +1031,53 @@ abstract class deals_DealBase extends core_Master
 
         $recalcedItems = $saved = array();
         while($rec = $query->fetch()){
+            $itemRec = acc_Items::fetchItem($this, $rec->id);
             $newRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
+
+            if(!$recalcAll){
+                // Ако няма да се рекалкулират всички, само тези с променен курс или с изпозлване на перото след последното минаване
+                if(round($newRate, 8) == round($rec->currencyRate, 8)){
+                    if($itemRec->lastUseOn <= $rec->lastAutoRecalcRate){
+                        continue;
+                    }
+                }
+            }
+
             try{
+                // Рекалкулиране на документите с новия курс
                 $this->recalcDocumentsWithNewRate($rec, $newRate);
             } catch(acc_journal_Exception $e){
                 $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
                 $this->logErr($errorMsg, $rec->id);
             }
 
+            if(Mode::is("{$this->className}_migrateCurrencyDeals")){
+                $this->logWrite('Промяна на курса от миграция', $rec->id);
+            }
+
             $rec->__newRate = $newRate;
             $rec->lastAutoRecalcRate = $now;
             $saved[$rec->id] = $rec;
-            $itemRec = acc_Items::fetchItem($this, $rec->id);
             if($itemRec){
                 $recalcedItems[$rec->id] = $itemRec;
             }
         }
 
+        // Нотифициране на перата на сделките
         foreach ($recalcedItems as $itemRec){
             acc_Items::notifyObject($itemRec);
         }
         $Items->flushTouched();
 
+        // Релаклилиране на баланса
         cls::get('acc_Balances')->recalc();
 
+        // Ако има рекалкулирани сделки записва се датата на рекалкулирането (идеята е всичките да са с една дата)
         if(countR($saved)){
             $this->saveArray($saved, 'id,lastAutoRecalcRate');
-            foreach ($saved as $rec){
-                acc_RatesDifferences::create($rec->threadId, $rec->currencyId, $rec->__newRate, 'Автоматична корекция на курсови разлики');
-            }
         }
 
+        // Повторно нотифициране на перата след преизчисления баланс
         foreach ($recalcedItems as $itemRec){
             acc_Items::notifyObject($itemRec);
         }
