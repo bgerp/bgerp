@@ -1383,7 +1383,11 @@ abstract class deals_Helper
 
             Mode::push("stopMasterUpdate{$rec->id}", true);
             while ($dRec = $dQuery->fetch()) {
-                $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+                if($rec->{$rateFld}){
+                    $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+                } else {
+                    $dRec->{$priceFld} = $dRec->{$priceFld} * $newRate;
+                }
 
                 if ($masterMvc instanceof deals_InvoiceMaster) {
                     $dRec->packPrice = $dRec->{$priceFld} * $dRec->quantityInPack;
