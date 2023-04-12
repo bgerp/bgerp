@@ -29,7 +29,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Select, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation';
+    public $loadList = 'plg_Sorting, acc_plg_Contable, acc_Wrapper, doc_DocumentPlg, plg_Select, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation';
 
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
@@ -42,7 +42,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title= Документ, valior, rate, total=Корекция BGN, lastRecalced=Последно, dealOriginId=Сделка, currencyId';
+    public $listFields = 'valior,title= Документ, dealOriginId=Сделка, rate, total=Корекция, lastRecalced=Последно, currencyId';
 
 
     /**
@@ -206,7 +206,12 @@ class acc_RatesDifferences extends core_Master
         $row->dealOriginId = doc_Containers::getDocument($rec->dealOriginId)->getLink(0);
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 
-        $row->total = ht::styleIfNegative($row->total, $rec->total);
+        $row->total = ht::styleNumber($row->total, $rec->total);
+        if(isset($fields['-single'])){
+            $row->total = "<b>{$row->total}</b>";
+        }
+        $row->total = "{$row->total} <span class='cCode'>{$row->baseCurrencyCode}</span>";
+
         if(is_array($rec->data)){
             $displayRes = "<table style='width:300px'>";
             if(countR($rec->data)){
