@@ -492,7 +492,7 @@ class acc_Setup extends core_ProtoSetup
             'action' => 'RecontoActive',
             'period' => 30,
             'offset' => 1,
-            'timeLimit' => 100
+            'timeLimit' => 300
         )
     );
 

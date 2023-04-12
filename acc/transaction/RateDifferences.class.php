@@ -40,24 +40,13 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         $rec->data = array();
         $result->valior = $rec->valior;
 
-        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
-        $query = doc_Containers::getQuery();
-        $query->where("#state = 'active' AND #threadId = {$rec->threadId}");
-        $query->in('docClass', $paymentIds);
-        $documents = $query->fetchAll();
-
-        $Deal = doc_Containers::getDocument($rec->dealOriginId);
-        $dealRec = $Deal->fetch();
-        $entries = array();
-        if($Deal->isInstanceOf('purchase_Purchases')){
-            $entries = $this->getPurchaseEntries($rec, $documents, $dealRec, $result->totalAmount, $rec->data);
-        } elseif($Deal->isInstanceOf('sales_Sales')){
-            $entries = $this->getSaleEntries($rec, $documents, $dealRec, $result->totalAmount, $rec->data);
-        }
-        if(countR($entries)){
-            $result->entries = $entries;
+        $tData = static::getTransactionData($rec->rate, $rec->valior, $rec->threadId);
+        if (countR($tData->entries)) {
+            $result->entries = $tData->entries;
+            $result->totalAmount = $tData->amount;
         }
 
+        $rec->data = $tData->data;
         $rec->lastRecalced = dt::now();
         $rec->total = array_sum($rec->data);
         $this->class->save_($rec, 'data,total,lastRecalced');
@@ -65,14 +54,38 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         return $result;
     }
 
-    private function getSaleEntries($rec, $documents, $dealRec, &$totalAmount, &$data)
+
+    public static function getTransactionData($rate, $valior, $threadId)
+    {
+        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
+        $query = doc_Containers::getQuery();
+        $query->where("#state = 'active' AND #threadId = {$threadId}");
+        $query->in('docClass', $paymentIds);
+        $documents = $query->fetchAll();
+
+        $res = (object)array('entries' => array(), 'amount' => 0, 'data' => array());
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $dealRec = $firstDoc->fetch();
+        if($firstDoc->isInstanceOf('purchase_Purchases')){
+            $res->entries = static::getPurchaseEntries($rate, $valior, $documents, $dealRec, $res->amount, $res->data);
+        } elseif($firstDoc->isInstanceOf('sales_Sales')){
+            $res->entries = static::getSaleEntries($rate, $valior, $documents, $dealRec, $res->amount, $res->data);
+        }
+
+        return $res;
+    }
+
+
+
+
+
+    private static function getSaleEntries($rate, $valior, $documents, $dealRec, &$totalAmount, &$data)
     {
         $entries = array();
 
         foreach ($documents as $d) {
             $Doc = doc_Containers::getDocument($d->id);
             $docRec = $Doc->fetch();
-            $rate = $rec->rate;
 
             if($Doc->isInstanceOf('deals_PaymentDocument')){
 
@@ -120,14 +133,13 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
     }
 
 
-    private function getPurchaseEntries($rec, $documents, $dealRec, &$totalAmount, &$data)
+    private static function getPurchaseEntries($rate, $valior, $documents, $dealRec, &$totalAmount, &$data)
     {
         $entries = array();
 
         foreach ($documents as $d){
             $Doc = doc_Containers::getDocument($d);
             $docRec = $Doc->fetch();
-            $rate = $rec->rate;
 
             if($Doc->isInstanceOf('deals_PaymentDocument')){
                 $sign = ($docRec->isReverse == 'yes') ? -1 : 1;
@@ -143,16 +155,15 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 }
 
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
-                $strategyRate = acc_strategy_WAC::getAmount(1, $rec->valior, $creditAccId, $item1Id, $currencyItemId, null);
+                $strategyRate = acc_strategy_WAC::getAmount(1, $valior, $creditAccId, $item1Id, $currencyItemId, null);
                 if(empty($strategyRate)){
-                    $strategyRate = currency_CurrencyRates::getRate($rec->valior, currency_Currencies::getCodeById($docRec->currencyId), null);
+                    $strategyRate = currency_CurrencyRates::getRate($valior, currency_Currencies::getCodeById($docRec->currencyId), null);
                 }
 
                 if(round($docRec->amountDeal, 2) != round($docRec->amount, 2)){
                     $delta = $docRec->amount / $docRec->amountDeal;
                     $strategyRate = $strategyRate * $delta;
                 }
-
                 $diffRate = round($rate - $strategyRate, 5);
 
                 $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
@@ -171,7 +182,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $currencyId)->id;
                 $caseItemId = acc_Items::fetchItem('cash_Cases', $docRec->caseId)->id;
 
-                $strategyRate = acc_strategy_WAC::getAmount(1, $rec->valior, 501, $caseItemId, $currencyItemId, null);
+                $strategyRate = acc_strategy_WAC::getAmount(1, $valior, 501, $caseItemId, $currencyItemId, null);
 
                 $debitAccId = '401';
                 $diffRate = round($rate - $strategyRate, 5);
@@ -200,6 +211,5 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         }
 
         return $entries;
-
     }
 }

@@ -852,7 +852,7 @@ abstract class deals_DealBase extends core_Master
 
             cls::get('acc_Balances')->recalc();
 
-            acc_RatesDifferences::create($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
+            acc_RatesDifferences::force($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
             if($itemRec){
                 acc_Items::notifyObject($itemRec);
             }
