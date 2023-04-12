@@ -290,6 +290,10 @@ class cat_BomDetails extends doc_Detail
                     }
                 }
 
+                if (!isset($productionData['normPackagingId'])) {
+                    $form->setFieldTypeParams('norm', array('measureId' => $rec->packagingId));
+                }
+
                 // Ако има опаковка за етикетиране
                 if(isset($rec->labelPackagingId)){
                     $form->setField('labelQuantityInPack', 'input');
