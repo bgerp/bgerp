@@ -110,7 +110,7 @@ class acc_RatesDifferences extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
+        $this->FLD('valior', 'date(format=smartTime)', 'caption=Вальор,mandatory');
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута');
         $this->FLD('dealOriginId', 'key(mvc=doc_Containers,select=id)', 'caption=Документ,mandatory');
