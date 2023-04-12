@@ -1430,13 +1430,13 @@ abstract class deals_Helper
             }
         }
         $rec->_recalcRate = true;
+        Mode::push('dontUpdateKeywords', true);
         $masterMvc->save($rec);
         $logMsg = 'Промяна на курс';
-
         if ($updateMaster) {
             $masterMvc->updateMaster_($rec);
         }
-
+        Mode::pop('dontUpdateKeywords');
         if ($rec->state == 'active') {
 
             $deletedRec = null;
