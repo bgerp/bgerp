@@ -102,7 +102,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'acc/tpl/RateDifferences.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleLayoutRateDifferences.shtml';
 
 
     /**
