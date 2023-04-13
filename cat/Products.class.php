@@ -1544,8 +1544,18 @@ class cat_Products extends embed_Manager
         } else {
             if($params['showTemplates']) {
                 $query->where("#state = 'active' OR #state = 'template'");
+                if(isset($params['driverId'])){
+                    $ignoreFolderIds = cls::get($params['driverId'])->getFoldersToIgnoreTemplates();
+                    if(countR($ignoreFolderIds)){
+                        $query->notIn('folderId', $ignoreFolderIds);
+                    }
+                }
             } elseif($params['onlyTemplates']){
                 $query->where("#state = 'template'");
+                $ignoreFolderIds = cls::get($params['driverId'])->getFoldersToIgnoreTemplates();
+                if(countR($ignoreFolderIds)){
+                    $query->notIn('folderId', $ignoreFolderIds);
+                }
             } else {
                 $query->where("#state = 'active'");
             }
