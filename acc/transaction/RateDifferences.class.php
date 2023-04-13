@@ -76,9 +76,17 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
     }
 
 
-
-
-
+    /**
+     * Контировка за курсови разлики към продажба
+     *
+     * @param double $rate        - курс
+     * @param date $valior        - вальор
+     * @param array $documents    - масив с платежни документи
+     * @param stdClass $dealRec   - запис на сделката
+     * @param double $totalAmount - обща сума досега
+     * @param  array $data        - масив с намерените документи и коригираните суми
+     * @return array
+     */
     private static function getSaleEntries($rate, $valior, $documents, $dealRec, &$totalAmount, &$data)
     {
         $entries = array();
@@ -133,6 +141,40 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
     }
 
 
+    /**
+     * Извлича изчислената от баланса цена по стратегия
+     *
+     * @param $creditSysId
+     * @param $currencyItemId
+     * @param $Doc
+     * @return null
+     */
+    private static function getJournalCurrencyCreditPrice($creditSysId, $currencyItemId, $Doc)
+    {
+        $creditRec = acc_Accounts::getRecBySystemId($creditSysId)->id;
+        $journalId = acc_Journal::fetchByDoc($Doc->getInstance(), $Doc->that)->id;
+        if(isset($journalId)){
+            $jQuery = acc_JournalDetails::getQuery();
+            $jQuery->where("#journalId = {$journalId} AND #creditAccId = {$creditRec} AND #creditItem2 = {$currencyItemId}");
+
+            return $jQuery->fetch()->creditPrice;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Контировка за курсови разлики към покупка
+     *
+     * @param double $rate        - курс
+     * @param date $valior        - вальор
+     * @param array $documents    - масив с платежни документи
+     * @param stdClass $dealRec   - запис на сделката
+     * @param double $totalAmount - обща сума досега
+     * @param  array $data        - масив с намерените документи и коригираните суми
+     * @return array
+     */
     private static function getPurchaseEntries($rate, $valior, $documents, $dealRec, &$totalAmount, &$data)
     {
         $entries = array();
@@ -155,7 +197,12 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 }
 
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
-                $strategyRate = acc_strategy_WAC::getAmount(1, $valior, $creditAccId, $item1Id, $currencyItemId, null);
+
+                // Търси се кредитната цена от журнала/от очакваната по стратегия/от курса
+                $strategyRate = self::getJournalCurrencyCreditPrice($creditAccId, $currencyItemId, $Doc);
+                if(empty($strategyRate)){
+                    $strategyRate = acc_strategy_WAC::getAmount(1, $valior, $creditAccId, $item1Id, $currencyItemId, null);
+                }
                 if(empty($strategyRate)){
                     $strategyRate = currency_CurrencyRates::getRate($valior, currency_Currencies::getCodeById($docRec->currencyId), null);
                 }
@@ -182,7 +229,13 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $currencyId)->id;
                 $caseItemId = acc_Items::fetchItem('cash_Cases', $docRec->caseId)->id;
 
-                $strategyRate = acc_strategy_WAC::getAmount(1, $valior, 501, $caseItemId, $currencyItemId, null);
+                $strategyRate = self::getJournalCurrencyCreditPrice(501, $currencyItemId, $Doc);
+                if(empty($strategyRate)){
+                    $strategyRate = acc_strategy_WAC::getAmount(1, $valior, 501, $caseItemId, $currencyItemId, null);
+                }
+                if(empty($strategyRate)){
+                    $strategyRate = currency_CurrencyRates::getRate($valior, $docRec->currencyId, null);
+                }
 
                 $debitAccId = '401';
                 $diffRate = round($rate - $strategyRate, 5);
