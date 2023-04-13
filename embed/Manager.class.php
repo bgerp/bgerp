@@ -388,6 +388,7 @@ abstract class embed_Manager extends core_Master
                 case 'aftersave':
                 case 'afterrectoverbal':
                 case 'afterrestore':
+                case 'aftergetprototypes':
                 case 'afterreject':
                 case 'aftergetdefaultdata':
                 case 'aftergetdefaultassignusers':
