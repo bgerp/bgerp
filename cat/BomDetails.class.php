@@ -796,9 +796,10 @@ class cat_BomDetails extends doc_Detail
             $descriptionArr[] = "<tr><td colspan='2'>" . $mvc->getFieldType('description')->toVerbal($rec->description) . "</td>";
         }
 
+        $productDescriptionStr = '';
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $row->resourceId .= "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $productDescriptionStr = "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
         }
 
         if($rec->type == 'stage'){
@@ -806,8 +807,13 @@ class cat_BomDetails extends doc_Detail
             $paramData = cat_products_Params::prepareClassObjectParams($mvc, $rec);
             if (isset($paramData)) {
                 $paramTpl = cat_products_Params::renderParams($paramData);
-                $row->resourceId .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
+                $productDescriptionStr .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
             }
+        }
+
+        if(!empty($productDescriptionStr)){
+            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+            $row->resourceId .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>{$productDescriptionStr}</div>";
         }
 
         $propQuantity = $rec->propQuantity;
