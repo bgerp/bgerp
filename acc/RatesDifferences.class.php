@@ -131,10 +131,11 @@ class acc_RatesDifferences extends core_Master
      * @param string $currencyCode   - код на валута
      * @param double $rate           - валутен курс
      * @param string|null $reason    - основание
+     * @param bool $updateDealItem   - дали да се маркира перото на сделката че е обновено
      * @return int                   - ид-то на създадения/реконтирания документ
      * @throws core_exception_Expect
      */
-    public static function force($threadId, $currencyCode, $rate, $reason = null)
+    public static function force($threadId, $currencyCode, $rate, $reason = null, $updateDealItem = true)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         expect($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases'));
@@ -158,7 +159,21 @@ class acc_RatesDifferences extends core_Master
             static::conto($id);
         } else {
             $containerId = static::fetchField($rec->id, 'containerId');
+
+            // Ако не се иска да се обновява датата на последно използване на перото на сделката да не се
+            if(!$updateDealItem){
+                $itemRec = acc_Items::fetchItem($firstDoc->getInstance(), $firstDoc->that);
+                if(is_object($itemRec)){
+                    Mode::push('dontUpdateLastUsedOnItems', array($itemRec->id => $itemRec->id));
+                }
+            }
+
             acc_Journal::reconto($containerId);
+
+            if(!$updateDealItem && is_object($itemRec)){
+                Mode::pop('dontUpdateLastUsedOnItems');
+            }
+
         }
 
         return $id;
@@ -305,7 +320,7 @@ class acc_RatesDifferences extends core_Master
 
                 try {
                     Mode::push('preventNotifications', true);
-                    acc_RatesDifferences::force($dRec->threadId, $dRec->currencyId, $dRec->currencyRate, 'Автоматична корекция на курсови разлики');
+                    acc_RatesDifferences::force($dRec->threadId, $dRec->currencyId, $dRec->currencyRate, 'Автоматична корекция на курсови разлики', false);
                     Mode::pop('preventNotifications');
                     if (is_object($itemRec)) {
                         $recontoItems[$itemRec->id] = $itemRec;
