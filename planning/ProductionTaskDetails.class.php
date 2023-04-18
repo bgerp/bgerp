@@ -323,7 +323,6 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setField('serial', 'input=none');
             } elseif ($rec->type == 'input') {
                 $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
-                $form->setField('serial', 'removeAndRefreshForm=quantity|batch');
                 if(countR($availableSerialsToInput)){
                     $serialOptions = array_combine(array_keys($availableSerialsToInput), array_keys($availableSerialsToInput));
                     $form->setSuggestions('serial', array('' => '') + $serialOptions);
