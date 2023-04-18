@@ -668,7 +668,7 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Метод пораждащ събитие 'AfterJournalItemAffect'в мениджъра на перото
+     * Метод пораждащ събитие 'AfterJournalItemAffect' в мениджъра на перото
      *
      * @param mixed $id - обект или запис на перо
      *
