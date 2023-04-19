@@ -97,6 +97,8 @@ class select2_PluginSmartSelect extends core_Plugin
             $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
         }
 
+        setIfNot($invoker->params['forceOpen'], $type->params['forceOpen']);
+
         $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
         
         // Добавяме необходимите файлове и стартирам select2
