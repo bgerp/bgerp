@@ -902,9 +902,11 @@ class doc_Containers extends core_Manager
         // 3. Промяна на папката на документа
         
         $fields = 'state,folderId,threadId,containerId,originId';
-        
-        if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
-            $fields .= ',searchKeywords';
+
+        if(!Mode::is('dontUpdateKeywords')){
+            if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
+                $fields .= ',searchKeywords';
+            }
         }
         
         $updateField = null;

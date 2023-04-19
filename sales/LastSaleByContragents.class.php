@@ -204,4 +204,42 @@ class sales_LastSaleByContragents extends core_Manager
 
         sales_LastSaleByContragents::updateDates($pIds,  $masterRec->folderId);
     }
+
+
+    /**
+     * Тестов миграционен екшън за първоначално наливане на модела
+     */
+    public function act_Test()
+    {
+        requireRole('debug');
+
+        // От кога до кога
+        $monthsBefore = sales_Setup::get('DELTA_NEW_PRODUCT_TO');
+        $date = dt::getLastDayOfMonth(dt::addMonths(-1 * $monthsBefore));
+        $dateFrom = dt::getLastDayOfMonth(dt::addDays(-420));
+
+        // Извличане на последните продажби на артикулите от 420 дена назад до зададения брой месеци назад
+        $result = array();
+        $sQuery = sales_PrimeCostByDocument::getQuery();
+        $sQuery->where("#valior >= '{$dateFrom}' AND #valior <= '{$date}' AND #state IN ('active', 'closed')");
+        $sQuery->show('productId,containerId,valior,folderId');
+        $sQuery->orderBy('valior=DESC,id=DESC');
+        $allFound = $sQuery->fetchAll();
+        $count = countR($allFound);
+        core_App::setTimeLimit($count * 0.2, false, 400);
+        foreach($allFound as $sRec){
+            if(array_key_exists("{$sRec->productId}|{$sRec->folderId}", $result)) continue;
+            $result["{$sRec->productId}|{$sRec->folderId}"] = (object)array('productId' => $sRec->productId, 'folderId' => $sRec->folderId, 'lastDate' => $sRec->valior, 'lastDateContainerId' => $sRec->containerId);
+        }
+
+        // Наличните вече записи в модела
+        $oQuery = sales_LastSaleByContragents::getQuery();
+        $exRecs = $oQuery->fetchAll();
+
+        // Ще се добавят САМО тези записи, които не присъстват в модела
+        $res = arr::syncArrays($result, $exRecs, 'productId,folderId', 'lastDate,lastDateContainerId');
+        if (countR($res['insert'])) {
+            cls::get('sales_LastSaleByContragents')->saveArray($res['insert']);
+        }
+    }
 }

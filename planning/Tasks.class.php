@@ -435,7 +435,6 @@ class planning_Tasks extends core_Master
         core_Debug::startTimer('RENDER_VERBAL');
         $row = parent::recToVerbal_($rec, $fields);
         $mvc = cls::get(get_called_class());
-        $row->title = self::getHyperlink($rec->id, isset($fields['-list']));
 
         $red = new color_Object('#FF0000');
         $blue = new color_Object('green');
@@ -453,8 +452,11 @@ class planning_Tasks extends core_Master
 
         $row->productId = $mvc->getStepTitle($rec->productId);
         if (!empty($rec->subTitle)) {
-            $row->productId .= ", <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
+            $row->productId .= " <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
         }
+
+        $row->title = "{$rec->id}| {$row->productId}";
+        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id));
 
         if (!Mode::isReadOnly()) {
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
@@ -896,7 +898,7 @@ class planning_Tasks extends core_Master
         $me = cls::get(get_called_class());
         $title = "Opr{$rec->id} - {$me->getStepTitle($rec->productId)}";
         if (!empty($rec->subTitle)) {
-            $title .= " [{$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}]";
+            $title .= " {$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
         }
 
         return $title;
@@ -2861,7 +2863,6 @@ class planning_Tasks extends core_Master
             }
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
-
 
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');

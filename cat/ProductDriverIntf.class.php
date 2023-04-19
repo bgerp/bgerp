@@ -673,4 +673,15 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     {
         return $this->class->getProductionData($productId);
     }
+
+
+    /**
+     * Кои папки да се игнорират при избор на шаблонни артикули
+     *
+     * @return array
+     */
+    public function getFoldersToIgnoreTemplates()
+    {
+        return array();
+    }
 }
