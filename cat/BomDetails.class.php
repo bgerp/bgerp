@@ -290,6 +290,10 @@ class cat_BomDetails extends doc_Detail
                     }
                 }
 
+                if (!isset($productionData['normPackagingId'])) {
+                    $form->setFieldTypeParams('norm', array('measureId' => $rec->packagingId));
+                }
+
                 // Ако има опаковка за етикетиране
                 if(isset($rec->labelPackagingId)){
                     $form->setField('labelQuantityInPack', 'input');
@@ -792,9 +796,10 @@ class cat_BomDetails extends doc_Detail
             $descriptionArr[] = "<tr><td colspan='2'>" . $mvc->getFieldType('description')->toVerbal($rec->description) . "</td>";
         }
 
+        $productDescriptionStr = '';
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $row->resourceId .= "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $productDescriptionStr = "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
         }
 
         if($rec->type == 'stage'){
@@ -802,8 +807,13 @@ class cat_BomDetails extends doc_Detail
             $paramData = cat_products_Params::prepareClassObjectParams($mvc, $rec);
             if (isset($paramData)) {
                 $paramTpl = cat_products_Params::renderParams($paramData);
-                $row->resourceId .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
+                $productDescriptionStr .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
             }
+        }
+
+        if(!empty($productDescriptionStr)){
+            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+            $row->resourceId .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>{$productDescriptionStr}</div>";
         }
 
         $propQuantity = $rec->propQuantity;
@@ -1122,6 +1132,24 @@ class cat_BomDetails extends doc_Detail
 
 
     /**
+     * Метод по подразбиране за извличане на детайлите в правилната подредба за бутоните напред/назад
+     *
+     * @param core_Detail $DetailMvc
+     * @param array $res
+     * @param int $detailId
+     * @return void
+     */
+    protected static function on_BeforeGetPrevAndNextDetailQuery($DetailMvc, &$res, $detailId)
+    {
+        $bomId = static::fetchField($detailId, 'bomId');
+        $orderedDetails = self::getOrderedBomDetails($bomId);
+        foreach ($orderedDetails as $rec){
+            $res[] = $rec->id;
+        }
+    }
+
+
+    /**
      * Ако няма записи не вади таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
@@ -1174,6 +1202,10 @@ class cat_BomDetails extends doc_Detail
         if (empty($rec->id) && $rec->type == 'stage') {
             $rec->stageAdded = true;
         }
+
+        if(isset($rec->id)){
+            $rec->_exPosition = $mvc->fetchField($rec->id, 'position');
+        }
     }
     
     
@@ -1194,7 +1226,7 @@ class cat_BomDetails extends doc_Detail
         $query->XPR('maxPosition', 'int', 'MAX(#position)');
         $position = $query->fetch()->maxPosition;
         ++$position;
-        
+
         return $position;
     }
     
@@ -1225,14 +1257,16 @@ class cat_BomDetails extends doc_Detail
     {
         // Ако има позиция, шифтваме всички с по-голяма или равна позиция напред
         if (isset($rec->position)) {
-            $query = $mvc->getQuery();
-            $cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
-            $cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : '#parentId IS NULL';
-            
-            $query->where($cond);
-            while ($nRec = $query->fetch()) {
-                $nRec->position++;
-                $mvc->save_($nRec, 'position');
+            if($rec->position != $rec->_exPosition){
+                $query = $mvc->getQuery();
+                $cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
+                $cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : '#parentId IS NULL';
+                core_Statuses::newStatus('shift ' . $rec->id);
+                $query->where($cond);
+                while ($nRec = $query->fetch()) {
+                    $nRec->position++;
+                    $mvc->save_($nRec, 'position');
+                }
             }
         }
         

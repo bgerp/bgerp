@@ -852,7 +852,7 @@ abstract class deals_DealBase extends core_Master
 
             cls::get('acc_Balances')->recalc();
 
-            acc_RatesDifferences::create($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
+            acc_RatesDifferences::force($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
             if($itemRec){
                 acc_Items::notifyObject($itemRec);
             }
@@ -890,21 +890,31 @@ abstract class deals_DealBase extends core_Master
                     $deletedRec = null;
                     acc_Journal::deleteTransaction($this->getClassId(), $rec->id, $deletedRec);
 
+                    $popReconto = $popRecontoDate = false;
                     try{
                         if(is_object($deletedRec)){
                             Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                            $popRecontoDate = true;
                         }
                         Mode::push('recontoTransaction', true);
+                        $popReconto = true;
                         acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
-                        Mode::push('recontoTransaction');
-                        if(is_object($deletedRec)){
+                        Mode::pop('recontoTransaction');
+                        $popReconto = false;
+                        if($popRecontoDate){
                             Mode::pop('recontoWithCreatedOnDate');
+                            $popRecontoDate = false;
                         }
                     } catch(acc_journal_RejectRedirect  $e){
                         if(is_object($deletedRec)) {
                             acc_Journal::restoreDeleted($this->getClassId(), $rec->id, $deletedRec, $deletedRec->_details);
                         }
-                        wp($e);
+                        if($popReconto){
+                            Mode::pop('recontoTransaction');
+                        }
+                        if($popRecontoDate){
+                            Mode::pop('recontoWithCreatedOnDate');
+                        }
                     }
                 }
             } else {
@@ -1002,9 +1012,10 @@ abstract class deals_DealBase extends core_Master
     /**
      * Осреднява валутните курсове на сделките при нужда
      *
-     * @return void;
+     * @return bool $recalcAll
+     * @return void
      */
-    public function recalcDealsWithCurrencies()
+    public function recalcDealsWithCurrencies($recalcAll = false)
     {
         $iQuery = acc_Items::getQuery();
         $iQuery->where("#classId = {$this->getClassId()} AND #state = 'active'");
@@ -1030,8 +1041,20 @@ abstract class deals_DealBase extends core_Master
 
         $recalcedItems = $saved = array();
         while($rec = $query->fetch()){
+            $itemRec = acc_Items::fetchItem($this, $rec->id);
             $newRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
+
+            if(!$recalcAll){
+                // Ако няма да се рекалкулират всички, само тези с променен курс или с изпозлване на перото след последното минаване
+                if(round($newRate, 8) == round($rec->currencyRate, 8)){
+                    if($itemRec->lastUseOn <= $rec->lastAutoRecalcRate){
+                        continue;
+                    }
+                }
+            }
+
             try{
+                // Рекалкулиране на документите с новия курс
                 $this->recalcDocumentsWithNewRate($rec, $newRate);
             } catch(acc_journal_Exception $e){
                 $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
@@ -1041,26 +1064,26 @@ abstract class deals_DealBase extends core_Master
             $rec->__newRate = $newRate;
             $rec->lastAutoRecalcRate = $now;
             $saved[$rec->id] = $rec;
-            $itemRec = acc_Items::fetchItem($this, $rec->id);
             if($itemRec){
                 $recalcedItems[$rec->id] = $itemRec;
             }
         }
 
+        // Нотифициране на перата на сделките
         foreach ($recalcedItems as $itemRec){
             acc_Items::notifyObject($itemRec);
         }
         $Items->flushTouched();
 
+        // Релаклилиране на баланса
         cls::get('acc_Balances')->recalc();
 
+        // Ако има рекалкулирани сделки записва се датата на рекалкулирането (идеята е всичките да са с една дата)
         if(countR($saved)){
             $this->saveArray($saved, 'id,lastAutoRecalcRate');
-            foreach ($saved as $rec){
-                acc_RatesDifferences::create($rec->threadId, $rec->currencyId, $rec->__newRate, 'Автоматична корекция на курсови разлики');
-            }
         }
 
+        // Повторно нотифициране на перата след преизчисления баланс
         foreach ($recalcedItems as $itemRec){
             acc_Items::notifyObject($itemRec);
         }

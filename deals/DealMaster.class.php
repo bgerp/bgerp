@@ -2519,13 +2519,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if ($productId = $arr[0]->productId) {
             $tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-            core_Lg::push($tplLang);
-            $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
-            $productName = cat_Products::getVerbal($pRec, 'name');
-            core_Lg::pop();
-            $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
+            if($tplLang){
+                core_Lg::push($tplLang);
+                $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
+                $productName = cat_Products::getVerbal($pRec, 'name');
+                core_Lg::pop();
+                $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
 
-            return $productName;
+                return $productName;
+            }
         }
     }
     

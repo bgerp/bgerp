@@ -29,7 +29,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Select, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation';
+    public $loadList = 'plg_Sorting, acc_plg_Contable, acc_Wrapper, doc_DocumentPlg, plg_Select, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation';
 
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
@@ -42,7 +42,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title= Документ, valior, rate, total=Корекция BGN, lastRecalced=Последно, dealOriginId=Сделка, currencyId';
+    public $listFields = 'valior,title= Документ, dealOriginId=Сделка, rate, total=Корекция, lastRecalced=Последно, currencyId';
 
 
     /**
@@ -102,7 +102,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'acc/tpl/RateDifferences.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleLayoutRateDifferences.shtml';
 
 
     /**
@@ -110,7 +110,7 @@ class acc_RatesDifferences extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
+        $this->FLD('valior', 'date(format=smartTime)', 'caption=Вальор,mandatory');
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута');
         $this->FLD('dealOriginId', 'key(mvc=doc_Containers,select=id)', 'caption=Документ,mandatory');
@@ -124,14 +124,29 @@ class acc_RatesDifferences extends core_Master
     }
 
 
-    public static function create($threadId, $currencyCode, $rate, $reason = null)
+    /**
+     * Създаване на нов документ за курсова разлика в нишката (ако ще коригира суми) или реконтиране на вече наличния
+     *
+     * @param int $threadId          - ид на нишка
+     * @param string $currencyCode   - код на валута
+     * @param double $rate           - валутен курс
+     * @param string|null $reason    - основание
+     * @param bool $updateDealItem   - дали да се маркира перото на сделката че е обновено
+     * @return int                   - ид-то на създадения/реконтирания документ
+     * @throws core_exception_Expect
+     */
+    public static function force($threadId, $currencyCode, $rate, $reason = null, $updateDealItem = true)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         expect($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases'));
 
         $isCreated = true;
         $rec = (object)array('reason' => $reason, 'threadId' => $threadId, 'currencyId' => $currencyCode, 'rate' => $rate, 'dealOriginId' => $firstDoc->fetchField('containerId'), 'lastRecalced' => dt::now());
-        if($exId = static::fetchField("#threadId = {$threadId} AND #state = 'active'")){
+        $exId = static::fetchField("#threadId = {$threadId} AND #state = 'active'");
+        if(empty($exId)){
+            $tData = acc_transaction_RateDifferences::getTransactionData($rate, dt::today(), $threadId);
+            if(!countR($tData->entries)) return;
+        } else {
             $rec->id = $exId;
             $isCreated = false;
         }
@@ -144,7 +159,21 @@ class acc_RatesDifferences extends core_Master
             static::conto($id);
         } else {
             $containerId = static::fetchField($rec->id, 'containerId');
+
+            // Ако не се иска да се обновява датата на последно използване на перото на сделката да не се
+            if(!$updateDealItem){
+                $itemRec = acc_Items::fetchItem($firstDoc->getInstance(), $firstDoc->that);
+                if(is_object($itemRec)){
+                    Mode::push('dontUpdateLastUsedOnItems', array($itemRec->id => $itemRec->id));
+                }
+            }
+
             acc_Journal::reconto($containerId);
+
+            if(!$updateDealItem && is_object($itemRec)){
+                Mode::pop('dontUpdateLastUsedOnItems');
+            }
+
         }
 
         return $id;
@@ -192,7 +221,12 @@ class acc_RatesDifferences extends core_Master
         $row->dealOriginId = doc_Containers::getDocument($rec->dealOriginId)->getLink(0);
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 
-        $row->total = ht::styleIfNegative($row->total, $rec->total);
+        $row->total = ht::styleNumber($row->total, $rec->total);
+        if(isset($fields['-single'])){
+            $row->total = "<b>{$row->total}</b>";
+        }
+        $row->total = "{$row->total} <span class='cCode'>{$row->baseCurrencyCode}</span>";
+
         if(is_array($rec->data)){
             $displayRes = "<table style='width:300px'>";
             if(countR($rec->data)){
@@ -249,71 +283,52 @@ class acc_RatesDifferences extends core_Master
      */
     public function cron_RecontoActive()
     {
-        $dealClasses = array(sales_Sales::getClassId(), purchase_Purchases::getClassId());
+        $dealClasses = array('sales_Sales', 'purchase_Purchases');
 
-        $cronRec = core_Cron::getRecForSystemId('RecontoRateDiffs');
-        $cronPeriod = $cronRec->period;
-        $add = ($cronPeriod + 5) * 60; // Добавят се 5 минути толеранс
-
-        // Кои сделки са с модифицирани пера след последното минаване на крона
-        $now = dt::now();
-        $foundDeals = array();
-        $after = dt::addSecs(-1 * $add, $now);
-        $iQuery = acc_Items::getQuery();
-        $iQuery->in("classId", $dealClasses);
-        $iQuery->where("#lastUseOn >= '{$after}' AND #state = 'active'");
-        while($iRec = $iQuery->fetch()){
-            $foundDeals[$iRec->classId][] = $iRec->objectId;
-        }
-
-        if(!countR($foundDeals)) return;
-
-        // Кои са техните контейнери
-        $cQuery = doc_Containers::getQuery();
+        // Извличане на всички активни документи за к.разлики
+        $exRecs = array();
+        $cQuery = static::getQuery();
         $cQuery->where("#state = 'active'");
-        $cQuery->show('id');
-        $i = 1;
-        foreach ($foundDeals as $dealClassId => $dealIds){
-            $or = !(($i == 1));
-            $dealIdsArr = implode(',', $dealIds);
-            $cQuery->where("#docClass = {$dealClassId} AND #docId IN ({$dealIdsArr})", $or);
-            $i++;
-        }
-        $dealContainerIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
-        if(!countR($dealContainerIds)) return;
-
-        // Реконтиране само на тези курсови разлики в нишки на активни засегнати сделки
-        $query = static::getQuery();
-        $query->EXT('dealState', 'doc_Containers', 'externalName=state,externalKey=dealOriginId');
-        $query->where("#state = 'active' AND #dealState = 'active'");
-        $iQuery->XPR('lastRecalcedCalc', 'double', "COALESCE(#lastAutoRecalcRate, '0000-00-00 00:00:00')");
-        $query->in('dealOriginId', $dealContainerIds);
-
-        // Подсигуряване, че не са в затворен период
-        $lastClosedPeriod = acc_Periods::getLastClosed();
-        if($lastClosedPeriod){
-            $after = dt::addDays(1, $lastClosedPeriod->end);
-            $query->where("#valior >= '{$after}'");
+        while($cRec = $cQuery->fetch()){
+            $exRecs[$cRec->dealOriginId] = $cRec;
         }
 
         $recontoItems = array();
-        $recs = $query->fetchAll();
-        core_App::setTimeLimit(countR($recs) * 0.5, false, 100);
-        foreach ($recs as $rec){
-            $doc = doc_Containers::getDocument($rec->dealOriginId);
+        $today = dt::today();
+        foreach ($dealClasses as $class) {
 
-            // Ако перото на сделката е използвано преди последното преизчисляване се пропуска
-            $itemRec = acc_Items::fetchItem($doc->getInstance(), $doc->that);
-            if($itemRec->lastUseOn <= $rec-> lastRecalcedCalc) continue;
+            // Обикаляне на валутните сделки
+            $Class = cls::get($class);
+            $dQuery = $Class->getQuery();
+            $dQuery->where("#state = 'active' AND #currencyId != 'BGN'");
+            $dealRecs = $dQuery->fetchAll();
+            $count = countR($dealRecs);
 
-            try{
-                acc_Journal::reconto($rec->containerId);
-                if(is_object($itemRec)){
-                    $recontoItems[$itemRec->id] = $itemRec;
+            core_App::setTimeLimit($count * 0.4, false, 300);
+            foreach ($dealRecs as $dRec) {
+
+                // Подменя се курса му и се реконтира
+                $itemRec = acc_Items::fetchItem($Class, $dRec->id);
+
+                // Ако няма създаден документ за валутни разлики и има платено и НЯМА изчислени разлики няма да се създава
+                if (!isset($exRecs[$dRec->containerId])) {
+                    if (!empty($dRec->amountPaid)) {
+                        $tData = acc_transaction_RateDifferences::getTransactionData($dRec->currencyRate, $today, $dRec->threadId);
+                        if (!countR($tData->entries)) continue;
+                    }
                 }
-            } catch(acc_journal_Exception $e){
-                wp($e);
-                static::logErr('Грешка при реконтиране', $rec->id);
+
+                try {
+                    Mode::push('preventNotifications', true);
+                    acc_RatesDifferences::force($dRec->threadId, $dRec->currencyId, $dRec->currencyRate, 'Автоматична корекция на курсови разлики', false);
+                    Mode::pop('preventNotifications');
+                    if (is_object($itemRec)) {
+                        $recontoItems[$itemRec->id] = $itemRec;
+                    }
+                } catch (acc_journal_Exception $e) {
+                    wp($e);
+                    $Class->logErr('Грешка при реконтиране', $dRec->id);
+                }
             }
         }
 
@@ -327,19 +342,10 @@ class acc_RatesDifferences extends core_Master
     }
 
 
-    function act_RecontoAll()
-    {
-        requireRole('debug');
-
-        $this->cron_RecontoActive();
-    }
-
-
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
      *
      * @param int $id
-     *
      * @return NULL|string
      */
     public static function getThreadState($id)

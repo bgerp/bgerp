@@ -323,13 +323,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setField('serial', 'input=none');
             } elseif ($rec->type == 'input') {
                 $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
-                if (countR($availableSerialsToInput)) {
+                if(countR($availableSerialsToInput)){
                     $serialOptions = array_combine(array_keys($availableSerialsToInput), array_keys($availableSerialsToInput));
-                    $form->setField('serial', 'removeAndRefreshForm=quantity|batch');
-                    $form->setOptions('serial', $serialOptions);
-                    $form->setDefault('serial', key($serialOptions));
-                } else {
-                    $form->setField('serial', 'input=none');
+                    $form->setSuggestions('serial', array('' => '') + $serialOptions);
                 }
             }
 
@@ -461,9 +457,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
 
                         if (!$form->gotErrors()) {
-                            if (in_array($rec->type, array('production', 'scrap'))) {
+                            if (in_array($rec->type, array('production', 'scrap', 'input'))) {
                                 // Проверка на сериния номер
-                                $serialInfo = self::getProductionSerialInfo($rec->serial, $rec->productId, $rec->taskId);
+                                $serialInfo = self::getProgressSerialInfo($rec->serial, $rec->productId, $rec->taskId, $rec->type);
                                 $rec->serialType = $serialInfo['type'];
                                 if (isset($serialInfo['error'])) {
                                     $form->setError('serial', $serialInfo['error']);
@@ -799,15 +795,15 @@ class planning_ProductionTaskDetails extends doc_Detail
 
 
     /**
-     * Информация за серийния номер
+     * Информация за серийния номер при произвеждане/бракуване
      *
      * @param string      $serial
      * @param int         $productId
      * @param int         $taskId
-     *
+     * @param string      $type
      * @return array $res
      */
-    private static function getProductionSerialInfo($serial, $productId, $taskId)
+    private static function getProgressSerialInfo($serial, $productId, $taskId, $type)
     {
         $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId');
         $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
@@ -820,13 +816,18 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('originId', 'planning_Tasks', "externalName=originId,externalKey=taskId");
         $query->EXT('measureId', 'planning_Tasks', "externalName=measureId,externalKey=taskId");
         $query->EXT('labelPackagingId', 'planning_Tasks', "externalName=labelPackagingId,externalKey=taskId");
-        $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
+        if($type == 'input'){
+            $pInfo = planning_ProductionTaskProducts::getInfo($taskId, $productId, 'input');
+            $labelPackagingValue = $pInfo->packagingId;
+        } else {
+            $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
+        }
+
         $query->where("#originId = {$taskRec->originId} AND #taskId != {$taskRec->id}");
         $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
 
         // Сумира се реално произведеното по този проз. номер по операция
         $query->where(array("#serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
-
         while($rec = $query->fetch()){
             if(!array_key_exists($rec->taskId, $foundRecs)){
                 $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
@@ -846,7 +847,12 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Изчисляване сумарно по този произ. номер в текущата операция
         $cQuery = static::getQuery();
-        $cQuery->where(array("#taskId = {$taskRec->id} AND #serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
+        $cQuery->where(array("#taskId = {$taskRec->id} AND #serial = '[#1#]' AND #state != 'rejected'", $serial));
+        if($type == 'input'){
+            $cQuery->where("#type = 'input'");
+        } else {
+            $cQuery->where("#type IN ('production', 'scrap')");
+        }
         while($cRec = $cQuery->fetch()){
             $sign = ($cRec->type == 'scrap') ? -1 : 1;
             $res['totalQuantity'] += $sign * $cRec->quantity;

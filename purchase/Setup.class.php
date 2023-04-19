@@ -139,6 +139,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_PurchasesData',
         'purchase_Quotations',
         'purchase_QuotationDetails',
+        'migrate::recalcCurrencyPurchases1115',
     );
     
     
@@ -250,5 +251,14 @@ class purchase_Setup extends core_ProtoSetup
         $res .= deals_Setup::syncCronSettings($params);
 
         return $res;
+    }
+
+
+    /**
+     * Първоначална миграция на всички валитни покупки с промяна на курса към текущия
+     */
+    public function recalcCurrencyPurchases1115()
+    {
+        cls::get('purchase_Purchases')->recalcDealsWithCurrencies(true);
     }
 }

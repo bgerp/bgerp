@@ -34,8 +34,6 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
      */
     public function init($params = array())
     {
-        static $cnt;
-        $cnt = $cnt +1;
         parent::init($params);
 
         setIfNot($this->user, 'user');
@@ -44,12 +42,19 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
 //         setIfNot($this->height, 720);
         setIfNot($this->FPS, 25);
         
+        
         require_once (EF_ROOT_PATH . '/' . EF_APP_CODE_NAME . '/cams/ponvif/lib/class.ponvif.php');
         $this->onvif = new Ponvif();
         
         $this->onvif->setUsername($this->user);
         $this->onvif->setPassword($this->password);
-        $this->onvif->setIPAddress($this->ip);
+        
+        if (!empty($this->ip)) {
+            $this->onvif->setIPAddress($this->ip);
+        } else {
+            return;
+        }
+        
         try
         {
             $this->onvif->initialize();

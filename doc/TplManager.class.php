@@ -98,7 +98,7 @@ class doc_TplManager extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, docClassId, createdOn, createdBy, modifiedOn, modifiedBy, state';
+    public $listFields = 'id, name, lang, docClassId, createdOn, createdBy, modifiedOn, modifiedBy, state';
     
     
     /**

@@ -1027,4 +1027,34 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return array();
     }
+
+
+    /**
+     * Кои папки да се игнорират при избор на шаблонни артикули
+     *
+     * @return array
+     */
+    public function getFoldersToIgnoreTemplates()
+    {
+        return array();
+    }
+
+
+    /**
+     * Достъпните шаблони
+     */
+    public static function on_AfterGetPrototypes(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
+    {
+        $ignoreFolderIds = $Driver->getFoldersToIgnoreTemplates();
+        if(countR($ignoreFolderIds)){
+
+            // Премахване на шаблоните от избраната категория за създаване на шаблонни артикули с рецепта
+            $pQuery = cat_Products::getQuery();
+            $pQuery->where("#innerClass={$Driver->getClassId()} AND #state = 'template'");
+            $pQuery->in('folderId', $ignoreFolderIds);
+            $pQuery->show('id');
+            $skipIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+            $res = array_diff_key($res, $skipIds);
+        }
+    }
 }

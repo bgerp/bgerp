@@ -458,6 +458,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
+        'migrate::recalcCurrencySales1115',
     );
     
     
@@ -647,5 +648,14 @@ class sales_Setup extends core_ProtoSetup
         $res .= $Plugins->installPlugin('Връзка на продажбите с куриерско API', 'store_plg_CourierApiShipment', 'sales_Sales', 'private');
 
         return $res;
+    }
+
+
+    /**
+     * Първоначална миграция на всички валитни покупки с промяна на курса към текущия
+     */
+    public function recalcCurrencySales1115()
+    {
+        cls::get('sales_Sales')->recalcDealsWithCurrencies(true);
     }
 }

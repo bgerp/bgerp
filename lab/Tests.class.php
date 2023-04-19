@@ -724,4 +724,16 @@ class lab_Tests extends core_Master
         
         return $paramsArr;
     }
+
+
+    /**
+     * Зарежда шаблоните на тестовете в doc_TplManager
+     */
+    public function loadSetupData()
+    {
+        $tplArr = array();
+        $tplArr[] = array('name' => 'Лабораторни тестове', 'content' => 'lab/tpl/SingleLayoutTests.shtml', 'lang' => 'bg');
+
+        return doc_TplManager::addOnce($this, $tplArr);
+    }
 }

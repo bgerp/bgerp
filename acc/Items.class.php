@@ -630,12 +630,17 @@ class acc_Items extends core_Manager
     public static function touch($rec)
     {
         // Вземаме инстация на acc_Items за да подсигурим извикването на acc_Items::on_Shutdown()
+        expect($rec->id);
+
+        // Ако в хита е записано да не се обновява последното използване на перото - да не се!
+        $dontTouchItems = Mode::get('dontUpdateLastUsedOnItems');
+        if(is_array($dontTouchItems) && in_array($rec->id, $dontTouchItems)){
+            return;
+        }
+
+        // Тук само запомняме какво е "пипнато" (използвано). Същинското обновяване се прави в on_Shutdown()
         $Items = cls::get(__CLASS__);
         $rec->lastUseOn = dt::now();
-        
-        expect($rec->id);
-        
-        // Тук само запомняме какво е "пипнато" (използвано). Същинското обновяване се прави в on_Shutdown()
         $Items->touched[$rec->id] = $rec;
     }
     
@@ -668,7 +673,7 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Метод пораждащ събитие 'AfterJournalItemAffect'в мениджъра на перото
+     * Метод пораждащ събитие 'AfterJournalItemAffect' в мениджъра на перото
      *
      * @param mixed $id - обект или запис на перо
      *
