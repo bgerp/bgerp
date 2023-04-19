@@ -2591,7 +2591,7 @@ class planning_Tasks extends core_Master
                 $count++;
             }
 
-            $msg = "Успешно клонирани операции от предходно задание|*: {$count}";
+            $msg = "Успешно клонирани операции от предишно задание|*: {$count}";
             followRetUrl(null, $msg);
         } elseif ($type == 'all') {
 

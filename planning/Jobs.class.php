@@ -1387,7 +1387,7 @@ class planning_Jobs extends core_Master
             if (countR($oldTasks)) {
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('От предишно задание') . planning_Jobs::getLink($jobRec->oldJobId, 0), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
                 if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'oldJobId' => $jobRec->oldJobId, 'type' => 'cloneAll'))){
-                    $title = tr('Неклонираните');
+                    $title = tr('Неклонираните от предишно задание');
                     $urlCloneAll = array('planning_Tasks', 'createjobtasks', 'type' => 'cloneAll', 'jobId' => $jobRec->id, 'oldJobId' => $jobRec->oldJobId, 'ret_url' => true);
                     $urlLink = ht::createBtn('Клониране', $urlCloneAll, false, false, 'title=Клониране на всички предходни операции,ef_icon=img/16/clone.png');
                     $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
