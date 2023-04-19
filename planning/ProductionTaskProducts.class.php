@@ -192,7 +192,7 @@ class planning_ProductionTaskProducts extends core_Detail
             
             $shortUomId = cat_Products::fetchField($masterRec->productId, 'measureId');
             $shortUom = cat_UoM::getShortName($shortUomId);
-            $unit = tr('за') . ' ' . core_Type::getByName('double(smartRound)')->toVerbal($masterRec->plannedQuantity) . ' ' . $shortUom;
+            $unit = 'за|* ' . core_Type::getByName('double(smartRound)')->toVerbal($masterRec->plannedQuantity) . ' |' . $shortUom;
             $unit = str_replace('&nbsp;', ' ', $unit);
             $form->setField('plannedQuantity', array('unit' => $unit));
             

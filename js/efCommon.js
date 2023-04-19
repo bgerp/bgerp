@@ -1209,6 +1209,16 @@ function toggleDisplay(id) {
     elem.toggleClass('show-btn');
 }
 
+function clickAllClasses(id,clickClasses)
+{
+    $("." + clickClasses).each(function(i, obj) {
+        obj.click();
+    })
+
+    var elem = $("#" + id).parent().children('.more-btn');
+    elem.toggleClass('show-btn');
+}
+
 
 // Скриване на полета с определен клас при натискане на конкретен бутон
 function toggleDisplayByClass(btnId, toggleClass, toggleParent) {
