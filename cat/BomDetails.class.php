@@ -184,7 +184,8 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
-        
+
+        $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName','bomDetailStepDescription')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn" id="bomResourceColName"> </a>';
         $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
         $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
         $data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
@@ -812,7 +813,7 @@ class cat_BomDetails extends doc_Detail
         }
 
         if(!empty($productDescriptionStr)){
-            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription"> </a>';
             $row->resourceId .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>{$productDescriptionStr}</div>";
         }
 
