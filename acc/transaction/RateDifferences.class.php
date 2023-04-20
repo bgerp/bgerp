@@ -45,13 +45,9 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
             $result->entries = $tData->entries;
             $result->totalAmount = $tData->amount;
         }
-
-        if(Mode::is('saveTransaction')){
-            $rec->data = $tData->data;
-            $rec->lastRecalced = dt::now();
-            $rec->total = array_sum($rec->data);
-            $this->class->save_($rec, 'data,total,lastRecalced,valior');
-        }
+        $rec->data = $tData->data;
+        $rec->lastRecalced = dt::now();
+        $rec->total = array_sum($rec->data);
 
         return $result;
     }
