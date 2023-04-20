@@ -2606,7 +2606,9 @@ class doc_Threads extends core_Manager
                 if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
                     $contragentData = new stdClass();
                     cls::get($className)->invoke('alternativeGetContragentData', array(&$contragentData, $rec->docId));
+                    $haveSomething = false;
                     if (!empty((array)$contragentData)) {
+                        $haveSomething = true;
                         $rate = self::calcPoints($contragentData);
 
                         if ($rate > $bestRate) {
@@ -2617,7 +2619,10 @@ class doc_Threads extends core_Manager
 
                     $contragentData = $className::getContragentData($rec->docId);
 
-                    self::fillCountry($bestContragentData, $contragentData);
+                    if ($haveSomething) {
+                        self::fillCountry($bestContragentData, $contragentData);
+                        self::fillCompany($bestContragentData, $contragentData);
+                    }
 
                     $rate = self::calcPoints($contragentData);
                     
@@ -2755,6 +2760,24 @@ class doc_Threads extends core_Manager
                 $bestContragentData->country = $contragentData->country;
             }
         }
+    }
+
+
+    /**
+     * Попълване на държавата
+     *
+     * @param $bestContragentData
+     * @param $contragentData
+     * @return void
+     */
+    protected static function fillCompany(&$bestContragentData, &$contragentData)
+    {
+        if (!$bestContragentData || !$contragentData) {
+
+            return ;
+        }
+
+        setIfNot($bestContragentData->company, $contragentData->company);
     }
 
     
