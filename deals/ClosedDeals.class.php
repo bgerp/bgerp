@@ -707,12 +707,9 @@ abstract class deals_ClosedDeals extends core_Master
      */
     protected function getBiggestValiorInDeal($rec)
     {
-        // Намира се най-големия вальор от документите свързани към сделката (с изключение на корекцията на курсови разлики)
+        // Намира се най-големия вальор от документите свързани към сделката
         $firstDoc =  doc_Threads::getFirstDocument($rec->threadId);
         $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-        $skipClassId = acc_RatesDifferences::getClassId();
-        $jRecs = array_filter($jRecs, function($a) use ($skipClassId) {return $a->docType != $skipClassId;});
-
         $valiors = arr::extractValuesFromArray($jRecs, 'valior');
         if($firstDocValior = $firstDoc->fetchField($firstDoc->valiorFld)){
             $valiors[$firstDocValior] = $firstDocValior;
