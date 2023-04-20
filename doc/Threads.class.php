@@ -922,6 +922,10 @@ class doc_Threads extends core_Manager
         
         if ($filter->documentClassId) {
             $query->where("#firstDocClass = {$filter->documentClassId}");
+            if (cls::load($filter->documentClassId, true)) {
+                $dMvc = cls::get($filter->documentClassId);
+                $dMvc->invoke('prepareListQuery', array(&$query));
+            }
         }
         
         $lastFieldName = $filter->LastFieldName ? $filter->LastFieldName : 'last';

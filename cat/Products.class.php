@@ -1173,14 +1173,30 @@ class cat_Products extends embed_Manager
      * @param core_Query $query
      * @param string|bool $order - ако е false - не подрежда, а само добавя полето. Може да е `DESC` или `ASC`
      * @param string $prefix - префикс, когато няма код се използва `id`, а този префикс се добавя преди него. Може и да е празен стринг
+     * @params int $priority - приоритет на подредбата
      */
-    public static function setCodeToQuery(&$query, $order = 'DESC', $prefix = 'Art')
+    public static function setCodeToQuery(&$query, $order = 'DESC', $prefix = 'Art', $priority = 0)
     {
         $query->XPR('calcCode', 'varchar', "IF((#code IS NULL OR #code = ''), CONCAT('{$prefix}', #id), #code)");
 
         if ($order !== false) {
-            $query->orderBy('calcCode', $order);
+            $query->orderBy('calcCode', $order, $priority);
         }
+    }
+
+
+    /**
+     * Прихваща извикването на prepareListQuery в doc_Threads
+     * Подрежда артикулите в папката по код
+     *
+     * @param $mvc
+     * @param core_Query $threadQuery
+     * @return void
+     */
+    public static function on_PrepareListQuery($mvc, &$threadQuery)
+    {
+        $threadQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=firstDocId');
+        $mvc->setCodeToQuery($threadQuery, 'ASC', 'Art', -0.015);
     }
 
 
