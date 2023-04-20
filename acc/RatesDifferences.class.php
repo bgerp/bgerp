@@ -352,4 +352,13 @@ class acc_RatesDifferences extends core_Master
     {
         return null;
     }
+
+
+    /**
+     * След всеки запис в журнала
+     */
+    protected static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
+    {
+        $mvc->save_($rec, 'data,total,lastRecalced,valior');
+    }
 }

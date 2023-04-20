@@ -45,13 +45,9 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
             $result->entries = $tData->entries;
             $result->totalAmount = $tData->amount;
         }
-
-        if(Mode::is('saveTransaction')){
-            $rec->data = $tData->data;
-            $rec->lastRecalced = dt::now();
-            $rec->total = array_sum($rec->data);
-            $this->class->save_($rec, 'data,total,lastRecalced,valior');
-        }
+        $rec->data = $tData->data;
+        $rec->lastRecalced = dt::now();
+        $rec->total = array_sum($rec->data);
 
         return $result;
     }
@@ -102,16 +98,21 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 $sign = ($docRec->isReverse == 'yes') ? -1 : 1;
                 $currencyId = currency_Currencies::getIdByCode($dealRec->currencyId);
                 $currencyCode = currency_Currencies::getCodeById($docRec->currencyId);
-                $strategyRate = currency_CurrencyRates::getRate($docRec->valior, $currencyCode, null);
                 if($docRec->isReverse == 'yes' && in_array($docRec->operationSysId, array('case2customerRet', 'bank2customerRet', 'caseAdvance2customerRet', 'bankAdvance2customerRet'))){
                     continue;
                 }
 
                 if($Doc->isInstanceOf('bank_Document')){
                     $creditAccId = $docRec->creditAccId;
+                    $debitAccId = $docRec->debitAccId;
                 } else {
                     $creditAccId = $docRec->creditAccount;
+                    $debitAccId = $docRec->debitAccount;
                 }
+
+                $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
+                $rateFromJournal = static::getJournalCurrencyPrice('debit', $debitAccId, $currencyItemId, $Doc);
+                $strategyRate = !empty($rateFromJournal3) ? $rateFromJournal : currency_CurrencyRates::getRate($docRec->valior, $currencyCode, null);
 
                 if(round($docRec->amountDeal, 2) != round($docRec->amount, 2)){
                     $delta = $docRec->amount / $docRec->amountDeal;
@@ -122,7 +123,6 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
                 if($finalAmount){
                     $totalAmount += $finalAmount;
-
                     $data[$docRec->containerId] = $finalAmount;
 
                     $entries[] = array('amount' => $finalAmount,
@@ -144,22 +144,23 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
 
     /**
-     * Извлича изчислената от баланса цена по стратегия
+     * Извлича изчислената от баланса цена
      *
-     * @param $creditSysId
-     * @param $currencyItemId
-     * @param $Doc
+     * @param string $type
+     * @param string $creditSysId
+     * @param int $currencyItemId
+     * @param core_ObjectReference $Doc
      * @return null
      */
-    private static function getJournalCurrencyCreditPrice($creditSysId, $currencyItemId, $Doc)
+    private static function getJournalCurrencyPrice($type, $creditSysId, $currencyItemId, $Doc)
     {
         $creditRec = acc_Accounts::getRecBySystemId($creditSysId)->id;
         $journalId = acc_Journal::fetchByDoc($Doc->getInstance(), $Doc->that)->id;
         if(isset($journalId)){
             $jQuery = acc_JournalDetails::getQuery();
-            $jQuery->where("#journalId = {$journalId} AND #creditAccId = {$creditRec} AND #creditItem2 = {$currencyItemId}");
+            $jQuery->where("#journalId = {$journalId} AND #{$type}AccId = {$creditRec} AND #{$type}Item2 = {$currencyItemId}");
 
-            return $jQuery->fetch()->creditPrice;
+            return $jQuery->fetch()->{"{$type}Price"};
         }
 
         return null;
@@ -201,7 +202,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
 
                 // Търси се кредитната цена от журнала/от очакваната по стратегия/от курса
-                $strategyRate = self::getJournalCurrencyCreditPrice($creditAccId, $currencyItemId, $Doc);
+                $strategyRate = self::getJournalCurrencyPrice('credit', $creditAccId, $currencyItemId, $Doc);
                 if(empty($strategyRate)){
                     $strategyRate = acc_strategy_WAC::getAmount(1, $valior, $creditAccId, $item1Id, $currencyItemId, null);
                 }
@@ -213,8 +214,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                     $delta = $docRec->amount / $docRec->amountDeal;
                     $strategyRate = $strategyRate * $delta;
                 }
-                $diffRate = round($rate - $strategyRate, 5);
-
+                $diffRate = $rate - $strategyRate;
                 $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
                 $totalAmount += $finalAmount;
                 $debitQuantity = $docRec->amountDeal;
@@ -231,7 +231,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $currencyId)->id;
                 $caseItemId = acc_Items::fetchItem('cash_Cases', $docRec->caseId)->id;
 
-                $strategyRate = self::getJournalCurrencyCreditPrice(501, $currencyItemId, $Doc);
+                $strategyRate = self::getJournalCurrencyPrice('credit',501, $currencyItemId, $Doc);
                 if(empty($strategyRate)){
                     $strategyRate = acc_strategy_WAC::getAmount(1, $valior, 501, $caseItemId, $currencyItemId, null);
                 }

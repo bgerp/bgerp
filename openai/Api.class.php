@@ -153,6 +153,13 @@ class openai_Api
             $responseJson = openai_Cache::get($cParams, $cKey);
         }
 
+        if ($responseJson === false) {
+            if (!core_Locks::get('openai_' . $cKey, 1000, 0, false)) {
+
+                return false;
+            }
+        }
+
         if ($useCache !== 'only') {
             if ($responseJson === false) {
                 $url = rtrim(openai_Setup::get('BASE_URL'), '/') . '/' .  ltrim($params['__endpoint'], '/');
@@ -188,6 +195,10 @@ class openai_Api
 
                 return false;
             }
+        }
+
+        if ($responseJson !== false) {
+            core_Locks::release('openai_' . $cKey);
         }
 
         return self::prepareRes($responseJson, $curl);
