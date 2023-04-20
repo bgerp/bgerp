@@ -302,7 +302,8 @@ abstract class deals_ClosedDeals extends core_Master
                 if(empty($rec->valior)){
                     $form->setError('valior', 'Трябва да е посочена конкретна дата');
                 } else {
-                    $biggestValior = $mvc->getBiggestValiorInDeal($rec);
+                    $skipClasses = array(acc_RatesDifferences::getClassId());
+                    $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
                     if(!empty($biggestValior) && $rec->valior < $biggestValior){
                         $biggestValiorVerbal = core_Type::getByName('date')->toVerbal($biggestValior);
                         $form->setError('valior', "Датата e преди най-големия вальор към сделката:|* <b>{$biggestValiorVerbal}</b>");
@@ -705,14 +706,14 @@ abstract class deals_ClosedDeals extends core_Master
      * @param stdClass $rec
      * @return date $dates
      */
-    protected function getBiggestValiorInDeal($rec)
+    protected function getBiggestValiorInDeal($rec, $skipClasses = array())
     {
-        // Намира се най-големия вальор от документите свързани към сделката (с изключение на корекцията на курсови разлики)
+        // Намира се най-големия вальор от документите свързани към сделката
         $firstDoc =  doc_Threads::getFirstDocument($rec->threadId);
         $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-        $skipClassId = acc_RatesDifferences::getClassId();
-        $jRecs = array_filter($jRecs, function($a) use ($skipClassId) {return $a->docType != $skipClassId;});
-
+        if(countR($skipClasses)){
+            $jRecs = array_filter($jRecs, function($a) use ($skipClasses) {return !in_array($a->docType, $skipClasses);});
+        }
         $valiors = arr::extractValuesFromArray($jRecs, 'valior');
         if($firstDocValior = $firstDoc->fetchField($firstDoc->valiorFld)){
             $valiors[$firstDocValior] = $firstDocValior;
@@ -819,8 +820,9 @@ abstract class deals_ClosedDeals extends core_Master
 
                 // Ако се приключва сделка с валута различна от BGN и EUR
                 $firstDocCurrencyCode = $firstDoc->fetchField('currencyId');
-                if(!in_array($firstDocCurrencyCode, array('BGN', 'EUR'))){
-                    $biggestValior = $mvc->getBiggestValiorInDeal($rec);
+                if($firstDocCurrencyCode != 'BGN'){
+                    $skipClasses = array(acc_RatesDifferences::getClassId());
+                    $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
 
                     $setupClass = $firstDoc->isInstanceOf('sales_Sales') ? 'sales_Setup' : 'purchase_Setup';
                     $accDay = acc_Setup::get('DATE_FOR_INVOICE_DATE') + $setupClass::get('CURRENCY_CLOSE_AFTER_ACC_DATE');
