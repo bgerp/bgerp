@@ -198,6 +198,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_CostAllocations',
         'acc_RatesDifferences',
         'migrate::updatePriceRoles2247',
+        'migrate::deleteEmptyRateDifferences1620',
     );
     
     
@@ -627,5 +628,14 @@ class acc_Setup extends core_ProtoSetup
         if(countR($updateUsers)){
             cls::get('core_Users')->saveArray($updateUsers, 'id,roles,rolesInput');
         }
+    }
+
+
+    /**
+     * Миграция за изтриване на замърсени данни за курсови разлики
+     */
+    public function deleteEmptyRateDifferences1620()
+    {
+        acc_RatesDifferences::delete("#threadId IS NULL AND #containerId IS NULL");
     }
 }
