@@ -45,8 +45,10 @@ class openai_plugins_IncomingsContragentData extends core_Plugin
         if (openai_ExtractContactInfo::extractEmailData($id, $cData, 'only') === false) {
             self::$extractOnShutDown[$id] = $id;
         } else {
-            $cData->priority = 5;
-            $res = $cData;
+            if (!empty((array) $cData)) {
+                $cData->priority = 5;
+                $res = $cData;
+            }
         }
     }
 
