@@ -214,8 +214,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                     $delta = $docRec->amount / $docRec->amountDeal;
                     $strategyRate = $strategyRate * $delta;
                 }
-                $diffRate = round($rate - $strategyRate, 5);
-
+                $diffRate = $rate - $strategyRate;
                 $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
                 $totalAmount += $finalAmount;
                 $debitQuantity = $docRec->amountDeal;
