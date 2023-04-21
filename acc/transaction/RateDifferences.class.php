@@ -37,7 +37,6 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         );
 
         $rec->valior = $this->class->getDefaultValior($rec);
-        $rec->data = array();
         $result->valior = $rec->valior;
 
         $tData = static::getTransactionData($rec->rate, $rec->valior, $rec->threadId);
@@ -45,9 +44,20 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
             $result->entries = $tData->entries;
             $result->totalAmount = $tData->amount;
         }
-        $rec->data = $tData->data;
+
+        $sumTotal = array_sum($tData->data);
         $rec->lastRecalced = dt::now();
-        $rec->total = array_sum($rec->data);
+        if(isset($rec->id)){
+            if($sumTotal != $rec->total){
+                $rec->oldTotal = $rec->total;
+                $rec->oldData = $rec->data;
+            }
+        } else {
+            $rec->oldTotal = null;
+            $rec->oldData = null;
+        }
+        $rec->data = $tData->data;
+        $rec->total = $sumTotal;
 
         return $result;
     }

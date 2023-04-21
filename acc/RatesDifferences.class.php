@@ -118,6 +118,8 @@ class acc_RatesDifferences extends core_Master
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
         $this->FLD('total', 'double(decimals=2)', 'caption=Общо,mandatory');
         $this->FLD('lastRecalced', 'datetime(format=smartTime)', 'caption=Последно преизчисляване,mandatory');
+        $this->FLD('oldTotal', 'double(decimals=2)', 'caption=Общо (Преди),mandatory');
+        $this->FLD('oldData', 'blob(serialize, compress)', 'caption=Допълнително->Стари условия (Кеширани),mandatory');
 
         $this->setDbIndex('dealOriginId');
         $this->setDbIndex('lastRecalced');
@@ -227,6 +229,11 @@ class acc_RatesDifferences extends core_Master
         }
         $row->total = "{$row->total} <span class='cCode'>{$row->baseCurrencyCode}</span>";
 
+        if(!empty($rec->oldTotal) && $rec->total != $rec->oldTotal){
+            $icon = ($rec->total > $rec->oldTotal) ? 'img/16/arrow_up.png' : 'img/16/arrow_down.png';
+            $row->total = ht::createHint($row->total, "Преди|*: {$row->oldTotal}", $icon, false);
+        }
+
         if(is_array($rec->data)){
             $displayRes = "<table style='width:300px'>";
             if(countR($rec->data)){
@@ -235,7 +242,18 @@ class acc_RatesDifferences extends core_Master
                     $docLink = $doc->getLink(0)->getContent();
                     $amountCorrectedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountCorrected);
                     $amountCorrectedVerbal = ht::styleIfNegative($amountCorrectedVerbal, $amountCorrected);
+
+                    if(is_array($rec->oldData) && isset($rec->oldData[$containerId])){
+                        if($rec->oldData[$containerId] != $amountCorrected){
+                            $icon = ($amountCorrected > $rec->oldData[$containerId]) ? 'img/16/arrow_up.png' : 'img/16/arrow_down.png';
+                            $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Преди|*: {$rec->oldData[$containerId]}", $icon, false);
+                        }
+                    }
+                    if(!isset($rec->oldData[$containerId])){
+                        $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Ново", 'img/16/add2-16.png', false);
+                    }
                     $displayRes .= "<tr><td>{$docLink}</td> <td style='text-align:right'>{$amountCorrectedVerbal} <span class='cCode'>{$row->baseCurrencyCode}</span></td></tr>";
+
                 }
                 $displayRes .= "</table>";
                 $row->data = $displayRes;
@@ -361,6 +379,6 @@ class acc_RatesDifferences extends core_Master
      */
     protected static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
     {
-        $mvc->save_($rec, 'data,total,lastRecalced,valior');
+        $mvc->save_($rec, 'data,total,lastRecalced,valior,oldTotal,oldData');
     }
 }
