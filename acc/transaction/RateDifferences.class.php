@@ -112,14 +112,14 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
                 $rateFromJournal = static::getJournalCurrencyPrice('debit', $debitAccId, $currencyItemId, $Doc);
-                $strategyRate = !empty($rateFromJournal3) ? $rateFromJournal : currency_CurrencyRates::getRate($docRec->valior, $currencyCode, null);
+                $strategyRate = !empty($rateFromJournal) ? $rateFromJournal : currency_CurrencyRates::getRate($docRec->valior, $currencyCode, null);
 
                 if(round($docRec->amountDeal, 2) != round($docRec->amount, 2)){
                     $delta = $docRec->amount / $docRec->amountDeal;
                     $strategyRate = $strategyRate * $delta;
                 }
 
-                $diffRate = round($rate - $strategyRate, 5);
+                $diffRate = $rate - $strategyRate;
                 $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
                 if($finalAmount){
                     $totalAmount += $finalAmount;
