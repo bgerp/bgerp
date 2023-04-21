@@ -122,10 +122,6 @@ class planning_GenericMapper extends core_Manager
         $rec = &$form->rec;
         
         if(empty($rec->id) && isset($rec->genericProductId)){
-            $query = self::getQuery();
-            $query->show('productId');
-            $alreadySelectedProductsArr = arr::extractValuesFromArray($query->fetchAll(), 'productId');
-            $form->setFieldTypeParams("productId", array('notIn' => $alreadySelectedProductsArr));
             $form->setField('genericProductId', 'input=hidden');
         } else {
             $form->setField('productId', 'input=hidden');
