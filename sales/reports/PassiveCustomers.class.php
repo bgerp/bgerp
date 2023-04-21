@@ -60,10 +60,12 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-       $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
-        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none,removeAndRefreshForm');
-        $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none, unit= лв.');
+        $fieldset->FLD('periodPassive', 'time(suggestions=|1 седмица|1 месец|3 месеца|6 месеца)', 'caption=Период->Пасивен, after=title,mandatory,single=none,removeAndRefreshForm');
+        $fieldset->FLD('periodActive', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година|2 години)', 'caption=Период->Активен, after=periodPassive,mandatory,single=none,removeAndRefreshForm');
+
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци->Търговци,placeholder=Всички,single=none,mandatory,after=periodActive');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Група контрагенти,placeholder=Всички,after=dealers,single=none');
+        $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=crmGroup,single=none, unit= лв.');
 
     }
 
@@ -91,6 +93,14 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
+        $suggestions = array();
+        $form = $data->form;
+        $rec = $form->rec;
+
+        $form->setDefault('periodPassive', '6 месеца');
+
+        $form->setDefault('periodActive', '2 години');
+
 
     }
 
@@ -108,7 +118,17 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $recs = array();
 
+        $passivePeriodEnd = dt::addSecs(-$rec->periodPassive, dt::today(), false);
+        $activePeriodEnd = dt::addSecs(-$rec->periodActive, dt::today(), false);
 
+        $sQuery = sales_Sales::getQuery();
+        $sQuery->in('state', array('closed', 'active'));
+        $sQuery->where("#valior >= '$activePeriodEnd'");
+        bp($sQuery->fetchAll());
+
+
+
+bp($passiveDateEnd,$activeDateEnd,$rec);
         return $recs;
     }
 
