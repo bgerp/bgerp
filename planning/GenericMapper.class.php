@@ -25,7 +25,7 @@ class planning_GenericMapper extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_SaveAndNew';
     
     
     /**
@@ -87,8 +87,8 @@ class planning_GenericMapper extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canConvert,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Замества,mandatory,silent,tdClass=leftCol,class=w100');
-        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Генеричен артикул,mandatory,silent,tdClass=leftCol,class=w100');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canConvert,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'caption=Замества,mandatory,silent,tdClass=leftCol,class=w100');
+        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'caption=Генеричен артикул,mandatory,silent,tdClass=leftCol,class=w100');
         $this->FNC('fromGeneric', 'int', 'silent,input=hidden');
         
         $this->setDbUnique('productId,genericProductId');
@@ -107,6 +107,10 @@ class planning_GenericMapper extends core_Manager
         }
         
         $data->form->title = core_Detail::getEditTitle('cat_Products', $productId, $mvc->singleTitle, $rec->id);
+		
+		if (empty($rec->genericProductId)) {
+				$data->form->toolbar->removeBtn('saveAndNew');
+			}
     }
     
     
