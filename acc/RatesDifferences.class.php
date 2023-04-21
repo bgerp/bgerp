@@ -320,7 +320,9 @@ class acc_RatesDifferences extends core_Master
 
                 try {
                     Mode::push('preventNotifications', true);
+                    Mode::push('dontUpdateThread', true);
                     acc_RatesDifferences::force($dRec->threadId, $dRec->currencyId, $dRec->currencyRate, 'Автоматична корекция на курсови разлики', false);
+                    Mode::pop('dontUpdateThread');
                     Mode::pop('preventNotifications');
                     if (is_object($itemRec)) {
                         $recontoItems[$itemRec->id] = $itemRec;
