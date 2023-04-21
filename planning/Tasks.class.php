@@ -1797,10 +1797,14 @@ class planning_Tasks extends core_Master
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
 
+            $jobQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originRec->quantity);
+            $jobMeasureVerbal = cat_UoM::getSmartName($originRec->packagingId, $originRec->quantity);
+            $unit = "|за количество от заданието|* <b>{$jobQuantityVerbal} {$jobMeasureVerbal}</b>";
             if ($measuresCount == 1) {
                 $measureShort = cat_UoM::getShortName($rec->measureId);
-                $form->setField('plannedQuantity', "unit={$measureShort}");
+                $unit = "{$measureShort} {$unit}";
             }
+            $form->setField('plannedQuantity', "unit={$unit}");
 
             if (isset($rec->labelPackagingId)) {
                 $form->setField('labelQuantityInPack', 'input');
