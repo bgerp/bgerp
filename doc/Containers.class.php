@@ -948,7 +948,9 @@ class doc_Containers extends core_Manager
             
             if ($rec->threadId && $rec->docId) {
                 // Предизвиква обновяване на треда, след всяко обновяване на контейнера
-                doc_Threads::updateThread($rec->threadId);
+                if(!Mode::is('dontUpdateThread')){
+                    doc_Threads::updateThread($rec->threadId);
+                }
             }
             
             
