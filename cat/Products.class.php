@@ -982,7 +982,8 @@ class cat_Products extends embed_Manager
         $orderOptions = arr::fromArray($orderOptions);
         $listFilter->FNC('order', "enum({$orderOptions})", 'caption=Подредба,input,silent,remember,autoFilter');
         $listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
-        
+        $listFilter->setFieldType('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)');
+        $listFilter->setField('folderId', 'input');
         $listFilter->view = 'horizontal';
     }
     
@@ -1016,8 +1017,8 @@ class cat_Products extends embed_Manager
     							fixedAssetStorable=Дълготрайни материални активи,
     							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
         					    canManifacture=Производими,generic=Генерични)', 'input,autoFilter');
-        $data->listFilter->showFields = 'search,order,type,meta1,groupId';
-        $data->listFilter->input('order,groupId,search,meta1,type', 'silent');
+        $data->listFilter->showFields = 'search,order,type,meta1,groupId,folderId';
+        $data->listFilter->input('order,groupId,search,meta1,type,folderId', 'silent');
         
         // Ако е избран маркер и той е указано да се подрежда по код, сортираме по код
         $orderBy = 'state';
