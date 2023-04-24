@@ -63,6 +63,14 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
     }
 
 
+    /**
+     * Връща транзакционните данни
+     *
+     * @param double $rate
+     * @param date $valior
+     * @param int $threadId
+     * @return object
+     */
     public static function getTransactionData($rate, $valior, $threadId)
     {
         $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());

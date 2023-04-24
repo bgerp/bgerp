@@ -334,6 +334,12 @@ class acc_RatesDifferences extends core_Master
                         $tData = acc_transaction_RateDifferences::getTransactionData($dRec->currencyRate, $today, $dRec->threadId);
                         if (!countR($tData->entries)) continue;
                     }
+                } else {
+                    // Ако има вече КР в нишката и ще има промяна в общата ѝ сума - само тогава се реконтира
+                    $tData = acc_transaction_RateDifferences::getTransactionData($dRec->currencyRate, $today, $dRec->threadId);
+                    if(round($tData->amount, 2) == round($exRecs[$dRec->containerId]->total, 2)){
+                        continue;
+                    }
                 }
 
                 try {
