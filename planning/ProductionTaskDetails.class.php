@@ -157,7 +157,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
         $this->FNC('scrapRecId', 'int', 'caption=Време,input=hidden,silent');
-        $this->FNC('canStore', 'enum(yes,no)', 'caption=Складируем,input=hidden,silent');
+        $this->FNC('inputType', 'enum(materials,services,actions)', 'caption=Тип на влагане,input=hidden,silent');
 
         $this->setDbIndex('type');
         $this->setDbIndex('serial');
@@ -234,8 +234,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $form->setField('fixedAsset', 'input=none');
         }
 
-        $canStore = ($rec->type != 'input') ? null : $rec->canStore == 'yes';
-        $options = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $canStore);
+        $options = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $rec->inputType);
 
         if ($rec->type == 'scrap') {
             if(empty($rec->scrapRecId)){
@@ -1285,12 +1284,16 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на прогрес по операцията');
             }
 
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'canStore' => 'yes'))) {
-                $data->toolbar->addBtn('Влагане: Материали', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'canStore' => 'yes', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials'))) {
+                $data->toolbar->addBtn('Влагане: Материали', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
             }
 
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'canStore' => 'no'))) {
-                $data->toolbar->addBtn('Влагане: Действия', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'canStore' => 'no', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'services'))) {
+                $data->toolbar->addBtn('Влагане: Услуги', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'services', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+            }
+
+            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'actions'))) {
+                $data->toolbar->addBtn('Влагане: Действия', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'actions', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
             }
 
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
@@ -1413,12 +1416,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Трябва да има поне един артикул възможен за добавяне
         if ($action == 'add' && isset($rec->type)) {
             if ($requiredRoles != 'no_one') {
-                $canStore = null;
-                if($rec->type == 'input'){
-                    $canStore = ($rec->canStore == 'yes');
-                }
-
-                $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $canStore);
+                $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $rec->inputType);
                 if(!isset($rec->scrapRecId)){
                     unset($pOptions['']);
                 }
