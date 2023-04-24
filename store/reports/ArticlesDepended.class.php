@@ -187,9 +187,14 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             //Себестойност на артикула
             $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
 
+            //Попълване на списъка с артикули без себестойност
+            $markNotPrice = null;
             if (!$selfPrice) {
 
-                if (!in_array($pRec->productId, $notSelfPrice)) {
+                //При избран склад влизат само тъези от избрания слкад
+                $markNotPrice = ($rec->storeId && ($rec->storeId == $pRec->storeId)) ? 1 : null;
+
+                if ((!is_null($markNotPrice)) && (!in_array($pRec->productId, $notSelfPrice))) {
                     array_push($notSelfPrice, $pRec->productId);
                 }
                 continue;
