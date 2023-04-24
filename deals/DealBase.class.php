@@ -1054,7 +1054,9 @@ abstract class deals_DealBase extends core_Master
 
             try{
                 // Рекалкулиране на документите с новия курс
+                Mode::push('dontUpdateThread', true);
                 $this->recalcDocumentsWithNewRate($rec, $newRate);
+                Mode::pop('dontUpdateThread');
             } catch(acc_journal_Exception $e){
                 $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
                 $this->logErr($errorMsg, $rec->id);
