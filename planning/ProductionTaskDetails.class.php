@@ -807,7 +807,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     private static function getProgressSerialInfo($serial, $productId, $taskId, $type)
     {
-        $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId');
+        $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId,assetId');
         $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
 
         // Търси се в другите ПО от това задание дали вече се използва този сериен номер
@@ -819,8 +819,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('measureId', 'planning_Tasks', "externalName=measureId,externalKey=taskId");
         $query->EXT('labelPackagingId', 'planning_Tasks', "externalName=labelPackagingId,externalKey=taskId");
         if($type == 'input'){
-            $pInfo = planning_ProductionTaskProducts::getInfo($taskId, $productId, 'input');
-            $labelPackagingValue = $pInfo->packagingId;
+            $pInfo = planning_ProductionTaskProducts::getInfo($taskId, $productId, 'input', $taskRec->assetId);
+            $labelPackagingValue = ($pInfo->packagingId) ? $pInfo->packagingId : $pInfo->measureId;
         } else {
             $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
         }
