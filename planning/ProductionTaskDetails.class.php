@@ -157,6 +157,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
         $this->FNC('scrapRecId', 'int', 'caption=Време,input=hidden,silent');
+        $this->FNC('canStore', 'enum(yes,no)', 'caption=Складируем,input=hidden,silent');
 
         $this->setDbIndex('type');
         $this->setDbIndex('serial');
@@ -233,7 +234,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             $form->setField('fixedAsset', 'input=none');
         }
 
-        $options = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
+        $canStore = ($rec->type != 'input') ? null : $rec->canStore == 'yes';
+        $options = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $canStore);
+
         if ($rec->type == 'scrap') {
             if(empty($rec->scrapRecId)){
                 unset($options['']);
@@ -1282,8 +1285,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на прогрес по операцията');
             }
 
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input'))) {
-                $data->toolbar->addBtn('Влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'canStore' => 'yes'))) {
+                $data->toolbar->addBtn('Влагане: Материали', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'canStore' => 'yes', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+            }
+
+            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'canStore' => 'no'))) {
+                $data->toolbar->addBtn('Влагане: Услуги', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'canStore' => 'no', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
             }
 
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
@@ -1406,7 +1413,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Трябва да има поне един артикул възможен за добавяне
         if ($action == 'add' && isset($rec->type)) {
             if ($requiredRoles != 'no_one') {
-                $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
+                $canStore = null;
+                if($rec->type == 'input'){
+                    $canStore = ($rec->canStore == 'yes');
+                }
+
+                $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $canStore);
                 if(!isset($rec->scrapRecId)){
                     unset($pOptions['']);
                 }

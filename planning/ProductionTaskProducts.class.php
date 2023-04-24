@@ -408,10 +408,11 @@ class planning_ProductionTaskProducts extends core_Detail
      *
      * @param int       $taskId
      * @param string    $type
+     * @param null|bool $canStore
      *
      * @return array
      */
-    public static function getOptionsByType($taskId, $type)
+    public static function getOptionsByType($taskId, $type, $canStore = null)
     {
         $taskRec = planning_Tasks::fetchRec($taskId);
         $usedProducts = $options = array();
@@ -443,6 +444,11 @@ class planning_ProductionTaskProducts extends core_Detail
             $query->where("#taskId = {$taskId}");
             $query->show('productId,plannedQuantity');
             $query->where("#type = '{$type}'");
+            if(isset($canStore)){
+                $canStoreVal = ($canStore) ? 'yes' : 'no';
+                $query->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+                $query->where("#canStore = '{$canStoreVal}'");
+            }
 
             while ($rec = $query->fetch()) {
                 if($taskRec->state == 'closed' && $type == 'production'){
@@ -456,7 +462,7 @@ class planning_ProductionTaskProducts extends core_Detail
             }
 
             // Ако има избрано оборудване
-            if ($type == 'input') {
+            if ($type == 'input' && (is_null($canStore) || $canStore === false)) {
                 if (!empty($taskRec->assetId)) {
                     $norms = planning_AssetResourcesNorms::getNormOptions($taskRec->assetId, $usedProducts);
                     if (countR($norms)) {
