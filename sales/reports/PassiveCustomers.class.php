@@ -44,13 +44,13 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField ;
+    protected $groupByField;
 
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields  ;
+    protected $changeableFields;
 
 
     /**
@@ -65,7 +65,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци->Търговци,placeholder=Всички,single=none,mandatory,after=periodActive');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Група контрагенти,placeholder=Всички,after=dealers,single=none');
-        $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=crmGroup,single=none, unit= лв.');
+        $fieldset->FLD('minShipment', 'double', 'caption=Мин. наличност, after=crmGroup,single=none, unit= лв.');
 
     }
 
@@ -101,6 +101,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $form->setDefault('periodActive', '2 години');
 
+        $form->setDefault('minShipment', 1000);
+
 
     }
 
@@ -116,19 +118,54 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
 
-        $recs = array();
+        $recs = $shipmentContragents = array();
 
-        $passivePeriodEnd = dt::addSecs(-$rec->periodPassive, dt::today(), false);
-        $activePeriodEnd = dt::addSecs(-$rec->periodActive, dt::today(), false);
+        $passivePeriodStart = dt::addSecs(-$rec->periodPassive, dt::today(), false);
+        $activePeriodStart = dt::addSecs(-$rec->periodActive, $passivePeriodStart, false);
 
-        $sQuery = sales_Sales::getQuery();
-        $sQuery->in('state', array('closed', 'active'));
-        $sQuery->where("#valior >= '$activePeriodEnd'");
-        bp($sQuery->fetchAll());
+        //Определяме контрагентите  с продажби в периода на активност
+        $shQuery = store_ShipmentOrders::getQuery();
+        $shQuery->in('state', array('rejected', 'draft'), true);
+        $shQuery->where("#valior >= '$activePeriodStart' AND #valior < '$passivePeriodStart'");
+
+        while ($shRec = $shQuery->fetch()) {
+
+            $id = $shRec->folderId;
+
+            // $shipmentContragents масив клиенти, които имат експедиции в активния период
+            // и обща та стойност на експедициите в този период
+            if (!array_key_exists($id, $shipmentContragents)) {
+                $shipmentContragents[$id] = (object)array(
+                    'folderId' => $shRec->folderId,
+                    'amountDelivered' => $shRec->amountDelivered,
+                );
+            }else {
+                $obj = &$shipmentContragents[$id];
+                $obj->amountDelivered += $shRec->amountDelivered;
+            }
+        }
+
+        //От  масива $shipmentContragents, изключваме онези с продажби под определения праг
+        foreach ($shipmentContragents as $val){
+
+            if($val->amountDelivered < $rec->minShipment){
+               unset($shipmentContragents[$val->folderId]);
+            }
+
+        }
+
+        //Определяне на контрагентите с нулеви предажби през пасивния период
+        $shQuery = store_ShipmentOrders::getQuery();
+        $shQuery->in('folderId',array_keys($shipmentContragents));
+        $shQuery->in('state', array('rejected', 'draft'), true);
+        $shQuery->where("#valior >= '$passivePeriodStart'");
+
+        bp($shQuery->fetchAll());
+
+        bp($shipmentContragents,doc_Folders::fetch(44528));
 
 
-
-bp($passiveDateEnd,$activeDateEnd,$rec);
+        bp($passiveDateEnd, $activeDateEnd, $rec);
         return $recs;
     }
 
@@ -185,7 +222,7 @@ bp($passiveDateEnd,$activeDateEnd,$rec);
 
                 $contragentClassName = $dRec->contragentClassName;
 
-                $contragent = $contragentClassName::getTitleById($dRec->contragentId,false);
+                $contragent = $contragentClassName::getTitleById($dRec->contragentId, false);
 
             }
         }
@@ -215,7 +252,6 @@ bp($passiveDateEnd,$activeDateEnd,$rec);
 
 
         $row->contragentId = self::getContragent($dRec, true, $rec);
-
 
 
         return $row;
