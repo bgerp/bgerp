@@ -37,7 +37,6 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         );
 
         $rec->valior = $this->class->getDefaultValior($rec);
-        $rec->data = array();
         $result->valior = $rec->valior;
 
         $tData = static::getTransactionData($rec->rate, $rec->valior, $rec->threadId);
@@ -45,14 +44,33 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
             $result->entries = $tData->entries;
             $result->totalAmount = $tData->amount;
         }
-        $rec->data = $tData->data;
+
+        $sumTotal = array_sum($tData->data);
         $rec->lastRecalced = dt::now();
-        $rec->total = array_sum($rec->data);
+        if(isset($rec->id)){
+            if($sumTotal != $rec->total){
+                $rec->oldTotal = $rec->total;
+                $rec->oldData = $rec->data;
+            }
+        } else {
+            $rec->oldTotal = null;
+            $rec->oldData = null;
+        }
+        $rec->data = $tData->data;
+        $rec->total = $sumTotal;
 
         return $result;
     }
 
 
+    /**
+     * Връща транзакционните данни
+     *
+     * @param double $rate
+     * @param date $valior
+     * @param int $threadId
+     * @return object
+     */
     public static function getTransactionData($rate, $valior, $threadId)
     {
         $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
