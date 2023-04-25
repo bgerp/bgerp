@@ -157,6 +157,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
         $this->FNC('scrapRecId', 'int', 'caption=Време,input=hidden,silent');
+        $this->FNC('inputType', 'enum(materials,services,actions)', 'caption=Тип на влагане,input=hidden,silent');
 
         $this->setDbIndex('type');
         $this->setDbIndex('serial');
@@ -233,7 +234,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $form->setField('fixedAsset', 'input=none');
         }
 
-        $options = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
+        $options = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $rec->inputType);
+
         if ($rec->type == 'scrap') {
             if(empty($rec->scrapRecId)){
                 unset($options['']);
@@ -553,6 +555,15 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
                 }
 
+                // Проверка за допустимоста на дробното число към количеството
+                $warning = null;
+                $pInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $masterRec->assetId);
+                $packagingId = ($pInfo->packagingId) ? $pInfo->packagingId : $pInfo->measureId;
+                deals_Helper::checkQuantity($packagingId, $rec->quantity, $warning);
+                if(!empty($warning)){
+                    $form->setWarning('quantity', $warning);
+                }
+
                 if ($masterRec->followBatchesForFinalProduct == 'yes' && empty($rec->batch) && $rec->type == 'production') {
                     $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
                 }
@@ -805,7 +816,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     private static function getProgressSerialInfo($serial, $productId, $taskId, $type)
     {
-        $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId');
+        $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId,assetId');
         $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
 
         // Търси се в другите ПО от това задание дали вече се използва този сериен номер
@@ -817,8 +828,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('measureId', 'planning_Tasks', "externalName=measureId,externalKey=taskId");
         $query->EXT('labelPackagingId', 'planning_Tasks', "externalName=labelPackagingId,externalKey=taskId");
         if($type == 'input'){
-            $pInfo = planning_ProductionTaskProducts::getInfo($taskId, $productId, 'input');
-            $labelPackagingValue = $pInfo->packagingId;
+            $pInfo = planning_ProductionTaskProducts::getInfo($taskId, $productId, 'input', $taskRec->assetId);
+            $labelPackagingValue = ($pInfo->packagingId) ? $pInfo->packagingId : $pInfo->measureId;
         } else {
             $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
         }
@@ -1282,8 +1293,16 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на прогрес по операцията');
             }
 
-            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input'))) {
-                $data->toolbar->addBtn('Влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials'))) {
+                $data->toolbar->addBtn('Влагане: Материали', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+            }
+
+            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'services'))) {
+                $data->toolbar->addBtn('Влагане: Услуги', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'services', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+            }
+
+            if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'actions'))) {
+                $data->toolbar->addBtn('Влагане: Действия', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'actions', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
             }
 
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
@@ -1406,7 +1425,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Трябва да има поне един артикул възможен за добавяне
         if ($action == 'add' && isset($rec->type)) {
             if ($requiredRoles != 'no_one') {
-                $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
+                $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $rec->inputType);
                 if(!isset($rec->scrapRecId)){
                     unset($pOptions['']);
                 }

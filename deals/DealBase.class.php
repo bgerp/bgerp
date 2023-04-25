@@ -1031,7 +1031,6 @@ abstract class deals_DealBase extends core_Master
         // Ако има намерени сделки
         $Items = cls::get('acc_Items');
 
-        $now = dt::now();
         $query = $this->getQuery();
         $query->in('id', $dealIds);
         $query->where("#state = 'active'");
@@ -1055,14 +1054,15 @@ abstract class deals_DealBase extends core_Master
 
             try{
                 // Рекалкулиране на документите с новия курс
+                Mode::push('dontUpdateThread', true);
                 $this->recalcDocumentsWithNewRate($rec, $newRate);
+                Mode::pop('dontUpdateThread');
             } catch(acc_journal_Exception $e){
                 $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
                 $this->logErr($errorMsg, $rec->id);
             }
 
             $rec->__newRate = $newRate;
-            $rec->lastAutoRecalcRate = $now;
             $saved[$rec->id] = $rec;
             if($itemRec){
                 $recalcedItems[$rec->id] = $itemRec;
@@ -1080,6 +1080,10 @@ abstract class deals_DealBase extends core_Master
 
         // Ако има рекалкулирани сделки записва се датата на рекалкулирането (идеята е всичките да са с една дата)
         if(countR($saved)){
+            $now = dt::now();
+            foreach ($saved as &$sRec){
+                $sRec->lastAutoRecalcRate = $now;
+            }
             $this->saveArray($saved, 'id,lastAutoRecalcRate');
         }
 

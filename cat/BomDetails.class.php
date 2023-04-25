@@ -706,9 +706,12 @@ class cat_BomDetails extends doc_Detail
             $subTitleVerbal = $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle);
             $row->resourceId .= " <i>{$subTitleVerbal}</i>";
         }
-        $singleProductUrlArray = cat_Products::getSingleUrlArray($rec->resourceId);
-        if(countR($singleProductUrlArray)){
-            $row->resourceId = ht::createLinkRef($row->resourceId, $singleProductUrlArray);
+
+        if(!Mode::isReadOnly()){
+            $singleProductUrlArray = cat_Products::getSingleUrlArray($rec->resourceId);
+            if(countR($singleProductUrlArray)){
+                $row->resourceId = ht::createLinkRef($row->resourceId, $singleProductUrlArray);
+            }
         }
 
         if(isset($fields['bomId'])){
