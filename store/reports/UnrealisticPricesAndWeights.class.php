@@ -124,7 +124,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         }else{
             $pQuery->where("#createdOn >= '{$startDate}'");
         }
-
+//bp($startDate,$pQuery->count());
 
         $pQuery->where("#state = 'active' AND #canStore = 'yes'");
 
@@ -177,8 +177,11 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 //Тегло на тарата в кг за 1 артикул
                 $realPackTara = $packRec->tareWeight / $packRec->quantity;
 
+                //Масив с параметрите на артикула
+                $prodParamsArr = cat_Products::getParams($productId);
+
                 //Тегло на артикула от параметъра в кг
-                $prodWeight = cat_Products::getParams($productId)[$prodWeightParamId] / 1000 ?? cat_Products::getParams($productId)[$prodWeightKgParamId];
+                $prodWeight = $prodParamsArr[$prodWeightParamId] / 1000 ?? cat_Products::getParams($productId)[$prodWeightKgParamId];
                 $prodWeight = $prodWeight ?? 0;
 
                 //Реално тегло на артикула в кг за 1000 бройки
@@ -188,10 +191,10 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
             try {
                 // Транспортен обем на продукта от параметър "Транспортен обем" в куб.м за 1000 бр.
-                $prodTransVolume = cat_Products::getParams($productId)[$transportVolumeParamId];
+                $prodTransVolume = $prodParamsArr[$transportVolumeParamId];
 
                 //Транспортно тегло от параметър "Транспортно тегло" в кг за 1000 бр
-                $prodTransWeight = cat_Products::getParams($productId)[$transportWeightParamId] * 1000;
+                $prodTransWeight = $prodParamsArr[$transportWeightParamId] * 1000;
 
             } catch (Exception $e) {
 
