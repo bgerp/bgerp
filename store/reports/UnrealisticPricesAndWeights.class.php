@@ -238,19 +238,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 );
             }
 
-//            if (!$realProdVol) {
-//
-//                $zeroProd[$id] = (object)array(
-//                    'productId' => $pRec->id,                                      // Артикул
-//                    'prodVolume' => $prodTransVolume,                              // Транспортен обем
-//                    'prodWeight' => $prodTransWeight,                              // Транспортно тегло
-//                    'packVolume' => $packVolume,                                   // Обем на кашона
-//                    'realProdVol' => $realProdVol,                                 // Реален обем на артикула за 1000 бр
-//                    'realProdWeight' => $realProdWeight,                           // Реално тело на артикула за 1000 бр
-//                    'deviationDensity' => $deviationDensity,                       // Отклонение плътност
-//                );
-//
-//            }
+            unset($Driver,$driverName,$material);
 
         }
 
@@ -258,7 +246,6 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
             arr::sortObjects($recs, 'deviation', 'desc');
 
-            //  $recs = $recs + $zeroProd;
         }
 
         return $recs;
