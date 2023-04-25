@@ -555,6 +555,15 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
                 }
 
+                // Проверка за допустимоста на дробното число към количеството
+                $warning = null;
+                $pInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $masterRec->assetId);
+                $packagingId = ($pInfo->packagingId) ? $pInfo->packagingId : $pInfo->measureId;
+                deals_Helper::checkQuantity($packagingId, $rec->quantity, $warning);
+                if(!empty($warning)){
+                    $form->setWarning('quantity', $warning);
+                }
+
                 if ($masterRec->followBatchesForFinalProduct == 'yes' && empty($rec->batch) && $rec->type == 'production') {
                     $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
                 }
