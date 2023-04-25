@@ -106,6 +106,12 @@ class acc_RatesDifferences extends core_Master
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn,lastRecalced';
+
+
+    /**
      * Описание на модела
      */
     public function description()
