@@ -707,7 +707,14 @@ class planning_Tasks extends core_Master
                     // Показва се след коя ще започне
                     $startAfter = $mvc->getPrevOrNextTask($rec);
                     if (isset($startAfter)) {
-                        $row->startAfter = $mvc->getHyperlink($startAfter, true);
+                        $startAfterTitle = $mvc->getAlternativeTitle($startAfter, true);
+                        if(!Mode::isReadOnly()){
+                            $singleUrl = planning_Tasks::getSingleUrlArray($startAfter);
+                            if(countR($singleUrl)){
+                                $startAfterTitle = ht::createLink($startAfterTitle, $singleUrl);
+                            }
+                        }
+                        $row->startAfter = $startAfterTitle;
                     } else {
                         $row->startAfter = tr('Първа за оборудването');
                     }
@@ -1884,11 +1891,7 @@ class planning_Tasks extends core_Master
                 unset($assetTasks[$rec->id]);
                 $taskOptions = array();
                 foreach ($assetTasks as $tRec) {
-                    $job = doc_Containers::getDocument($tRec->originId);
-                    $jobTitle = str::limitLen("Job{$job->that}-" . cat_Products::getVerbal($job->fetchField('productId'), 'name'), 42);
-                    $productTitle = str::limitLen(cat_Products::getVerbal($tRec->productId, 'name'), 42);
-                    $title = "Opr{$tRec->id}/{$jobTitle}/{$productTitle}";
-                    $taskOptions[$tRec->id] = $title;
+                    $taskOptions[$tRec->id] = $mvc->getAlternativeTitle($tRec);
                 }
 
                 $form->setField('startAfter', 'input');
@@ -1920,6 +1923,28 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+    }
+
+
+    /**
+     * Връща алтернативно заглавие за операцията
+     *
+     * @param int|stdClass $taskId
+     * @param bool $isShort
+     * @return string
+     */
+    private function getAlternativeTitle($taskId, $isShort = false)
+    {
+        $taskRec = static::fetchRec($taskId);
+        $job = doc_Containers::getDocument($taskRec->originId);
+        $jobTitle = str::limitLen("Job{$job->that}-" . cat_Products::fetchField($job->fetchField('productId'), 'name'), 42);
+        $title = "Opr{$taskRec->id}/{$jobTitle}";
+        if(!$isShort){
+            $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 42);
+            $title .= "/{$productTitle}";
+        }
+
+        return $title;
     }
 
 
