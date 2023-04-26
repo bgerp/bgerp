@@ -239,6 +239,8 @@ class acc_RatesDifferences extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         $row->dealOriginId = doc_Containers::getDocument($rec->dealOriginId)->getLink(0);
+        $dealState = doc_Containers::fetchField($rec->dealOriginId, 'state');
+        $row->dealOriginId = "<div class='state-{$dealState} document-handler'>{$row->dealOriginId}</div>";
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 
         $row->total = ht::styleNumber($row->total, $rec->total);
@@ -432,5 +434,29 @@ class acc_RatesDifferences extends core_Master
         }
 
         followRetUrl(null, "Оттеглени документи|*: {$rejected}");
+    }
+
+
+    /**
+     * Подготовка на лист филтъра
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('dealState', 'enum(all=Всички сделки,active=Активни сделки,closed=Затворени сделки)', 'caption=Сделки');
+        $data->listFilter->showFields .= ',dealState';
+        $data->listFilter->setDefault('dealState', 'active');
+        $data->listFilter->input('dealState');
+
+        if($rec = $data->listFilter->rec){
+            if(isset($rec->dealState)){
+                if($rec->dealState != 'all'){
+                    $data->query->EXT('dealState', 'doc_Containers', 'externalName=state,externalKey=dealOriginId');
+                    $data->query->where("#dealState = '{$rec->dealState}'");
+                }
+            }
+        }
     }
 }
