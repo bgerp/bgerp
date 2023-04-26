@@ -1145,6 +1145,17 @@ class cat_Products extends embed_Manager
                 $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
             }
         }
+
+        if(isset($filtersArr['vat20'])) {
+            $productWithWith0And9Vat = cat_products_VatGroups::getByVatPercent(0) + cat_products_VatGroups::getByVatPercent(0.09);
+            if(countR($productWithWith0And9Vat)){
+                $productWithVatStr = implode(',', $productWithWith0And9Vat);
+                $wherePartFour = "#id NOT IN ({$productWithVatStr})";
+            } else {
+                $wherePartFour = "1=2";
+            }
+        }
+
         if(!empty($wherePartFour)){
             $whereArr[] = $wherePartFour;
         }
