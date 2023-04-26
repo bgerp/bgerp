@@ -181,7 +181,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 $prodParamsArr = cat_Products::getParams($productId);
 
                 //Тегло на артикула от параметъра в кг
-                $prodWeight = $prodParamsArr[$prodWeightParamId] / 1000 ?? cat_Products::getParams($productId)[$prodWeightKgParamId];
+                $prodWeight = $prodParamsArr[$prodWeightParamId] / 1000 ?? $prodParamsArr[$prodWeightKgParamId];
                 $prodWeight = $prodWeight ?? 0;
 
                 //Реално тегло на артикула в кг за 1000 бройки
