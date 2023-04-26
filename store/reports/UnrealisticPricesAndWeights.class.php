@@ -105,26 +105,25 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
 
-        $recs = array();
+        $recs = $prodsRecArr = $packRecs = $packRecArr = array();
 
-        if ($rec->storeOrCreatProducts == 'storeProds'){
+        if ($rec->storeOrCreatProducts == 'storeProds') {
             $pQuery = store_Products::getQuery();
             $pQuery->EXT('createdOnProd', 'cat_Products', 'externalName=createdOn,externalKey=productId');
             $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
             $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
 
-        }else{
+        } else {
             $pQuery = cat_Products::getQuery();
         }
 
         $startDate = dt::addSecs(-$rec->period, dt::now());
-        if ($rec->storeOrCreatProducts == 'storeProds'){
+        if ($rec->storeOrCreatProducts == 'storeProds') {
 
             $pQuery->where("#createdOnProd >= '{$startDate}'");
-        }else{
+        } else {
             $pQuery->where("#createdOn >= '{$startDate}'");
         }
-//bp($startDate,$pQuery->count());
 
         $pQuery->where("#state = 'active' AND #canStore = 'yes'");
 
@@ -147,23 +146,52 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $transportWeightParamId = cat_Params::force('transportWeight', 'transportWeight', 'varchar', null, '');
         $prodWeightParamId = cat_Params::force('weight', 'weight', 'varchar', null, '');
         $prodWeightKgParamId = cat_Params::force('weightKg', 'weight', 'varchar', null, '');
+       // bp($pQuery->fetchAll());
 
-        while ($pRec = $pQuery->fetch()) {
+        if ($rec->storeOrCreatProducts == 'createdProds') {
+            //Масив от Rec-овете на създадените през периода продукти
+            $prodsRecArr = $pQuery->fetchAll();
+        }else{
 
-            $productId = ($rec->storeOrCreatProducts == 'storeProds') ? $pRec->productId : $pRec->id;
+            //Масив с productId-тата на артикулите от store_Products
+            $prodsStoreArr = arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
 
-           $Driver =  cat_Products::getDriver($productId);
-            if($Driver instanceof eprod_proto_Product){
-                $productRec = cat_Products::fetch($productId);
-                $material = $Driver->getLabelProduct($productRec);
+            $prodQuery = cat_Products::getQuery();
+
+            $prodQuery->in('id',$prodsStoreArr);
+
+            //Масив от Rec-овете на засклажданите през периода продукти
+            $prodsRecArr = $prodQuery->fetchAll();
+        }
+
+        //Обема на кашона
+        $uomRec = cat_UoM::fetchBySinonim('кашон');
+
+        //Rec-ове на пакетажите по артикули
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->in('productId',array_keys($prodsRecArr) );
+        $packRecs = $packQuery->fetchAll();
+
+        foreach ($packRecs as $pack){
+            $key = $pack->productId.'|'.$pack->packagingId;
+            $packRecArr[$key] = $pack;
+        }
+
+        foreach ($prodsRecArr as $pRec) {
+
+            $productId = $pRec->id;
+
+            $Driver = cat_Products::getDriver($productId);
+            if ($Driver instanceof eprod_proto_Product) {
+                $material = $Driver->getLabelProduct($pRec);
                 list($driverName) = explode('|', $Driver->singleTitle);
             }
 
             $prodTransWeight = $prodTransVolume = $realProdVol = $realProdWeight = $deviation = $deviationDensity = 0;
             $packVolume = $realPackTara = 0;
-            //Обема на кашона
-            $uomRec = cat_UoM::fetchBySinonim('кашон');
-            $packRec = cat_products_Packagings::getPack($productId, $uomRec->id);
+
+            $key = $productId.'|'.$uomRec->id;
+            $packRec = $packRecArr[$key];
 
             //Обем на кашона в куб.м.
             $packVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
@@ -238,7 +266,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 );
             }
 
-            unset($Driver,$driverName,$material);
+            unset($Driver, $driverName, $material);
 
         }
 
