@@ -85,7 +85,7 @@ class bgerp_Filters extends core_Manager
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    public function loadSetupData()
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
         // Подготвяме пътя до файла с данните
         $file = 'bgerp/data/csv/Filters.csv';
@@ -101,7 +101,7 @@ class bgerp_Filters extends core_Manager
 
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
-        $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, null);
 
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res = $cntObj->html;
