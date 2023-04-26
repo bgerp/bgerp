@@ -220,7 +220,7 @@ class store_Products extends core_Detail
         }
 
         // Подготвяме формата
-        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=store_Products)", 'caption=Подредба,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=store_Products)", 'caption=Филтри,input,silent,remember,autoFilter');
         $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
         $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
         $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input,class=w30');
@@ -314,7 +314,7 @@ class store_Products extends core_Detail
 
             $filtersArr = bgerp_type_CustomFilter::toArray($data->listFilter->rec->filters);
             cat_Products::applyAdditionalListFilters($filtersArr, $data->query);
-            //bp($filtersArr, $data->query->where);
+
             if(!empty($rec->horizon)){
 
                 // Добавяне в лист изгледа
@@ -332,7 +332,12 @@ class store_Products extends core_Detail
             } else {
                 core_Permanent::remove($hKey);
             }
-            $data->query->orderBy('#state,#code');
+
+            if(isset($filtersArr['lastAdded'])){
+                $data->query->orderBy('#productCreatedOn=DESC');
+            } else {
+                $data->query->orderBy('#state,#code');
+            }
             
             // Филтър по групи на артикула
             if (!empty($rec->groupId)) {
