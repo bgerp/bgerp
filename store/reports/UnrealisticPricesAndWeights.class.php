@@ -140,6 +140,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             core_App::setTimeLimit($timeLimit);
         }
 
+        $eprodClassId = core_Classes::getClassId('eprod_proto_Product');
+
         if($pQuery->count() == 0){
             return $recs;
         }
@@ -183,6 +185,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             $productId = $pRec->id;
 
             $Driver = cat_Products::getDriver($productId);
+            if($pRec->id == 3771) bp($Driver,core_Classes::getClassId('eprod_proto_Product'),core_Classes::fetch($pRec->innerClass),$pRec);
+
             if ($Driver instanceof eprod_proto_Product) {
                 $material = $Driver->getLabelProduct($pRec);
                 list($driverName) = explode('|', $Driver->singleTitle);
@@ -207,7 +211,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 $realPackTara = $packRec->tareWeight / $packRec->quantity;
 
                 //Масив с параметрите на артикула
-                $prodParamsArr = cat_Products::getParams($productId);
+                //$prodParamsArr = cat_Products::getParams($productId);
+                $prodParamsArr[$prodWeightParamId] = $prodParamsArr[$transportVolumeParamId] = $prodParamsArr[$transportVolumeParamId] = 3;
 
                 //Тегло на артикула от параметъра в кг
                 $prodWeight = $prodParamsArr[$prodWeightParamId] / 1000 ?? $prodParamsArr[$prodWeightKgParamId];
