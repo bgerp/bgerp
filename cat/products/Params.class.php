@@ -799,7 +799,7 @@ class cat_products_Params extends doc_Detail
         foreach ($rec->{$paramField} as $k => $o) {
             if (!isset($rec->{$k})) continue;
             $paramDriver = cat_Params::getDriver($o->paramId);
-            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image) && empty($rec->{$k})) continue;
+            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image || $paramDriver instanceof cond_type_Files) && empty($rec->{$k})) continue;
 
             $nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $Class->getClassId(), 'productId' => $rec->id);
             $newRecs[] = $nRec;

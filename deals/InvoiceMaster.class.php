@@ -907,7 +907,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             if (!$rec->displayRate) {
-                $rec->displayRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
+                $rec->displayRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
                 if (!$rec->displayRate) {
                     $form->setError('rate', 'Не може да се изчисли курс');
                 }
@@ -1012,10 +1012,6 @@ abstract class deals_InvoiceMaster extends core_Master
                 if ($cDate != $rec->dueDate) {
                     $form->setError('date,dueDate,dueTime', 'Невъзможна стойност на датите');
                 }
-            }
-
-            if ($rec->paymentType == 'cash' && isset($rec->accountId)) {
-                $form->setWarning('accountId', 'Избрана е банкова сметка при начин на плащане в брой');
             }
             
             if (!empty($rec->vatReason)) {
@@ -1373,7 +1369,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $row->paymentType = tr('Плащане ' . $arr[$rec->paymentType]);
                 }
 
-                if($rec->paymentType == 'cash'){
+                if(in_array($rec->paymentType, array('postal', 'cash', 'card'))){
                     $row->BANK_BLOCK_CLASS = 'quiet';
                 }
             }

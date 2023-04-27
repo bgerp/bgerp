@@ -103,7 +103,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'bomId=Рецепта,position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
+    public $listFields = 'bomId=Рецепта,position=№, resourceId=Материал / Етап, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -144,14 +144,15 @@ class cat_BomDetails extends doc_Detail
     public function description()
     {
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
+        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|subTitle|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
         $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Подетап на,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
         $this->FLD('position', 'int(Min=0)', 'caption=Позиция,tdClass=leftCol');
         $this->FLD('propQuantity', 'text(rows=2, maxOptionsShowCount=20)', 'caption=Формула,tdClass=accCell,mandatory');
-        $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
+        $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently,input=none');
+	    $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
         $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Произвеждане В,input=none');
@@ -183,7 +184,8 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
-        
+
+        $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName','bomDetailStepDescription')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn" id="bomResourceColName"> </a>';
         $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
         $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
         $data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
@@ -251,6 +253,7 @@ class cat_BomDetails extends doc_Detail
         }
 
         if($rec->type == 'stage'){
+            $form->setField('subTitle', 'input');
             if(isset($rec->resourceId)){
 
                 // Ако има данни за производство
@@ -286,6 +289,10 @@ class cat_BomDetails extends doc_Detail
                     if (isset($productionData['normPackagingId'])) {
                         $form->setFieldTypeParams('norm', array('measureId' => $productionData['normPackagingId']));
                     }
+                }
+
+                if (!isset($productionData['normPackagingId'])) {
+                    $form->setFieldTypeParams('norm', array('measureId' => $rec->packagingId));
                 }
 
                 // Ако има опаковка за етикетиране
@@ -694,12 +701,25 @@ class cat_BomDetails extends doc_Detail
     {
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
-        $row->resourceId = cat_Products::getAutoProductDesc($rec->resourceId, null, 'short', 'internal');
+        $row->resourceId = cat_Products::getTitleById($rec->resourceId);
+        if (!empty($rec->subTitle)) {
+            $subTitleVerbal = $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle);
+            $row->resourceId .= " <i>{$subTitleVerbal}</i>";
+        }
+
+        if(!Mode::isReadOnly()){
+            $singleProductUrlArray = cat_Products::getSingleUrlArray($rec->resourceId);
+            if(countR($singleProductUrlArray)){
+                $row->resourceId = ht::createLinkRef($row->resourceId, $singleProductUrlArray);
+            }
+        }
+
         if(isset($fields['bomId'])){
             $row->bomId = cat_Boms::getHyperlink($rec->bomId, true);
         }
 
         if ($rec->type == 'stage') {
+            $row->resourceId = "<b>{$row->resourceId}</b>";
             $row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
             $row->ROW_ATTR['title'] = tr('Етап');
         } else {
@@ -780,9 +800,10 @@ class cat_BomDetails extends doc_Detail
             $descriptionArr[] = "<tr><td colspan='2'>" . $mvc->getFieldType('description')->toVerbal($rec->description) . "</td>";
         }
 
+        $productDescriptionStr = '';
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $row->resourceId .= "<div class='small'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $productDescriptionStr = "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
         }
 
         if($rec->type == 'stage'){
@@ -790,8 +811,13 @@ class cat_BomDetails extends doc_Detail
             $paramData = cat_products_Params::prepareClassObjectParams($mvc, $rec);
             if (isset($paramData)) {
                 $paramTpl = cat_products_Params::renderParams($paramData);
-                $row->resourceId .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
+                $productDescriptionStr .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
             }
+        }
+
+        if(!empty($productDescriptionStr)){
+            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription"> </a>';
+            $row->resourceId .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>{$productDescriptionStr}</div>";
         }
 
         $propQuantity = $rec->propQuantity;
@@ -1110,6 +1136,24 @@ class cat_BomDetails extends doc_Detail
 
 
     /**
+     * Метод по подразбиране за извличане на детайлите в правилната подредба за бутоните напред/назад
+     *
+     * @param core_Detail $DetailMvc
+     * @param array $res
+     * @param int $detailId
+     * @return void
+     */
+    protected static function on_BeforeGetPrevAndNextDetailQuery($DetailMvc, &$res, $detailId)
+    {
+        $bomId = static::fetchField($detailId, 'bomId');
+        $orderedDetails = self::getOrderedBomDetails($bomId);
+        foreach ($orderedDetails as $rec){
+            $res[] = $rec->id;
+        }
+    }
+
+
+    /**
      * Ако няма записи не вади таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
@@ -1162,6 +1206,10 @@ class cat_BomDetails extends doc_Detail
         if (empty($rec->id) && $rec->type == 'stage') {
             $rec->stageAdded = true;
         }
+
+        if(isset($rec->id)){
+            $rec->_exPosition = $mvc->fetchField($rec->id, 'position');
+        }
     }
     
     
@@ -1182,7 +1230,7 @@ class cat_BomDetails extends doc_Detail
         $query->XPR('maxPosition', 'int', 'MAX(#position)');
         $position = $query->fetch()->maxPosition;
         ++$position;
-        
+
         return $position;
     }
     
@@ -1213,14 +1261,16 @@ class cat_BomDetails extends doc_Detail
     {
         // Ако има позиция, шифтваме всички с по-голяма или равна позиция напред
         if (isset($rec->position)) {
-            $query = $mvc->getQuery();
-            $cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
-            $cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : '#parentId IS NULL';
-            
-            $query->where($cond);
-            while ($nRec = $query->fetch()) {
-                $nRec->position++;
-                $mvc->save_($nRec, 'position');
+            if($rec->position != $rec->_exPosition){
+                $query = $mvc->getQuery();
+                $cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
+                $cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : '#parentId IS NULL';
+
+                $query->where($cond);
+                while ($nRec = $query->fetch()) {
+                    $nRec->position++;
+                    $mvc->save_($nRec, 'position');
+                }
             }
         }
         

@@ -173,7 +173,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         // Синхронизира таймлимита с броя записи
-        $timeLimit = $pQuery->count() * 0.05;
+        $timeLimit = $pQuery->count() * 0.2;
 
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
@@ -187,9 +187,14 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             //Себестойност на артикула
             $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
 
+            //Попълване на списъка с артикули без себестойност
+            $markNotPrice = null;
             if (!$selfPrice) {
 
-                if (!in_array($pRec->productId, $notSelfPrice)) {
+                //При избран склад влизат само тъези от избрания слкад
+                $markNotPrice = ($rec->storeId && ($rec->storeId == $pRec->storeId)) ? 1 : null;
+
+                if ((!is_null($markNotPrice)) && (!in_array($pRec->productId, $notSelfPrice))) {
                     array_push($notSelfPrice, $pRec->productId);
                 }
                 continue;
@@ -371,7 +376,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         if (isset($dRec->reversibility)) {
-            $row->reversibility = core_Type::getByName('percent(smartRound,decimals=2)')->toVerbal($dRec->reversibility);
+            $row->reversibility = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->reversibility);
         }
 
         return $row;

@@ -202,7 +202,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да превалутира документите в нишката
      */
-    public $canChangerate = 'ceo, salesMaster';
+    public $canChangerate = 'debug';
     
     
     /**
@@ -1446,10 +1446,14 @@ class sales_Sales extends deals_DealMaster
                 $row->visiblePricesByAllInThread =  $mvc->getFieldType('visiblePricesByAllInThread')->toVerbal($visiblePrices);
             }
 
+            $row->visiblePricesByAllInThread = mb_strtolower($row->visiblePricesByAllInThread);
             $row->visiblePricesByAllInThread = ht::createHint("", "Цени и суми в нишката|*: |{$row->visiblePricesByAllInThread}|*");
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
+
+            $row->detailOrderBy = mb_strtolower($row->detailOrderBy);
+			$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
             
             core_Lg::pop();
             $row->transportCurrencyId = $row->currencyId;
@@ -1515,11 +1519,14 @@ class sales_Sales extends deals_DealMaster
                 }
             }
 
-            
-            if(!empty($errorStr)){
+            if(!empty($errorStr) && $rec->paymentType != 'cash'){
                 $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
                 $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
             }
+        }
+
+        if(in_array($rec->paymentType, array('postal', 'cash', 'card')) && !empty($row->bankAccountId)){
+            $row->BANK_BLOCK_CLASS = 'quiet saleBankBlock';
         }
 
         core_Lg::pop();

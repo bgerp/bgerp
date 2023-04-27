@@ -60,7 +60,7 @@ class blast_BlockedDomains extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'blast_Wrapper, plg_RowTools2, plg_Sorting';
+    public $loadList = 'email_Wrapper, plg_RowTools2, plg_Sorting';
     
     
     /**

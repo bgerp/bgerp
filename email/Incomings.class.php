@@ -1139,8 +1139,8 @@ class email_Incomings extends core_Master
                 // Ако папката е от рисковите държави
                 // Ip-то не се добавя към рисковите
                 if (isset($cData, $cData->countryId)) {
-                    $coutryCode = drdata_Countries::fetchField((int) $cData->countryId, 'letterCode2');
-                    if ($coutryCode == $ipCoutryCode) {
+                    $countryCode = drdata_Countries::fetchField((int) $cData->countryId, 'letterCode2');
+                    if ($countryCode == $ipCoutryCode) {
                         continue ;
                     }
                 } else {
@@ -2942,6 +2942,11 @@ class email_Incomings extends core_Master
             $url = array('email_ServiceRules', 'add', 'email' => $data->rec->fromEml, 'subject' => $data->rec->subject, 'ret_url' => true);
 
             $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=2, order=19');
+        }
+
+        if (email_AddressesInfo::haveRightFor('add')) {
+            $url = array('email_AddressesInfo', 'addEmail', 'docId' => $data->rec->id, 'ret_url' => true);
+            $data->toolbar->addBtn('Отписване', $url, 'ef_icon=img/16/email_open_image.png, title=Възможност за отписване на имйела от циркулярният списък, row=2, order=19.9');
         }
     }
     

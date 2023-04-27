@@ -614,46 +614,44 @@ class cat_Groups extends core_Master
             return "Недостатъчни права";
         }
 
-        return;
+//        $gRecNO = cat_Groups::fetch("#name = 'Пликове за e-Commers с изрязани дръжки' AND #productCnt != 0");
+//        $gRecYES = cat_Groups::fetch("#name = 'Пликове за e-Commerce с изрязани дръжки'");
+//
+//        if (!$gRecNO) {
+//            return 'Липсва Пликове за e-Commers с изрязани дръжки';
+//        }
+//
+//        if (!$gRecYES) {
+//            return 'Липсва: Пликове за e-Commerce с изрязани дръжки';
+//        }
+//
+//        $q = cat_Products::getQuery();
+//        $q->where("#isPublic = 'no'");
+//        $q->like('groups', "|{$gRecNO->id}|");
+//        $q->show('id,name,groups,groupsInput');
+//
+//        while ($pRec = $q->fetch()) {
+//
+//            $sGrArr = keylist::toArray($pRec->groups);
+//            $sGrInputArr = keylist::toArray($pRec->groupsInput);
+//            unset($sGrArr[$gRecNO->id]);
+//            unset($sGrInputArr[$gRecNO->id]);
+//            if (!in_array($gRecYES->id, $sGrArr)) {
+//                $sGrArr[$gRecYES->id] = $gRecYES->id;
+//            }
+//            if (!in_array($gRecYES->id, $sGrInputArr)) {
+//                $sGrInputArr[$gRecYES->id] = $gRecYES->id;
+//            }
+//
+//            $pRec->groups = type_Keylist::fromArray($sGrArr);
+//            $pRec->groupsInput = type_Keylist::fromArray($sGrInputArr);
+//            cls::get('cat_Products')->save_($pRec, 'groups,groupsInput');
+//
+//        }
+//
+//        return 'Изпразване на групата Пликове за e-Commers с изрязани дръжки';
 
-        $gRecNO = cat_Groups::fetch("#name = 'Пликове за e-Commers с изрязани дръжки' AND #productCnt != 0");
-        $gRecYES = cat_Groups::fetch("#name = 'Пликове за e-Commerce с изрязани дръжки'");
-
-        if (!$gRecNO) {
-            return 'Липсва Пликове за e-Commers с изрязани дръжки';
-        }
-
-        if (!$gRecYES) {
-            return 'Пликове за e-Commerce с изрязани дръжки';
-        }
-
-        $q = cat_Products::getQuery();
-        $q->where("#isPublic = 'no'");
-        $q->like('groups', "|{$gRecNO->id}|");
-        $q->show('id,name,groups,groupsInput');
-
-        while ($pRec = $q->fetch()) {
-
-            $sGrArr = keylist::toArray($pRec->groups);
-            $sGrInputArr = keylist::toArray($pRec->groupsInput);
-            unset($sGrArr[$gRecNO->id]);
-            unset($sGrInputArr[$gRecNO->id]);
-            if (!in_array($gRecYES->id, $sGrArr)) {
-                $sGrArr[$gRecYES->id] = $gRecYES->id;
-            }
-            if (!in_array($gRecYES->id, $sGrInputArr)) {
-                $sGrInputArr[$gRecYES->id] = $gRecYES->id;
-            }
-
-            $pRec->groups = type_Keylist::fromArray($sGrArr);
-            $pRec->groupsInput = type_Keylist::fromArray($sGrInputArr);
-            cls::get('cat_Products')->save_($pRec, 'groups,groupsInput');
-
-        }
-
-        return 'Изпразване на групата Пликове за e-Commers с изрязани дръжки';
-
-        if (!$grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове' AND #productCnt != 0")) {
+        if (!$grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'")) {
             return "Липсва стара група";
         }
         if ($grRecOld->productCnt == 0) {
@@ -673,6 +671,8 @@ class cat_Groups extends core_Master
         $q->where("#isPublic = 'no'");
         $q->like('groups', "|{$grRecOld->id}|");
         $q->show('id,name,groups,groupsInput');
+
+
 
         // bp($q->fetchAll(),$grRecOld,$grRecNew,$q->count());
 
@@ -759,6 +759,7 @@ class cat_Groups extends core_Master
         }
 
         if (!empty($logArr)) {
+            $logArr['count'] = countR($logArr);
             wp('Артикули с коригирани групи', $logArr);
         }
 

@@ -161,7 +161,18 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
             $res['normPackagingId'] = $measureId;
         }
 
-        $res['fixedAssets'] = !empty($rec->fixedAssets) ? keylist::toArray($rec->fixedAssets) : null;
+        $res['fixedAssets'] = null;
+        if(!empty($rec->fixedAssets)){
+
+            // От свързаните оборудвания остават само активните
+            $res['fixedAssets'] = keylist::toArray($rec->fixedAssets);
+            $fQuery = planning_AssetResources::getQuery();
+            $fQuery->where("#state = 'active'");
+            $fQuery->in('id', $res['fixedAssets']);
+            $fQuery->show('id');
+            $res['fixedAssets'] = arr::extractValuesFromArray($fQuery->fetchAll(), 'id');
+        }
+
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
         $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();

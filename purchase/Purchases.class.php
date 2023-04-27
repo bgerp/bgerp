@@ -161,7 +161,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Кой може да превалутира документите в нишката
      */
-    public $canChangerate = 'ceo, purchaseMaster';
+    public $canChangerate = 'debug';
 
 
     /**
@@ -529,7 +529,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('amountPaid', $paidAmount);
         $result->set('deliveryAmount', $deliveredAmount);
         $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries, $rec->id));
-        
+
         // Опитваме се да намерим очакваното плащане
         $expectedPayment = null;
         if ($deliveredAmount > $paidAmount) {
@@ -769,6 +769,8 @@ class purchase_Purchases extends deals_DealMaster
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }
+		
+		$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
     }
 
 

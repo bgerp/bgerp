@@ -89,6 +89,8 @@ class openai_Prompt extends core_Manager
     {
         $this->FLD('systemId', 'varchar(64)', 'caption=Ключ');
         $this->FLD('prompt', 'text', 'caption=Въпрос');
+        $this->FLD('emailIgnoreWords', 'text', 'caption=Думи за игнориране->От имейла');
+        $this->FLD('ignoreWords', 'text', 'caption=Думи за игнориране->От отговора');
 
         $this->setDbUnique('systemId');
     }
@@ -154,23 +156,24 @@ class openai_Prompt extends core_Manager
         if (!$recBg) {
             $recBg = new stdClass();
             $recBg->systemId = static::$extractContactDataBg;
-            $recBg->prompt = "Извлечи следните контактни данни от по-долния имейл и от резултата премахни редовете без съвпадение:\n";
+            $recBg->prompt = "Извлечи следните контактни данни на изпращача от по-долния имейл и от резултата премахни редовете без съвпадение.\n";
             $recBg->prompt .= "Име на фирмата->company\n";
             $recBg->prompt .= "Име на лицето->attn\n";
-            $recBg->prompt .= "Адреса за доставка->address\n";
+            $recBg->prompt .= "Населено място->place\n";
+            $recBg->prompt .= "Пощенски код->pcode\n";
+            $recBg->prompt .= "Адрес->address\n";
             $recBg->prompt .= "Имейл->email\n";
             $recBg->prompt .= "Телефон->tel\n";
             $recBg->prompt .= "Мобилен->pMobile\n";
-            $recBg->prompt .= "Фейсбук\n";
-            $recBg->prompt .= "Туитър\n";
             $recBg->prompt .= "Данъчен номер->vatNo\n";
-            $recBg->prompt .= "Имейл->email\n";
+            $recBg->prompt .= "Уеб сайт->web\n";
             $recBg->prompt .= "\n\n";
             $recBg->prompt .= "[#subject#]";
             $recBg->prompt .= "\n";
             $recBg->prompt .= "От: [#fromEmail#] ([#from#])";
             $recBg->prompt .= "\n";
             $recBg->prompt .= "[#email#]";
+            $recBg->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*'));
 
             self::save($recBg);
         }
@@ -179,20 +182,19 @@ class openai_Prompt extends core_Manager
         if (!$recEn) {
             $recEn = new stdClass();
             $recEn->systemId = static::$extractContactDataEn;
-            $recEn->prompt = "Please extract contact data from following email and remove the non-matching lines from the result:\n";
+            $recEn->prompt = "Please extract the following sender's contact details from the email below and remove the unmatched lines from the result.\n";
             $recEn->prompt .= "Person name->attn\n";
             $recEn->prompt .= "Person gender\n";
             $recEn->prompt .= "Job position,\n";
             $recEn->prompt .= "Mobile->pMobile\n";
-            $recEn->prompt .= "Company\n";
+            $recEn->prompt .= "Company->company\n";
             $recEn->prompt .= "Country->country\n";
             $recEn->prompt .= "Postal code->pcode\n";
             $recEn->prompt .= "Place->place\n";
             $recEn->prompt .= "Street address->address\n";
             $recEn->prompt .= "Company telephone->tel\n";
-            $recEn->prompt .= "Web site\n";
+            $recEn->prompt .= "Web site->web\n";
             $recEn->prompt .= "VAT number->vatNo\n";
-            $recEn->prompt .= "Social media\n";
             $recEn->prompt .= "Email->email\n";
             $recEn->prompt .= "\n\n";
             $recEn->prompt .= "[#subject#]";
@@ -200,6 +202,7 @@ class openai_Prompt extends core_Manager
             $recEn->prompt .= "From: [#fromEmail#] ([#from#])";
             $recEn->prompt .= "\n";
             $recEn->prompt .= "[#email#]";
+            $recEn->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*'));
 
             self::save($recEn);
         }

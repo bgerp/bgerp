@@ -89,15 +89,7 @@ class marketing_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'marketing';
-    
-    
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(3.1, 'Търговия', 'Маркетинг', 'marketing_Inquiries2', 'default', 'ceo, marketing'),
-    );
-    
+
     
     /**
      * Инсталиране на пакета

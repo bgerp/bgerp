@@ -447,7 +447,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = &$form->rec;
         
         if (empty($rec->currencyRate)) {
-            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            // Ако няма курс винаги е този към днешна дата
+            $rec->currencyRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
             if (!$rec->currencyRate) {
                 $form->setError('currencyRate', 'Не може да се изчисли курс');
             }
@@ -858,7 +859,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
         
         if (empty($rec->currencyRate)) {
-            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            $rec->currencyRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
         }
 
         if(isset($rec->id)){
@@ -1292,7 +1293,11 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if (!empty($rec->paymentType)) {
-                $row->paymentMethodId = "{$row->paymentType}, {$row->paymentMethodId}";
+                if(empty($rec->paymentMethodId)) {
+                    $row->paymentMethodId = "<b>{$row->paymentType}</b>";
+                } else {
+                    $row->paymentMethodId = "<b>{$row->paymentType}</b>, {$row->paymentMethodId}";
+                }
             }
             
             core_Lg::pop();
@@ -2514,13 +2519,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if ($productId = $arr[0]->productId) {
             $tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-            core_Lg::push($tplLang);
-            $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
-            $productName = cat_Products::getVerbal($pRec, 'name');
-            core_Lg::pop();
-            $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
+            if($tplLang){
+                core_Lg::push($tplLang);
+                $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
+                $productName = cat_Products::getVerbal($pRec, 'name');
+                core_Lg::pop();
+                $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
 
-            return $productName;
+                return $productName;
+            }
         }
     }
     

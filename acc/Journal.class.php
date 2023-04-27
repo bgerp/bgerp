@@ -738,6 +738,7 @@ class acc_Journal extends core_Master
         $recs = $query->fetchAll();
 
         // За всеки запис ако има
+        $count = 0;
         $deletedRecs = array();
         if (countR($recs)) {
             foreach ($recs as $rec) {
@@ -762,10 +763,11 @@ class acc_Journal extends core_Master
                         Mode::push('recontoWithCreatedOnDate', $deletedRecs[$rec->docType][$rec->docId]->createdOn);
                     }
                     $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
+                    $count++;
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
                         Mode::pop('recontoWithCreatedOnDate');
                     }
-                } catch(acc_journal_Exception $e){
+                } catch(core_exception_Expect $e){
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
                         acc_Journal::restoreDeleted($rec->docType, $rec->docId, $deletedRecs[$rec->docType][$rec->docId], $deletedRecs[$rec->docType][$rec->docId]->_details);
                     }
@@ -793,13 +795,18 @@ class acc_Journal extends core_Master
 
                 // Да се реконтират и те
                 while($dRec = $query->fetch()){
-                    $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
+                    try{
+                        $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
+                        $count++;
+                    } catch(core_exception_Expect $e){
+                        wp($e);
+                    }
                 }
             }
         }
 
-        // Засегнатите документи
-        return countR($recs);
+        // Реконтираните документи
+        return $count;
     }
 
 
@@ -835,7 +842,7 @@ class acc_Journal extends core_Master
      */
     public function act_Reconto()
     {
-        requireRole('admin,ceo');
+        requireRole('debug');
         
         $form = cls::get('core_Form');
         $form->title = tr('Реконтиране на документи');
@@ -1085,7 +1092,7 @@ class acc_Journal extends core_Master
      */
     function act_fixDocsWithoutJournal()
     {
-        requireRole('admin,ceo');
+        requireRole('debug');
         $documents = static::getPostedDocumentsWithoutJournal();
         if(!countR($documents)) followRetUrl(null, "Няма контирани документи без журнал|*!");
 
@@ -1113,7 +1120,7 @@ class acc_Journal extends core_Master
      */
     private static function getPostedDocumentsWithoutJournal()
     {
-        $documents = array('sales_Sales', 'purchase_Purchases', 'store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'sales_Invoices', 'purchase_Invoices', 'sales_Services', 'purchase_Services', 'acc_Articles');
+        $documents = array('sales_Sales', 'purchase_Purchases', 'store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'sales_Invoices', 'purchase_Invoices', 'sales_Services', 'purchase_Services', 'acc_Articles', 'planning_DirectProductionNote', 'planning_ConsumptionNotes', 'planning_ReturnNotes', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'cash_Pko', 'cash_Rko');
 
         $res = array();
         foreach ($documents as $docId){
@@ -1159,7 +1166,7 @@ class acc_Journal extends core_Master
      */
     function act_findDeals()
     {
-        requireRole('admin,ceo');
+        requireRole('debug');
 
         $listId = acc_Lists::fetchBySystemId('deals')->id;
         $tpl = new core_ET("");
