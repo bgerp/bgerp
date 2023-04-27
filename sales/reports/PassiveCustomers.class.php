@@ -132,6 +132,13 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
             $id = $shRec->folderId;
 
+            //филтър по дилър
+            if ($rec->dealers){
+               $docDealer = doc_Threads::getFirstDocument($shRec->threadId)->fetch()->dealerId;
+               if(!in_array($docDealer,keylist::toArray($rec->dealers))) continue;
+            }
+
+
             //филтър по група на контрагента на експедицията
             if ($rec->crmGroup) {
                 $checkContragentsGroups = keylist::toArray($rec->crmGroup);
@@ -175,6 +182,11 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         while ($salRec = $salQuery->fetch()) {
 
             $id = $salRec->folderId;
+
+            //филтър по дилър
+            if ($rec->dealers){
+                if(!in_array($salRec->dealerId,keylist::toArray($rec->dealers))) continue;
+            }
 
             //филтър по група на контрагента на бързата продажба
             if ($rec->crmGroup) {
@@ -324,25 +336,63 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-
+        $Time = cls::get('type_Time');
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN from--><div>|Пасивен период|*: [#from#]</div><!--ET_END from-->
-                                        <!--ET_BEGIN to--><div>|Активен период|*: [#to#]</div><!--ET_END to-->
-                                        <!--ET_BEGIN to--><div>|Мин. продажби|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN periodPassive--><div>|Пасивен период|*: [#periodPassive#]</div><!--ET_END periodPassive-->
+                                        <!--ET_BEGIN periodActive--><div>|Активен период|*: [#periodActive#]</div><!--ET_END periodActive-->
+                                        <!--ET_BEGIN minShipment--><div>|Мин. продажби|*: [#minShipment#]</div><!--ET_END minShipment-->
+                                        <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
+                                        <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
 
-        if (isset($data->rec->from)) {
-            $fieldTpl->append('<b>' . $data->row->from . '</b>', 'from');
+        $passivePeriodStart = dt::addSecs(-$data->rec->periodPassive, dt::today(), false);
+        $activePeriodStart = dt::addSecs(-$data->rec->periodActive, $passivePeriodStart, false);
+
+        if (isset($data->rec->periodPassive)) {
+            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodPassive).' ('.$passivePeriodStart.' - '.dt::today().')' . '</b>', 'periodPassive');
         }
 
-        if (isset($data->rec->to)) {
-            $fieldTpl->append('<b>' . $data->row->to . '</b>', 'to');
+        if (isset($data->rec->periodActive)) {
+            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodActive).' ('.$activePeriodStart.' - '.$passivePeriodStart.')' . '</b>', 'periodActive');
         }
+        if (isset($data->rec->minShipment)) {
+            $fieldTpl->append('<b>' . ($data->rec->minShipment) . '</b>', 'minShipment');
+        }
+
+        if (isset($data->rec->crmGroup)) {
+            $marker = 0;
+            if (isset($data->rec->crmGroup)) {
+                foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
+                    $marker++;
+
+                    $groupVerb .= (crm_Groups::getTitleById($group));
+
+                    if ((countR((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
+                        $groupVerb .= ', ';
+                    }
+                }
+
+                $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
+            }
+        }else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'crmGroup');
+        }
+
+        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
+            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+                $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
+            }
+
+            $fieldTpl->append('<b>' . trim($dealersVerb, ',  ') . '</b>', 'dealers');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'dealers');
+        }
+
 
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
