@@ -182,14 +182,12 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
             $productId = $pRec->id;
 
- //           $Driver = cat_Products::getDriver($productId);
+            $Driver = cat_Products::getDriver($productId);
+            if ($Driver instanceof eprod_proto_Product) { bp($Driver);
 
-
-//            if ($Driver instanceof eprod_proto_Product) { bp($Driver);
-//
-//                $material = $Driver->getLabelProduct($pRec);
-//                list($driverName) = explode('|', $Driver->singleTitle);
-//            }
+                $material = $Driver->getLabelProduct($pRec);
+                list($driverName) = explode('|', $Driver->singleTitle);
+            }
 
             $prodTransWeight = $prodTransVolume = $realProdVol = $realProdWeight = $deviation = $deviationDensity = 0;
             $packVolume = $realPackTara = 0;
