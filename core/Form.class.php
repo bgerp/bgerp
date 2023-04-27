@@ -964,14 +964,26 @@ class core_Form extends core_FieldSet
         
         if ($this->view == 'horizontal') {
             $tpl = new ET('[#FIELDS#]');
-            
-            foreach ($fields as $name => $field) {
+
+            $firstRowFields = $secondRowFields = array();
+            array_walk($fields, function($a) use (&$firstRowFields, &$secondRowFields) {if($a->row == 2) {$secondRowFields[] = $a;} else {$firstRowFields[] = $a;}});
+
+            foreach ($firstRowFields as $field) {
                 $fld = new ET("<div class='hFormField' >[#{$field->name}#][#UNIT#]</div>");
-                
                 $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
-                
                 $tpl->append($fld, 'FIELDS');
             }
+            if(countR($secondRowFields)){
+                if(!Mode::is('screenMode', 'narrow')){
+                    $tpl->append("<br>", 'FIELDS');
+                }
+                foreach ($secondRowFields as $field) {
+                    $fld = new ET("<div class='hFormField' >[#{$field->name}#][#UNIT#]</div>");
+                    $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
+                    $tpl->append($fld, 'FIELDS');
+                }
+            }
+
         } else {
             $lastCaptionArr = array();
             
