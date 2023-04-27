@@ -211,8 +211,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 $realPackTara = $packRec->tareWeight / $packRec->quantity;
 
                 //Масив с параметрите на артикула
-                //$prodParamsArr = cat_Products::getParams($productId);
-                $prodParamsArr[$prodWeightParamId] = $prodParamsArr[$transportVolumeParamId] = $prodParamsArr[$transportVolumeParamId] = 3;
+                $prodParamsArr = cat_Products::getParams($productId);
 
                 //Тегло на артикула от параметъра в кг
                 $prodWeight = $prodParamsArr[$prodWeightParamId] / 1000 ?? $prodParamsArr[$prodWeightKgParamId];
