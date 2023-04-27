@@ -172,7 +172,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->in('productId',array_keys($prodsRecArr) );
         $packRecs = $packQuery->fetchAll();
-bp(countR($packRecs));
+//bp(countR($packRecs));
         foreach ($packRecs as $pack){
             $key = $pack->productId.'|'.$pack->packagingId;
             $packRecArr[$key] = $pack;
@@ -182,14 +182,14 @@ bp(countR($packRecs));
 
             $productId = $pRec->id;
 
-            $Driver = cat_Products::getDriver($productId);
+ //           $Driver = cat_Products::getDriver($productId);
 
 
-            if ($Driver instanceof eprod_proto_Product) { bp($Driver);
-
-                $material = $Driver->getLabelProduct($pRec);
-                list($driverName) = explode('|', $Driver->singleTitle);
-            }
+//            if ($Driver instanceof eprod_proto_Product) { bp($Driver);
+//
+//                $material = $Driver->getLabelProduct($pRec);
+//                list($driverName) = explode('|', $Driver->singleTitle);
+//            }
 
             $prodTransWeight = $prodTransVolume = $realProdVol = $realProdWeight = $deviation = $deviationDensity = 0;
             $packVolume = $realPackTara = 0;
