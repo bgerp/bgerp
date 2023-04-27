@@ -29,7 +29,7 @@ class acc_RatesDifferences extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_Sorting, acc_plg_Contable, acc_Wrapper, doc_DocumentPlg, plg_Select, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation';
+    public $loadList = 'plg_Sorting, acc_plg_Contable, acc_Wrapper, plg_Select, doc_DocumentPlg, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation';
 
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
@@ -82,6 +82,12 @@ class acc_RatesDifferences extends core_Master
 
 
     /**
+     * Кой може да оттегля избраните?
+     */
+    public $canRejectselected = 'ceo,acc';
+
+
+    /**
      * Кой може да го контира?
      */
     public $canConto = 'no_one';
@@ -103,6 +109,18 @@ class acc_RatesDifferences extends core_Master
      * Файл с шаблон за единичен изглед на статия
      */
     public $singleLayoutFile = 'acc/tpl/SingleLayoutRateDifferences.shtml';
+
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn,lastRecalced';
+
+
+    /**
+     * Какво може да се прави с избраните
+     */
+    public $doWithSelected = 'rejectSelected=Оттегляне';
 
 
     /**
@@ -221,6 +239,8 @@ class acc_RatesDifferences extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         $row->dealOriginId = doc_Containers::getDocument($rec->dealOriginId)->getLink(0);
+        $dealState = doc_Containers::fetchField($rec->dealOriginId, 'state');
+        $row->dealOriginId = "<div class='state-{$dealState} document-handler'>{$row->dealOriginId}</div>";
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 
         $row->total = ht::styleNumber($row->total, $rec->total);
@@ -231,7 +251,8 @@ class acc_RatesDifferences extends core_Master
 
         if(!empty($rec->oldTotal) && $rec->total != $rec->oldTotal){
             $icon = ($rec->total > $rec->oldTotal) ? 'img/16/arrow_up.png' : 'img/16/arrow_down.png';
-            $row->total = ht::createHint($row->total, "Преди|*: {$row->oldTotal}", $icon, false);
+            $oldTotalVerbal = $mvc->getFieldType('oldTotal')->toVerbal($rec->oldTotal);
+            $row->total = ht::createHint($row->total, "Преди|*: {$oldTotalVerbal}", $icon, false);
         }
 
         if(is_array($rec->data)){
@@ -386,5 +407,56 @@ class acc_RatesDifferences extends core_Master
     protected static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
     {
         $mvc->save_($rec, 'data,total,lastRecalced,valior,oldTotal,oldData');
+    }
+
+
+    /**
+     * Екшън за оттегляне на избраните документи
+     */
+    function act_rejectSelected()
+    {
+        $this->requireRightFor('rejectselected');
+        $selected = Request::get('Selected');
+        $selectedArr = explode(',', $selected);
+        expect(countR($selectedArr));
+
+        // Оттегляне на избраните курсови разлики
+        $rejected = 0;
+        foreach ($selectedArr as $id){
+            $rec = $this->fetch($id);
+            if($this->haveRightFor('reject', $rec)){
+                if ($this->reject($rec)) {
+                    doc_HiddenContainers::showOrHideDocument($rec->containerId, true);
+                    $this->logInAct('Оттегляне', $rec);
+                    $rejected++;
+                }
+            }
+        }
+
+        followRetUrl(null, "Оттеглени документи|*: {$rejected}");
+    }
+
+
+    /**
+     * Подготовка на лист филтъра
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('dealState', 'enum(all=Всички сделки,active=Активни сделки,closed=Затворени сделки)', 'caption=Сделки');
+        $data->listFilter->showFields .= ',dealState';
+        $data->listFilter->setDefault('dealState', 'active');
+        $data->listFilter->input('dealState');
+
+        if($rec = $data->listFilter->rec){
+            if(isset($rec->dealState)){
+                if($rec->dealState != 'all'){
+                    $data->query->EXT('dealState', 'doc_Containers', 'externalName=state,externalKey=dealOriginId');
+                    $data->query->where("#dealState = '{$rec->dealState}'");
+                }
+            }
+        }
     }
 }

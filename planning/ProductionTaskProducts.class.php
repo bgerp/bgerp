@@ -442,15 +442,15 @@ class planning_ProductionTaskProducts extends core_Detail
         } else {
             $query = self::getQuery();
             $query->where("#taskId = {$taskId}");
-            $query->show('productId,plannedQuantity');
+            //$query->show('productId,plannedQuantity');
             $query->where("#type = '{$type}'");
             if(isset($inputType)){
                 if($inputType != 'actions'){
                     $canStoreVal = ($inputType == 'materials') ? 'yes' : 'no';
                     $query->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
-                    $query->where("#canStore = '{$canStoreVal}'");
+                    $query->where("#canStore = '{$canStoreVal}' AND #indTime IS NULL");
                 } else {
-                    $query->where("1=2");
+                    $query->where("#indTime IS NOT NULL");
                 }
             }
 
@@ -460,7 +460,6 @@ class planning_ProductionTaskProducts extends core_Detail
                         if($now >= $horizon1) continue;
                     } elseif($now >= $horizon2) continue;
                 }
-
                 $options[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
                 $usedProducts[$rec->productId] = $rec->productId;
             }
