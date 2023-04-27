@@ -232,6 +232,7 @@ class bgerp_Setup extends core_ProtoSetup
             'bgerp_Bookmark',
             'bgerp_LastTouch',
             'bgerp_F',
+            'bgerp_Filters',
         );
         
         $instances = array();

@@ -964,49 +964,27 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Добавяне на полета към филтър форма
-     *
-     * @param core_Form $listFilter
-     *
-     * @return void
-     */
-    public static function expandFilter(&$listFilter)
-    {
-        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%,withBatches=С партидност,withoutBatches=Без партидност');
-        if (!core_Packs::isInstalled('eshop')) {
-            unset($orderOptions['eproduct']);
-        }
-        if (!core_Packs::isInstalled('batch')) {
-            unset($orderOptions['withBatches'], $orderOptions['withoutBatches']);
-        }
-        $orderOptions = arr::fromArray($orderOptions);
-        $listFilter->FNC('order', "enum({$orderOptions})", 'caption=Подредба,input,silent,remember,autoFilter');
-        $listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
-        $listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
-
-        $listFilter->view = 'horizontal';
-    }
-    
-    
-    /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        static::expandFilter($data->listFilter);
-        
+        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=cat_Products)", 'caption=Филтри,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
+        $data->listFilter->view = 'horizontal';
+
         $data->listFilter->input(null, 'silent');
-        $defOrder = 'standard';
+        $defOrder = 'public';
         if ($data->listFilter->rec->groupId) {
-            $defOrder = 'all';
+            $defOrder = null;
         }
-        $data->listFilter->setDefault('order', $defOrder);
-        
+        $data->listFilter->setDefault('filters', $defOrder);
+
         $data->listFilter->FNC('type', 'class', 'caption=Вид');
         $classes = core_Classes::getOptionsByInterface('cat_ProductDriverIntf', 'title');
         $data->listFilter->setOptions('type', array('' => '') + $classes);
         
-        $data->listFilter->FNC('meta1', 'enum(all=Свойства,
+        $data->listFilter->FNC('metaFilters', 'enum(all=Свойства,
        							canSell=Продаваеми,
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
@@ -1017,117 +995,187 @@ class cat_Products extends embed_Manager
     							fixedAssetStorable=Дълготрайни материални активи,
     							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
         					    canManifacture=Производими,generic=Генерични)', 'input,autoFilter');
-        $data->listFilter->showFields = 'search,order,type,meta1,groupId,folder';
-        $data->listFilter->input('order,groupId,search,meta1,type,folder', 'silent');
-        
-        // Ако е избран маркер и той е указано да се подрежда по код, сортираме по код
-        $orderBy = 'state';
-        if (!empty($data->listFilter->rec->groupId)) {
-            $gRec = cat_Groups::fetch($data->listFilter->rec->groupId);
-            if ($gRec->orderProductBy == 'code') {
-                $orderBy .= ',code';
-            } else {
-                $orderBy .= ',name';
-            }
-        } else {
-            $orderBy .= ',createdOn=DESC';
-        }
-        
-        if ($data->listFilter->rec->type) {
-            $data->query->where("#innerClass = {$data->listFilter->rec->type}");
-        }
-        
-        switch ($data->listFilter->rec->order) {
-            case 'all':
-                $data->query->orderBy($orderBy);
-                break;
-            case 'private':
-                $data->query->where("#isPublic = 'no'");
-                $data->query->orderBy($orderBy);
-                break;
-            case 'last':
+        $data->listFilter->showFields = 'search,filters,type,metaFilters,groupId,folder';
+        $data->listFilter->input('filters,groupId,search,metaFilters,type,folder', 'silent');
+
+        if($filterRec = $data->listFilter->rec){
+            $filtersArr = bgerp_type_CustomFilter::toArray($filterRec->filters);
+            if(isset($filtersArr['lastAdded'])){
                 $data->query->orderBy('#createdOn=DESC');
-                break;
-            case 'closed':
-                $data->query->where("#state = 'closed'");
-                $data->query->orderBy($orderBy);
-                break;
-            case 'prototypes':
-                $data->query->where("#state = 'template'");
-                break;
-            case 'eproduct':
-                $eProductArr = eshop_Products::getProductsInEshop();
-                if (countR($eProductArr)) {
-                    $data->query->in('id', $eProductArr);
+            } else {
+                // Ако е избран маркер и той е указано да се подрежда по код, сортираме по код
+                $orderBy = 'state';
+                if (!empty($filterRec->groupId)) {
+                    $gRec = cat_Groups::fetch($filterRec->groupId);
+                    if ($gRec->orderProductBy == 'code') {
+                        $orderBy .= ',code';
+                    } else {
+                        $orderBy .= ',name';
+                    }
                 } else {
-                    $data->query->where('1=2');
+                    $orderBy .= ',createdOn=DESC';
                 }
-                break;
-            case 'vat09':
-            case 'vat0':
-                $v = ($data->listFilter->rec->order == 'vat09') ? 0.09 : 0;
-                $products = cat_products_VatGroups::getByVatPercent($v);
-                if (countR($products)) {
-                    $data->query->in('id', $products);
-                } else {
-                    $data->query->where('1=2');
-                }
-                break;
-            case 'withBatches':
-                $productsWithBatches = batch_Items::getProductsWithDefs();
-                if(countR($productsWithBatches)){
-                    $data->query->where("#canStore = 'yes'");
-                    $data->query->in('id', array_keys($productsWithBatches));
-                }
-                break;
-            case 'withoutBatches':
-                $productsWithBatches = batch_Items::getProductsWithDefs();
-                if(countR($productsWithBatches)){
-                    $data->query->where("#canStore = 'yes'");
-                    $data->query->notIn('id', array_keys($productsWithBatches));
-                }
-                break;
-            default:
-                $data->query->where("#isPublic = 'yes' AND #state != 'template' AND #state != 'closed'");
                 $data->query->orderBy($orderBy);
-                break;
-        }
-        
-        // Филтър по свойства
-        if ($data->listFilter->rec->meta1) {
-            switch ($data->listFilter->rec->meta1) {
-                case 'services':
-                    $data->query->where("#canStore = 'no'");
-                    break;
-                case 'fixedAssetStorable':
-                    $data->query->where("#canStore = 'yes' and #fixedAsset = 'yes'");
-                    break;
-                case 'fixedAssetNotStorable':
-                    $data->query->where("#canStore = 'no' and #fixedAsset = 'yes'");
-                    break;
-                case 'canConvertServices':
-                    $data->query->where("#canConvert = 'yes' and #canStore = 'no'");
-                    break;
-                case 'all':
-                    break;
-                default:
-                    $data->query->like('meta', $data->listFilter->rec->meta1);
-                    break;
             }
-        }
 
-        if ($data->listFilter->rec->folder) {
-            $data->query->where("#folderId = {$data->listFilter->rec->folder}");
-        }
+            if ($filterRec->type) {
+                $data->query->where("#innerClass = {$filterRec->type}");
+            }
 
-        if ($data->listFilter->rec->groupId) {
-            $data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groups)");
+            // Филтър по свойства
+            if (!empty($filterRec->metaFilters)) {
+                switch ($filterRec->metaFilters) {
+                    case 'services':
+                        $data->query->where("#canStore = 'no'");
+                        break;
+                    case 'fixedAssetStorable':
+                        $data->query->where("#canStore = 'yes' and #fixedAsset = 'yes'");
+                        break;
+                    case 'fixedAssetNotStorable':
+                        $data->query->where("#canStore = 'no' and #fixedAsset = 'yes'");
+                        break;
+                    case 'canConvertServices':
+                        $data->query->where("#canConvert = 'yes' and #canStore = 'no'");
+                        break;
+                    case 'all':
+                        break;
+                    default:
+                        $data->query->like('meta', $filterRec->metaFilters);
+                        break;
+                }
+            }
+
+            if (!empty($filterRec->folder)) {
+                $data->query->where("#folderId = {$filterRec->folder}");
+            }
+
+            if (!empty($filterRec->groupId)) {
+                $data->query->where("LOCATE('|{$filterRec->groupId}|', #groups)");
+            }
+
+            static::applyAdditionalListFilters($filtersArr, $data->query);
         }
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
-    
-    
+
+
+    /**
+     * Прилагане на разширени филтри от bgerp_Filters
+     *
+     * @param array|string $filtersArr
+     * @param core_Query $query
+     * @return void
+     */
+    public static function applyAdditionalListFilters($filtersArr, &$query)
+    {
+        $filtersArr = is_array($filtersArr) ? $filtersArr : bgerp_type_CustomFilter::toArray($filtersArr);
+        if(!countR($filtersArr)) return;
+
+        $whereArr = array();
+        $wherePartOne = '';
+        if(isset($filtersArr['publicProducts'])){
+            $wherePartOne .= "#isPublic = 'yes'";
+        }
+        if(isset($filtersArr['privateProducts'])){
+            $wherePartOne .= (!empty($wherePartOne) ? ' OR ' : '') . "#isPublic = 'no'";
+        }
+        if(isset($filtersArr['eshopProducts'])) {
+            $eProductArr = eshop_Products::getProductsInEshop();
+            if(countR($eProductArr)){
+                $eProductArrStr = implode(',',  $eProductArr);
+                $wherePartOne .= (!empty($wherePartOne) ? ' OR ' : '') . "#id IN ({$eProductArrStr})";
+            }
+        }
+        if(!empty($wherePartOne)){
+            $whereArr[] = $wherePartOne;
+        }
+
+        $wherePartTwo = '';
+        if(isset($filtersArr['active'])) {
+            $wherePartTwo .= "#state = 'active'";
+        }
+        if(isset($filtersArr['templates'])) {
+            $wherePartTwo .= (!empty($wherePartTwo) ? ' OR ' : '') . "#state = 'template'";
+        }
+        if(isset($filtersArr['closed'])) {
+            $wherePartTwo .= (!empty($wherePartTwo) ? ' OR ' : '') . "#state = 'closed'";
+        }
+        if(!empty($wherePartTwo)){
+            $whereArr[] = $wherePartTwo;
+        }
+
+        if(isset($filtersArr['withBatches']) || isset($filtersArr['withoutBatches'])){
+            $wherePartThree = "#canStore = 'yes'";
+            $productsWithBatches = batch_Items::getProductsWithDefs(false);
+            $productsWithBatchesStr = implode(',', $productsWithBatches);
+
+            if(isset($filtersArr['withBatches']) && !isset($filtersArr['withoutBatches'])){
+                if(!empty($productsWithBatchesStr)){
+                    $wherePartThree .= " AND #id IN ({$productsWithBatchesStr})";
+                } else {
+                    $wherePartThree .= " AND 1=2";
+                }
+            }
+            if(isset($filtersArr['withoutBatches']) && !isset($filtersArr['withBatches'])){
+                if(!empty($productsWithBatchesStr)){
+                    $wherePartThree .= " AND #id NOT IN ({$productsWithBatchesStr})";
+                }
+            }
+            $whereArr[] = $wherePartThree;
+        }
+
+        $wherePartFour = "";
+        if(isset($filtersArr['vat0'])) {
+            $productWithVat = cat_products_VatGroups::getByVatPercent(0);
+            if(countR($productWithVat)){
+                $productWithVatStr = implode(',', $productWithVat);
+                $wherePartFour = "#id IN ({$productWithVatStr})";
+            } else {
+                $wherePartFour = "1=2";
+            }
+        }
+
+        if(isset($filtersArr['vat9'])) {
+            $productWithVat = cat_products_VatGroups::getByVatPercent(0.09);
+            if(countR($productWithVat)){
+                $productWithVatStr = implode(',', $productWithVat);
+                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#id IN ({$productWithVatStr})";
+            } else{
+                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
+            }
+        }
+
+        if(isset($filtersArr['vat20'])) {
+            $productWithWith0And9Vat = cat_products_VatGroups::getByVatPercent(0) + cat_products_VatGroups::getByVatPercent(0.09);
+            if(countR($productWithWith0And9Vat)){
+                $productWithVatStr = implode(',', $productWithWith0And9Vat);
+                $wherePartFour = "#id NOT IN ({$productWithVatStr})";
+            } else {
+                $wherePartFour = "1=2";
+            }
+        }
+
+        if(!empty($wherePartFour)){
+            $whereArr[] = $wherePartFour;
+        }
+
+        $wherePartFive = '';
+        foreach (array('reservedQuantity' => 'reservedQuantity', 'expectedQuantity' => 'expectedQuantity', 'freeQuantity' => 'free') as $filter => $field){
+            if(isset($filtersArr[$filter])) {
+                $wherePartFive = (!empty($wherePartFive) ? ' OR ' : '') . "#{$field} IS NOT NULL";
+            }
+        }
+        if(!empty($wherePartFive)){
+            $whereArr[] = $wherePartFive;
+        }
+
+        foreach ($whereArr as $where){
+            $query->where($where);
+        }
+    }
+
+
     /**
      * Перо в номенклатурите, съответстващо на този продукт
      *
