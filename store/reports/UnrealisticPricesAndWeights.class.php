@@ -143,7 +143,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         if($pQuery->count() == 0){
             return $recs;
         }
-//bp($pQuery->count());
+
         $transportVolumeParamId = cat_Params::force('transportVolume', 'transportVolume', 'varchar', null, '');
         $transportWeightParamId = cat_Params::force('transportWeight', 'transportWeight', 'varchar', null, '');
         $prodWeightParamId = cat_Params::force('weight', 'weight', 'varchar', null, '');
@@ -172,7 +172,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->in('productId',array_keys($prodsRecArr) );
         $packRecs = $packQuery->fetchAll();
-
+bp(countR($packRecs));
         foreach ($packRecs as $pack){
             $key = $pack->productId.'|'.$pack->packagingId;
             $packRecArr[$key] = $pack;
