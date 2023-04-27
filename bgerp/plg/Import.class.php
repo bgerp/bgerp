@@ -283,8 +283,10 @@ class bgerp_plg_Import extends core_Plugin
 
                     $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,TRUE, FALSE, '{$caption}', '{$nameEsc}')");
                 } elseif(isset($fld['default'])){
-
                     $exp->ASSUME("#col{$name}", "setdefault('{$fld['default']}')");
+                    if(isset($fld['options'])){
+                        $exp->OPTIONS("#col{$name}", $fld['options']);
+                    }
                 } elseif(isset($fld['suggestions'])){
                     $exp->SUGGESTIONS("#col{$name}", $fld['suggestions']);
                 }
