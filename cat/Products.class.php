@@ -968,7 +968,7 @@ class cat_Products extends embed_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=cat_Products)", 'caption=Филтри,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=cat_Products)", 'caption=Филтри,input,silent,remember,autoFilter,row=2');
         $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
         $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
         $data->listFilter->view = 'horizontal';
@@ -983,20 +983,8 @@ class cat_Products extends embed_Manager
         $data->listFilter->FNC('type', 'class', 'caption=Вид');
         $classes = core_Classes::getOptionsByInterface('cat_ProductDriverIntf', 'title');
         $data->listFilter->setOptions('type', array('' => '') + $classes);
-        
-        $data->listFilter->FNC('metaFilters', 'enum(all=Свойства,
-       							canSell=Продаваеми,
-                                canBuy=Купуваеми,
-                                canStore=Складируеми,
-    							services=Услуги,
-                                canConvert=Вложими,
-    							canConvertServices=Вложими услуги,
-                                fixedAsset=Дълготрайни активи,
-    							fixedAssetStorable=Дълготрайни материални активи,
-    							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
-        					    canManifacture=Производими,generic=Генерични)', 'input,autoFilter');
-        $data->listFilter->showFields = 'search,filters,type,metaFilters,groupId,folder';
-        $data->listFilter->input('filters,groupId,search,metaFilters,type,folder', 'silent');
+        $data->listFilter->showFields = 'search,filters,type,groupId,folder';
+        $data->listFilter->input('filters,groupId,search,type,folder', 'silent');
 
         if($filterRec = $data->listFilter->rec){
             $filtersArr = bgerp_type_CustomFilter::toArray($filterRec->filters);
@@ -1020,29 +1008,6 @@ class cat_Products extends embed_Manager
 
             if ($filterRec->type) {
                 $data->query->where("#innerClass = {$filterRec->type}");
-            }
-
-            // Филтър по свойства
-            if (!empty($filterRec->metaFilters)) {
-                switch ($filterRec->metaFilters) {
-                    case 'services':
-                        $data->query->where("#canStore = 'no'");
-                        break;
-                    case 'fixedAssetStorable':
-                        $data->query->where("#canStore = 'yes' and #fixedAsset = 'yes'");
-                        break;
-                    case 'fixedAssetNotStorable':
-                        $data->query->where("#canStore = 'no' and #fixedAsset = 'yes'");
-                        break;
-                    case 'canConvertServices':
-                        $data->query->where("#canConvert = 'yes' and #canStore = 'no'");
-                        break;
-                    case 'all':
-                        break;
-                    default:
-                        $data->query->like('meta', $filterRec->metaFilters);
-                        break;
-                }
             }
 
             if (!empty($filterRec->folder)) {
@@ -1168,6 +1133,31 @@ class cat_Products extends embed_Manager
         }
         if(!empty($wherePartFive)){
             $whereArr[] = $wherePartFive;
+        }
+
+        $wherePartSix = '';
+        foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'generic') as $meta){
+            if(isset($filtersArr[$meta])) {
+                $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "#{$meta} = 'yes'";
+            }
+        }
+        if(isset($filtersArr['services'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "#canStore = 'no'";
+        }
+        if(isset($filtersArr['fixedAssetStorable'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "(#canStore = 'yes' AND #fixedAsset = 'yes')";
+        }
+        if(isset($filtersArr['fixedAssetNotStorable'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "(#canStore = 'no' and #fixedAsset = 'yes')";
+        }
+        if(isset($filtersArr['canConvertServices'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "(#canConvert = 'yes' and #canStore = 'no')";
+        }
+        if(isset($filtersArr['canConvertMaterials'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "(#canConvert = 'yes' and #canStore = 'yes')";
+        }
+        if(!empty($wherePartSix)){
+            $whereArr[] = $wherePartSix;
         }
 
         foreach ($whereArr as $where){
