@@ -968,7 +968,7 @@ class cat_Products extends embed_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=cat_Products)", 'caption=Филтри,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=cat_Products)", 'caption=Филтри,input,silent,remember,autoFilter,row=2');
         $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
         $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
         $data->listFilter->view = 'horizontal';
