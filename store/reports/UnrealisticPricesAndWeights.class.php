@@ -140,13 +140,14 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             core_App::setTimeLimit($timeLimit);
         }
 
-        $zeroProd = array();
-
+        if($pQuery->count() == 0){
+            return $recs;
+        }
+//bp($pQuery->count());
         $transportVolumeParamId = cat_Params::force('transportVolume', 'transportVolume', 'varchar', null, '');
         $transportWeightParamId = cat_Params::force('transportWeight', 'transportWeight', 'varchar', null, '');
         $prodWeightParamId = cat_Params::force('weight', 'weight', 'varchar', null, '');
         $prodWeightKgParamId = cat_Params::force('weightKg', 'weight', 'varchar', null, '');
-       // bp($pQuery->fetchAll());
 
         if ($rec->storeOrCreatProducts == 'createdProds') {
             //Масив от Rec-овете на създадените през периода продукти
@@ -182,7 +183,10 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             $productId = $pRec->id;
 
             $Driver = cat_Products::getDriver($productId);
-            if ($Driver instanceof eprod_proto_Product) {
+
+
+            if ($Driver instanceof eprod_proto_Product) { bp($Driver);
+
                 $material = $Driver->getLabelProduct($pRec);
                 list($driverName) = explode('|', $Driver->singleTitle);
             }
