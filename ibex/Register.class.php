@@ -130,7 +130,9 @@ class ibex_Register extends core_Manager
     }
 
 
-
+    /**
+     * Извлича цените от страницата на IBEX
+     */
     private function retrieve2($date)
     {
         static $text;
@@ -165,6 +167,7 @@ class ibex_Register extends core_Manager
 
 
     /**
+     * Остарял вариант!
      * Осъществява извличането на данните
      */
     private function retrieve($date)

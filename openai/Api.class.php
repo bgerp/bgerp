@@ -176,7 +176,7 @@ class openai_Api
                     curl_setopt($curl, CURLOPT_POSTFIELDS, @json_encode($params));
                 }
 
-                curl_setopt($curl, CURLOPT_TIMEOUT_MS, 7000);
+                curl_setopt($curl, CURLOPT_TIMEOUT_MS, 12000);
 
                 core_Debug::startTimer('OPENAI_EXEC');
 
