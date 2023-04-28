@@ -139,9 +139,9 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             $incomingMailsCount[$shRec->folderId] = $mInQuery->count();
 
             //Изходящи имейли през пасивния период
-            $mOutQuery = email_Incomings::getQuery();
+            $mOutQuery = email_Outgoings::getQuery();
             $mOutQuery->where("#folderId = $shRec->folderId");
-            $mOutQuery->where("#date >= '$passivePeriodStart'");
+            $mOutQuery->where("#createdOn >= '$passivePeriodStart'");
             $outgoingMailsCount[$shRec->folderId] = $mOutQuery->count();
 
             //филтър по дилър
