@@ -140,7 +140,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             core_App::setTimeLimit($timeLimit);
         }
 
-        if($pQuery->count() == 0){
+        if ($pQuery->count() == 0) {
             return $recs;
         }
 
@@ -177,6 +177,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             $key = $pack->productId.'|'.$pack->packagingId;
             $packRecArr[$key] = $pack;
         }
+
+        Mode::push('doNotCalculate',true); //Изключва преизчисляването на параметрите
 
         foreach ($prodsRecArr as $pRec) {
 
@@ -270,6 +272,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             unset($Driver, $driverName, $material);
 
         }
+
+        Mode::pop('doNotCalculate');
 
         if (!empty($recs)) {
 
