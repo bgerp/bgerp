@@ -126,7 +126,7 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
 
             // Създава се МО с детайлите
             $folderId = store_Stores::forceCoverAndFolder($storeId);
-            $articleRec = (object)array('valior' => $valior, 'reason' => 'Импортирани начални салда', 'folderId' => $folderId);
+            $articleRec = (object)array('valior' => $valior, 'reason' => 'Импортиране на начални салда', 'folderId' => $folderId);
             $articleId = acc_Articles::save($articleRec);
             foreach ($details as $detailRec){
                 $detailRec->articleId = $articleId;
