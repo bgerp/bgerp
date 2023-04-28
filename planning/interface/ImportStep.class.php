@@ -32,15 +32,6 @@ class planning_interface_ImportStep extends bgerp_BaseImporter
 
 
     /**
-     * Инициализиране драйвъра
-     */
-    public function init($params = array())
-    {
-        $this->mvc = $params['mvc'];
-    }
-
-
-    /**
      * Функция, връщаща полетата в които ще се вкарват данни
      * в мениджъра-дестинация
      * Не връща полетата които са hidden, input=none,enum,key и keylist
