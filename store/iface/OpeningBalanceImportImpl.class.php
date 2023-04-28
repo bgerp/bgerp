@@ -71,7 +71,7 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
 
         $Double = core_Type::getByName('double');
         $wrongQuantities = $wrongAmounts = $skipped = 0;
-        $notFountProducts = $details = $toCsv = array();
+        $notFountProducts = $details = $toCsv = $errorCsv = array();
         $productListId = acc_Lists::fetchBySystemId('catProducts')->id;
         $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
         $debitAccId = acc_Accounts::getRecBySystemId('321')->id;
@@ -80,6 +80,7 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
             $code = $csvRow[$fields['code']];
             $quantityVerbal = $csvRow[$fields['quantity']];
             $amountVerbal = $csvRow[$fields['amount']];
+            $errors = array();
 
             $add = true;
             $rec = new stdClass();
@@ -90,6 +91,7 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
             } else {
                 $notFountProducts[$code] = $code;
                 $add = false;
+                $errors[] = "Неразпознат код";
             }
 
             $quantityVerbal = $quantityVerbal ?? 1;
@@ -102,10 +104,12 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
                 } else {
                     $wrongAmounts++;
                     $add = false;
+                    $errors[] = "Грешна сума";
                 }
             } else {
                 $wrongQuantities++;
                 $add = false;
+                $errors[] = "Грешно количество";
             }
 
             $rec->creditAccId = $creditAccId;
@@ -115,6 +119,7 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
                 $details[] = $rec;
             } else {
                 $skipped++;
+                $errorCsv[] = (object)array('code' => $code, 'quantity' => $quantityVerbal, 'amount' => $amountVerbal, 'errors' => implode(', ', $errors));
             }
             $toCsv[] = (object)array('code' => $code, 'quantity' => $quantityVerbal, 'amount' => $amountVerbal);
         }
@@ -147,6 +152,15 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
             $fileHnd = fileman::absorbStr($csv, 'exportFiles', $fileName);
             $fileId = fileman::fetchByFh($fileHnd, 'id');
             doc_Linked::add($articleRec->containerId, $fileId, 'doc', 'file');
+
+            if(countR($errorCsv)){
+                $csvFields->FLD('errors', 'varchar', 'caption=Грешка');
+                $errorCsv = csv_Lib::createCsv($errorCsv, $csvFields);
+                $fileName = 'ErrOpeningBalances.csv';
+                $fileHnd = fileman::absorbStr($errorCsv, 'exportFiles', $fileName);
+                $fileId = fileman::fetchByFh($fileHnd, 'id');
+                doc_Linked::add($articleRec->containerId, $fileId, 'doc', 'file');
+            }
         }
 
         $msg .= "|Импортирани артикули|*: {$countDetails}, |Пропуснати|*:{$skipped}. ";
