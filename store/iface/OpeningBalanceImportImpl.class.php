@@ -94,11 +94,11 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
 
             $quantityVerbal = $quantityVerbal ?? 1;
             if($quantity = $Double->fromVerbal($quantityVerbal)){
-                $rec->debitQuantity = $rec->creditQuantity = $quantity;
+                $rec->debitQuantity = $quantity;
 
                 if($amount = $Double->fromVerbal($amountVerbal)){
                     $rec->amount = $amount;
-                    $rec->debitPrice = $rec->creditPrice = $rec->amount / $quantity;
+                    $rec->debitPrice = $rec->amount / $quantity;
                 } else {
                     $wrongAmounts++;
                     $add = false;
