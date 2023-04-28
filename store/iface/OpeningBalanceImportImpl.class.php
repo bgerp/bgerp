@@ -49,7 +49,7 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
         $fields['amount'] = array('caption' => 'Сума', 'mandatory' => 'mandatory');
 
         $fields['storeId'] = array('caption' => 'Уточнения->Склад', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => 'key(mvc=store_Stores,select=name,allowEmpty)', 'default' => store_Stores::getCurrent('id', false));
-        $fields['valior'] = array('caption' => 'Уточнения->Вальор', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => 'date', 'default' => dt::today());
+        $fields['valior'] = array('caption' => 'Уточнения->Вальор', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => 'date');
 
         return $fields;
     }
