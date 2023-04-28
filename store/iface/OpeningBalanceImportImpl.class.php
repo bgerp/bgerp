@@ -87,7 +87,13 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
             $rec->debitAccId = $debitAccId;
             $rec->debitEnt1 = $storeItemId;
             if($pRec = cat_Products::getByCode($code)){
-                $rec->debitEnt2 = acc_Items::force(cat_Products::getClassId(), $pRec->productId, $productListId);
+                $canStore = cat_Products::fetchField($pRec->productId, "canStore");
+                if($canStore == 'yes'){
+                    $rec->debitEnt2 = acc_Items::force(cat_Products::getClassId(), $pRec->productId, $productListId);
+                } else {
+                    $add = false;
+                    $errors[] = "Не е складируем";
+                }
             } else {
                 $notFountProducts[$code] = $code;
                 $add = false;
@@ -104,17 +110,16 @@ class store_iface_OpeningBalanceImportImpl extends core_Manager
                 } else {
                     $wrongAmounts++;
                     $add = false;
-                    $errors[] = "Грешна сума";
+                    $errors[] = "Невалидна сума";
                 }
             } else {
                 $wrongQuantities++;
                 $add = false;
-                $errors[] = "Грешно количество";
+                $errors[] = "Невалидно количество";
             }
 
             $rec->creditAccId = $creditAccId;
             $rec->reason = 'Начално салдо';
-
             if($add){
                 $details[] = $rec;
             } else {
