@@ -1768,7 +1768,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     $countSbds = bank_SpendingDocuments::count("#threadId = {$dRec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
 
                     // Ако има се прилага условието за датите
-                    if(!$countRko && !$countSbds){
+                    if($countRko || $countSbds){
                         if(!($day >= $accDay && $dRec->threadModifiedOn <= $firstDayOfMonth)) continue;
                     }
                 }
