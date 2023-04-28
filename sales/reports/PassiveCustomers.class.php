@@ -118,7 +118,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
 
-        $recs = $shipmentActivContragents = $shipmentPassActivContragents = array();
+        $recs = $shipmentActivContragents = $shipmentPassActivContragents = $incomingMailsCount = $outgoingMailsCount = array();
 
         $passivePeriodStart = dt::addSecs(-$rec->periodPassive, dt::today(), false);
         $activePeriodStart = dt::addSecs(-$rec->periodActive, $passivePeriodStart, false);
@@ -131,6 +131,18 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         while ($shRec = $shQuery->fetch()) {
 
             $id = $shRec->folderId;
+
+            //Входящи имейли през пасивния период
+            $mInQuery = email_Incomings::getQuery();
+            $mInQuery->where("#folderId = $shRec->folderId");
+            $mInQuery->where("#date >= '$passivePeriodStart'");
+            $incomingMailsCount[$shRec->folderId] = $mInQuery->count();
+
+            //Изходящи имейли през пасивния период
+            $mOutQuery = email_Outgoings::getQuery();
+            $mOutQuery->where("#folderId = $shRec->folderId");
+            $mOutQuery->where("#createdOn >= '$passivePeriodStart'");
+            $outgoingMailsCount[$shRec->folderId] = $mOutQuery->count();
 
             //филтър по дилър
             if ($rec->dealers){
@@ -156,6 +168,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
                         'folderId' => $shRec->folderId,
                         'amountDelivered' => $shRec->amountDelivered,
                         'numberOfSales' => 1,
+                        'numberOfInMails' => $incomingMailsCount,
+                        'numberOfOutMails' => $outgoingMailsCount,
                     );
                 } else {
                     $obj = &$shipmentActivContragents[$id];
@@ -206,6 +220,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
                         'folderId' => $salRec->folderId,
                         'amountDelivered' => $salRec->amountDelivered,
                         'numberOfSales' => 1,
+                        'numberOfInMails' => $incomingMailsCount,
+                        'numberOfOutMails' => $outgoingMailsCount,
                     );
                 } else {
                     $obj = &$shipmentActivContragents[$id];
@@ -269,8 +285,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('activSalesNumber', 'int', 'caption=Активен продажби->Брой');
             $fld->FLD('activSalesAmount', 'double(decimals=2)', 'caption=Активен продажби->Стойност');
-            $fld->FLD('passivMailsIn', 'varchar', 'caption=Пасивен Писма->Входящи');
-            $fld->FLD('passivMailsOut', 'varchar', 'caption=Пасивен Писма->Изходяши');
+            $fld->FLD('passivMailsIn', 'int', 'caption=Пасивен Писма->Входящи');
+            $fld->FLD('passivMailsOut', 'int', 'caption=Пасивен Писма->Изходяши');
 
         } else {
 
@@ -306,6 +322,10 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $row->activSalesNumber = $Int->toVerbal($dRec->numberOfSales);
 
         $row->activSalesAmount = $Double->toVerbal($dRec->amountDelivered);
+
+        $row->passivMailsIn = $Int->toVerbal($dRec->numberOfInMails[$dRec->folderId]);
+
+        $row->passivMailsOut = $Int->toVerbal($dRec->numberOfOutMails[$dRec->folderId]);
 
 
         return $row;
