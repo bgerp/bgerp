@@ -585,19 +585,18 @@ class csv_Lib
      */
     public static function getCsvRowsFromFile($csvData, $params = array())
     {
-        list($handle, $params['delimiter'], $params['enclosure'], $params['firstRow']) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
-        
+        list($handle, $params['delimiter'], $params['enclosure'], $autoFirstRow) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
+
         if ($params['delimiter'] === null) {
             $params['delimiter'] = chr(0);
         }
         if ($params['enclosure'] === null) {
             $params['enclosure'] = chr(1);
         }
-        
+
         setIfNot($params['length'], 0);
-        
         setIfNot($params['escape'], '\\');
-        setIfNot($params['firstRow'], 'columnNames');
+        setIfNot($params['firstRow'], $autoFirstRow, 'columnNames');
         setIfNot($params['check'], true);
         setIfNot($params['skip'], '#');
         

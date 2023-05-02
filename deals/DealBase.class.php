@@ -924,33 +924,9 @@ abstract class deals_DealBase extends core_Master
 
         // Рекалкулиране на определени документи в нишката и
         $dealDocuments = $this->getDescendants($rec->id);
-
-        $paymentDocumentClasses = array(cash_Rko::getClassId(), cash_Pko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
-        $arr = array('cash_Rko', 'cash_Pko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_DebitDocuments', 'findeals_CreditDocuments', 'store_ShipmentOrders', 'store_Receipts', 'sales_Services', 'purchase_Services', 'sales_Invoices', 'purchase_Invoices', 'acc_ValueCorrections');
+        $arr = array('store_ShipmentOrders', 'store_Receipts', 'sales_Services', 'purchase_Services', 'sales_Invoices', 'purchase_Invoices', 'acc_ValueCorrections');
         foreach ($dealDocuments as $d) {
-            if (!in_array($d->className, $arr)) {
-                continue;
-            }
-
-            if($d->isInstanceOf('deals_PaymentDocument')){
-                $docRec = $d->fetch('isReverse,operationSysId,amount,amountDeal');
-
-                if($this->className == 'sales_Sales'){
-                    if(in_array($d->className, array('cash_Pko', 'bank_IncomeDocuments'))){
-                        continue;
-                    } elseif(in_array($d->className, array('cash_Rko', 'bank_SpendingDocuments'))){
-                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
-                        if(in_array($docRec->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer'))) continue;
-                    }
-                } elseif($this->className == 'purchase_Purchases'){
-                    if(in_array($d->className, array('cash_Rko', 'bank_SpendingDocuments'))){
-                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
-                    } elseif(in_array($d->className, array('cash_Pko', 'bank_IncomeDocuments'))){
-                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
-                        if(in_array($docRec->operationSysId, array('supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'))) continue;
-                    }
-                }
-            }
+            if (!in_array($d->className, $arr)) continue;
 
             // Ако вальора е в затворен период - пропуска се
             $valior = $d->fetchField($d->valiorFld);

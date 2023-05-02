@@ -55,7 +55,7 @@ class bgerp_BaseImporter extends core_Manager
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
             }
         }
-        
+
         $this->mvc->invoke('AfterPrepareImportFields', array(&$fields));
         
         return $fields;
@@ -89,7 +89,7 @@ class bgerp_BaseImporter extends core_Manager
         $oFields = $this->getFields();
         
         $errArr = array();
-        
+
         foreach ($rows as $row) {
             $rec = new stdClass();
             
@@ -111,7 +111,7 @@ class bgerp_BaseImporter extends core_Manager
                     }
                 }
             }
-            
+
             // Ако записа е уникален, създаваме нов, ако не е обновяваме стария
             $fieldsUn = array();
 

@@ -1730,8 +1730,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $query->where('#minDelivered <= #deliveredRound');
         
         // На които треда им не е променян от определено време
-        $query->where("(((#currencyId = 'BGN' OR #currencyId = 'EUR') AND #threadModifiedOn <= '{$oldBefore}') OR (#currencyId != 'BGN' AND #currencyId != 'EUR' AND {$day} >= {$accDay} AND #threadModifiedOn <= '{$firstDayOfMonth}'))");
-
         // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс или да е NULL
         $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
         $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
@@ -1757,6 +1755,24 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $count = 0;
         foreach ($foundDealsArr as $dRec){
+            if($this instanceof purchase_Purchases){
+
+                // Ако левова сделка модифицирана след подаденото време или е валутна и не отговаря на условията за датите се пропуска
+                if(!(($dRec->currencyId == 'BGN' && $dRec->threadModifiedOn <= $oldBefore) || ($dRec->currencyId != 'BGN' && $day >= $accDay && $dRec->threadModifiedOn <= $firstDayOfMonth))) continue;
+            } else {
+                if($dRec->currencyId == 'BGN' && $dRec->threadModifiedOn > $oldBefore) continue;
+                if($dRec->currencyId != 'BGN'){
+
+                    // Ако е валутна продажба, проверява се има ли активни обратни документи в нея
+                    $countRko = cash_Rko::count("#threadId = {$dRec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
+                    $countSbds = bank_SpendingDocuments::count("#threadId = {$dRec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
+
+                    // Ако има се прилага условието за датите
+                    if($countRko || $countSbds){
+                        if(!($day >= $accDay && $dRec->threadModifiedOn <= $firstDayOfMonth)) continue;
+                    }
+                }
+            }
 
             // Ако в нишката на сделката има контиращ документ на заявка/чернова
             if(array_key_exists($dRec->threadId, $threadsWithPendingAndDraftDocuments)){

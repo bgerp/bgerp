@@ -1173,9 +1173,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviation);
                             $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? ' (критично!!)' : ($iconHint == 'warning' ? ' (значително!)' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
-                            $msg = "|*{$deviationVerbal} |разминаване|*{$hintMsg}<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!";
+                            $msg = "|*{$deviationVerbal} |разминаване|*{$hintMsg}&lt;br&gt;|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!";
                             if(haveRole('debug')){
-                                $msg .= "<br><br>debug info:<br>NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$qInPack}-Q:{$rec->quantity}";
+                                $msg .= "&lt;br&gt;&lt;br&gt;debug info:&lt;br&gt;NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$qInPack}-Q:{$rec->quantity}";
                             }
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
                         }

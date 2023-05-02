@@ -140,7 +140,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             core_App::setTimeLimit($timeLimit);
         }
 
-        if($pQuery->count() == 0){
+        if ($pQuery->count() == 0) {
             return $recs;
         }
 
@@ -152,14 +152,14 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         if ($rec->storeOrCreatProducts == 'createdProds') {
             //Масив от Rec-овете на създадените през периода продукти
             $prodsRecArr = $pQuery->fetchAll();
-        }else{
+        } else {
 
             //Масив с productId-тата на артикулите от store_Products
             $prodsStoreArr = arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
 
             $prodQuery = cat_Products::getQuery();
 
-            $prodQuery->in('id',$prodsStoreArr);
+            $prodQuery->in('id', $prodsStoreArr);
 
             //Масив от Rec-овете на засклажданите през периода продукти
             $prodsRecArr = $prodQuery->fetchAll();
@@ -170,19 +170,22 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         //Rec-ове на пакетажите по артикули
         $packQuery = cat_products_Packagings::getQuery();
-        $packQuery->in('productId',array_keys($prodsRecArr) );
+        $packQuery->in('productId', array_keys($prodsRecArr));
         $packRecs = $packQuery->fetchAll();
-//bp(countR($packRecs));
-        foreach ($packRecs as $pack){
-            $key = $pack->productId.'|'.$pack->packagingId;
+
+        foreach ($packRecs as $pack) {
+            $key = $pack->productId . '|' . $pack->packagingId;
             $packRecArr[$key] = $pack;
         }
+
+        Mode::push('doNotCalculate',true); //Изключва преизчисляването на параметрите
 
         foreach ($prodsRecArr as $pRec) {
 
             $productId = $pRec->id;
 
             $Driver = cat_Products::getDriver($productId);
+
             if ($Driver instanceof eprod_proto_Product) {
                 $material = $Driver->getLabelProduct($pRec);
                 list($driverName) = explode('|', $Driver->singleTitle);
@@ -191,7 +194,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             $prodTransWeight = $prodTransVolume = $realProdVol = $realProdWeight = $deviation = $deviationDensity = 0;
             $packVolume = $realPackTara = 0;
 
-            $key = $productId.'|'.$uomRec->id;
+            $key = $productId . '|' . $uomRec->id;
             $packRec = $packRecArr[$key];
 
             //Обем на кашона в куб.м.
@@ -270,6 +273,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             unset($Driver, $driverName, $material);
 
         }
+
+        Mode::pop('doNotCalculate');
 
         if (!empty($recs)) {
 
