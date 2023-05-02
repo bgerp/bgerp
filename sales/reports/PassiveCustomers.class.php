@@ -118,54 +118,150 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
 
-        $recs = $shipmentContragents = array();
+        $recs = $shipmentActivContragents = $shipmentPassActivContragents = $incomingMailsCount = $outgoingMailsCount = array();
 
         $passivePeriodStart = dt::addSecs(-$rec->periodPassive, dt::today(), false);
         $activePeriodStart = dt::addSecs(-$rec->periodActive, $passivePeriodStart, false);
 
-        //Определяме контрагентите  с продажби в периода на активност
+        //Определяме контрагентите  с експедиции в периода на активност и периода на пасивност
         $shQuery = store_ShipmentOrders::getQuery();
         $shQuery->in('state', array('rejected', 'draft'), true);
-        $shQuery->where("#valior >= '$activePeriodStart' AND #valior < '$passivePeriodStart'");
+        $shQuery->where("#valior >= '$activePeriodStart'");
 
         while ($shRec = $shQuery->fetch()) {
 
             $id = $shRec->folderId;
 
-            // $shipmentContragents масив клиенти, които имат експедиции в активния период
-            // и обща та стойност на експедициите в този период
-            if (!array_key_exists($id, $shipmentContragents)) {
-                $shipmentContragents[$id] = (object)array(
-                    'folderId' => $shRec->folderId,
-                    'amountDelivered' => $shRec->amountDelivered,
-                );
-            }else {
-                $obj = &$shipmentContragents[$id];
-                $obj->amountDelivered += $shRec->amountDelivered;
+            //Входящи имейли през пасивния период
+            $mInQuery = email_Incomings::getQuery();
+            $mInQuery->where("#folderId = $shRec->folderId");
+            $mInQuery->where("#date >= '$passivePeriodStart'");
+            $incomingMailsCount[$shRec->folderId] = $mInQuery->count();
+
+            //Изходящи имейли през пасивния период
+            $mOutQuery = email_Outgoings::getQuery();
+            $mOutQuery->where("#folderId = $shRec->folderId");
+            $mOutQuery->where("#createdOn >= '$passivePeriodStart'");
+            $outgoingMailsCount[$shRec->folderId] = $mOutQuery->count();
+
+            //филтър по дилър
+            if ($rec->dealers){
+               $docDealer = doc_Threads::getFirstDocument($shRec->threadId)->fetch()->dealerId;
+               if(!in_array($docDealer,keylist::toArray($rec->dealers))) continue;
+            }
+
+
+            //филтър по група на контрагента на експедицията
+            if ($rec->crmGroup) {
+                $checkContragentsGroups = keylist::toArray($rec->crmGroup);
+                $contragentsGroups = keylist::toArray(doc_Folders::getContragentData($shRec->folderId)->groupList);
+
+                if (countR(array_intersect($checkContragentsGroups, $contragentsGroups)) == 0) continue;
+
+            }
+
+            //отделяме експедициите с вальор преди началото на пасивния период и записваме
+            // $shipmentActivContragents масив активни клиенти(които имат експедиции в активния период)
+            if ($shRec->valior < $passivePeriodStart) {
+                if (!array_key_exists($id, $shipmentActivContragents)) {
+                    $shipmentActivContragents[$id] = (object)array(
+                        'folderId' => $shRec->folderId,
+                        'amountDelivered' => $shRec->amountDelivered,
+                        'numberOfSales' => 1,
+                        'numberOfInMails' => $incomingMailsCount,
+                        'numberOfOutMails' => $outgoingMailsCount,
+                    );
+                } else {
+                    $obj = &$shipmentActivContragents[$id];
+                    $obj->amountDelivered += $shRec->amountDelivered;
+                    $obj->numberOfSales++;
+                }
+            }
+
+            //отделяме експедициите с вальор след началото на пасивния период и записваме
+            // $shipmentPassActivContragents масив клиенти, които имат експедиции в пасивния период
+            if ($shRec->valior >= $passivePeriodStart && $shRec->amountDelivered > 0) {
+
+                $shipmentPassActivContragents[$shRec->folderId] = $shRec->folderId;
+
             }
         }
 
-        //От  масива $shipmentContragents, изключваме онези с продажби под определения праг
-        foreach ($shipmentContragents as $val){
+        //Добавяне на експедициите от БЪРЗИ ПРОДАЖБИ
+        $salQuery = sales_Sales::getQuery();
+        $salQuery->in('state', array('rejected', 'draft'), true);
+        $salQuery->like('contoActions', 'ship');
+        $salQuery->where("#valior >= '$activePeriodStart'");
 
-            if($val->amountDelivered < $rec->minShipment){
-               unset($shipmentContragents[$val->folderId]);
+        while ($salRec = $salQuery->fetch()) {
+
+            $id = $salRec->folderId;
+
+            //филтър по дилър
+            if ($rec->dealers){
+                if(!in_array($salRec->dealerId,keylist::toArray($rec->dealers))) continue;
             }
 
+            //филтър по група на контрагента на бързата продажба
+            if ($rec->crmGroup) {
+
+                $checkContragentsGroups = keylist::toArray($rec->crmGroup);
+                $contragentsGroups = keylist::toArray(doc_Folders::getContragentData($salRec->folderId)->groupList);
+
+                if (countR(array_intersect($checkContragentsGroups, $contragentsGroups)) == 0) continue;
+
+            }
+
+            //отделяме бързите продажби с вальор преди началото на пасивния период и записваме
+            // $shipmentActivContragents масив активни клиенти(които имат бързи продажби в активния период)
+            if ($salRec->valior < $passivePeriodStart) {
+                if (!array_key_exists($id, $shipmentActivContragents)) {
+                    $shipmentActivContragents[$id] = (object)array(
+                        'folderId' => $salRec->folderId,
+                        'amountDelivered' => $salRec->amountDelivered,
+                        'numberOfSales' => 1,
+                        'numberOfInMails' => $incomingMailsCount,
+                        'numberOfOutMails' => $outgoingMailsCount,
+                    );
+                } else {
+                    $obj = &$shipmentActivContragents[$id];
+                    $obj->amountDelivered += $salRec->amountDelivered;
+                    $obj->numberOfSales++;
+                }
+            }
+
+            //отделяме бързите продажби с вальор след началото на пасивния период и записваме в
+            // $shipmentPassActivContragents масив клиенти, които имат бързи продажби в пасивния период
+            if ($shRec->valior >= $passivePeriodStart && $salRec->amountDelivered > 0) {
+
+                $shipmentPassActivContragents[$salRec->folderId] = $salRec->folderId;
+
+            }
         }
 
-        //Определяне на контрагентите с нулеви предажби през пасивния период
-        $shQuery = store_ShipmentOrders::getQuery();
-        $shQuery->in('folderId',array_keys($shipmentContragents));
-        $shQuery->in('state', array('rejected', 'draft'), true);
-        $shQuery->where("#valior >= '$passivePeriodStart'");
 
-        bp($shQuery->fetchAll());
+        //Ako избрания праг за стойност на експедициите през активния период не е нула
+        //От  масива $shipmentActivContragents, изключваме онези с продажби под определения праг
+        if ($rec->minShipment != 0 && (countR($shipmentActivContragents) > 0)) {
 
-        bp($shipmentContragents,doc_Folders::fetch(44528));
+            foreach ($shipmentActivContragents as $val) {
 
+                if ($val->amountDelivered < $rec->minShipment) {
+                    unset($shipmentActivContragents[$val->folderId]);
+                }
+            }
+        }
 
-        bp($passiveDateEnd, $activeDateEnd, $rec);
+        //Определяне на контрагентите с нулеви предажби през пасивния период и
+        //влизащи в масива на активните клиенти
+        foreach ($shipmentActivContragents as $key => $val) {
+
+            if (!in_array($key, $shipmentPassActivContragents)) {
+
+                $recs[$key] = $val;
+            }
+        }
+
         return $recs;
     }
 
@@ -187,6 +283,10 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         if ($export === false) {
             $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
+            $fld->FLD('activSalesNumber', 'int', 'caption=Активен продажби->Брой');
+            $fld->FLD('activSalesAmount', 'double(decimals=2)', 'caption=Активен продажби->Стойност');
+            $fld->FLD('passivMailsIn', 'int', 'caption=Пасивен Писма->Входящи');
+            $fld->FLD('passivMailsOut', 'int', 'caption=Пасивен Писма->Изходяши');
 
         } else {
 
@@ -195,39 +295,6 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         }
 
         return $fld;
-    }
-
-
-    /**
-     * Връща контрагента
-     *
-     * @param stdClass $dRec
-     * @param bool $verbal
-     *
-     * @return mixed $dueDate
-     */
-    private static function getContragent($dRec, $verbal = true, $rec)
-    {
-        if ($verbal === true) {
-            if ($dRec->contragentId) {
-                $contragentClassName = $dRec->contragentClassName;
-                try {
-                    $contragent = $contragentClassName::getShortHyperlink($dRec->contragentId);
-                } catch (Exception $e) {
-                    reportException($e);
-                }
-            }
-        } else {
-            if ($dRec->contragentId) {
-
-                $contragentClassName = $dRec->contragentClassName;
-
-                $contragent = $contragentClassName::getTitleById($dRec->contragentId, false);
-
-            }
-        }
-
-        return $contragent;
     }
 
 
@@ -250,8 +317,15 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $row = new stdClass();
 
+        $row->contragentId = doc_Folders::getHyperlink($dRec->folderId);
 
-        $row->contragentId = self::getContragent($dRec, true, $rec);
+        $row->activSalesNumber = $Int->toVerbal($dRec->numberOfSales);
+
+        $row->activSalesAmount = $Double->toVerbal($dRec->amountDelivered);
+
+        $row->passivMailsIn = $Int->toVerbal($dRec->numberOfInMails[$dRec->folderId]);
+
+        $row->passivMailsOut = $Int->toVerbal($dRec->numberOfOutMails[$dRec->folderId]);
 
 
         return $row;
@@ -282,24 +356,63 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-
+        $Time = cls::get('type_Time');
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
-                                        <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN periodPassive--><div>|Пасивен период|*: [#periodPassive#]</div><!--ET_END periodPassive-->
+                                        <!--ET_BEGIN periodActive--><div>|Активен период|*: [#periodActive#]</div><!--ET_END periodActive-->
+                                        <!--ET_BEGIN minShipment--><div>|Мин. продажби|*: [#minShipment#]</div><!--ET_END minShipment-->
+                                        <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
+                                        <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
 
-        if (isset($data->rec->from)) {
-            $fieldTpl->append('<b>' . $data->row->from . '</b>', 'from');
+        $passivePeriodStart = dt::addSecs(-$data->rec->periodPassive, dt::today(), false);
+        $activePeriodStart = dt::addSecs(-$data->rec->periodActive, $passivePeriodStart, false);
+
+        if (isset($data->rec->periodPassive)) {
+            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodPassive).' ('.$passivePeriodStart.' - '.dt::today().')' . '</b>', 'periodPassive');
         }
 
-        if (isset($data->rec->to)) {
-            $fieldTpl->append('<b>' . $data->row->to . '</b>', 'to');
+        if (isset($data->rec->periodActive)) {
+            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodActive).' ('.$activePeriodStart.' - '.$passivePeriodStart.')' . '</b>', 'periodActive');
         }
+        if (isset($data->rec->minShipment)) {
+            $fieldTpl->append('<b>' . ($data->rec->minShipment) . '</b>', 'minShipment');
+        }
+
+        if (isset($data->rec->crmGroup)) {
+            $marker = 0;
+            if (isset($data->rec->crmGroup)) {
+                foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
+                    $marker++;
+
+                    $groupVerb .= (crm_Groups::getTitleById($group));
+
+                    if ((countR((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
+                        $groupVerb .= ', ';
+                    }
+                }
+
+                $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
+            }
+        }else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'crmGroup');
+        }
+
+        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
+            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+                $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
+            }
+
+            $fieldTpl->append('<b>' . trim($dealersVerb, ',  ') . '</b>', 'dealers');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'dealers');
+        }
+
 
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
