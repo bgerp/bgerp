@@ -211,6 +211,21 @@ class email_AddressesInfo extends core_Manager
                 $data->form->setSuggestions('redirection', $eSuggArr);
             }
         }
+
+        $form = $data->form;
+        if ($form->isSubmitted()) {
+            if (!isset($form->rec->id) && isset($form->rec->email)) {
+                $oRec = $mvc->fetch(array("#email = '[#1#]'", $form->rec->email));
+                if (isset($oRec->id)) {
+                    Request::push(array('id' => $oRec->id));
+
+                    $form->input('state');
+                    if (!isset($form->rec->state)) {
+                        Request::push(array('state' => $oRec->state));
+                    }
+                }
+            }
+        }
     }
 
 
