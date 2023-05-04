@@ -155,7 +155,7 @@ class acc_RatesDifferences extends core_Master
      * @return int                   - ид-то на създадения/реконтирания документ
      * @throws core_exception_Expect
      */
-    public static function force($threadId, $currencyCode, $rate, $reason = null, $updateDealItem = true)
+    public static function force($threadId, $currencyCode, $rate, $reason = null)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         expect($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases'));
@@ -179,21 +179,7 @@ class acc_RatesDifferences extends core_Master
             static::conto($id);
         } else {
             $containerId = static::fetchField($rec->id, 'containerId');
-
-            // Ако не се иска да се обновява датата на последно използване на перото на сделката да не се
-            if(!$updateDealItem){
-                $itemRec = acc_Items::fetchItem($firstDoc->getInstance(), $firstDoc->that);
-                if(is_object($itemRec)){
-                    Mode::push('dontUpdateLastUsedOnItems', array($itemRec->id => $itemRec->id));
-                }
-            }
-
             acc_Journal::reconto($containerId);
-
-            if(!$updateDealItem && is_object($itemRec)){
-                Mode::pop('dontUpdateLastUsedOnItems');
-            }
-
         }
 
         return $id;
@@ -260,7 +246,9 @@ class acc_RatesDifferences extends core_Master
             if(countR($rec->data)){
                 foreach ($rec->data as $containerId => $amountCorrected){
                     $doc = doc_Containers::getDocument($containerId);
+                    $firstDoc = doc_Threads::getFirstDocument($doc->fetchField('threadId'));
                     $docLink = $doc->getLink(0)->getContent();
+                    $docLink .= " / " . $firstDoc->getLink(0)->getContent();
                     $amountCorrectedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountCorrected);
                     $amountCorrectedVerbal = ht::styleIfNegative($amountCorrectedVerbal, $amountCorrected);
 
@@ -366,7 +354,7 @@ class acc_RatesDifferences extends core_Master
                 try {
                     Mode::push('preventNotifications', true);
                     Mode::push('dontUpdateThread', true);
-                    acc_RatesDifferences::force($dRec->threadId, $dRec->currencyId, $dRec->currencyRate, 'Автоматична корекция на курсови разлики', false);
+                    acc_RatesDifferences::force($dRec->threadId, $dRec->currencyId, $dRec->currencyRate, 'Автоматична корекция на курсови разлики');
                     Mode::pop('dontUpdateThread');
                     Mode::pop('preventNotifications');
                     if (is_object($itemRec)) {

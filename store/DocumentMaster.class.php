@@ -1154,7 +1154,7 @@ abstract class store_DocumentMaster extends core_Master
         // Ако няма курс, това е този за основната валута
         
         if (empty($fields['currencyRate'])) {
-            $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], null);
+            $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['valior'], $fields['currencyId'], null);
             expect($fields['currencyRate']);
         }
         

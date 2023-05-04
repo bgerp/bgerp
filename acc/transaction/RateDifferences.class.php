@@ -73,15 +73,27 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
      */
     public static function getTransactionData($rate, $valior, $threadId)
     {
-        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
-        $query = doc_Containers::getQuery();
-        $query->where("#state = 'active' AND #threadId = {$threadId}");
-        $query->in('docClass', $paymentIds);
-        $documents = $query->fetchAll();
-
-        $res = (object)array('entries' => array(), 'amount' => 0, 'data' => array());
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $dealRec = $firstDoc->fetch();
+
+        $threads = array($dealRec->threadId => $dealRec->threadId);
+        $closedDocs = keylist::toArray($dealRec->closedDocuments);
+        if (countR($closedDocs)) {
+            $tQuery = $firstDoc->getInstance()->getQuery();
+            $tQuery->in('id', $closedDocs);
+            $tQuery->show('threadId');
+            $threads += arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
+        }
+
+        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
+        $query = doc_Containers::getQuery();
+
+        $query->where("#state = 'active'");
+        $query->in('docClass', $paymentIds);
+        $query->in('threadId', $threads);
+        $documents = $query->fetchAll();
+        $res = (object)array('entries' => array(), 'amount' => 0, 'data' => array());
+
         if($firstDoc->isInstanceOf('purchase_Purchases')){
             $res->entries = static::getPurchaseEntries($rate, $valior, $documents, $dealRec, $res->amount, $res->data);
         } elseif($firstDoc->isInstanceOf('sales_Sales')){

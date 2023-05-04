@@ -214,7 +214,7 @@ abstract class deals_Document extends deals_PaymentDocument
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             $origin = $mvc->getOrigin($form->rec);
             $currencyId = $origin->fetchField('currencyId');
             $code = currency_Currencies::getCodeById($rec->currencyId);

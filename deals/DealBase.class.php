@@ -83,7 +83,6 @@ abstract class deals_DealBase extends core_Master
         }
         $mvc->FLD('closedOn', 'datetime', 'input=none');
         $mvc->FLD('closeWith', "key(mvc={$mvc->className},allowEmpty)", 'caption=Приключена със,input=none');
-        $mvc->FLD('lastAutoRecalcRate', 'datetime(format=smartTime)', 'input=none');
     }
     
     
@@ -256,7 +255,6 @@ abstract class deals_DealBase extends core_Master
         $dealQuery->where("#id != {$rec->id}");
         $dealQuery->where("#folderId = {$rec->folderId}");
         $dealQuery->where("#currencyId = '{$rec->currencyId}'");
-        $dealQuery->where("#currencyRate = '{$rec->currencyRate}'");
         if($this->getField('deliveryTermId', false)){
             if(isset($rec->deliveryTermId)){
                 $dealQuery->where("#deliveryTermId = '{$rec->deliveryTermId}'");
@@ -357,55 +355,130 @@ abstract class deals_DealBase extends core_Master
         $form->title = "|*{$title} <b>" . $this->getFormTitleLink($id). '</b>' . ' ?';
         $form->info = 'Посочете кои сделки желаете да обедините с тази сделка';
         $form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
+        $form->FLD('rate', "double", 'caption=Общ курс,input=hidden');
+        $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
         $form->setSuggestions('closeWith', $options);
         $form->input();
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
-            $rec->contoActions = 'activate';
-            $rec->state = 'active';
-            if (!empty($form->rec->closeWith)) {
-                $deals1 = keylist::toArray($form->rec->closeWith);
-                $err = array();
-                foreach ($deals1 as $d1) {
-                    $threadId = $this->fetchField($d1, 'threadId');
-                    if (acc_plg_Contable::haveDocumentInThreadWithStates($threadId, 'pending,draft')) {
-                        $err[] = $this->getLink($d1, 0);
-                    }
-                }
-                
-                if (countR($err)) {
-                    $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
-                    $form->setError('closeWith', $msg);
-                }
+            $err = $threads = $warning = array();
+            $warning[$rec->currencyRate] = $rec->currencyRate;
+            $deals1 = keylist::toArray($form->rec->closeWith);
 
-                $rec->closedDocuments = keylist::merge($rec->closedDocuments, $form->rec->closeWith);
+            foreach ($deals1 as $d1) {
+                $dealRec = $this->fetch($d1, 'threadId,currencyRate');
+                if (acc_plg_Contable::haveDocumentInThreadWithStates($dealRec->threadId, 'pending,draft')) {
+                    $err[] = $this->getLink($d1, 0);
+                }
+                $warning[$dealRec->currencyRate] = $dealRec->currencyRate;
+                $threads[$dealRec->threadId] = $dealRec->threadId;
+            }
+
+            if (countR($err)) {
+                $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
+                $form->setError('closeWith', $msg);
+            }
+
+            if (countR($warning) != 1) {
+                $form->rec->_recalRate = true;
+                $form->setWarning('closeWith,rate', 'Всички избрани договори ще бъдат преизчислени по курса на новия договор (при необходимост - въведете ръчно друг курс)');
+                $form->setField('rate', 'input');
+                if($rec->state == 'active'){
+                    $form->setReadOnly('rate');
+                }
             }
 
             if (!$form->gotErrors()) {
+                $formRec = $form->rec;
                 setIfNot($rec->valior, dt::today());
-                $this->save($rec);
-                
-                if (!empty($form->rec->closeWith)) {
-                    core_App::setTimeLimit(1000);
-                    
-                    $CloseDoc = cls::get($this->closeDealDoc);
-                    $deals = keylist::toArray($form->rec->closeWith);
-                    foreach ($deals as $dealId) {
-                        
-                        // Създаване на приключващ документ-чернова
-                        $dRec = $this->fetch($dealId);
-                        $clId = $CloseDoc->create($this->className, $dRec, $id);
-                        $this->logWrite('Приключено с друга сделка', $dealId);
-                        $CloseDoc->conto($clId);
+
+                // Ако ще има преизчисляване на курс
+                $errorArr = array();
+                $deals = keylist::toArray($formRec->closeWith);
+                if($formRec->_recalRate){
+                    if(countR($threads)){
+
+                        // Намират се документите за КР в обединените сделки
+                        $notifiedItems = array();
+                        $cRateQuery = acc_RatesDifferences::getQuery();
+                        $cRateQuery->where("#state = 'active'");
+                        $cRateQuery->in("threadId", $threads);
+                        while($cRateRec = $cRateQuery->fetch()){
+                            $closedDeal = doc_Containers::getDocument($cRateRec->dealOriginId);
+
+                            // Оттеглят се активните КР в нишките на договорите
+                            core_Users::forceSystemUser();
+                            acc_RatesDifferences::reject($cRateRec->id);
+                            acc_RatesDifferences::logWrite('Оттегляне преди обединение с друга сделка', $cRateRec->id);
+                            core_Users::cancelSystemUser();
+                            $itemRec = acc_Items::fetchItem($closedDeal->getClassId(), $closedDeal->that);
+                            if($itemRec){
+                                $notifiedItems[] = $itemRec;
+                            }
+                        }
+                        foreach ($notifiedItems as $itemRecToNotify){
+                            acc_Items::notifyObject($itemRecToNotify);
+                        }
+                        cls::get('acc_Items')->flushTouched();
                     }
+
+                    $notifiedItems2 = array();
+                    $recalcRates = $deals + array($rec->id => $rec);
+                    foreach ($recalcRates as $recalcDealId){
+                        $recalcDealRec = $this->fetchRec($recalcDealId);
+                        if(round($recalcDealRec->currencyRate, 5) == round($formRec->rate, 5)) continue;
+
+                        try{
+                            // Рекалкулиране на документите с новия курс
+                            Mode::push('dontUpdateThread', true);
+                            core_Users::forceSystemUser();
+                            $this->recalcDocumentsWithNewRate($recalcDealRec, $formRec->rate);
+                            core_Users::cancelSystemUser();
+                            Mode::pop('dontUpdateThread');
+                            $itemRec = acc_Items::fetchItem($this, $recalcDealRec->id);
+                            if($itemRec){
+                                $notifiedItems2[] = $itemRec;
+                            }
+                        } catch(acc_journal_Exception $e){
+                            $errorArr[] = "Курса не може да бъде преизчислен|*: " . $this->getHandle($recalcDealRec->id);
+                        }
+                    }
+
+                    foreach ($notifiedItems2 as $itemRecToNotify){
+                        acc_Items::notifyObject($itemRecToNotify);
+                    }
+                    cls::get('acc_Items')->flushTouched();
+                    cls::get('acc_Balances')->recalc();
+                }
+
+                // Обединения договор ще е активен
+                $dealRec = $this->fetch($rec->id, '*', false);
+                $dealRec->contoActions = 'activate';
+                $dealRec->state = 'active';
+                $dealRec->closedDocuments = keylist::merge($dealRec->closedDocuments, $formRec->closeWith);
+                $this->save($dealRec);
+
+                core_App::setTimeLimit(1000);
+                $CloseDoc = cls::get($this->closeDealDoc);
+                foreach ($deals as $dealId) {
+
+                    // Създаване на приключващ документ-чернова
+                    $dRec = $this->fetch($dealId);
+                    $clId = $CloseDoc->create($this->className, $dRec, $id);
+                    $this->logWrite('Приключено с друга сделка', $dealId);
+                    $CloseDoc->conto($clId);
                 }
 
                 $this->invoke('AfterActivation', array($rec));
                 
                 // Записваме, че потребителя е разглеждал този списък
                 $this->logWrite('Приключване на сделка с друга сделка', $id);
-                
+                if(countR($errorArr)){
+                    $errorArrStr = implode('. ', $errorArr);
+                    return new Redirect(array($this, 'single', $id), $errorArrStr, 'error');
+                }
+
                 return new Redirect(array($this, 'single', $id));
             }
         }
@@ -982,90 +1055,5 @@ abstract class deals_DealBase extends core_Master
         }
 
         return null;
-    }
-
-
-    /**
-     * Осреднява валутните курсове на сделките при нужда
-     *
-     * @return bool $recalcAll
-     * @return void
-     */
-    public function recalcDealsWithCurrencies($recalcAll = false)
-    {
-        $iQuery = acc_Items::getQuery();
-        $iQuery->where("#classId = {$this->getClassId()} AND #state = 'active'");
-        $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
-        $iQuery->where("#currencyId != 'BGN'");
-
-        $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
-        $count = countR($dealIds);
-
-        if(!$count) return;
-        core_App::setTimeLimit(0.6 * $count, false, 200);
-
-        // Ако има намерени сделки
-        $Items = cls::get('acc_Items');
-
-        $query = $this->getQuery();
-        $query->in('id', $dealIds);
-        $query->where("#state = 'active'");
-
-        //@todo да го махна в последствие
-        $query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
-
-        $recalcedItems = $saved = array();
-        while($rec = $query->fetch()){
-            $itemRec = acc_Items::fetchItem($this, $rec->id);
-            $newRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
-
-            if(!$recalcAll){
-                // Ако няма да се рекалкулират всички, само тези с променен курс или с изпозлване на перото след последното минаване
-                if(round($newRate, 8) == round($rec->currencyRate, 8)){
-                    if($itemRec->lastUseOn <= $rec->lastAutoRecalcRate){
-                        continue;
-                    }
-                }
-            }
-
-            try{
-                // Рекалкулиране на документите с новия курс
-                Mode::push('dontUpdateThread', true);
-                $this->recalcDocumentsWithNewRate($rec, $newRate);
-                Mode::pop('dontUpdateThread');
-            } catch(acc_journal_Exception $e){
-                $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
-                $this->logErr($errorMsg, $rec->id);
-            }
-
-            $rec->__newRate = $newRate;
-            $saved[$rec->id] = $rec;
-            if($itemRec){
-                $recalcedItems[$rec->id] = $itemRec;
-            }
-        }
-
-        // Нотифициране на перата на сделките
-        foreach ($recalcedItems as $itemRec){
-            acc_Items::notifyObject($itemRec);
-        }
-        $Items->flushTouched();
-
-        // Релаклилиране на баланса
-        cls::get('acc_Balances')->recalc();
-
-        // Ако има рекалкулирани сделки записва се датата на рекалкулирането (идеята е всичките да са с една дата)
-        if(countR($saved)){
-            $now = dt::now();
-            foreach ($saved as &$sRec){
-                $sRec->lastAutoRecalcRate = $now;
-            }
-            $this->saveArray($saved, 'id,lastAutoRecalcRate');
-        }
-
-        // Повторно нотифициране на перата след преизчисления баланс
-        foreach ($recalcedItems as $itemRec){
-            acc_Items::notifyObject($itemRec);
-        }
     }
 }
