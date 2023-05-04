@@ -379,13 +379,12 @@ class acc_RatesDifferences extends core_Master
             }
         }
 
-        // Форсиране на рекалкулиране на балансите
-        cls::get('acc_Balances')->recalc();
-
         // Нотифициране на сделките да им се опресни статистиката
         foreach ($recontoItems as $itemRec){
             acc_Items::notifyObject($itemRec);
         }
+        cls::get('acc_Items')->flushTouched();
+        cls::get('acc_Balances')->recalc();
     }
 
 
