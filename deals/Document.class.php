@@ -314,13 +314,13 @@ abstract class deals_Document extends deals_PaymentDocument
         
         if ($fields['-single']) {
             try{
-                $row->nextHandle = doc_Containers::getDocument($rec->dealId)->getHyperlink();
+                $row->nextHandle = doc_Containers::getDocument($rec->dealId)->getLink();
             } catch(core_exception_Expect $e){
                 $row->nextHandle = "<span class='red'>" . tr('Проблем при показването') . "</span>";
             }
             
             $origin = $mvc->getOrigin($rec->id);
-            $row->dealHandle = $origin->getHyperlink();
+            $row->dealHandle = $origin->getLink();
             $row->dealCurrencyId = $origin->fetchField('currencyId');
         }
     }
