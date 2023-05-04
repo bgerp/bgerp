@@ -65,7 +65,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци->Търговци,placeholder=Всички,single=none,mandatory,after=periodActive');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Група контрагенти,placeholder=Всички,after=dealers,single=none');
-        $fieldset->FLD('minShipment', 'double', 'caption=Мин. наличност, after=crmGroup,single=none, unit= лв.');
+        $fieldset->FLD('minShipment', 'double', 'caption=Мин. продажби, after=crmGroup,single=none, unit= лв.');
 
     }
 
@@ -135,7 +135,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             //Входящи имейли през пасивния период
             $mInQuery = email_Incomings::getQuery();
             $mInQuery->where("#folderId = $shRec->folderId");
-            $mInQuery->where("#date >= '$passivePeriodStart'");
+            $mInQuery->where("#createdOn >= '$passivePeriodStart'");
             $incomingMailsCount[$shRec->folderId] = $mInQuery->count();
 
             //Изходящи имейли през пасивния период
