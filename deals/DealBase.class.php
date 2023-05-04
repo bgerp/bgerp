@@ -396,33 +396,34 @@ abstract class deals_DealBase extends core_Master
                 // Ако ще има преизчисляване на курс
                 $errorArr = array();
                 $deals = keylist::toArray($formRec->closeWith);
-                if($formRec->_recalRate){
-                    if(countR($threads)){
 
-                        // Намират се документите за КР в обединените сделки
-                        $notifiedItems = array();
-                        $cRateQuery = acc_RatesDifferences::getQuery();
-                        $cRateQuery->where("#state = 'active'");
-                        $cRateQuery->in("threadId", $threads);
-                        while($cRateRec = $cRateQuery->fetch()){
-                            $closedDeal = doc_Containers::getDocument($cRateRec->dealOriginId);
+                if(countR($threads)){
 
-                            // Оттеглят се активните КР в нишките на договорите
-                            core_Users::forceSystemUser();
-                            acc_RatesDifferences::reject($cRateRec->id);
-                            acc_RatesDifferences::logWrite('Оттегляне преди обединение с друга сделка', $cRateRec->id);
-                            core_Users::cancelSystemUser();
-                            $itemRec = acc_Items::fetchItem($closedDeal->getClassId(), $closedDeal->that);
-                            if($itemRec){
-                                $notifiedItems[] = $itemRec;
-                            }
+                    // Намират се документите за КР в сделките, които ще се оттеглят
+                    $notifiedItems = array();
+                    $cRateQuery = acc_RatesDifferences::getQuery();
+                    $cRateQuery->where("#state = 'active'");
+                    $cRateQuery->in("threadId", $threads);
+                    while($cRateRec = $cRateQuery->fetch()){
+                        $closedDeal = doc_Containers::getDocument($cRateRec->dealOriginId);
+
+                        // Оттеглят се активните КР
+                        core_Users::forceSystemUser();
+                        acc_RatesDifferences::reject($cRateRec->id);
+                        acc_RatesDifferences::logWrite('Оттегляне преди обединение с друга сделка', $cRateRec->id);
+                        core_Users::cancelSystemUser();
+                        $itemRec = acc_Items::fetchItem($closedDeal->getClassId(), $closedDeal->that);
+                        if($itemRec){
+                            $notifiedItems[] = $itemRec;
                         }
-                        foreach ($notifiedItems as $itemRecToNotify){
-                            acc_Items::notifyObject($itemRecToNotify);
-                        }
-                        cls::get('acc_Items')->flushTouched();
                     }
+                    foreach ($notifiedItems as $itemRecToNotify){
+                        acc_Items::notifyObject($itemRecToNotify);
+                    }
+                    cls::get('acc_Items')->flushTouched();
+                }
 
+                if($formRec->_recalRate){
                     $notifiedItems2 = array();
                     $recalcRates = $deals + array($rec->id => $rec);
                     foreach ($recalcRates as $recalcDealId){
