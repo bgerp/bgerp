@@ -242,28 +242,40 @@ class acc_RatesDifferences extends core_Master
         }
 
         if(is_array($rec->data)){
-            $displayRes = "<table style='width:300px'>";
+            $displayRes = "<table style='width:300px' class='rateDiffDocumentTable'>";
             if(countR($rec->data)){
+                $displayData = array();
                 foreach ($rec->data as $containerId => $amountCorrected){
                     $doc = doc_Containers::getDocument($containerId);
+                    $threadId = $doc->fetchField('threadId');
                     $firstDoc = doc_Threads::getFirstDocument($doc->fetchField('threadId'));
-                    $docLink = $doc->getLink(0)->getContent();
-                    $docLink .= " / " . $firstDoc->getLink(0)->getContent();
-                    $amountCorrectedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountCorrected);
-                    $amountCorrectedVerbal = ht::styleIfNegative($amountCorrectedVerbal, $amountCorrected);
-
-                    if(is_array($rec->oldData) && isset($rec->oldData[$containerId])){
-                        if($rec->oldData[$containerId] != $amountCorrected){
-                            $icon = ($amountCorrected > $rec->oldData[$containerId]) ? 'img/16/arrow_up.png' : 'img/16/arrow_down.png';
-                            $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Преди|*: {$rec->oldData[$containerId]}", $icon, false);
-                        }
+                    if(!array_key_exists($threadId, $displayData)){
+                        $displayData[$threadId] = array('link' => $firstDoc->getLink(0)->getContent(), 'documents' => array());
                     }
-                    if(!isset($rec->oldData[$containerId])){
-                        $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Ново", 'img/16/add2-16.png', false);
-                    }
-                    $displayRes .= "<tr><td>{$docLink}</td> <td style='text-align:right'>{$amountCorrectedVerbal} <span class='cCode'>{$row->baseCurrencyCode}</span></td></tr>";
-
+                    $displayData[$threadId]['documents'][$containerId] = $amountCorrected;
                 }
+
+                foreach ($displayData as $displayArr){
+                    $displayRes .= "<tr><td colspan='2' class='rateDifferenceDocumentGroup'>{$displayArr['link']}</td></tr>";
+                    foreach ($displayArr['documents'] as $containerId => $amountCorrected){
+                        $doc = doc_Containers::getDocument($containerId);
+
+                        $docLink = $doc->getLink(0)->getContent();
+                        $amountCorrectedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountCorrected);
+                        $amountCorrectedVerbal = ht::styleIfNegative($amountCorrectedVerbal, $amountCorrected);
+                        if(is_array($rec->oldData) && isset($rec->oldData[$containerId])){
+                            if($rec->oldData[$containerId] != $amountCorrected){
+                                $icon = ($amountCorrected > $rec->oldData[$containerId]) ? 'img/16/arrow_up.png' : 'img/16/arrow_down.png';
+                                $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Преди|*: {$rec->oldData[$containerId]}", $icon, false);
+                            }
+                        }
+                        if(!isset($rec->oldData[$containerId])){
+                            $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Ново", 'img/16/add2-16.png', false);
+                        }
+                        $displayRes .= "<tr><td class='rateDifferenceDocumentLink'>{$docLink}</td> <td style='text-align:right'>{$amountCorrectedVerbal} <span class='cCode'>{$row->baseCurrencyCode}</span></td></tr>";
+                    }
+                }
+
                 $displayRes .= "</table>";
                 $row->data = $displayRes;
             } else {
