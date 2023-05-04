@@ -75,15 +75,8 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
         } elseif ($originCodeId == $baseCurrencyId) {
             $amount = $rec->amount;
         } else {
-            $amount = null;
-            if(round($rec->amountDeal,2) == round($rec->amount,2)){
-                if(!empty($rec->rate)) {
-                    $amount = $rec->amount * $rec->rate;
-                }
-            }
-            if(!isset($amount)){
-                $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $origin->fetchField('currencyId'));
-            }
+            $originRate = $origin->fetchField('currencyRate');
+            $amount = $rec->amount * $originRate;
         }
         
         $dealRec = $doc->fetch();
