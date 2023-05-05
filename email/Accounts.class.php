@@ -17,6 +17,12 @@
 class email_Accounts extends core_Master
 {
     /**
+     * Константа за id при използване на папка
+     */
+    const FOLDER_ID = -1;
+
+
+    /**
      * Плъгини за работа
      */
     public $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, plg_RowTools2, plg_CryptStore';
@@ -752,6 +758,39 @@ class email_Accounts extends core_Master
         $pml = cls::get('phpmailer_Instance', $params);
         
         return $pml;
+    }
+
+
+    /**
+     * Виртуално добавяне на двата служебни потребителя
+     */
+    public static function fetch($cond, $fields = '*', $cache = true)
+    {
+        if (($cond == self::FOLDER_ID) && is_numeric($cond)) {
+            $res = (object) array(
+                'id' => self::FOLDER_ID
+            );
+
+            $oArr = self::getEmailsByType('corporate');
+
+            if (!empty($oArr)) {
+                $res->type = 'corporate';
+            } else {
+                $oArr = self::getEmailsByType('common');
+                if (!empty($oArr)) {
+                    $res->type = 'common';
+                } else {
+                    $oArr = self::getEmailsByType('single');
+                    $res->type = 'single';
+                }
+            }
+
+            $res->email = key($oArr);
+        } else {
+            $res = parent::fetch($cond, $fields, $cache);
+        }
+
+        return $res;
     }
     
     

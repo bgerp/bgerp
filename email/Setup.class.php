@@ -266,6 +266,12 @@ defIfNot('EMAIL_STOP_CHECKING_EMAILS_PERIOD', 15778476);
 
 
 /**
+ * Директория от която да се импортират имейли
+ */
+defIfNot('EMAIL_IMPORT_FROM_DIRECTORY', '');
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -334,6 +340,14 @@ class email_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 120,
             'timeLimit' => 1000
+        ),
+        array(
+            'systemId' => 'importEmails',
+            'description' => 'Импортиране на имейли',
+            'controller' => 'email_Incomings',
+            'action' => 'importEmails',
+            'period' => 1,
+            'timeLimit' => 100
         ),
     );
     
@@ -429,6 +443,8 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_RECHECK_EMAILS_AFTER' => array('time(suggestions=15 дни|1 месец|2 месеца)', 'caption=Повторна проверка за валидност на имейли след->Време'),
         'EMAIL_RECHECK_EMAILS_LIMIT' => array('int', 'suggestions=3|5|10, caption=Лимит за проверка на имейли за всяко извикване->Брой'),
         'EMAIL_STOP_CHECKING_EMAILS_PERIOD' => array('time(suggestions=3 месеца|6 месеца|1 година)', 'caption=Колко време след последната комуникация да се спре проверката на имейла->Време'),
+
+        'EMAIL_IMPORT_FROM_DIRECTORY' => array('varchar', 'canView=debug, caption=Директория от която да се импортират имейли->Път'),
     );
     
     

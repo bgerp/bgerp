@@ -551,55 +551,7 @@ class email_Incomings extends core_Master
             
             // Ако писмото не е с лошо форматиране
             if ($status != 'misformatted') {
-                // Пробваме дали това не е служебно писмо
-                // Ако не е служебно, пробваме дали не е SPAM
-                // Ако не е нищо от горните, записваме писмото в този модел
-                
-                $clsArr = core_Classes::getOptionsByInterface('email_AutomaticIntf');
-                
-                $clsInstArr = array();
-                foreach ($clsArr as $clsName) {
-                    $clsInstArr[$clsName] = cls::getInterface('email_AutomaticIntf', $clsName);
-                    $arrWeight[$clsName] = (int)$clsInstArr[$clsName]->class->weight;
-                }
-
-                if (!empty($arrWeight)) {
-                    arsort($arrWeight);
-                    foreach ($arrWeight as $clsName => $dummy) {
-                        try {
-                            $status = $clsInstArr[$clsName]->process($mime, $accId, $uid);
-                        } catch (core_exception_Expect $exp) {
-                            reportException($exp);
-                            continue;
-                        }
-
-                        if (isset($status)) {
-                            break;
-                        }
-                    }
-                }
-
-                if ((!isset($status) || is_array($status)) && ($status != 'ignored')) {
-                    $sId = $this->process($mime, $accId, $uid, $status['preroute'], $status['spam']);
-
-                    if ($sId) {
-                        if (is_array($status)) {
-                            if ($status['closeThread']) {
-                                $this->threadState[$sId] = false;
-                            }
-
-                            if ($status['rejectThread']) {
-                                $sRec = $this->fetch($sId);
-
-                                $sRec->state = 'rejected';
-
-                                $this->save($sRec, 'state');
-                            }
-                        }
-                    }
-
-                    $status = 'incoming';
-                }
+                $this->doProcessEmail($mime, $accId, $uid);
             }
         } catch (core_exception_Expect $exp) {
             // Обща грешка
@@ -617,7 +569,70 @@ class email_Incomings extends core_Master
 
         return $status;
     }
-    
+
+
+    /**
+     * Помощна функция за сваляне на имейла
+     */
+    protected function doProcessEmail($mime, $accId, $uid)
+    {
+        // Пробваме дали това не е служебно писмо
+        // Ако не е служебно, пробваме дали не е SPAM
+        // Ако не е нищо от горните, записваме писмото в този модел
+
+        $status = null;
+
+        $clsArr = core_Classes::getOptionsByInterface('email_AutomaticIntf');
+
+        $clsInstArr = array();
+        foreach ($clsArr as $clsName) {
+            $clsInstArr[$clsName] = cls::getInterface('email_AutomaticIntf', $clsName);
+            $arrWeight[$clsName] = (int)$clsInstArr[$clsName]->class->weight;
+        }
+
+        if (!empty($arrWeight)) {
+            arsort($arrWeight);
+            foreach ($arrWeight as $clsName => $dummy) {
+                try {
+                    $status = $clsInstArr[$clsName]->process($mime, $accId, $uid);
+                } catch (core_exception_Expect $exp) {
+                    reportException($exp);
+                    continue;
+                }
+
+                if (isset($status)) {
+
+                    break;
+                }
+            }
+        }
+
+        if ((!isset($status) || is_array($status)) && ($status != 'ignored')) {
+
+            $sId = $this->process($mime, $accId, $uid, $status['preroute'], $status['spam']);
+
+            if ($sId) {
+                if (is_array($status)) {
+                    if ($status['closeThread']) {
+                        $this->threadState[$sId] = false;
+                    }
+
+                    if ($status['rejectThread']) {
+                        $sRec = $this->fetch($sId);
+
+                        $sRec->state = 'rejected';
+
+                        $this->save($sRec, 'state');
+                    }
+                }
+            }
+
+            $status = 'incoming';
+        }
+
+        return $status;
+    }
+
     
     /**
      * Подготвя, записва и рутира зададеното писмо
@@ -688,6 +703,14 @@ class email_Incomings extends core_Master
 
         if ($prerouteRecArr) {
             $rec->_prerouteRecArr = $prerouteRecArr;
+        }
+
+        if (isset($rec->date) && Mode::is('forceDateToCreatedOn')) {
+            $rec->createdOn = $rec->date;
+            $rec->createdBy = core_Users::getCurrent();
+            $rec->modifiedOn = $rec->createdOn;
+            $rec->modifiedBy = $rec->createdBy;
+            $rec->_notModified = true;
         }
 
         // Записваме (и автоматично рутираме) писмото
@@ -1553,6 +1576,110 @@ class email_Incomings extends core_Master
         $mailInfo = $this->fetchAllAccounts($time);
         
         return $mailInfo;
+    }
+
+
+    /**
+     * Импортиране имейлите по крон от папка
+     */
+    public function cron_ImportEmails()
+    {
+        if (defined('DEV_SERVER') &&  (DEV_SERVER === true)) {
+
+            return 'Спряно импортиране на имейли';
+        }
+
+        $dirPath = trim(email_Setup::get('IMPORT_FROM_DIRECTORY'));
+
+        if (empty($dirPath)) {
+
+            return 'Не е зададена директория';
+        }
+
+        $dirPath = rtrim($dirPath, '/');
+
+        if (is_readable($dirPath) !== true) {
+
+            return 'Несъществуваща директория';
+        }
+
+        $files = @scandir($dirPath);
+
+        if (!countr($files)) {
+
+            return 'Няма файлове в директорията';
+        }
+
+        Mode::set('forceDateToCreatedOn', true);
+
+        $accId = email_Accounts::FOLDER_ID;
+        $uId = 0;
+
+        $maxTime = dt::addSecs(30);
+
+        // Обхождаме всички отркити файлове
+        foreach ($files as $file) {
+            $deleteFile = false;
+
+            if ($file == '.' || $file == '..') {
+                continue;
+            }
+
+            $filePath = $dirPath . '/' . $file;
+
+            $rawEmail = @file_get_contents($filePath);
+
+            // Създава MIME обект
+            $mime = cls::get('email_Mime');
+
+            // Парсира съдържанието на писмото
+            $mime->parseAll($rawEmail);
+
+            // Вземаме хедърите, този път от самото писмо
+            $headersMime = $mime->getHeadersStr();
+
+            // Правим проверка дали писмото е сваляно
+            if ($fRec = email_Fingerprints::fetchByHeaders($headersMime)) {
+                email_Fingerprints::logNotice('Пропуснат съществуващ имейл', $fRec);
+
+                $deleteFile = true;
+
+                $status = 'duplicated';
+            } else {
+                // Очакваме текстовата част да е под допустимия максимум
+                if (mb_strlen($mime->textPart) > email_Setup::get('MAX_TEXT_LEN')) {
+                    $this->logNotice('Пропуснат имейл с голяма текствова част');
+                    $status = 'misformatted';
+
+                    email_Unparsable::add($rawEmail, $accId, $uId);
+
+                    $deleteFile = true;
+                } else {
+                    $status = $this->doProcessEmail($mime, $accId, $uId);
+
+                    $status = strtolower($status);
+
+                    $deleteFile = true;
+                }
+            }
+
+            // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
+            if (!in_array($status, array('error', 'duplicated'))) {
+                // Записваме статуса на сваленото писмо
+                $sId = email_Fingerprints::setStatus($headersMime, $status, $accId, $uId);
+
+                email_Fingerprints::logNotice('Импортиран имейл със статус: ' . $status, $sId);
+            }
+
+            if ($deleteFile) {
+                @unlink($filePath);
+            }
+
+            if (dt::now() > $maxTime) {
+
+                break;
+            }
+        }
     }
     
     
