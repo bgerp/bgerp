@@ -42,11 +42,15 @@ class planning_interface_ImportStep extends bgerp_BaseImporter
         $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory');
         $fields['name'] = array('caption' => 'Наименование', 'mandatory' => 'mandatory');
         $fields['measureId'] = array('caption' => 'Мярка', 'mandatory' => 'mandatory');
+        $fields['info'] = array('caption' => 'Описание');
+        $fields['groups'] = array('caption' => 'Групи');
         $fields['planning_Steps_name'] = array('caption' => 'Операция');
         $fields['planning_Steps_centerId'] = array('caption' => 'Уточнения->Център на дейност', 'notColumn' => true, 'type' => 'key(mvc=planning_Centers,select=name)', 'default' => planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'mandatory' => 'mandatory');
         $fields['planning_Steps_isFinal'] = array('caption' => 'Уточнения->Вид', 'notColumn' => true, 'type' => 'enum(no=Междинен етап,yes=Финален етап)', 'default' => 'no', 'mandatory' => 'mandatory');
         $fields['planning_Steps_canStore'] = array('caption' => 'Уточнения->Складируем', 'notColumn' => true, 'type' => 'enum(yes=Да,no=Не)');
         $fields['planning_Steps_planningParams'] = array('caption' => 'Уточнения->Параметри', 'notColumn' => true, 'type' => 'keylist(mvc=cat_Params,select=typeExt)');
+        $fields['planning_Steps_inputStores'] = array('caption' => 'Уточнения->Влагане ОТ', 'notColumn' => true, 'type' => 'keylist(mvc=store_Stores,select=name)');
+        $fields['planning_Steps_storeIn'] = array('caption' => 'Уточнения->Произвеждане В', 'notColumn' => true, 'type' => 'key(mvc=store_Stores,select=name,allowEmpty)');
         $fields['Category'] = array('caption' => 'Уточнения->Категория', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => 'key(mvc=cat_Categories,select=name,coverClasses=cat_Categories,allowEmpty)');
         if($defaultFolderId = planning_Setup::get('DEFAULT_PRODUCTION_STEP_FOLDER_ID')){
             $fields['Category']['default'] = cat_Categories::fetchField("#folderId={$defaultFolderId}", 'id');
