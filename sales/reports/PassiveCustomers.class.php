@@ -197,7 +197,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             $id = $salRec->folderId;
 
             //филтър по дилър
-            if ($rec->dealers){
+            if (!in_array(-1,keylist::toArray($rec->dealers))){
                 if(!in_array($salRec->dealerId,keylist::toArray($rec->dealers))) continue;
             }
 
