@@ -127,7 +127,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $shQuery = store_ShipmentOrders::getQuery();
         $shQuery->in('state', array('rejected', 'draft'), true);
         $shQuery->where("#valior >= '$activePeriodStart'");
-
+//bp($shQuery->fetchAll());
         while ($shRec = $shQuery->fetch()) {
 
             $id = $shRec->folderId;
@@ -145,11 +145,10 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             $outgoingMailsCount[$shRec->folderId] = $mOutQuery->count();
 
             //филтър по дилър
-            if ($rec->dealers){
+            if (!in_array(-1,keylist::toArray($rec->dealers))){
                $docDealer = doc_Threads::getFirstDocument($shRec->threadId)->fetch()->dealerId;
                if(!in_array($docDealer,keylist::toArray($rec->dealers))) continue;
             }
-
 
             //филтър по група на контрагента на експедицията
             if ($rec->crmGroup) {
@@ -198,7 +197,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             $id = $salRec->folderId;
 
             //филтър по дилър
-            if ($rec->dealers){
+            if (!in_array(-1,keylist::toArray($rec->dealers))){
                 if(!in_array($salRec->dealerId,keylist::toArray($rec->dealers))) continue;
             }
 
