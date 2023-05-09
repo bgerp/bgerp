@@ -785,7 +785,17 @@ class email_Accounts extends core_Master
                 }
             }
 
-            $res->email = key($oArr);
+            $res->applyRouting = 'yes';
+            $res->state = 'active';
+
+            if (!empty($oArr)) {
+                $res->email = key($oArr);
+            }
+
+            if (!trim($res->email)) {
+                $res->email = 'localhost@localhost';
+                $res->type = 'common';
+            }
         } else {
             $res = parent::fetch($cond, $fields, $cache);
         }
