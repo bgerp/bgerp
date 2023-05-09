@@ -224,7 +224,7 @@ class acc_RatesDifferences extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
-        $row->dealOriginId = doc_Containers::getDocument($rec->dealOriginId)->getLink(0);
+        $row->dealOriginId = doc_Containers::getDocument($rec->dealOriginId)->getLink();
         $dealState = doc_Containers::fetchField($rec->dealOriginId, 'state');
         $row->dealOriginId = "<div class='state-{$dealState} document-handler'>{$row->dealOriginId}</div>";
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
@@ -242,7 +242,6 @@ class acc_RatesDifferences extends core_Master
         }
 
         if(is_array($rec->data)){
-            $displayRes = "<table style='width:300px' class='rateDiffDocumentTable'>";
             if(countR($rec->data)){
                 $displayData = array();
                 foreach ($rec->data as $containerId => $amountCorrected){
@@ -255,8 +254,12 @@ class acc_RatesDifferences extends core_Master
                     $displayData[$threadId]['documents'][$containerId] = $amountCorrected;
                 }
 
+                $isOnlyOneGroup = (countR($displayData) == 1 && key($displayData) == $rec->threadId);
+                $tableClass =  ($isOnlyOneGroup) ? '' : 'rateDiffDocumentTable';
+                $displayRes = "<table style='width:300px' class='{$tableClass}'>";
+
                 foreach ($displayData as $displayArr){
-                    $displayRes .= "<tr><td colspan='2' class='rateDifferenceDocumentGroup'>{$displayArr['link']}</td></tr>";
+                    $displayRes .= (($isOnlyOneGroup) ? '' : "<tr><td colspan='2' class='rateDifferenceDocumentGroup'>{$displayArr['link']}</td></tr>");
                     foreach ($displayArr['documents'] as $containerId => $amountCorrected){
                         $doc = doc_Containers::getDocument($containerId);
 
@@ -272,7 +275,9 @@ class acc_RatesDifferences extends core_Master
                         if(!isset($rec->oldData[$containerId])){
                             $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Ново", 'img/16/add2-16.png', false);
                         }
-                        $displayRes .= "<tr><td class='rateDifferenceDocumentLink'>{$docLink}</td> <td style='text-align:right'>{$amountCorrectedVerbal} <span class='cCode'>{$row->baseCurrencyCode}</span></td></tr>";
+
+                        $tdClass = ($isOnlyOneGroup) ? 'rateDifferenceDocumentLink' : '';
+                        $displayRes .= "<tr><td class='{$tdClass}'>{$docLink}</td> <td style='text-align:right'>{$amountCorrectedVerbal} <span class='cCode'>{$row->baseCurrencyCode}</span></td></tr>";
                     }
                 }
 
