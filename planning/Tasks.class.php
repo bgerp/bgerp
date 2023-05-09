@@ -373,6 +373,7 @@ class planning_Tasks extends core_Master
             }
             if ($pData['showPreviousJobField']) {
                 $originRec = doc_Containers::getDocument($data->rec->originId)->fetch('oldJobId,productId');
+
                 if ($originRec->oldJobId) {
                     $oldJobProductId = planning_Jobs::fetchField($originRec->oldJobId, 'productId');
                     $data->row->previousJob = planning_Jobs::getHyperlink($originRec->oldJobId, true);
