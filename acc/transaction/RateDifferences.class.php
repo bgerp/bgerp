@@ -193,10 +193,10 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
                     // Aко няма разлика или тя е много дребна няма да се прави запис
                     $finalAmountNotRound = $diffRate * $sign * $docRec->amountDeal;
-                    $finalAmountNotRound = preg_replace('/\.(\d{2}).*/', '.$1', abs($finalAmountNotRound));
-                    if(empty($finalAmountNotRound) || $finalAmountNotRound < 0.01) continue;
+                    $finalAmountNotRoundCheck = preg_replace('/\.(\d{2}).*/', '.$1', abs($finalAmountNotRound));
+                    if(empty($finalAmountNotRoundCheck) || $finalAmountNotRoundCheck < 0.01) continue;
 
-                    $finalAmount = round($finalAmountNotRound, 2, PHP_ROUND_HALF_DOWN);
+                    $finalAmount = round($finalAmountNotRound, 2);
                     $totalAmount += $finalAmount;
                     $data[$docRec->containerId] = $finalAmount;
 
@@ -269,8 +269,8 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
                     $diffRate = $rate - $strategyRate;
                     $finalAmountNotRound = $diffRate * $sign * $docRec->amountDeal;
-                    $finalAmountNotRound = preg_replace('/\.(\d{2}).*/', '.$1', abs($finalAmountNotRound));
-                    if(empty($finalAmountNotRound) || $finalAmountNotRound < 0.01) continue;
+                    $finalAmountNotRoundCheck = preg_replace('/\.(\d{2}).*/', '.$1', abs($finalAmountNotRound));
+                    if(empty($finalAmountNotRoundCheck) || $finalAmountNotRoundCheck < 0.01) continue;
 
                     $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
                     $totalAmount += $finalAmount;
