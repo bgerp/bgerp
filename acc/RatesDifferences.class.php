@@ -158,7 +158,7 @@ class acc_RatesDifferences extends core_Master
     public static function force($threadId, $currencyCode, $rate, $reason = null)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        expect($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases'));
+        expect($firstDoc->isInstanceOf('deals_DealBase'));
 
         $isCreated = true;
         $rec = (object)array('reason' => $reason, 'threadId' => $threadId, 'currencyId' => $currencyCode, 'rate' => $rate, 'dealOriginId' => $firstDoc->fetchField('containerId'), 'lastRecalced' => dt::now());
@@ -322,7 +322,7 @@ class acc_RatesDifferences extends core_Master
      */
     public function cron_RecontoActive()
     {
-        $dealClasses = array('sales_Sales', 'purchase_Purchases');
+        $dealClasses = array('sales_Sales', 'purchase_Purchases', 'findeals_Deals');
 
         // Извличане на всички активни документи за к.разлики
         $exRecs = array();
@@ -351,10 +351,11 @@ class acc_RatesDifferences extends core_Master
 
                 // Ако няма създаден документ за валутни разлики и има платено и НЯМА изчислени разлики няма да се създава
                 if (!isset($exRecs[$dRec->containerId])) {
-                    if (!empty($dRec->amountPaid)) {
-                        $tData = acc_transaction_RateDifferences::getTransactionData($dRec->currencyRate, $today, $dRec->threadId);
-                        if (!countR($tData->entries)) continue;
-                    }
+                    if(($Class instanceof deals_DealMaster) && empty($dRec->amountPaid)) continue;
+
+                    $tData = acc_transaction_RateDifferences::getTransactionData($dRec->currencyRate, $today, $dRec->threadId);
+
+                    if (!countR($tData->entries)) continue;
                 } else {
                     // Ако има вече КР в нишката и ще има промяна в общата ѝ сума - само тогава се реконтира
                     $tData = acc_transaction_RateDifferences::getTransactionData($dRec->currencyRate, $today, $dRec->threadId);
