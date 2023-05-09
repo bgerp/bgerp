@@ -119,7 +119,7 @@ abstract class deals_Document extends deals_PaymentDocument
         }
         
         if (isset($rec->dealFolderId)) {
-            $form->setOptions('dealHandler', $mvc->getDealOptions($rec->dealFolderId));
+            $form->setOptions('dealHandler', $mvc->getDealOptions($rec->dealFolderId, $rec->threadId));
         }
         
         $form->dealInfo = $dealInfo;
@@ -153,24 +153,24 @@ abstract class deals_Document extends deals_PaymentDocument
     /**
      * Кои са наличните опции за сделки
      *
-     * @param int $folderId
+     * @param int $folderId - ид на папка
+     * @param int $threadId - ид на нишка
      *
      * @return array $options
      */
-    protected function getDealOptions($folderId)
+    protected function getDealOptions($folderId, $threadId = null)
     {
-        $options = $dealOptions = $accOptionsFiltered = array();
-        
         // Има ли активни служебни аванси в избраната папка
+        $options = $dealOptions = $accOptionsFiltered = array();
         $aQuery = findeals_AdvanceDeals::getQuery();
-        $aQuery->where("#folderId = {$folderId} AND #state = 'active'");
+        $aQuery->where("#folderId = {$folderId} AND #state = 'active' AND #threadId != '{$threadId}'");
         while ($fRec = $aQuery->fetch()) {
             $dealOptions[$fRec->containerId] = findeals_AdvanceDeals::getTitleById($fRec, false);
         }
         
         // Има ли активни ф. сделки в избраната папка
         $fQuery = findeals_Deals::getQuery();
-        $fQuery->where("#folderId = {$folderId} AND #state = 'active'");
+        $fQuery->where("#folderId = {$folderId} AND #state = 'active' AND #threadId != '{$threadId}'");
         while ($fRec = $fQuery->fetch()) {
             $dealOptions[$fRec->containerId] = findeals_Deals::getTitleById($fRec, false);
         }
