@@ -907,7 +907,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             if (!$rec->displayRate) {
-                $rec->displayRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
+                $rec->displayRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if (!$rec->displayRate) {
                     $form->setError('rate', 'Не може да се изчисли курс');
                 }
