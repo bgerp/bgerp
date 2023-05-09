@@ -190,8 +190,13 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                     }
 
                     $diffRate = $rate - $strategyRate;
-                    $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
 
+                    // Aко няма разлика или тя е много дребна няма да се прави запис
+                    $finalAmountNotRound = $diffRate * $sign * $docRec->amountDeal;
+                    $finalAmountNotRound = preg_replace('/\.(\d{2}).*/', '.$1', abs($finalAmountNotRound));
+                    if(empty($finalAmountNotRound) || $finalAmountNotRound < 0.01) continue;
+
+                    $finalAmount = round($finalAmountNotRound, 2, PHP_ROUND_HALF_DOWN);
                     $totalAmount += $finalAmount;
                     $data[$docRec->containerId] = $finalAmount;
 
@@ -263,34 +268,36 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                     $strategyRate = !empty($rateFromJournal) ? $rateFromJournal : currency_CurrencyRates::getRate($docRec->valior, $currencyCode, null);
 
                     $diffRate = $rate - $strategyRate;
-                    $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
-                    if($finalAmount){
-                        $totalAmount += $finalAmount;
-                        $data[$docRec->containerId] = $finalAmount;
+                    $finalAmountNotRound = $diffRate * $sign * $docRec->amountDeal;
+                    $finalAmountNotRound = preg_replace('/\.(\d{2}).*/', '.$1', abs($finalAmountNotRound));
+                    if(empty($finalAmountNotRound) || $finalAmountNotRound < 0.01) continue;
 
-                        if($Doc->isInstanceOf('cash_Pko') || $Doc->isInstanceOf('bank_IncomeDocuments')){
-                            $entries[] = array('amount' => $finalAmount,
-                                'credit' => array($creditAccId,
-                                    array($dealRec->contragentClassId, $dealRec->contragentId),
-                                    array('findeals_Deals', $dealRec->id),
-                                    $currencyItemId,
-                                    'quantity' => $sign * round($docRec->amountDeal, 2)),
-                                'debit' => array('481',
-                                    $currencyItemId,
-                                    'quantity' => $sign * round($docRec->amountDeal, 2)),
-                                'reason' => "Валутни разлики");
-                        } else {
-                            $entries[] = array('amount' => $finalAmount,
-                                'debit' => array($debitAccId,
-                                    array($dealRec->contragentClassId, $dealRec->contragentId),
-                                    array('findeals_Deals', $dealRec->id),
-                                    $currencyItemId,
-                                    'quantity' => $sign * round($docRec->amountDeal, 2)),
-                                'credit' => array('481',
-                                    $currencyItemId,
-                                    'quantity' => $sign * round($docRec->amountDeal, 2)),
-                                'reason' => "Валутни разлики");
-                        }
+                    $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
+                    $totalAmount += $finalAmount;
+                    $data[$docRec->containerId] = $finalAmount;
+
+                    if($Doc->isInstanceOf('cash_Pko') || $Doc->isInstanceOf('bank_IncomeDocuments')){
+                        $entries[] = array('amount' => $finalAmount,
+                            'credit' => array($creditAccId,
+                                array($dealRec->contragentClassId, $dealRec->contragentId),
+                                array('findeals_Deals', $dealRec->id),
+                                $currencyItemId,
+                                'quantity' => $sign * round($docRec->amountDeal, 2)),
+                            'debit' => array('481',
+                                $currencyItemId,
+                                'quantity' => $sign * round($docRec->amountDeal, 2)),
+                            'reason' => "Валутни разлики");
+                    } else {
+                        $entries[] = array('amount' => $finalAmount,
+                            'debit' => array($debitAccId,
+                                array($dealRec->contragentClassId, $dealRec->contragentId),
+                                array('findeals_Deals', $dealRec->id),
+                                $currencyItemId,
+                                'quantity' => $sign * round($docRec->amountDeal, 2)),
+                            'credit' => array('481',
+                                $currencyItemId,
+                                'quantity' => $sign * round($docRec->amountDeal, 2)),
+                            'reason' => "Валутни разлики");
                     }
                 }
             }
@@ -413,7 +420,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         $entries = array();
 
         foreach ($documents as $d){
-            $Doc = doc_Containers::getDocument($d);
+            $Doc = doc_Containers::getDocument($d->id);
             $docRec = $Doc->fetch();
 
             if($Doc->isInstanceOf('deals_PaymentDocument')){
