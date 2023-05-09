@@ -172,11 +172,12 @@ abstract class deals_Document extends deals_PaymentDocument
         $fQuery = findeals_Deals::getQuery();
         $fQuery->where("#folderId = {$folderId} AND #state = 'active' AND #threadId != '{$threadId}'");
         while ($fRec = $fQuery->fetch()) {
-            $dealOptions[$fRec->containerId] = findeals_Deals::getTitleById($fRec, false);
+            $dealOptions[$fRec->containerId] = findeals_Deals::getTitleById($fRec, false) . "/" . $fRec->currencyId;
         }
         
         // Ако има се добавят в техен раздел
         if (countR($dealOptions)) {
+            krsort($dealOptions);
             $options['deals'] = (object) array('title' => tr('Активни фин. сделки в папката'), 'group' => true);
             $options += $dealOptions;
         }
