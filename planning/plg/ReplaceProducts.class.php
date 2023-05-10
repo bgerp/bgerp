@@ -68,7 +68,7 @@ class planning_plg_ReplaceProducts extends core_Plugin
             }
 
             $replaceOptions = static::getReplaceOptions($mvc, $rec->id, $rec->{$mvc->replaceProductFieldName});
-            $form->FLD('replaceProduct', 'varchar(forceOpen)', "caption=Заместване,mandatory,silent,removeAndRefreshForm={$mvc->replaceProductFieldName}");
+            $form->FLD('replaceProduct', 'varchar(minimumResultsForSearch=5,forceOpen)', "caption=Заместване,mandatory,silent,removeAndRefreshForm={$mvc->replaceProductFieldName}");
 
             $selectedGenericId = planning_GenericProductPerDocuments::getRec($mvc, $rec->id);
             $selectedKey = "{$rec->{$mvc->replaceProductFieldName}}|{$selectedGenericId}";
