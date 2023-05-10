@@ -100,20 +100,37 @@ class planning_plg_ReplaceProducts extends core_Plugin
             // Ако е събмитната
             if ($form->isSubmitted()) {
                 $nRec = $form->rec;
-                $productMeasureId = cat_Products::fetchField($nRec->{$mvc->replaceProductFieldName}, 'measureId');
-                $originalMeasureId = cat_Products::fetchField($exRec->{$mvc->replaceProductFieldName}, 'measureId');
+                $newProductRec = cat_Products::fetch($nRec->{$mvc->replaceProductFieldName}, 'id,measureId');
+                $oldProductRec = cat_Products::fetch($exRec->{$mvc->replaceProductFieldName}, 'id,measureId');
 
                 if ($mvc instanceof deals_ManifactureDetail) {
-                    $convertedQuantity = cat_Uom::convertValue($rec->{$mvc->quantityFld}, $originalMeasureId, $productMeasureId);
-                    $nRec->{$mvc->quantityFld} = $convertedQuantity;
-                    $nRec->{$mvc->packQuantityFld} = $nRec->{$mvc->quantityFld};
+                    $quantityFld = $mvc->quantityFld;
                 } elseif ($mvc instanceof cat_BomDetails) {
                     $formula = trim($nRec->propQuantity);
                     if (is_numeric($formula)) {
-                        $convertedQuantity = cat_Uom::convertValue($formula, $originalMeasureId, $productMeasureId);
-                        $nRec->propQuantity = $convertedQuantity;
+                        $quantityFld = 'propQuantity';
                     }
                 }
+
+                if(!empty($quantityFld)){
+                    if($exRec->{$mvc->packagingFld} != $newProductRec->measureId){
+                        $convertRate = cat_Products::convertToUom($oldProductRec->id, $newProductRec->measureId);
+                        if(empty($convertRate)){
+
+                            $secondMeasureId = cat_products_Packagings::getSecondMeasureId($newProductRec->id);
+                            if($secondMeasureId == $exRec->{$mvc->packagingFld}){
+                                $packRec = cat_products_Packagings::getPack($newProductRec->id, $secondMeasureId);
+                                $nRec->{$mvc->packagingFld} = $packRec->packagingId;
+                                $nRec->{$mvc->quantityInPackFld} = $packRec->quantity;
+                                $nRec->{$quantityFld} = ($exRec->{$quantityFld} / $exRec->{$mvc->quantityInPackFld}) * $packRec->quantity;
+                            }
+                        } else {
+                            $nRec->{$mvc->packagingFld} = $newProductRec->measureId;
+                            $nRec->{$quantityFld} = $convertRate * $nRec->{$quantityFld};
+                        }
+                    }
+                }
+
 
                 $exGenericProductId = isset($exRec->id) ? planning_GenericProductPerDocuments::getRec($mvc, $exRec->id) : null;
 
