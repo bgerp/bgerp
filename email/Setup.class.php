@@ -272,6 +272,12 @@ defIfNot('EMAIL_IMPORT_FROM_DIRECTORY', '');
 
 
 /**
+ * Домейни на получателите във входящите имейли, които ще се записват като изходящи
+ */
+defIfNot('EMAIL_IMPORT_FROM_DIRECTORY_DOMAIN_TO_OUTGOINGS', '');
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -445,6 +451,8 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_STOP_CHECKING_EMAILS_PERIOD' => array('time(suggestions=3 месеца|6 месеца|1 година)', 'caption=Колко време след последната комуникация да се спре проверката на имейла->Време'),
 
         'EMAIL_IMPORT_FROM_DIRECTORY' => array('varchar', 'canView=debug, caption=Директория от която да се импортират имейли->Път'),
+
+        'EMAIL_IMPORT_FROM_DIRECTORY_DOMAIN_TO_OUTGOINGS' => array('text(rows=4)', 'canView=debug, caption=Домейни на получателите във входящите имейли|*&comma;| които ще се записват като изходящи->Домейни'),
     );
     
     
