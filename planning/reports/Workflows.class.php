@@ -227,8 +227,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
 
-                $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,indTimeAllocation,labelPackagingId,indTime,indPackagingId,totalQuantity,originId');
-;
+                $iRec = $Task->fetch('id,containerId,saoOrder,measureId,folderId,quantityInPack,indTimeAllocation,labelPackagingId,indTime,indPackagingId,totalQuantity,originId');
+
                 $quantity = $tRec->quantity;
                 $weight = round($tRec->weight, 3);
                 $crapQuantity = 0;
@@ -290,6 +290,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'taskId' => $tRec->taskId,
                         'originId' => $tRec->originId,
                         'detailId' => $tRec->id,
+                        'saoOrder' => $iRec->saoOrder,
                         'type' => $tRec->type,
                         'indTime' => $normTime,
                         'indTimeSum' => $indTimeSum,
@@ -424,6 +425,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                             'taskId' => $clone->taskId,
                             'originId' => $clone->originId,
+                            'saoOrder' => $clone->saoOrder,
                             'detailId' => $clone->detailId,
                             'type' => $clone->type,
                             'indTime' => $clone->indTime,
@@ -614,7 +616,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         if ($dRec->taskId){
-            $row->taskId = planning_Tasks::getHyperlink($dRec->taskId, true);
+            $row->taskId = '№'.$dRec->saoOrder.' / '. planning_Tasks::getHyperlink($dRec->taskId, true);
         }
 
         $row->article = cat_Products::getHyperlink($dRec->productId, true);
