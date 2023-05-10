@@ -100,7 +100,8 @@ class select2_PluginSmartSelect extends core_Plugin
         setIfNot($invoker->params['forceOpen'], $type->params['forceOpen']);
 
         $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
-        
+        $minimumResultsForSearch = isset($type->params['minimumResultsForSearch']) ? $type->params['minimumResultsForSearch'] : $minimumResultsForSearch;
+
         // Добавяме необходимите файлове и стартирам select2
         select2_Adapter::appendAndRun($input, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen'], $minimumResultsForSearch);
     }
