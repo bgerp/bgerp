@@ -37,7 +37,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, bgerp_plg_Import, plg_PrevAndNext';
     
     
     /**
@@ -237,18 +237,9 @@ class cat_BomDetails extends doc_Detail
         $form->setField('propQuantity', "caption={$propCaption}");
         
         // Възможните етапи са етапите от текущата рецепта
-        $stages = array();
-        $query = $mvc->getQuery();
-        $query->where("#bomId = {$rec->bomId} AND #type = 'stage'");
-        while ($dRec = $query->fetch()) {
-            $code = implode('.', $mvc->getProductPath($dRec, true));
-            $stages[$dRec->id] = $code . ". " . cat_Products::getTitleById($dRec->resourceId, false);
-        }
-        unset($stages[$rec->id]);
-
-        // Добавяме намерените етапи за опции на етапите
-        if (countR($stages)) {
-            $form->setOptions('parentId', array('' => '') + $stages);
+        $stepOptions = static::getParentOptions($rec->bomId, $rec->id);
+        if (countR($stepOptions)) {
+            $form->setOptions('parentId', array('' => '') + $stepOptions);
         } else {
             $form->setReadOnly('parentId');
         }
@@ -334,8 +325,31 @@ class cat_BomDetails extends doc_Detail
             }
         }
     }
-    
-    
+
+
+    /**
+     * Връща наличните опции етапи
+     *
+     * @param int $bomId
+     * @param int|null $id
+     * @return array $options
+     */
+    public static function getParentOptions($bomId, $id = null)
+    {
+        $me = cls::get(get_called_class());
+        $options = array();
+        $query = $me->getQuery();
+        $query->where("#bomId = {$bomId} AND #type = 'stage'");
+        while ($dRec = $query->fetch()) {
+            $code = implode('.', $me->getProductPath($dRec, true));
+            $options[$dRec->id] = $code . ". " . cat_Products::getTitleById($dRec->resourceId, false);
+        }
+        unset($options[$id]);
+
+        return $options;
+    }
+
+
     /**
      * Преди подготовка на заглавието на формата
      */

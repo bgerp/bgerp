@@ -80,7 +80,10 @@ class bgerp_plg_Import extends core_Plugin
 
         if ($mvc->haveRightFor('import', $rec)) {
             $url = array($mvc, 'import', 'ret_url' => true);
-            $data->toolbar->addBtn('Импорт', $url, null, 'row=2,ef_icon=img/16/import.png,title=Импортиране на ' . mb_strtolower($mvc->title));
+            if($mvc instanceof core_Detail){
+                $url[$mvc->masterKey] = $data->masterId;
+            }
+            $data->toolbar->addBtn('Импорт', $url, null, "row=2,ef_icon=img/16/import.png,id=import,title=Импортиране на " . mb_strtolower($mvc->title));
         }
     }
 
@@ -289,6 +292,9 @@ class bgerp_plg_Import extends core_Plugin
                     }
                 } elseif(isset($fld['suggestions'])){
                     $exp->SUGGESTIONS("#col{$name}", $fld['suggestions']);
+                } elseif(isset($fld['options'])){
+                    $options = isset($fld['allowEmpty']) ? array('' => '') + $fld['options'] : $fld['options'];
+                    $exp->OPTIONS("#col{$name}", $options);
                 }
                 
                 $qFields .= ($qFields ? ',' : '') . "#col{$name}";
