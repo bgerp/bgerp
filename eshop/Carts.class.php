@@ -229,6 +229,7 @@ class eshop_Carts extends core_Master
         $this->setDbIndex('brid');
         $this->setDbIndex('userId');
         $this->setDbIndex('domainId');
+        $this->setDbIndex('saleId');
     }
     
     

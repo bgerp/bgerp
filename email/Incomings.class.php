@@ -574,7 +574,7 @@ class email_Incomings extends core_Master
     /**
      * Помощна функция за сваляне на имейла
      */
-    protected function doProcessEmail($mime, $accId, $uid)
+    protected function doProcessEmail($mime, $accId, $uid, &$sId = null)
     {
         // Пробваме дали това не е служебно писмо
         // Ако не е служебно, пробваме дали не е SPAM
@@ -1617,6 +1617,16 @@ class email_Incomings extends core_Master
 
         $maxTime = dt::addSecs(30);
 
+        // Домейни на изпращача, които да се третират като изходящи
+        $domains = trim(mb_strtolower(email_Setup::get('IMPORT_FROM_DIRECTORY_DOMAIN_TO_OUTGOINGS')));
+        if ($domains) {
+            $domains = str_replace("\r", '', $domains);
+            $domainsArr = explode("\n", $domains);
+            $domainsArr = arr::make($domainsArr, true);
+        } else {
+            $domainsArr = array();
+        }
+
         // Обхождаме всички отркити файлове
         foreach ($files as $file) {
             $deleteFile = false;
@@ -1646,8 +1656,8 @@ class email_Incomings extends core_Master
 
                 $status = 'duplicated';
             } else {
-                // Очакваме текстовата част да е под допустимия максимум
                 if (mb_strlen($mime->textPart) > email_Setup::get('MAX_TEXT_LEN')) {
+                    // Очакваме текстовата част да е под допустимия максимум
                     $this->logNotice('Пропуснат имейл с голяма текствова част');
                     $status = 'misformatted';
 
@@ -1655,9 +1665,151 @@ class email_Incomings extends core_Master
 
                     $deleteFile = true;
                 } else {
-                    $status = $this->doProcessEmail($mime, $accId, $uId);
+                    $allFrom = $mime->getHeader('from');
+                    $fromEmailsArr = array();
+                    $toParser = new email_Rfc822Addr();
+                    $allFromAddr = array();
+                    $toParser->ParseAddressList($allFrom, $allFromAddr);
+                    foreach ((array) $allFromAddr as $emailAddArr) {
+                        $email = trim($emailAddArr['address']);
+                        $fromEmailsArr[$email] = $email;
+                    }
+                    $fromEmails = type_Emails::fromArray($fromEmailsArr);
 
-                    $status = strtolower($status);
+                    $makeOutgoing = false;
+
+                    // Ако изпращача е в подадения списък, тогава се записва, като изходящ имейл
+                    foreach ($fromEmailsArr as $fEmail) {
+                        list(, $fromDomain) = explode('@', $fEmail);
+                        $fromDomain = trim(mb_strtolower($fromDomain));
+                        if (strlen($fromDomain) && isset($domainsArr[$fromDomain])) {
+                            $makeOutgoing = true;
+                        }
+                    }
+
+                    $fromEmail = trim($mime->getFromEmail());
+                    if (!$makeOutgoing) {
+                        list(, $fromDomain) = explode('@', $fromEmail);
+                        $fromDomain = trim(mb_strtolower($fromDomain));
+                        // Сваля имейла, като изходящ такъв
+                        if (strlen($fromDomain) && isset($domainsArr[$fromDomain])) {
+                            $makeOutgoing = true;
+                        }
+                    }
+
+                    // Сваля имейла, като изходящ такъв
+                    if ($makeOutgoing) {
+
+                        $body = $mime->textPart ? $mime->textPart : $mime->justTextPart;
+
+                        // Парсираме cc хедъра
+                        $allCc = $mime->getHeader('cc');
+
+                        $ccEmailsArr = array();
+                        $ccParser = new email_Rfc822Addr();
+                        $allCcAddr = array();
+                        $ccParser->ParseAddressList($allCc, $allCcAddr);
+                        foreach ((array) $allCcAddr as $emailAddArr) {
+                            $email = trim($emailAddArr['address']);
+                            $ccEmailsArr[$email] = $email;
+                        }
+                        $ccEmails = type_Emails::fromArray($ccEmailsArr);
+
+                        $allTo = $mime->getHeader('to');
+                        $toEmailsArr = array();
+                        $toParser = new email_Rfc822Addr();
+                        $allToAddr = array();
+                        $toParser->ParseAddressList($allTo, $allToAddr);
+                        foreach ((array) $allToAddr as $emailAddArr) {
+                            $email = trim($emailAddArr['address']);
+                            $toEmailsArr[$email] = $email;
+                        }
+                        $toEmails = type_Emails::fromArray($toEmailsArr);
+
+                        $mime->saveFiles();
+                        $files = $mime->getFiles();
+                        $fArr = fileman::idKeylistToFhs($files);
+                        if (!empty($fArr)) {
+                            $body .= "\n\n";
+
+                            foreach ($fArr as $fileHnd) {
+                                $fName = fileman::fetchByFh($fileHnd, 'name');
+                                $body .= "[file={$fileHnd}]{$fName}[/file]";
+                                $body .= "\n";
+                            }
+                        }
+
+                        $emlFile = $mime->getEmlFile();
+                        $emlFileHnd = fileman::fetchField(array("#id = '[#1#]'", $emlFile), 'fileHnd');
+                        $body .= "\n\n" . "[file={$emlFileHnd}]Email.eml[/file]" . "\n" . $fromEmails;
+
+                        // Подготовка на имейла
+                        $emailRec = (object) array('subject' => $mime->getSubject(),
+                            'body' => $body,
+                            'state' => 'closed', 'email' => $toEmails, 'emailCc' => $ccEmails);
+
+                        $inCharge = null;
+                        // За създателя на имейла използваме собственика на акаунта
+                        if (strlen($fromEmail)) {
+                            $inCharge = email_Inboxes::fetchField(array("#email = '[#1#]'", $fromEmail), 'inCharge');
+                        }
+
+                        if (isset($inCharge) && $inCharge > 0) {
+                            foreach ($fromEmailsArr as $fEmail) {
+                                $inCharge = email_Inboxes::fetchField(array("#email = '[#1#]'", $fEmail), 'inCharge');
+                                if ((isset($inCharge) && $inCharge > 0)) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (isset($inCharge) && $inCharge > 0) {
+                            $emailRec->createdBy = $inCharge;
+                        } else {
+                            $emailRec->createdBy = core_Users::getCurrent();
+                        }
+                        $emailRec->createdOn = $mime->getSendingTime();
+                        $emailRec->modifiedOn = $emailRec->createdOn;
+                        $emailRec->modifiedBy = $emailRec->createdBy;
+                        $emailRec->_notModified = true;
+
+                        // Правим опит за рутиране, както входящ имейл, за да определим нишка и папка
+                        $cloneRec = clone $emailRec;
+                        $cloneRec->toBox = email_Inboxes::getToBox($mime, $accId);
+                        $cloneRec->fromEml = $mime->getToEmail();
+                        $cloneRec->headers = $mime->parseHeaders($headersMime);
+                        $cloneRec->files = $files;
+                        $cloneRec->emlFile = $emlFile;
+
+                        $this->route_($cloneRec);
+
+                        setIfNot($emailRec->folderId, $cloneRec->folderId);
+                        setIfNot($emailRec->threadId, $cloneRec->threadId);
+
+                        cls::get('email_Outgoings')->invoke('AfterRoute', array($emailRec, $emailRec));
+
+                        email_Outgoings::save($emailRec);
+
+                        email_Outgoings::logWrite('Импортиране', $emailRec);
+
+                        email_Outgoings::logNotice('Импортиран изходящ имейл', $emailRec);
+
+                        $status = 'outgoing';
+
+                        email_Fingerprints::setStatus($headersMime, '', $accId, $uId);
+                    } else {
+                        $sId = null;
+
+                        $status = $this->doProcessEmail($mime, $accId, $uId, $sId);
+
+                        $this->logNotice('Импортиран входящ имейл', $sId);
+
+                        if (isset($sId)) {
+                            $this->logWrite('Импортиране', $sId);
+                        }
+
+                        $status = strtolower($status);
+                    }
 
                     $deleteFile = true;
                 }
