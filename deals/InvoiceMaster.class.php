@@ -1426,7 +1426,9 @@ abstract class deals_InvoiceMaster extends core_Master
         $dueDate = null;
         setIfNot($dueDate, $rec->dueDate, $rec->date);
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
-        $aggregator->sum('invoicedAmount', $total);
+
+        $totalInDealRate = ($total / $rec->displayRate) * $rec->rate;
+        $aggregator->sum('invoicedAmount', $totalInDealRate);
         $aggregator->setIfNot('invoicedValior', $rec->date);
 
         if (isset($rec->dpAmount)) {
@@ -1436,9 +1438,9 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             $dpVatId = isset($rec->dpVatGroupId) ? $rec->dpVatGroupId : acc_VatGroups::getDefaultIdByDate($rec->date);
             if ($rec->dpOperation == 'accrued') {
-                $aggregator->sum('downpaymentInvoiced', $total);
+                $aggregator->sum('downpaymentInvoiced', $totalInDealRate);
 
-                $aggregator->sumByArrIndex('downpaymentAccruedByVats', $total, $dpVatId);
+                $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealRate, $dpVatId);
             } elseif ($rec->dpOperation == 'deducted') {
 
                 // Колко е приспаднатото плащане с ддс
@@ -1454,9 +1456,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $originRec = doc_Containers::getDocument($rec->originId)->fetch('dpOperation,dpVatGroupId,date');
 
                 if ($originRec->dpOperation == 'accrued') {
-                    $aggregator->sum('downpaymentInvoiced', $total);
+                    $aggregator->sum('downpaymentInvoiced', $totalInDealRate);
                     $dpVatId = isset($originRec->dpVatGroupId) ? $originRec->dpVatGroupId : acc_VatGroups::getDefaultIdByDate($originRec->date);
-                    $aggregator->sumByArrIndex('downpaymentAccruedByVats', $total, $dpVatId);
+                    $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealRate, $dpVatId);
                 }
             }
         }
