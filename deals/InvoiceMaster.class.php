@@ -1211,10 +1211,11 @@ abstract class deals_InvoiceMaster extends core_Master
             $row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), null, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0);
             $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
             $noVat = $rec->dealValue - $rec->discountAmount;
-            
-            $totalToVerbal = (!empty($rec->rate)) ? $total / $rec->rate : $total;
-            $novatToVerbal = (!empty($rec->rate)) ? $noVat / $rec->rate : $noVat;
-            $amountToVerbal = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
+
+            $displayRate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
+            $totalToVerbal = (!empty($displayRate)) ? $total / $displayRate : $total;
+            $novatToVerbal = (!empty($displayRate)) ? $noVat / $displayRate : $noVat;
+            $amountToVerbal = (!empty($displayRate)) ? $rec->vatAmount / $displayRate : $rec->vatAmount;
             
             $row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($totalToVerbal);
             $row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($novatToVerbal);
