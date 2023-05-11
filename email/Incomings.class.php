@@ -2781,7 +2781,7 @@ class email_Incomings extends core_Master
         /* @var $query core_Query */
         if ($rec->fromEml) {
             $query = static::getQuery();
-            $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected' AND #accId > 0");
+            $query->where(array("#fromEml = '[#1#]' AND #state != 'rejected' AND #accId > 0", $rec->fromEml));
             $query->orderBy('createdOn', 'DESC');
             $query->limit(3);     // 3 писма
             while ($mrec = $query->fetch()) {
