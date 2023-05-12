@@ -1780,6 +1780,7 @@ class email_Incomings extends core_Master
                         $cloneRec->headers = $mime->parseHeaders($headersMime);
                         $cloneRec->files = $files;
                         $cloneRec->emlFile = $emlFile;
+                        $cloneRec->accId = $accId;
 
                         $this->route_($cloneRec);
 
