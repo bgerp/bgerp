@@ -357,6 +357,17 @@ class trans_LineDetails extends doc_Detail
             $row->containerId .= " {$featuresString}";
         }
 
+        if($Document->isInstanceOf('store_ShipmentOrders')){
+            $invoicesInShipment = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            if(countR($invoicesInShipment)){
+                $invoiceArr = array();
+                foreach ($invoicesInShipment as $iRec){
+                    $invoiceArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
+                }
+                $row->containerId .= "<small>" . implode(',', $invoiceArr) . "</small>";
+            }
+        }
+
         // Ако има платежни документи към складовия
         if(is_array($rec->paymentsArr) && $rec->status != 'removed'){
             $rec->_allPaymentActive = (bool)countR($rec->paymentsArr);
