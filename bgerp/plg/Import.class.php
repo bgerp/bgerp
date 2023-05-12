@@ -271,10 +271,7 @@ class bgerp_plg_Import extends core_Plugin
             $Driver = cls::get($driverId, array('mvc' => $exp->mvc));
             $fieldsArr = $Driver->getFields();
 
-            $onExistParams = 'mandatory';
-            if($Driver->hideImportOnExistOption){
-                $onExistParams .= ',input=hidden';
-            }
+            $onExistParams = ($Driver->hideImportOnExistOption) ? 'input=hidden' : 'mandatory';
             $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', $onExistParams);
 
             // Поставяне на възможност да се направи мачване на
@@ -305,8 +302,12 @@ class bgerp_plg_Import extends core_Plugin
             }
             
             $exp->question($qFields, tr("Въведете съответстващите полета за \"{$exp->mvc->title}\"") . ':', true, 'label=lastQ,title=' . tr('Съответствие между полетата на източника и списъка'));
-            
-            $res = $exp->solve('#driver,#source,#delimiter,#enclosure,#firstRow,#onExist,#lastQ');
+
+            $solveFields = '#driver,#source,#delimiter,#enclosure,#firstRow,#onExist,#lastQ';
+            if($Driver->hideImportOnExistOption){
+                $solveFields = '#driver,#source,#delimiter,#enclosure,#firstRow,#lastQ';
+            }
+            $res = $exp->solve($solveFields);
         } else {
             $res = $exp->solve('#driver,#source,#delimiter,#enclosure,#firstRow,#onExist');
         }

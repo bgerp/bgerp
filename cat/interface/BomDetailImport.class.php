@@ -26,6 +26,12 @@ class cat_interface_BomDetailImport extends core_Manager
 
 
     /**
+     * Да се показва ли опцията при дублиране
+     */
+    public $hideImportOnExistOption = true;
+
+
+    /**
      * Коя е ценовата политика
      */
     protected $bomRec;
@@ -61,7 +67,6 @@ class cat_interface_BomDetailImport extends core_Manager
     }
 
 
-
     /**
      * Импортиране на csv-файл в даден мениджър
      *
@@ -73,8 +78,6 @@ class cat_interface_BomDetailImport extends core_Manager
      */
     public function import($rows, $fields)
     {
-        $ignoreArr = array();
-
         $added = $skipped = 0;
         core_Debug::startTimer('import');
         $bomId = Request::get('bomId');
@@ -82,6 +85,8 @@ class cat_interface_BomDetailImport extends core_Manager
 
         $oFields = $this->getFields();
 
+        $Details = cls::get('cat_BomDetails');
+        $positionCounter = 1000;
         $errorCsv = $saveArr = array();
         foreach ($rows as $row) {
             $errors = array();
@@ -119,11 +124,20 @@ class cat_interface_BomDetailImport extends core_Manager
                     $rec->bomId = $bomRec->id;
                     $rec->parentId = empty($fields['parentId']) ? null : $fields['parentId'];
                 }
+
+                $notAllowed = array();
+                $Details->findNotAllowedProducts($rec->resourceId, $bomRec->productId, $notAllowed);
+                if (isset($notAllowed[$rec->resourceId])) {
+                    $errors[] = 'Невъзможен за добавяне';
+                    $add = false;
+                }
             }
 
             if($add){
+                $rec->position = $positionCounter;
                 $added++;
                 $saveArr[] = $rec;
+                $positionCounter++;
             } else {
                 $skipped++;
                 $errorCsv[] = (object)array('code' => $code, 'errors' => implode(', ', $errors));
@@ -132,10 +146,11 @@ class cat_interface_BomDetailImport extends core_Manager
 
         if(countR($saveArr)){
             foreach ($saveArr as $newRec){
-                cls::get('cat_BomDetails')->save($newRec);
+                $Details->save($newRec);
             }
         }
 
+        // Ако има файл с грешки - създава се и се прикача към рецептата
         if(countR($errorCsv)){
             $csvFields = new core_FieldSet();
             $csvFields->FLD('code', 'varchar', 'caption=Код');
