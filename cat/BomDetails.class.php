@@ -322,6 +322,8 @@ class cat_BomDetails extends doc_Detail
                 if(empty($rec->id)){
                     cat_products_Params::addProductParamsToForm($mvc, $rec->id, $masterRec->productId, $rec->resourceId, $form);
                 }
+
+                $form->setFieldTypeParams("norm", array('measureId' => cat_Products::fetchField($rec->resourceId, 'measureId')));
             }
         }
     }
