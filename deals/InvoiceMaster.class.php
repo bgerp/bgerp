@@ -411,9 +411,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
                 $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
                 $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Пояснение');
-                $form->rec->changeAmountVat = key($cache->vats);
+
                 $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
                 $min = round($min, 2);
+                $form->rec->changeAmountVat = key($cache->vats);
                 $form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
                 if ($invArr['dpOperation'] == 'accrued') {
                     // Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
@@ -658,18 +659,17 @@ abstract class deals_InvoiceMaster extends core_Master
         $rec = &$data->rec;
 
         if (empty($data->noTotal)) {
+            $rate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
             if (isset($rec->type) && $rec->type != 'invoice' && isset($rec->changeAmount)) {
                 $this->_total = new stdClass();
-                $this->_total->amount = $rec->dealValue / $rec->rate;
-                $this->_total->vat = $rec->vatAmount / $rec->rate;
+                $this->_total->amount = $rec->dealValue / $rate;
+                $this->_total->vat = $rec->vatAmount / $rate;
                 @$percent = round($this->_total->vat / $this->_total->amount, 2);
                 $percent = is_nan($percent) ? 0 : $percent;
                 $this->_total->vats["{$percent}"] = (object) array('amount' => $this->_total->vat, 'sum' => $this->_total->amount);
             }
 
             $this->invoke('BeforePrepareSummary', array($this->_total));
-            
-            $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rate, $rec->currencyId, $rec->vatRate, true, $rec->tplLang);
 
             $data->row = (object) ((array) $data->row + (array) $data->summary);
@@ -998,7 +998,8 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
                 
                 if ($originRec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
-                    $diff = ($rec->changeAmount * $rec->rate);
+                    $rate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
+                    $diff = ($rec->changeAmount * $rate);
                     $rec->vatAmount = $diff * $vat;
                     
                     // Стойността е променената сума
