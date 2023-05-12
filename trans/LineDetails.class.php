@@ -364,7 +364,7 @@ class trans_LineDetails extends doc_Detail
                 foreach ($invoicesInShipment as $iRec){
                     $invoiceArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
                 }
-                $row->containerId .= "<small>" . implode(',', $invoiceArr) . "</small>";
+                $row->containerId .= " <small>" . implode(',', $invoiceArr) . "</small>";
             }
         }
 
