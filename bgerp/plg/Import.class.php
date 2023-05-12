@@ -243,7 +243,7 @@ class bgerp_plg_Import extends core_Plugin
         // Поле за ръчно въвеждане на csv данни
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
         $exp->question('#csvData,#delimiter,#enclosure,#firstRow,#onExist', tr('Моля, поставете данните, и посочете формата на данните') . ':', "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за импорт, и уточняване на разделителя и ограждането'));
-        
+
         // Поле за ъплоуд на csv файл
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
         $exp->question('#csvFile,#delimiter,#enclosure,#firstRow,#onExist', tr('Въведете файл в CSV формат, и посочете формата на данните') . ':', "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
@@ -255,8 +255,6 @@ class bgerp_plg_Import extends core_Plugin
         $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=3)', array('value' => ''), 'placeholder=автоматично');
         $exp->SUGGESTIONS('#enclosure', array('' => '', '"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
-        $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', 'mandatory');
-
 
         if ($exp->mvc->expOnExist) {
             $exp->ASSUME('#onExist', '"' . $exp->mvc->expOnExist . '"');
@@ -272,6 +270,12 @@ class bgerp_plg_Import extends core_Plugin
         if ($driverId) {
             $Driver = cls::get($driverId, array('mvc' => $exp->mvc));
             $fieldsArr = $Driver->getFields();
+
+            $onExistParams = 'mandatory';
+            if($Driver->hideImportOnExistOption){
+                $onExistParams .= ',input=hidden';
+            }
+            $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', $onExistParams);
 
             // Поставяне на възможност да се направи мачване на
             // полетата от модела и полетата от csv-то
