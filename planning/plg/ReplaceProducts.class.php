@@ -26,6 +26,11 @@ class planning_plg_ReplaceProducts extends core_Plugin
         setIfNot($mvc->replaceProductPackagingFieldName, 'packagingId');
         setIfNot($mvc->replaceProductQuantityFieldName, 'packQuantity');
         setIfNot($mvc->canReplaceproduct, $mvc->canEdit);
+        setIfNot($mvc->packQuantityFld, 'packQuantity');
+        setIfNot($mvc->quantityInPackFld, 'quantityInPack');
+        setIfNot($mvc->quantityFld, 'quantity');
+        setIfNot($mvc->productFld, 'productId');
+        setIfNot($mvc->packagingFld, 'packagingId');
 
         expect($mvc instanceof core_Detail, "Трябва да е наследник на 'core_Detail'");
     }
