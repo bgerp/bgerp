@@ -1780,8 +1780,15 @@ class email_Incomings extends core_Master
                         $cloneRec->headers = $mime->parseHeaders($headersMime);
                         $cloneRec->files = $files;
                         $cloneRec->emlFile = $emlFile;
+                        $cloneRec->accId = $accId;
 
-                        $this->route_($cloneRec);
+                        try {
+                            $this->route_($cloneRec);
+                        } catch (core_exception_Expect $e) {
+                            if (!$emailRec->folderId) {
+                                $emailRec->folderId = doc_UnsortedFolders::forceCoverAndFolder((object) array('name' => $cloneRec->toBox));
+                            }
+                        }
 
                         setIfNot($emailRec->folderId, $cloneRec->folderId);
                         setIfNot($emailRec->threadId, $cloneRec->threadId);
