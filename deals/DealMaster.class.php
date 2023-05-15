@@ -65,7 +65,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions,lastAutoRecalcRate';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
     
     
     /**
@@ -448,7 +448,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if (empty($rec->currencyRate)) {
             // Ако няма курс винаги е този към днешна дата
-            $rec->currencyRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
+            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             if (!$rec->currencyRate) {
                 $form->setError('currencyRate', 'Не може да се изчисли курс');
             }
@@ -859,7 +859,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
         
         if (empty($rec->currencyRate)) {
-            $rec->currencyRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
+            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
         }
 
         if(isset($rec->id)){
@@ -1955,7 +1955,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         // Ако няма курс, това е този за основната валута
         if (empty($fields['currencyRate'])) {
-            $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], null);
+            $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['valior'], $fields['currencyId'], null);
             expect($fields['currencyRate']);
         }
 
@@ -2919,15 +2919,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
 
         return $files;
-    }
-
-
-    /**
-     * Осреднява валутните курсове на сделките при нужда
-     */
-    public function cron_RecalcCurrencyRate()
-    {
-        $this->recalcDealsWithCurrencies();
     }
 
 

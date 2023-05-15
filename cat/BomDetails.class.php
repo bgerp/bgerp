@@ -37,7 +37,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, bgerp_plg_Import, plg_PrevAndNext';
     
     
     /**
@@ -184,8 +184,9 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
-
-        $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName','bomDetailStepDescription')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn" id="bomResourceColName"> </a>';
+        if(cat_BomDetails::count("#bomId = {$data->masterId} AND #type = 'stage'")){
+            $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn" id="bomResourceColName"> </a>';
+        }
         $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
         $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
         $data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
@@ -236,18 +237,9 @@ class cat_BomDetails extends doc_Detail
         $form->setField('propQuantity', "caption={$propCaption}");
         
         // Възможните етапи са етапите от текущата рецепта
-        $stages = array();
-        $query = $mvc->getQuery();
-        $query->where("#bomId = {$rec->bomId} AND #type = 'stage'");
-        while ($dRec = $query->fetch()) {
-            $code = implode('.', $mvc->getProductPath($dRec, true));
-            $stages[$dRec->id] = $code . ". " . cat_Products::getTitleById($dRec->resourceId, false);
-        }
-        unset($stages[$rec->id]);
-
-        // Добавяме намерените етапи за опции на етапите
-        if (countR($stages)) {
-            $form->setOptions('parentId', array('' => '') + $stages);
+        $stepOptions = static::getParentOptions($rec->bomId, $rec->id);
+        if (countR($stepOptions)) {
+            $form->setOptions('parentId', array('' => '') + $stepOptions);
         } else {
             $form->setReadOnly('parentId');
         }
@@ -330,11 +322,36 @@ class cat_BomDetails extends doc_Detail
                 if(empty($rec->id)){
                     cat_products_Params::addProductParamsToForm($mvc, $rec->id, $masterRec->productId, $rec->resourceId, $form);
                 }
+
+                $form->setFieldTypeParams("norm", array('measureId' => cat_Products::fetchField($rec->resourceId, 'measureId')));
             }
         }
     }
-    
-    
+
+
+    /**
+     * Връща наличните опции етапи
+     *
+     * @param int $bomId
+     * @param int|null $id
+     * @return array $options
+     */
+    public static function getParentOptions($bomId, $id = null)
+    {
+        $me = cls::get(get_called_class());
+        $options = array();
+        $query = $me->getQuery();
+        $query->where("#bomId = {$bomId} AND #type = 'stage'");
+        while ($dRec = $query->fetch()) {
+            $code = implode('.', $me->getProductPath($dRec, true));
+            $options[$dRec->id] = $code . ". " . cat_Products::getTitleById($dRec->resourceId, false);
+        }
+        unset($options[$id]);
+
+        return $options;
+    }
+
+
     /**
      * Преди подготовка на заглавието на формата
      */
@@ -816,16 +833,14 @@ class cat_BomDetails extends doc_Detail
         }
 
         if(!empty($productDescriptionStr)){
-            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription"> </a>';
+            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>';
             $row->resourceId .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>{$productDescriptionStr}</div>";
         }
 
-        $propQuantity = $rec->propQuantity;
         $coefficient = null;
-        
+        $propQuantity = $rec->propQuantity;
         if (isset($rec->parentId)) {
             $coefficient = $mvc->fetchField($rec->parentId, 'coefficient');
-            
             if (isset($coefficient)) {
                 $rec->propQuantity = "({$rec->propQuantity}) / ${coefficient}";
             }

@@ -866,7 +866,7 @@ class doc_DocumentPlg extends core_Plugin
                 $updateAll = false;
             }
 
-            doc_Containers::update($containerId, $updateAll);
+            doc_Containers::update($containerId, $updateAll, $rec->_notModified);
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
@@ -1056,13 +1056,13 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме тред - създаваме нов тред в тази папка
         if (!$rec->threadId) {
-            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
         }
         
         // Ако нямаме контейнер - създаваме нов контейнер за
         // този клас документи в определения тред
         if (!$rec->containerId) {
-            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy);
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
         }
     }
     

@@ -6,11 +6,11 @@
             <td>[#valior#]</td>
         </tr>
         <tr>
-            <td>|Погасено по|* [#dealHandle#]</td>
+            <td>|Погасено по|*: [#dealHandle#]</td>
             <td><span class='cCode'>[#dealCurrencyId#]</span> [#amount#]</td>
         </tr>
         <tr>
-            <td>|Заверено по|* [#nextHandle#]</td>
+            <td>|Заверено по|*: [#nextHandle#]</td>
             <td><span class='cCode'>[#currencyId#]</span> [#amountDeal#]</td>
         </tr>
 
