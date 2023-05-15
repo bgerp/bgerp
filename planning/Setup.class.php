@@ -284,7 +284,8 @@ class planning_Setup extends core_ProtoSetup
         'migrate::updateLastChangedOnState',
         'migrate::updateTasks1',
         'migrate::updateCenters2244',
-        'migrate::cleanClosedTasks2250'
+        'migrate::cleanClosedTasks2250',
+        'migrate::updateTasks1520'
     );
 
 
@@ -527,4 +528,42 @@ class planning_Setup extends core_ProtoSetup
             }
         }
     }
+
+
+    /**
+     * Миграция на създадените ПО без данни дали са финални или не
+     */
+    public function updateTasks1520()
+    {
+        $query = planning_Tasks::getQuery();
+        $query->where('#isFinal IS NULL AND #state != "rejected"');
+
+        $taskRecs = $query->fetchAll();
+        $productIds = arr::extractValuesFromArray($taskRecs, 'productId');
+
+        if(countR($productIds)){
+            $steps = array();
+            $classId = cat_Products::getClassId();
+            $sQuery = planning_Steps::getQuery();
+            $sQuery->in('objectId', $productIds);
+            $sQuery->where("#classId = {$classId}");
+            $sQuery->show('isFinal, objectId');
+            while($sRec = $sQuery->fetch()){
+                $steps[$sRec->objectId] = $sRec->isFinal;
+            }
+
+            $count = countR($steps);
+            if($count){
+                core_App::setTimeLimit($count * 0.6, false, 300);
+                $Tasks = cls::get('planning_Tasks');
+                foreach ($taskRecs as $taskRec){
+                    $taskRec->isFinal = $steps[$taskRec->productId];
+                    if($steps[$taskRec->productId] == 'yes'){
+                        $Tasks->save($taskRec);
+                    }
+                }
+            }
+        }
+    }
+
 }
