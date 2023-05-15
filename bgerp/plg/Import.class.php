@@ -97,11 +97,8 @@ class bgerp_plg_Import extends core_Plugin
         if ($action == 'import' && isset($rec)) {
 
             if($mvc instanceof core_Detail){
-                if(isset($rec->{$mvc->masterKey})){
-                    $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'state');
-                    if($masterRec->state == 'rejected'){
-                        $res = 'no_one';
-                    }
+                if(!$mvc->haveRightFor('add', $rec)){
+                    $res = 'no_one';
                 }
             }
         }
