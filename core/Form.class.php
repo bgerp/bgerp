@@ -1470,6 +1470,10 @@ class core_Form extends core_FieldSet
                 $msg = false;
             }
         }
+
+        if ($this->gotErrors()) {
+            Mode::set('haveErrInAct', true);
+        }
     }
     
     

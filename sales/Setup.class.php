@@ -458,7 +458,6 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
-        'migrate::recalcCurrencySales1115',
     );
     
     
@@ -635,27 +634,9 @@ class sales_Setup extends core_ProtoSetup
             }
         }
 
-        $params = array('systemId'    => 'Recalc Currency Sales Rate',
-                        'description' => 'Осредняване на валутните курсове на продажбите',
-                        'controller'  => 'sales_Sales',
-                        'action'    => 'RecalcCurrencyRate',
-                        'offset'    => 240,
-                        'interval'    => 1440);
-
-        $res .= deals_Setup::syncCronSettings($params);
-
         $Plugins = cls::get('core_Plugins');
         $res .= $Plugins->installPlugin('Връзка на продажбите с куриерско API', 'store_plg_CourierApiShipment', 'sales_Sales', 'private');
 
         return $res;
-    }
-
-
-    /**
-     * Първоначална миграция на всички валитни покупки с промяна на курса към текущия
-     */
-    public function recalcCurrencySales1115()
-    {
-        cls::get('sales_Sales')->recalcDealsWithCurrencies(true);
     }
 }

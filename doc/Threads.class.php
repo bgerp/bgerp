@@ -1125,13 +1125,14 @@ class doc_Threads extends core_Manager
     /**
      * Създава нов тред
      */
-    public static function create($folderId, $createdOn, $createdBy)
+        public static function create($folderId, $createdOn, $createdBy, $notModified = null)
     {
         $rec = new stdClass();
         $rec->folderId = $folderId;
         $rec->createdOn = $createdOn;
         $rec->createdBy = $createdBy;
-        
+        $rec->_notModified = $notModified;
+
         self::save($rec);
         
         return $rec->id;

@@ -139,7 +139,6 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_PurchasesData',
         'purchase_Quotations',
         'purchase_QuotationDetails',
-        'migrate::recalcCurrencyPurchases1115',
     );
     
     
@@ -230,35 +229,5 @@ class purchase_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('purQuoteFiles', 'Прикачени файлове в офертите от доставчици', null, '104857600', 'user', 'user');
 
         return $html;
-    }
-
-
-    /**
-     * Зареждане на данни
-     */
-    public function loadSetupData($itr = '')
-    {
-        $res = parent::loadSetupData($itr);
-
-        $params = array('systemId'    => 'Recalc Currency Purchase Rate',
-                        'description' => 'Осредняване на валутните курсове на покупките',
-                        'controller'  => 'purchase_Purchases',
-                        'action'      => 'RecalcCurrencyRate',
-                        'offset'      => 140,
-                        'interval'    => 1440,
-        );
-
-        $res .= deals_Setup::syncCronSettings($params);
-
-        return $res;
-    }
-
-
-    /**
-     * Първоначална миграция на всички валитни покупки с промяна на курса към текущия
-     */
-    public function recalcCurrencyPurchases1115()
-    {
-        cls::get('purchase_Purchases')->recalcDealsWithCurrencies(true);
     }
 }

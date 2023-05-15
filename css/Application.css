@@ -7452,3 +7452,14 @@ table.bomProductionStepTable td {
 .saleBankBlock a:visited {
   color: #888888; }
 
+.rateDiffDocumentTable td.rateDifferenceDocumentGroup {
+  background-color: #eeeeee;
+  border: 1px solid #bbbbbb 54; }
+
+.rateDiffDocumentTable td {
+  padding-top: 4px;
+  padding-bottom: 4px; }
+
+.rateDiffDocumentTable td.rateDifferenceDocumentLink {
+  text-indent: 20px; }
+

@@ -73,22 +73,237 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
      */
     public static function getTransactionData($rate, $valior, $threadId)
     {
-        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
-        $query = doc_Containers::getQuery();
-        $query->where("#state = 'active' AND #threadId = {$threadId}");
-        $query->in('docClass', $paymentIds);
-        $documents = $query->fetchAll();
-
-        $res = (object)array('entries' => array(), 'amount' => 0, 'data' => array());
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $dealRec = $firstDoc->fetch();
+
+        $res = (object)array('entries' => array(), 'amount' => 0, 'data' => array());
+
+        // В кои нишки ще се търсят платежните документи
+        $threads = array($dealRec->threadId => $dealRec->threadId);
+        $closedDocs = keylist::toArray($dealRec->closedDocuments);
+        if (countR($closedDocs)) {
+
+            // Ако е обединяващ договор ще се гледа и в обединените такива
+            $tQuery = $firstDoc->getInstance()->getQuery();
+            $tQuery->in('id', $closedDocs);
+            $tQuery->show('threadId');
+            $threads += arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
+        }
+
+        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
+        $query = doc_Containers::getQuery();
+        $query->where("#state = 'active'");
+        $query->in('docClass', $paymentIds);
+        $query->in('threadId', $threads);
+        $query->show('id');
+        $documents = $query->fetchAll();
+
         if($firstDoc->isInstanceOf('purchase_Purchases')){
             $res->entries = static::getPurchaseEntries($rate, $valior, $documents, $dealRec, $res->amount, $res->data);
         } elseif($firstDoc->isInstanceOf('sales_Sales')){
             $res->entries = static::getSaleEntries($rate, $valior, $documents, $dealRec, $res->amount, $res->data);
+        } elseif($firstDoc->isInstanceOf('findeals_Deals')){
+
+            // Кои са прехвърлянията на взимание/задължения към тази финансова сделка
+            $debitDocumentQuery = findeals_DebitDocuments::getQuery();
+            $debitDocumentQuery->where("#state = 'active' AND #dealId = {$firstDoc->fetchField('containerId')}");
+            $dealContainerIds = arr::extractValuesFromArray($debitDocumentQuery->fetchAll(), 'containerId');
+
+            $creditDocumentQuery = findeals_CreditDocuments::getQuery();
+            $creditDocumentQuery->where("#state = 'active' AND #dealId = {$firstDoc->fetchField('containerId')}");
+            $dealContainerIds += arr::extractValuesFromArray($creditDocumentQuery->fetchAll(), 'containerId');
+
+            // Добавят се към платежните документи към нея
+            if(countR($dealContainerIds)){
+                $query1 = doc_Containers::getQuery();
+                $query1->where("#state = 'active'");
+                $query1->in('id', $dealContainerIds);
+                $query1->show('id');
+                $documents = $query1->fetchAll() + $documents;
+            }
+
+            $res->entries = static::getFinDealEntries($rate, $valior, $documents, $dealRec, $res->amount, $res->data);
         }
 
         return $res;
+    }
+
+
+    /**
+     * Контировка за курсови разлики към продажба
+     *
+     * @param double $rate        - курс
+     * @param date $valior        - вальор
+     * @param array $documents    - масив с платежни документи
+     * @param stdClass $dealRec   - запис на сделката
+     * @param double $totalAmount - обща сума досега
+     * @param  array $data        - масив с намерените документи и коригираните суми
+     * @return array
+     */
+    private static function getFinDealEntries($rate, $valior, $documents, $dealRec, &$totalAmount, &$data)
+    {
+        $entries = array();
+
+        foreach ($documents as $d) {
+            $Doc = doc_Containers::getDocument($d->id);
+            $docRec = $Doc->fetch();
+
+            $sign = ($docRec->isReverse == 'yes') ? -1 : 1;
+
+            if ($Doc->isInstanceOf('deals_PaymentDocument')) {
+                if ($Doc->isInstanceOf('deals_Document')) {
+                    $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
+                    $currencyCode = currency_Currencies::getCodeById($docRec->currencyId);
+
+                    $Origin = doc_Containers::getDocument($docRec->originId);
+                    if ($Doc->isInstanceOf('findeals_DebitDocuments')) {
+                        if ($Origin->isInstanceOf('sales_Sales')) {
+                            $debitAcc = $docRec->debitAccount;
+                            $creditAcc = $docRec->creditAccount;
+                        } else {
+                            $debitAcc = $docRec->creditAccount;
+                            $creditAcc = $docRec->debitAccount;
+                        }
+                    } else {
+                        if ($Origin->isInstanceOf('sales_Sales')) {
+                            $debitAcc = $docRec->creditAccount;
+                            $creditAcc = $docRec->debitAccount;
+                        } else {
+                            $debitAcc = $docRec->debitAccount;
+                            $creditAcc = $docRec->creditAccount;
+                        }
+                    }
+
+                    if ($Origin->isInstanceOf('sales_Sales')) {
+                        $accId = ($docRec->isReverse == 'yes') ? $creditAcc : $debitAcc;
+                        $strategyRate = self::getJournalCurrencyPrice('debit', $accId, $currencyItemId, $Doc);
+                    } elseif($Origin->isInstanceOf('findeals_Deals')){
+                        $accId = ($docRec->isReverse == 'yes') ? $debitAcc : $creditAcc;
+                        $side = $Doc->isInstanceOf('findeals_DebitDocuments') ? 'debit' : 'credit';
+                        $strategyRate = self::getJournalCurrencyPrice($side, $accId, $currencyItemId, $Doc);
+                    } else {
+                        $accId = ($docRec->isReverse == 'yes') ? $debitAcc : $creditAcc;
+                        $strategyRate = self::getJournalCurrencyPrice('credit', $accId, $currencyItemId, $Doc);
+                    }
+                    if (empty($strategyRate)) {
+                        $strategyRate = currency_CurrencyRates::getRate($valior, $currencyCode, null);
+                    }
+
+                    $diffRate = $rate - $strategyRate;
+
+                    // Aко няма разлика или тя е много дребна няма да се прави запис
+                    $finalAmountNotRound = $diffRate * $sign * $docRec->amountDeal;
+                    $finalAmountNotRoundCheck = preg_replace('/\.(\d{2}).*/', '.$1', abs($finalAmountNotRound));
+                    if(empty($finalAmountNotRoundCheck) || $finalAmountNotRoundCheck < 0.01) continue;
+
+                    $finalAmount = round($finalAmountNotRound, 2);
+                    $totalAmount += $finalAmount;
+                    $data[$docRec->containerId] = $finalAmount;
+
+                    $finDealSideArr = array($accId,
+                        array($dealRec->contragentClassId, $dealRec->contragentId),
+                        array('findeals_Deals', $dealRec->id),
+                        array('currency_Currencies', $docRec->currencyId),
+                        'quantity' => $sign * round($docRec->amountDeal, 2));
+
+                    $correctionSideArr = array('481',
+                        array('currency_Currencies', $docRec->currencyId),
+                        'quantity' => $sign * round($docRec->amountDeal, 2));
+
+                    if ($Origin->isInstanceOf('sales_Sales')) {
+                        $entries[] = array('amount' => $finalAmount,
+                            'debit' => $finDealSideArr,
+                            'credit' => $correctionSideArr,
+                            'reason' => "Валутни разлики");
+                    } elseif ($Origin->isInstanceOf('purchase_Purchases')) {
+                        $entries[] = array('amount' => $finalAmount,
+                            'credit' => $finDealSideArr,
+                            'debit' => $correctionSideArr,
+                            'reason' => "Валутни разлики");
+                    } else {
+                        if($Doc->isInstanceOf('findeals_CreditDocuments')){
+                            $entries[] = array('amount' => $finalAmount,
+                                'credit' => $finDealSideArr,
+                                'debit' => $correctionSideArr,
+                                'reason' => "Валутни разлики");
+                        } else {
+                            $entries[] = array('amount' => $finalAmount,
+                                'credit' => $correctionSideArr,
+                                'debit' => $finDealSideArr,
+                                'reason' => "Валутни разлики");
+                        }
+                    }
+                } else {
+                    $currencyId = $docRec->dealCurrencyId;
+                    if($Doc->isInstanceOf('bank_Document')){
+                        $creditAccId = $docRec->creditAccId;
+                        $debitAccId = $docRec->debitAccId;
+                    } else {
+                        $creditAccId = $docRec->creditAccount;
+                        $debitAccId = $docRec->debitAccount;
+                    }
+
+                    $currencyItemId = acc_Items::fetchItem('currency_Currencies', $currencyId)->id;
+                    $currencyCode = currency_Currencies::getCodeById($currencyId);
+
+                    if($Doc->isInstanceOf('cash_Pko') || $Doc->isInstanceOf('bank_IncomeDocuments')){
+                        $rateFromJournal = static::getJournalCurrencyPrice('debit', $debitAccId, $currencyItemId, $Doc);
+                        $debitRecId = acc_Accounts::getRecBySystemId($creditAccId)->id;
+                        $journalId = acc_Journal::fetchByDoc($Doc->getInstance(), $Doc->that)->id;
+                        if(isset($journalId)){
+                            $jQuery = acc_JournalDetails::getQuery();
+                            $jQuery->where("#journalId = {$journalId} AND #creditAccId = {$debitRecId} AND #creditItem3 = {$currencyItemId}");
+                            $rateFromJournal = $jQuery->fetch()->creditPrice;
+                        }
+                    } else {
+                        $debitRecId = acc_Accounts::getRecBySystemId($debitAccId)->id;
+                        $journalId = acc_Journal::fetchByDoc($Doc->getInstance(), $Doc->that)->id;
+                        if(isset($journalId)){
+                            $jQuery = acc_JournalDetails::getQuery();
+                            $jQuery->where("#journalId = {$journalId} AND #debitAccId = {$debitRecId} AND #debitItem3 = {$currencyItemId}");
+                            $rateFromJournal = $jQuery->fetch()->debitPrice;
+                        }
+                    }
+
+                    $strategyRate = !empty($rateFromJournal) ? $rateFromJournal : currency_CurrencyRates::getRate($docRec->valior, $currencyCode, null);
+
+                    $diffRate = $rate - $strategyRate;
+                    $finalAmountNotRound = $diffRate * $sign * $docRec->amountDeal;
+                    $finalAmountNotRoundCheck = preg_replace('/\.(\d{2}).*/', '.$1', abs($finalAmountNotRound));
+                    if(empty($finalAmountNotRoundCheck) || $finalAmountNotRoundCheck < 0.01) continue;
+
+                    $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
+                    $totalAmount += $finalAmount;
+                    $data[$docRec->containerId] = $finalAmount;
+
+                    if($Doc->isInstanceOf('cash_Pko') || $Doc->isInstanceOf('bank_IncomeDocuments')){
+                        $entries[] = array('amount' => $finalAmount,
+                            'credit' => array($creditAccId,
+                                array($dealRec->contragentClassId, $dealRec->contragentId),
+                                array('findeals_Deals', $dealRec->id),
+                                $currencyItemId,
+                                'quantity' => $sign * round($docRec->amountDeal, 2)),
+                            'debit' => array('481',
+                                $currencyItemId,
+                                'quantity' => $sign * round($docRec->amountDeal, 2)),
+                            'reason' => "Валутни разлики");
+                    } else {
+                        $entries[] = array('amount' => $finalAmount,
+                            'debit' => array($debitAccId,
+                                array($dealRec->contragentClassId, $dealRec->contragentId),
+                                array('findeals_Deals', $dealRec->id),
+                                $currencyItemId,
+                                'quantity' => $sign * round($docRec->amountDeal, 2)),
+                            'credit' => array('481',
+                                $currencyItemId,
+                                'quantity' => $sign * round($docRec->amountDeal, 2)),
+                            'reason' => "Валутни разлики");
+                    }
+                }
+            }
+        }
+
+        return $entries;
     }
 
 
@@ -176,7 +391,11 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         $journalId = acc_Journal::fetchByDoc($Doc->getInstance(), $Doc->that)->id;
         if(isset($journalId)){
             $jQuery = acc_JournalDetails::getQuery();
-            $jQuery->where("#journalId = {$journalId} AND #{$type}AccId = {$creditRec} AND #{$type}Item2 = {$currencyItemId}");
+            if($Doc->isInstanceOf('deals_Document')){
+                $jQuery->where("#journalId = {$journalId} AND #{$type}AccId = {$creditRec} AND #{$type}Item3 = {$currencyItemId}");
+            } else {
+                $jQuery->where("#journalId = {$journalId} AND #{$type}AccId = {$creditRec} AND #{$type}Item2 = {$currencyItemId}");
+            }
 
             return $jQuery->fetch()->{"{$type}Price"};
         }
@@ -201,7 +420,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         $entries = array();
 
         foreach ($documents as $d){
-            $Doc = doc_Containers::getDocument($d);
+            $Doc = doc_Containers::getDocument($d->id);
             $docRec = $Doc->fetch();
 
             if($Doc->isInstanceOf('deals_PaymentDocument')){

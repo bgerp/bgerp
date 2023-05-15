@@ -69,22 +69,14 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
         
         $doc = doc_Containers::getDocument($rec->dealId);
         $dealCodeId = currency_Currencies::getIdByCode($doc->fetchField('currencyId'));
-        
+
         if ($rec->currencyId == $baseCurrencyId) {
             $amount = $rec->amountDeal;
         } elseif ($originCodeId == $baseCurrencyId) {
             $amount = $rec->amount;
         } else {
-            $amount = null;
-            if(round($rec->amountDeal,2) == round($rec->amount,2)){
-                if(!empty($rec->rate)) {
-                    $amount = $rec->amount * $rec->rate;
-                }
-            }
-
-            if(!isset($amount)){
-                $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $origin->fetchField('currencyId'));
-            }
+            $originRate = $origin->fetchField('currencyRate');
+            $amount = $rec->amount * $originRate;
         }
         
         $dealRec = $doc->fetch();

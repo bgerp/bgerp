@@ -155,10 +155,10 @@ class acc_RatesDifferences extends core_Master
      * @return int                   - ид-то на създадения/реконтирания документ
      * @throws core_exception_Expect
      */
-    public static function force($threadId, $currencyCode, $rate, $reason = null, $updateDealItem = true)
+    public static function force($threadId, $currencyCode, $rate, $reason = null)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        expect($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases'));
+        expect($firstDoc->isInstanceOf('deals_DealBase'));
 
         $isCreated = true;
         $rec = (object)array('reason' => $reason, 'threadId' => $threadId, 'currencyId' => $currencyCode, 'rate' => $rate, 'dealOriginId' => $firstDoc->fetchField('containerId'), 'lastRecalced' => dt::now());
@@ -179,21 +179,7 @@ class acc_RatesDifferences extends core_Master
             static::conto($id);
         } else {
             $containerId = static::fetchField($rec->id, 'containerId');
-
-            // Ако не се иска да се обновява датата на последно използване на перото на сделката да не се
-            if(!$updateDealItem){
-                $itemRec = acc_Items::fetchItem($firstDoc->getInstance(), $firstDoc->that);
-                if(is_object($itemRec)){
-                    Mode::push('dontUpdateLastUsedOnItems', array($itemRec->id => $itemRec->id));
-                }
-            }
-
             acc_Journal::reconto($containerId);
-
-            if(!$updateDealItem && is_object($itemRec)){
-                Mode::pop('dontUpdateLastUsedOnItems');
-            }
-
         }
 
         return $id;
@@ -238,7 +224,7 @@ class acc_RatesDifferences extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
-        $row->dealOriginId = doc_Containers::getDocument($rec->dealOriginId)->getLink(0);
+        $row->dealOriginId = doc_Containers::getDocument($rec->dealOriginId)->getLink();
         $dealState = doc_Containers::fetchField($rec->dealOriginId, 'state');
         $row->dealOriginId = "<div class='state-{$dealState} document-handler'>{$row->dealOriginId}</div>";
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
@@ -256,26 +242,45 @@ class acc_RatesDifferences extends core_Master
         }
 
         if(is_array($rec->data)){
-            $displayRes = "<table style='width:300px'>";
             if(countR($rec->data)){
+                $displayData = array();
                 foreach ($rec->data as $containerId => $amountCorrected){
                     $doc = doc_Containers::getDocument($containerId);
-                    $docLink = $doc->getLink(0)->getContent();
-                    $amountCorrectedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountCorrected);
-                    $amountCorrectedVerbal = ht::styleIfNegative($amountCorrectedVerbal, $amountCorrected);
-
-                    if(is_array($rec->oldData) && isset($rec->oldData[$containerId])){
-                        if($rec->oldData[$containerId] != $amountCorrected){
-                            $icon = ($amountCorrected > $rec->oldData[$containerId]) ? 'img/16/arrow_up.png' : 'img/16/arrow_down.png';
-                            $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Преди|*: {$rec->oldData[$containerId]}", $icon, false);
-                        }
+                    $threadId = $doc->fetchField('threadId');
+                    $firstDoc = doc_Threads::getFirstDocument($doc->fetchField('threadId'));
+                    if(!array_key_exists($threadId, $displayData)){
+                        $displayData[$threadId] = array('link' => $firstDoc->getLink(0)->getContent(), 'documents' => array());
                     }
-                    if(!isset($rec->oldData[$containerId])){
-                        $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Ново", 'img/16/add2-16.png', false);
-                    }
-                    $displayRes .= "<tr><td>{$docLink}</td> <td style='text-align:right'>{$amountCorrectedVerbal} <span class='cCode'>{$row->baseCurrencyCode}</span></td></tr>";
-
+                    $displayData[$threadId]['documents'][$containerId] = $amountCorrected;
                 }
+
+                $isOnlyOneGroup = (countR($displayData) == 1 && key($displayData) == $rec->threadId);
+                $tableClass =  ($isOnlyOneGroup) ? '' : 'rateDiffDocumentTable';
+                $displayRes = "<table style='width:300px' class='{$tableClass}'>";
+
+                foreach ($displayData as $displayArr){
+                    $displayRes .= (($isOnlyOneGroup) ? '' : "<tr><td colspan='2' class='rateDifferenceDocumentGroup'>{$displayArr['link']}</td></tr>");
+                    foreach ($displayArr['documents'] as $containerId => $amountCorrected){
+                        $doc = doc_Containers::getDocument($containerId);
+
+                        $docLink = $doc->getLink(0)->getContent();
+                        $amountCorrectedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountCorrected);
+                        $amountCorrectedVerbal = ht::styleIfNegative($amountCorrectedVerbal, $amountCorrected);
+                        if(is_array($rec->oldData) && isset($rec->oldData[$containerId])){
+                            if($rec->oldData[$containerId] != $amountCorrected){
+                                $icon = ($amountCorrected > $rec->oldData[$containerId]) ? 'img/16/arrow_up.png' : 'img/16/arrow_down.png';
+                                $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Преди|*: {$rec->oldData[$containerId]}", $icon, false);
+                            }
+                        }
+                        if(!isset($rec->oldData[$containerId])){
+                            $amountCorrectedVerbal = ht::createHint($amountCorrectedVerbal, "Ново", 'img/16/add2-16.png', false);
+                        }
+
+                        $tdClass = ($isOnlyOneGroup) ? 'rateDifferenceDocumentLink' : '';
+                        $displayRes .= "<tr><td class='{$tdClass}'>{$docLink}</td> <td style='text-align:right'>{$amountCorrectedVerbal} <span class='cCode'>{$row->baseCurrencyCode}</span></td></tr>";
+                    }
+                }
+
                 $displayRes .= "</table>";
                 $row->data = $displayRes;
             } else {
@@ -322,7 +327,7 @@ class acc_RatesDifferences extends core_Master
      */
     public function cron_RecontoActive()
     {
-        $dealClasses = array('sales_Sales', 'purchase_Purchases');
+        $dealClasses = array('sales_Sales', 'purchase_Purchases', 'findeals_Deals');
 
         // Извличане на всички активни документи за к.разлики
         $exRecs = array();
@@ -351,10 +356,11 @@ class acc_RatesDifferences extends core_Master
 
                 // Ако няма създаден документ за валутни разлики и има платено и НЯМА изчислени разлики няма да се създава
                 if (!isset($exRecs[$dRec->containerId])) {
-                    if (!empty($dRec->amountPaid)) {
-                        $tData = acc_transaction_RateDifferences::getTransactionData($dRec->currencyRate, $today, $dRec->threadId);
-                        if (!countR($tData->entries)) continue;
-                    }
+                    if(($Class instanceof deals_DealMaster) && empty($dRec->amountPaid)) continue;
+
+                    $tData = acc_transaction_RateDifferences::getTransactionData($dRec->currencyRate, $today, $dRec->threadId);
+
+                    if (!countR($tData->entries)) continue;
                 } else {
                     // Ако има вече КР в нишката и ще има промяна в общата ѝ сума - само тогава се реконтира
                     $tData = acc_transaction_RateDifferences::getTransactionData($dRec->currencyRate, $today, $dRec->threadId);
@@ -366,7 +372,7 @@ class acc_RatesDifferences extends core_Master
                 try {
                     Mode::push('preventNotifications', true);
                     Mode::push('dontUpdateThread', true);
-                    acc_RatesDifferences::force($dRec->threadId, $dRec->currencyId, $dRec->currencyRate, 'Автоматична корекция на курсови разлики', false);
+                    acc_RatesDifferences::force($dRec->threadId, $dRec->currencyId, $dRec->currencyRate, 'Автоматична корекция на курсови разлики');
                     Mode::pop('dontUpdateThread');
                     Mode::pop('preventNotifications');
                     if (is_object($itemRec)) {
@@ -379,13 +385,12 @@ class acc_RatesDifferences extends core_Master
             }
         }
 
-        // Форсиране на рекалкулиране на балансите
-        cls::get('acc_Balances')->recalc();
-
         // Нотифициране на сделките да им се опресни статистиката
         foreach ($recontoItems as $itemRec){
             acc_Items::notifyObject($itemRec);
         }
+        cls::get('acc_Items')->flushTouched();
+        cls::get('acc_Balances')->recalc();
     }
 
 

@@ -229,6 +229,7 @@ class eshop_Carts extends core_Master
         $this->setDbIndex('brid');
         $this->setDbIndex('userId');
         $this->setDbIndex('domainId');
+        $this->setDbIndex('saleId');
     }
     
     
@@ -1925,7 +1926,7 @@ class eshop_Carts extends core_Master
         }
         
         if ($action == 'finalize' && isset($rec)) {
-            if(eshop_CartDetails::fetchField("#finalPrice IS NULL")){
+            if(eshop_CartDetails::fetchField("#finalPrice IS NULL AND #cartId = {$rec->id}")){
                 $requiredRoles = 'no_one';
             } elseif($rec->state != 'draft'){
                 $requiredRoles = 'no_one';
