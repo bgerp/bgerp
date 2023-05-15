@@ -182,11 +182,9 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6, passage)', 'caption=Допълнително->Бележки');
-        $mvc->FNC('dealValueWithoutDiscount', 'double(decimals=2)', 'caption=Дан. основа,summary=amount');
-        $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden');
+        $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
-        $mvc->FNC('totalValue', 'double(decimals=2)', 'caption=Общо,summary=amount');
-        $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none');
+        $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
         $mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
         $mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
         
@@ -198,6 +196,21 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Метод по подразбиране допълващ полетата за филтриране в съмърито в лист изгледа
+     * @see acc_plg_DocumentSummary
+     */
+    public function fillSummaryRec(&$rec, &$summaryFields)
+    {
+        $summaryFields['dealValueWithoutDiscount'] = (object)array('name' => 'dealValueWithoutDiscount', 'summary' => 'amount', 'caption' => 'Дан. основа');
+        $summaryFields['totalValue'] = (object)array('name' => 'totalValue', 'summary' => 'amount', 'caption' => 'Общо');
+        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount;
+        $rec->totalValue = $rec->dealValue - $rec->discountAmount + $rec->vatAmount;
+        unset($summaryFields['dealValue']);
+        unset($summaryFields['discountAmount']);
+    }
+
+
+    /**
      * Метод по подразбиране за взимане на полетата за канонизиране
      */
     protected static function on_AfterGetCanonizedFields($mvc, &$res, $rec)
@@ -205,24 +218,6 @@ abstract class deals_InvoiceMaster extends core_Master
         if($rec->contragentClassId == crm_Persons::getClassId()){
             unset($res['uicNo']);
         }
-    }
-
-
-    /**
-     * Изчисляване на общото
-     */
-    protected static function on_CalcDealValueWithoutDiscount($mvc, &$rec)
-    {
-        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount;
-    }
-    
-    
-    /**
-     * Изчисляване на общото
-     */
-    protected static function on_CalcTotalValue($mvc, &$rec)
-    {
-        $rec->totalValue = $rec->dealValue - $rec->discountAmount + $rec->vatAmount;
     }
     
     
@@ -1803,7 +1798,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $rec->valueNoVat = $rec->dealValue - $rec->discountAmount;
             $rec->valueNoVat = (!empty($rec->rate)) ? $rec->valueNoVat / $rec->rate : $rec->valueNoVat;
             $rec->vatAmount = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
-            $rec->dealValueWithoutDiscount = (!empty($rec->rate)) ? $rec->dealValueWithoutDiscount / $rec->rate : $rec->dealValueWithoutDiscount;
+            $rec->dealValueWithoutDiscount = (!empty($rec->rate)) ? ($rec->dealValue - $rec->discountAmount) / $rec->rate : ($rec->dealValue - $rec->discountAmount);
         }
     }
     

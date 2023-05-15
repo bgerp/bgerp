@@ -510,7 +510,6 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
-        core_Debug::startTimer('RENDER_SUMMARY');
         // Ако няма заявка, да не се изпълнява
         if (!$data->listSummary->query) {
             
@@ -524,43 +523,53 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
         
         // Ще се преброяват всички неоттеглени документи
-        $data->listSummary->query->where("#state != 'rejected' OR #state IS NULL");
-        $data->listSummary->summary = array();
+        core_Debug::startTimer('RENDER_SUMMARY');
+        $sQuery = clone $data->listSummary->query;
+        $sQuery->where("#state != 'rejected' OR #state IS NULL");
 
-        // Кои полета трябва да се обобщят
+        $data->listSummary->summary = array();
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
+        $showFields = arr::make(array_keys($fieldsArr), true);
+        $showFields['state'] = 'state';
+        if($mvc->getField('rate', false)){
+            $showFields['rate'] = 'rate';
+        }
+        $showFields = implode(',', $showFields);
+        $sQuery->show($showFields);
+
 
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
-        
-        while ($rec = $data->listSummary->query->fetch()) {
+        $draftCount = $activeCount = $pendingCount = 0;
+        while ($rec = $sQuery->fetch()) {
+            $mvc->fillSummaryRec($rec, $fieldsArr);
             self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
+            if($rec->state == 'draft'){
+                $draftCount++;
+            } elseif($rec->state == 'pending'){
+                $pendingCount++;
+            } elseif(in_array($rec->state, array('closed', 'active'))){
+                $activeCount++;
+            }
         }
-        
-        // Преброяване на черновите документи
-        $activeQuery = clone $data->listSummary->query;
-        $pendingQuery = clone $data->listSummary->query;
-        $data->listSummary->query->where("#state = 'draft'");
-        $draftCount = $data->listSummary->query->count();
-        
-        // Преброяване на активираните/затворени документи
-        $activeQuery->where("#state IN ('active', 'closed')");
-        $activeQuery->show('id');
-        $activeCount = $activeQuery->count();
-        
-        // Преброяване на заявките
-        $pendingQuery->where("#state = 'pending'");
-        $pendingQuery->show('id');
-        $pendingCount = $pendingQuery->count();
-        
+
         // Добавяне в обобщението на броя активирани и броя чернови документи
         $data->listSummary->summary['countA'] = (object) array('caption' => "<span style='float:right'>" . tr('Активирани') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $activeCount);
         $data->listSummary->summary['countC'] = (object) array('caption' => "<span style='float:right'>" . tr('Заявки') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object) array('caption' => "<span style='float:right'>" . tr('Чернови') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $draftCount);
         core_Debug::stopTimer('RENDER_SUMMARY');
     }
-    
-    
+
+
+    /**
+     * Метод по подразбиране допълващ полетата за филтриране
+     */
+    public static function on_AfterFillSummaryRec($mvc, $res, &$rec, &$summaryFields)
+    {
+
+    }
+
+
     /**
      * След рендиране на List Summary-то
      */
