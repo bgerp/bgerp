@@ -119,15 +119,15 @@ class planning_plg_ReplaceProducts extends core_Plugin
 
                 if(!empty($quantityFld)){
                     if($exRec->{$mvc->packagingFld} != $newProductRec->measureId){
+
                         $convertRate = cat_Products::convertToUom($oldProductRec->id, $newProductRec->measureId);
                         if(empty($convertRate)){
-
                             $secondMeasureId = cat_products_Packagings::getSecondMeasureId($newProductRec->id);
-                            if($secondMeasureId == $exRec->{$mvc->packagingFld}){
+                            if($secondMeasureId == $exRec->{$mvc->packagingFld}) {
                                 $packRec = cat_products_Packagings::getPack($newProductRec->id, $secondMeasureId);
                                 $nRec->{$mvc->packagingFld} = $packRec->packagingId;
                                 $nRec->{$mvc->quantityInPackFld} = $packRec->quantity;
-                                $nRec->{$quantityFld} = ($exRec->{$quantityFld} / $exRec->{$mvc->quantityInPackFld}) * $packRec->quantity;
+                                $nRec->{$quantityFld} = $exRec->{$quantityFld};
                             }
                         } else {
                             $nRec->{$mvc->packagingFld} = $newProductRec->measureId;
@@ -136,9 +136,7 @@ class planning_plg_ReplaceProducts extends core_Plugin
                     }
                 }
 
-
                 $exGenericProductId = isset($exRec->id) ? planning_GenericProductPerDocuments::getRec($mvc, $exRec->id) : null;
-
                 if ($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName} && $nRec->_genericProductId == $exGenericProductId) {
 
                     return followRetUrl(null, 'Артикулът не е подменен');
