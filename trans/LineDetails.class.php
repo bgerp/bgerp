@@ -244,19 +244,6 @@ class trans_LineDetails extends doc_Detail
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
             $row->notes = "<div class='notes{$rec->id}'>{$row->notes}</div>";
         }
-
-        if($Document->isInstanceOf('store_ShipmentOrders')){
-            $invoicesInShipment = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
-            if(countR($invoicesInShipment)){
-                $invoiceArr = array();
-                foreach ($invoicesInShipment as $iRec){
-                    $invoiceArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
-                }
-                $row->notes .= implode('|', $invoiceArr);
-            }
-        }
-
-
         if (!empty($transportInfo['address'])) {
             $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
         }
@@ -368,6 +355,17 @@ class trans_LineDetails extends doc_Detail
                 $featuresString .= "<span class='lineFeature'>" . trans_Features::getVerbal($transFeatureId, 'name') . "</span>";
             }
             $row->containerId .= " {$featuresString}";
+        }
+
+        if($Document->isInstanceOf('store_ShipmentOrders')){
+            $invoicesInShipment = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            if(countR($invoicesInShipment)){
+                $invoiceArr = array();
+                foreach ($invoicesInShipment as $iRec){
+                    $invoiceArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
+                }
+                $row->containerId .= " <small>" . implode(',', $invoiceArr) . "</small>";
+            }
         }
 
         // Ако има платежни документи към складовия
