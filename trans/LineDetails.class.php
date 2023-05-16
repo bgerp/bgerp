@@ -279,12 +279,20 @@ class trans_LineDetails extends doc_Detail
         $row->address = str_replace(', <div', '<div', $row->address);
 
         // Показане на свързаните файлове
-        $linkedDocs = doc_Linked::getRecsForType('file', $rec->containerId, false);
+        $linkedDocs = doc_Linked::getRecsForType('doc', $rec->containerId, false);
         if(countR($linkedDocs)){
             $linkedFiles = array();
             foreach ($linkedDocs as $linkRec){
+                if ($linkRec->inType == 'file') {
+                    $valId = $linkRec->inVal;
+                } elseif ($linkRec->outType == 'file') {
+                    $valId = $linkRec->outVal;
+                } else {
+                    continue;
+                }
+
                 $clsInst = cls::get('fileman_Files');
-                $valId = fileman::idToFh($linkRec->inVal);
+                $valId = fileman::idToFh($valId);
                 $linkedFiles[] = $clsInst->getLinkToSingle($valId)->getContent();
             }
             $row->notes .= "<div>" . implode(' | ', $linkedFiles);
