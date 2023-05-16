@@ -283,8 +283,16 @@ class trans_LineDetails extends doc_Detail
         if(countR($linkedDocs)){
             $linkedFiles = array();
             foreach ($linkedDocs as $linkRec){
+                if ($linkRec->inType == 'file') {
+                    $valId = $linkRec->inVal;
+                } elseif ($linkRec->outType == 'file') {
+                    $valId = $linkRec->outVal;
+                } else {
+                    continue;
+                }
+
                 $clsInst = cls::get('fileman_Files');
-                $valId = fileman::idToFh($linkRec->inVal);
+                $valId = fileman::idToFh($valId);
                 $linkedFiles[] = $clsInst->getLinkToSingle($valId)->getContent();
             }
             $row->notes .= "<div>" . implode(' | ', $linkedFiles);

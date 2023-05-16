@@ -148,7 +148,45 @@ class doc_Linked extends core_Manager
         
         return $sId;
     }
-    
+
+
+    /**
+     * Връща всички свързани документи или файлвое и ги групира по тип
+     *
+     * @param string $type - doc|file - типа на документа, за който търсим връзка
+     * @param int $id - id на документа, за който търсим връзка
+     * @param string $resType - file|doc - филтриране на резултата - да показва само тези, които са от типа $resType
+     * @param bool $showRejected - показване на оттеглените записи
+     *
+     * @return array - масив с типа и съответните стойности
+     * ['doc'] => Масив с id-тата на документите
+     * ['file'] => Масив с id-тата на файловете
+     */
+    public static function getResForIdByType($type, $id, $resType = null, $showRejected = false)
+    {
+        $res = self::getRecsForType($type, $id, $showRejected, 100000);
+
+        $resArr = array();
+
+        foreach ($res as $r) {
+            if (($r->outType == $type) && ($r->outVal == $id)) {
+                if (isset($resType) && ($resType != $r->inType)) {
+
+                    continue;
+                }
+                $resArr[$r->inType][$r->inVal] = $r->inVal;
+            } else {
+                if (isset($resType) && ($resType != $r->outType)) {
+
+                    continue;
+                }
+                $resArr[$r->outType][$r->outVal] = $r->outVal;
+            }
+        }
+
+        return $resArr;
+    }
+
     
     /**
      * Връща всички записи за подадените типове
