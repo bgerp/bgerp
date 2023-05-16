@@ -244,19 +244,6 @@ class trans_LineDetails extends doc_Detail
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
             $row->notes = "<div class='notes{$rec->id}'>{$row->notes}</div>";
         }
-
-        if($Document->isInstanceOf('store_ShipmentOrders')){
-            $invoicesInShipment = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
-            if(countR($invoicesInShipment)){
-                $invoiceArr = array();
-                foreach ($invoicesInShipment as $iRec){
-                    $invoiceArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
-                }
-                $row->notes .= implode('|', $invoiceArr);
-            }
-        }
-
-
         if (!empty($transportInfo['address'])) {
             $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
         }
@@ -290,6 +277,18 @@ class trans_LineDetails extends doc_Detail
             $row->address .= ", " . core_Type::getByName('richtext')->toVerbal($transportInfo['addressInfo']);
         }
         $row->address = str_replace(', <div', '<div', $row->address);
+
+        // Показане на свързаните файлове
+        $linkedDocs = doc_Linked::getRecsForType('doc', $rec->containerId, false);
+        if(countR($linkedDocs)){
+            $linkedFiles = array();
+            foreach ($linkedDocs as $linkRec){
+                $clsInst = cls::get('fileman_Files');
+                $valId = fileman::idToFh($linkRec->inVal);
+                $linkedFiles[] = $clsInst->getLinkToSingle($valId)->getContent();
+            }
+            $row->notes .= "<div>" . implode(' | ', $linkedFiles);
+        }
 
         // Ако е складов документ
         if($Document->haveInterface('store_iface_DocumentIntf')){
@@ -377,7 +376,7 @@ class trans_LineDetails extends doc_Detail
                 foreach ($invoicesInShipment as $iRec){
                     $invoiceArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
                 }
-                $row->containerId .= "<small>" . implode(',', $invoiceArr) . "</small>";
+                $row->containerId .= " <small>" . implode(',', $invoiceArr) . "</small>";
             }
         }
 
