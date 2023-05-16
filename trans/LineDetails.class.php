@@ -278,6 +278,18 @@ class trans_LineDetails extends doc_Detail
         }
         $row->address = str_replace(', <div', '<div', $row->address);
 
+        // Показане на свързаните файлове
+        $linkedDocs = doc_Linked::getRecsForType('doc', $rec->containerId, false);
+        if(countR($linkedDocs)){
+            $linkedFiles = array();
+            foreach ($linkedDocs as $linkRec){
+                $clsInst = cls::get('fileman_Files');
+                $valId = fileman::idToFh($linkRec->inVal);
+                $linkedFiles[] = $clsInst->getLinkToSingle($valId)->getContent();
+            }
+            $row->notes .= "<div>" . implode('|', $linkedFiles);
+        }
+
         // Ако е складов документ
         if($Document->haveInterface('store_iface_DocumentIntf')){
 
