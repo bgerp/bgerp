@@ -287,7 +287,7 @@ class trans_LineDetails extends doc_Detail
                 $valId = fileman::idToFh($linkRec->inVal);
                 $linkedFiles[] = $clsInst->getLinkToSingle($valId)->getContent();
             }
-            $row->notes .= "<div>" . implode('|', $linkedFiles);
+            $row->notes .= "<div>" . implode(' | ', $linkedFiles);
         }
 
         // Ако е складов документ
