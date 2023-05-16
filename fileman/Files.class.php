@@ -1035,7 +1035,7 @@ class fileman_Files extends core_Master
         $attr['rel'] = 'nofollow';
         
         $isAbsolute = (boolean) (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'));
-        if (!$isAbsolute && fileman_Files::isDanger($rec)) {
+        if (($rec !== false) && !$isAbsolute && fileman_Files::isDanger($rec)) {
             $attr['class'] .= ' dangerFile';
         }
         
