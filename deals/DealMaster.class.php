@@ -462,15 +462,6 @@ abstract class deals_DealMaster extends deals_DealBase
             $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
         }
 
-        // Ако няма посочен срок на доставка, проверява се дали не се изисква задължително да има
-        if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
-            $mandatoryDeliveryConditionSysId =  ($mvc instanceof purchase_Purchases) ? 'purchaseMandatoryDeliveryTime' : 'saleMandatoryDeliveryTime';
-            $mandatoryDeliveryTime = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $mandatoryDeliveryConditionSysId);
-            if($mandatoryDeliveryTime == 'yes'){
-                $form->setError('deliveryTime,deliveryTermTime', 'Задължително трябва да се посочи време/дата за доставка');
-            }
-        }
-
         // Избрания ДДС режим съответства ли на дефолтния
         $defVat = $mvc->getDefaultChargeVat($rec);
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
@@ -2603,6 +2594,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 redirect(array($mvc, 'single', $rec->id), false, $error, 'error');
             }
         }
+
+        if($mvc->setErrorIfDeliveryTimeIsNotSet($rec)) {
+            if(!empty($rec->contoActions)){
+                $rec->contoActions = null;
+                $mvc->save_($rec, 'contoActions');
+            }
+            redirect(array($mvc, 'single', $rec->id), false, 'Преди активирането, трябва задължително да е посочено време/дата на доставка', 'error');
+        }
     }
     
     
@@ -2960,5 +2959,26 @@ abstract class deals_DealMaster extends deals_DealBase
         $selectedStoreId = store_Stores::getCurrent('id', false);
 
         return $selectedStoreId;
+    }
+
+
+    /**
+     * Проверка дали да се сетне грешка ако няма посочено условие на доставка
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    protected function setErrorIfDeliveryTimeIsNotSet($rec)
+    {
+        // Ако има избрано условие на доставка, позволява ли да бъде контиран документа
+        $rec = $this->fetch($rec->id);
+
+        if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
+            $mandatoryDeliveryConditionSysId =  ($this instanceof purchase_Purchases) ? 'purchaseMandatoryDeliveryTime' : 'saleMandatoryDeliveryTime';
+            $mandatoryDeliveryTime = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $mandatoryDeliveryConditionSysId);
+            if($mandatoryDeliveryTime == 'yes') return true;
+        }
+
+        return false;
     }
 }
