@@ -26,3 +26,7 @@
 Режим на ДДС,cond_type_Enum,purchaseChargeVat,Покупка,,,"yes=Включено ДДС в цените,separate=Отделен ред за ДДС,exempt=Освободено от ДДС,no=Без начисляване на ДДС"
 Задължителен срок за доставка,cond_type_YesOrNo,saleMandatoryDeliveryTime,Продажба,,,
 Задължителен срок за доставка,cond_type_YesOrNo,purchaseMandatoryDeliveryTime,Покупка,,,
+Допълнителни условия,cond_type_Text,otherConditionSale,Продажба,,,
+Допълнителни условия,cond_type_Text,otherConditionPurchase,Покупка,,,
+Допълнителни условия (EN),cond_type_Text,otherConditionSaleEn,Продажба,,,
+Допълнителни условия (EN),cond_type_Text,otherConditionPurchaseEn,Покупка,,,

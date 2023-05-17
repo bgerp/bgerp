@@ -1350,6 +1350,13 @@ abstract class deals_DealMaster extends deals_DealBase
             $conditions = $conditions + $additionalConditions;
         }
 
+        // Показване на допълнителните условия, ако има зададени като търговско условие за контрагента
+        $otherConditionSysId = (($this instanceof sales_Sales) ? ($lang == 'bg' ? 'otherConditionSale' : 'otherConditionSaleEn') : ($lang == 'bg' ? 'otherConditionPurchase' : 'otherConditionPurchaseEn'));
+        if ($otherCond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $otherConditionSysId)) {
+            $otherConditionId = cond_Parameters::fetchIdBySysId($otherConditionSysId);
+            $conditions[] = cond_Parameters::toVerbal($otherConditionId, $rec->contragentClassId, $rec->contragentId, $otherCond);
+        }
+
         return array_values($conditions);
     }
 
