@@ -461,7 +461,16 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
             $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
         }
-        
+
+        // Ако няма посочен срок на доставка, проверява се дали не се изисква задължително да има
+        if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
+            $mandatoryDeliveryConditionSysId =  ($mvc instanceof purchase_Purchases) ? 'purchaseMandatoryDeliveryTime' : 'saleMandatoryDeliveryTime';
+            $mandatoryDeliveryTime = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $mandatoryDeliveryConditionSysId);
+            if($mandatoryDeliveryTime == 'yes'){
+                $form->setError('deliveryTime,deliveryTermTime', 'Задължително трябва да се посочи време/дата за доставка');
+            }
+        }
+
         // Избрания ДДС режим съответства ли на дефолтния
         $defVat = $mvc->getDefaultChargeVat($rec);
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
