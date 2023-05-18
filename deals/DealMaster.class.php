@@ -461,7 +461,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
             $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
         }
-        
+
         // Избрания ДДС режим съответства ли на дефолтния
         $defVat = $mvc->getDefaultChargeVat($rec);
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
@@ -1249,9 +1249,10 @@ abstract class deals_DealMaster extends deals_DealBase
             
             if (!empty($deliveryAdress)) {
                 if(!isset($rec->deliveryTermId)){
-                    $row->deliveryBlock .= "<li>" . tr('За адрес') . ": {$deliveryAdress}</li>";
+                    $captionDeliveryBlock = ($mvc instanceof sales_Sales) ? tr('За адрес') : tr('От адрес');
+                    $row->deliveryBlock .= "<li>{$captionDeliveryBlock}: {$deliveryAdress}</li>";
                 } else {
-                    $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
+                    $deliveryAdress1 = ($row->deliveryTermId . ', ');
                     $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
                     $row->deliveryTermId = $deliveryAdress;
                 }
@@ -1339,6 +1340,13 @@ abstract class deals_DealMaster extends deals_DealBase
         if(isset($rec->id)){
             $additionalConditions = deals_Helper::getConditionsFromProducts($this->mainDetail, $this, $rec->id, $lang);
             $conditions = $conditions + $additionalConditions;
+        }
+
+        // Показване на допълнителните условия, ако има зададени като търговско условие за контрагента
+        $otherConditionSysId = (($this instanceof sales_Sales) ? ($lang == 'bg' ? 'otherConditionSale' : 'otherConditionSaleEn') : ($lang == 'bg' ? 'otherConditionPurchase' : 'otherConditionPurchaseEn'));
+        if ($otherCond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $otherConditionSysId)) {
+            $otherConditionId = cond_Parameters::fetchIdBySysId($otherConditionSysId);
+            $conditions[] = cond_Parameters::toVerbal($otherConditionId, $rec->contragentClassId, $rec->contragentId, $otherCond);
         }
 
         return array_values($conditions);
@@ -2587,6 +2595,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 redirect(array($mvc, 'single', $rec->id), false, $error, 'error');
             }
         }
+
+        if($mvc->setErrorIfDeliveryTimeIsNotSet($rec)) {
+            if(!empty($rec->contoActions)){
+                $rec->contoActions = null;
+                $mvc->save_($rec, 'contoActions');
+            }
+            redirect(array($mvc, 'single', $rec->id), false, 'Преди активирането, трябва задължително да е посочено време/дата на доставка', 'error');
+        }
     }
     
     
@@ -2944,5 +2960,26 @@ abstract class deals_DealMaster extends deals_DealBase
         $selectedStoreId = store_Stores::getCurrent('id', false);
 
         return $selectedStoreId;
+    }
+
+
+    /**
+     * Проверка дали да се сетне грешка ако няма посочено условие на доставка
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    protected function setErrorIfDeliveryTimeIsNotSet($rec)
+    {
+        // Ако има избрано условие на доставка, позволява ли да бъде контиран документа
+        $rec = $this->fetch($rec->id);
+
+        if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
+            $mandatoryDeliveryConditionSysId =  ($this instanceof purchase_Purchases) ? 'purchaseMandatoryDeliveryTime' : 'saleMandatoryDeliveryTime';
+            $mandatoryDeliveryTime = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $mandatoryDeliveryConditionSysId);
+            if($mandatoryDeliveryTime == 'yes') return true;
+        }
+
+        return false;
     }
 }

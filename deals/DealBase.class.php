@@ -362,6 +362,12 @@ abstract class deals_DealBase extends core_Master
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
+            if($this instanceof deals_DealMaster){
+                if($this->setErrorIfDeliveryTimeIsNotSet($rec)){
+                    $form->setError('closeWith', 'Преди активирането, трябва задължително да е посочено време/дата на доставка');
+                }
+            }
+
             $err = $threads = $warning = array();
             $warning[$rec->currencyRate] = $rec->currencyRate;
             $deals1 = keylist::toArray($form->rec->closeWith);

@@ -36,18 +36,18 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
         
         if ($rec->isReverse == 'yes') {
             // Ако документа е обратен, правим контировката на прехвърлянето на взимане но с отрицателен знак
-            $entry = findeals_transaction_DebitDocument::getReverseEntries($rec, $origin);
+            $entries = findeals_transaction_DebitDocument::getReverseEntries($rec, $origin);
         } else {
             
             // Ако документа не е обратен, правим нормална контировка на прехвърляне на задължение
-            $entry = $this->getEntry($rec, $origin);
+            $entries = $this->getEntries($rec, $origin);
         }
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
             'reason' => $rec->name, // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
-            'entries' => array($entry)
+            'entries' => $entries
         );
         
         return $result;
@@ -57,19 +57,20 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
     /**
      * Връща записа на транзакцията
      */
-    private function getEntry($rec, $origin, $reverse = false)
+    private function getEntries($rec, $origin, $reverse = false)
     {
         // Ако е обратна транзакцията, сумите и к-та са с минус
+        $entries = array();
         $sign = ($reverse) ? -1 : 1;
-        
+
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
-        
+
         $origin = findeals_CreditDocuments::getOrigin($rec);
         $originCodeId = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
-        
+
         $doc = doc_Containers::getDocument($rec->dealId);
         $dealCodeId = currency_Currencies::getIdByCode($doc->fetchField('currencyId'));
-        
+
         if ($rec->currencyId == $baseCurrencyId) {
             $amount = $rec->amountDeal;
         } elseif ($originCodeId == $baseCurrencyId) {
@@ -78,28 +79,53 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
             $originRate = $origin->fetchField('currencyRate');
             $amount = $rec->amount * $originRate;
         }
-        
+
         $dealRec = $doc->fetch();
-        
-        // Кредитираме разчетната сметка на избраната финансова сделка
-        $debitArr = array($rec->debitAccount,
-            array($rec->contragentClassId, $rec->contragentId),
-            array($origin->className, $origin->that),
-            array('currency_Currencies', currency_Currencies::getIdByCode($origin->fetchField('currencyId'))),
-            'quantity' => $sign * round($rec->amount, 2));
-        
-        // Дебитираме разчетната сметка на сделката, начало на нишка
-        $creditArr = array($rec->creditAccount,
-            array($dealRec->contragentClassId, $dealRec->contragentId),
-            array($doc->getClassId(), $doc->that),
-            array('currency_Currencies', $dealCodeId),
-            'quantity' => $sign * round($rec->amountDeal, 2));
-        
-        $entry = array('amount' => $sign * round($amount, 2),
-            'debit' => $debitArr,
-            'credit' => $creditArr,);
-        
-        return $entry;
+
+        $originCurrencyId = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
+
+        if($rec->currencyId == $originCurrencyId && $rec->currencyId == $baseCurrencyId) {
+            // Кредитираме разчетната сметка на избраната финансова сделка
+            $debitArr = array($rec->debitAccount,
+                array($rec->contragentClassId, $rec->contragentId),
+                array($origin->className, $origin->that),
+                array('currency_Currencies', currency_Currencies::getIdByCode($origin->fetchField('currencyId'))),
+                'quantity' => $sign * round($rec->amount, 2));
+
+            // Дебитираме разчетната сметка на сделката, начало на нишка
+            $creditArr = array($rec->creditAccount,
+                array($dealRec->contragentClassId, $dealRec->contragentId),
+                array($doc->getClassId(), $doc->that),
+                array('currency_Currencies', $dealCodeId),
+                'quantity' => $sign * round($rec->amountDeal, 2));
+
+            $entries[] = array('amount' => $sign * round($amount, 2),
+                            'debit' => $debitArr,
+                            'credit' => $creditArr,);
+        } else {
+            $amountCredit = $amount;
+
+            $originRate = $doc->fetchField('currencyRate');
+            $amountDebit = $rec->amountDeal * $originRate;
+
+            $entries[] = array('amount' => $sign * round($amountCredit, 2),
+                'credit' => array(481, array('currency_Currencies', $dealCodeId), 'quantity' => $sign * round($rec->amountDeal, 2)),
+                'debit' => array($rec->debitAccount,
+                    array($rec->contragentClassId, $rec->contragentId),
+                    array($origin->className, $origin->that),
+                    array('currency_Currencies', $originCurrencyId),
+                    'quantity' => $sign * round($rec->amount, 2)));
+
+            $entries[] = array('amount' => $sign * round($amountDebit, 2),
+                'credit' => array($rec->creditAccount,
+                    array($dealRec->contragentClassId, $dealRec->contragentId),
+                    array($doc->getClassId(), $doc->that),
+                    array('currency_Currencies', $dealCodeId),
+                    'quantity' => $sign * round($rec->amountDeal, 2)),
+                'debit' => array(481, array('currency_Currencies', $dealCodeId), 'quantity' => $sign * round($rec->amountDeal, 2)));
+        }
+
+        return $entries;
     }
     
     
@@ -109,7 +135,7 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
     public static function getReverseEntries($rec, $origin)
     {
         $self = cls::get(get_called_class());
-        
-        return $self->getEntry($rec, $origin, true);
+
+        return $self->getEntries($rec, $origin, true);
     }
 }

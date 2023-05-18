@@ -1177,7 +1177,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         $cacheKey = "{$productId}|{$uomId}";
-        
+
         // Ако искаме кеширани данни
         if ($cache === true) {
             $isUsed = false;
@@ -1266,7 +1266,8 @@ class cat_products_Packagings extends core_Detail
             } elseif ($Detail == 'store_TransfersDetails') {
                 $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             } elseif ($Detail == 'planning_Tasks') {
-                $dQuery->where(array("#productId = '[#1#]' AND #labelPackagingId = '[#2#]'", $productId, $uomId));
+                $dQuery->EXT('jProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId, externalFieldName=originId');
+                $dQuery->where(array("(#isFinal = 'yes' && #jProductId='[#1#]' AND #labelPackagingId = '[#2#]') OR (#productId = '[#1#]' AND #labelPackagingId = '[#2#]')", $productId, $uomId));
             } else {
                 $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             }

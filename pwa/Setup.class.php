@@ -25,6 +25,13 @@ class pwa_Setup extends core_ProtoSetup
 
 
     /**
+     * Необходими пакети
+     */
+    public $depends = 'cms=0.1';
+
+
+
+    /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
@@ -47,9 +54,72 @@ class pwa_Setup extends core_ProtoSetup
 
         $html .= fileman_Buckets::createBucket('pwa', 'Файлове качени с PWA', '', '100MB', 'user', 'every_one');
         
+        $existDArr = array();
+        $dArr = type_Keylist::toArray($this->get('DOMAINS'));
+        foreach ($dArr as $domainId) {
+            $dRec = cms_Domains::fetch($domainId);
+            if ($dRec) {
+                $domainName = $dRec->domain;
+                $existDArr[$domainName] = $domainName;
+            }
+        }
+
+        $dQuery = cms_Domains::getQuery();
+        $dQuery->notIn('domain', $existDArr);
+        while ($dRec = $dQuery->fetch()) {
+            core_Webroot::remove('serviceWorker.js', $dRec->id);
+            core_Webroot::remove('pwa.webmanifest', $dRec->id);
+        }
+
         $sw = getFileContent('pwa/js/sw.js');
-        core_Webroot::register($sw, '', 'sw.js', 1);
-        
+
+        foreach ($dArr as $domainId) {
+            $manifest = pwa_Manifest::getPWAManifest($domainId);
+
+            $dRec = cms_Domains::fetch($domainId);
+            if ($dRec->wrFiles) {
+                try {
+                    $inst = cls::get('archive_Adapter', array('fileHnd' => $dRec->wrFiles));
+
+                    $entries = $inst->getEntries();
+
+                    if(is_array($entries) && countR($entries)) {
+                        foreach($entries as $i => $e) {
+                            if(preg_match("/[a-z0-9\\-\\_\\.]+/i", $e->path)) {
+                                if ((trim(strtolower($e->path)) === 'serviceworker.js') || (trim(strtolower($e->path)) === 'pwa.webmanifest')) {
+                                    $fh = $inst->getFile($i);
+                                    $fiContent = fileman_Files::getContent($fh);
+                                    if ((trim(strtolower($e->path)) === 'serviceworker.js')) {
+                                        $sw = $fiContent;
+                                    } else {
+                                        $manifest = $fiContent;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (Archive_7z_Exception $e) {
+                    wp($e);
+                }
+            }
+
+            $pwaPrevContent = core_Webroot::getContents('pwa.webmanifest', $domainId);
+            if ($pwaPrevContent != $manifest) {
+                core_Webroot::remove('pwa.webmanifest', $domainId);
+                core_Webroot::register($manifest, 'Content-Type: application/json', 'pwa.webmanifest', $domainId);
+
+                $html .= '<li>Генериране на манифест на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
+            }
+
+            $swPrevContent = core_Webroot::getContents('serviceworker.js', $domainId);
+            if ($swPrevContent != $sw) {
+                core_Webroot::remove('serviceworker.js', $domainId);
+                core_Webroot::register($sw, 'Content-Type: text/javascript', 'serviceworker.js', $domainId);
+
+                $html .= '<li>Регистриране на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
+            }
+        }
+
         return $html;
     }
 }

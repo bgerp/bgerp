@@ -575,7 +575,7 @@ class thumb_Img
     /**
      * Връща урл към умаленото изображение
      *
-     * @param string $mode Режим за генериране на URL: 'auto', 'deferred', 'forced'
+     * @param string $mode Режим за генериране на URL: 'auto', 'deferred', 'forced', 'forceDeferred'
      *
      * $return string
      */
