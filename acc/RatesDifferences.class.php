@@ -238,7 +238,7 @@ class acc_RatesDifferences extends core_Master
         if(!empty($rec->oldTotal) && $rec->total != $rec->oldTotal){
             $icon = ($rec->total > $rec->oldTotal) ? 'img/16/arrow_up.png' : 'img/16/arrow_down.png';
             $oldTotalVerbal = $mvc->getFieldType('oldTotal')->toVerbal($rec->oldTotal);
-            $row->total = ht::createHint($row->total, "Преди|*: {$oldTotalVerbal}", $icon, false);
+            $row->total = ht::createHint($row->total, "Преди|*: {$oldTotalVerbal} {$row->baseCurrencyCode}", $icon, false);
         }
 
         if(is_array($rec->data)){
