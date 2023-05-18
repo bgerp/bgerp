@@ -823,7 +823,7 @@ class colab_FolderToPartners extends core_Manager
             
             // Проверка на имената да са поне две с поне 2 букви
             if (!core_Users::checkNames($form->rec->names)) {
-                $form->setError('names', 'Невалидни имена');
+                $form->setError('names', 'Напишете поне две имена разделени с интервал');
             }
             
             $errorMsg = null;
