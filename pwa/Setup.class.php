@@ -76,6 +76,33 @@ class pwa_Setup extends core_ProtoSetup
         foreach ($dArr as $domainId) {
             $manifest = pwa_Manifest::getPWAManifest($domainId);
 
+            $dRec = cms_Domains::fetch($domainId);
+            if ($dRec->wrFiles) {
+                try {
+                    $inst = cls::get('archive_Adapter', array('fileHnd' => $dRec->wrFiles));
+
+                    $entries = $inst->getEntries();
+
+                    if(is_array($entries) && countR($entries)) {
+                        foreach($entries as $i => $e) {
+                            if(preg_match("/[a-z0-9\\-\\_\\.]+/i", $e->path)) {
+                                if ((trim(strtolower($e->path)) === 'serviceworker.js') || (trim(strtolower($e->path)) === 'pwa.webmanifest')) {
+                                    $fh = $inst->getFile($i);
+                                    $fiContent = fileman_Files::getContent($fh);
+                                    if ((trim(strtolower($e->path)) === 'serviceworker.js')) {
+                                        $sw = $fiContent;
+                                    } else {
+                                        $manifest = $fiContent;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (Archive_7z_Exception $e) {
+                    wp($e);
+                }
+            }
+
             $pwaPrevContent = core_Webroot::getContents('pwa.webmanifest', $domainId);
             if ($pwaPrevContent != $manifest) {
                 core_Webroot::remove('pwa.webmanifest', $domainId);
