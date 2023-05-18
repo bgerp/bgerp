@@ -5830,6 +5830,9 @@ function syncServiceWorker() {
             var swDate = selector.getAttribute('data-sw-date');
             var lastUpdate = localStorage.getItem('data-sw-date');
 
+            // Ще предизвика инвалидиране на кеша за този файл
+            serviceWorkerURL += '?v=' + swDate;
+
             if ((lastUpdate !== null) && (lastUpdate !== 'null')) {
 
                 var lastUpdate = new Date(lastUpdate);
