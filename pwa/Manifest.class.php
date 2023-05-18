@@ -14,54 +14,58 @@
  */
 class pwa_Manifest extends core_Mvc
 {
+
     /**
-     * Акшън за динамично генериране на манифеста
+     * Подготвя манифест файла за PWA за съответния домейн
+     *
+     * @param $domainId
+     * @return false|string
      */
-    public function act_Default()
+    public static function getPWAManifest($domainId)
     {
         $iconSizes = array(72, 96, 128, 144, 152, 192, 384, 512);
         $iconInfoArr = array();
-        
-        $domainId = cms_Domains::fetchField("#domain = 'localhost' AND #lang = 'bg'", 'id');
-        
+
+        $imageUrl = null;
+
         if (core_Webroot::isExists('android-chrome-512x512.png', $domainId)) {
-            $imageUrl = str_replace('/xxx', '', toUrl(array('xxx'), 'absolute')) . '/android-chrome-512x512.png';
+            $imageUrl = '/android-chrome-512x512.png';
         } elseif (core_Webroot::isExists('favicon.png', $domainId)) {
-            $imageUrl = str_replace('/xxx', '', toUrl(array('xxx'), 'absolute')) . '/favicon.png';
+            $imageUrl = '/favicon.png';
         }
-        
+
         foreach ($iconSizes as $size) {
-            if ($imageUrl) {
-                // Създаваме thumbnail с определени размери
-                $thumb = new thumb_Img(array($imageUrl, $size, $size, 'url', 'mode' => 'small-no-change'));
-                $tempArray = array();
-                $img = $thumb->getUrl('deferred');
-                $tempArray['src'] = $img;
+            $tempArray = array();
+
+            if (isset($imageUrl)) {
+                $tempArray['src'] = $imageUrl;
             } else {
-                $tempArray['src'] = sbf("pwa/icons/icon-{$size}x{$size}.png", '');
+                $fName = "pwa-icon-{$size}x{$size}.png";
+                $content = getFileContent("pwa/icons/icon-{$size}x{$size}.png");
+
+                core_Webroot::register($content, '', $fName, $domainId);
+                $tempArray['src'] = "/{$fName}";
             }
-            
+
             $tempArray['sizes'] = $size .  'x' . $size;
             $tempArray['type'] = 'image/png';
             $iconInfoArr[] = $tempArray;
         }
-        
+
         $appTitle = core_Setup::get('EF_APP_TITLE', true);
         $appTitle = tr($appTitle);
         $text = tr('интегрирана система за управление');
-        
-        $cu = str::checkHash(Request::get('u'));
-        $bVals = (int) $cu . '_' . dt::mysql2timestamp() . '_' . log_Browsers::getBrid();
-        $bVals = core_String::addHash($bVals);
-        $pwaActionUrl = '/pwa_Share/Portal/?v=' . $bVals;
-        
+
+        $startUrl = '/?isPwa=yes';
+
         $json = array(
             'short_name' => $appTitle,
             'name' => $appTitle . ' - ' . $text,
             'display' => 'standalone',
             'background_color' => '#fff',
             'theme_color' => '#ddd',
-            'start_url' => $pwaActionUrl,
+            'start_url' => $startUrl,
+            'id' => $startUrl,
             'scope' => '/',
             'icons' => $iconInfoArr,
             'share_target' => array(
@@ -80,9 +84,10 @@ class pwa_Manifest extends core_Mvc
                 )
             ),
         );
-        
-        core_App::outputJson($json);
+
+        return json_encode($json);
     }
+
 
 
     /**
@@ -107,9 +112,9 @@ class pwa_Manifest extends core_Mvc
         $pDomain = cms_Domains::getPublicDomain('domain');
 
         foreach ($defSettings as &$domainId) {
-            $domainId = cms_Domains::fetchField($domainId, 'domain');
+            $domainName = cms_Domains::fetchField($domainId, 'domain');
 
-            if ($pDomain == $domainId) {
+            if ($pDomain == $domainName) {
 
                 return 'yes';
             }

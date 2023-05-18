@@ -118,20 +118,30 @@ class planning_plg_ReplaceProducts extends core_Plugin
                 }
 
                 if(!empty($quantityFld)){
-                    if($exRec->{$mvc->packagingFld} != $newProductRec->measureId){
 
-                        $convertRate = cat_Products::convertToUom($oldProductRec->id, $newProductRec->measureId);
-                        if(empty($convertRate)){
-                            $secondMeasureId = cat_products_Packagings::getSecondMeasureId($newProductRec->id);
-                            if($secondMeasureId == $exRec->{$mvc->packagingFld}) {
-                                $packRec = cat_products_Packagings::getPack($newProductRec->id, $secondMeasureId);
-                                $nRec->{$mvc->packagingFld} = $packRec->packagingId;
-                                $nRec->{$mvc->quantityInPackFld} = $packRec->quantity;
-                                $nRec->{$quantityFld} = $exRec->{$quantityFld};
-                            }
-                        } else {
+                    $exPackagingId = $exRec->{$mvc->packagingFld};
+                    if($exPackagingId != $newProductRec->measureId){
+
+
+                        $exPackQuantity = $exRec->{$quantityFld} / $exRec->{$mvc->quantityInPackFld};
+
+                        $similarMeasureIds = cat_UoM::getSameTypeMeasures($newProductRec->measureId);
+                        if(array_key_exists($exPackagingId, $similarMeasureIds)){
                             $nRec->{$mvc->packagingFld} = $newProductRec->measureId;
-                            $nRec->{$quantityFld} = $convertRate * $nRec->{$quantityFld};
+                            $nRec->{$quantityFld} = cat_UoM::convertValue($exPackQuantity, $exPackagingId, $newProductRec->measureId);
+                        } else {
+                            $newProductExPack = cat_products_Packagings::getPack($newProductRec->id, $exPackagingId);
+                            if($newProductExPack){
+                                $nRec->{$mvc->packagingFld} = $newProductExPack->packagingId;
+                                $nRec->{$mvc->quantityInPackFld} = $newProductExPack->quantity;
+                                $nRec->{$quantityFld} = $exPackQuantity;
+                            } else {
+                                $oldProductNewPack = cat_products_Packagings::getPack($oldProductRec->id, $newProductRec->measureId);
+                                if($oldProductNewPack){
+                                    $nRec->{$mvc->packagingFld} = $oldProductNewPack->packagingId;
+                                    $nRec->{$quantityFld} = $exRec->{$quantityFld} / $oldProductNewPack->quantity;
+                                }
+                            }
                         }
                     }
                 }

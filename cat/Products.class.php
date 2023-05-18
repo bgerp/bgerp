@@ -974,12 +974,12 @@ class cat_Products extends embed_Manager
         $data->listFilter->view = 'horizontal';
 
         $data->listFilter->input(null, 'silent');
-        $defOrder = 'public';
+        $defOrder = 'publicProducts,active';
         if ($data->listFilter->rec->groupId) {
             $defOrder = null;
         }
-        $data->listFilter->setDefault('filters', $defOrder);
 
+        $data->listFilter->setDefault('filters', $defOrder);
         $data->listFilter->FNC('type', 'class', 'caption=Вид');
         $classes = core_Classes::getOptionsByInterface('cat_ProductDriverIntf', 'title');
         $data->listFilter->setOptions('type', array('' => '') + $classes);
