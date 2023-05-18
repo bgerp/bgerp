@@ -167,6 +167,8 @@ class core_Webroot
      */
     private static function getPath($filename, $domain)
     {
+        $filename = strtolower($filename);
+
         core_Os::requireDir(WEBROOT_FILES_PATH);
         
         expect(is_writable(WEBROOT_FILES_PATH));
@@ -187,7 +189,7 @@ class core_Webroot
         $domain = trim(strtolower(preg_replace('/[^a-z0-9]+/', '_', $domain)), '_');
         
         $path = rtrim(WEBROOT_FILES_PATH, '/') . '/' . $domain . '_' . $filename;
-        
+
         return $path;
     }
 }
