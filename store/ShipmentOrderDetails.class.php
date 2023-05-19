@@ -253,7 +253,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     }
 
                     if(!Mode::isReadOnly()){
-                        $row->packPrice = "<div class='priceBellowPrimeCost'>" . ht::createHint($row->packPrice, $warning, 'noicon', false)->getContent() . "</div>";
+                        $row->packPrice = "<div class='priceBellowPrimeCost'>" . ht::createHint($row->packPrice, $warning, 'warning', false)->getContent() . "</div>";
                     }
                 } elseif(in_array($masterRec->state, array('pending', 'draft'))) {
 

@@ -259,7 +259,7 @@ class sales_SalesDetails extends deals_DealDetail
                        $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                    }
                    if(!Mode::isReadOnly()){
-                       $row->{$hintField} = "<div class='priceBellowPrimeCost'>" . ht::createHint($row->{$hintField}, $warning, 'noicon', false)->getContent() . "</div>";
+                       $row->{$hintField} = "<div class='priceBellowPrimeCost'>" . ht::createHint($row->{$hintField}, $warning, 'warning', false)->getContent() . "</div>";
                    }
                } elseif(in_array($masterRec->state, array('pending', 'draft'))){
                    
