@@ -714,6 +714,7 @@ class planning_Tasks extends core_Master
                             if(countR($singleUrl)){
                                 $startAfterTitle = ht::createLink($startAfterTitle, $singleUrl);
                             }
+                            $startAfterTitle = ht::createHint($startAfterTitle, $origin->getTitleById(), 'notice', false);
                         }
                         $row->startAfter = $startAfterTitle;
                     } else {
@@ -1941,7 +1942,8 @@ class planning_Tasks extends core_Master
     {
         $taskRec = static::fetchRec($taskId);
         $job = doc_Containers::getDocument($taskRec->originId);
-        $jobTitle = str::limitLen("Job{$job->that}-" . cat_Products::fetchField($job->fetchField('productId'), 'name'), 42);
+        $jobPrefix = ($isShort) ? '' : "Job{$job->that}-";
+        $jobTitle = str::limitLen($jobPrefix . cat_Products::fetchField($job->fetchField('productId'), 'name'), 42);
         $title = "Opr{$taskRec->id}/{$jobTitle}";
         if(!$isShort){
             $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 42);
