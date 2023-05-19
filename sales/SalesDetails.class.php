@@ -258,13 +258,14 @@ class sales_SalesDetails extends deals_DealDetail
                        $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
                        $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                    }
-                   
-                   $row->{$hintField} = ht::createHint($row->{$hintField}, $warning, 'warning', false);
+                   if(!Mode::isReadOnly()){
+                       $row->{$hintField} = "<div class='priceBellowPrimeCost'>" . ht::createHint($row->{$hintField}, $warning, 'noicon', false)->getContent() . "</div>";
+                   }
                } elseif(in_array($masterRec->state, array('pending', 'draft'))){
                    
                    // Предупреждение дали цената е под очакваната за клиента
                    $useQuotationPrice = isset($masterRec->originId);
-                   $discount = isset($rec->discount) ? $rec->discount : $rec->autoDiscount;
+                   $discount = $rec->discount ?? $rec->autoDiscount;
                    $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
                         $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false);

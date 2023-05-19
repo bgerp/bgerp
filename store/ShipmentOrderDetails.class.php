@@ -251,8 +251,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                         $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
                         $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                     }
-                    
-                    $row->packPrice = ht::createHint($row->packPrice, $warning, 'warning', false);
+
+                    if(!Mode::isReadOnly()){
+                        $row->packPrice = "<div class='priceBellowPrimeCost'>" . ht::createHint($row->packPrice, $warning, 'noicon', false)->getContent() . "</div>";
+                    }
                 } elseif(in_array($masterRec->state, array('pending', 'draft'))) {
 
                     $listId = null;

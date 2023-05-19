@@ -7463,3 +7463,9 @@ table.bomProductionStepTable td {
 .rateDiffDocumentTable td.rateDifferenceDocumentLink {
   text-indent: 20px; }
 
+.priceBellowPrimeCost {
+  font-weight: bold;
+  background-color: red;
+  color: white;
+  padding: 1px 3px; }
+
