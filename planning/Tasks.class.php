@@ -1948,7 +1948,7 @@ class planning_Tasks extends core_Master
         $jobTitle = str::limitLen($jobPrefix . cat_Products::fetchField($job->fetchField('productId'), 'name'), 42);
         $title = "Opr{$taskRec->id}/{$jobTitle}";
         if(!$isShort){
-            $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 42);
+            $productTitle = cat_Products::fetchField($taskRec->productId, 'name');
             $title .= " ({$productTitle})";
         }
 
