@@ -385,7 +385,7 @@ class planning_Jobs extends core_Master
                 $form->setOptions('oldJobId', array('' => '') + $previousJobs);
             }
 
-            $packs = cat_Products::getPacks($rec->productId, false, $rec->secondMeasureId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId, false, $rec->secondMeasureId);
             $form->setOptions('packagingId', $packs);
 
             // Ако артикула не е складируем, скриваме полето за мярка

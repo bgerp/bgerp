@@ -574,7 +574,7 @@ class cat_BomDetails extends doc_Detail
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
             
             if($form->_replaceProduct !== true){
-                $packs = cat_Products::getPacks($rec->resourceId);
+                $packs = cat_Products::getPacks($rec->resourceId, $rec->packagingId);
                 $form->setOptions('packagingId', $packs);
                 $form->setDefault('packagingId', key($packs));
             } else {

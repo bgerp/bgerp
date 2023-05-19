@@ -146,7 +146,7 @@ class cat_ListingDetails extends doc_Detail
         
         // Ако е избран артикул, показва се и опаковката му
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));

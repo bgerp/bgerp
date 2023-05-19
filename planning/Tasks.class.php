@@ -1704,7 +1704,7 @@ class planning_Tasks extends core_Master
                 // Ако някоя от произовдните на основната му мярка е налична в опциите - добавят се и останалите
                 if (countR(array_intersect_key($measureOptions, $similarMeasures)) || $originRec->allowSecondMeasure == 'yes') {
                     // както и производните на основната му мярка, които са опаковки
-                    $packMeasures = cat_Products::getPacks($productRec->id, true);
+                    $packMeasures = cat_Products::getPacks($productRec->id, null, true);
                     $leftMeasures = array_intersect_key($similarMeasures, $packMeasures);
                     $leftMeasures = array_keys($leftMeasures);
                     foreach ($leftMeasures as $lMeasureId) {
@@ -1714,7 +1714,7 @@ class planning_Tasks extends core_Master
                     }
                 }
             } else {
-                $measureOptions = cat_Products::getPacks($rec->productId, true);
+                $measureOptions = cat_Products::getPacks($rec->productId, $rec->measureId, true);
             }
 
             $measuresCount = countR($measureOptions);

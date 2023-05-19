@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -50,9 +50,15 @@ class cat_products_Packagings extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created,plg_Modified';
-    
-    
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created,plg_Modified,plg_State2';
+
+
+    /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'packEdit,ceo';
+
+
     /**
      * Кой има право да променя системните данни?
      */
@@ -425,6 +431,12 @@ class cat_products_Packagings extends core_Detail
                 $requiredRoles = 'no_one';
             }
         }
+
+        if ($action == 'edit' && isset($rec)) {
+            if ($rec->state == 'closed') {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -762,6 +774,11 @@ class cat_products_Packagings extends core_Detail
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
+
+        if($rec->state == 'closed' && $rec->isBase == 'yes'){
+            $rec->isBase = 'no';
+            $mvc->save_($rec, 'isBase');
+        }
     }
 
 

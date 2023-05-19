@@ -2080,12 +2080,13 @@ class cat_Products extends embed_Manager
      * Първия елемент на масива е основната опаковка (ако няма основната мярка)
      *
      * @param int            $productId    - ид на артикул
+     * @param null|int       $exPackId     - съществуваща опаковка
      * @param bool           $onlyMeasures - дали да се връщат само мерките на артикула
      * @param false|null|int $secondMeasureId - коя да е втората мярка
      *
      * @return array $options - опаковките
      */
-    public static function getPacks($productId, $onlyMeasures = false, $secondMeasureId = false)
+    public static function getPacks($productId, $exPackId = null, $onlyMeasures = false, $secondMeasureId = false)
     {
         $options = array();
         expect($productRec = cat_Products::fetch($productId, 'measureId,canStore'));
@@ -2116,6 +2117,11 @@ class cat_Products extends embed_Manager
                 } else {
                     $packQuery->where("1=2");
                 }
+            }
+
+            $packQuery->where("#state != 'closed'");
+            if($exPackId){
+                $packQuery->orWhere("#packagingId = '{$exPackId}'");
             }
 
             while ($packRec = $packQuery->fetch()) {

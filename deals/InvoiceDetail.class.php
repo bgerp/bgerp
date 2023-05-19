@@ -538,7 +538,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $vat = cat_Products::getVat($rec->productId, $masterRec->date);
             $productInfo = cat_Products::getProductInfo($rec->productId);
             
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             
