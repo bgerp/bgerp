@@ -714,7 +714,9 @@ class planning_Tasks extends core_Master
                             if(countR($singleUrl)){
                                 $startAfterTitle = ht::createLink($startAfterTitle, $singleUrl);
                             }
-                            $startAfterTitle = ht::createHint($startAfterTitle, $origin->getTitleById(), 'notice', false);
+
+                            $startAfterTitleFull = $mvc->getAlternativeTitle($startAfter);
+                            $startAfterTitle = ht::createHint($startAfterTitle, $startAfterTitleFull, 'notice', false);
                         }
                         $row->startAfter = $startAfterTitle;
                     } else {
