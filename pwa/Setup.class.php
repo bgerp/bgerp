@@ -116,7 +116,7 @@ class pwa_Setup extends core_ProtoSetup
             }
 
             if (core_Webroot::isExists('serviceworker.js', $domainId)) {
-                $swPrevContent = @core_Webroot::getContents('serviceworker.js', $domainId);
+                $swPrevContent = core_Webroot::getContents('serviceworker.js', $domainId);
             } else {
                 $swPrevContent = '';
             }
