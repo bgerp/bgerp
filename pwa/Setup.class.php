@@ -103,7 +103,11 @@ class pwa_Setup extends core_ProtoSetup
                 }
             }
 
-            $pwaPrevContent = @core_Webroot::getContents('pwa.webmanifest', $domainId);
+            if (core_Webroot::isExists('pwa.webmanifest', $domainId)) {
+                $pwaPrevContent = core_Webroot::getContents('pwa.webmanifest', $domainId);
+            } else {
+                $pwaPrevContent = '';
+            }
             if ($pwaPrevContent != $manifest) {
                 core_Webroot::remove('pwa.webmanifest', $domainId);
                 core_Webroot::register($manifest, 'Content-Type: application/json', 'pwa.webmanifest', $domainId);
@@ -111,7 +115,12 @@ class pwa_Setup extends core_ProtoSetup
                 $html .= '<li>Генериране на манифест на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
             }
 
-            $swPrevContent = @core_Webroot::getContents('serviceworker.js', $domainId);
+            if (core_Webroot::isExists('serviceworker.js', $domainId)) {
+                $swPrevContent = @core_Webroot::getContents('serviceworker.js', $domainId);
+            } else {
+                $swPrevContent = '';
+            }
+
             if ($swPrevContent != $sw) {
                 core_Webroot::remove('serviceworker.js', $domainId);
                 core_Webroot::register($sw, 'Content-Type: text/javascript', 'serviceworker.js', $domainId);
