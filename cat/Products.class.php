@@ -2158,16 +2158,14 @@ class cat_Products extends embed_Manager
     public static function getParams($id, $name = null, $verbal = false)
     {
         $res = (isset($name)) ? null : array();
+
         // Ако има драйвър, питаме него за стойността
         if ($Driver = static::getDriver($id)) {
             core_Debug::startTimer('GET_PARAMS');
             $res = $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
             core_Debug::stopTimer('GET_PARAMS');
         }
-        if ($name == 'preview' && !$res) {
-            $rec = self::fetch($id);
-            $res = $rec->photo;
-        }
+
         // Ако няма връщаме празен масив
         return $res;
     }

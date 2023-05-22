@@ -276,10 +276,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         // Ако има посочено име се посочва директно стойноста му
         if (isset($name)) {
-            
-            return cat_products_Params::fetchParamValue($classId, $id, $name, $verbal);
+            $res = cat_products_Params::fetchParamValue($classId, $id, $name, $verbal);
+            if($name == 'preview' && !$res){
+                $res = cls::get($classId)->fetch($id)->photo;
+            }
+
+            return $res;
         }
-        
+
         // Ако не искаме точен параметър връщаме всичките параметри за артикула
         $params = array();
         $classId = cat_Products::getClassId();
@@ -287,14 +291,18 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $pQuery->where("#productId = {$id}");
         $pQuery->where("#classId = {$classId}");
         $pQuery->show('paramId,paramValue');
-        
         while ($pRec = $pQuery->fetch()) {
             if ($verbal === true) {
                 $pRec->paramValue = cat_Params::toVerbal($pRec->paramId, $classId, $id, $pRec->paramValue);
             }
             $params[$pRec->paramId] = $pRec->paramValue;
         }
-        
+
+        $previewId = cat_Params::force('preview', 'Изглед||Preview', 'cond_type_Image', null, '', true);
+        if(!array_key_exists($previewId, $params)){
+            $params[$previewId] = cls::get($classId)->fetch($id)->photo;
+        }
+
         return $params;
     }
     
@@ -311,9 +319,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function getPreview($rec, embed_Manager $Embedder, $size = array('280', '150'), $maxSize = array('550', '550'))
     {
         $preview = null;
-        $previewHandler = cat_Products::getParams($rec->id, 'preview');
+        $previewHandler = $this->getParams($Embedder, $rec->id, 'preview');
         $handler = !empty($previewHandler) ? $previewHandler : $rec->photo;
-        
+
         if (!empty($handler)) {
             $Fancybox = cls::get('fancybox_Fancybox');
             $preview = $Fancybox->getImage($handler, $size, $maxSize);
@@ -351,7 +359,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function renderProductDescription($data)
     {
         // Вербализиране на снимката, да е готова за показване
-        $data->rec->photo =  cat_Products::getParams($data->rec->id, 'preview');
+        $data->rec->photo =  $this->getParams($data->Embedder->getClassId(), $data->rec->id, 'preview');
         if ($data->rec->photo) {
             $size = array(280, 150);
             $Fancybox = cls::get('fancybox_Fancybox');
