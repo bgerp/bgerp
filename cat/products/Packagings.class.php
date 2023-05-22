@@ -124,7 +124,7 @@ class cat_products_Packagings extends core_Detail
         'purchase_ServicesDetails',
         'cat_ListingDetails',
         'pos_ReceiptDetails',
-        'planning_Tasks',
+        'planning_ProductionTaskDetails',
         'planning_ProductionTaskProducts',
         'store_ConsignmentProtocolDetailsReceived',
         'store_TransfersDetails',
@@ -1230,9 +1230,7 @@ class cat_products_Packagings extends core_Detail
         $isUsed = false;
         foreach ($details as $Detail) {
             $dInst = cls::get($Detail);
-
             $dQuery = $dInst->getQuery();
-
             $dQuery->limit(1);
 
             $haveModified = false;
@@ -1282,9 +1280,9 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             } elseif ($Detail == 'store_TransfersDetails') {
                 $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
-            } elseif ($Detail == 'planning_Tasks') {
-                $dQuery->EXT('jProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId, externalFieldName=originId');
-                $dQuery->where(array("(#isFinal = 'yes' && #jProductId='[#1#]' AND #labelPackagingId = '[#2#]') OR (#productId = '[#1#]' AND #labelPackagingId = '[#2#]')", $productId, $uomId));
+            } elseif ($Detail == 'planning_ProductionTaskDetails') {
+                $dQuery->EXT('labelPackagingId', 'planning_Tasks', 'externalKey=taskId,externalName=labelPackagingId');
+                $dQuery->where(array("#productId = '[#1#]' AND #labelPackagingId = '[#2#]' AND #state != 'rejected'", $productId, $uomId));
             } else {
                 $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             }
