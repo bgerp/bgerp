@@ -1945,19 +1945,18 @@ class planning_Tasks extends core_Master
         $taskRec = static::fetchRec($taskId);
         $job = doc_Containers::getDocument($taskRec->originId);
         $jobTitle = cat_Products::fetchField($job->fetchField('productId'), 'name');
+        
         if($isShort){
-            $jobTitle = str::limitLen($jobTitle, 26);
+            $oprTitle = "Opr{$taskRec->id}/";
+            $jobTitle = str::limitLen($jobTitle, 36);
         } else {
-            $jobTitle = "Job{$job->that}-{$jobTitle}";
+            $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 36);
+            $oprTitle = "Opr{$taskRec->id}-{$productTitle}";
+            $jobTitle = "&lt;br&gt;Job{$job->that}-{$jobTitle}";
         }
 
-        $title = "Opr{$taskRec->id}/{$jobTitle}";
-        $productTitle = cat_Products::fetchField($taskRec->productId, 'name');
-        if($isShort){
-            $productTitle = str::limitLen($productTitle, 26);
-        }
-        $title .= "/{$productTitle}";
-
+        $title = "{$oprTitle}{$jobTitle}";
+        
         return $title;
     }
 
