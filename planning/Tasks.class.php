@@ -1952,7 +1952,7 @@ class planning_Tasks extends core_Master
         } else {
             $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 36);
             $oprTitle = "Opr{$taskRec->id}-{$productTitle}";
-            $jobTitle = "&lt;br&gt;Job{$job->that}-{$jobTitle}";
+            $jobTitle = "<br>Job{$job->that}-{$jobTitle}";
         }
 
         $title = "{$oprTitle}{$jobTitle}";
