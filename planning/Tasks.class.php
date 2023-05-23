@@ -714,6 +714,9 @@ class planning_Tasks extends core_Master
                             if(countR($singleUrl)){
                                 $startAfterTitle = ht::createLink($startAfterTitle, $singleUrl);
                             }
+
+                            $startAfterTitleFull = $mvc->getAlternativeTitle($startAfter);
+                            $startAfterTitle = ht::createHint($startAfterTitle, $startAfterTitleFull, 'notice', false);
                         }
                         $row->startAfter = $startAfterTitle;
                     } else {
@@ -1703,7 +1706,7 @@ class planning_Tasks extends core_Master
                 // Ако някоя от произовдните на основната му мярка е налична в опциите - добавят се и останалите
                 if (countR(array_intersect_key($measureOptions, $similarMeasures)) || $originRec->allowSecondMeasure == 'yes') {
                     // както и производните на основната му мярка, които са опаковки
-                    $packMeasures = cat_Products::getPacks($productRec->id, true);
+                    $packMeasures = cat_Products::getPacks($productRec->id, null, true);
                     $leftMeasures = array_intersect_key($similarMeasures, $packMeasures);
                     $leftMeasures = array_keys($leftMeasures);
                     foreach ($leftMeasures as $lMeasureId) {
@@ -1713,7 +1716,7 @@ class planning_Tasks extends core_Master
                     }
                 }
             } else {
-                $measureOptions = cat_Products::getPacks($rec->productId, true);
+                $measureOptions = cat_Products::getPacks($rec->productId, $rec->measureId, true);
             }
 
             $measuresCount = countR($measureOptions);
@@ -1940,13 +1943,19 @@ class planning_Tasks extends core_Master
     {
         $taskRec = static::fetchRec($taskId);
         $job = doc_Containers::getDocument($taskRec->originId);
-        $jobTitle = str::limitLen("Job{$job->that}-" . cat_Products::fetchField($job->fetchField('productId'), 'name'), 42);
-        $title = "Opr{$taskRec->id}/{$jobTitle}";
-        if(!$isShort){
-            $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 42);
-            $title .= "/{$productTitle}";
+        $jobTitle = cat_Products::fetchField($job->fetchField('productId'), 'name');
+        
+        if($isShort){
+            $oprTitle = "Opr{$taskRec->id}/";
+            $jobTitle = str::limitLen($jobTitle, 36);
+        } else {
+            $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 36);
+            $oprTitle = "Opr{$taskRec->id}-{$productTitle} / ";
         }
 
+        $jobTitle = "Job{$job->that}-{$jobTitle}";
+		$title = "{$oprTitle}{$jobTitle}";
+        
         return $title;
     }
 

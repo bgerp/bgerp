@@ -310,6 +310,7 @@ abstract class store_DocumentMaster extends core_Master
             $copyBatches = false;
             $Detail = $mvc->mainDetail;
             $aggregatedDealInfo = $origin->getAggregateDealInfo();
+            $normalizedProducts = array();
             if($rec->importProducts == 'none'){
                 $agreedProducts = array();
             } elseif($rec->importProducts != 'all') {
@@ -323,11 +324,40 @@ abstract class store_DocumentMaster extends core_Master
                 }
 
                 if ($rec->importProducts == 'stocked') {
+                    $originRec = $origin->fetch();
                     foreach ($agreedProducts as $i1 => $p1) {
                         $inStock = store_Products::fetchField("#storeId = {$rec->storeId} AND #productId = {$p1->productId}", 'quantity');
-                        if ($p1->quantity > $inStock) {
-                            unset($agreedProducts[$i1]);
+                        $inStock = is_numeric($inStock) ? $inStock : 0;
+                        $agreedQuantity = $p1->quantity;
+                        $isPublic = cat_Products::fetchField($p1->productId, 'isPublic');
+
+                        // Ако договора е за многократна експедиция
+                        if($originRec->oneTimeDelivery == 'no'){
+                            if($isPublic == 'no'){
+
+                                // и артикула е нестандартен с поне едно приключено задание, поръчаното к-во е това с толеранса
+                                if(planning_Jobs::count("#productId = {$p1->productId} AND #state = 'closed' AND #dueDate >= '{$originRec->valior}'")){
+                                    if(isset($p1->tolerance)){
+                                        $agreedQuantity *= (1 + $p1->tolerance);
+                                    }
+                                }
+                            }
+                        } else {
+                            if($isPublic == 'no'){
+                                // Ако има активно/събудено/спряно задание няма да се води за налично
+                                if(planning_Jobs::count("#productId = {$p1->productId} AND #state IN ('wakeup', 'active', 'stopped')")){
+                                    $agreedQuantity = 0;
+                                } else {
+                                    // ако няма такова се взима до толеранса
+                                    if(isset($p1->tolerance)){
+                                        $agreedQuantity *= (1 + $p1->tolerance);
+                                    }
+                                }
+                            }
                         }
+
+                        // При всички положения ще се вземе по-малкото от наличното в склада и договореното
+                        $p1->quantity = min($agreedQuantity, $inStock);
 
                         // Оставяне само на наличните партиди
                         if(is_array($p1->batches) && core_Packs::isInstalled('batch')){
@@ -367,8 +397,8 @@ abstract class store_DocumentMaster extends core_Master
                         $batches = $product->batches;
                     }
                     
-                    $price = (isset($agreedProducts[$index]->price)) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
-                    $discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
+                    $price = (isset($product->price)) ? $product->price : $normalizedProducts[$index]->price;
+                    $discount = ($product->discount) ? $product->discount : $normalizedProducts[$index]->discount;
                     
                     // Пропускат се експедираните продукти
                     if ($toShip <= 0) {
