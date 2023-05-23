@@ -139,18 +139,6 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
             if (!(cls::get($firstDoc) instanceof sales_Sales)) continue;
 
-                //Входящи имейли през пасивния период
-            $mInQuery = email_Incomings::getQuery();
-            $mInQuery->where("#folderId = $shRec->folderId");
-            $mInQuery->where("#createdOn >= '$passivePeriodStart'");
-            $incomingMailsCount[$shRec->folderId] = $mInQuery->count();
-
-            //Изходящи имейли през пасивния период
-            $mOutQuery = email_Outgoings::getQuery();
-            $mOutQuery->where("#folderId = $shRec->folderId");
-            $mOutQuery->where("#createdOn >= '$passivePeriodStart'");
-            $outgoingMailsCount[$shRec->folderId] = $mOutQuery->count();
-
             //филтър по дилър
             if (!in_array(-1,keylist::toArray($rec->dealers))){
                $docDealer = $firstDoc->fetch()->dealerId;
@@ -174,8 +162,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
                         'folderId' => $shRec->folderId,
                         'amountDelivered' => $shRec->amountDelivered,
                         'numberOfSales' => 1,
-                        'numberOfInMails' => $incomingMailsCount,
-                        'numberOfOutMails' => $outgoingMailsCount,
+                        'numberOfInMails' => '',
+                        'numberOfOutMails' => '',
                     );
                 } else {
                     $obj = &$shipmentActivContragents[$id];
@@ -226,8 +214,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
                         'folderId' => $salRec->folderId,
                         'amountDelivered' => $salRec->amountDelivered,
                         'numberOfSales' => 1,
-                        'numberOfInMails' => $incomingMailsCount,
-                        'numberOfOutMails' => $outgoingMailsCount,
+                        'numberOfInMails' => '',
+                        'numberOfOutMails' => '',
                     );
                 } else {
                     $obj = &$shipmentActivContragents[$id];
@@ -266,6 +254,47 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
                 $recs[$key] = $val;
             }
+        }
+        $incomingMailsCount = $outgoingMailsCount = array();
+
+        //Входящи имейли през пасивния период
+        $mInQuery = email_Incomings::getQuery();
+        $mInQuery->in('folderId',array_keys($recs));
+        $mInQuery->where("#createdOn >= '$passivePeriodStart'");
+
+        while ($emInRec = $mInQuery->fetch()) {
+            if(!in_array($emInRec->folderId,array_keys($incomingMailsCount))){
+                $incomingMailsCount[$emInRec->folderId] = 1;
+            }else{
+                $incomingMailsCount[$emInRec->folderId] ++;
+            }
+
+        }
+
+        //Изходящи имейли през пасивния период
+        $mOutQuery = email_Outgoings::getQuery();
+        $mOutQuery->in('folderId',array_keys($recs));
+        $mOutQuery->where("#createdOn >= '$passivePeriodStart'");
+
+        while ($emOutRec = $mOutQuery->fetch()) {
+            if(!in_array($emOutRec->folderId,array_keys($outgoingMailsCount))){
+                $outgoingMailsCount[$emOutRec->folderId] = 1;
+            }else{
+                $outgoingMailsCount[$emOutRec->folderId] ++;
+            }
+
+        }
+
+        foreach ($recs as $key => $val){
+
+            if(in_array($key, array_keys($incomingMailsCount))){
+                $recs[$key]->numberOfInMails = $incomingMailsCount[$key];
+            }
+
+            if(in_array($key, array_keys($outgoingMailsCount))){
+                $recs[$key]->numberOfOutMails = $outgoingMailsCount[$key];
+            }
+
         }
 
         return $recs;
@@ -329,9 +358,9 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $row->activSalesAmount = $Double->toVerbal($dRec->amountDelivered);
 
-        $row->passivMailsIn = $Int->toVerbal($dRec->numberOfInMails[$dRec->folderId]);
+        $row->passivMailsIn = $Int->toVerbal($dRec->numberOfInMails);
 
-        $row->passivMailsOut = $Int->toVerbal($dRec->numberOfOutMails[$dRec->folderId]);
+        $row->passivMailsOut = $Int->toVerbal($dRec->numberOfOutMails);
 
 
         return $row;
