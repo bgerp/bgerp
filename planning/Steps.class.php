@@ -492,7 +492,7 @@ class planning_Steps extends core_Extender
         $data->listFilter->input();
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->query->orderBy('centerId,state', 'asc');
+        $data->query->orderBy('centerId,state,id', 'asc');
         
         if($filterRec = $data->listFilter->rec){
             if(!empty($filterRec->centerId)){

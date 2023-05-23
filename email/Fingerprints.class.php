@@ -77,7 +77,7 @@ class email_Fingerprints extends core_Manager
         $this->FLD('hash', 'varchar(32)', 'caption=Хеш');
         $this->FLD('accountId', 'key(mvc=email_Accounts,select=email,allowEmpty)', 'caption=Сметка, autoFilter');
         $this->FLD('uid', 'int', 'caption=Имейл UID');
-        $this->FLD('status', 'enum(returned,receipt,spam,incoming,misformatted,ignored)', 'caption=Статус,notNull');
+        $this->FLD('status', 'enum(returned,receipt,spam,incoming,misformatted,ignored,outgoing)', 'caption=Статус,notNull');
         $this->FLD('downloadedOn', 'datetime(format=smartTime)', 'caption=Свалено на,notNull');
         $this->FLD('deleted', 'enum(no=Не, yes=Да)', 'caption=Изтрито,notNull');
         

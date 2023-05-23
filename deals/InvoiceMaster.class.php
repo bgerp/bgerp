@@ -182,11 +182,9 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6, passage)', 'caption=Допълнително->Бележки');
-        $mvc->FNC('dealValueWithoutDiscount', 'double(decimals=2)', 'caption=Дан. основа,summary=amount');
-        $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden');
+        $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
-        $mvc->FNC('totalValue', 'double(decimals=2)', 'caption=Общо,summary=amount');
-        $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none');
+        $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
         $mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
         $mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
         
@@ -198,6 +196,23 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Метод по подразбиране допълващ полетата за филтриране в съмърито в лист изгледа
+     * @see acc_plg_DocumentSummary
+     */
+    public function fillSummaryRec(&$rec, &$summaryFields)
+    {
+        unset($summaryFields['dealValue']);
+        unset($summaryFields['discountAmount']);
+
+        arr::placeInAssocArray($summaryFields, array('dealValueWithoutDiscount' => (object)array('name' => 'dealValueWithoutDiscount', 'summary' => 'amount', 'caption' => 'Дан. основа')), 'vatAmount');
+        arr::placeInAssocArray($summaryFields, array('totalValue' => (object)array('name' => 'totalValue', 'summary' => 'amount', 'caption' => 'Общо')), null, 'vatAmount');
+
+        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount;
+        $rec->totalValue = $rec->dealValue - $rec->discountAmount + $rec->vatAmount;
+    }
+
+
+    /**
      * Метод по подразбиране за взимане на полетата за канонизиране
      */
     protected static function on_AfterGetCanonizedFields($mvc, &$res, $rec)
@@ -205,24 +220,6 @@ abstract class deals_InvoiceMaster extends core_Master
         if($rec->contragentClassId == crm_Persons::getClassId()){
             unset($res['uicNo']);
         }
-    }
-
-
-    /**
-     * Изчисляване на общото
-     */
-    protected static function on_CalcDealValueWithoutDiscount($mvc, &$rec)
-    {
-        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount;
-    }
-    
-    
-    /**
-     * Изчисляване на общото
-     */
-    protected static function on_CalcTotalValue($mvc, &$rec)
-    {
-        $rec->totalValue = $rec->dealValue - $rec->discountAmount + $rec->vatAmount;
     }
     
     
@@ -411,9 +408,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
                 $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
                 $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Пояснение');
-                $form->rec->changeAmountVat = key($cache->vats);
+
                 $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
                 $min = round($min, 2);
+                $form->rec->changeAmountVat = key($cache->vats);
                 $form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
                 if ($invArr['dpOperation'] == 'accrued') {
                     // Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
@@ -658,18 +656,17 @@ abstract class deals_InvoiceMaster extends core_Master
         $rec = &$data->rec;
 
         if (empty($data->noTotal)) {
+            $rate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
             if (isset($rec->type) && $rec->type != 'invoice' && isset($rec->changeAmount)) {
                 $this->_total = new stdClass();
-                $this->_total->amount = $rec->dealValue / $rec->rate;
-                $this->_total->vat = $rec->vatAmount / $rec->rate;
+                $this->_total->amount = $rec->dealValue / $rate;
+                $this->_total->vat = $rec->vatAmount / $rate;
                 @$percent = round($this->_total->vat / $this->_total->amount, 2);
                 $percent = is_nan($percent) ? 0 : $percent;
                 $this->_total->vats["{$percent}"] = (object) array('amount' => $this->_total->vat, 'sum' => $this->_total->amount);
             }
 
             $this->invoke('BeforePrepareSummary', array($this->_total));
-            
-            $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rate, $rec->currencyId, $rec->vatRate, true, $rec->tplLang);
 
             $data->row = (object) ((array) $data->row + (array) $data->summary);
@@ -907,7 +904,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             if (!$rec->displayRate) {
-                $rec->displayRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
+                $rec->displayRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if (!$rec->displayRate) {
                     $form->setError('rate', 'Не може да се изчисли курс');
                 }
@@ -998,7 +995,8 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
                 
                 if ($originRec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
-                    $diff = ($rec->changeAmount * $rec->rate);
+                    $rate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
+                    $diff = ($rec->changeAmount * $rate);
                     $rec->vatAmount = $diff * $vat;
                     
                     // Стойността е променената сума
@@ -1211,10 +1209,11 @@ abstract class deals_InvoiceMaster extends core_Master
             $row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), null, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0);
             $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
             $noVat = $rec->dealValue - $rec->discountAmount;
-            
-            $totalToVerbal = (!empty($rec->rate)) ? $total / $rec->rate : $total;
-            $novatToVerbal = (!empty($rec->rate)) ? $noVat / $rec->rate : $noVat;
-            $amountToVerbal = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
+
+            $displayRate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
+            $totalToVerbal = (!empty($displayRate)) ? $total / $displayRate : $total;
+            $novatToVerbal = (!empty($displayRate)) ? $noVat / $displayRate : $noVat;
+            $amountToVerbal = (!empty($displayRate)) ? $rec->vatAmount / $displayRate : $rec->vatAmount;
             
             $row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($totalToVerbal);
             $row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($novatToVerbal);
@@ -1369,7 +1368,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $row->paymentType = tr('Плащане ' . $arr[$rec->paymentType]);
                 }
 
-                if($rec->paymentType == 'cash'){
+                if(in_array($rec->paymentType, array('postal', 'cash', 'card'))){
                     $row->BANK_BLOCK_CLASS = 'quiet';
                 }
             }
@@ -1426,7 +1425,9 @@ abstract class deals_InvoiceMaster extends core_Master
         $dueDate = null;
         setIfNot($dueDate, $rec->dueDate, $rec->date);
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
-        $aggregator->sum('invoicedAmount', $total);
+
+        $totalInDealRate = ($total / $rec->displayRate) * $rec->rate;
+        $aggregator->sum('invoicedAmount', $totalInDealRate);
         $aggregator->setIfNot('invoicedValior', $rec->date);
 
         if (isset($rec->dpAmount)) {
@@ -1436,9 +1437,9 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             $dpVatId = isset($rec->dpVatGroupId) ? $rec->dpVatGroupId : acc_VatGroups::getDefaultIdByDate($rec->date);
             if ($rec->dpOperation == 'accrued') {
-                $aggregator->sum('downpaymentInvoiced', $total);
+                $aggregator->sum('downpaymentInvoiced', $totalInDealRate);
 
-                $aggregator->sumByArrIndex('downpaymentAccruedByVats', $total, $dpVatId);
+                $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealRate, $dpVatId);
             } elseif ($rec->dpOperation == 'deducted') {
 
                 // Колко е приспаднатото плащане с ддс
@@ -1454,9 +1455,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $originRec = doc_Containers::getDocument($rec->originId)->fetch('dpOperation,dpVatGroupId,date');
 
                 if ($originRec->dpOperation == 'accrued') {
-                    $aggregator->sum('downpaymentInvoiced', $total);
+                    $aggregator->sum('downpaymentInvoiced', $totalInDealRate);
                     $dpVatId = isset($originRec->dpVatGroupId) ? $originRec->dpVatGroupId : acc_VatGroups::getDefaultIdByDate($originRec->date);
-                    $aggregator->sumByArrIndex('downpaymentAccruedByVats', $total, $dpVatId);
+                    $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealRate, $dpVatId);
                 }
             }
         }
@@ -1799,7 +1800,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $rec->valueNoVat = $rec->dealValue - $rec->discountAmount;
             $rec->valueNoVat = (!empty($rec->rate)) ? $rec->valueNoVat / $rec->rate : $rec->valueNoVat;
             $rec->vatAmount = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
-            $rec->dealValueWithoutDiscount = (!empty($rec->rate)) ? $rec->dealValueWithoutDiscount / $rec->rate : $rec->dealValueWithoutDiscount;
+            $rec->dealValueWithoutDiscount = (!empty($rec->rate)) ? ($rec->dealValue - $rec->discountAmount) / $rec->rate : ($rec->dealValue - $rec->discountAmount);
         }
     }
     

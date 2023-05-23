@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,originId=@';
 
 
     /**
@@ -373,6 +373,7 @@ class planning_Tasks extends core_Master
             }
             if ($pData['showPreviousJobField']) {
                 $originRec = doc_Containers::getDocument($data->rec->originId)->fetch('oldJobId,productId');
+
                 if ($originRec->oldJobId) {
                     $oldJobProductId = planning_Jobs::fetchField($originRec->oldJobId, 'productId');
                     $data->row->previousJob = planning_Jobs::getHyperlink($originRec->oldJobId, true);
@@ -435,7 +436,6 @@ class planning_Tasks extends core_Master
         core_Debug::startTimer('RENDER_VERBAL');
         $row = parent::recToVerbal_($rec, $fields);
         $mvc = cls::get(get_called_class());
-        $row->title = self::getHyperlink($rec->id, isset($fields['-list']));
 
         $red = new color_Object('#FF0000');
         $blue = new color_Object('green');
@@ -453,8 +453,11 @@ class planning_Tasks extends core_Master
 
         $row->productId = $mvc->getStepTitle($rec->productId);
         if (!empty($rec->subTitle)) {
-            $row->productId .= ", <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
+            $row->productId .= " <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
         }
+
+        $row->title = "{$rec->id}| {$row->productId}";
+        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id));
 
         if (!Mode::isReadOnly()) {
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
@@ -705,7 +708,17 @@ class planning_Tasks extends core_Master
                     // Показва се след коя ще започне
                     $startAfter = $mvc->getPrevOrNextTask($rec);
                     if (isset($startAfter)) {
-                        $row->startAfter = $mvc->getHyperlink($startAfter, true);
+                        $startAfterTitle = $mvc->getAlternativeTitle($startAfter, true);
+                        if(!Mode::isReadOnly()){
+                            $singleUrl = planning_Tasks::getSingleUrlArray($startAfter);
+                            if(countR($singleUrl)){
+                                $startAfterTitle = ht::createLink($startAfterTitle, $singleUrl);
+                            }
+
+                            $startAfterTitleFull = $mvc->getAlternativeTitle($startAfter);
+                            $startAfterTitle = ht::createHint($startAfterTitle, $startAfterTitleFull, 'notice', false);
+                        }
+                        $row->startAfter = $startAfterTitle;
                     } else {
                         $row->startAfter = tr('Първа за оборудването');
                     }
@@ -896,7 +909,7 @@ class planning_Tasks extends core_Master
         $me = cls::get(get_called_class());
         $title = "Opr{$rec->id} - {$me->getStepTitle($rec->productId)}";
         if (!empty($rec->subTitle)) {
-            $title .= " [{$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}]";
+            $title .= " {$me->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
         }
 
         return $title;
@@ -1330,7 +1343,7 @@ class planning_Tasks extends core_Master
         if ($action == 'createjobtasks' && isset($rec)) {
             if (empty($rec->type) || empty($rec->jobId)) {
                 $requiredRoles = 'no_one';
-            } elseif (!in_array($rec->type, array('all', 'clone'))) {
+            } elseif (!in_array($rec->type, array('all', 'clone', 'cloneAll'))) {
                 $requiredRoles = 'no_one';
             } else {
                 $jobRec = planning_Jobs::fetch($rec->jobId);
@@ -1355,6 +1368,27 @@ class planning_Tasks extends core_Master
                             $remainingSystemTasks = array_diff_key($defaultTasks, $exSystemIds);
                             if (!countR($remainingSystemTasks) || $defaultTaskCount == 1) {
                                 $requiredRoles = 'no_one';
+                            }
+                        }
+                    } elseif($rec->type == 'cloneAll'){
+                        if (empty($rec->oldJobId)) {
+                            $requiredRoles = 'no_one';
+                        } else {
+
+                            // Дали може да се клонират неклонираните от предишно задание
+                            $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
+                            if(!countR($oldTasks)){
+                                $requiredRoles = 'no_one';
+                            } else {
+                                $tQuery = planning_Tasks::getQuery();
+                                $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'rejected'");
+                                $tQuery->in('clonedFromId', array_keys($oldTasks));
+                                $tQuery->show('clonedFromId');
+                                $exClonedIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'clonedFromId');
+                                $remainingTasksToClone = array_diff_key($oldTasks, $exClonedIds);
+                                if (!countR($remainingTasksToClone) || countR($oldTasks) == 1) {
+                                    $requiredRoles = 'no_one';
+                                }
                             }
                         }
                     }
@@ -1582,7 +1616,9 @@ class planning_Tasks extends core_Master
             }
 
             if (isset($taskData['productId'])) {
+                $isFinal = planning_Steps::getRec('cat_Products', $taskData['productId'])->isFinal;
                 $form->setReadOnly('productId');
+                $form->setDefault('isFinal', $isFinal);
             }
         }
 
@@ -1670,7 +1706,7 @@ class planning_Tasks extends core_Master
                 // Ако някоя от произовдните на основната му мярка е налична в опциите - добавят се и останалите
                 if (countR(array_intersect_key($measureOptions, $similarMeasures)) || $originRec->allowSecondMeasure == 'yes') {
                     // както и производните на основната му мярка, които са опаковки
-                    $packMeasures = cat_Products::getPacks($productRec->id, true);
+                    $packMeasures = cat_Products::getPacks($productRec->id, null, true);
                     $leftMeasures = array_intersect_key($similarMeasures, $packMeasures);
                     $leftMeasures = array_keys($leftMeasures);
                     foreach ($leftMeasures as $lMeasureId) {
@@ -1680,7 +1716,7 @@ class planning_Tasks extends core_Master
                     }
                 }
             } else {
-                $measureOptions = cat_Products::getPacks($rec->productId, true);
+                $measureOptions = cat_Products::getPacks($rec->productId, $rec->measureId, true);
             }
 
             $measuresCount = countR($measureOptions);
@@ -1774,10 +1810,14 @@ class planning_Tasks extends core_Master
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
 
+            $jobQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originRec->quantity);
+            $jobMeasureVerbal = cat_UoM::getSmartName($originRec->packagingId, $originRec->quantity);
+            $unit = "|за количество от заданието|* <b>{$jobQuantityVerbal} {$jobMeasureVerbal}</b>";
             if ($measuresCount == 1) {
                 $measureShort = cat_UoM::getShortName($rec->measureId);
-                $form->setField('plannedQuantity', "unit={$measureShort}");
+                $unit = "{$measureShort} {$unit}";
             }
+            $form->setField('plannedQuantity', "unit={$unit}");
 
             if (isset($rec->labelPackagingId)) {
                 $form->setField('labelQuantityInPack', 'input');
@@ -1857,11 +1897,7 @@ class planning_Tasks extends core_Master
                 unset($assetTasks[$rec->id]);
                 $taskOptions = array();
                 foreach ($assetTasks as $tRec) {
-                    $job = doc_Containers::getDocument($tRec->originId);
-                    $jobTitle = str::limitLen("Job{$job->that}-" . cat_Products::getVerbal($job->fetchField('productId'), 'name'), 42);
-                    $productTitle = str::limitLen(cat_Products::getVerbal($tRec->productId, 'name'), 42);
-                    $title = "Opr{$tRec->id}/{$jobTitle}/{$productTitle}";
-                    $taskOptions[$tRec->id] = $title;
+                    $taskOptions[$tRec->id] = $mvc->getAlternativeTitle($tRec);
                 }
 
                 $form->setField('startAfter', 'input');
@@ -1893,6 +1929,34 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+    }
+
+
+    /**
+     * Връща алтернативно заглавие за операцията
+     *
+     * @param int|stdClass $taskId
+     * @param bool $isShort
+     * @return string
+     */
+    private function getAlternativeTitle($taskId, $isShort = false)
+    {
+        $taskRec = static::fetchRec($taskId);
+        $job = doc_Containers::getDocument($taskRec->originId);
+        $jobTitle = cat_Products::fetchField($job->fetchField('productId'), 'name');
+        
+        if($isShort){
+            $oprTitle = "Opr{$taskRec->id}/";
+            $jobTitle = str::limitLen($jobTitle, 36);
+        } else {
+            $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 36);
+            $oprTitle = "Opr{$taskRec->id}-{$productTitle} / ";
+        }
+
+        $jobTitle = "Job{$job->that}-{$jobTitle}";
+		$title = "{$oprTitle}{$jobTitle}";
+        
+        return $title;
     }
 
 
@@ -2508,51 +2572,68 @@ class planning_Tasks extends core_Master
     public function act_CreateJobTasks()
     {
         planning_Tasks::requireRightFor('createjobtasks');
-        expect($type = Request::get('type', 'enum(all,clone)'));
+        expect($type = Request::get('type', 'enum(all,clone,cloneAll)'));
         expect($jobId = Request::get('jobId', 'int'));
         expect($jobRec = planning_Jobs::fetch($jobId));
 
-        // Ако ще се клонира съществуваща операция
-        if ($type == 'clone') {
-            expect($cloneId = Request::get('cloneId', 'int'));
-            planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'cloneId' => $cloneId, 'type' => 'clone'));
-            expect($taskRec = $this->fetch($cloneId));
+        // Ако ще се клонира съществуваща операция или ще се клонират всички от предходното
+        if ($type == 'clone' || $type == 'cloneAll') {
             $oldJobRec = planning_Jobs::fetch($jobRec->oldJobId);
-
-            $newTask = clone $taskRec;
-            plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
-
-            // Преконвертиране на планираното к-во към новото от заданието, да се запази същото отношение
-            $q = $oldJobRec->quantity / $jobRec->quantity;
-            $round = cat_UoM::fetchField($newTask->measureId, 'round');
-            $newTask->plannedQuantity = round($taskRec->plannedQuantity / $q, $round);
-
-            $newTask->_isClone = true;
-            $newTask->originId = $jobRec->containerId;
-            $newTask->state = 'draft';
-            $newTask->clonedFromId = $newTask->id;
-            unset($newTask->id);
-            unset($newTask->threadId);
-            unset($newTask->containerId);
-            unset($newTask->createdOn);
-            unset($newTask->createdBy);
-            unset($newTask->systemId);
-
-            if ($this->save($newTask)) {
-                $this->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
-                $this->logWrite('Клониране от предходно задание', $newTask->id);
-
-                $pQuery = cat_products_Params::getQuery();
-                $pQuery->where("#classId = {$this->getClassId()} AND #productId = {$taskRec->id}");
-                while($pRec = $pQuery->fetch()){
-                    $newParamRec = clone $pRec;
-                    unset($newParamRec->id);
-                    $newParamRec->productId = $newTask->id;
-                    cat_products_Params::save($newParamRec);
-                }
+            $tasksToClone = array();
+            $count = 0;
+            if($type == 'clone'){
+                expect($cloneId = Request::get('cloneId', 'int'));
+                planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'cloneId' => $cloneId, 'type' => 'clone'));
+                expect($taskRec = $this->fetch($cloneId));
+                $tasksToClone[$taskRec->id] = $taskRec;
+            } else {
+                $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
+                $tQuery = planning_Tasks::getQuery();
+                $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'rejected'");
+                $tQuery->in('clonedFromId', array_keys($oldTasks));
+                $tQuery->show('clonedFromId');
+                $exClonedIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'clonedFromId');
+                $tasksToClone = array_diff_key($oldTasks, $exClonedIds);
             }
 
-            followRetUrl(null, 'Операцията е клонирана успешно');
+            foreach ($tasksToClone as $taskRec){
+                $newTask = clone $taskRec;
+                plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
+
+                // Преконвертиране на планираното к-во към новото от заданието, да се запази същото отношение
+                $q = $oldJobRec->quantity / $jobRec->quantity;
+                $round = cat_UoM::fetchField($newTask->measureId, 'round');
+                $newTask->plannedQuantity = round($taskRec->plannedQuantity / $q, $round);
+
+                $newTask->_isClone = true;
+                $newTask->originId = $jobRec->containerId;
+                $newTask->state = 'draft';
+                $newTask->clonedFromId = $newTask->id;
+                unset($newTask->id);
+                unset($newTask->threadId);
+                unset($newTask->containerId);
+                unset($newTask->createdOn);
+                unset($newTask->createdBy);
+                unset($newTask->systemId);
+
+                if ($this->save($newTask)) {
+                    $this->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
+                    $this->logWrite('Клониране от предходно задание', $newTask->id);
+
+                    $pQuery = cat_products_Params::getQuery();
+                    $pQuery->where("#classId = {$this->getClassId()} AND #productId = {$taskRec->id}");
+                    while($pRec = $pQuery->fetch()){
+                        $newParamRec = clone $pRec;
+                        unset($newParamRec->id);
+                        $newParamRec->productId = $newTask->id;
+                        cat_products_Params::save($newParamRec);
+                    }
+                }
+                $count++;
+            }
+
+            $msg = "Успешно клонирани операции от предишно задание|*: {$count}";
+            followRetUrl(null, $msg);
         } elseif ($type == 'all') {
 
             // Ако ще се клонират всички шаблонни операции
@@ -2861,7 +2942,6 @@ class planning_Tasks extends core_Master
             }
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
-
 
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');

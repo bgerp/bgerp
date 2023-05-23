@@ -25,7 +25,7 @@ class planning_GenericMapper extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_SaveAndNew';
     
     
     /**
@@ -87,8 +87,8 @@ class planning_GenericMapper extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canConvert,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Замества,mandatory,silent,tdClass=leftCol,class=w100');
-        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Генеричен артикул,mandatory,silent,tdClass=leftCol,class=w100');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canConvert,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'caption=Замества,mandatory,silent,tdClass=leftCol,class=w100');
+        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'caption=Генеричен артикул,mandatory,silent,tdClass=leftCol,class=w100');
         $this->FNC('fromGeneric', 'int', 'silent,input=hidden');
         
         $this->setDbUnique('productId,genericProductId');
@@ -107,6 +107,10 @@ class planning_GenericMapper extends core_Manager
         }
         
         $data->form->title = core_Detail::getEditTitle('cat_Products', $productId, $mvc->singleTitle, $rec->id);
+		
+		if (empty($rec->genericProductId)) {
+				$data->form->toolbar->removeBtn('saveAndNew');
+			}
     }
     
     
@@ -122,10 +126,6 @@ class planning_GenericMapper extends core_Manager
         $rec = &$form->rec;
         
         if(empty($rec->id) && isset($rec->genericProductId)){
-            $query = self::getQuery();
-            $query->show('productId');
-            $alreadySelectedProductsArr = arr::extractValuesFromArray($query->fetchAll(), 'productId');
-            $form->setFieldTypeParams("productId", array('notIn' => $alreadySelectedProductsArr));
             $form->setField('genericProductId', 'input=hidden');
         } else {
             $form->setField('productId', 'input=hidden');
@@ -142,15 +142,17 @@ class planning_GenericMapper extends core_Manager
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             $productRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
             $genericRec = cat_Products::fetch($rec->genericProductId, 'measureId,canStore');
-            
-            $similarMeasures = cat_UoM::getSameTypeMeasures($genericRec->measureId);
-            if(!array_key_exists($productRec->measureId, $similarMeasures)){
-                $genericMeasureName = cat_UoM::getVerbal($genericRec->measureId, 'name');
-                
-                $form->setError('productId', "Заместващият артикул трябва да е в мярка, производна на|*: <b>{$genericMeasureName}</b>");
+
+            $convertedMainProduct = cat_Products::convertToUom($rec->productId, $genericRec->measureId);
+            $convertedGenericProduct = cat_Products::convertToUom($rec->genericProductId, $productRec->measureId);
+            if(!$convertedMainProduct && ! $convertedGenericProduct){
+                $measureId = ($rec->fromGeneric) ? $genericRec->measureId : $productRec->measureId;
+                $measureName = cat_UoM::getVerbal($measureId, 'name');
+                $msg = ($rec->fromGeneric) ? "Заместващият артикул трябва да е в основна или втора мярка, производна на|*: <b>{$measureName}</b>" : "Генеричният артикул трябва да е в основна или втора мярка, производна на|*: <b>{$measureName}</b>";
+                $form->setError('productId', $msg);
             }
             
             if($productRec->canStore != $genericRec->canStore){

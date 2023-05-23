@@ -37,7 +37,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, bgerp_plg_Import, plg_PrevAndNext';
     
     
     /**
@@ -103,7 +103,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'bomId=Рецепта,position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
+    public $listFields = 'bomId=Рецепта,position=№, resourceId=Материал / Етап, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -184,7 +184,9 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
-        
+        if(cat_BomDetails::count("#bomId = {$data->masterId} AND #type = 'stage'")){
+            $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn" id="bomResourceColName"> </a>';
+        }
         $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
         $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
         $data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
@@ -235,18 +237,9 @@ class cat_BomDetails extends doc_Detail
         $form->setField('propQuantity', "caption={$propCaption}");
         
         // Възможните етапи са етапите от текущата рецепта
-        $stages = array();
-        $query = $mvc->getQuery();
-        $query->where("#bomId = {$rec->bomId} AND #type = 'stage'");
-        while ($dRec = $query->fetch()) {
-            $code = implode('.', $mvc->getProductPath($dRec, true));
-            $stages[$dRec->id] = $code . ". " . cat_Products::getTitleById($dRec->resourceId, false);
-        }
-        unset($stages[$rec->id]);
-
-        // Добавяме намерените етапи за опции на етапите
-        if (countR($stages)) {
-            $form->setOptions('parentId', array('' => '') + $stages);
+        $stepOptions = static::getParentOptions($rec->bomId, $rec->id);
+        if (countR($stepOptions)) {
+            $form->setOptions('parentId', array('' => '') + $stepOptions);
         } else {
             $form->setReadOnly('parentId');
         }
@@ -290,6 +283,10 @@ class cat_BomDetails extends doc_Detail
                     }
                 }
 
+                if (!isset($productionData['normPackagingId'])) {
+                    $form->setFieldTypeParams('norm', array('measureId' => $rec->packagingId));
+                }
+
                 // Ако има опаковка за етикетиране
                 if(isset($rec->labelPackagingId)){
                     $form->setField('labelQuantityInPack', 'input');
@@ -325,11 +322,36 @@ class cat_BomDetails extends doc_Detail
                 if(empty($rec->id)){
                     cat_products_Params::addProductParamsToForm($mvc, $rec->id, $masterRec->productId, $rec->resourceId, $form);
                 }
+
+                $form->setFieldTypeParams("norm", array('measureId' => cat_Products::fetchField($rec->resourceId, 'measureId')));
             }
         }
     }
-    
-    
+
+
+    /**
+     * Връща наличните опции етапи
+     *
+     * @param int $bomId
+     * @param int|null $id
+     * @return array $options
+     */
+    public static function getParentOptions($bomId, $id = null)
+    {
+        $me = cls::get(get_called_class());
+        $options = array();
+        $query = $me->getQuery();
+        $query->where("#bomId = {$bomId} AND #type = 'stage'");
+        while ($dRec = $query->fetch()) {
+            $code = implode('.', $me->getProductPath($dRec, true));
+            $options[$dRec->id] = $code . ". " . cat_Products::getTitleById($dRec->resourceId, false);
+        }
+        unset($options[$id]);
+
+        return $options;
+    }
+
+
     /**
      * Преди подготовка на заглавието на формата
      */
@@ -552,7 +574,7 @@ class cat_BomDetails extends doc_Detail
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
             
             if($form->_replaceProduct !== true){
-                $packs = cat_Products::getPacks($rec->resourceId);
+                $packs = cat_Products::getPacks($rec->resourceId, $rec->packagingId);
                 $form->setOptions('packagingId', $packs);
                 $form->setDefault('packagingId', key($packs));
             } else {
@@ -701,9 +723,12 @@ class cat_BomDetails extends doc_Detail
             $subTitleVerbal = $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle);
             $row->resourceId .= " <i>{$subTitleVerbal}</i>";
         }
-        $singleProductUrlArray = cat_Products::getSingleUrlArray($rec->resourceId);
-        if(countR($singleProductUrlArray)){
-            $row->resourceId = ht::createLinkRef($row->resourceId, $singleProductUrlArray);
+
+        if(!Mode::isReadOnly()){
+            $singleProductUrlArray = cat_Products::getSingleUrlArray($rec->resourceId);
+            if(countR($singleProductUrlArray)){
+                $row->resourceId = ht::createLinkRef($row->resourceId, $singleProductUrlArray);
+            }
         }
 
         if(isset($fields['bomId'])){
@@ -792,9 +817,10 @@ class cat_BomDetails extends doc_Detail
             $descriptionArr[] = "<tr><td colspan='2'>" . $mvc->getFieldType('description')->toVerbal($rec->description) . "</td>";
         }
 
+        $productDescriptionStr = '';
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $row->resourceId .= "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $productDescriptionStr = "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
         }
 
         if($rec->type == 'stage'){
@@ -802,16 +828,19 @@ class cat_BomDetails extends doc_Detail
             $paramData = cat_products_Params::prepareClassObjectParams($mvc, $rec);
             if (isset($paramData)) {
                 $paramTpl = cat_products_Params::renderParams($paramData);
-                $row->resourceId .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
+                $productDescriptionStr .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
             }
         }
 
-        $propQuantity = $rec->propQuantity;
+        if(!empty($productDescriptionStr)){
+            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>';
+            $row->resourceId .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>{$productDescriptionStr}</div>";
+        }
+
         $coefficient = null;
-        
+        $propQuantity = $rec->propQuantity;
         if (isset($rec->parentId)) {
             $coefficient = $mvc->fetchField($rec->parentId, 'coefficient');
-            
             if (isset($coefficient)) {
                 $rec->propQuantity = "({$rec->propQuantity}) / ${coefficient}";
             }
@@ -1122,6 +1151,24 @@ class cat_BomDetails extends doc_Detail
 
 
     /**
+     * Метод по подразбиране за извличане на детайлите в правилната подредба за бутоните напред/назад
+     *
+     * @param core_Detail $DetailMvc
+     * @param array $res
+     * @param int $detailId
+     * @return void
+     */
+    protected static function on_BeforeGetPrevAndNextDetailQuery($DetailMvc, &$res, $detailId)
+    {
+        $bomId = static::fetchField($detailId, 'bomId');
+        $orderedDetails = self::getOrderedBomDetails($bomId);
+        foreach ($orderedDetails as $rec){
+            $res[] = $rec->id;
+        }
+    }
+
+
+    /**
      * Ако няма записи не вади таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
@@ -1174,6 +1221,10 @@ class cat_BomDetails extends doc_Detail
         if (empty($rec->id) && $rec->type == 'stage') {
             $rec->stageAdded = true;
         }
+
+        if(isset($rec->id)){
+            $rec->_exPosition = $mvc->fetchField($rec->id, 'position');
+        }
     }
     
     
@@ -1194,7 +1245,7 @@ class cat_BomDetails extends doc_Detail
         $query->XPR('maxPosition', 'int', 'MAX(#position)');
         $position = $query->fetch()->maxPosition;
         ++$position;
-        
+
         return $position;
     }
     
@@ -1225,14 +1276,16 @@ class cat_BomDetails extends doc_Detail
     {
         // Ако има позиция, шифтваме всички с по-голяма или равна позиция напред
         if (isset($rec->position)) {
-            $query = $mvc->getQuery();
-            $cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
-            $cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : '#parentId IS NULL';
-            
-            $query->where($cond);
-            while ($nRec = $query->fetch()) {
-                $nRec->position++;
-                $mvc->save_($nRec, 'position');
+            if($rec->position != $rec->_exPosition){
+                $query = $mvc->getQuery();
+                $cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
+                $cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : '#parentId IS NULL';
+
+                $query->where($cond);
+                while ($nRec = $query->fetch()) {
+                    $nRec->position++;
+                    $mvc->save_($nRec, 'position');
+                }
             }
         }
         

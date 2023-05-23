@@ -154,7 +154,7 @@ class planning_ProductionTaskProducts extends core_Detail
         }
         
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             
@@ -192,7 +192,7 @@ class planning_ProductionTaskProducts extends core_Detail
             
             $shortUomId = cat_Products::fetchField($masterRec->productId, 'measureId');
             $shortUom = cat_UoM::getShortName($shortUomId);
-            $unit = tr('за') . ' ' . core_Type::getByName('double(smartRound)')->toVerbal($masterRec->plannedQuantity) . ' ' . $shortUom;
+            $unit = 'за|* ' . core_Type::getByName('double(smartRound)')->toVerbal($masterRec->plannedQuantity) . ' |' . $shortUom;
             $unit = str_replace('&nbsp;', ' ', $unit);
             $form->setField('plannedQuantity', array('unit' => $unit));
             
@@ -406,12 +406,13 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Намира всички допустими артикули от дадения тип за една операция
      *
-     * @param int       $taskId
-     * @param string    $type
+     * @param int         $taskId
+     * @param string      $type
+     * @param mixed $inputType
      *
      * @return array
      */
-    public static function getOptionsByType($taskId, $type)
+    public static function getOptionsByType($taskId, $type, $inputType = null)
     {
         $taskRec = planning_Tasks::fetchRec($taskId);
         $usedProducts = $options = array();
@@ -441,8 +442,17 @@ class planning_ProductionTaskProducts extends core_Detail
         } else {
             $query = self::getQuery();
             $query->where("#taskId = {$taskId}");
-            $query->show('productId,plannedQuantity');
+            //$query->show('productId,plannedQuantity');
             $query->where("#type = '{$type}'");
+            if(isset($inputType)){
+                if($inputType != 'actions'){
+                    $canStoreVal = ($inputType == 'materials') ? 'yes' : 'no';
+                    $query->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+                    $query->where("#canStore = '{$canStoreVal}' AND #indTime IS NULL");
+                } else {
+                    $query->where("#indTime IS NOT NULL");
+                }
+            }
 
             while ($rec = $query->fetch()) {
                 if($taskRec->state == 'closed' && $type == 'production'){
@@ -450,13 +460,12 @@ class planning_ProductionTaskProducts extends core_Detail
                         if($now >= $horizon1) continue;
                     } elseif($now >= $horizon2) continue;
                 }
-
                 $options[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
                 $usedProducts[$rec->productId] = $rec->productId;
             }
 
             // Ако има избрано оборудване
-            if ($type == 'input') {
+            if ($type == 'input' && (is_null($inputType) || $inputType == 'actions')) {
                 if (!empty($taskRec->assetId)) {
                     $norms = planning_AssetResourcesNorms::getNormOptions($taskRec->assetId, $usedProducts);
                     if (countR($norms)) {

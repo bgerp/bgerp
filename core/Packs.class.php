@@ -299,14 +299,14 @@ class core_Packs extends core_Manager
         }
         
         if (countR($migrations) || countR($nonValid)) {
-            $form->toolbar->addSbBtn('Инвалидирай');
+            $form->toolbar->addSbBtn('Инвалидирай', 'default', 'ef_icon=img/16/bin_closed.png');
         } else {
             $form->info = 'Все още няма минали миграции';
         }
         
         $form->title = 'Инвалидиране на избраните миграции';
         
-        $form->toolbar->addBtn('Отказ', $retUrl);
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon=img/16/cancel.png');
         
         
         $res = $form->renderHtml();
@@ -1061,6 +1061,7 @@ class core_Packs extends core_Manager
             // Ако няма права да вижда полето
             if (isset($params['canView'])) {
                 if (!haveRole($params['canView'])) {
+                    unset($description[$field]);
                     continue;
                 }
             }

@@ -58,6 +58,8 @@ class plg_Search extends core_Plugin
      */
     public static function on_BeforeSave($mvc, $id, $rec, &$fields = null)
     {
+        if(Mode::is('dontUpdateKeywords')) return;
+
         $fieldArr = arr::make($fields, true);
         if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords') || array_key_exists('searchKeywords', $fieldArr)) {
             if ($fields !== null) {

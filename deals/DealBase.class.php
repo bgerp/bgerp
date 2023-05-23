@@ -83,7 +83,6 @@ abstract class deals_DealBase extends core_Master
         }
         $mvc->FLD('closedOn', 'datetime', 'input=none');
         $mvc->FLD('closeWith', "key(mvc={$mvc->className},allowEmpty)", 'caption=Приключена със,input=none');
-        $mvc->FLD('lastAutoRecalcRate', 'datetime(format=smartTime)', 'input=none');
     }
     
     
@@ -256,7 +255,6 @@ abstract class deals_DealBase extends core_Master
         $dealQuery->where("#id != {$rec->id}");
         $dealQuery->where("#folderId = {$rec->folderId}");
         $dealQuery->where("#currencyId = '{$rec->currencyId}'");
-        $dealQuery->where("#currencyRate = '{$rec->currencyRate}'");
         if($this->getField('deliveryTermId', false)){
             if(isset($rec->deliveryTermId)){
                 $dealQuery->where("#deliveryTermId = '{$rec->deliveryTermId}'");
@@ -357,55 +355,137 @@ abstract class deals_DealBase extends core_Master
         $form->title = "|*{$title} <b>" . $this->getFormTitleLink($id). '</b>' . ' ?';
         $form->info = 'Посочете кои сделки желаете да обедините с тази сделка';
         $form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
+        $form->FLD('rate', "double", 'caption=Общ курс,input=hidden');
+        $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
         $form->setSuggestions('closeWith', $options);
         $form->input();
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
-            $rec->contoActions = 'activate';
-            $rec->state = 'active';
-            if (!empty($form->rec->closeWith)) {
-                $deals1 = keylist::toArray($form->rec->closeWith);
-                $err = array();
-                foreach ($deals1 as $d1) {
-                    $threadId = $this->fetchField($d1, 'threadId');
-                    if (acc_plg_Contable::haveDocumentInThreadWithStates($threadId, 'pending,draft')) {
-                        $err[] = $this->getLink($d1, 0);
-                    }
+            if($this instanceof deals_DealMaster){
+                if($this->setErrorIfDeliveryTimeIsNotSet($rec)){
+                    $form->setError('closeWith', 'Преди активирането, трябва задължително да е посочено време/дата на доставка');
                 }
-                
-                if (countR($err)) {
-                    $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
-                    $form->setError('closeWith', $msg);
-                }
+            }
 
-                $rec->closedDocuments = keylist::merge($rec->closedDocuments, $form->rec->closeWith);
+            $err = $threads = $warning = array();
+            $warning[$rec->currencyRate] = $rec->currencyRate;
+            $deals1 = keylist::toArray($form->rec->closeWith);
+
+            foreach ($deals1 as $d1) {
+                $dealRec = $this->fetch($d1, 'threadId,currencyRate');
+                if (acc_plg_Contable::haveDocumentInThreadWithStates($dealRec->threadId, 'pending,draft')) {
+                    $err[] = $this->getLink($d1, 0);
+                }
+                $warning[$dealRec->currencyRate] = $dealRec->currencyRate;
+                $threads[$dealRec->threadId] = $dealRec->threadId;
+            }
+
+            if (countR($err)) {
+                $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
+                $form->setError('closeWith', $msg);
+            }
+
+            if (countR($warning) != 1) {
+                $form->rec->_recalRate = true;
+                $form->setWarning('closeWith,rate', 'Всички избрани договори ще бъдат преизчислени по курса на новия договор (при необходимост - въведете ръчно друг курс)');
+                $form->setField('rate', 'input');
+                if($rec->state == 'active'){
+                    $form->setReadOnly('rate');
+                }
             }
 
             if (!$form->gotErrors()) {
+                $formRec = $form->rec;
                 setIfNot($rec->valior, dt::today());
-                $this->save($rec);
-                
-                if (!empty($form->rec->closeWith)) {
-                    core_App::setTimeLimit(1000);
-                    
-                    $CloseDoc = cls::get($this->closeDealDoc);
-                    $deals = keylist::toArray($form->rec->closeWith);
-                    foreach ($deals as $dealId) {
-                        
-                        // Създаване на приключващ документ-чернова
-                        $dRec = $this->fetch($dealId);
-                        $clId = $CloseDoc->create($this->className, $dRec, $id);
-                        $this->logWrite('Приключено с друга сделка', $dealId);
-                        $CloseDoc->conto($clId);
+
+                // Ако ще има преизчисляване на курс
+                $errorArr = array();
+                $deals = keylist::toArray($formRec->closeWith);
+
+                if(countR($threads)){
+
+                    // Намират се документите за КР в сделките, които ще се оттеглят
+                    $notifiedItems = array();
+                    $cRateQuery = acc_RatesDifferences::getQuery();
+                    $cRateQuery->where("#state = 'active'");
+                    $cRateQuery->in("threadId", $threads);
+                    while($cRateRec = $cRateQuery->fetch()){
+                        $closedDeal = doc_Containers::getDocument($cRateRec->dealOriginId);
+
+                        // Оттеглят се активните КР
+                        core_Users::forceSystemUser();
+                        acc_RatesDifferences::reject($cRateRec->id);
+                        acc_RatesDifferences::logWrite('Оттегляне преди обединение с друга сделка', $cRateRec->id);
+                        core_Users::cancelSystemUser();
+                        $itemRec = acc_Items::fetchItem($closedDeal->getClassId(), $closedDeal->that);
+                        if($itemRec){
+                            $notifiedItems[] = $itemRec;
+                        }
                     }
+                    foreach ($notifiedItems as $itemRecToNotify){
+                        acc_Items::notifyObject($itemRecToNotify);
+                    }
+                    cls::get('acc_Items')->flushTouched();
+                }
+
+                if($formRec->_recalRate){
+                    $notifiedItems2 = array();
+                    $recalcRates = $deals + array($rec->id => $rec);
+                    foreach ($recalcRates as $recalcDealId){
+                        $recalcDealRec = $this->fetchRec($recalcDealId);
+                        if(round($recalcDealRec->currencyRate, 5) == round($formRec->rate, 5)) continue;
+
+                        try{
+                            // Рекалкулиране на документите с новия курс
+                            Mode::push('dontUpdateThread', true);
+                            core_Users::forceSystemUser();
+                            $this->recalcDocumentsWithNewRate($recalcDealRec, $formRec->rate);
+                            core_Users::cancelSystemUser();
+                            Mode::pop('dontUpdateThread');
+                            $itemRec = acc_Items::fetchItem($this, $recalcDealRec->id);
+                            if($itemRec){
+                                $notifiedItems2[] = $itemRec;
+                            }
+                        } catch(acc_journal_Exception $e){
+                            $errorArr[] = "Курса не може да бъде преизчислен|*: " . $this->getHandle($recalcDealRec->id);
+                        }
+                    }
+
+                    foreach ($notifiedItems2 as $itemRecToNotify){
+                        acc_Items::notifyObject($itemRecToNotify);
+                    }
+                    cls::get('acc_Items')->flushTouched();
+                    cls::get('acc_Balances')->recalc();
+                }
+
+                // Обединения договор ще е активен
+                $dealRec = $this->fetch($rec->id, '*', false);
+                $dealRec->contoActions = 'activate';
+                $dealRec->state = 'active';
+                $dealRec->closedDocuments = keylist::merge($dealRec->closedDocuments, $formRec->closeWith);
+                $this->save($dealRec);
+
+                core_App::setTimeLimit(1000);
+                $CloseDoc = cls::get($this->closeDealDoc);
+                foreach ($deals as $dealId) {
+
+                    // Създаване на приключващ документ-чернова
+                    $dRec = $this->fetch($dealId);
+                    $clId = $CloseDoc->create($this->className, $dRec, $id);
+                    $this->logWrite('Приключено с друга сделка', $dealId);
+                    $CloseDoc->conto($clId);
                 }
 
                 $this->invoke('AfterActivation', array($rec));
                 
                 // Записваме, че потребителя е разглеждал този списък
                 $this->logWrite('Приключване на сделка с друга сделка', $id);
-                
+                if(countR($errorArr)){
+                    $errorArrStr = implode('. ', $errorArr);
+                    return new Redirect(array($this, 'single', $id), $errorArrStr, 'error');
+                }
+
                 return new Redirect(array($this, 'single', $id));
             }
         }
@@ -852,7 +932,7 @@ abstract class deals_DealBase extends core_Master
 
             cls::get('acc_Balances')->recalc();
 
-            acc_RatesDifferences::create($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
+            acc_RatesDifferences::force($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
             if($itemRec){
                 acc_Items::notifyObject($itemRec);
             }
@@ -890,21 +970,31 @@ abstract class deals_DealBase extends core_Master
                     $deletedRec = null;
                     acc_Journal::deleteTransaction($this->getClassId(), $rec->id, $deletedRec);
 
+                    $popReconto = $popRecontoDate = false;
                     try{
                         if(is_object($deletedRec)){
                             Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                            $popRecontoDate = true;
                         }
                         Mode::push('recontoTransaction', true);
+                        $popReconto = true;
                         acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
-                        Mode::push('recontoTransaction');
-                        if(is_object($deletedRec)){
+                        Mode::pop('recontoTransaction');
+                        $popReconto = false;
+                        if($popRecontoDate){
                             Mode::pop('recontoWithCreatedOnDate');
+                            $popRecontoDate = false;
                         }
                     } catch(acc_journal_RejectRedirect  $e){
                         if(is_object($deletedRec)) {
                             acc_Journal::restoreDeleted($this->getClassId(), $rec->id, $deletedRec, $deletedRec->_details);
                         }
-                        wp($e);
+                        if($popReconto){
+                            Mode::pop('recontoTransaction');
+                        }
+                        if($popRecontoDate){
+                            Mode::pop('recontoWithCreatedOnDate');
+                        }
                     }
                 }
             } else {
@@ -914,33 +1004,9 @@ abstract class deals_DealBase extends core_Master
 
         // Рекалкулиране на определени документи в нишката и
         $dealDocuments = $this->getDescendants($rec->id);
-
-        $paymentDocumentClasses = array(cash_Rko::getClassId(), cash_Pko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
-        $arr = array('cash_Rko', 'cash_Pko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_DebitDocuments', 'findeals_CreditDocuments', 'store_ShipmentOrders', 'store_Receipts', 'sales_Services', 'purchase_Services', 'sales_Invoices', 'purchase_Invoices', 'acc_ValueCorrections');
+        $arr = array('store_ShipmentOrders', 'store_Receipts', 'sales_Services', 'purchase_Services', 'sales_Invoices', 'purchase_Invoices', 'acc_ValueCorrections');
         foreach ($dealDocuments as $d) {
-            if (!in_array($d->className, $arr)) {
-                continue;
-            }
-
-            if($d->isInstanceOf('deals_PaymentDocument')){
-                $docRec = $d->fetch('isReverse,operationSysId,amount,amountDeal');
-
-                if($this->className == 'sales_Sales'){
-                    if(in_array($d->className, array('cash_Pko', 'bank_IncomeDocuments'))){
-                        continue;
-                    } elseif(in_array($d->className, array('cash_Rko', 'bank_SpendingDocuments'))){
-                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
-                        if(in_array($docRec->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer'))) continue;
-                    }
-                } elseif($this->className == 'purchase_Purchases'){
-                    if(in_array($d->className, array('cash_Rko', 'bank_SpendingDocuments'))){
-                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
-                    } elseif(in_array($d->className, array('cash_Pko', 'bank_IncomeDocuments'))){
-                        if(round($docRec->amount, 2) != round($docRec->amountDeal, 2)) continue;
-                        if(in_array($docRec->operationSysId, array('supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'))) continue;
-                    }
-                }
-            }
+            if (!in_array($d->className, $arr)) continue;
 
             // Ако вальора е в затворен период - пропуска се
             $valior = $d->fetchField($d->valiorFld);
@@ -996,73 +1062,5 @@ abstract class deals_DealBase extends core_Master
         }
 
         return null;
-    }
-
-
-    /**
-     * Осреднява валутните курсове на сделките при нужда
-     *
-     * @return void;
-     */
-    public function recalcDealsWithCurrencies()
-    {
-        $iQuery = acc_Items::getQuery();
-        $iQuery->where("#classId = {$this->getClassId()} AND #state = 'active'");
-        $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
-        $iQuery->where("#currencyId != 'BGN'");
-
-        $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
-        $count = countR($dealIds);
-
-        if(!$count) return;
-        core_App::setTimeLimit(0.6 * $count, false, 200);
-
-        // Ако има намерени сделки
-        $Items = cls::get('acc_Items');
-
-        $now = dt::now();
-        $query = $this->getQuery();
-        $query->in('id', $dealIds);
-        $query->where("#state = 'active'");
-
-        //@todo да го махна в последствие
-        $query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
-
-        $recalcedItems = $saved = array();
-        while($rec = $query->fetch()){
-            $newRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
-            try{
-                $this->recalcDocumentsWithNewRate($rec, $newRate);
-            } catch(acc_journal_Exception $e){
-                $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
-                $this->logErr($errorMsg, $rec->id);
-            }
-
-            $rec->__newRate = $newRate;
-            $rec->lastAutoRecalcRate = $now;
-            $saved[$rec->id] = $rec;
-            $itemRec = acc_Items::fetchItem($this, $rec->id);
-            if($itemRec){
-                $recalcedItems[$rec->id] = $itemRec;
-            }
-        }
-
-        foreach ($recalcedItems as $itemRec){
-            acc_Items::notifyObject($itemRec);
-        }
-        $Items->flushTouched();
-
-        cls::get('acc_Balances')->recalc();
-
-        if(countR($saved)){
-            $this->saveArray($saved, 'id,lastAutoRecalcRate');
-            foreach ($saved as $rec){
-                acc_RatesDifferences::create($rec->threadId, $rec->currencyId, $rec->__newRate, 'Автоматична корекция на курсови разлики');
-            }
-        }
-
-        foreach ($recalcedItems as $itemRec){
-            acc_Items::notifyObject($itemRec);
-        }
     }
 }

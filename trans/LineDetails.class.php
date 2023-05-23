@@ -278,6 +278,26 @@ class trans_LineDetails extends doc_Detail
         }
         $row->address = str_replace(', <div', '<div', $row->address);
 
+        // Показане на свързаните файлове
+        $linkedDocs = doc_Linked::getRecsForType('doc', $rec->containerId, false);
+        if(countR($linkedDocs)){
+            $linkedFiles = array();
+            foreach ($linkedDocs as $linkRec){
+                if ($linkRec->inType == 'file') {
+                    $valId = $linkRec->inVal;
+                } elseif ($linkRec->outType == 'file') {
+                    $valId = $linkRec->outVal;
+                } else {
+                    continue;
+                }
+
+                $clsInst = cls::get('fileman_Files');
+                $valId = fileman::idToFh($valId);
+                $linkedFiles[] = $clsInst->getLinkToSingle($valId)->getContent();
+            }
+            $row->notes .= "<div>" . implode(' | ', $linkedFiles);
+        }
+
         // Ако е складов документ
         if($Document->haveInterface('store_iface_DocumentIntf')){
 
@@ -355,6 +375,17 @@ class trans_LineDetails extends doc_Detail
                 $featuresString .= "<span class='lineFeature'>" . trans_Features::getVerbal($transFeatureId, 'name') . "</span>";
             }
             $row->containerId .= " {$featuresString}";
+        }
+
+        if($Document->isInstanceOf('store_ShipmentOrders')){
+            $invoicesInShipment = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            if(countR($invoicesInShipment)){
+                $invoiceArr = array();
+                foreach ($invoicesInShipment as $iRec){
+                    $invoiceArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
+                }
+                $row->containerId .= " <small>" . implode(',', $invoiceArr) . "</small>";
+            }
         }
 
         // Ако има платежни документи към складовия

@@ -849,7 +849,7 @@ class doc_Containers extends core_Manager
      * Създава нов контейнер за документ от посочения клас
      * Връща $id на новосъздадения контейнер
      */
-    public static function create($class, $threadId, $folderId, $createdOn, $createdBy)
+    public static function create($class, $threadId, $folderId, $createdOn, $createdBy, $notModified = null)
     {
         $className = cls::getClassName($class);
         
@@ -859,6 +859,7 @@ class doc_Containers extends core_Manager
         $rec->folderId = $folderId;
         $rec->createdOn = $createdOn;
         $rec->createdBy = $createdBy;
+        $rec->_notModified = $notModified;
         
         self::save($rec);
         
@@ -872,7 +873,7 @@ class doc_Containers extends core_Manager
      *
      * @param int $id key(mvc=doc_Containers)
      */
-    public static function update_($id, $updateAll = true)
+    public static function update_($id, $updateAll = true, $notModified = null)
     {
         expect($rec = doc_Containers::fetch($id), $id);
         
@@ -902,9 +903,11 @@ class doc_Containers extends core_Manager
         // 3. Промяна на папката на документа
         
         $fields = 'state,folderId,threadId,containerId,originId';
-        
-        if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
-            $fields .= ',searchKeywords';
+
+        if(!Mode::is('dontUpdateKeywords')){
+            if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
+                $fields .= ',searchKeywords';
+            }
         }
         
         $updateField = null;
@@ -933,6 +936,8 @@ class doc_Containers extends core_Manager
         }
         
         if ($mustSave) {
+            $rec->_notModified = $notModified;
+
             doc_Containers::save($rec, $updateField);
             
             // Ако този документ носи споделяния на нишката, добавяме ги в списъка с отношения
@@ -946,7 +951,9 @@ class doc_Containers extends core_Manager
             
             if ($rec->threadId && $rec->docId) {
                 // Предизвиква обновяване на треда, след всяко обновяване на контейнера
-                doc_Threads::updateThread($rec->threadId);
+                if(!Mode::is('dontUpdateThread')){
+                    doc_Threads::updateThread($rec->threadId);
+                }
             }
             
             

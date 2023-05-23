@@ -1,5 +1,4 @@
 var shortURL;
-var useServiceWorker;
 
 function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
@@ -1206,6 +1205,16 @@ function portalTabsChange(lastNotifyTime) {
 function toggleDisplay(id) {
     var elem = $("#" + id).parent().children('.more-btn');
     $("#" + id).fadeToggle("slow");
+    elem.toggleClass('show-btn');
+}
+
+function clickAllClasses(id,clickClasses)
+{
+    $("." + clickClasses).each(function(i, obj) {
+        obj.click();
+    })
+
+    var elem = $("#" + id).parent().children('.more-btn');
     elem.toggleClass('show-btn');
 }
 
@@ -5807,42 +5816,75 @@ JSON.parse = JSON.parse || function (str) {
  */
 function syncServiceWorker() {
 
-    if (typeof useServiceWorker === 'undefined') {
-        useServiceWorker = 'no';
-    }
-
     if(!isIE() && ('serviceWorker' in navigator)) {
+
+        // var serviceWorkerURL = document.head;
+        var selector = document.querySelector('link[rel="manifest"]');
+
+        var serviceWorkerURL = '/serviceWorker.js';
+        var act = 'unregister';
+
+        if (selector) {
+            act = 'exist';
+
+            var swDate = selector.getAttribute('data-sw-date');
+            var lastUpdate = localStorage.getItem('data-sw-date');
+
+            // Ще предизвика инвалидиране на кеша за този файл
+            serviceWorkerURL += '?v=' + swDate;
+
+            if ((lastUpdate !== null) && (lastUpdate !== 'null')) {
+
+                var lastUpdate = new Date(lastUpdate);
+                var swDate = new Date(swDate);
+
+                if (lastUpdate < swDate) {
+                    act = 'update';
+                }
+            } else {
+                act = 'register';
+            }
+        }
 
         if(typeof navigator.serviceWorker !== 'undefined') {
             navigator.serviceWorker.getRegistrations().then(function(r) {
-                r.forEach(function(sw) {
-                    if(typeof serviceWorkerURL !== 'undefined') {
-                        if (useServiceWorker == 'yes' && (sw.active.scriptURL.indexOf(serviceWorkerURL) != -1)) {
-                            console.log('ServiceWorker registration skipped: ' + serviceWorkerURL);
-                            serviceWorkerURL = false;
-                        } else {
-                            sw.unregister();
-                            console.log('ServiceWorker registration unregistered: ' + sw.active.scriptURL);
-                        }
-                    }
-                });
+                if (act == 'unregister') {
+                    r.forEach(function(sw) {
+                        sw.unregister();
+                        console.log('ServiceWorker registration unregistered: ' + sw.active.scriptURL);
 
-                if (useServiceWorker == 'no') {
-
-                    return ;
+                        localStorage.setItem('data-sw-date', null);
+                    });
                 }
 
-                // Рефистрираме новия ServiceWorker
-                if((typeof serviceWorkerURL !== 'undefined') && (serviceWorkerURL !== false)) {
-          
+                if (act == 'register') {
                     navigator.serviceWorker.register(serviceWorkerURL, {scope: '/'}).then(function(registration) {
-                    // Registration was successful
+                        // Registration was successful
                         console.log('ServiceWorker registration successful: ' + serviceWorkerURL);
+
+                        localStorage.setItem('data-sw-date', new Date());
                     }, function(err) {
                         // registration failed :(
                         console.log('ServiceWorker registration failed: ', err);
                     });
-                 }
+                }
+
+                if (act == 'update') {
+                    navigator.serviceWorker.register(serviceWorkerURL, {scope: '/'}).then(function(registration) {
+                        registration.update().then(function(uRegistratrion) {
+                            console.log('ServiceWorker update successful: ' + serviceWorkerURL);
+
+                            localStorage.setItem('data-sw-date', new Date());
+                        }, function(err) {
+                            // registration failed :(
+                            console.log('ServiceWorker update failed: ', err);
+                        });
+                        // Registration was successful
+                    }, function(err) {
+                        // registration failed :(
+                        console.log('ServiceWorker update failed: ', err);
+                    });
+                }
             })
         }
     }

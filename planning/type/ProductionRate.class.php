@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -27,6 +27,9 @@ class planning_type_ProductionRate extends type_Varchar
      * Разрешените опции
      */
     private static $allowedRates = array('secsPer1'   => '|сек. за|* |[#measureId#]|*',
+                                         'secsPer10'   => '|сек. за|* 10 |[#measureId#]|*',
+                                         'secsPer100'   => '|сек. за|* 100 |[#measureId#]|*',
+                                         'secsPer1000'   => '|сек. за|* 1000 |[#measureId#]|*',
                                          'minPer1'    => '|минути за|* |[#measureId#]|*',
                                          'minPer10'   => '|минути за|* 10 |[#measureId#]|*',
                                          'minPer100'  => '|минути за|* 100 |[#measureId#]|*',
@@ -57,7 +60,7 @@ class planning_type_ProductionRate extends type_Varchar
         // Валидиране на цифровата част
         if(!empty($valueArr['cL'])){
             $Type = core_Type::getByName('double(decimals=1)');
-            if($valueArr['cR'] == 'secsPer1'){
+            if(in_array($valueArr['cR'], array('secsPer1', 'secsPer10', 'secsPer100', 'secsPer1000'))){
                 $Type = core_Type::getByName('int');
             }
             $valueArr['cL'] = $Type->fromVerbal($valueArr['cL']);
@@ -222,6 +225,15 @@ class planning_type_ProductionRate extends type_Varchar
         switch($parseValue['right']){
             case 'secsPer1':
                 $secs = $parseValue['left'] * $quantity;
+                break;
+            case 'secsPer10':
+                $secs = round(($parseValue['left'] / 10) * $quantity);
+                break;
+            case 'secsPer100':
+                $secs = round(($parseValue['left'] / 100) * $quantity);
+                break;
+            case 'secsPer100':
+                $secs = round(($parseValue['left'] / 1000) * $quantity);
                 break;
             case 'minPer1':
                 $secs = round(60 * $parseValue['left'] * $quantity);

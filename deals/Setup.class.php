@@ -337,46 +337,4 @@ class deals_Setup extends core_ProtoSetup
             }
         }
     }
-
-
-    /**
-     * Помощен метод за синхронизиране на крон процеси
-     *
-     * @param $params
-     * @return string $res
-     */
-    public static function syncCronSettings($params)
-    {
-        $res = '';
-        $interval = $params['interval'];
-        $exRec = core_Cron::getRecForSystemId($params['systemId']);
-
-        if(is_object($exRec)){
-            $saveCronFields = array();
-            if($exRec->period != $interval || $exRec->offset != $params['offset']){
-                $exRec->offset = $params['offset'];
-                $exRec->period = $interval;
-                $exRec->timeLimit = $interval * 2;
-                $saveCronFields[] = 'offset';
-                $saveCronFields[] = 'period';
-                $saveCronFields[] = 'timeLimit';
-            }
-
-            if(countR($saveCronFields)){
-                core_Cron::save($exRec, $saveCronFields);
-            }
-        } else {
-            $rec = new stdClass();
-            $rec->systemId =  $params['systemId'];
-            $rec->description = $params['description'];
-            $rec->controller = $params['controller'];
-            $rec->action = $params['action'];
-            $rec->period = $interval;
-            $rec->offset = 20;
-            $rec->timeLimit = $interval * 2;
-            $res .= core_Cron::addOnce($rec);
-        }
-
-        return $res;
-    }
 }

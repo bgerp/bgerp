@@ -80,7 +80,10 @@ class bgerp_plg_Import extends core_Plugin
 
         if ($mvc->haveRightFor('import', $rec)) {
             $url = array($mvc, 'import', 'ret_url' => true);
-            $data->toolbar->addBtn('Импорт', $url, null, 'row=2,ef_icon=img/16/import.png,title=Импортиране на ' . mb_strtolower($mvc->title));
+            if($mvc instanceof core_Detail){
+                $url[$mvc->masterKey] = $data->masterId;
+            }
+            $data->toolbar->addBtn('Импорт', $url, null, "row=2,ef_icon=img/16/import.png,id=import,title=Импортиране на " . mb_strtolower($mvc->title));
         }
     }
 
@@ -94,11 +97,8 @@ class bgerp_plg_Import extends core_Plugin
         if ($action == 'import' && isset($rec)) {
 
             if($mvc instanceof core_Detail){
-                if(isset($rec->{$mvc->masterKey})){
-                    $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'state');
-                    if($masterRec->state == 'rejected'){
-                        $res = 'no_one';
-                    }
+                if(!$mvc->haveRightFor('add', $rec)){
+                    $res = 'no_one';
                 }
             }
         }
@@ -240,7 +240,7 @@ class bgerp_plg_Import extends core_Plugin
         // Поле за ръчно въвеждане на csv данни
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
         $exp->question('#csvData,#delimiter,#enclosure,#firstRow,#onExist', tr('Моля, поставете данните, и посочете формата на данните') . ':', "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за импорт, и уточняване на разделителя и ограждането'));
-        
+
         // Поле за ъплоуд на csv файл
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
         $exp->question('#csvFile,#delimiter,#enclosure,#firstRow,#onExist', tr('Въведете файл в CSV формат, и посочете формата на данните') . ':', "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
@@ -252,8 +252,6 @@ class bgerp_plg_Import extends core_Plugin
         $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=3)', array('value' => ''), 'placeholder=автоматично');
         $exp->SUGGESTIONS('#enclosure', array('' => '', '"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
-        $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', 'mandatory');
-
 
         if ($exp->mvc->expOnExist) {
             $exp->ASSUME('#onExist', '"' . $exp->mvc->expOnExist . '"');
@@ -270,6 +268,9 @@ class bgerp_plg_Import extends core_Plugin
             $Driver = cls::get($driverId, array('mvc' => $exp->mvc));
             $fieldsArr = $Driver->getFields();
 
+            $onExistParams = ($Driver->hideImportOnExistOption) ? 'input=hidden' : 'mandatory';
+            $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', $onExistParams);
+
             // Поставяне на възможност да се направи мачване на
             // полетата от модела и полетата от csv-то
             foreach ($fieldsArr as $name => $fld) {
@@ -283,18 +284,27 @@ class bgerp_plg_Import extends core_Plugin
 
                     $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,TRUE, FALSE, '{$caption}', '{$nameEsc}')");
                 } elseif(isset($fld['default'])){
-
                     $exp->ASSUME("#col{$name}", "setdefault('{$fld['default']}')");
+                    if(isset($fld['options'])){
+                        $exp->OPTIONS("#col{$name}", $fld['options']);
+                    }
                 } elseif(isset($fld['suggestions'])){
                     $exp->SUGGESTIONS("#col{$name}", $fld['suggestions']);
+                } elseif(isset($fld['options'])){
+                    $options = isset($fld['allowEmpty']) ? array('' => '') + $fld['options'] : $fld['options'];
+                    $exp->OPTIONS("#col{$name}", $options);
                 }
                 
                 $qFields .= ($qFields ? ',' : '') . "#col{$name}";
             }
             
             $exp->question($qFields, tr("Въведете съответстващите полета за \"{$exp->mvc->title}\"") . ':', true, 'label=lastQ,title=' . tr('Съответствие между полетата на източника и списъка'));
-            
-            $res = $exp->solve('#driver,#source,#delimiter,#enclosure,#firstRow,#onExist,#lastQ');
+
+            $solveFields = '#driver,#source,#delimiter,#enclosure,#firstRow,#onExist,#lastQ';
+            if($Driver->hideImportOnExistOption){
+                $solveFields = '#driver,#source,#delimiter,#enclosure,#firstRow,#lastQ';
+            }
+            $res = $exp->solve($solveFields);
         } else {
             $res = $exp->solve('#driver,#source,#delimiter,#enclosure,#firstRow,#onExist');
         }

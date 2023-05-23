@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -50,9 +50,15 @@ class cat_products_Packagings extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created,plg_Modified';
-    
-    
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created,plg_Modified,plg_State2';
+
+
+    /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'packEdit,ceo';
+
+
     /**
      * Кой има право да променя системните данни?
      */
@@ -118,7 +124,7 @@ class cat_products_Packagings extends core_Detail
         'purchase_ServicesDetails',
         'cat_ListingDetails',
         'pos_ReceiptDetails',
-        'planning_Tasks',
+        'planning_ProductionTaskDetails',
         'planning_ProductionTaskProducts',
         'store_ConsignmentProtocolDetailsReceived',
         'store_TransfersDetails',
@@ -422,6 +428,12 @@ class cat_products_Packagings extends core_Detail
         // Ако опаковката вече е използвана не може да се изтрива
         if ($action == 'delete' && isset($rec)) {
             if (self::isUsed($rec->productId, $rec->packagingId, strtolower(Request::get('Act')) == 'list')) {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if ($action == 'edit' && isset($rec)) {
+            if ($rec->state == 'closed') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -762,6 +774,11 @@ class cat_products_Packagings extends core_Detail
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
+
+        if($rec->state == 'closed' && $rec->isBase == 'yes'){
+            $rec->isBase = 'no';
+            $mvc->save_($rec, 'isBase');
+        }
     }
 
 
@@ -1177,7 +1194,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         $cacheKey = "{$productId}|{$uomId}";
-        
+
         // Ако искаме кеширани данни
         if ($cache === true) {
             $isUsed = false;
@@ -1213,9 +1230,7 @@ class cat_products_Packagings extends core_Detail
         $isUsed = false;
         foreach ($details as $Detail) {
             $dInst = cls::get($Detail);
-
             $dQuery = $dInst->getQuery();
-
             $dQuery->limit(1);
 
             $haveModified = false;
@@ -1265,8 +1280,9 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             } elseif ($Detail == 'store_TransfersDetails') {
                 $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
-            } elseif ($Detail == 'planning_Tasks') {
-                $dQuery->where(array("#productId = '[#1#]' AND #labelPackagingId = '[#2#]'", $productId, $uomId));
+            } elseif ($Detail == 'planning_ProductionTaskDetails') {
+                $dQuery->EXT('labelPackagingId', 'planning_Tasks', 'externalKey=taskId,externalName=labelPackagingId');
+                $dQuery->where(array("#productId = '[#1#]' AND #labelPackagingId = '[#2#]' AND #state != 'rejected'", $productId, $uomId));
             } else {
                 $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             }

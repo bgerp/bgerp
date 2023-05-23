@@ -161,14 +161,35 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
             $res['normPackagingId'] = $measureId;
         }
 
-        $res['fixedAssets'] = !empty($rec->fixedAssets) ? keylist::toArray($rec->fixedAssets) : null;
+        $res['fixedAssets'] = null;
+        if(!empty($rec->fixedAssets)){
+
+            // От свързаните оборудвания остават само активните
+            $res['fixedAssets'] = keylist::toArray($rec->fixedAssets);
+            $fQuery = planning_AssetResources::getQuery();
+            $fQuery->where("#state = 'active'");
+            $fQuery->in('id', $res['fixedAssets']);
+            $fQuery->show('id');
+            $res['fixedAssets'] = arr::extractValuesFromArray($fQuery->fetchAll(), 'id');
+        }
+
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
         $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();
         $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
 
+        if($rec->showPreviousJobField == 'auto'){
+            $centerShowPreviousJobField = planning_Centers::fetchField($rec->centerId, 'showPreviousJobField');
+            if($centerShowPreviousJobField == 'auto'){
+                $res['showPreviousJobField'] = (planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK') == 'yes');
+            } else {
+                $res['showPreviousJobField'] = ($centerShowPreviousJobField == 'yes');
+            }
+        } else {
+            $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
+        }
+
         $res['isFinal'] = $rec->isFinal;
-        $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
         if($rec->canStore == 'yes'){
             $res['labelPackagingId'] = $rec->labelPackagingId;
             if($rec->labelTransferQuantityInPack != 'no'){

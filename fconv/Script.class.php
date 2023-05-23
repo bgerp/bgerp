@@ -411,8 +411,8 @@ class fconv_Script
         Request::setProtected('pid, func');
         
         $url = toUrl(array('fconv_Processes',
-            'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute');
-        
+            'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute-base');
+
         $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
         $this->setCheckProgramsArr('wget');
         
@@ -460,7 +460,7 @@ class fconv_Script
                     
                     fconv_Remote::prepareFiles($this);
                     
-                    $this->remoteAfterConvertCallback = toUrl(array('fconv_Remote', 'afterConvertCallback', 'pid' => $this->id), 'absolute');
+                    $this->remoteAfterConvertCallback = toUrl(array('fconv_Remote', 'afterConvertCallback', 'pid' => $this->id), 'absolute-base');
                     
                     $script = urlencode(core_Crypt::encodeVar($this, fconv_Setup::get('SALT')));
                     

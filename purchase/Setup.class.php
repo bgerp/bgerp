@@ -230,25 +230,4 @@ class purchase_Setup extends core_ProtoSetup
 
         return $html;
     }
-
-
-    /**
-     * Зареждане на данни
-     */
-    public function loadSetupData($itr = '')
-    {
-        $res = parent::loadSetupData($itr);
-
-        $params = array('systemId'    => 'Recalc Currency Purchase Rate',
-                        'description' => 'Осредняване на валутните курсове на покупките',
-                        'controller'  => 'purchase_Purchases',
-                        'action'      => 'RecalcCurrencyRate',
-                        'offset'      => 140,
-                        'interval'    => 1440,
-        );
-
-        $res .= deals_Setup::syncCronSettings($params);
-
-        return $res;
-    }
 }

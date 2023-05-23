@@ -65,7 +65,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions,lastAutoRecalcRate';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
     
     
     /**
@@ -448,7 +448,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if (empty($rec->currencyRate)) {
             // Ако няма курс винаги е този към днешна дата
-            $rec->currencyRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
+            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             if (!$rec->currencyRate) {
                 $form->setError('currencyRate', 'Не може да се изчисли курс');
             }
@@ -461,7 +461,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
             $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
         }
-        
+
         // Избрания ДДС режим съответства ли на дефолтния
         $defVat = $mvc->getDefaultChargeVat($rec);
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
@@ -859,7 +859,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
         
         if (empty($rec->currencyRate)) {
-            $rec->currencyRate = currency_CurrencyRates::getRate(dt::today(), $rec->currencyId, null);
+            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
         }
 
         if(isset($rec->id)){
@@ -1249,9 +1249,10 @@ abstract class deals_DealMaster extends deals_DealBase
             
             if (!empty($deliveryAdress)) {
                 if(!isset($rec->deliveryTermId)){
-                    $row->deliveryBlock .= "<li>" . tr('За адрес') . ": {$deliveryAdress}</li>";
+                    $captionDeliveryBlock = ($mvc instanceof sales_Sales) ? tr('За адрес') : tr('От адрес');
+                    $row->deliveryBlock .= "<li>{$captionDeliveryBlock}: {$deliveryAdress}</li>";
                 } else {
-                    $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
+                    $deliveryAdress1 = ($row->deliveryTermId . ', ');
                     $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
                     $row->deliveryTermId = $deliveryAdress;
                 }
@@ -1339,6 +1340,13 @@ abstract class deals_DealMaster extends deals_DealBase
         if(isset($rec->id)){
             $additionalConditions = deals_Helper::getConditionsFromProducts($this->mainDetail, $this, $rec->id, $lang);
             $conditions = $conditions + $additionalConditions;
+        }
+
+        // Показване на допълнителните условия, ако има зададени като търговско условие за контрагента
+        $otherConditionSysId = (($this instanceof sales_Sales) ? ($lang == 'bg' ? 'otherConditionSale' : 'otherConditionSaleEn') : ($lang == 'bg' ? 'otherConditionPurchase' : 'otherConditionPurchaseEn'));
+        if ($otherCond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $otherConditionSysId)) {
+            $otherConditionId = cond_Parameters::fetchIdBySysId($otherConditionSysId);
+            $conditions[] = cond_Parameters::toVerbal($otherConditionId, $rec->contragentClassId, $rec->contragentId, $otherCond);
         }
 
         return array_values($conditions);
@@ -1730,8 +1738,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $query->where('#minDelivered <= #deliveredRound');
         
         // На които треда им не е променян от определено време
-        $query->where("(((#currencyId = 'BGN' OR #currencyId = 'EUR') AND #threadModifiedOn <= '{$oldBefore}') OR (#currencyId != 'BGN' AND #currencyId != 'EUR' AND {$day} >= {$accDay} AND #threadModifiedOn <= '{$firstDayOfMonth}'))");
-
         // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс или да е NULL
         $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
         $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
@@ -1757,6 +1763,24 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $count = 0;
         foreach ($foundDealsArr as $dRec){
+            if($this instanceof purchase_Purchases){
+
+                // Ако левова сделка модифицирана след подаденото време или е валутна и не отговаря на условията за датите се пропуска
+                if(!(($dRec->currencyId == 'BGN' && $dRec->threadModifiedOn <= $oldBefore) || ($dRec->currencyId != 'BGN' && $day >= $accDay && $dRec->threadModifiedOn <= $firstDayOfMonth))) continue;
+            } else {
+                if($dRec->currencyId == 'BGN' && $dRec->threadModifiedOn > $oldBefore) continue;
+                if($dRec->currencyId != 'BGN'){
+
+                    // Ако е валутна продажба, проверява се има ли активни обратни документи в нея
+                    $countRko = cash_Rko::count("#threadId = {$dRec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
+                    $countSbds = bank_SpendingDocuments::count("#threadId = {$dRec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
+
+                    // Ако има се прилага условието за датите
+                    if($countRko || $countSbds){
+                        if(!($day >= $accDay && $dRec->threadModifiedOn <= $firstDayOfMonth)) continue;
+                    }
+                }
+            }
 
             // Ако в нишката на сделката има контиращ документ на заявка/чернова
             if(array_key_exists($dRec->threadId, $threadsWithPendingAndDraftDocuments)){
@@ -1939,7 +1963,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         // Ако няма курс, това е този за основната валута
         if (empty($fields['currencyRate'])) {
-            $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], null);
+            $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['valior'], $fields['currencyId'], null);
             expect($fields['currencyRate']);
         }
 
@@ -2519,13 +2543,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if ($productId = $arr[0]->productId) {
             $tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-            core_Lg::push($tplLang);
-            $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
-            $productName = cat_Products::getVerbal($pRec, 'name');
-            core_Lg::pop();
-            $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
+            if($tplLang){
+                core_Lg::push($tplLang);
+                $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
+                $productName = cat_Products::getVerbal($pRec, 'name');
+                core_Lg::pop();
+                $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
 
-            return $productName;
+                return $productName;
+            }
         }
     }
     
@@ -2568,6 +2594,14 @@ abstract class deals_DealMaster extends deals_DealBase
             if(!cond_DeliveryTerms::checkDeliveryDataOnActivation($rec->deliveryTermId, $rec, $rec->deliveryData, $mvc, $error)){
                 redirect(array($mvc, 'single', $rec->id), false, $error, 'error');
             }
+        }
+
+        if($mvc->setErrorIfDeliveryTimeIsNotSet($rec)) {
+            if(!empty($rec->contoActions)){
+                $rec->contoActions = null;
+                $mvc->save_($rec, 'contoActions');
+            }
+            redirect(array($mvc, 'single', $rec->id), false, 'Преди активирането, трябва задължително да е посочено време/дата на доставка', 'error');
         }
     }
     
@@ -2905,15 +2939,6 @@ abstract class deals_DealMaster extends deals_DealBase
 
 
     /**
-     * Осреднява валутните курсове на сделките при нужда
-     */
-    public function cron_RecalcCurrencyRate()
-    {
-        $this->recalcDealsWithCurrencies();
-    }
-
-
-    /**
      * Кой е избрания склад по дефолт
      *
      * @param $rec
@@ -2935,5 +2960,26 @@ abstract class deals_DealMaster extends deals_DealBase
         $selectedStoreId = store_Stores::getCurrent('id', false);
 
         return $selectedStoreId;
+    }
+
+
+    /**
+     * Проверка дали да се сетне грешка ако няма посочено условие на доставка
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    protected function setErrorIfDeliveryTimeIsNotSet($rec)
+    {
+        // Ако има избрано условие на доставка, позволява ли да бъде контиран документа
+        $rec = $this->fetch($rec->id);
+
+        if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
+            $mandatoryDeliveryConditionSysId =  ($this instanceof purchase_Purchases) ? 'purchaseMandatoryDeliveryTime' : 'saleMandatoryDeliveryTime';
+            $mandatoryDeliveryTime = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $mandatoryDeliveryConditionSysId);
+            if($mandatoryDeliveryTime == 'yes') return true;
+        }
+
+        return false;
     }
 }

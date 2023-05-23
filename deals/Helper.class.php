@@ -1383,7 +1383,12 @@ abstract class deals_Helper
 
             Mode::push("stopMasterUpdate{$rec->id}", true);
             while ($dRec = $dQuery->fetch()) {
-                $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+                if($rec->{$rateFld}){
+                    $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+                } else {
+                    $dRec->{$priceFld} = $dRec->{$priceFld} * $newRate;
+                    wp($dRec, $rec, $rateFld);
+                }
 
                 if ($masterMvc instanceof deals_InvoiceMaster) {
                     $dRec->packPrice = $dRec->{$priceFld} * $dRec->quantityInPack;
@@ -1425,32 +1430,43 @@ abstract class deals_Helper
             }
         }
         $rec->_recalcRate = true;
+        Mode::push('dontUpdateKeywords', true);
         $masterMvc->save($rec);
         $logMsg = 'Промяна на курс';
-
         if ($updateMaster) {
             $masterMvc->updateMaster_($rec);
         }
-
+        Mode::pop('dontUpdateKeywords');
         if ($rec->state == 'active') {
 
             $deletedRec = null;
             acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id, $deletedRec);
 
+            $popReconto = $popRecontoDate = false;
             try{
                 if(is_object($deletedRec)){
                     Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                    $popRecontoDate = true;
                 }
                 Mode::push('recontoTransaction', true);
+                $popReconto = true;
                 acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
                 Mode::pop('recontoTransaction');
-                if(is_object($deletedRec)){
+                $popReconto = false;
+                if($popRecontoDate){
                     Mode::pop('recontoWithCreatedOnDate');
+                    $popRecontoDate = false;
                 }
                 $logMsg = 'Реконтиране след промяна на курса';
             } catch(acc_journal_RejectRedirect  $e) {
                 if(is_object($deletedRec)) {
                     acc_Journal::restoreDeleted($masterMvc->getClassId(), $rec->id, $deletedRec, $deletedRec->_details);
+                }
+                if($popReconto){
+                    Mode::pop('recontoTransaction');
+                }
+                if($popRecontoDate){
+                    Mode::pop('recontoWithCreatedOnDate');
                 }
                 wp($e);
                 $logMsg = 'Грешка при опит за реконтиране';
