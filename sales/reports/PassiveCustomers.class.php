@@ -20,7 +20,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, admin, debug';
+    public $canSelectDriver = 'ceo, admin, debug, sales';
 
 
     /**
@@ -127,12 +127,19 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $shQuery = store_ShipmentOrders::getQuery();
         $shQuery->in('state', array('rejected', 'draft'), true);
         $shQuery->where("#valior >= '$activePeriodStart'");
-//bp($shQuery->fetchAll());
+
+
+
+
         while ($shRec = $shQuery->fetch()) {
 
             $id = $shRec->folderId;
 
-            //Входящи имейли през пасивния период
+            $firstDoc = doc_Threads::getFirstDocument($shRec->threadId);
+
+            if (!(cls::get($firstDoc) instanceof sales_Sales)) continue;
+
+                //Входящи имейли през пасивния период
             $mInQuery = email_Incomings::getQuery();
             $mInQuery->where("#folderId = $shRec->folderId");
             $mInQuery->where("#createdOn >= '$passivePeriodStart'");
@@ -146,7 +153,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
             //филтър по дилър
             if (!in_array(-1,keylist::toArray($rec->dealers))){
-               $docDealer = doc_Threads::getFirstDocument($shRec->threadId)->fetch()->dealerId;
+               $docDealer = $firstDoc->fetch()->dealerId;
                if(!in_array($docDealer,keylist::toArray($rec->dealers))) continue;
             }
 

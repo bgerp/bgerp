@@ -799,7 +799,7 @@ class sales_Sales extends deals_DealMaster
         $showReffInThread = sales_Setup::get('SHOW_REFF_IN_SALE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld) {
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'tolerance') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
 

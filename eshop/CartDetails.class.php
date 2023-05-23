@@ -145,7 +145,7 @@ class eshop_CartDetails extends core_Detail
             $form->setField('packQuantity', 'input');
 
             if(isset($dRec->productId)){
-                $packs = cat_Products::getPacks($dRec->productId);
+                $packs = cat_Products::getPacks($dRec->productId, $dRec->packagingId);
                 $packsSelected = keylist::toArray($dRec->packagings);
                 $packs = array_intersect_key($packs, $packsSelected);
                 $form->setOptions('packagingId', $packs);

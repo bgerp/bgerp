@@ -263,7 +263,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $secondMeasureDerivatives = array();
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
             if($rec->productId == $jobRec->productId){
-                $packs = cat_Products::getPacks($rec->productId, false, $jobRec->secondMeasureId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId, false, $jobRec->secondMeasureId);
                 if($jobRec->secondMeasureId){
                     $secondMeasureDerivatives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
                 }
@@ -277,7 +277,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                 $defaultPack = $originRec->{$defaultOriginPackField};
             } else {
-                $packs = cat_Products::getPacks($rec->productId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
 
                 if($originDoc->isInstanceOf('planning_Tasks')){
                     $pInfo = planning_ProductionTaskProducts::getInfo($originRec->id, $rec->productId, 'production');

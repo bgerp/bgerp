@@ -2080,12 +2080,13 @@ class cat_Products extends embed_Manager
      * Първия елемент на масива е основната опаковка (ако няма основната мярка)
      *
      * @param int            $productId    - ид на артикул
+     * @param null|int       $exPackId     - съществуваща опаковка
      * @param bool           $onlyMeasures - дали да се връщат само мерките на артикула
      * @param false|null|int $secondMeasureId - коя да е втората мярка
      *
      * @return array $options - опаковките
      */
-    public static function getPacks($productId, $onlyMeasures = false, $secondMeasureId = false)
+    public static function getPacks($productId, $exPackId = null, $onlyMeasures = false, $secondMeasureId = false)
     {
         $options = array();
         expect($productRec = cat_Products::fetch($productId, 'measureId,canStore'));
@@ -2116,6 +2117,11 @@ class cat_Products extends embed_Manager
                 } else {
                     $packQuery->where("1=2");
                 }
+            }
+
+            $packQuery->where("#state != 'closed'");
+            if($exPackId){
+                $packQuery->orWhere("#packagingId = '{$exPackId}'");
             }
 
             while ($packRec = $packQuery->fetch()) {
@@ -2152,16 +2158,14 @@ class cat_Products extends embed_Manager
     public static function getParams($id, $name = null, $verbal = false)
     {
         $res = (isset($name)) ? null : array();
+
         // Ако има драйвър, питаме него за стойността
         if ($Driver = static::getDriver($id)) {
             core_Debug::startTimer('GET_PARAMS');
             $res = $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
             core_Debug::stopTimer('GET_PARAMS');
         }
-        if ($name == 'preview' && !$res) {
-            $rec = self::fetch($id);
-            $res = $rec->photo;
-        }
+
         // Ако няма връщаме празен масив
         return $res;
     }

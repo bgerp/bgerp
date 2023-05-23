@@ -226,7 +226,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             $dealType = self::getDealType($sRec);
 
 
-
+            $totalValue = $sRec->dealValue - $sRec->discountAmount + $sRec->vatAmount;
 
             // Запис в масива
             if (!array_key_exists($id, $invoices)) {
@@ -271,13 +271,13 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                     37 => $sRec->dealValue,       // Общо сума без ДДС във валутата на фактурата
                     38 => $sRec->dealValueWithoutDiscount,    // Общо Дан. Основа във валутата на фактурата
                     39 => $sRec->vatAmount,       // Общо ДДС във валутата на фактурата
-                    40 => $sRec->totalValue,      // Общо сума за плащане във валутата на фактурата
+                    40 => $totalValue,      // Общо сума за плащане във валутата на фактурата
                     41 => $sRec->exciseTax,       // Общо акциз във валутата на фактурата
                     42 => $sRec->productTax,      // Общо екотакса във валутата на фактурата
                     43 => $sRec->dealValue * $sRec->rate,      // Общо сума без ДДС в лева
                     44 => $sRec->dealValueWithoutDiscount * $sRec->rate,     // Общо Дан. Основа в лева
                     45 => $sRec->vatAmount * $sRec->rate,      // Общо ДДС е лева
-                    46 => $sRec->totalValue * $sRec->rate,     // Общо сума за плащане в лева
+                    46 => $totalValue * $sRec->rate,     // Общо сума за плащане в лева
                     47 => $sRec->exciseTax * $sRec->rate,      // Общо акциз в лева
                     48 => $sRec->productTax * $sRec->rate,     // Общо екотакса в лева
                     49 => 1,                       // Връзка със склад
