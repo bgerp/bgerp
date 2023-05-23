@@ -320,7 +320,7 @@ class drdata_Vats extends core_Manager
      */
     public static function isHaveVatPrefix($value)
     {
-        $vatPrefixes = arr::make('BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HR,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT', true);
+        $vatPrefixes = arr::make('BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HR,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT,XI', true);
         
         if ($vatPrefixes[substr(strtoupper(trim($value)), 0, 2)]) {
             return true;
@@ -411,6 +411,9 @@ class drdata_Vats extends core_Manager
                 break;
             case 'GB':
                 $regex = '/^GB([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2})|([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2}[\ ]{0,1}[0-9]{3})|((GD|HA)[0-9]{3})$/i';
+                break;
+            case 'XI':
+                $regex = '/^XI[0-9]{9}$/i';
                 break;
             default:
                 
