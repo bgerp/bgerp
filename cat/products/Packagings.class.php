@@ -721,10 +721,10 @@ class cat_products_Packagings extends core_Detail
     {
         if(isset($field)){
             
-            return self::fetchField("#productId = {$productId} AND #packagingId = '{$packagingId}' AND #state = 'active'", $field);
+            return self::fetchField("#productId = {$productId} AND #packagingId = '{$packagingId}'", $field);
         }
         
-        return self::fetch("#productId = {$productId} AND #packagingId = '{$packagingId}' AND #state = 'active'");
+        return self::fetch("#productId = {$productId} AND #packagingId = '{$packagingId}'");
     }
     
     
