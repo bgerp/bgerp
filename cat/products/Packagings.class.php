@@ -1568,7 +1568,7 @@ class cat_products_Packagings extends core_Detail
     {
         $options = array();
         $query = static::getQuery();
-        $query->where("#productId = {$productId}");
+        $query->where("#productId = {$productId} AND #state = 'active'");
         $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
         $query->where("#type = 'packaging'");
         while($rec = $query->fetch()){
