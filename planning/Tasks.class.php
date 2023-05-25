@@ -1508,14 +1508,6 @@ class planning_Tasks extends core_Master
                     }
                 }
             } else {
-                if ($rec->isFinal == 'yes') {
-                    $nRec = new stdClass();
-                    $nRec->taskId = $rec->id;
-                    $nRec->productId = $originRec->productId;
-                    $nRec->type = 'production';
-                    $saveProducts[] = $nRec;
-                }
-
                 $lastProductBomRec = cat_Products::getLastActiveBom($rec->productId);
                 if(is_object($lastProductBomRec)){
                     $bQuery = cat_BomDetails::getQuery();
@@ -1536,6 +1528,14 @@ class planning_Tasks extends core_Master
                         $saveProducts[] = $nRec;
                     }
                 }
+            }
+
+            if ($rec->isFinal == 'yes') {
+                $nRec = new stdClass();
+                $nRec->taskId = $rec->id;
+                $nRec->productId = $originRec->productId;
+                $nRec->type = 'production';
+                $saveProducts[] = $nRec;
             }
         }
 
