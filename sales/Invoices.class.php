@@ -19,7 +19,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=sales_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=sales_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf,dec_SourceIntf';
     
     
     /**
@@ -518,7 +518,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        if ($rec->type == 'invoice' && $rec->state == 'active' && $rec->dpOperation != 'accrued') {
+        if ($rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
             if (dec_Declarations::haveRightFor('add', (object) array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))) {
                 $data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/declarations.png, row=2, title=Създаване на декларация за съответсвие');
             }
@@ -932,5 +932,29 @@ class sales_Invoices extends deals_InvoiceMaster
                 $Detail->saveArray($saveDetails, "id,{$updateFields}");
             }
         }
+    }
+
+
+    /**
+     * Помощна ф-я връщаща артикулите за избор в декларацията от източника
+     * @see dec_SourceIntf
+     *
+     * @param stdClass $rec
+     * @return array
+     *          'productId'
+     *          'batches'
+     */
+    public function getProducts4Declaration($rec)
+    {
+        $res = array();
+        $rec = $this->fetchRec($rec);
+        $dQuery = sales_InvoiceDetails::getQuery();
+        $dQuery->where("#invoiceId = {$rec->id}");
+        $dQuery->show('productId,batches');
+        while($dRec = $dQuery->fetch()){
+            $res[$dRec->productId] = (object)array('productId' => $dRec->productId, 'batches' => $dRec->batches);
+        }
+
+        return $res;
     }
 }

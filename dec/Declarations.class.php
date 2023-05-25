@@ -116,16 +116,16 @@ class dec_Declarations extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
+
+
     /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
         'materials' => 'lastDocUser|lastDoc|lastDocSameCountry',
-        'statements' => 'lastDocUser|lastDoc|lastDocSameCountry|sessionValue',
+        'template' => 'defMethod',
     );
-    
+
     
     /**
      * Описание на модела
@@ -193,12 +193,20 @@ class dec_Declarations extends core_Master
     
         // Масива, който ще връщаме
         static $placesArr = array();
-        
+
         // Проверяваме имаме ли зареден шаблон
+        $statementOptions = array();
         if($data->form->rec->template) {
             // кой е езика на шаблона
             $lang = doc_TplManager::fetch($form->rec->template)->lang;
-        
+
+            $sQuery = dec_Statements::getQuery();
+            $sQuery->where("#lg = '{$lang}'");
+            while($sRec = $sQuery->fetch()){
+                $statementOptions[$sRec->id] = $sRec->title;
+            }
+            $form->setSuggestions('statements', $statementOptions);
+
             // зареждаме шаблонха
             $tpl = doc_TplManager::getTemplate($data->form->rec->template); 
             // взимаме всичките плейсхолдери на шаблона
@@ -224,75 +232,52 @@ class dec_Declarations extends core_Master
         }
    
         // Записваме blob полето
-        $data->form->rec->formatParams  = (array) $placesArr;
+        $form->rec->formatParams  = (array) $placesArr;
        
         // Вземаме данните от предишния запис
-        $dataArr = $data->form->rec->formatParams;
+        $dataArr = $form->rec->formatParams;
         
         // Обхождаме масива
-        foreach ((array) $dataArr as $fieldName => $value) { 
+        foreach ($dataArr as $fieldName => $value) {
             
             // Добавяме данните от записите
             $data->form->rec->$fieldName = $value;
         }
                 
         // Записваме оригиналното ид, ако имаме такова
-        if ($data->form->rec->originId) {
-            $data->form->setDefault('doc', $data->form->rec->originId);
+        if ($form->rec->originId) {
+            $form->setDefault('doc', $data->form->rec->originId);
 
-            // и е по  документ фактура намираме кой е той
-            $doc = doc_Containers::getDocument($data->form->rec->originId);
+            // и е към документ
+            $doc = doc_Containers::getDocument($form->rec->originId);
             $class = $doc->className;
             $dId = $doc->that;
             $rec = $class::fetch($dId);
 
-            // взимаме продуктите от детаийла на фактурата
-            $dQuery = sales_InvoiceDetails::getQuery();
-            $dQuery->where("#invoiceId = {$rec->id}");
-            
-            $statements = "";
-            
-            while ($dRec = $dQuery->fetch()) { 
-                $productName[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
-                // твърдения
-                $st = cat_Products::getParams($dRec->productId, 'decStatements');
-                // обединяваме твърденията
-                $statements = keylist::merge ($statements,$st);
-            }
-            
-            $staArr = array();
-            //масив от твърденията
-            $statementArr = keylist::toArray($statements);
-            
-            foreach($statementArr as $st) { 
-                // фечваме езика на твърдението
-                $lgStatement = dec_Statements::fetch($st)->lg;
-          
-                // ако нямаме зададен език на трърдението и нямаме зададен език на шаблона
-                // премахваме тези твърдения, които имат зададен език
-                if($lang !== "" && $lgStatement!== "") {
-                    unset($statementArr[$st]);
-                    $statements = keylist::fromArray($statementArr);
-                }
-                
-                // ако зададения език на шаблона и езика на твърдението съвпадат
-                // правим нов лист с твърдения
-                if($lgStatement!== "" && $lgStatement == $lang) {
-                    $staArr[$st] = $st;
-                    $statements = keylist::fromArray($staArr);
-                }
-            }
+            $Interface = core_Cls::getInterface('dec_SourceIntf', $doc->getInstance());
+            $sourceProducts = $Interface->getProducts4Declaration($rec);
 
-            $data->form->setSuggestions('productId', $productName);
-            $data->form->setDefault('statements', $statements);
-            $data->form->setDefault('inv', $rec->id);
+            $statementKeylist = '';
+            $productName = array();
+            foreach ($sourceProducts as $sourceRec){
+                $productName[$sourceRec->productId] = cat_Products::getTitleById($sourceRec->productId);
+                $statement = cat_Products::getParams($sourceRec->productId, 'decStatements');
+                if(!empty($statement)){
+                    $statementKeylist = keylist::merge($statement, $statementKeylist);
+                }
+            }
+            $productStatementArr = keylist::toArray($statementKeylist);
+            $previousStatementsArr = keylist::toArray(cond_plg_DefaultValues::getDefValueByStrategy($mvc, $data->form->rec, 'statements', 'lastDocUser|lastDoc|lastDocSameCountry|sessionValue'));
+            $statementArr = $productStatementArr + $previousStatementsArr;
+
+            $defaultStatements = array_intersect_key($statementArr, $statementOptions);
+            $form->setSuggestions('productId', $productName);
+            $form->setDefault('statements', $defaultStatements);
+            $form->setDefault('inv', $rec->id);
         }
 
         // слагаме Управители
-        $hr = cls::get('hr_EmployeeContracts');
-
         $managers = $mvc->getManagers();
-
         if (countR($managers) > 0) {
             $data->form->setSuggestions('declaratorName', $managers);
         }
@@ -309,7 +294,6 @@ class dec_Declarations extends core_Master
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-    
         try {
             $row->doc = doc_Containers::getLinkForSingle($rec->doc);
         } catch (core_exception_Expect $e) {
@@ -367,9 +351,7 @@ class dec_Declarations extends core_Master
             }
 
             $row->manager = transliterate(tr($row->manager));
-
             $row->declaratorName = transliterate(tr($rec->declaratorName));
-
             $row->declaratorPosition = transliterate(tr($rec->declaratorPosition));
         }
 
@@ -387,15 +369,14 @@ class dec_Declarations extends core_Master
         if ($rec->productId) {
             $products = arr::make($rec->productId);
 
-            $batches = array();
-            $classProduct = array();
+            $batches = $classProduct =  array();
 
-            if ($rec->inv) {
-                $dQuery = sales_InvoiceDetails::getQuery();
-                $dQuery->where("#invoiceId = {$rec->inv}");
-
-                while ($dRec = $dQuery->fetch()) {
-                    $batches[$dRec->productId] = $dRec->batches;
+            $Origin = doc_Containers::getDocument($rec->originId);
+            $Interface = core_Cls::getInterface('dec_SourceIntf', $Origin->getInstance());
+            $sourceProducts = $Interface->getProducts4Declaration($Origin->fetch());
+            foreach ($products as $productId){
+                if(!empty($sourceProducts[$productId]->batches)){
+                    $batches[$productId] = $sourceProducts[$productId]->batches;
                 }
             }
 
@@ -420,11 +401,22 @@ class dec_Declarations extends core_Master
         if ($rec->originId) {
             // и е по  документ фактура намираме кой е той
             $doc = doc_Containers::getDocument($rec->originId);
-            
             $class = $doc->className;
             $dId = $doc->that;
             $recOrigin = $class::fetch($dId);
-            
+
+            if($doc->isInstanceOf('sales_Invoices')){
+                $row->documentCaption = tr('Продадени с фактура');
+                $invoiceNo = str_pad($recOrigin->number, '10', '0', STR_PAD_LEFT) . ' / ' . dt::mysql2verbal($recOrigin->date, 'd.m.Y');
+                $row->invoiceNo = $invoiceNo;
+            } elseif($doc->isInstanceOf('sales_Quotations')){
+                $row->documentCaption = tr('По оферта');
+                $row->invoiceNo = $doc->that . ' / ' . dt::mysql2verbal($recOrigin->date, 'd.m.Y');
+            } else {
+                $row->documentCaption = tr('По документ');
+                $row->invoiceNo = $doc->that;
+            }
+
             // Попълваме данните от контрагента. Идват от фактурата
             $addressContragent = trim($recOrigin->contragentPlace . ' ' . $recOrigin->contragentPCode);
             if ($addressContragent && !empty($recOrigin->contragentAddress)) {
@@ -449,9 +441,6 @@ class dec_Declarations extends core_Master
             } else {
                 $row->contragentUicId = $uicContragent;
             }
-
-            $invoiceNo = str_pad($recOrigin->number, '10', '0', STR_PAD_LEFT) . ' / ' . dt::mysql2verbal($recOrigin->date, 'd.m.Y');
-            $row->invoiceNo = $invoiceNo;
         }
 
         // вземаме материалите
@@ -515,12 +504,11 @@ class dec_Declarations extends core_Master
                     $requiredRoles = 'no_one';
                 } else {
                     $origin = doc_Containers::getDocument($rec->originId);
-
-                    if (!$origin->isInstanceOf('sales_Invoices')) {
+                    if(!$origin->haveInterface('dec_SourceIntf')){
                         $requiredRoles = 'no_one';
                     } else {
-                        $originRec = $origin->rec();
-                        if ($originRec->state != 'active' || $originRec->type != 'invoice') {
+                        $state = $origin->fetchField('state');
+                        if($state != 'active'){
                             $requiredRoles = 'no_one';
                         }
                     }
@@ -621,11 +609,11 @@ class dec_Declarations extends core_Master
      */
     public function getDefaultTemplate_($rec)
     {
-        $cData = doc_Folders::getContragentData($rec->folderId);
-        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        $origin = doc_Containers::getDocument($rec->originId);
+        $originTemplateLang = doc_TplManager::fetchField($origin->fetchField('template'), 'lang');
 
         $conf = core_Packs::getConfig('dec');
-        $def = (empty($cData->countryId) || $bgId === $cData->countryId) ? $conf->DEC_DEF_TPL_BG : $conf->DEC_DEF_TPL_EN;
+        $def = ($originTemplateLang == 'bg') ? $conf->DEC_DEF_TPL_BG : $conf->DEC_DEF_TPL_EN;
 
         return $def;
     }
@@ -643,7 +631,6 @@ class dec_Declarations extends core_Master
         $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
 
         while ($personRec = $personQuery->fetch()) {
-            //$options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
             $options[crm_Persons::getVerbal($personRec, 'name')] = crm_Persons::getVerbal($personRec, 'name');
         }
 

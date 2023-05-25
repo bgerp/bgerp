@@ -63,6 +63,7 @@ class dec_Setup extends core_ProtoSetup
         'dec_Statements',
         'dec_Materials',
         'migrate::fixDuplicateTitle2116',
+        'migrate::updateStatementLang2521',
     );
     
     
@@ -143,5 +144,25 @@ class dec_Setup extends core_ProtoSetup
         }
 
         return cls::get('dec_Statements')->setupMvc();
+    }
+
+
+    /**
+     * Миграция на езика на твърденията
+     */
+    public function updateStatementLang2521()
+    {
+        $query = dec_Statements::getQuery();
+        $query->where("#lg IS NULL OR #lg = ''");
+
+        while($rec = $query->fetch()){
+            if (preg_match('/[\p{Cyrillic}]/u', $rec->title)) {
+                $rec->lg = 'bg';
+            } else {
+                $rec->lg = 'en';
+            }
+
+            cls::get('dec_Statements')->save_($rec, 'lg');
+        }
     }
 }
