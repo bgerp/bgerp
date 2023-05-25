@@ -540,8 +540,33 @@ class cat_BomDetails extends doc_Detail
             }
         }
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я връщаща контекста на продуктовите параметри
+     *
+     * @param $rec
+     * @param $masterProductId
+     * @return array $scope
+     */
+    public function getProductParamScope($rec, $masterProductId)
+    {
+        $params = cat_Boms::getProductParams($masterProductId);
+        $path = $this->getProductPath($rec);
+        foreach ($path as $pId) {
+            $newParams = cat_Boms::getProductParams($pId);
+            cat_Boms::pushParams($params, $newParams);
+        }
+
+        // Добавя допустимите параметри във формулата
+        $scope = cat_Boms::getScope($params);
+        $scope['$T'] = 1;
+        $scope['$Начално='] = '$Начално=';
+
+        return $scope;
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -555,20 +580,9 @@ class cat_BomDetails extends doc_Detail
         
         // Ако има избран ресурс, добавяме му мярката до полетата за количества
         if (isset($rec->resourceId)) {
-            $params = cat_Boms::getProductParams($masterProductId);
-            $path = $mvc->getProductPath($rec);
-            foreach ($path as $pId) {
-                $newParams = cat_Boms::getProductParams($pId);
-                cat_Boms::pushParams($params, $newParams);
-            }
             
-            // Добавя допустимите параметри във формулата
-            $scope = cat_Boms::getScope($params);
-            $scope['$T'] = 1;
-            $scope['$Начално='] = '$Начално=';
-            
-            $rec->params = $scope;
-            $context = cat_Params::formulaMapToSuggestions($scope);
+            $rec->params = $mvc->getProductParamScope($rec, $masterProductId);
+            $context = cat_Params::formulaMapToSuggestions($rec->params);
             unset($context['$T']);
             $form->setSuggestions('propQuantity', $context);
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
@@ -1219,7 +1233,9 @@ class cat_BomDetails extends doc_Detail
     {
         // Ако сме добавили нов етап
         if (empty($rec->id) && $rec->type == 'stage') {
-            $rec->stageAdded = true;
+            if(!Mode::is('dontAutoAddStepDetails')){
+                $rec->stageAdded = true;
+            }
         }
 
         if(isset($rec->id)){
@@ -1340,7 +1356,7 @@ class cat_BomDetails extends doc_Detail
     {
         $me = cls::get(get_called_class());
         $toBomRec = cat_Boms::fetch($toBomId);
-        
+
         if ($toBomRec->type == 'production') {
             $activeBom = cat_Products::getLastActiveBom($productId, 'production,instant,sales');
         } elseif($toBomRec->type == 'instant'){
