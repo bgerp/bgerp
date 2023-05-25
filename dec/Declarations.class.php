@@ -406,16 +406,14 @@ class dec_Declarations extends core_Master
             $recOrigin = $class::fetch($dId);
 
             if($doc->isInstanceOf('sales_Invoices')){
-                $row->documentCaption = tr('Продадени с фактура');
                 $invoiceNo = str_pad($recOrigin->number, '10', '0', STR_PAD_LEFT) . ' / ' . dt::mysql2verbal($recOrigin->date, 'd.m.Y');
                 $row->invoiceNo = $invoiceNo;
             } elseif($doc->isInstanceOf('sales_Quotations')){
-                $row->documentCaption = tr('По оферта');
                 $row->invoiceNo = $doc->that . ' / ' . dt::mysql2verbal($recOrigin->date, 'd.m.Y');
             } else {
-                $row->documentCaption = tr('По документ');
                 $row->invoiceNo = $doc->that;
             }
+            $row->documentCaption = tr(mb_strtolower($doc->singleTitle));
 
             // Попълваме данните от контрагента. Идват от фактурата
             $addressContragent = trim($recOrigin->contragentPlace . ' ' . $recOrigin->contragentPCode);

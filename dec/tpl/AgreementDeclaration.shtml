@@ -17,7 +17,7 @@
         <!--ET_BEGIN products-->
         [#products#]
         <!--ET_END products-->        
-        <div class='indent'>[#documentCaption#] <b>№ [#invoiceNo#]</b> на <b>[#contragentCompany#]</b>, <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
+        <div class='indent'>По [#documentCaption#] <b>№ [#invoiceNo#]</b> на <b>[#contragentCompany#]</b>, <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
             <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress-->
             <!--ET_BEGIN contragentCompanyVatNo-->ДДС№ <b>[#contragentCompanyVatNo#]</b>,<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> ЕИК [#contragentUicId#],<!--ET_END contragentUicId-->
         </div>
