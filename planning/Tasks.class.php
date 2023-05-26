@@ -2225,14 +2225,20 @@ class planning_Tasks extends core_Master
 
         $orderByDir = 'ASC';
         if (!Request::get('Rejected', 'int')) {
+            $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финален етап,no=Междинен етап)', 'caption=Вид етап,input');
             $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
-            $data->listFilter->showFields .= ',state';
-            $data->listFilter->input('state');
+            $data->listFilter->showFields .= ',state,isFinalSelect';
+            $data->listFilter->input('state,isFinalSelect');
             $data->listFilter->setDefault('state', 'activeAndPending');
-
+            $data->listFilter->setDefault('isFinalSelect', 'all');
+            
             $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 9999999999999)';
 
             if ($filter = $data->listFilter->rec) {
+                if($filter->isFinalSelect != 'all'){
+                    $data->query->where("#isFinal = '{$filter->isFinalSelect}'");
+                }
+
                 if ($filter->state == 'activeAndPending') {
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif ($filter->state != 'all') {
