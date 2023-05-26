@@ -1966,9 +1966,6 @@ class cat_Boms extends core_Master
         $newBomId = $this->save($clone);
         $newBomRec = static::fetch($newBomId);
 
-        bp($newBomRec);
-        cat_BomDetails::delete("#bomId = {$newBomRec->id}");
-
         $dQuery = cat_BomDetails::getQuery();
         $dQuery->where("#bomId = {$rec->id} AND #parentId IS NULL");
         $dQuery->orderBy('position', 'ASC');
