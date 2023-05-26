@@ -223,9 +223,8 @@ class dec_Declarations extends core_Master
                     $p1 = str_replace("_", " ", $p);
                  
                     // Правим функционални (виртуални) полета
-                    $form->FNC("{$p}", 'varchar(255)', "caption=Параметри->{$p1},input=input, silent,recently");
+                    $form->FNC("{$p}", 'varchar(255)', "caption=Други настройки->{$p1},input=input, silent,recently,autohide");
                     $form->input();
-
                     $placesArr[$p] = $form->rec->{$p};
                 }
             } 
