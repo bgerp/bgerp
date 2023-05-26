@@ -834,7 +834,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
         }
 
-        $query->where("#originId = {$taskRec->originId} AND #taskId != {$taskRec->id}");
+        $query->where("#taskId != {$taskRec->id}");
+        if($type != 'input'){
+            $query->where("#originId = {$taskRec->originId}");
+        }
         $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
 
         // Сумира се реално произведеното по този проз. номер по операция
