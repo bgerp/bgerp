@@ -2679,6 +2679,8 @@ class planning_Tasks extends core_Master
                     }
                     $newTask->folderId = $folderId;
                     $newTask->saoOrder = $num;
+                    $ProductionData = cat_Products::getDriver($newTask->productId)->getProductionData($newTask->productId);
+                    $newTask->isFinal = $ProductionData['isFinal'];
                     $this->save($newTask);
 
                     // Ако има параметри от рецептата се прехвърлят 1 към 1
