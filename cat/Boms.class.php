@@ -213,7 +213,7 @@ class cat_Boms extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,hash';
+    public $fieldsNotToClone = 'title,hash,regeneratedFromId';
 
 
     /**
@@ -239,7 +239,8 @@ class cat_Boms extends core_Master
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
         $this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
         $this->FLD('hash', 'varchar', 'input=none');
-        
+        $this->FLD('regeneratedFromId', 'key(mvc=cat_Boms,select=id)', 'input=none');
+
         $this->setDbIndex('productId');
         $this->setDbIndex('productId,state,type');
         $this->setDbUnique('productId,title');
@@ -744,6 +745,14 @@ class cat_Boms extends core_Master
                     $autoValue = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
                     $row->isComplete = $mvc->getFieldType('isComplete')->toVerbal($autoValue);
                     $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена');
+                }
+
+                if(isset($rec->regeneratedFromId)){
+                    $row->regeneratedFromId = cat_Boms::getLink($rec->regeneratedFromId, 0);
+                }
+
+                if(isset($rec->clonedFromId)){
+                    $row->clonedFromId = cat_Boms::getLink($rec->clonedFromId, 0);
                 }
             }
         }
@@ -1835,7 +1844,7 @@ class cat_Boms extends core_Master
             
             return $res;
         }
-        //bp($bomInfo);
+
         foreach ($bomInfo['resources'] as $pRec) {
             $productRec = cat_Products::fetch($pRec->productId, 'canStore,generic');
             if ($productRec->canStore != 'yes' || $pRec->type != 'input') {
@@ -1949,12 +1958,15 @@ class cat_Boms extends core_Master
 
         $clone = clone $rec;
         plg_Clone::unsetFieldsNotToClone($this, $clone, $rec);
-        unset($clone->id,$clone->changeModifiedOn, $clone->changeModifiedBy, $clone->containerId, $clone->originId, $clone->modifiedOn, $clone->modifiedBy, $clone->activatedOn, $clone->activatedBy);
+        unset($clone->id, $clone->changeModifiedOn, $clone->changeModifiedBy, $clone->containerId, $clone->modifiedOn, $clone->modifiedBy, $clone->activatedOn, $clone->activatedBy, $clone->clonedFromId, $clone->createdBy, $clone->createdOn);
         $clone->state = 'draft';
         $clone->_regenerate = true;
+        $clone->regeneratedFromId = $rec->id;
 
         $newBomId = $this->save($clone);
         $newBomRec = static::fetch($newBomId);
+
+        bp($newBomRec);
         cat_BomDetails::delete("#bomId = {$newBomRec->id}");
 
         $dQuery = cat_BomDetails::getQuery();
