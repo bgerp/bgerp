@@ -469,7 +469,9 @@ class cat_Products extends embed_Manager
                 }
 
                 $lastCode = null;
-                if($cover->isInstanceOf('cat_Categories')){
+                if($data->_isSaveAndNew){
+                    $lastCode = Mode::get('cat_LastProductCode');
+                } elseif($cover->isInstanceOf('cat_Categories')){
                     if(empty($cover->fetchField('prefix'))){
                         $lastCode = Mode::get('cat_LastProductCode');
                     }
