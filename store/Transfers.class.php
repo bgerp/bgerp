@@ -37,7 +37,7 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, plg_Sorting, plg_Printing, store_plg_Request, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning, change_Plugin';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning,bgerp_plg_Export, change_Plugin';
 
 
     /**
@@ -46,6 +46,12 @@ class store_Transfers extends core_Master
      * @see plg_Clone
      */
     public $cloneDetails = 'store_TransfersDetails';
+
+
+    /**
+     * Права за плъгин-а bgerp_plg_Export
+     */
+    public $canExport = 'ceo, store';
 
 
     /**
@@ -216,6 +222,12 @@ class store_Transfers extends core_Master
      * Полетата, които могат да се променят с change_Plugin
      */
     public $changableFields = 'note, detailOrderBy';
+
+
+    /**
+     * Кои полета да могат да се експортират в CSV формат
+     */
+    public $exportableCsvFields = 'id,valior,fromStore,toStore,note';
 
 
     /**
