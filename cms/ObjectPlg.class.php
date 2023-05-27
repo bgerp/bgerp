@@ -37,7 +37,7 @@ class cms_ObjectPlg extends core_Plugin
                 
                 'Вграждане',
                     toUrl(array('cms_Objects', 'add', 'sourceClass' => $mvc->className, 'type' => 'object', 'sourceId' => $data->rec->id)),
-                    'ef_icon=img/16/world_go.png,order=19,row=3,title=Вземи таг за вграждане'
+                    'ef_icon=img/16/world_go.png,order=19,row=2,title=Вземи таг за вграждане'
             
             );
             
