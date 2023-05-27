@@ -380,7 +380,8 @@ class cat_Products extends embed_Manager
         $this->setDbIndex('fixedAsset');
         $this->setDbIndex('state');
         $this->setDbIndex('canManifacture');
-        
+        $this->setDbIndex('createdOn');
+
         $this->setDbUnique('code');
     }
     
