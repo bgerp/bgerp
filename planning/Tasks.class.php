@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,originId=@';
 
 
     /**
@@ -373,6 +373,7 @@ class planning_Tasks extends core_Master
             }
             if ($pData['showPreviousJobField']) {
                 $originRec = doc_Containers::getDocument($data->rec->originId)->fetch('oldJobId,productId');
+
                 if ($originRec->oldJobId) {
                     $oldJobProductId = planning_Jobs::fetchField($originRec->oldJobId, 'productId');
                     $data->row->previousJob = planning_Jobs::getHyperlink($originRec->oldJobId, true);
@@ -713,6 +714,9 @@ class planning_Tasks extends core_Master
                             if(countR($singleUrl)){
                                 $startAfterTitle = ht::createLink($startAfterTitle, $singleUrl);
                             }
+
+                            $startAfterTitleFull = $mvc->getAlternativeTitle($startAfter);
+                            $startAfterTitle = ht::createHint($startAfterTitle, $startAfterTitleFull, 'notice', false);
                         }
                         $row->startAfter = $startAfterTitle;
                     } else {
@@ -1504,14 +1508,6 @@ class planning_Tasks extends core_Master
                     }
                 }
             } else {
-                if ($rec->isFinal == 'yes') {
-                    $nRec = new stdClass();
-                    $nRec->taskId = $rec->id;
-                    $nRec->productId = $originRec->productId;
-                    $nRec->type = 'production';
-                    $saveProducts[] = $nRec;
-                }
-
                 $lastProductBomRec = cat_Products::getLastActiveBom($rec->productId);
                 if(is_object($lastProductBomRec)){
                     $bQuery = cat_BomDetails::getQuery();
@@ -1532,6 +1528,14 @@ class planning_Tasks extends core_Master
                         $saveProducts[] = $nRec;
                     }
                 }
+            }
+
+            if ($rec->isFinal == 'yes') {
+                $nRec = new stdClass();
+                $nRec->taskId = $rec->id;
+                $nRec->productId = $originRec->productId;
+                $nRec->type = 'production';
+                $saveProducts[] = $nRec;
             }
         }
 
@@ -1612,7 +1616,10 @@ class planning_Tasks extends core_Master
             }
 
             if (isset($taskData['productId'])) {
+                $isFinal = planning_Steps::getRec('cat_Products', $taskData['productId'])->isFinal;
+
                 $form->setReadOnly('productId');
+                $form->setDefault('isFinal', $isFinal);
             }
         }
 
@@ -1700,7 +1707,7 @@ class planning_Tasks extends core_Master
                 // Ако някоя от произовдните на основната му мярка е налична в опциите - добавят се и останалите
                 if (countR(array_intersect_key($measureOptions, $similarMeasures)) || $originRec->allowSecondMeasure == 'yes') {
                     // както и производните на основната му мярка, които са опаковки
-                    $packMeasures = cat_Products::getPacks($productRec->id, true);
+                    $packMeasures = cat_Products::getPacks($productRec->id, null, true);
                     $leftMeasures = array_intersect_key($similarMeasures, $packMeasures);
                     $leftMeasures = array_keys($leftMeasures);
                     foreach ($leftMeasures as $lMeasureId) {
@@ -1710,7 +1717,7 @@ class planning_Tasks extends core_Master
                     }
                 }
             } else {
-                $measureOptions = cat_Products::getPacks($rec->productId, true);
+                $measureOptions = cat_Products::getPacks($rec->productId, $rec->measureId, true);
             }
 
             $measuresCount = countR($measureOptions);
@@ -1937,13 +1944,19 @@ class planning_Tasks extends core_Master
     {
         $taskRec = static::fetchRec($taskId);
         $job = doc_Containers::getDocument($taskRec->originId);
-        $jobTitle = str::limitLen("Job{$job->that}-" . cat_Products::fetchField($job->fetchField('productId'), 'name'), 42);
-        $title = "Opr{$taskRec->id}/{$jobTitle}";
-        if(!$isShort){
-            $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 42);
-            $title .= "/{$productTitle}";
+        $jobTitle = cat_Products::fetchField($job->fetchField('productId'), 'name');
+        
+        if($isShort){
+            $oprTitle = "Opr{$taskRec->id}/";
+            $jobTitle = str::limitLen($jobTitle, 36);
+        } else {
+            $productTitle = str::limitLen(cat_Products::fetchField($taskRec->productId, 'name'), 36);
+            $oprTitle = "Opr{$taskRec->id}-{$productTitle} / ";
         }
 
+        $jobTitle = "Job{$job->that}-{$jobTitle}";
+		$title = "{$oprTitle}{$jobTitle}";
+        
         return $title;
     }
 
@@ -2212,14 +2225,20 @@ class planning_Tasks extends core_Master
 
         $orderByDir = 'ASC';
         if (!Request::get('Rejected', 'int')) {
+            $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финален етап,no=Междинен етап)', 'caption=Вид етап,input');
             $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
-            $data->listFilter->showFields .= ',state';
-            $data->listFilter->input('state');
+            $data->listFilter->showFields .= ',state,isFinalSelect';
+            $data->listFilter->input('state,isFinalSelect');
             $data->listFilter->setDefault('state', 'activeAndPending');
-
+            $data->listFilter->setDefault('isFinalSelect', 'all');
+            
             $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 9999999999999)';
 
             if ($filter = $data->listFilter->rec) {
+                if($filter->isFinalSelect != 'all'){
+                    $data->query->where("#isFinal = '{$filter->isFinalSelect}'");
+                }
+
                 if ($filter->state == 'activeAndPending') {
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif ($filter->state != 'all') {
@@ -2660,6 +2679,8 @@ class planning_Tasks extends core_Master
                     }
                     $newTask->folderId = $folderId;
                     $newTask->saoOrder = $num;
+                    $ProductionData = cat_Products::getDriver($newTask->productId)->getProductionData($newTask->productId);
+                    $newTask->isFinal = $ProductionData['isFinal'];
                     $this->save($newTask);
 
                     // Ако има параметри от рецептата се прехвърлят 1 към 1

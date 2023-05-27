@@ -49,8 +49,11 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
                 if ($mvc->haveRightFor('single', $rec->id)) {
                     $tr = Request::get('tr');
 
+                    $cTextSubject = null;
+                    $cText = null;
+
                     if (!isset($tr)) {
-                        $handle = $mvc->className . '|' . $rec->id;
+                        $handle = $mvc->className . '|' . $rec->id . '|' . core_Users::getCurrent();
 
                         $cText = core_Cache::get('deepltranslate', $handle);
                         $cTextSubject = core_Cache::get('deepltranslateSubject', $handle);
@@ -122,7 +125,7 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
                 $subject = $subject->getContent();
             }
 
-            $handle = $mvc->className . '|' . $rec->id;
+            $handle = $mvc->className . '|' . $rec->id . '|' . core_Users::getCurrent();
 
             if (Request::get('tr')) {
                 if ($cText = core_Cache::get('deepltranslate', $handle)) {

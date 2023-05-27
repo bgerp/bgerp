@@ -256,7 +256,7 @@ class store_TransfersDetails extends doc_Detail
             $storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $masterRec->fromStore, $deliveryDate);
             $form->info = $storeInfo->formInfo;
             
-            $packs = cat_Products::getPacks($rec->newProductId);
+            $packs = cat_Products::getPacks($rec->newProductId, $rec->packagingId);
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));

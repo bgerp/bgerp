@@ -27,10 +27,11 @@ class recently_Plugin extends core_Plugin
         $inputFields = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
         if (countR($inputFields)) {
+            $mustReport = false;
             foreach ($inputFields as $name => $field) {
                 if ($field->recently) {
                     if ($prefix == '_') {
-                        wp($form);
+                        $mustReport = true;
                     }
                     $saveName = $prefix . '.' . $name;
                     
@@ -38,6 +39,10 @@ class recently_Plugin extends core_Plugin
                     
                     $form->appendSuggestions($name, $suggetions);
                 }
+            }
+
+            if ($mustReport === true) {
+                wp($form, $inputFields);
             }
         }
     }

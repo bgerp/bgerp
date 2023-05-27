@@ -21,7 +21,12 @@
 
     <div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: [#isComplete#]</div>
     <div style='margin-top:5px'><span class='quiet'>|Модифициранe|*</span>: <b>[#modifiedOn#]</b> |от|* [#modifiedBy#]</div>
-    
+    <!--ET_BEGIN clonedFromId-->
+    <div style='margin-top:5px'><span class='quiet'>|Клонирано от|*</span>: <b>[#clonedFromId#]</b></div>
+    <!--ET_BEGIN clonedFromId-->
+    <!--ET_BEGIN regeneratedFromId-->
+    <div style='margin-top:5px'><span class='quiet'>|Регенерирано от|*</span>: <b>[#regeneratedFromId#]</b></div>
+    <!--ET_END regeneratedFromId-->
     <div class="scrolling-holder" style='margin:10px 0'>
 	    [#cat_BomDetails#]
 	</div>

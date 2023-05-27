@@ -157,7 +157,6 @@ class price_ProductCosts extends core_Manager
             if (cls::load($policyId, true)) {
                 
                 // Ако няма отделен крон процес
-                $Policy = cls::get($policyId);
                 $Interface = cls::getInterface('price_CostPolicyIntf', $policyId);
                 if($Interface->hasSeparateCalcProcess()) continue;
                 

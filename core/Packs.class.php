@@ -1061,6 +1061,7 @@ class core_Packs extends core_Manager
             // Ако няма права да вижда полето
             if (isset($params['canView'])) {
                 if (!haveRole($params['canView'])) {
+                    unset($description[$field]);
                     continue;
                 }
             }

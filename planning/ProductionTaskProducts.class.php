@@ -154,7 +154,7 @@ class planning_ProductionTaskProducts extends core_Detail
         }
         
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             
@@ -442,13 +442,15 @@ class planning_ProductionTaskProducts extends core_Detail
         } else {
             $query = self::getQuery();
             $query->where("#taskId = {$taskId}");
-            //$query->show('productId,plannedQuantity');
             $query->where("#type = '{$type}'");
             if(isset($inputType)){
                 if($inputType != 'actions'){
-                    $canStoreVal = ($inputType == 'materials') ? 'yes' : 'no';
                     $query->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
-                    $query->where("#canStore = '{$canStoreVal}' AND #indTime IS NULL");
+                    if($inputType == 'materials'){
+                        $query->where("#canStore = 'yes'");
+                    } else {
+                        $query->where("#canStore = 'no' AND #indTime IS NULL");
+                    }
                 } else {
                     $query->where("#indTime IS NOT NULL");
                 }

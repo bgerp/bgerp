@@ -240,9 +240,11 @@ class email_Spam extends email_ServiceEmails
         }
 
         // Ако има комуникация с имейла, намаляме точники
-        $fromEmail = $mime->getFromEmail();
-        $fromEmail = trim($fromEmail);
-        $fromEmail = mb_strtolower($fromEmail);
+        if (isset($mime)) {
+            $fromEmail = $mime->getFromEmail();
+            $fromEmail = trim($fromEmail);
+            $fromEmail = mb_strtolower($fromEmail);
+        }
 
         if (isset($score) && $fromEmail) {
             if (($score >= email_Setup::get('REJECT_SPAM_SCORE')) || ($score >= email_Setup::get('HARD_SPAM_SCORE'))) {

@@ -114,8 +114,8 @@ class deals_InvoicesToDocuments extends core_Manager
                     if(empty($iData['amount'][$k])){
                         $iRec = doc_Containers::getDocument($iData['containerId'][$k])->fetch();
                         $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
-
-                        if($iRec->type == 'dc_note' && $iRec->totalValue < 0){
+                        $totalValue = $iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount;
+                        if($iRec->type == 'dc_note' && $totalValue < 0){
                             $expectedAmountToPayData->amount = -1 * $expectedAmountToPayData->amount;
                         }
 

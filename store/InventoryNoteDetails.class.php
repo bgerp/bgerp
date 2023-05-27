@@ -215,7 +215,7 @@ class store_InventoryNoteDetails extends doc_Detail
         
         // Рендиране на опаковките
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
         } else {

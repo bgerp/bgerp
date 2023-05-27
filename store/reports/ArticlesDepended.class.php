@@ -194,6 +194,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 //При избран склад влизат само тъези от избрания слкад
                 $markNotPrice = ($rec->storeId && ($rec->storeId == $pRec->storeId)) ? 1 : null;
 
+
                 if ((!is_null($markNotPrice)) && (!in_array($pRec->productId, $notSelfPrice))) {
                     array_push($notSelfPrice, $pRec->productId);
                 }
@@ -342,8 +343,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         if ($dRec->info) {
             $row->productId = '<b>' . 'Артикули без себестойност:' . '</b></br></br>';
+            $i=0;
             foreach ($dRec->array as $val) {
-                $row->productId .= cat_Products::getLinkToSingle_($val, 'name') . '</br>';
+                $i++;
+                $row->productId .= $i.'>>'.cat_Products::getLinkToSingle_($val, 'name') . '</br>';
             }
 
             return $row;

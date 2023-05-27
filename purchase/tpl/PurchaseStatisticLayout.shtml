@@ -62,9 +62,6 @@
                   <!--ET_BEGIN clonedFromId-->
                   <span style='font-weight:normal'>|Клонирано от|*</span>: [#clonedFromId#]<br>
                   <!--ET_END clonedFromId-->
-                  <!--ET_BEGIN lastAutoRecalcRate-->
-                  <span style='font-weight:normal'>|Актуализиран валутен курс|*</span>: [#lastAutoRecalcRate#]<br>
-                  <!--ET_END lastAutoRecalcRate-->
               </td>
            </tr>
            <tr>

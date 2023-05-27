@@ -458,7 +458,6 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
-        'migrate::recalcCurrencySales1115',
     );
     
     
@@ -484,7 +483,7 @@ class sales_Setup extends core_ProtoSetup
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,
                        sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_reports_SalesByCreators,sales_interface_FreeRegularDelivery,
-                       sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_InvoiceAccView';
+                       sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_InvoiceAccView,sales_reports_PassiveCustomers';
     
     
     /**
@@ -636,27 +635,9 @@ class sales_Setup extends core_ProtoSetup
             }
         }
 
-        $params = array('systemId'    => 'Recalc Currency Sales Rate',
-                        'description' => 'Осредняване на валутните курсове на продажбите',
-                        'controller'  => 'sales_Sales',
-                        'action'    => 'RecalcCurrencyRate',
-                        'offset'    => 240,
-                        'interval'    => 1440);
-
-        $res .= deals_Setup::syncCronSettings($params);
-
         $Plugins = cls::get('core_Plugins');
         $res .= $Plugins->installPlugin('Връзка на продажбите с куриерско API', 'store_plg_CourierApiShipment', 'sales_Sales', 'private');
 
         return $res;
-    }
-
-
-    /**
-     * Първоначална миграция на всички валитни покупки с промяна на курса към текущия
-     */
-    public function recalcCurrencySales1115()
-    {
-        cls::get('sales_Sales')->recalcDealsWithCurrencies(true);
     }
 }

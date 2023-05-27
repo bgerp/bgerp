@@ -129,7 +129,7 @@ class email_Outgoings extends core_Master
      */
     public $loadList = 'email_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, change_Plugin';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, change_Plugin, plg_Sorting';
     
     
     /**
@@ -1328,11 +1328,10 @@ class email_Outgoings extends core_Master
                         if (!cls::load($fileInfo['className'], true)) {
                             continue;
                         }
-                        
-                        $cls = cls::get($fileInfo['className']);
-                        
-                        $hRec = $cls->fetch($fileInfo['id']);
-                        
+
+                        $className = $fileInfo['className'];
+                        $hRec = $className::fetchByHandle($fileInfo);
+
                         if (($form->rec->theadId && (($form->rec->theadId != $hRec->threadId))) ||
                             ($form->rec->folderId && (($form->rec->folderId != $hRec->folderId)))) {
                             $quotOtherArr[$hnd] = $hnd;

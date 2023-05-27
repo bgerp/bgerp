@@ -340,7 +340,7 @@ class marketing_Bulletins extends core_Master
         if ($bRec->logo) {
             $thmb = new thumb_Img(array($bRec->logo, 400, 400, 'isAbsolute' => true));
             
-            $logoUrl = $thmb->getUrl('deferred');
+            $logoUrl = $thmb->getUrl('forceDeferred');
             $logoUrl = preg_replace("/^https?\:\/\//", '//', $logoUrl, 1);
             $logoUrl = addslashes($logoUrl);
             $logoUrl = self::prepareUrlForHostName($logoUrl, $isLocal);

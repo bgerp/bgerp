@@ -78,6 +78,12 @@ class email_AddressesInfo extends core_Manager
 
 
     /**
+     * @var array
+     */
+    protected static $mapArr = array();
+
+
+    /**
      * Описание на модела
      */
     protected function description()
@@ -90,6 +96,7 @@ class email_AddressesInfo extends core_Manager
         $this->FLD('checkPoint', 'int', 'caption=Проверка->Точки, input=none');
 
         $this->setDbUnique('email');
+        $this->setDbIndex('redirection');
     }
 
 
@@ -105,10 +112,18 @@ class email_AddressesInfo extends core_Manager
         $oEmail = $email;
         $email = trim($email);
         $email = mb_strtolower($email);
+
+        if (isset(self::$mapArr[$email])) {
+
+            return self::$mapArr[$email];
+        }
+
         $rEmail = self::fetchField(array("LOWER(#email) = '[#1#]'", $email), 'redirection');
         if (trim($rEmail)) {
             $oEmail = $rEmail;
         }
+
+        self::$mapArr[$email] = $oEmail;
 
         return $oEmail;
     }
@@ -194,6 +209,21 @@ class email_AddressesInfo extends core_Manager
                 array_unshift($eSuggArr , '');
                 $eSuggArr = arr::make($eSuggArr, true);
                 $data->form->setSuggestions('redirection', $eSuggArr);
+            }
+        }
+
+        $form = $data->form;
+        if ($form->isSubmitted()) {
+            if (!isset($form->rec->id) && isset($form->rec->email)) {
+                $oRec = $mvc->fetch(array("#email = '[#1#]'", $form->rec->email));
+                if (isset($oRec->id)) {
+                    Request::push(array('id' => $oRec->id));
+
+                    $form->input('state');
+                    if (!isset($form->rec->state)) {
+                        Request::push(array('state' => $oRec->state));
+                    }
+                }
             }
         }
     }

@@ -1299,7 +1299,7 @@ class core_Manager extends core_Mvc
         
         // Ако заявката не е по AJAX и няма нищо записано в лога, записваме екшъна
         if (!Request::get('ajax_mode') && !countR(log_Data::$toAdd)) {
-            if (Request::$vars['_POST']) {
+            if (Request::$vars['_POST'] && Mode::get('haveErrInAct') !== true) {
                 self::logWrite(ucfirst($act), Request::get('id'), 180);
             } else {
                 self::logInfo(ucfirst($act), Request::get('id'));

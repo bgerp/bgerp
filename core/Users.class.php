@@ -2419,6 +2419,21 @@ class core_Users extends core_Manager
         
         return $user;
     }
+
+
+    /**
+     * Проверяваме дали потребителят е активен
+     *
+     * @param int $id
+     *
+     * @return bool
+     */
+    public static function isActiveUserId($id)
+    {
+        $user = static::fetch(array("#id = '[#1#]' AND #state = 'active'", $id));
+
+        return (bool) $user;
+    }
     
     
     /**

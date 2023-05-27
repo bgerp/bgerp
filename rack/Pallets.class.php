@@ -247,7 +247,7 @@ class rack_Pallets extends core_Manager
             $form->setField('newPackagingId', 'input');
             $form->setField('newPackQuantity', 'input');
 
-            $packs = cat_Products::getPacks($rec->newProductId);
+            $packs = cat_Products::getPacks($rec->newProductId, $rec->newPackagingId);
             $form->setOptions('newPackagingId', $packs);
             $form->setDefault('newPackagingId', cat_Products::fetchField($rec->newProductId, 'measureId'));
 

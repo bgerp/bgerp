@@ -451,7 +451,7 @@ class log_Data extends core_Manager
             $hash = md5("{$rec->userId}|{$rec->actionCrc}|{$rec->classCrc}|{$rec->objectId}|{$rec->type}|{$rec->lifeTime}|{$rec->ipId}|{$rec->brId}");
             
             if (isset(self::$toAddHash[$hash])) {
-                log_System::add('log_Data', 'Дублирана заявка за лог в хит: ' . core_Type::mixedToString($rec), self::$toAddHash[$hash], 'notice');
+                log_System::add('log_Data', 'Дублирана заявка за лог в хит: ' . core_Type::mixedToString($rec), self::$toAddHash[$hash], 'info');
                 
                 continue;
             }

@@ -283,7 +283,7 @@ abstract class deals_DealDetail extends doc_Detail
         
         if ($rec->productId) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             

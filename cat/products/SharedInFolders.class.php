@@ -224,10 +224,12 @@ class cat_products_SharedInFolders extends core_Manager
         
         $pRec->isPublic = ($pRec->isPublic == 'yes') ? 'no' : 'yes';
         $title = ($pRec->isPublic == 'yes') ? 'стандартен' : 'нестандартен';
+        $msg = ($pRec->isPublic == 'yes') ? "Артикулът става стандартен" : "Артикулът става нестандартен";
         cls::get('cat_Products')->save($pRec, 'isPublic');
         if($pRec->isPublic == 'yes'){
             static::delete("#productId = {$productId}");
         }
+        cls::get('cat_Products')->logWrite($msg, $pRec->id);
 
         return followRetUrl(array('cat_Products', 'single', $productId), " Артикулът вече е {$title}");
     }

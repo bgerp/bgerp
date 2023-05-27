@@ -28,8 +28,8 @@ class core_App
         if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
-        
-        if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,4}$/i', $filename)) {
+
+        if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,11}$/i', $filename)) {
             
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
             core_Webroot::serve($filename);
@@ -1088,9 +1088,13 @@ class core_App
             case 'absolute':
                 $url = rtrim(static::getBoot(true, false, true), '/') . $pre . $urlQuery;
                 break;
-            
+
             case 'absolute-force':
                 $url = rtrim(static::getBoot(true, true, true), '/') . $pre . $urlQuery;
+                break;
+
+            case 'absolute-base':
+                $url = rtrim(static::getBoot('base', false, true), '/') . $pre . $urlQuery;
                 break;
         }
         
@@ -1122,7 +1126,7 @@ class core_App
     /**
      * Връща относително или пълно URL до папката на index.php
      *
-     * @param bool $absolute
+     * @param bool|string $absolute
      * @param bool $forceHttpHost
      *
      * @return string
@@ -1154,15 +1158,19 @@ class core_App
             } else {
                 $auth = '';
             }
-            
-            if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
-                $boot = $protocol . '://' . $auth . $domain . $dirName;
-            } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
-                $boot = $protocol . '://' . $auth . $domain . $dirName;
-            } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+
+            if (($absolute === 'base') && defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                 $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
             } else {
-                $boot = $protocol . '://' . $auth . $_SERVER['HTTP_HOST'] . $dirName;
+                if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
+                    $boot = $protocol . '://' . $auth . $domain . $dirName;
+                } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
+                    $boot = $protocol . '://' . $auth . $domain . $dirName;
+                } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                    $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
+                } else {
+                    $boot = $protocol . '://' . $auth . $_SERVER['HTTP_HOST'] . $dirName;
+                }
             }
         } else {
             $scriptName = $_SERVER['SCRIPT_NAME'];
@@ -1178,7 +1186,7 @@ class core_App
         }
         
         $boot = rtrim($boot, '/');
-        
+
         if (EF_APP_NAME_FIXED !== true && $addAppName) {
             $boot .= '/' . (Request::get('App') ? Request::get('App') : EF_APP_NAME);
         }

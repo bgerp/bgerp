@@ -17,31 +17,15 @@ class pwa_Plugin extends core_Plugin
 
     public function on_Output(&$invoker)
     {
-        // Винаги добавяме, ако може ServiceWorker
-        $serviceWorkerPath = getFullPath('pwa/js/sw.js');
-        $name = 'sw' . crc32(filemtime($serviceWorkerPath)) . '.js';
-        $domainId = cms_Domains::fetchField("#domain = 'localhost' AND #lang = 'bg'", 'id');
-        
-        if (!core_Webroot::isExists($name, $domainId)) {
-            $lastServiceWorker = core_Permanent::get('lastServiceWorker' . $domainId);
-            if ($lastServiceWorker) {
-                core_Webroot::remove($name, $domainId);
+        if (Request::get('isPwa') !== 'yes') {
+            $canUse = pwa_Manifest::canUse();
+
+            // Ако е активирана опцията за мобилно приложение - манифестираме го
+            if ($canUse == 'yes') {
+                $swDate = filemtime(getFullPath('pwa/js/sw.js'));
+                $swDate = date('Y-m-d H:i:s', $swDate);
+                $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"/pwa.webmanifest\" data-sw-date=\"{$swDate}\">", 'HEAD');
             }
-            core_Webroot::register(file_get_contents($serviceWorkerPath), 'Expires: {{time_604800}}', $name, $domainId);
         }
-        
-        $canUse = pwa_Manifest::canUse();
-
-        // Ако е активирана опцията за мобилно приложение - манифестираме го
-        if ($canUse == 'yes') {
-            $invoker->appendOnce("\n<script>\n    var serviceWorkerURL = '/{$name}';\n</script>\n", 'HEAD');
-
-            $cu = (int) core_Users::getCurrent();
-            $cu = str::addHash($cu);
-            $manifestUrl = toUrl(array('pwa_Manifest', 'Default', 'u' => $cu));
-            $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestUrl}\">", 'HEAD');
-        }
-
-        $invoker->appendOnce("useServiceWorker = '{$canUse}';", 'SCRIPTS');
     }
 }

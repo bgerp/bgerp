@@ -424,7 +424,7 @@ class rack_Movements extends rack_MovementAbstract
         if (isset($rec->productId)) {
             $form->setField('packagingId', 'input');
             
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             

@@ -284,7 +284,9 @@ class planning_Setup extends core_ProtoSetup
         'migrate::updateLastChangedOnState',
         'migrate::updateTasks1',
         'migrate::updateCenters2244',
-        'migrate::cleanClosedTasks2250'
+        'migrate::cleanClosedTasks2250',
+        'migrate::updateTasks1520',
+        'migrate::updateMigratedTasks1620',
     );
 
 
@@ -320,7 +322,7 @@ class planning_Setup extends core_ProtoSetup
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
-                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob';
+                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep';
 
 
     /**
@@ -524,6 +526,131 @@ class planning_Setup extends core_ProtoSetup
 
                 // нулира се кеша ѝ за да може да се преизчисли наново
                 core_Permanent::remove("assetTaskOrder|{$assetId}");
+            }
+        }
+    }
+
+
+    /**
+     * Миграция на създадените ПО без данни дали са финални или не
+     */
+    public function updateTasks1520()
+    {
+        $query = planning_Tasks::getQuery();
+        $query->where('#isFinal IS NULL AND #state != "rejected"');
+
+        $taskRecs = $query->fetchAll();
+        $productIds = arr::extractValuesFromArray($taskRecs, 'productId');
+
+        if(countR($productIds)){
+            $steps = array();
+            $classId = cat_Products::getClassId();
+            $sQuery = planning_Steps::getQuery();
+            $sQuery->in('objectId', $productIds);
+            $sQuery->where("#classId = {$classId}");
+            $sQuery->show('isFinal, objectId');
+            while($sRec = $sQuery->fetch()){
+                $steps[$sRec->objectId] = $sRec->isFinal;
+            }
+
+            $count = countR($steps);
+            if($count){
+                core_App::setTimeLimit($count * 0.6, false, 300);
+                $Tasks = cls::get('planning_Tasks');
+                foreach ($taskRecs as $taskRec){
+                    $taskRec->isFinal = $steps[$taskRec->productId];
+                    if($steps[$taskRec->productId] == 'yes'){
+                        $Tasks->save($taskRec);
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Миграция на миграцията
+     */
+    public function updateMigratedTasks1620()
+    {
+        core_App::setTimeLimit(300);
+
+        $query = planning_Tasks::getQuery();
+        $query->where("#isFinal = 'yes'");
+        $finalTaskRecs = $query->fetchAll();
+        $finalTaskIds = arr::extractValuesFromArray($finalTaskRecs, 'id');
+        $originIds = arr::extractValuesFromArray($finalTaskRecs, 'originId');
+        if(!countR($finalTaskIds)) return;
+
+        $res = $jobs = array();
+        $pQuery = planning_ProductionTaskProducts::getQuery();
+        $pQuery->where("#type = 'production' OR #type = ''");
+        $pQuery->in("taskId", $finalTaskIds);
+        while($pRec = $pQuery->fetch()){
+            $res[$pRec->taskId][$pRec->productId] = $pRec->productId;
+        }
+
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in("containerId", $originIds);
+        $jQuery->show('containerId,productId');
+        while($jRec = $jQuery->fetch()){
+            $jobs[$jRec->containerId] = $jRec->productId;
+        }
+
+        $Products = cls::get('planning_ProductionTaskProducts');
+        foreach ($finalTaskRecs as $finalTaskRec){
+            $originProductId = $jobs[$finalTaskRec->originId];
+
+            $add = false;
+            if(isset($res[$finalTaskRec->id])){
+                if(!array_key_exists($originProductId, $res[$finalTaskRec->id])){
+                    $add = true;
+                }
+            } else {
+                $add = true;
+            }
+
+            if($add){
+                $nRec = new stdClass();
+                $nRec->taskId = $finalTaskRec->id;
+                $nRec->productId = $originProductId;
+                $nRec->type = 'production';
+                $fields = $exRec = null;
+                if (!$Products->isUnique($nRec, $fields, $exRec)) {
+                    $nRec->id = $exRec->id;
+                }
+                $Products->save($nRec);
+            }
+        }
+
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#innerClass=" . planning_interface_StepProductDriver::getClassId());
+        $pQuery->show('id, innerClass');
+
+        $stepIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+        if(!countR($stepIds)) return;
+
+        $dQuery = planning_ProductionTaskDetails::getQuery();
+        $dQuery->EXT('isFinal', 'planning_Tasks', "externalName=isFinal,externalKey=taskId");
+        $dQuery->EXT('taskProductId', 'planning_Tasks', "externalName=productId,externalKey=taskId");
+        $dQuery->EXT('originId', 'planning_Tasks', "externalName=originId,externalKey=taskId");
+        $dQuery->where("#isFinal = 'yes' AND #productId = #taskProductId");
+        $dQuery->in("taskProductId", $stepIds);
+        $dRecs = $dQuery->fetchAll();
+
+        $jobProductIds = array();
+        $jobContainerIds = arr::extractValuesFromArray($dRecs, 'originId');
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in('containerId', $jobContainerIds);
+        $jQuery->show('containerId,productId');
+        while($jRec = $jQuery->fetch()){
+            $jobProductIds[$jRec->containerId] = $jRec->productId;
+        }
+
+        foreach ($dRecs as $dRec){
+            if(isset($jobProductIds[$dRec->originId])){
+                $dRec->productId = $jobProductIds[$dRec->originId];
+                planning_ProductionTaskDetails::save($dRec);
             }
         }
     }

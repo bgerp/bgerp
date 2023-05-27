@@ -1762,6 +1762,7 @@ class crm_Companies extends core_Master
             $contrData->fax = $company->fax;
             $contrData->country = crm_Companies::getVerbal($company, 'country');
             $contrData->countryId = $company->country;
+            $contrData->groupList = $company->groupList;
             $contrData->pCode = $company->pCode;
             $contrData->place = $company->place;
             $contrData->address = $company->address;

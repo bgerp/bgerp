@@ -142,15 +142,17 @@ class planning_GenericMapper extends core_Manager
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             $productRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
             $genericRec = cat_Products::fetch($rec->genericProductId, 'measureId,canStore');
-            
-            $similarMeasures = cat_UoM::getSameTypeMeasures($genericRec->measureId);
-            if(!array_key_exists($productRec->measureId, $similarMeasures)){
-                $genericMeasureName = cat_UoM::getVerbal($genericRec->measureId, 'name');
-                
-                $form->setError('productId', "Заместващият артикул трябва да е в мярка, производна на|*: <b>{$genericMeasureName}</b>");
+
+            $convertedMainProduct = cat_Products::convertToUom($rec->productId, $genericRec->measureId);
+            $convertedGenericProduct = cat_Products::convertToUom($rec->genericProductId, $productRec->measureId);
+            if(!$convertedMainProduct && ! $convertedGenericProduct){
+                $measureId = ($rec->fromGeneric) ? $genericRec->measureId : $productRec->measureId;
+                $measureName = cat_UoM::getVerbal($measureId, 'name');
+                $msg = ($rec->fromGeneric) ? "Заместващият артикул трябва да е в основна или втора мярка, производна на|*: <b>{$measureName}</b>" : "Генеричният артикул трябва да е в основна или втора мярка, производна на|*: <b>{$measureName}</b>";
+                $form->setError('productId', $msg);
             }
             
             if($productRec->canStore != $genericRec->canStore){

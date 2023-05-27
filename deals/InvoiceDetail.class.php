@@ -397,9 +397,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $data->rows = array();
                 
                 // Показване на сумата за промяна на известието
-                $Type = $mvc->getFieldType('amount');
-                $Type->params['decimals'] = 2;
-                $amount = $Type->toVerbal($masterRec->dealValue / $masterRec->rate);
+                $Type = core_Type::getByName('double(decimals=2)');
+                $rate = !empty($masterRec->displayRate) ? $masterRec->displayRate : $masterRec->rate;
+                $amount = $Type->toVerbal($masterRec->dealValue / $rate);
                 $originRec = doc_Containers::getDocument($masterRec->originId)->rec();
                 
                 if ($originRec->dpOperation == 'accrued') {
@@ -538,7 +538,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $vat = cat_Products::getVat($rec->productId, $masterRec->date);
             $productInfo = cat_Products::getProductInfo($rec->productId);
             
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             
