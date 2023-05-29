@@ -23,6 +23,7 @@ class store_plg_CourierApiShipment extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         setIfNot($mvc->canRequestbilloflading, 'powerUser');
+        $mvc->FLD('courierApiPrice', 'double', 'input=none');
     }
 
 
@@ -113,19 +114,33 @@ class store_plg_CourierApiShipment extends core_Plugin
                 if($form->cmd == 'save'){
 
                     // Ще върне ли драйвера файл хендлър на генерирана товарителница
-                    $requestedShipmentFh = $Driver->getRequestedShipmentFh($mvc, $rec, $form);
-                    if(!empty($requestedShipmentFh)){
+                    $requestedShipment = $Driver->getRequestedShipmentRes($mvc, $rec, $form);
+
+                    if(!empty($requestedShipment->fh)){
                         if(!$form->gotErrors()){
-                            $fileId = fileman::fetchByFh($requestedShipmentFh, 'id');
+
+                            $fileId = fileman::fetchByFh($requestedShipment->fh, 'id');
                             doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', $Driver->class->billOfLadingComment);
                             $mvc->logWrite("Създаване на товарителница", $rec->id);
+                            if(is_object($requestedShipment->price)){
+                                $calcedPrice = currency_CurrencyRates::convertAmount($requestedShipment->price->total, $rec->{$mvc->valiorFld}, $requestedShipment->price->currency);
+                                $rec->courierApiPrice = $calcedPrice;
+                                $mvc->save_($rec, 'courierApiPrice');
+                            }
+
                             followRetUrl(null, "Товарителницата е изпратена успешно|*!");
                         }
                     }
                 } elseif($form->cmd == 'calc'){
-                    $calculatedShipmentTpl = $Driver->calculateShipmentTpl($mvc, $rec, $form);
-                    if(is_object($calculatedShipmentTpl)){
-                        $form->info = $calculatedShipmentTpl;
+                    $calculatedShipmentRes = $Driver->calculateShipmentRes($mvc, $rec, $form);
+
+                    if(is_object($calculatedShipmentRes->tpl)){
+                        $form->info = $calculatedShipmentRes->tpl;
+                        if(is_object($calculatedShipmentRes->price)){
+                            $calcedPrice = currency_CurrencyRates::convertAmount($calculatedShipmentRes->price->total, $rec->{$mvc->valiorFld}, $calculatedShipmentRes->price->currency);
+                            $rec->courierApiPrice = $calcedPrice;
+                            $mvc->save_($rec, 'courierApiPrice');
+                        }
                     }
                 }
             }
@@ -143,6 +158,25 @@ class store_plg_CourierApiShipment extends core_Plugin
             core_Form::preventDoubleSubmission($res, $form);
 
             return false;
+        }
+    }
+
+
+    /**
+     * Преди рендиране на сингъла
+     *
+     * @param core_Mvc $mvc
+     * @param core_Et  $tpl
+     * @param stdClass $data
+     */
+    public static function on_BeforeRenderSingle($mvc, &$tpl, $data)
+    {
+        $rec = $data->rec;
+        if($mvc->lineFieldName){
+            if(!empty($rec->courierApiPrice)){
+                $courierApiPrice = currency_Currencies::decorate($rec->courierApiPrice);
+                $data->row->{$mvc->lineFieldName} .= " {$courierApiPrice}";
+            }
         }
     }
 
