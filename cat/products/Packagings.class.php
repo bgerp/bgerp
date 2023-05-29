@@ -1194,7 +1194,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         $cacheKey = "{$productId}|{$uomId}";
-        $cache = false;
+
         // Ако искаме кеширани данни
         if ($cache === true) {
             $isUsed = false;
@@ -1288,7 +1288,7 @@ class cat_products_Packagings extends core_Detail
             }
             $dQuery->show('id,modifiedOn');
             $dRec = $dQuery->fetch();
-            echo "<li>" . cls::get($Detail)->className;
+
             if ($dRec) {
                 $isUsed = true;
 
@@ -1311,7 +1311,6 @@ class cat_products_Packagings extends core_Detail
         } else {
             core_Cache::set('cat_Products', $cacheKey, 'n', 10080);
         }
-        bp();
 
         // Връщаме резултат
         return $isUsed;
