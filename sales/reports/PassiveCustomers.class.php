@@ -352,6 +352,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $row = new stdClass();
 
+
         $row->contragentId = doc_Folders::getHyperlink($dRec->folderId);
 
         $row->activSalesNumber = $Int->toVerbal($dRec->numberOfSales);
