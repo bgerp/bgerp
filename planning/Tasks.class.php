@@ -2594,6 +2594,11 @@ class planning_Tasks extends core_Master
                 expect($taskRec = $this->fetch($cloneId));
                 $tasksToClone[$taskRec->id] = $taskRec;
             } else {
+                $selected = Request::get('selected', 'varchar');
+                $selectedArr = empty($selected) ? array() : array_combine(explode('|', $selected), explode('|', $selected));
+                if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
+
+
                 $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
                 $tQuery = planning_Tasks::getQuery();
                 $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'rejected'");
@@ -2601,6 +2606,7 @@ class planning_Tasks extends core_Master
                 $tQuery->show('clonedFromId');
                 $exClonedIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'clonedFromId');
                 $tasksToClone = array_diff_key($oldTasks, $exClonedIds);
+                $tasksToClone = array_intersect_key($tasksToClone, $selectedArr);
             }
 
             foreach ($tasksToClone as $taskRec){
@@ -2644,7 +2650,6 @@ class planning_Tasks extends core_Master
         } elseif ($type == 'all') {
             $selected = Request::get('selected', 'varchar');
             $selectedArr = empty($selected) ? array() : explode('|', $selected);
-
             if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
 
             // Ако ще се клонират всички шаблонни операции

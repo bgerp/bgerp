@@ -1391,13 +1391,17 @@ class planning_Jobs extends core_Master
         // Показване на наличните опции за клониране на операция от предходно задание
         if (isset($jobRec->oldJobId)) {
             $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), true, true);
+            $urlCloneAll = null;
 
             if (countR($oldTasks)) {
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('От предишно задание') . planning_Jobs::getLink($jobRec->oldJobId, 0), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
                 if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'oldJobId' => $jobRec->oldJobId, 'type' => 'cloneAll'))){
-                    $title = tr('Неклонираните от предишно задание');
+                    $title = tr('Избраните от предишно задание');
                     $urlCloneAll = array('planning_Tasks', 'createjobtasks', 'type' => 'cloneAll', 'jobId' => $jobRec->id, 'oldJobId' => $jobRec->oldJobId, 'ret_url' => true);
-                    $urlLink = ht::createBtn('Клониране', $urlCloneAll, false, false, 'title=Клониране на всички предходни операции,ef_icon=img/16/clone.png');
+                    $cloneAllUrlString = toUrl($urlCloneAll);
+                    $urlLinkBtn = ht::createFnBtn('Клониране', null, 'Наистина ли желаете да клонирате наведнъж неклонираните операции|*?', array('title' => 'Клониране на всички предходни операции', 'ef_icon' => 'img/16/clone.png', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks'));
+
+                    $urlLink = "<table><tr><td><input type='checkbox' name='checkAllClonedTasks' checked></td><td>" . $urlLinkBtn->getContent() . "</td></tr></table>";
                     $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
                 }
 
@@ -1418,6 +1422,11 @@ class planning_Jobs extends core_Master
                     }
 
                     $urlLink = ht::createBtn('Клониране', $urlClone, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/clone.png');
+                    if(countR($urlCloneAll)){
+                        $checked = empty($warning) ? 'checked' : '';
+                        $urlLink = "<table><tr><td><input type='checkbox' name='R[{$k1}]' id='cb_{$k1}' class='previousTaskCheckbox' data-cloneId='{$k1}' {$checked}></td><td>{$urlLink}</td></tr></table>";
+                    }
+
                     $options[] = (object)array('DEFAULT_TASK_CAPTION' => $oldTitle, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
                 }
             }
