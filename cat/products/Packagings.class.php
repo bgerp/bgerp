@@ -1185,7 +1185,7 @@ class cat_products_Packagings extends core_Detail
     {
         // Подобрение за бързодействие при проверка - да се използват новите полета
         if (!$checkAll) {
-            $pRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
+            $pRec = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
 
             if ($pRec && $pRec->firstClassId) {
 
@@ -1194,11 +1194,11 @@ class cat_products_Packagings extends core_Detail
         }
 
         $cacheKey = "{$productId}|{$uomId}";
-
+        $cache = false;
         // Ако искаме кеширани данни
         if ($cache === true) {
             $isUsed = false;
-            
+
             // Проверяваме имали кеш
             $hasCache = core_Cache::get('cat_Products', $cacheKey);
             
@@ -1276,7 +1276,7 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#productId = '[#1#]' AND #action = 'sale|code' AND #value = '[#2#]'", $productId, $uomId));
             } elseif($Detail == 'planning_Jobs'){
                 $dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
-            } elseif ($Detail == 'cat_BomDetails') {//bp();
+            } elseif ($Detail == 'cat_BomDetails') {
                 $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             } elseif ($Detail == 'store_TransfersDetails') {
                 $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
@@ -1286,9 +1286,9 @@ class cat_products_Packagings extends core_Detail
             } else {
                 $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             }
-
+            $dQuery->show('id,modifiedOn');
             $dRec = $dQuery->fetch();
-
+            echo "<li>" . cls::get($Detail)->className;
             if ($dRec) {
                 $isUsed = true;
 
@@ -1311,7 +1311,8 @@ class cat_products_Packagings extends core_Detail
         } else {
             core_Cache::set('cat_Products', $cacheKey, 'n', 10080);
         }
-        
+        bp();
+
         // Връщаме резултат
         return $isUsed;
     }
