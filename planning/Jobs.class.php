@@ -1349,11 +1349,14 @@ class planning_Jobs extends core_Master
 
         if(countR($defaultTasks)){
             $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Шаблонни операции за артикула'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
-
+            $createAllUrl = array();
             if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'))){
-                $title = tr('Несъздадените шаблонни операции');
+                $title = tr('Избраните шаблонни операции');
                 $createAllUrl = array('planning_Tasks', 'createjobtasks', 'type' => 'all', 'jobId' => $jobRec->id, 'ret_url' => true);
-                $urlLink = ht::createBtn('Създаване', $createAllUrl, 'Наистина ли желаете да създадете наведнъж всички останали шаблонни операции|*?', false, 'title=Създаване на всички шаблонни операции за артикула,ef_icon=img/16/add.png');
+                $createAllUrlString = toUrl($createAllUrl);
+                $urlLinkBtn = ht::createFnBtn('Създаване', null, 'Наистина ли желаете да създадете наведнъж всички останали шаблонни операции|*?', array('title' => 'Създаване на всички шаблонни операции за артикула', 'ef_icon' => 'img/16/add.png', 'data-url' => $createAllUrlString, 'class' => 'createAllCheckedTasks'));
+
+                $urlLink = "<table><tr><td><input type='checkbox' name='checkAllDefaultTasks' checked></td><td>" . $urlLinkBtn->getContent() . "</td></tr></table>";
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
 
@@ -1375,7 +1378,12 @@ class planning_Jobs extends core_Master
                     $urlAdd = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $defTask->title, 'ret_url' => true, 'systemId' => $sysId);
                 }
 
-                $urlLink = ht::createBtn('Създаване', $urlAdd, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/add.png');
+                $urlLinkBtn = ht::createBtn('Създаване', $urlAdd, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/add.png');
+                $urlLink = $urlLinkBtn->getContent();
+                if(countR($createAllUrl)){
+                    $checked = empty($warning) ? 'checked' : '';
+                    $urlLink = "<table><tr><td><input type='checkbox' name='R[{$sysId}]' id='cb_{$sysId}' class='defaultTaskCheckbox' data-sysId='{$sysId}' {$checked}></td><td>{$urlLink}</td></tr></table>";
+                }
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
         }
@@ -1463,7 +1471,10 @@ class planning_Jobs extends core_Master
         }
 
         $tpl = $this->renderWrapping($form->renderHtml());
-        
+
+        $tpl->push('planning/js/TaskSelection.js', 'JS');
+        jquery_Jquery::run($tpl, 'taskSelect();');
+
         return $tpl;
     }
 

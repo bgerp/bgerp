@@ -2642,16 +2642,20 @@ class planning_Tasks extends core_Master
             $msg = "Успешно клонирани операции от предишно задание|*: {$count}";
             followRetUrl(null, $msg);
         } elseif ($type == 'all') {
+            $selected = Request::get('selected', 'varchar');
+            $selectedArr = empty($selected) ? array() : explode('|', $selected);
+
+            if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
 
             // Ако ще се клонират всички шаблонни операции
             planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'));
             $msgType = 'notice';
-            $msg = 'Успешно създаване на дефолтните операции|*!';
+            $msg = 'Успешно създаване на избраните дефолтни операции|*!';
             $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
 
             $num = 1;
             foreach ($defaultTasks as $sysId => $defaultTask) {
-
+                if(!in_array($sysId, $selectedArr)) continue;
                 try {
                     if (planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")) continue;
 
