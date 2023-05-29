@@ -807,6 +807,8 @@ class bgerp_Portal extends embed_Manager
         $form->layout->replace($mvc->searchInputField, 'FLD_NAME');
         
         if ($search = Request::get($mvc->searchInputField)) {
+            $search = strip_tags($search);
+            $search = type_Varchar::escape($search);
             $form->layout->replace($search, 'VALUE');
         }
         
