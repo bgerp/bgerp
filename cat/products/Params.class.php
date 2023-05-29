@@ -369,11 +369,12 @@ class cat_products_Params extends doc_Detail
     public static function fetchParamValue($classId, $productId, $sysId, $verbal = false)
     {
         $paramId = (is_numeric($sysId)) ? cat_Params::fetchField($sysId) : cat_Params::fetchIdBySysId($sysId);
-        
+        $Class = cls::get($classId);
+
         if (!empty($paramId)) {
-            $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
+            $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$Class->getClassId()}", 'paramValue');
             if ($verbal === true) {
-                $paramValue = cat_Params::toVerbal($paramId, $classId, $productId, $paramValue);
+                $paramValue = cat_Params::toVerbal($paramId, $Class->getClassId(), $productId, $paramValue);
             }
             
             return $paramValue;
