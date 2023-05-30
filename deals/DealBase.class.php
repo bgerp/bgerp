@@ -456,7 +456,6 @@ abstract class deals_DealBase extends core_Master
                         acc_Items::notifyObject($itemRecToNotify);
                     }
                     cls::get('acc_Items')->flushTouched();
-                    cls::get('acc_Balances')->recalc();
                 }
 
                 // Обединения договор ще е активен
@@ -929,8 +928,6 @@ abstract class deals_DealBase extends core_Master
             if($itemRec){
                 acc_Items::notifyObject($itemRec);
             }
-
-            cls::get('acc_Balances')->recalc();
 
             acc_RatesDifferences::force($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
             if($itemRec){
