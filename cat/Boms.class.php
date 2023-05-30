@@ -231,7 +231,7 @@ class cat_Boms extends core_Master
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
 
-        $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
+        $this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Без допълване (рецептата е Пълна),no=Допълване до "Себестойност" (рецептата е Непълна))', 'caption=Себестойност,notNull,value=auto,mandatory,width=100%');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
