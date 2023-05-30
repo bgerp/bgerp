@@ -1705,7 +1705,7 @@ class cat_Boms extends core_Master
                 $parent = $pRec->parentId;
             }
 
-            $quantityP = (($quantityP) / $rec) * $quantity;
+            $quantityP = (($quantityP) / $rec->quantity) * $quantity;
             $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
             $pRec = cat_Products::fetch($dRec->resourceId);

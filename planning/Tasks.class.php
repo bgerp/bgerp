@@ -1542,7 +1542,7 @@ class planning_Tasks extends core_Master
         if(countR($saveProducts)){
             core_Users::forceSystemUser();
             foreach ($saveProducts as $pRec){
-                planning_ProductionTaskProducts::save($nRec);
+                planning_ProductionTaskProducts::save($pRec);
             }
             core_Users::cancelSystemUser();
         }
