@@ -128,9 +128,6 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $shQuery->in('state', array('rejected', 'draft'), true);
         $shQuery->where("#valior >= '$activePeriodStart'");
 
-
-
-
         while ($shRec = $shQuery->fetch()) {
 
             $id = $shRec->folderId;
@@ -358,9 +355,14 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $row->activSalesAmount = $Double->toVerbal($dRec->amountDelivered);
 
-        $row->passivMailsIn = $Int->toVerbal($dRec->numberOfInMails);
 
-        $row->passivMailsOut = $Int->toVerbal($dRec->numberOfOutMails);
+        if(is_int($dRec->numberOfInMails) && is_int($dRec->numberOfOutMails)){
+
+            $row->passivMailsIn = $Int->toVerbal($dRec->numberOfInMails);
+
+            $row->passivMailsOut = $Int->toVerbal($dRec->numberOfOutMails);
+        }
+
 
 
         return $row;
