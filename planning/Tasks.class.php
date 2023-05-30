@@ -2600,7 +2600,7 @@ class planning_Tasks extends core_Master
 
                 // От предходните ще се клонират САМО избраните
                 $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
-                $tasksToClone = array_intersect_key($tasksToClone, $selectedArr);
+                $tasksToClone = array_intersect_key($oldTasks, $selectedArr);
             }
 
             foreach ($tasksToClone as $taskRec){
@@ -2643,7 +2643,7 @@ class planning_Tasks extends core_Master
             followRetUrl(null, $msg);
         } elseif ($type == 'all') {
             $selected = Request::get('selected', 'varchar');
-            $selectedArr = empty($selected) ? array() : explode('|', $selected);
+            $selectedArr = !strlen($selected) ? array() : explode('|', $selected);
             if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
 
             // Ако ще се клонират всички шаблонни операции
