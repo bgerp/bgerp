@@ -246,6 +246,12 @@ class cat_BomDetails extends doc_Detail
 
         if($rec->type == 'stage'){
             $form->setField('subTitle', 'input');
+            if($data->masterRec->state == 'active' && isset($rec->id)){
+                foreach (array('subTitle', 'propQuantity', 'position', 'packagingId', 'description', 'parentId') as $fld){
+                    $form->setField($fld, 'input=hidden');
+                }
+            }
+
             if(isset($rec->resourceId)){
 
                 // Ако има данни за производство
@@ -576,7 +582,8 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        $masterProductId = cat_Boms::fetchField($rec->bomId, 'productId');
+        $masterRec = cat_Boms::fetch($rec->bomId);
+        $masterProductId = $masterRec->productId;
         
         // Ако има избран ресурс, добавяме му мярката до полетата за количества
         if (isset($rec->resourceId)) {
@@ -602,6 +609,10 @@ class cat_BomDetails extends doc_Detail
             } elseif($form->_replaceProduct !== true) {
                 $form->setField('packagingId', 'input');
             }
+        }
+
+        if($masterRec->state == 'active' && $rec->type == 'stage' && isset($rec->id)) {
+            $form->setField('packagingId', 'input=hidden');
         }
         
         // Проверяваме дали е въведено поне едно количество
@@ -990,8 +1001,14 @@ class cat_BomDetails extends doc_Detail
         if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'expand' || $action == 'shrink') && isset($rec)) {
             if(isset($rec->bomId)){
                 $masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
-                if ($masterRec->state != 'draft') {
-                    $requiredRoles = 'no_one';
+                if($action == 'edit' && $rec->type == 'stage'){
+                    if (in_array($masterRec->state, array('closed', 'rejected'))) {
+                        $requiredRoles = 'no_one';
+                    }
+                } else {
+                    if ($masterRec->state != 'draft') {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }

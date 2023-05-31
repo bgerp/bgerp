@@ -71,6 +71,9 @@
                   <!--ET_BEGIN courierApi-->
                   <span style='font-weight:normal'>|Куриерско API|*</span>: [#courierApi#]<br>
                   <!--ET_END courierApi-->
+                  <!--ET_BEGIN courierApiPrice-->
+                  <span style='font-weight:normal'>|Цена за транспорт|*</span>: [#courierApiPrice#]<br>
+                  <!--ET_END courierApiPrice-->
               </td>
            </tr>
            <tr>
