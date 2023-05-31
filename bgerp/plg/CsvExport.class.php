@@ -63,10 +63,25 @@ class bgerp_plg_CsvExport extends core_BaseClass
 
         $mvc->invoke('afterGetCsvFieldSetForExport', array(&$fieldset));
 
+        if($mvc instanceof core_Master){
+            if(isset($mvc->mainDetail)){
+                $MainDetail = cls::get($mvc->mainDetail);
+
+                // Ако детайла има поле за избор на артикули
+                if(isset($MainDetail->productFld)){
+                    $fieldset->FLD('code', 'varchar', 'caption=Код');
+                    $fieldset->FLD($MainDetail->productFld, 'varchar', 'caption=Артикул');
+                    $fieldset->FLD('quantity', 'varchar', 'caption=Количество');
+                    $fieldset->FLD('batch', 'varchar', 'caption=Партида');
+                    $this->exportProductData = true;
+                }
+            }
+        }
+
         return $fieldset;
     }
-    
-    
+
+
     /**
      * Подготвя формата за експорт
      *
@@ -184,6 +199,28 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $params['decPoint'] = $filter->decimalSign;
         $params['enclosure'] = $filter->enclosure;
         $params['text'] = 'plain';
+
+        if($this->exportProductData){
+            $finalRecs = array();
+            foreach ($recs as $rec){
+                $csvFields = new core_FieldSet();
+                $dRecs = cls::get('cat_Products')->getRecsForExportInDetails($this->mvc, $rec, $csvFields, core_Users::getCurrent());
+                $fieldKeys = array_keys($csvFields->fields);
+                if(countR($dRecs)){
+                    foreach ($dRecs as $dRec){
+                        $clone = clone $rec;
+                        foreach ($fieldKeys as $key){
+                            $clone->{$key} = $dRec->{$key};
+                        }
+                        $finalRecs[] = $clone;
+                    }
+                } else {
+                    $finalRecs[] = $rec;
+                }
+            }
+
+            $recs = $finalRecs;
+        }
 
         Mode::push('text', 'plain');
         $this->mvc->invoke('BeforeExportCsv', array(&$recs));
