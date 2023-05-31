@@ -643,6 +643,12 @@ class cat_Boms extends core_Master
                 $res = 'no_one';
             }
         }
+
+        if ($action == 'regenerate' && isset($rec)) {
+            if($rec->state != 'active'){
+                $res = 'no_one';
+            }
+        }
     }
     
     
