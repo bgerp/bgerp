@@ -1363,8 +1363,12 @@ class planning_Jobs extends core_Master
             // Показване на наличните дефолтни операции
             foreach ($defaultTasks as $sysId => $defTask){
                 $title = $defTask->title;
+                if(!empty($defTask->subTitle)){
+                    $title .= " <i>{$defTask->subTitle}</i>";
+                }
+
                 $warning = false;
-                if($taskId = planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #productId = {$defTask->productId} AND #state != 'rejected'")){
+                if($taskId = planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND (#systemId = {$sysId} OR (#productId = {$defTask->productId} AND #subTitle = '{$defTask->subTitle}'))AND #state != 'rejected'")){
                     $warning = 'Наистина ли желаете да създадете отново шаблонна операция|*?';
                     if(planning_Tasks::haveRightFor('single', $taskId)){
                         $title = ht::createLinkRef($title, planning_Tasks::getSingleUrlArray($taskId), false, 'title=Преглед на производствената операция');

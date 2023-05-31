@@ -69,11 +69,8 @@
                   <span style='font-weight:normal'>|Бележка|*</span>: [#receiptId#]<br>
                   <!--ET_END receiptId-->
                   <!--ET_BEGIN courierApi-->
-                  <span style='font-weight:normal'>|Куриерско API|*</span>: [#courierApi#]<br>
+                  <span style='font-weight:normal'>|Куриерско API|*</span>: [#courierApi#] <!--ET_BEGIN courierApiPrice--><i style="color:#555">([#courierApiPrice#])</i><!--ET_END courierApiPrice--><br>
                   <!--ET_END courierApi-->
-                  <!--ET_BEGIN courierApiPrice-->
-                  <span style='font-weight:normal'>|Цена за транспорт|*</span>: [#courierApiPrice#]<br>
-                  <!--ET_END courierApiPrice-->
               </td>
            </tr>
            <tr>
