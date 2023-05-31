@@ -469,7 +469,7 @@ class cat_products_Params extends doc_Detail
                         $requiredRoles = 'catEdit,ceo';
                     }
                 } elseif ($rec->classId == cat_BomDetails::getClassId()) {
-                    $requiredRoles = cat_BomDetails::getRequiredRoles($action, $rec->productId, $userId);
+                    //$requiredRoles = cat_BomDetails::getRequiredRoles($action, $rec->productId, $userId);
                 }
             }
         }
@@ -481,16 +481,16 @@ class cat_products_Params extends doc_Detail
                 if ($action == 'add') {
                     $InnerClass = cls::get($pRec->innerClass);
                     if (!($InnerClass instanceof cat_GeneralProductDriver)) {
-                        $requiredRoles = 'no_one';
+                       // $requiredRoles = 'no_one';
                     }
                 }
 
                 if ($pRec->state != 'active' && $pRec->state != 'draft' && $pRec->state != 'template') {
-                    $requiredRoles = 'no_one';
+                   // $requiredRoles = 'no_one';
                 }
 
                 if (!$Class->haveRightFor('single', $rec->productId)) {
-                    $requiredRoles = 'no_one';
+                    //$requiredRoles = 'no_one';
                 }
             }
         }
@@ -499,7 +499,7 @@ class cat_products_Params extends doc_Detail
         if (($action == 'edit' || $action == 'delete') && $requiredRoles != 'no_one' && isset($rec)) {
             $pRec = cat_Params::fetch($rec->paramId, 'roles,valueType');
             if (!empty($roles) && !haveRole($roles, $userId)) {
-                $requiredRoles = 'no_one';
+                //$requiredRoles = 'no_one';
             }
         }
     }
@@ -836,7 +836,7 @@ class cat_products_Params extends doc_Detail
         $d->masterId = $objectRec->id;
         $d->masterClassId = $class::getClassId();
         if($class instanceof cat_BomDetails){
-            if($objectRec->state != 'draft'){
+            if(!in_array($objectRec->state, array('draft', 'active'))){
                 $d->noChange = true;
             }
         }elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {
