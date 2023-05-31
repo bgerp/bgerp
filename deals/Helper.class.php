@@ -1417,6 +1417,7 @@ abstract class deals_Helper
 
                     if(isset($rec->dpAmount)){
                         $diff = ($rec->dpAmount / $oldRate) * $newRate;
+                        $rec->dpAmount = $diff;
                     } else {
                         $diff = $rec->changeAmount * $newRate;
                     }
@@ -1426,12 +1427,16 @@ abstract class deals_Helper
                     // Стойността е променената сума
                     $rec->dealValue = $diff;
                     $updateMaster = false;
+                } elseif($rec->dpOperation == 'deducted' && isset($rec->dpAmount)){
+                    $diff = ($rec->dpAmount / $oldRate) * $newRate;
+                    $rec->dpAmount = $diff;
                 }
             }
         }
         $rec->_recalcRate = true;
         Mode::push('dontUpdateKeywords', true);
         $masterMvc->save($rec);
+
         $logMsg = 'Промяна на курс';
         if ($updateMaster) {
             $masterMvc->updateMaster_($rec);

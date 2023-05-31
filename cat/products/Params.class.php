@@ -498,7 +498,7 @@ class cat_products_Params extends doc_Detail
         // Ако има указани роли за параметъра, потребителя трябва да ги има за редакция/изтриване
         if (($action == 'edit' || $action == 'delete') && $requiredRoles != 'no_one' && isset($rec)) {
             $pRec = cat_Params::fetch($rec->paramId, 'roles,valueType');
-            if (!empty($roles) && !haveRole($roles, $userId)) {
+            if (!empty($pRec->roles) && !haveRole($pRec->roles, $userId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -836,7 +836,7 @@ class cat_products_Params extends doc_Detail
         $d->masterId = $objectRec->id;
         $d->masterClassId = $class::getClassId();
         if($class instanceof cat_BomDetails){
-            if($objectRec->state != 'draft'){
+            if(!in_array($objectRec->state, array('draft', 'active'))){
                 $d->noChange = true;
             }
         }elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {
