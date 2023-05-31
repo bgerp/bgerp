@@ -1436,6 +1436,10 @@ class sales_Sales extends deals_DealMaster
         }
         
         if (isset($fields['-single'])) {
+            if(!empty($rec->courierApiPrice)){
+                $row->courierApiPrice = currency_Currencies::decorate($rec->courierApiPrice);
+            }
+
             if($receiptId = pos_Receipts::fetchField("#transferredIn = {$rec->id}")){
                 $row->receiptId = pos_Receipts::getHyperlink($receiptId, true);
             }

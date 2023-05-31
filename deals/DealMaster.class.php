@@ -1185,11 +1185,6 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
 
-            if(!empty($rec->courierApiPrice)){
-                $courierApiPrice = currency_Currencies::decorate($rec->courierApiPrice);
-                $row->deliveryBlock .= tr("|*<li>|Цена за транспорт|*: {$courierApiPrice}</li>");
-            }
-
             if ($rec->note) {
                 $notes = explode('<br>', $row->note);
                 foreach ($notes as $note) {
