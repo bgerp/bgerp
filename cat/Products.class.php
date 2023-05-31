@@ -468,8 +468,14 @@ class cat_Products extends embed_Manager
                     $form->setField('code', 'mandatory');
                 }
 
-                // Кой е последно добавения код
-                $lastCode = Mode::get('cat_LastProductCode');
+                $lastCode = null;
+                if($data->_isSaveAndNew){
+                    $lastCode = Mode::get('cat_LastProductCode');
+                } elseif($cover->isInstanceOf('cat_Categories')){
+                    if(empty($cover->fetchField('prefix'))){
+                        $lastCode = Mode::get('cat_LastProductCode');
+                    }
+                }
 
                 // При клониране се използва кода на клонирания артикул
                 if($data->action == 'clone'){
@@ -1462,6 +1468,7 @@ class cat_Products extends embed_Manager
         // Записване в сесията само при създаване на нов артикул а не и при редакция
         if($rec->_isCreated){
             Mode::setPermanent('cat_LastProductCode', $rec->code);
+            Mode::setPermanent("cat_LastProductCode{$rec->folderId}", $rec->code);
         }
         
         if (isset($rec->originId)) {

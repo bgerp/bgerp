@@ -199,7 +199,7 @@ class type_Double extends core_Type
             $decimals = max($decimals, $this->params['minDecimals']);
         }
         
-        if(is_infinite($decimals)){
+        if(is_infinite((double)$decimals)){
             wp($value, $this->params);
             $decimals = 0;
         }

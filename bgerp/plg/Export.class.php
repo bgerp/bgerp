@@ -37,7 +37,6 @@ class bgerp_plg_Export extends core_Plugin
         if ($mvc->haveRightFor('export') && self::getExportDrivers($mvc)) {
             $url = getCurrentUrl();
             $url['export'] = true;
-            //$url['ret_url'] = $url;
 
             $data->toolbar->addBtn('Експорт', $url, 'ef_icon=img/16/export.png, row=2');
         }

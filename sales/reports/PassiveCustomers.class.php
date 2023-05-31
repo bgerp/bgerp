@@ -22,6 +22,13 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo, admin, debug, sales';
 
+    /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var int
+     */
+    protected $sortableListFields = 'activSalesAmount,activSalesNumber';
+
 
     /**
      * Полета за хеширане на таговете
@@ -50,7 +57,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields;
+    protected $changeableFields = 'periodPassive,periodActive,dealers,crmGroup,minShipment';
 
 
     /**
@@ -127,9 +134,6 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $shQuery = store_ShipmentOrders::getQuery();
         $shQuery->in('state', array('rejected', 'draft'), true);
         $shQuery->where("#valior >= '$activePeriodStart'");
-
-
-
 
         while ($shRec = $shQuery->fetch()) {
 
@@ -297,6 +301,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         }
 
+        arr::sortObjects($recs, 'amountDelivered', 'DESC');
+
         return $recs;
     }
 
@@ -358,9 +364,14 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $row->activSalesAmount = $Double->toVerbal($dRec->amountDelivered);
 
-        $row->passivMailsIn = $Int->toVerbal($dRec->numberOfInMails);
 
-        $row->passivMailsOut = $Int->toVerbal($dRec->numberOfOutMails);
+        if(is_int($dRec->numberOfInMails) && is_int($dRec->numberOfOutMails)){
+
+            $row->passivMailsIn = $Int->toVerbal($dRec->numberOfInMails);
+
+            $row->passivMailsOut = $Int->toVerbal($dRec->numberOfOutMails);
+        }
+
 
 
         return $row;

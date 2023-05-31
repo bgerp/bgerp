@@ -610,18 +610,19 @@ class speedy_interface_ApiImpl extends core_BaseClass
      * @param core_Mvc $mvc          - модел
      * @param stdClass $documentRec  - запис на документа от който ще се генерира
      * @param core_Form $form        - формата за генериране на товарителница
-     * @return core_ET|null $tpl     - хтмл с рендиране на информацията за плащането
+     * @return object $obj           - информация за шаблона и цената
      * @throws core_exception_Expect
      */
-    public function calculateShipmentTpl($mvc, $documentRec, &$form)
+    public function calculateShipmentRes($mvc, $documentRec, &$form)
     {
         $preparedBolParams = static::prepareBolData($form->rec, 'calculate');
+        $obj = (object)array('price' => null, 'tpl' => null);
 
         try{
             $res = speedy_Adapter::calculateShipment($preparedBolParams);
         } catch(core_exception_Expect $e){
             $form->info = "<div style='color:red;font-weight:bold;'>" . tr('Цената не може да се калкулира|*!') . "<br>" . tr($e->getMessage()) . "</div>";
-            return;
+            return $obj;
         }
 
         $priceObj = $res->calculations[0];
@@ -629,7 +630,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         // Ако има грешка при калкулацията - визуализира се!
         if(!empty($priceObj->error)){
             $form->setError('service', $priceObj->error->message);
-            return;
+            return $obj;
         }
 
         $Double = core_Type::getByName('double(decimals=2)');
@@ -669,7 +670,10 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $tpl = getTplFromFile('speedy/tpl/CalculatedAmounts.shtml');
         $tpl->placeObject($row);
 
-        return $tpl;
+        $obj->tpl = $tpl;
+        $obj->price = (object)array('total' => $priceObj->price->total, 'currencyCode' => $priceObj->price->currency);
+
+        return $obj;
     }
 
 
@@ -679,19 +683,20 @@ class speedy_interface_ApiImpl extends core_BaseClass
      * @param core_Mvc $mvc          - модел
      * @param stdClass $documentRec  - запис на документа от който ще се генерира
      * @param core_Form $form        - формата за генериране на товарителница
-     * @return string|null $fh       - хендлър на готовата товарителница
+     * @return object $obj           - информация за цената и хендлъра на генерираната товарителница
      * @throws core_exception_Expect
      */
-    public function getRequestedShipmentFh($mvc, $documentRec, &$form)
+    public function getRequestedShipmentRes($mvc, $documentRec, &$form)
     {
         // Подготовка на данните за товарителницата
         $preparedBolParams = static::prepareBolData($form->rec);
+        $obj = (object)array('price' => null, 'fh' => null);
 
         try{
             $res = speedy_Adapter::requestShipment($preparedBolParams);
         } catch(core_exception_Expect $e){
             $form->setError('service', $e->getMessage());
-            return;
+            return $obj;
         }
 
         if(empty($res->id)){
@@ -699,6 +704,9 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         if(!$form->gotErrors()){
+            if(is_object($res->price)){
+                $obj->price = (object)array('total' => $res->price->total, 'currencyCode' => $res->price->currency);
+            }
 
             // Ако е генерирана успешно, прави се опит за разпечатването ѝ
             $parcelIds = array();
@@ -719,12 +727,13 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 // Кеш на избраните полета от формата
                 $cacheArr = array('senderClientId' => $form->rec->senderClientId, 'service' => $form->rec->service, 'pdfPrinterType' => $form->rec->pdfPrinterType);
                 core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, core_Permanent::FOREVER_VALUE);
+                $obj->fh = $fh;
 
-                return $fh;
+                return $obj;
             }
         }
 
-        return null;
+        return $obj;
     }
 
 

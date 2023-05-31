@@ -1542,7 +1542,7 @@ class planning_Tasks extends core_Master
         if(countR($saveProducts)){
             core_Users::forceSystemUser();
             foreach ($saveProducts as $pRec){
-                planning_ProductionTaskProducts::save($nRec);
+                planning_ProductionTaskProducts::save($pRec);
             }
             core_Users::cancelSystemUser();
         }
@@ -2224,14 +2224,20 @@ class planning_Tasks extends core_Master
 
         $orderByDir = 'ASC';
         if (!Request::get('Rejected', 'int')) {
+            $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финален етап,no=Междинен етап)', 'caption=Вид етап,input');
             $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
-            $data->listFilter->showFields .= ',state';
-            $data->listFilter->input('state');
+            $data->listFilter->showFields .= ',state,isFinalSelect';
+            $data->listFilter->input('state,isFinalSelect');
             $data->listFilter->setDefault('state', 'activeAndPending');
-
+            $data->listFilter->setDefault('isFinalSelect', 'all');
+            
             $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 9999999999999)';
 
             if ($filter = $data->listFilter->rec) {
+                if($filter->isFinalSelect != 'all'){
+                    $data->query->where("#isFinal = '{$filter->isFinalSelect}'");
+                }
+
                 if ($filter->state == 'activeAndPending') {
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif ($filter->state != 'all') {
@@ -2587,13 +2593,13 @@ class planning_Tasks extends core_Master
                 expect($taskRec = $this->fetch($cloneId));
                 $tasksToClone[$taskRec->id] = $taskRec;
             } else {
+                $selected = Request::get('selected', 'varchar');
+                $selectedArr = empty($selected) ? array() : array_combine(explode('|', $selected), explode('|', $selected));
+                if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
+
+                // От предходните ще се клонират САМО избраните
                 $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
-                $tQuery = planning_Tasks::getQuery();
-                $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'rejected'");
-                $tQuery->in('clonedFromId', array_keys($oldTasks));
-                $tQuery->show('clonedFromId');
-                $exClonedIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'clonedFromId');
-                $tasksToClone = array_diff_key($oldTasks, $exClonedIds);
+                $tasksToClone = array_intersect_key($oldTasks, $selectedArr);
             }
 
             foreach ($tasksToClone as $taskRec){
@@ -2635,19 +2641,20 @@ class planning_Tasks extends core_Master
             $msg = "Успешно клонирани операции от предишно задание|*: {$count}";
             followRetUrl(null, $msg);
         } elseif ($type == 'all') {
+            $selected = Request::get('selected', 'varchar');
+            $selectedArr = !strlen($selected) ? array() : explode('|', $selected);
+            if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
 
             // Ако ще се клонират всички шаблонни операции
             planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'));
             $msgType = 'notice';
-            $msg = 'Успешно създаване на дефолтните операции|*!';
+            $msg = 'Успешно създаване на избраните дефолтни операции|*!';
             $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
 
             $num = 1;
             foreach ($defaultTasks as $sysId => $defaultTask) {
-
+                if(!in_array($sysId, $selectedArr)) continue;
                 try {
-                    if (planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")) continue;
-
                     unset($defaultTask->products);
                     $newTask = clone $defaultTask;
                     $newTask->originId = $jobRec->containerId;
