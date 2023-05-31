@@ -11,7 +11,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -161,6 +161,12 @@ class sales_Quotations extends deals_QuotationMaster
      * Полета свързани с цени
      */
     public $priceFields = 'expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost';
+
+
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,dec_SourceIntf';
 
 
     /**
@@ -498,8 +504,21 @@ class sales_Quotations extends deals_QuotationMaster
             $tpl->removeBlock('TRANSPORT_BAR');
         }
     }
-    
-    
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+
+        if (dec_Declarations::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
+            $data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/declarations.png, row=2, title=Създаване на декларация за съответсвие');
+        }
+    }
+
+
     /**
      * След проверка на ролите
      */
@@ -767,5 +786,29 @@ class sales_Quotations extends deals_QuotationMaster
         $maxDeliveryTime = deals_Helper::calcMaxDeliveryTime($this, $rec, $Detail, $dQuery, $defaultDeliveryTime);
 
         return $maxDeliveryTime;
+    }
+
+
+    /**
+     * Помощна ф-я връщаща артикулите за избор в декларацията от източника
+     * @see dec_SourceIntf
+     *
+     * @param stdClass $rec
+     * @return array
+     *          'productId'
+     *          'batches'
+     */
+    public function getProducts4Declaration($rec)
+    {
+        $res = array();
+        $rec = $this->fetchRec($rec);
+        $dQuery = sales_QuotationsDetails::getQuery();
+        $dQuery->where("#quotationId = {$rec->id}");
+        $dQuery->show('productId');
+        while($dRec = $dQuery->fetch()){
+            $res[$dRec->productId] = (object)array('productId' => $dRec->productId, 'batches' => array());
+        }
+
+        return $res;
     }
 }

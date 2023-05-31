@@ -73,7 +73,7 @@ class dec_Statements extends core_Master
         
         cls::get('core_Lg');
         
-        $this->FLD('lg', 'enum(, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull,allowEmpty');
+        $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,changable');
         
         $this->setDbUnique('title');
     }
@@ -91,7 +91,7 @@ class dec_Statements extends core_Master
         $fields = array(
             0 => 'title',
             1 => 'text',
-        
+            2 => 'lg',
         );
         
         // Импортираме данните от CSV файла.

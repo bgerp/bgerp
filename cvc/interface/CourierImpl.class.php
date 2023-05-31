@@ -519,13 +519,15 @@ class cvc_interface_CourierImpl extends core_Manager
      * @param core_Mvc $mvc          - модел
      * @param stdClass $documentRec  - запис на документа от който ще се генерира
      * @param core_Form $form        - формата за генериране на товарителница
-     * @return core_ET|null $tpl     - хтмл с рендиране на информацията за плащането
+     * @return object $obj           - информация за шаблона и цената
      * @throws core_exception_Expect
      */
-    public function calculateShipmentTpl($mvc, $documentRec, &$form)
+    public function calculateShipmentRes($mvc, $documentRec, &$form)
     {
         $haveError = false;
         $res = null;
+
+        $obj = (object)array('price' => null, 'tpl' => null);
         try{
             $preparedBolParams = static::prepareBolData($form->rec, 'calculate');
             $res = cvc_Adapter::calculateWb($preparedBolParams);
@@ -536,6 +538,7 @@ class cvc_interface_CourierImpl extends core_Manager
         if($haveError || !$res){
             $errorTpl = new core_ET('<div class="richtext-message richtext-error">[#1#]</div>');
             $errorTpl->replace(tr('Цената за изпращане не може да бъде изчислена'), '1');
+            $obj->tpl = $errorTpl;
 
             return $errorTpl;
         }
@@ -547,8 +550,10 @@ class cvc_interface_CourierImpl extends core_Manager
         foreach ($res['details'] as $additionalText){
             $tpl->append("<div>{$additionalText}</div>", 'ADDITIONAL');
         }
+        $obj->tpl = $tpl;
+        $obj->price = (object)array('total' => $res['priceWithVAT'], 'currencyCode' => 'BGN');
 
-        return $tpl;
+        return $obj;
     }
 
 
@@ -680,15 +685,18 @@ class cvc_interface_CourierImpl extends core_Manager
      * @param core_Mvc $mvc          - модел
      * @param stdClass $documentRec  - запис на документа от който ще се генерира
      * @param core_Form $form        - формата за генериране на товарителница
-     * @return string|null $fh       - хендлър на готовата товарителница
+     * @return object $obj           - информация за цената и хендлъра на генерираната товарителница
      * @throws core_exception_Expect
      */
-    public function getRequestedShipmentFh($mvc, $documentRec, &$form)
+    public function getRequestedShipmentRes($mvc, $documentRec, &$form)
     {
         // Подготовка на данните за товарителницата
         $preparedBolParams = static::prepareBolData($form->rec);
+        $obj = (object)array('price' => null, 'fh' => null);
+
         try{
             $res = cvc_Adapter::createWb($preparedBolParams);
+
         } catch(core_exception_Expect $e){
             $form->setError('parcelType', "Проблем при генериране на товарителницата");
             return;
@@ -714,11 +722,13 @@ class cvc_interface_CourierImpl extends core_Manager
             // Кеш на избраните полета от формата
             $cacheArr = array('parcelType' => $form->rec->parcelType, 'customerId' => $form->rec->customerId, 'senderName' => $form->rec->senderName, 'senderPhone' => $form->rec->senderPhone, 'senderEmail' => $form->rec->senderEmail);
             core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
+            $obj->fh = $res['pdf'];
+            $obj->price = (object)array('total' => $res['priceWithVAT'], 'currencyCode' => 'BGN');
 
-            return $res['pdf'];
+            return $obj;
         }
 
-        return null;
+        return $obj;
     }
 
 
