@@ -71,7 +71,8 @@ class bgerp_plg_CsvExport extends core_BaseClass
                 if(isset($MainDetail->productFld)){
                     $fieldset->FLD('code', 'varchar', 'caption=Код');
                     $fieldset->FLD($MainDetail->productFld, 'varchar', 'caption=Артикул');
-                    $fieldset->FLD('quantity', 'varchar', 'caption=Количество');
+                    $fieldset->FLD('packagingId', 'varchar', 'caption=Опаковка');
+                    $fieldset->FLD('packQuantity', 'varchar', 'caption=Количество');
                     $fieldset->FLD('batch', 'varchar', 'caption=Партида');
                     $this->exportProductData = true;
                 }
@@ -203,15 +204,23 @@ class bgerp_plg_CsvExport extends core_BaseClass
         if($this->exportProductData){
             $finalRecs = array();
             foreach ($recs as $rec){
+
+                // Извличат се данните за артикулите от детайла му
                 $csvFields = new core_FieldSet();
                 $dRecs = cls::get('cat_Products')->getRecsForExportInDetails($this->mvc, $rec, $csvFields, core_Users::getCurrent());
                 $fieldKeys = array_keys($csvFields->fields);
+
+                // Ако има артикули в детайла то дублират се мастър данните във всеки ред за всеки артикул
                 if(countR($dRecs)){
                     foreach ($dRecs as $dRec){
                         $clone = clone $rec;
                         foreach ($fieldKeys as $key){
                             $clone->{$key} = $dRec->{$key};
                         }
+                        if(isset($clone->packagingId)){
+                            $clone->packagingId = cat_UoM::fetchField($clone->packagingId, 'name');
+                        }
+
                         $finalRecs[] = $clone;
                     }
                 } else {
