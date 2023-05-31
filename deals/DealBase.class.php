@@ -355,7 +355,7 @@ abstract class deals_DealBase extends core_Master
         $form->title = "|*{$title} <b>" . $this->getFormTitleLink($id). '</b>' . ' ?';
         $form->info = 'Посочете кои сделки желаете да обедините с тази сделка';
         $form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
-        $form->FLD('rate', "double", 'caption=Общ курс,input=hidden');
+        $form->FLD('rate', "double(decimals=5)", 'caption=Общ курс,input=hidden');
         $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
         $form->setSuggestions('closeWith', $options);
         $form->input();
