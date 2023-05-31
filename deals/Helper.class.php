@@ -1405,7 +1405,7 @@ abstract class deals_Helper
             if ($masterMvc instanceof deals_InvoiceMaster) {
                 $rec->displayRate = $newRate;
 
-                if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
+                if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount) || $rec->dpOperation == 'deducted') {
                     // Изчисляване на стойността на ддс-то
                     $vat = acc_Periods::fetchByDate()->vatRate;
                     if(isset($rec->dpVatGroupId)){
