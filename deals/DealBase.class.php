@@ -133,9 +133,10 @@ abstract class deals_DealBase extends core_Master
         // Извличаме dealInfo от самата сделка
         $this->pushDealInfo($dealRec->id, $aggregateInfo);
 
-        $combinedThreads = deals_Helper::getCombinedThreads($dealRec->threadId);
-        if(countR($combinedThreads) > 1){
+        if (!empty($dealRec->closedDocuments)) {
+            $combinedThreads = deals_Helper::getCombinedThreads($dealRec->threadId);
             unset($combinedThreads[$dealRec->threadId]);
+
             $iQuery = doc_Containers::getQuery();
             $iQuery->in('threadId', $combinedThreads);
             $iQuery->in('docClass', array(sales_Invoices::getClassId(), purchase_Invoices::getClassId()));
