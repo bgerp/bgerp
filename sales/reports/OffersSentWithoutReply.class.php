@@ -94,9 +94,9 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('periodPassive', '6 месеца');
+        $form->setDefault('periodStart', '3 дена');
 
-        $form->setDefault('periodActive', '2 години');
+        $form->setDefault('periodActive', '3 седмици');
 
 
     }
