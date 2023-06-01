@@ -23,7 +23,7 @@
     <div style='margin-top:5px'><span class='quiet'>|Модифициранe|*</span>: <b>[#modifiedOn#]</b> |от|* [#modifiedBy#]</div>
     <!--ET_BEGIN clonedFromId-->
     <div style='margin-top:5px'><span class='quiet'>|Клонирано от|*</span>: <b>[#clonedFromId#]</b></div>
-    <!--ET_BEGIN clonedFromId-->
+    <!--ET_END clonedFromId-->
     <!--ET_BEGIN regeneratedFromId-->
     <div style='margin-top:5px'><span class='quiet'>|Регенерирано от|*</span>: <b>[#regeneratedFromId#]</b></div>
     <!--ET_END regeneratedFromId-->
