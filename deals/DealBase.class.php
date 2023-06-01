@@ -133,12 +133,23 @@ abstract class deals_DealBase extends core_Master
         // Извличаме dealInfo от самата сделка
         $this->pushDealInfo($dealRec->id, $aggregateInfo);
 
+        $combinedThreads = deals_Helper::getCombinedThreads($dealRec->threadId);
+        if(countR($combinedThreads) > 1){
+            unset($combinedThreads[$dealRec->threadId]);
+            $iQuery = doc_Containers::getQuery();
+            $iQuery->in('threadId', $combinedThreads);
+            $iQuery->in('docClass', array(sales_Invoices::getClassId(), purchase_Invoices::getClassId()));
+            $iQuery->where("#state = 'active'");
+            while($iRec = $iQuery->fetch()){
+                if(!array_key_exists($iRec->id, $dealDocuments)){
+                    $dealDocuments[$iRec->id] = doc_Containers::getDocument($iRec->id);
+                }
+            }
+        }
+
         foreach ($dealDocuments as $d) {
             $dState = $d->rec('state');
-            if ($dState == 'draft' || $dState == 'rejected') {
-                // Игнорираме черновите и оттеглените документи
-                continue;
-            }
+            if ($dState == 'draft' || $dState == 'rejected') continue;
 
             if ($d->haveInterface('bgerp_DealIntf')) {
                 try {

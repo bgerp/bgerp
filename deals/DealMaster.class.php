@@ -1392,7 +1392,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
         $aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
-        
+
         // Преизчисляваме общо платената и общо експедираната сума
         $rec->amountPaid = $aggregateDealInfo->get('amountPaid');
         $rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
@@ -1400,24 +1400,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec->amountInvoiced = $aggregateDealInfo->get('invoicedAmount');
         $rec->amountInvoicedDownpayment = $aggregateDealInfo->get('downpaymentInvoiced');
         $rec->amountInvoicedDownpaymentToDeduct = $aggregateDealInfo->get('downpaymentInvoiced') - $aggregateDealInfo->get('downpaymentDeducted');
-        
-        if (!empty($rec->closedDocuments)) {
-            
-            // Ако документа приключва други сделки, събираме им фактурираното и го добавяме към текущата
-            $closed = keylist::toArray($rec->closedDocuments);
-            $invAmount = $downpaymentInvoicedAmount = $downpaymentInvoicedToDeductAmount = 0;
-            foreach ($closed as $docId) {
-                $dInfo = $mvc->getAggregateDealInfo($docId);
-                $invAmount += $dInfo->get('invoicedAmount');
-                $downpaymentInvoicedAmount += $dInfo->get('downpaymentInvoiced');
-                $downpaymentInvoicedToDeductAmount += $dInfo->get('downpaymentInvoiced') - $dInfo->get('downpaymentDeducted');
-            }
-            
-            $rec->amountInvoiced += $invAmount;
-            $rec->amountInvoicedDownpayment += $downpaymentInvoicedAmount;
-            $rec->amountInvoicedDownpaymentToDeduct += $downpaymentInvoicedToDeductAmount;
-        }
-        
+
         $rec->paymentState = $mvc->getPaymentState($rec, $aggregateDealInfo);
         $rec->modifiedOn = dt::now();
         
