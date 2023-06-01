@@ -96,7 +96,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
 
         $form->setDefault('periodStart', '3 дена');
 
-        $form->setDefault('periodActive', '3 седмици');
+        $form->setDefault('periodEnd', '3 седмици');
 
 
     }
