@@ -403,6 +403,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $Time = cls::get('type_Time');
+        $Date = cls::get('type_Date');
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -420,7 +421,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $activePeriodStart = dt::addSecs(-$data->rec->periodActive, $passivePeriodStart, false);
 
         if (isset($data->rec->periodPassive)) {
-            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodPassive).' ('.$passivePeriodStart.' - '.dt::today().')' . '</b>', 'periodPassive');
+            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodPassive).' ('.$passivePeriodStart.' - '.$Date->toVerbal($data->rec->lastRefreshed) . '</b>', 'periodPassive');
         }
 
         if (isset($data->rec->periodActive)) {
