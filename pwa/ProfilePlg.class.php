@@ -23,9 +23,11 @@ class pwa_ProfilePlg extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        $key = pwa_Setup::get('PUBLIC_KEY');
-        if ($key) {
-            $data->toolbar->addFnBtn('Известия', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Получаване на известия');
+        if (core_Users::getCurrent() == $data->rec->userId) {
+            $key = pwa_Setup::get('PUBLIC_KEY');
+            if ($key) {
+                $data->toolbar->addFnBtn('Известия', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Получаване на известия');
+            }
         }
     }
 
