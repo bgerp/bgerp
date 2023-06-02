@@ -1,10 +1,23 @@
 <?php
+use Minishlink\WebPush\VAPID;
+
+/**
+ * За кои домейни да се използва PWA
+ */
+defIfNot('PWA_DOMAINS', '');
+
 
 
 /**
- * Мобилното приложение активно ли е?
+ * Частер ключ за VAPID
  */
-defIfNot('PWA_DOMAINS', '');
+defIfNot('PWA_PRIVATE_KEY', '');
+
+
+/**
+ * Публичен ключ за VAPID
+ */
+defIfNot('PWA_PUBLIC_KEY', '');
 
 
 /**
@@ -36,7 +49,23 @@ class pwa_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'PWA_DOMAINS' => array('keylist(mvc=cms_Domains, select=domain, forceGroupBy=domain)', 'caption=Мобилно приложение->Домейни'),
+        'PWA_PUBLIC_KEY' => array('password(128)', 'canEdit=no_one, canView=debug, caption=VAPID ключ->Публичен'),
     );
+
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+        'pwa_PushSubscriptions',
+    );
+
+
+
+    /**
+     * Мениджър - входна точка в пакета
+     */
+    public $startCtr = 'pwa_PushSubscriptions';
 
     
     /**
@@ -51,6 +80,7 @@ class pwa_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина към страницата
         $html .= $Plugins->installPlugin('bgERP PWA', 'pwa_Plugin', 'core_page_Active', 'family');
+        $html .= $Plugins->installPlugin('bgERP PWA Profile', 'pwa_ProfilePlg', 'crm_Profiles', 'private');
 
         $html .= fileman_Buckets::createBucket('pwa', 'Файлове качени с PWA', '', '100MB', 'user', 'every_one');
         
@@ -126,6 +156,48 @@ class pwa_Setup extends core_ProtoSetup
                 core_Webroot::register($sw, 'Content-Type: text/javascript', 'serviceworker.js', $domainId);
 
                 $html .= '<li>Регистриране на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
+            }
+        }
+
+        if (core_Composer::isInUse()) {
+            $cVersion = 7;
+            $pVersion = phpversion();
+            if ((version_compare($pVersion, '7.3') < 0)) {
+                $cVersion = 6;
+            }
+            if ((version_compare($pVersion, '7.2') < 0)) {
+                $cVersion = 5;
+            }
+            if ((version_compare($pVersion, '7.1') < 0)) {
+                $cVersion = 2;
+            }
+
+            if ((version_compare($pVersion, '8') >= 0)) {
+                $cVersion = 8;
+            }
+
+            // 8 -> за PHP > PHP 8.0
+            // 7 -> за PHP > PHP 7.3 7.4
+            // 6 -> PHP 7.2
+            // 3-5 -> PHP 7.1
+            // 2 -> PHP 7.0
+            // 1 -> PHP 5.6
+            $html .= core_Composer::install('minishlink/web-push', $cVersion);
+
+            if (!trim(pwa_Setup::get('PUBLIC_KEY')) || !trim(pwa_Setup::get('PRIVATE_KEY'))) {
+                try {
+                    $keysArr = VAPID::createVapidKeys();
+                    core_Packs::setConfig('pwa', array('PWA_PUBLIC_KEY' => $keysArr['publicKey']));
+                    core_Packs::setConfig('pwa', array('PWA_PRIVATE_KEY' => $keysArr['privateKey']));
+
+                    $html .= "<li style='green'>Добавени са VAPID ключове</li>";
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                } catch (Throwable $t) {
+                    reportException($t);
+                } catch (Error $e) {
+                    reportException($e);
+                }
             }
         }
 
