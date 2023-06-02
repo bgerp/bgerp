@@ -128,7 +128,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $recs = $shipmentActivContragents = $shipmentPassActivContragents = $incomingMailsCount = $outgoingMailsCount = array();
 
         $passivePeriodStart = dt::addSecs(-$rec->periodPassive, dt::today(), false);
-        $activePeriodStart = dt::addSecs(-$rec->periodActive, $passivePeriodStart, false);
+        $activePeriodStart = dt::addSecs(-$rec->periodActive, dt::addDays(-1,$passivePeriodStart,false), false);
 
         //Определяме контрагентите  с експедиции в периода на активност и периода на пасивност
         $shQuery = store_ShipmentOrders::getQuery();
@@ -332,6 +332,10 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         } else {
 
             $fld->FLD('contragentId', 'varchar', 'caption=Контрагент');
+            $fld->FLD('activSalesNumber', 'int', 'caption=Активен продажби->Брой');
+            $fld->FLD('activSalesAmount', 'double(decimals=2)', 'caption=Активен продажби->Стойност');
+            $fld->FLD('passivMailsIn', 'int', 'caption=Пасивен Писма->Входящи');
+            $fld->FLD('passivMailsOut', 'int', 'caption=Пасивен Писма->Изходяши');
 
         }
 
@@ -418,14 +422,14 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
 
         $passivePeriodStart = dt::addSecs(-$data->rec->periodPassive, $data->rec->lastRefreshed, false);
-        $activePeriodStart = dt::addSecs(-$data->rec->periodActive, $passivePeriodStart, false);
+        $activePeriodStart = dt::addSecs(-$data->rec->periodActive, dt::addDays(-1,$passivePeriodStart), false);
 
         if (isset($data->rec->periodPassive)) {
             $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodPassive).' ('.$Date->toVerbal($passivePeriodStart).' - '.$Date->toVerbal($data->rec->lastRefreshed).')' . '</b>', 'periodPassive');
         }
 
         if (isset($data->rec->periodActive)) {
-            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodActive).' ('.$Date->toVerbal($activePeriodStart).' - '.$Date->toVerbal($passivePeriodStart).')' . '</b>', 'periodActive');
+            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodActive).' ('.$Date->toVerbal($activePeriodStart).' - '.$Date->toVerbal(dt::addDays(-1,$passivePeriodStart,false)).')' . '</b>', 'periodActive');
         }
         if (isset($data->rec->minShipment)) {
             $fieldTpl->append('<b>' . ($data->rec->minShipment) . '</b>', 'minShipment');
@@ -477,7 +481,11 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
-        $res->contragentId = self::getContragent($dRec, false, $rec);
+        $res->contragentId = doc_Folders::fetch($dRec->folderId)->title;
+        $res->activSalesNumber =($dRec->numberOfSales);
+        $res->activSalesAmount = ($dRec->amountDelivered);
+        $res->passivMailsIn = ($dRec->numberOfInMails);
+        $res->passivMailsOut =($dRec->numberOfOutMails);
 
 
     }
