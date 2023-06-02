@@ -421,11 +421,11 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $activePeriodStart = dt::addSecs(-$data->rec->periodActive, $passivePeriodStart, false);
 
         if (isset($data->rec->periodPassive)) {
-            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodPassive).' ('.$passivePeriodStart.' - '.$Date->toVerbal($data->rec->lastRefreshed) . '</b>', 'periodPassive');
+            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodPassive).' ('.$Date->toVerbal($passivePeriodStart).' - '.$Date->toVerbal($data->rec->lastRefreshed).')' . '</b>', 'periodPassive');
         }
 
         if (isset($data->rec->periodActive)) {
-            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodActive).' ('.$activePeriodStart.' - '.$passivePeriodStart.')' . '</b>', 'periodActive');
+            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->periodActive).' ('.$Date->toVerbal($activePeriodStart).' - '.$Date->toVerbal($passivePeriodStart).')' . '</b>', 'periodActive');
         }
         if (isset($data->rec->minShipment)) {
             $fieldTpl->append('<b>' . ($data->rec->minShipment) . '</b>', 'minShipment');
