@@ -417,7 +417,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"));
 
 
-        $passivePeriodStart = dt::addSecs(-$data->rec->periodPassive, dt::today(), false);
+        $passivePeriodStart = dt::addSecs(-$data->rec->periodPassive, $data->rec->lastRefreshed, false);
         $activePeriodStart = dt::addSecs(-$data->rec->periodActive, $passivePeriodStart, false);
 
         if (isset($data->rec->periodPassive)) {
