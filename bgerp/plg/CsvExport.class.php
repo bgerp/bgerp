@@ -28,8 +28,14 @@ class bgerp_plg_CsvExport extends core_BaseClass
      * Заглавие
      */
     public $title = 'Експортиране в Csv';
-    
-    
+
+
+    /**
+     * Полета за експорт от детайла
+     */
+    private $detailFields;
+
+
     /**
      * Може ли да се добавя към този мениджър
      */
@@ -63,10 +69,30 @@ class bgerp_plg_CsvExport extends core_BaseClass
 
         $mvc->invoke('afterGetCsvFieldSetForExport', array(&$fieldset));
 
+        if($mvc instanceof core_Master){
+            if(isset($mvc->mainDetail)){
+                $MainDetail = cls::get($mvc->mainDetail);
+
+                // Ако детайла има поле за избор на артикули
+                if(isset($MainDetail->productFld)){
+                    $fieldset->FLD('code', 'varchar', 'caption=Код');
+                    $fieldset->FLD($MainDetail->productFld, 'varchar', 'caption=Артикул');
+                    $fieldset->FLD('packagingId', 'varchar', 'caption=Опаковка');
+                    $fieldset->FLD('packQuantity', 'varchar', 'caption=Количество');
+                    $detailFields = arr::make("code,{$MainDetail->productFld},packagingId,packQuantity", true);
+                    if(core_Packs::isInstalled('batch')){
+                        $fieldset->FLD('batch', 'varchar', 'caption=Партида');
+                        $detailFields['batch'] = 'batch';
+                    }
+                    $this->detailFields = $detailFields;
+                }
+            }
+        }
+
         return $fieldset;
     }
-    
-    
+
+
     /**
      * Подготвя формата за експорт
      *
@@ -184,6 +210,36 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $params['decPoint'] = $filter->decimalSign;
         $params['enclosure'] = $filter->enclosure;
         $params['text'] = 'plain';
+
+        if(countR($this->detailFields) && countR(array_intersect_key($fieldsArr, $this->detailFields))){
+            $finalRecs = array();
+            foreach ($recs as $rec){
+
+                // Извличат се данните за артикулите от детайла му
+                $csvFields = new core_FieldSet();
+                $dRecs = cls::get('cat_Products')->getRecsForExportInDetails($this->mvc, $rec, $csvFields, core_Users::getCurrent());
+                $fieldKeys = array_combine(array_keys($csvFields->fields), array_keys($csvFields->fields));
+
+                // Ако има артикули в детайла то дублират се мастър данните във всеки ред за всеки артикул
+                if(countR($dRecs)){
+                    foreach ($dRecs as $dRec){
+                        $clone = clone $rec;
+                        foreach ($fieldKeys as $key){
+                            $clone->{$key} = $dRec->{$key};
+                        }
+                        if(isset($clone->packagingId)){
+                            $clone->packagingId = cat_UoM::fetchField($clone->packagingId, 'name');
+                        }
+
+                        $finalRecs[] = $clone;
+                    }
+                } else {
+                    $finalRecs[] = $rec;
+                }
+            }
+
+            $recs = $finalRecs;
+        }
 
         Mode::push('text', 'plain');
         $this->mvc->invoke('BeforeExportCsv', array(&$recs));

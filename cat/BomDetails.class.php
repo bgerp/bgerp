@@ -246,6 +246,12 @@ class cat_BomDetails extends doc_Detail
 
         if($rec->type == 'stage'){
             $form->setField('subTitle', 'input');
+            if($data->masterRec->state == 'active' && isset($rec->id)){
+                foreach (array('subTitle', 'propQuantity', 'position', 'packagingId', 'description', 'parentId') as $fld){
+                    $form->setField($fld, 'input=hidden');
+                }
+            }
+
             if(isset($rec->resourceId)){
 
                 // Ако има данни за производство
@@ -576,7 +582,8 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        $masterProductId = cat_Boms::fetchField($rec->bomId, 'productId');
+        $masterRec = cat_Boms::fetch($rec->bomId);
+        $masterProductId = $masterRec->productId;
         
         // Ако има избран ресурс, добавяме му мярката до полетата за количества
         if (isset($rec->resourceId)) {
@@ -602,6 +609,10 @@ class cat_BomDetails extends doc_Detail
             } elseif($form->_replaceProduct !== true) {
                 $form->setField('packagingId', 'input');
             }
+        }
+
+        if($masterRec->state == 'active' && $rec->type == 'stage' && isset($rec->id)) {
+            $form->setField('packagingId', 'input=hidden');
         }
         
         // Проверяваме дали е въведено поне едно количество
@@ -834,21 +845,26 @@ class cat_BomDetails extends doc_Detail
         $productDescriptionStr = '';
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $productDescriptionStr = "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $productDescriptionStr = new core_ET("<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>");
         }
 
         if($rec->type == 'stage'){
             $rec->state = cat_Boms::fetchField($rec->bomId, 'state');
             $paramData = cat_products_Params::prepareClassObjectParams($mvc, $rec);
             if (isset($paramData)) {
-                $paramTpl = cat_products_Params::renderParams($paramData);
-                $productDescriptionStr .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
+                 $paramData->minRowToolbar = 2;
+                 $paramTpl = cat_products_Params::renderParams($paramData);
+                 $productDescriptionStr->append($paramTpl);
             }
         }
 
         if(!empty($productDescriptionStr)){
-            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>';
-            $row->resourceId .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>{$productDescriptionStr}</div>";
+            $newTpl = new core_ET("[#resourceId#] [#link#] <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>[#content#]</div>");
+            $newTpl->replace($row->resourceId, 'resourceId');
+            $newTpl->replace(" <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>', 'link');
+            $newTpl->replace($productDescriptionStr, 'content');
+
+            $row->resourceId = $newTpl;
         }
 
         $coefficient = null;
@@ -990,8 +1006,14 @@ class cat_BomDetails extends doc_Detail
         if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'expand' || $action == 'shrink') && isset($rec)) {
             if(isset($rec->bomId)){
                 $masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
-                if ($masterRec->state != 'draft') {
-                    $requiredRoles = 'no_one';
+                if($action == 'edit' && $rec->type == 'stage'){
+                    if (in_array($masterRec->state, array('closed', 'rejected'))) {
+                        $requiredRoles = 'no_one';
+                    }
+                } else {
+                    if ($masterRec->state != 'draft') {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }

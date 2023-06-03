@@ -231,7 +231,7 @@ class cat_Boms extends core_Master
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
 
-        $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
+        $this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Без допълване (рецептата е Пълна),no=Допълване до "Себестойност" (рецептата е Непълна))', 'caption=Себестойност,notNull,value=auto,mandatory,width=100%');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
@@ -640,6 +640,12 @@ class cat_Boms extends core_Master
 
         if ($action == 'close' && isset($rec)) {
             if(!in_array($rec->state, array('active', 'closed'))){
+                $res = 'no_one';
+            }
+        }
+
+        if ($action == 'regenerate' && isset($rec)) {
+            if($rec->state != 'active'){
                 $res = 'no_one';
             }
         }
@@ -1705,7 +1711,7 @@ class cat_Boms extends core_Master
                 $parent = $pRec->parentId;
             }
 
-            $quantityP = (($quantityP) / $rec) * $quantity;
+            $quantityP = (($quantityP) / $rec->quantity) * $quantity;
             $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
             $pRec = cat_Products::fetch($dRec->resourceId);
@@ -1941,7 +1947,7 @@ class cat_Boms extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->haveRightFor('regenerate', $data->rec)) {
-            $data->toolbar->addBtn('Регенериране', array($mvc, 'regenerate', $data->rec->id), 'title=Създаване на нова регенерирана рецепта,ef_icon=img/16/arrow_refresh.png');
+            $data->toolbar->addBtn('Регенериране', array($mvc, 'regenerate', $data->rec->id, 'ret_url' => true), 'title=Създаване на нова регенерирана рецепта,ef_icon=img/16/arrow_refresh.png');
         }
     }
 
@@ -1956,35 +1962,56 @@ class cat_Boms extends core_Master
         expect($rec = $this->fetch($id));
         $this->requireRightFor('regenerate', $rec);
 
-        $clone = clone $rec;
-        plg_Clone::unsetFieldsNotToClone($this, $clone, $rec);
-        unset($clone->id, $clone->changeModifiedOn, $clone->changeModifiedBy, $clone->containerId, $clone->modifiedOn, $clone->modifiedBy, $clone->activatedOn, $clone->activatedBy, $clone->clonedFromId, $clone->createdBy, $clone->createdOn);
-        $clone->state = 'draft';
-        $clone->_regenerate = true;
-        $clone->regeneratedFromId = $rec->id;
+        $form = cls::get('core_Form');
+        $form->title = "Регенериране на детайлите на|* " . cls::get('cat_Boms')->getFormTitleLink($rec->id);
+        $form->FNC('select', 'enum(yes=Да,no=Не)', 'caption=Да се регенерерират само при по-нова рецепта->Избор,input');
+        $form->setDefault('select', 'yes');
+        $form->input();
+        if($form->isSubmitted()){
+            $selected = ($form->rec->select == 'yes');
 
-        $newBomId = $this->save($clone);
-        $newBomRec = static::fetch($newBomId);
+            $clone = clone $rec;
+            plg_Clone::unsetFieldsNotToClone($this, $clone, $rec);
+            unset($clone->id, $clone->changeModifiedOn, $clone->changeModifiedBy, $clone->containerId, $clone->modifiedOn, $clone->modifiedBy, $clone->activatedOn, $clone->activatedBy, $clone->clonedFromId, $clone->createdBy, $clone->createdOn);
+            $clone->state = 'draft';
+            $clone->_regenerate = true;
+            $clone->regeneratedFromId = $rec->id;
 
-        $dQuery = cat_BomDetails::getQuery();
-        $dQuery->where("#bomId = {$rec->id} AND #parentId IS NULL");
-        $dQuery->orderBy('position', 'ASC');
-        while($dRec = $dQuery->fetch()){
-            $this->regenDetailRec($dRec, $newBomRec);
+            $newBomId = $this->save($clone);
+            $newBomRec = static::fetch($newBomId);
+            cat_BomDetails::delete("#bomId = $newBomId");
+
+            $dQuery = cat_BomDetails::getQuery();
+            $dQuery->where("#bomId = {$rec->id} AND #parentId IS NULL");
+            $dQuery->orderBy('position', 'ASC');
+            while($dRec = $dQuery->fetch()){
+                $this->regenDetailRec($dRec, $newBomRec, $rec, $selected);
+            }
+
+            return new Redirect(array($this, 'single', $newBomRec->id), 'Създадена е нова обновена рецепта|*!');
         }
 
-        return new Redirect(array($this, 'single', $newBomRec->id), 'Създадена е нова обновена рецепта|*!');
+
+        // Добавяне на бутони
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $tpl = $form->renderHtml();
+
+        return $tpl;
     }
 
 
     /**
      * Регенерира запис на детайла
      *
-     * @param $dRec - запис който да се регенерира
-     * @param $newBomRec - нова рецепта
+     * @param stdClass $dRec - запис за регенериране
+     * @param stdClass $newBomRec - нова рецепта
+     * @param stdClass $oldBomRec - стара рецепта
+     * @param bool $cloneIfDetailsAreNewer - дали да се регенерират само ако рецептата е по-нова
+     *
      * @return void
      */
-    private function regenDetailRec($dRec, $newBomRec)
+    private function regenDetailRec($dRec, $newBomRec, $oldBomRec, $cloneIfDetailsAreNewer)
     {
         if($dRec->type == 'stage'){
             $Driver = cat_Products::getDriver($dRec->resourceId);
@@ -1997,6 +2024,7 @@ class cat_Boms extends core_Master
 
         $Details = cls::get('cat_BomDetails');
         $dRec->params = $Details->getProductParamScope($dRec, $newBomRec->productId);
+        $originRec = clone $dRec;
         unset($dRec->id, $dRec->modifiedOn, $dRec->modifiedBy, $dRec->createdOn, $dRec->createdBy);
         $dRec->bomId = $newBomRec->id;
         $dRec->coefficient = $newBomRec->quantity;
@@ -2008,14 +2036,26 @@ class cat_Boms extends core_Master
         if($dRec->type == 'stage'){
             $bomOrder = (($newBomRec->type == 'production') ? 'production,instant,sales' : (($newBomRec->type == 'instant') ? 'instant,sales' : 'sales'));
             $activeBom = cat_Products::getLastActiveBom($dRec->resourceId, $bomOrder);
+
+            $dRecs = array();
             if($activeBom){
-                $bQuery = cat_BomDetails::getQuery();
-                $bQuery->where("#parentId IS NULL AND #bomId = {$activeBom->id}");
-                while($bRec = $bQuery->fetch()){
-                    $bRec->parentId = $dRec->id;
-                    $bRec->coefficient = $activeBom->quantity;
-                    $this->regenDetailRec($bRec, $newBomRec);
+                if(!$cloneIfDetailsAreNewer || $oldBomRec->activatedOn <= $activeBom->acttivatedOn){
+                    $bQuery = cat_BomDetails::getQuery();
+                    $bQuery->where("#parentId IS NULL AND #bomId = {$activeBom->id}");
+                    $dRecs = $bQuery->fetchAll();
                 }
+            }
+
+            if(!countR($dRecs)){
+                $dQuery = cat_BomDetails::getQuery();
+                $dQuery->where("#parentId = {$originRec->id}");
+                $dRecs = $dQuery->fetchAll();
+            }
+
+            foreach ($dRecs as $bRec){
+                $bRec->parentId = $dRec->id;
+                $bRec->coefficient = $activeBom->quantity;
+                $this->regenDetailRec($bRec, $newBomRec, $oldBomRec, $cloneIfDetailsAreNewer);
             }
         }
     }

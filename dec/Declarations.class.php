@@ -79,7 +79,7 @@ class dec_Declarations extends core_Master
     /**
      * Кои полета ще виждаме в листовия изглед
      */
-    public $listFields = 'id, doc, createdOn, createdBy';
+    public $listFields = 'id, doc, folderId, state, createdOn, createdBy';
     
     
     /**

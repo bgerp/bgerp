@@ -369,11 +369,12 @@ class cat_products_Params extends doc_Detail
     public static function fetchParamValue($classId, $productId, $sysId, $verbal = false)
     {
         $paramId = (is_numeric($sysId)) ? cat_Params::fetchField($sysId) : cat_Params::fetchIdBySysId($sysId);
-        
+        $Class = cls::get($classId);
+
         if (!empty($paramId)) {
-            $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
+            $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$Class->getClassId()}", 'paramValue');
             if ($verbal === true) {
-                $paramValue = cat_Params::toVerbal($paramId, $classId, $productId, $paramValue);
+                $paramValue = cat_Params::toVerbal($paramId, $Class->getClassId(), $productId, $paramValue);
             }
             
             return $paramValue;
@@ -399,7 +400,8 @@ class cat_products_Params extends doc_Detail
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 if ($data->noChange !== true && !Mode::isReadOnly()) {
-                    $row->tools = $row->_rowTools->renderHtml();
+                    $minRowToolbar = isset($data->minRowToolbar) ? $data->minRowToolbar : null;
+                    $row->tools = $row->_rowTools->renderHtml($minRowToolbar);
                 } else {
                     unset($row->tools);
                 }
@@ -497,7 +499,7 @@ class cat_products_Params extends doc_Detail
         // Ако има указани роли за параметъра, потребителя трябва да ги има за редакция/изтриване
         if (($action == 'edit' || $action == 'delete') && $requiredRoles != 'no_one' && isset($rec)) {
             $pRec = cat_Params::fetch($rec->paramId, 'roles,valueType');
-            if (!empty($roles) && !haveRole($roles, $userId)) {
+            if (!empty($pRec->roles) && !haveRole($pRec->roles, $userId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -834,8 +836,9 @@ class cat_products_Params extends doc_Detail
         $d = new stdClass();
         $d->masterId = $objectRec->id;
         $d->masterClassId = $class::getClassId();
+
         if($class instanceof cat_BomDetails){
-            if($objectRec->state != 'draft'){
+            if(!in_array($objectRec->state, array('draft', 'active'))){
                 $d->noChange = true;
             }
         }elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {

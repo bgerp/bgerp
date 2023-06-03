@@ -81,12 +81,12 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * @param core_Mvc $mvc          - модел
      * @param stdClass $documentRec  - запис на документа от който ще се генерира
      * @param core_Form $form        - формата за генериране на товарителница
-     * @return core_ET|null $tpl     - хтмл с рендиране на информацията за плащането
+     * @return object $obj           - информация за шаблона и цената
      * @throws core_exception_Expect
      */
-    public function calculateShipmentTpl($mvc, $documentRec, &$form)
+    public function calculateShipmentRes($mvc, $documentRec, &$form)
     {
-        return $this->class->calculateShipmentTpl($mvc, $documentRec, $form);
+        return $this->class->calculateShipmentRes($mvc, $documentRec, $form);
     }
 
 
@@ -111,12 +111,12 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * @param core_Mvc $mvc          - модел
      * @param stdClass $documentRec  - запис на документа от който ще се генерира
      * @param core_Form $form        - формата за генериране на товарителница
-     * @return string|null $fh       - хендлър на готовата товарителница
+     * @return object $obj           - информация за цената и хендлъра на генерираната товарителница
      * @throws core_exception_Expect
      */
-    public function getRequestedShipmentFh($mvc, $documentRec, &$form)
+    public function getRequestedShipmentRes($mvc, $documentRec, &$form)
     {
-        return $this->class->getRequestedShipmentFh($mvc, $documentRec, $form);
+        return $this->class->getRequestedShipmentRes($mvc, $documentRec, $form);
     }
 
 
