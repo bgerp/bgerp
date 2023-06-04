@@ -319,118 +319,156 @@ class remote_Authorizations extends embed_Manager
         
         // Извличаме, кои потребители имат гейтове за изпращане на съобщения
         $classes = core_Classes::getOptionsByInterface('remote_SendMessageIntf');
+
         if (!countR($classes)) {
             
             return;
         }
-        
-        $userSenders = array();
-        $query = self::getFiltredQuery($classes);
-        while ($rec = $query->fetch()) {
-            $userSenders[$rec->userId][] = $rec;
-        }
-        if (!countR($userSenders)) {
-            log_System::add('remote_Authorizations', 'Няма потребители с услуги за изпращане на съобщения', null, 'info');
-            
-            return;
-        }
-        
-        $lastPortalSeen = array();
-        
-        // Махаме тези потребители, които са били активни допреди 2 минути
-        $before2min = dt::addSecs(-180);
-        foreach ($userSenders as $userId => $rec) {
-            $uRec = core_Users::fetch($userId);
-            if ($uRec->lastActivityTime > $before2min) {
-                unset($userSenders[$userId]);
+
+        $remoteDrivers = $remoteNoDriversArr = array();
+
+        // Подреждаме с по-голям приоритет, класовете, които нямат remote_ServiceDriverIntf
+        foreach ($classes as $classId => $className) {
+            if (cls::haveInterface('remote_ServiceDriverIntf', $classId)) {
+                $remoteDrivers[$classId] = $className;
             } else {
-                $lastPortalSeen[$userId] = bgerp_LastTouch::get('portal', $userId);
+                $remoteNoDriversArr[$classId] = $className;
             }
         }
-        if (!countR($userSenders)) {
-            log_System::add('remote_Authorizations', 'Няма потребители с услуги за изпращане на съобщения, които не са били активни в последните 3 минути.', null, 'info');
-            
-            return;
-        }
-        
-        // Обикаля по всички известия от последните 48 часа, което не са затворени
-        $ntfs = $ntfsMsg = array();
-        $nQuery = bgerp_Notifications::getQuery();
-        $last48hours = dt::addSecs(-48 * 3600);
-        $nQuery->where("#state = 'active' AND #activatedOn > '{$last48hours}' AND #userId IN (" . implode(',', array_keys($userSenders)) . ')');
-        while ($nRec = $nQuery->fetch()) {
-            
-            // Прескачаме тези, които са по-стари от последното виждане на портала
-            if ($lastPortalSeen[$nRec->userId] > $nRec->activatedOn) {
-                continue;
-            }
-            
-            // Правим масив по потребители, приоритети и време на най-старото известие
-            if (!isset($ntfs[$nRec->userId][$nRec->priority])) {
-                $ntfs[$nRec->userId][$nRec->priority] = $nRec->activatedOn;
-            } else {
-                $ntfs[$nRec->userId][$nRec->priority] = min($nRec->activatedOn, $ntfs[$nRec->userId][$nRec->priority]);
-            }
-            $ntfsMsg[$nRec->userId][$nRec->priority] = tr("|*{$nRec->msg}");
-        }
-        if (!countR($ntfs)) {
-            log_System::add('remote_Authorizations', 'Няма невидени нотификации', null, 'info');
-            
-            return;
-        }
-        
-        list($d, $t) = explode(' ', dt::now());
-        
-        if ($t > '22:00:00' || $t < '08:00:00') {
-            $dayTime = 'night';
-        } elseif ($t > '18:00:00' || $t < '09:00:00' || cal_Calendar::isDayType($d . ' 12:00:00', 'nonworking')) {
-            $dayTime = 'nonworking';
-        } else {
-            $dayTime = 'working';
-        }
-        
-        foreach ($ntfs as $userId => $nArr) {
-            $lastSent['alert'] = bgerp_LastTouch::get('sent_alert', $userId);
-            $lastSent['warning'] = bgerp_LastTouch::get('sent_warning', $userId);
-            $lastSent['normal'] = bgerp_LastTouch::get('sent_normal', $userId);
-            
-            $alreadySent['alert'] = ($lastPortalSeen[$userId] < $lastSent['alert']);
-            $alreadySent['warning'] = ($lastPortalSeen[$userId] < $lastSent['warning']) || $alreadySent['alert'];
-            $alreadySent['normal'] = ($lastPortalSeen[$userId] < $lastSent['normal']) || $alreadySent['warning'];
-            
-            // За да изпратим известие на дадения потребител, искаме от последното му показване на портала, да няма
-            // изпращане на известие за същия или по-малък приоритет налични известия
-            foreach ($nArr as $priority => $time) {
-                
-                // Ако вече сме изпращали този тип известие и след това потребителят
-                // все-още не е влизал в системата, пропускаме го
-                if ($alreadySent[$priority]) {
-                    // log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} вече е изпращано съобщение", NULL, 'info');
-                    
+        $newClassesArr = $remoteNoDriversArr + $remoteDrivers;
+
+        foreach ($newClassesArr as $classId => $className) {
+
+            $haveRemote = $remoteNoDriversArr[$classId] ? false : true;
+
+            if ($haveRemote) {
+                $userSenders = array();
+                $query = self::getFiltredQuery($classes);
+                while ($rec = $query->fetch()) {
+                    $userSenders[$rec->userId][] = $rec;
+                }
+                if (!countR($userSenders)) {
+                    log_System::add('remote_Authorizations', 'Няма потребители с услуги за изпращане на съобщения', null, 'info');
+
                     continue;
                 }
-                
-                // Поне колко трябва да е старо известието, за да се изпрати
-                $sendIfOlderThan = dt::addSecs(-bgerp_Setup::get('NOTIFY_' . strtoupper($priority), false, $userId));
-                
-                if ($time < $sendIfOlderThan) {
-                    $config = bgerp_Setup::get('BLOCK_' . strtoupper($priority), false, $userId);
-                    if (in_array($dayTime, explode('|', $config))) {
-                        //log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} не е подходящо времето {$config}", null, 'info');
-                        
+            } else {
+                $userSenders = core_Users::getByRole('powerUser');
+                foreach ($userSenders as $uId) {
+                    $userSenders[$uId] = array();
+                    $userSenders[$uId][] = $uId;
+
+                }
+            }
+
+            $lastPortalSeen = array();
+
+            // Махаме тези потребители, които са били активни допреди 2 минути
+            $before2min = dt::addSecs(-180);
+            foreach ($userSenders as $userId => $rec) {
+                $uRec = core_Users::fetch($userId);
+                if ($uRec->lastActivityTime > $before2min) {
+                    unset($userSenders[$userId]);
+                } else {
+                    $lastPortalSeen[$userId] = bgerp_LastTouch::get('portal', $userId);
+                }
+            }
+            if (!countR($userSenders)) {
+                log_System::add('remote_Authorizations', 'Няма потребители с услуги за изпращане на съобщения, които не са били активни в последните 3 минути.', null, 'info');
+
+                continue;
+            }
+
+            // Обикаля по всички известия от последните 48 часа, което не са затворени
+            $ntfs = $ntfsMsg = array();
+            $nQuery = bgerp_Notifications::getQuery();
+            $last48hours = dt::addSecs(-48 * 3600);
+            $nQuery->where("#state = 'active' AND #activatedOn > '{$last48hours}' AND #userId IN (" . implode(',', array_keys($userSenders)) . ')');
+            while ($nRec = $nQuery->fetch()) {
+
+                // Прескачаме тези, които са по-стари от последното виждане на портала
+                if ($lastPortalSeen[$nRec->userId] > $nRec->activatedOn) {
+                    continue;
+                }
+
+                // Правим масив по потребители, приоритети и време на най-старото известие
+                if (!isset($ntfs[$nRec->userId][$nRec->priority])) {
+                    $ntfs[$nRec->userId][$nRec->priority] = $nRec->activatedOn;
+                } else {
+                    $ntfs[$nRec->userId][$nRec->priority] = min($nRec->activatedOn, $ntfs[$nRec->userId][$nRec->priority]);
+                }
+                $ntfsMsg[$nRec->userId][$nRec->priority] = tr("|*{$nRec->msg}");
+            }
+            if (!countR($ntfs)) {
+                log_System::add('remote_Authorizations', 'Няма невидени нотификации', null, 'info');
+
+                continue;
+            }
+
+            list($d, $t) = explode(' ', dt::now());
+
+            if ($t > '22:00:00' || $t < '08:00:00') {
+                $dayTime = 'night';
+            } elseif ($t > '18:00:00' || $t < '09:00:00' || cal_Calendar::isDayType($d . ' 12:00:00', 'nonworking')) {
+                $dayTime = 'nonworking';
+            } else {
+                $dayTime = 'working';
+            }
+
+            foreach ($ntfs as $userId => $nArr) {
+                $lastSent['alert'] = bgerp_LastTouch::get('sent_alert', $userId);
+                $lastSent['warning'] = bgerp_LastTouch::get('sent_warning', $userId);
+                $lastSent['normal'] = bgerp_LastTouch::get('sent_normal', $userId);
+
+                $alreadySent['alert'] = ($lastPortalSeen[$userId] < $lastSent['alert']);
+                $alreadySent['warning'] = ($lastPortalSeen[$userId] < $lastSent['warning']) || $alreadySent['alert'];
+                $alreadySent['normal'] = ($lastPortalSeen[$userId] < $lastSent['normal']) || $alreadySent['warning'];
+
+                // За да изпратим известие на дадения потребител, искаме от последното му показване на портала, да няма
+                // изпращане на известие за същия или по-малък приоритет налични известия
+                foreach ($nArr as $priority => $time) {
+
+                    // Ако вече сме изпращали този тип известие и след това потребителят
+                    // все-още не е влизал в системата, пропускаме го
+                    if ($alreadySent[$priority]) {
+                        // log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} вече е изпращано съобщение", NULL, 'info');
+
                         continue;
                     }
-                    
-                    $msg = 'There is ' . $mapNames[$priority] . ' notifications on ' . toUrl(array('bgerp_Portal', 'Show'), 'absolute') . ' : ' . $ntfsMsg[$userId][$priority];
-                    
-                    // Изпращаме нотификацията
-                    foreach ($userSenders[$userId] as $rec) {
-                        $driver = self::getDriver($rec);
-                        if ($driver->sendMessage($userId, $msg)) {
-                            bgerp_LastTouch::set('sent_' . $priority, $userId);
-                            break;
+
+                    // Поне колко трябва да е старо известието, за да се изпрати
+                    $sendIfOlderThan = dt::addSecs(-bgerp_Setup::get('NOTIFY_' . strtoupper($priority), false, $userId));
+
+                    if ($time < $sendIfOlderThan) {
+                        $config = bgerp_Setup::get('BLOCK_' . strtoupper($priority), false, $userId);
+                        if (in_array($dayTime, explode('|', $config))) {
+                            //log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} не е подходящо времето {$config}", null, 'info');
+
+                            continue;
                         }
-                        log_System::add('remote_Authorizations', "Неуспешно изпращане на нотификацията {$userId} {$time} {$priority}", null, 'info');
+
+                        $msg = $haveRemote ? 'There is ' . $mapNames[$priority] . ' notifications on ' . toUrl(array('bgerp_Portal', 'Show'), 'absolute') . ' : ' : '';
+
+                        $msg .= $ntfsMsg[$userId][$priority];
+
+                        // Изпращаме нотификацията
+                        foreach ($userSenders[$userId] as $rec) {
+                            if ($haveRemote) {
+                                $driver = self::getDriver($rec);
+                            } else {
+                                $driver = core_Cls::getInterface('remote_SendMessageIntf', $className);
+                            }
+
+                            $sent = $driver->sendMessage($userId, $msg);
+                            if ($sent) {
+                                bgerp_LastTouch::set('sent_' . $priority, $userId);
+                                break;
+                            } else {
+                                if ($haveRemote) {
+                                    log_System::add('remote_Authorizations', "Неуспешно изпращане на нотификацията {$userId} {$time} {$priority}", null, 'info');
+                                }
+                            }
+                        }
                     }
                 }
             }

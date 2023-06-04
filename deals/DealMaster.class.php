@@ -1392,7 +1392,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
         $aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
-        
+
         // Преизчисляваме общо платената и общо експедираната сума
         $rec->amountPaid = $aggregateDealInfo->get('amountPaid');
         $rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
@@ -1400,24 +1400,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec->amountInvoiced = $aggregateDealInfo->get('invoicedAmount');
         $rec->amountInvoicedDownpayment = $aggregateDealInfo->get('downpaymentInvoiced');
         $rec->amountInvoicedDownpaymentToDeduct = $aggregateDealInfo->get('downpaymentInvoiced') - $aggregateDealInfo->get('downpaymentDeducted');
-        
-        if (!empty($rec->closedDocuments)) {
-            
-            // Ако документа приключва други сделки, събираме им фактурираното и го добавяме към текущата
-            $closed = keylist::toArray($rec->closedDocuments);
-            $invAmount = $downpaymentInvoicedAmount = $downpaymentInvoicedToDeductAmount = 0;
-            foreach ($closed as $docId) {
-                $dInfo = $mvc->getAggregateDealInfo($docId);
-                $invAmount += $dInfo->get('invoicedAmount');
-                $downpaymentInvoicedAmount += $dInfo->get('downpaymentInvoiced');
-                $downpaymentInvoicedToDeductAmount += $dInfo->get('downpaymentInvoiced') - $dInfo->get('downpaymentDeducted');
-            }
-            
-            $rec->amountInvoiced += $invAmount;
-            $rec->amountInvoicedDownpayment += $downpaymentInvoicedAmount;
-            $rec->amountInvoicedDownpaymentToDeduct += $downpaymentInvoicedToDeductAmount;
-        }
-        
+
         $rec->paymentState = $mvc->getPaymentState($rec, $aggregateDealInfo);
         $rec->modifiedOn = dt::now();
         
@@ -1709,6 +1692,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $className = get_called_class();
 
         $now = dt::now();
+        $today = dt::today();
         $day = dt::mysql2verbal($now, 'd');
         $oldBefore = dt::addSecs(-1 * $olderThan, $now);
         $accDay = acc_Setup::get('DATE_FOR_INVOICE_DATE') + $daysAfterAccDate;
@@ -1756,10 +1740,41 @@ abstract class deals_DealMaster extends deals_DealBase
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#state = 'pending' || #state = 'draft'");
         $cQuery->in('docClass', $contoClasses);
-        $cQuery->groupBy('threadId');
-        $cQuery->show('threadId');
+        $cQuery->show('threadId,docClass,docId');
         $cQuery->in('threadId', $closeDealThreads);
-        $threadsWithPendingAndDraftDocuments = arr::extractValuesFromArray($cQuery->fetchAll(), 'threadId');
+        $draftAndPendingDocuments = $draftAndPendingDates = array();
+        while($cRec = $cQuery->fetch()){
+            $draftAndPendingDocuments[$cRec->docClass][$cRec->docId] = $cRec->threadId;
+        }
+
+        // От нишките в които има контиращи документи на заявка/чернова
+        // се извличат вальора и логистичните дати и се групират в масив по нишката
+        foreach ($draftAndPendingDocuments as $dClass => $docArr){
+            $documentDateFields = array();
+            $DClass = cls::get($dClass);
+            if(isset($DClass->valiorFld)){
+                $documentDateFields[] = $DClass->valiorFld;
+            }
+            if(cls::haveInterface('store_iface_DocumentIntf', $DClass)){
+                $documentDateFields = array_merge($documentDateFields, array_keys($DClass->getShipmentDateFields()));
+            }
+            if(countR($documentDateFields)){
+                $dQuery = $DClass->getQuery();
+                $dQuery->in('id', array_keys($docArr));
+                $showFields = implode(',', $documentDateFields) . ",threadId";
+                $dQuery->show($showFields);
+
+                while($dRec = $dQuery->fetch()){
+                    foreach ($documentDateFields as $dField){
+                        if(!empty($dRec->{$dField})){
+                            $draftAndPendingDates[$dRec->threadId][] = $dRec->{$dField};
+                        } elseif($dField == $DClass->valiorFld){
+                            $draftAndPendingDates[$dRec->threadId][] = $today;
+                        }
+                    }
+                }
+            }
+        }
 
         $count = 0;
         foreach ($foundDealsArr as $dRec){
@@ -1783,11 +1798,18 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
             // Ако в нишката на сделката има контиращ документ на заявка/чернова
-            if(array_key_exists($dRec->threadId, $threadsWithPendingAndDraftDocuments)){
-                $notificationUrl = array('doc_Containers', 'list', "threadId" => $dRec->threadId);
+            if(array_key_exists($dRec->threadId, $draftAndPendingDates)){
+                // Ако поне една от датите им е след СЕГА, няма да се бие нотификация
+                // т.е ще се бие нотификацията САМО ако всички дати са в миналото
+                $datesAfterNow = array_filter($draftAndPendingDates[$dRec->threadId], function($a) use ($now){return $a >= $now;});
 
-                // Изпращане на нотификация на създателя ѝ, че няма да се затвори автоматично докато има документи на чернова/заявка
-                bgerp_Notifications::add("|*#{$this->getHandle($dRec->id)} |не може да бъде автоматично приключена, защото има счетоводни документи на заявка/чернова", $notificationUrl, $dRec->createdBy);
+                if(!countR($datesAfterNow)){
+                    $notificationUrl = array('doc_Containers', 'list', "threadId" => $dRec->threadId);
+                    // Изпращане на нотификация на създателя ѝ, че няма да се затвори автоматично докато има документи на чернова/заявка
+                    bgerp_Notifications::add("|*#{$this->getHandle($dRec->id)} |не може да бъде автоматично приключена, защото има счетоводни документи на заявка/чернова", $notificationUrl, $dRec->createdBy);
+                }
+
+                // При всички положения няма да се приключва сделката
                 continue;
             }
 
