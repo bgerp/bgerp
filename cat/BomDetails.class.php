@@ -845,21 +845,26 @@ class cat_BomDetails extends doc_Detail
         $productDescriptionStr = '';
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $productDescriptionStr = "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $productDescriptionStr = new core_ET("<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>");
         }
 
         if($rec->type == 'stage'){
             $rec->state = cat_Boms::fetchField($rec->bomId, 'state');
             $paramData = cat_products_Params::prepareClassObjectParams($mvc, $rec);
             if (isset($paramData)) {
-                $paramTpl = cat_products_Params::renderParams($paramData);
-                $productDescriptionStr .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
+                 $paramData->minRowToolbar = 2;
+                 $paramTpl = cat_products_Params::renderParams($paramData);
+                 $productDescriptionStr->append($paramTpl);
             }
         }
 
         if(!empty($productDescriptionStr)){
-            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>';
-            $row->resourceId .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>{$productDescriptionStr}</div>";
+            $newTpl = new core_ET("[#resourceId#] [#link#] <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>[#content#]</div>");
+            $newTpl->replace($row->resourceId, 'resourceId');
+            $newTpl->replace(" <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>', 'link');
+            $newTpl->replace($productDescriptionStr, 'content');
+
+            $row->resourceId = $newTpl;
         }
 
         $coefficient = null;

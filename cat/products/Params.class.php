@@ -400,7 +400,8 @@ class cat_products_Params extends doc_Detail
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 if ($data->noChange !== true && !Mode::isReadOnly()) {
-                    $row->tools = $row->_rowTools->renderHtml();
+                    $minRowToolbar = isset($data->minRowToolbar) ? $data->minRowToolbar : null;
+                    $row->tools = $row->_rowTools->renderHtml($minRowToolbar);
                 } else {
                     unset($row->tools);
                 }
@@ -835,6 +836,7 @@ class cat_products_Params extends doc_Detail
         $d = new stdClass();
         $d->masterId = $objectRec->id;
         $d->masterClassId = $class::getClassId();
+
         if($class instanceof cat_BomDetails){
             if(!in_array($objectRec->state, array('draft', 'active'))){
                 $d->noChange = true;
