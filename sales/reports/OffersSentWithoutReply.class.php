@@ -184,8 +184,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         $mInQuery = email_Incomings::getQuery();
         $mInQuery->in('folderId',$foldersforChek);
         $mInQuery->where(array(
-            "#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'",
-            $periodEnd . ' 00:00:00', $periodStart . ' 23:59:59'));
+            "#createdOn >= '[#1#]'", $periodEnd . ' 00:00:00'));
 
         while ($mInRec = $mInQuery->fetch()) {
 
@@ -248,7 +247,8 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('dealer', 'key(mvc=core_Users,select=names)', 'caption=Дилър');
             $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
-            $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл (оферта)');
+            $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл ->Оферта');
+            $fld->FLD('outEmailDatate', 'varchar', 'caption=Изх. имейл ->Дата');
 
         } else {
 
@@ -284,6 +284,8 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         $row->dealer = crm_Profiles::createLink($dRec->dealer);
 
         $row->outEmail = email_Outgoings::getHyperlink($dRec->outMail);
+
+        $row->outEmailDatate = $Date->toVerbal(($dRec->outMail)->createdOn);
 
 
         return $row;
