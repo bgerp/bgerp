@@ -854,7 +854,7 @@ class cat_BomDetails extends doc_Detail
             if (isset($paramData)) {
                  $paramData->minRowToolbar = 2;
                  $paramTpl = cat_products_Params::renderParams($paramData);
-                $productDescriptionTpl->append($paramTpl);
+                 $productDescriptionTpl->append($paramTpl);
             }
         }
 
@@ -1006,7 +1006,7 @@ class cat_BomDetails extends doc_Detail
         if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'expand' || $action == 'shrink') && isset($rec)) {
             if(isset($rec->bomId)){
                 $masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
-                if($action == 'edit' && $rec->type == 'stage'){
+                if(in_array($action, array('add', 'edit', 'delete')) && $rec->type == 'stage'){
                     if (in_array($masterRec->state, array('closed', 'rejected'))) {
                         $requiredRoles = 'no_one';
                     }
