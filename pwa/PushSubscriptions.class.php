@@ -99,11 +99,16 @@ class pwa_PushSubscriptions extends core_Manager
      *
      * @return array
      */
-    public static function  sendAlert($userId, $title, $text, $url = null, $brid = null, $tag = null, $sound = true, $vibration = null, $icon = null, $image = null)
+    public static function sendAlert($userId, $title, $text, $url = null, $brid = null, $tag = null, $sound = true, $vibration = null, $icon = null, $image = null)
     {
-        expect(core_Composer::isInUse());
-
         $resArr = array();
+
+        if (!core_Composer::isInUse()) {
+
+            self::logNotice('Не е зададена стойност за EF_VENDOR_PATH и не може да се използва composer');
+
+            return $resArr;
+        }
 
         $auth = array(
             'VAPID' => array(
