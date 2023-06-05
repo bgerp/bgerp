@@ -842,10 +842,10 @@ class cat_BomDetails extends doc_Detail
             $descriptionArr[] = "<tr><td colspan='2'>" . $mvc->getFieldType('description')->toVerbal($rec->description) . "</td>";
         }
 
-        $productDescriptionStr = '';
+        $productDescriptionTpl = new core_ET("");
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $productDescriptionStr = new core_ET("<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>");
+            $productDescriptionTpl = new core_ET("<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>");
         }
 
         if($rec->type == 'stage'){
@@ -854,16 +854,16 @@ class cat_BomDetails extends doc_Detail
             if (isset($paramData)) {
                  $paramData->minRowToolbar = 2;
                  $paramTpl = cat_products_Params::renderParams($paramData);
-                 $productDescriptionStr->append($paramTpl);
+                $productDescriptionTpl->append($paramTpl);
             }
         }
 
-        if(!empty($productDescriptionStr)){
+        if(!empty($productDescriptionTpl->getContent())){
             $newTpl = new core_ET("[#resourceId#] [#link#] <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>[#content#]</div>");
             $newTpl->replace($row->resourceId, 'resourceId');
             $newTpl->replace(" <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>', 'link');
-            $newTpl->replace($productDescriptionStr, 'content');
-
+            $newTpl->replace($productDescriptionTpl, 'content');
+            $newTpl->removeBlocksAndPlaces();
             $row->resourceId = $newTpl;
         }
 
