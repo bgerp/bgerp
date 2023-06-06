@@ -352,7 +352,6 @@ abstract class deals_DealBase extends core_Master
     public function act_Closewith()
     {
         $this->requireRightFor('closewith');
-        core_App::setTimeLimit(2000);
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
 
@@ -414,6 +413,7 @@ abstract class deals_DealBase extends core_Master
                 // Ако ще има преизчисляване на курс
                 $errorArr = array();
                 $deals = keylist::toArray($formRec->closeWith);
+                core_App::setTimeLimit(2000);
 
                 if(countR($threads)){
 
@@ -422,6 +422,7 @@ abstract class deals_DealBase extends core_Master
                     $cRateQuery = acc_RatesDifferences::getQuery();
                     $cRateQuery->where("#state = 'active'");
                     $cRateQuery->in("threadId", $threads);
+                    $cRateQuery->show('id,dealOriginId');
                     while($cRateRec = $cRateQuery->fetch()){
                         $closedDeal = doc_Containers::getDocument($cRateRec->dealOriginId);
 
@@ -477,7 +478,7 @@ abstract class deals_DealBase extends core_Master
                 $dealRec->closedDocuments = keylist::merge($dealRec->closedDocuments, $formRec->closeWith);
                 $this->save($dealRec);
 
-                core_App::setTimeLimit(1000);
+                core_App::setTimeLimit(2000);
                 $CloseDoc = cls::get($this->closeDealDoc);
                 foreach ($deals as $dealId) {
 

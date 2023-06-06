@@ -49,7 +49,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
 
     /**
-     * По-кое поле да се групират листовите данни
+     * По кое поле да се групират листовите данни
      */
     protected $groupByField;
 
@@ -130,7 +130,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $passivePeriodStart = dt::addSecs(-$rec->periodPassive, dt::today(), false);
         $activePeriodStart = dt::addSecs(-$rec->periodActive, dt::addDays(-1, $passivePeriodStart, false), false);
 
-        //Определяме контрагентите  с експедиции в периода на активност и периода на пасивност
+        //Определяме контрагентите с експедиции в периода на активност и периода на пасивност
         $shQuery = store_ShipmentOrders::getQuery();
         $shQuery->in('state', array('rejected', 'draft'), true);
         $shQuery->where("#valior >= '$activePeriodStart'");
@@ -159,7 +159,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             }
 
             //отделяме експедициите с вальор преди началото на пасивния период и записваме
-            // $shipmentActivContragents масив активни клиенти(които имат експедиции в активния период)
+            // $shipmentActivContragents масив активни клиенти (които имат експедиции в активния период)
             if ($shRec->valior < $passivePeriodStart) {
                 if (!array_key_exists($id, $shipmentActivContragents)) {
                     $shipmentActivContragents[$id] = (object)array(
@@ -211,7 +211,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             }
 
             //отделяме бързите продажби с вальор преди началото на пасивния период и записваме
-            // $shipmentActivContragents масив активни клиенти(които имат бързи продажби в активния период)
+            // $shipmentActivContragents масив активни клиенти (които имат бързи продажби в активния период)
             if ($salRec->valior < $passivePeriodStart) {
                 if (!array_key_exists($id, $shipmentActivContragents)) {
                     $shipmentActivContragents[$id] = (object)array(
@@ -327,7 +327,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             $fld->FLD('activSalesNumber', 'int', 'caption=Активен продажби->Брой');
             $fld->FLD('activSalesAmount', 'double(decimals=2)', 'caption=Активен продажби->Стойност');
             $fld->FLD('passivMailsIn', 'int', 'caption=Пасивен Писма->Входящи');
-            $fld->FLD('passivMailsOut', 'int', 'caption=Пасивен Писма->Изходяши');
+            $fld->FLD('passivMailsOut', 'int', 'caption=Пасивен Писма->Изходящи');
 
         } else {
 
@@ -335,7 +335,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             $fld->FLD('activSalesNumber', 'int', 'caption=Активен продажби->Брой');
             $fld->FLD('activSalesAmount', 'double(decimals=2)', 'caption=Активен продажби->Стойност');
             $fld->FLD('passivMailsIn', 'int', 'caption=Пасивен Писма->Входящи');
-            $fld->FLD('passivMailsOut', 'int', 'caption=Пасивен Писма->Изходяши');
+            $fld->FLD('passivMailsOut', 'int', 'caption=Пасивен Писма->Изходящи');
 
         }
 

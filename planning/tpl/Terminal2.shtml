@@ -3,6 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
+	<meta name="theme-color" content="#000000" />
     <title>Production Terminal</title>
     <!--ET_BEGIN HEAD-->
 		[#HEAD#]
@@ -172,7 +173,7 @@
               <div class='value' id="workers">B21,B890,B234</div>
             </div>
           </div>
-          <input id="cmdInput" inputmode="none" onFocus="displayByClass('panel', 'keyboard');" type=text>
+          <input id="cmdInput" inputmode="none" onFocus="displayByClass('panel', 'keyboard');" onClick="displayByClass('panel', 'keyboard');" type=text>
           <div class="prompt ef-drag-scroll">
             <div title="Производство" class='btn' onClick="setProduct()">
               <span class="material-icons">add_shopping_cart</span>
