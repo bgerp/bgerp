@@ -1,0 +1,23 @@
+.wide .pwa-push-default {
+    background-image: url('../../img/16/rowtools-btn-green-orange.png') !important;
+}
+
+.wide .pwa-push-denied {
+    background-image: url('../../img/16/rowtools-btn-grey.png') !important;
+}
+
+.wide .pwa-push-incompatible {
+    background-image: url('../../img/16/rowtools-btn-grey.png') !important;
+}
+
+.wide .pwa-push-computing {
+    background-image: url('../../img/16/wait.png') !important;
+}
+
+.wide .pwa-push-disabled {
+    background-image: url('../../img/16/rowtools-btn-grey-orange.png') !important;
+}
+
+.wide .pwa-push-enabled {
+    background-image: url('../../img/16/rowtools-btn-gray-green.png') !important;
+}

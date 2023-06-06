@@ -620,17 +620,18 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getDeliveryTime($id, $quantity)
     {
     }
-    
-    
+
+
     /**
      * Връща минималното количество за поръчка
      *
      * @param int|NULL $id   - ид на артикул
      * @param string $action - дали да е за продажба или покупка
+     * @param array $params  - масив от параметри
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id = null, $action = 'sell')
+    public function getMoq($id = null, $action = 'sell', $params = array())
     {
     }
     

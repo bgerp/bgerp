@@ -283,10 +283,16 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
                 $Products->invoke('AfterInputEditForm', array($form));
 
-                $form->rec->_moq = $Driver->getMoq();
+                if($Driver = cat_Products::getDriver($form->rec)) {
+                    $params = array();
+                    $driverFields = marketing_Inquiries2::getDriverFields($Driver);
+                    foreach (array_keys($driverFields) as $driverFld) {
+                        $params[$driverFld] = $form->rec->{$driverFld};
+                    }
+                    $form->rec->_moq = $Driver->getMoq(null, 'sell', $params);
+                }
+
                 $form->rec->productInfo = clone($form->rec);
-
-
                 $mvc->invoke('AfterInputEditForm', array($form));
 
                 if ($form->rec->packagingId) {
