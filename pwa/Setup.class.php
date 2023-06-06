@@ -7,19 +7,6 @@ use Minishlink\WebPush\VAPID;
 defIfNot('PWA_DOMAINS', '');
 
 
-
-/**
- * Частер ключ за VAPID
- */
-defIfNot('PWA_PRIVATE_KEY', '');
-
-
-/**
- * Публичен ключ за VAPID
- */
-defIfNot('PWA_PUBLIC_KEY', '');
-
-
 /**
  * Клас 'pwa_Setup' -  bgERP progressive web application
  *
@@ -49,7 +36,6 @@ class pwa_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'PWA_DOMAINS' => array('keylist(mvc=cms_Domains, select=domain, forceGroupBy=domain)', 'caption=Мобилно приложение->Домейни'),
-        'PWA_PUBLIC_KEY' => array('password(128)', 'canEdit=no_one, canView=debug, caption=VAPID ключ->Публичен'),
     );
 
 
@@ -81,6 +67,10 @@ class pwa_Setup extends core_ProtoSetup
         // Инсталираме плъгина към страницата
         $html .= $Plugins->installPlugin('bgERP PWA', 'pwa_Plugin', 'core_page_Active', 'family');
         $html .= $Plugins->installPlugin('bgERP PWA Profile', 'pwa_ProfilePlg', 'crm_Profiles', 'private');
+        $html .= $Plugins->installPlugin('bgERP PWA Domains', 'pwa_DomainsPlg', 'cms_Domains', 'private');
+
+        $Domains = cls::get('cms_Domains');
+        $Domains->setupMvc();
 
         $html .= fileman_Buckets::createBucket('pwa', 'Файлове качени с PWA', '', '100MB', 'user', 'every_one');
         
@@ -184,21 +174,50 @@ class pwa_Setup extends core_ProtoSetup
             // 1 -> PHP 5.6
             $html .= core_Composer::install('minishlink/web-push', $cVersion);
 
-            if (!trim(pwa_Setup::get('PUBLIC_KEY')) || !trim(pwa_Setup::get('PRIVATE_KEY'))) {
-                try {
-                    $keysArr = VAPID::createVapidKeys();
-                    core_Packs::setConfig('pwa', array('PWA_PUBLIC_KEY' => $keysArr['publicKey']));
-                    core_Packs::setConfig('pwa', array('PWA_PRIVATE_KEY' => $keysArr['privateKey']));
-
-                    $html .= "<li style='green'>Добавени са VAPID ключове</li>";
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
-                } catch (Throwable $t) {
-                    reportException($t);
-                } catch (Error $e) {
-                    reportException($e);
+            $dQuery = cms_Domains::getQuery();
+            $existKeysDomainsArr = $notExistKeysDomainsArr =  array();
+            while ($dRec = $dQuery->fetch()) {
+                if (trim($dRec->publicKey) && trim($dRec->privateKey)) {
+                    $existKeysDomainsArr[$dRec->domain][$dRec->id] = $dRec;
+                } else {
+                    $notExistKeysDomainsArr[$dRec->domain][$dRec->id] = $dRec;
                 }
             }
+
+            foreach ($notExistKeysDomainsArr as $dName => $notDArr) {
+                if ($existKeysDomainsArr[$dName]) {
+                    foreach ($notDArr as $nRec) {
+                        $uRec = reset($existKeysDomainsArr[$dName]);
+                        $nRec->publicKey = $uRec->publicKey;
+                        $nRec->privateKey = $uRec->privateKey;
+                        cms_Domains::save($nRec, 'publicKey, privateKey');
+                    }
+                } else {
+                    $keysArr = array();
+                    try {
+                        $keysArr = VAPID::createVapidKeys();
+                    } catch (core_exception_Expect $e) {
+                        reportException($e);
+                    } catch (Throwable $t) {
+                        reportException($t);
+                    } catch (Error $e) {
+                        reportException($e);
+                    }
+
+                    foreach ($notDArr as $nRec) {
+                        if (!empty($keysArr)) {
+                            $html .= "<li style='green'>Добавени са VAPID ключове към домейн {$nRec->domain}</li>";
+                            $nRec->publicKey = $keysArr['publicKey'];
+                            $nRec->privateKey = $keysArr['privateKey'];
+                            cms_Domains::save($nRec, 'publicKey, privateKey');
+                        }
+                    }
+
+                    sleep(1);
+                }
+            }
+        } else {
+            $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
         }
 
         return $html;
