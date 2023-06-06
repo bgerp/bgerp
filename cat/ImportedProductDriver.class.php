@@ -387,10 +387,11 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      *
      * @param int|NULL $id   - ид на артикул
      * @param string $action - дали да е за продажба или покупка
+     * @param array $params  - масив от параметри
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id = null, $action = 'sell')
+    public function getMoq($id = null, $action = 'sell', $params = array())
     {
         return $this->driverRec->moq;
     }
