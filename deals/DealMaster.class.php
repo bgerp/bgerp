@@ -501,6 +501,12 @@ abstract class deals_DealMaster extends deals_DealBase
         if(empty($rec->id)){
             core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy, core_Permanent::FOREVER_VALUE);
         }
+
+        if(empty($rec->id)) {
+            if($mvc->setErrorIfDeliveryTimeIsNotSet($rec)){
+                $form->setError('deliveryTime,deliveryTermTime', 'Не е посочено време/дата на доставка');
+            }
+        }
     }
     
     
@@ -2994,7 +3000,7 @@ abstract class deals_DealMaster extends deals_DealBase
     protected function setErrorIfDeliveryTimeIsNotSet($rec)
     {
         // Ако има избрано условие на доставка, позволява ли да бъде контиран документа
-        $rec = $this->fetch($rec->id);
+        $rec = $this->fetchRec($rec);
 
         if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
             $mandatoryDeliveryConditionSysId =  ($this instanceof purchase_Purchases) ? 'purchaseMandatoryDeliveryTime' : 'saleMandatoryDeliveryTime';
