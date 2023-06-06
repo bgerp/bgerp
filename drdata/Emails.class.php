@@ -434,4 +434,109 @@ class drdata_Emails extends core_BaseClass
         
         return false;
     }
+
+    /**
+     * Prowe
+     */
+    static function checkEmailServer($domain)
+    {
+        $mx_records = array();
+        getmxrr($domain, $mx_records);
+       
+        if (empty($mx_records)) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Проверява на даден домейн дали има конфигурирани SPF и DMARC
+     */
+    static function checkSpfDmarc($domain)
+    {
+        $txtRecords = dns_get_record("$domain", DNS_TXT);
+        $hasDmarc = false;
+        $hasSpf = false;
+        foreach ($txtRecords as $record) {
+            if (stripos($record['txt'], "v=spf1") !== false) {
+                $hasSpf = true;
+            }
+        }
+
+        $txtRecords = dns_get_record("_dmarc.{$domain}", DNS_TXT);
+ 
+        foreach ($txtRecords as $record) {  
+            if (stripos($record['txt'], "v=DMARC1") !== false) {  
+                $hasDmarc = true;
+            }
+        }
+ 
+        return array($hasSpf, $hasDmarc);
+    }
+    
+    /**
+     * Проверява дали да наден домейн има уеб-сайт
+     */
+    static function checkWebsite($domain)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://$domain");
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        $result = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($http_code == 200) {
+            return true;
+        }
+
+        return false;
+    }
+    
+    /**
+     * Проверява сертификата за даден домейн
+     */
+    function checkSslCertificate($domain) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://$domain");
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        //curl_setopt($ch, CURLOPT_SSL_VERIFYSTATUS, true);
+        curl_setopt($ch, CURLOPT_CERTINFO, 1);
+
+        $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $ssl_info = curl_getinfo($ch, CURLINFO_CERTINFO);
+        $sslVerify = curl_getinfo($ch, CURLINFO_SSL_VERIFYRESULT);
+
+
+        if ($httpCode == 200 && $sslVerify === 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+      
+    /**
+     * Проверява дали има конфигуриран сайт, сертификат и имейл услуга за даден домейн
+     */
+    function chackDomain($domain)
+    {
+        $result = array(
+                'email_server' => self::checkEmailServer($domain),
+                'spf_dmarc' => self::checkSpfDmarc($domain),
+                'website' => self::checkWebsite($domain),
+                'ssl_certificate' => self::checkSslCertificate($domain),
+                'ssl_val_days' => self::getCertValidity($domain),
+            );
+
+        return $result;    
+    }
 }

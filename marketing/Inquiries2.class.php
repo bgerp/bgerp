@@ -764,8 +764,12 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $rec = $this->fetchRec($id);
         $name = $this->getFieldType('personNames')->toVerbal((($rec->company) ? $rec->company : $rec->personNames));
-        $subject = "{$name} / {$rec->title}";
-        
+        $pTitle = $rec->title;
+        if(strpos($pTitle, '||')){
+            $pTitle = tr($pTitle);
+        }
+
+        $subject = "{$name} / {$pTitle}";
         $Varchar = cls::get('type_Varchar');
         
         return $Varchar->toVerbal($subject);

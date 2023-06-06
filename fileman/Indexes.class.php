@@ -879,7 +879,7 @@ class fileman_Indexes extends core_Manager
         
         $dRec->searchKeywords = plg_Search::normalizeText($content);
         
-        fileman_Data::logDebug('Добавени ключови полета с дължина ' . strlen($dRec->searchKeywords) . ' символа', $dRec->id);
+        fileman_Data::logDebug('Добавени ключови думи към файлове с дължина ' . strlen($dRec->searchKeywords) . ' символа', $dRec->id);
         
         fileman_Data::save($dRec, 'searchKeywords');
         

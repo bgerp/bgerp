@@ -265,7 +265,7 @@ class bgerp_Setup extends core_ProtoSetup
 
         // Добавяме допълнителните пакети, само при първоначален Setup
         if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
-            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef,tinymce';
+            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,tnef,tinymce';
         } else {
 
             try {

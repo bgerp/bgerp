@@ -75,6 +75,7 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
         $this->FLD('publicKey', 'varchar', 'caption=Ключ'); //88
         $this->FLD('authToken', 'varchar', 'caption=Токен'); //24
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн');
         $this->FLD('contentEncoding', 'varchar', 'caption=Енкодинг');
         $this->FLD('endpoint', 'Url', 'caption=Точка');
         $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни');
@@ -90,30 +91,29 @@ class pwa_PushSubscriptions extends core_Manager
      * @param string $title - заглавие на съобщението
      * @param string $text - текст на съобщението
      * @param null|array $url - линк за отваряне
-     * @param null|string $brid - id на браузъра
      * @param null|bool $tag - таг - ако е зададено, известията ще се презаписват за същия таг
-     * @param bool $sound - звук
-     * @param null|bool $vibration - вибрация
      * @param null|string $icon - икона
      * @param null| string $image - изображение
+     * @param null|integer $domainId - id на домейн
+     * @param null|string $brid - id на браузъра
+     * @param bool $sound - звук
+     * @param null|bool $vibration - вибрация
      *
      * @return array
      */
-    public static function  sendAlert($userId, $title, $text, $url = null, $brid = null, $tag = null, $sound = true, $vibration = null, $icon = null, $image = null)
+    public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $domainId = null, $brid = null, $sound = true, $vibration = null)
     {
-        expect(core_Composer::isInUse());
-
+        if ($icon !== false) {
+            $icon = '/favicon.png';
+        }
         $resArr = array();
 
-        $auth = array(
-            'VAPID' => array(
-                'subject' => 'T Subject',
-                'publicKey' => pwa_Setup::get('PUBLIC_KEY'),
-                'privateKey' => pwa_Setup::get('PRIVATE_KEY'),
-            ),
-        );
+        if (!core_Composer::isInUse()) {
 
-        $webPush = new WebPush($auth);
+            self::logNotice('Не е зададена стойност за EF_VENDOR_PATH и не може да се използва composer');
+
+            return $resArr;
+        }
 
         $query = self::getQuery();
         $query->where(array("#userId = '[#1#]'", $userId));
@@ -123,7 +123,39 @@ class pwa_PushSubscriptions extends core_Manager
         }
 
         $query->orderBy('id', 'DESC');
+
+        if (isset($domainId)) {
+            $query->where(array("#domainId = '[#1#]'", $domainId));
+        }
+
         while ($rec = $query->fetch()) {
+            if (isset($rec->domainId)) {
+                $dRec = cms_Domains::fetch($rec->domainId);
+            } else {
+
+                continue;
+            }
+
+            try {
+                $auth = array(
+                    'VAPID' => array(
+                        'subject' => 'bgERP',
+                        'publicKey' => $dRec->publicKey,
+                        'privateKey' => $dRec->privateKey,
+                    ),
+                );
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                continue;
+            } catch (Throwable $t) {
+                reportException($t);
+                continue;
+            } catch (Error $e) {
+                reportException($e);
+                continue;
+            }
+
+            $webPush = new WebPush($auth);
 
             $s = array('endpoint' => $rec->endpoint, 'publicKey' => $rec->publicKey,
                 'authToken' => $rec->authToken, 'contentEncoding' => $rec->contentEncoding);
@@ -186,6 +218,7 @@ class pwa_PushSubscriptions extends core_Manager
             $rec->brid = $brid;
             $rec->authToken = $authToken;
             $rec->publicKey = $publicKey;
+            $rec->domainId = cms_Domains::getCurrent('id', false);;
             $rec->contentEncoding = $contentEncoding;
             $rec->endpoint = $endpoint;
             $rec->data = (object) array('authToken' => $authToken, 'publicKey' => $publicKey, 'endpoint' => $endpoint, 'contentEncoding' => $contentEncoding);
@@ -248,7 +281,7 @@ class pwa_PushSubscriptions extends core_Manager
     {
         $res = false;
 
-        $sArr = $this->sendAlert($userId, 'bgERP notification', $msg, array('Portal', 'Show', '#' => 'notificationsPortal'), null, 'Notifications');
+        $sArr = $this->sendAlert($userId, 'bgERP notification', $msg, array('Portal', 'Show', '#' => 'notificationsPortal'), 'Notifications');
 
         if (!empty($sArr)) {
             foreach ($sArr as $s) {
@@ -271,6 +304,6 @@ class pwa_PushSubscriptions extends core_Manager
     {
         requireRole('admin');
 
-        bp($this->sendAlert(core_Users::getCurrent(), 'Тестово известие', 'Тестово известие: ' . rand(1, 1111), array('Portal', 'Show'), null, 'Test'));
+        bp($this->sendAlert(core_Users::getCurrent(), 'Тестово известие', 'Тестово известие: ' . rand(1, 1111), array('Portal', 'Show'), 'Test'));
     }
 }

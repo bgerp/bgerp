@@ -174,13 +174,16 @@ div, input, dialog, article {
   text-align: left;
   overflow: hidden;
   white-space: nowrap;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap:2px;
 }
 
 .btn {
   border-radius: 5px;
   display: inline-block;
   font-size: 1.5em;
-  margin-right: 0.3em;
   background-color: #000;
   padding: 0.35em;
   user-select: none;
@@ -203,7 +206,7 @@ div, input, dialog, article {
   color: #ffff99;
   padding-top:0.1em;
   font-family: monospace;
-  font-size:0.95em;
+  font-size:0.85em;
 }
 
 .value[data-manual]:not([data-manual="yes"]) {
@@ -217,7 +220,16 @@ div, input, dialog, article {
   padding: 0.5em 0.8em;
 }
 
+.kb-row {
+   display: block;
+}
+
 @media only screen and (max-width: 680px) {
+
+	body {
+	  font-size: max(13px, 13 * min(calc(150vw / 800), calc(150vh / 400)));
+	}
+
   .left {
     float: none;
     width: 100%;
@@ -230,6 +242,7 @@ div, input, dialog, article {
   #right {
     padding-left: 0;
 	padding-top:0;
+    background-color:black;
   }
 
   .keyboard {

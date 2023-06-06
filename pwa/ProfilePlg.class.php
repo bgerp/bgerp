@@ -24,9 +24,12 @@ class pwa_ProfilePlg extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if (core_Users::getCurrent() == $data->rec->userId) {
-            $key = pwa_Setup::get('PUBLIC_KEY');
-            if ($key) {
-                $data->toolbar->addFnBtn('Известия', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Получаване на известия');
+            $dId = cms_Domains::getCurrent('id', false);
+            if ($dId) {
+                $dRec = cms_Domains::fetch($dId);
+                if ($dRec && $dRec->publicKey) {
+                    $data->toolbar->addFnBtn('Известия', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Получаване на известия');
+                }
             }
         }
     }
@@ -41,7 +44,13 @@ class pwa_ProfilePlg extends core_Plugin
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        $key = pwa_Setup::get('PUBLIC_KEY');
+        $key = null;
+        $dId = cms_Domains::getCurrent('id', false);
+        if ($dId) {
+            $dRec = cms_Domains::fetch($dId);
+            $key = $dRec->publicKey;
+        }
+
         if ($key) {
             $tpl->push('pwa/js/Notifications.js', 'JS');
             $tpl->push('pwa/css/profile.css', 'CSS');

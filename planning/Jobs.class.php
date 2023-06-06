@@ -1826,7 +1826,7 @@ class planning_Jobs extends core_Master
             core_Users::forceSystemUser();
         }
 
-        static::closeActiveJobs(planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT'), null, $delay);
+        static::closeActiveJobs(planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT'), null, null, $delay);
 
         if(!$isSystemUser){
             core_Users::cancelSystemUser();
@@ -2098,11 +2098,12 @@ class planning_Jobs extends core_Master
      * в последните $noNewDocumentsInMonths месеца
      *
      * @param double $tolerance          - над колко % произведено (включително)
-     * @param int|null $productId        - ид на артикул
+     * @param int|array|null $productIds        - ид/масив от ид-та на артикули
+     * @param int|array|null $saleIds           - ид/масив от ид-та от продажби
      * @param int|null $noNewDocumentsIn - за колко време назад да се гледа да няма нови контиращи документи в нишката
      * @return int $count                - колко са приключените задания
      */
-    public static function closeActiveJobs($tolerance, $productId = null, $noNewDocumentsIn = null)
+    public static function closeActiveJobs($tolerance, $productIds = null, $saleIds = null, $noNewDocumentsIn = null)
     {
         $thresholdDate = ($noNewDocumentsIn) ? dt::addSecs(-1 * $noNewDocumentsIn, dt::now()) : null;
         $me = cls::get(get_called_class());
@@ -2112,8 +2113,15 @@ class planning_Jobs extends core_Master
         $query->where("#completed >= {$tolerance}");
 
         // Ако ще се гледат само за един артикул - за него, иначе за всички задания към затворени артикули
-        if(isset($productId)){
-            $query->where("#productId = {$productId}");
+        if(isset($productIds)){
+            $productIds = arr::make($productIds, true);
+            $query->in("productId", $productIds);
+        }
+
+        // Ако има продажба, само заданията към нея
+        if(isset($saleIds)){
+            $saleIds = arr::make($saleIds, true);
+            $query->where("saleId", $saleIds);
         }
 
         $count = 0;

@@ -380,7 +380,8 @@ class cat_Products extends embed_Manager
         $this->setDbIndex('fixedAsset');
         $this->setDbIndex('state');
         $this->setDbIndex('canManifacture');
-        
+        $this->setDbIndex('createdOn');
+
         $this->setDbUnique('code');
     }
     
@@ -1503,7 +1504,7 @@ class cat_Products extends embed_Manager
         // Ако се затваря артикула затварят се и готовите задания
         if($rec->state == 'closed' && $rec->brState == 'active'){
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')){
-                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'))){
+                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'))){
                     core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                 }
             }
