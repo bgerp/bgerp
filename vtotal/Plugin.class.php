@@ -35,7 +35,7 @@ class vtotal_Plugin extends core_Plugin
                     'VT Scan',
                     $url,
                     "id='btn-vtotal', ef_icon=/img/16/shield-icon.png",
-                    array('target' => '_blank', 'order' => '90', 'title' => 'Добавяне към проверка')
+                    array('target' => '_blank', 'order' => '90', 'title' => 'Добавяне към проверка', 'row' => 2)
                 );
             } catch (core_Exception_Expect $expect) {
             }
