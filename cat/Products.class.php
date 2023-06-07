@@ -1675,7 +1675,6 @@ class cat_Products extends embed_Manager
             }
 
             if (isset($params['notDriverId'])) {
-                core_Statuses::newStatus($params['notDriverId']);
                 $query->where("#innerClass != {$params['notDriverId']}");
             }
 
