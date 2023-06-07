@@ -184,8 +184,11 @@ class cat_products_Params extends doc_Detail
             $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
             
             if (!countR($options)) {
-                
-                return followRetUrl(null, 'Няма параметри за добавяне', 'warning');
+                $warningMsg = 'Няма параметри за добавяне';
+                if($rec->classId == cat_BomDetails::getClassId()){
+                    $warningMsg = 'Няма оставащи планиращи параметри';
+                }
+                return followRetUrl(null, $warningMsg, 'warning');
             }
             
             $form->setOptions('paramId', array('' => '') + $options);
