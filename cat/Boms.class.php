@@ -2039,7 +2039,7 @@ class cat_Boms extends core_Master
 
             $dRecs = array();
             if($activeBom){
-                if(!$cloneIfDetailsAreNewer || $oldBomRec->activatedOn <= $activeBom->acttivatedOn){
+                if(!$cloneIfDetailsAreNewer || $oldBomRec->activatedOn <= $activeBom->activatedOn){
                     $bQuery = cat_BomDetails::getQuery();
                     $bQuery->where("#parentId IS NULL AND #bomId = {$activeBom->id}");
                     $dRecs = $bQuery->fetchAll();
