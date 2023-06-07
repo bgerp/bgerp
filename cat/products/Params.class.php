@@ -186,7 +186,7 @@ class cat_products_Params extends doc_Detail
             if (!countR($options)) {
                 $warningMsg = 'Няма параметри за добавяне';
                 if($rec->classId == cat_BomDetails::getClassId()){
-                    $warningMsg = 'Няма оставащи планиращи параметри';
+                    $warningMsg = 'Няма повече планиращи параметри';
                 }
                 return followRetUrl(null, $warningMsg, 'warning');
             }
