@@ -1356,7 +1356,7 @@ class planning_Jobs extends core_Master
                 $createAllUrlString = toUrl($createAllUrl);
                 $urlLinkBtn = ht::createFnBtn('Създаване', null, 'Наистина ли желаете да създадете наведнъж всички останали шаблонни операции|*?', array('title' => 'Създаване на всички шаблонни операции за артикула', 'ef_icon' => 'img/16/add.png', 'data-url' => $createAllUrlString, 'class' => 'createAllCheckedTasks'));
 
-                $urlLink = "<table><tr><td><input type='checkbox' name='checkAllDefaultTasks' checked></td><td>" . $urlLinkBtn->getContent() . "</td></tr></table>";
+                $urlLink = "<input type='checkbox' name='checkAllDefaultTasks' checked class='inline-checkbox'>" . $urlLinkBtn->getContent();
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
 
@@ -1386,7 +1386,7 @@ class planning_Jobs extends core_Master
                 $urlLink = $urlLinkBtn->getContent();
                 if(countR($createAllUrl)){
                     $checked = empty($warning) ? 'checked' : '';
-                    $urlLink = "<table><tr><td><input type='checkbox' name='R[{$sysId}]' id='cb_{$sysId}' class='defaultTaskCheckbox' data-sysId='{$sysId}' {$checked}></td><td>{$urlLink}</td></tr></table>";
+                    $urlLink = "<input type='checkbox' name='R[{$sysId}]' id='cb_{$sysId}' class='defaultTaskCheckbox' data-sysId='{$sysId}' {$checked}>{$urlLink}";
                 }
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
