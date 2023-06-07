@@ -1354,7 +1354,7 @@ class planning_Jobs extends core_Master
                 $title = tr('Избраните шаблонни операции');
                 $createAllUrl = array('planning_Tasks', 'createjobtasks', 'type' => 'all', 'jobId' => $jobRec->id, 'ret_url' => true);
                 $createAllUrlString = toUrl($createAllUrl);
-                $urlLinkBtn = ht::createFnBtn('Създаване', null, 'Наистина ли желаете да създадете наведнъж всички останали шаблонни операции|*?', array('title' => 'Създаване на всички шаблонни операции за артикула', 'ef_icon' => 'img/16/add.png', 'data-url' => $createAllUrlString, 'class' => 'createAllCheckedTasks'));
+                $urlLinkBtn = ht::createFnBtn('Създаване', null, 'Наистина ли желаете да създадете наведнъж избраните шаблонни операции|*?', array('title' => 'Създаване на всички шаблонни операции за артикула', 'ef_icon' => 'img/16/add.png', 'data-url' => $createAllUrlString, 'class' => 'createAllCheckedTasks'));
 
                 $urlLink = "<input type='checkbox' name='checkAllDefaultTasks' checked class='inline-checkbox'>" . $urlLinkBtn->getContent();
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
@@ -1403,7 +1403,7 @@ class planning_Jobs extends core_Master
                     $title = tr('Избраните от предишно задание');
                     $urlCloneAll = array('planning_Tasks', 'createjobtasks', 'type' => 'cloneAll', 'jobId' => $jobRec->id, 'oldJobId' => $jobRec->oldJobId, 'ret_url' => true);
                     $cloneAllUrlString = toUrl($urlCloneAll);
-                    $urlLinkBtn = ht::createFnBtn('Клониране', null, 'Наистина ли желаете да клонирате наведнъж неклонираните операции|*?', array('title' => 'Клониране на всички предходни операции', 'ef_icon' => 'img/16/clone.png', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks'));
+                    $urlLinkBtn = ht::createFnBtn('Клониране', null, 'Наистина ли желаете да клонирате наведнъж избраните операции|*?', array('title' => 'Клониране на всички предходни операции', 'ef_icon' => 'img/16/clone.png', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks'));
 
                     $urlLink = "<table><tr><td><input type='checkbox' name='checkAllClonedTasks' checked></td><td>" . $urlLinkBtn->getContent() . "</td></tr></table>";
                     $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
