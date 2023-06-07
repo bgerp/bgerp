@@ -249,7 +249,7 @@ class cat_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Латински букви цифри тирета интервали и долна черта,all=Латински или кирилски букви цифри тирета интервали и долна черта,alphanumeric=Цифри и латински букви,numbers=Само цифри)', 'caption=Код на артикула позволени символи->Разрешаване'),
+        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Букви (само латиница), цифри, тире, интервал, долна черта,all=Букви (латиница и кирилица), цифри, тире, интервал, долна черта,alphanumeric=Цифри и латински букви,numbers=Само цифри)', 'caption=Код на артикула позволени символи->Разрешаване'),
         'CAT_BOM_REMEMBERED_RESOURCES' => array('int', 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
         'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
         'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
