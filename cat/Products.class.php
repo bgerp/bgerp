@@ -461,12 +461,8 @@ class cat_Products extends embed_Manager
                 $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
             }
 
-            $lastCode = null;
-            if($data->_isSaveAndNew){
-                $lastCode = Mode::get('cat_LastProductCode');
-            }
-
             // Ако корицата не е на контрагент
+            $lastCode = Mode::get('cat_LastProductCode');
             if (!$cover->haveInterface('crm_ContragentAccRegIntf')) {
                 
                 // Правим кода на артикула задължителен, ако не е шаблон
