@@ -26,9 +26,11 @@ class pwa_ProfilePlg extends core_Plugin
         if (core_Users::getCurrent() == $data->rec->userId) {
             $dId = cms_Domains::getCurrent('id', false);
             if ($dId) {
-                $dRec = cms_Domains::fetch($dId);
-                if ($dRec && $dRec->publicKey) {
-                    $data->toolbar->addFnBtn('Известия', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Получаване на известия');
+                if (pwa_Manifest::canUse($dId) == 'yes') {
+                    $dRec = cms_Domains::fetch($dId);
+                    if ($dRec && $dRec->publicKey) {
+                        $data->toolbar->addFnBtn('Известия', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Получаване на известия');
+                    }
                 }
             }
         }
