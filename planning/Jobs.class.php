@@ -1826,7 +1826,7 @@ class planning_Jobs extends core_Master
             core_Users::forceSystemUser();
         }
 
-        static::closeActiveJobs(planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT'), null, null, $delay);
+        static::closeActiveJobs(planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT'), null, null, $delay, "Автоматично приключване по разписание");
 
         if(!$isSystemUser){
             core_Users::cancelSystemUser();
@@ -2098,12 +2098,14 @@ class planning_Jobs extends core_Master
      * в последните $noNewDocumentsInMonths месеца
      *
      * @param double $tolerance          - над колко % произведено (включително)
-     * @param int|array|null $productIds        - ид/масив от ид-та на артикули
-     * @param int|array|null $saleIds           - ид/масив от ид-та от продажби
+     * @param int|array|null $productIds - ид/масив от ид-та на артикули
+     * @param int|array|null $saleIds    - ид/масив от ид-та от продажби
      * @param int|null $noNewDocumentsIn - за колко време назад да се гледа да няма нови контиращи документи в нишката
+     * @param string $logMsg             - лог при приключване
+     *
      * @return int $count                - колко са приключените задания
      */
-    public static function closeActiveJobs($tolerance, $productIds = null, $saleIds = null, $noNewDocumentsIn = null)
+    public static function closeActiveJobs($tolerance, $productIds = null, $saleIds = null, $noNewDocumentsIn = null, $logMsg = 'Автоматично приключване')
     {
         $thresholdDate = ($noNewDocumentsIn) ? dt::addSecs(-1 * $noNewDocumentsIn, dt::now()) : null;
         $me = cls::get(get_called_class());
@@ -2120,8 +2122,8 @@ class planning_Jobs extends core_Master
 
         // Ако има продажба, само заданията към нея
         if(isset($saleIds)){
-            $saleIds = arr::make($saleIds, true);
-            $query->where("saleId", $saleIds);
+            $saleIdArr = arr::make($saleIds, true);
+            $query->in("saleId", $saleIdArr);
         }
 
         $count = 0;
@@ -2141,9 +2143,19 @@ class planning_Jobs extends core_Master
             $rec->state = 'closed';
             $rec->timeClosed = dt::now();
             $count++;
-            if ($me->save($rec, 'brState,state,timeClosed')) {
-                $me->logWrite("Автоматично приключване", $rec->id);
+
+            $isSystemUser = core_Users::isSystemUser();
+            if(!$isSystemUser){
+                core_Users::forceSystemUser();
+            }
+
+            if ($me->save($rec, 'brState,state,timeClosed,modifiedOn,modifiedBy')) {
+                $me->logWrite($logMsg, $rec->id, 360, core_Users::getCurrent());
                 $me->invoke('AfterChangeState', array(&$rec, $rec->state));
+            }
+
+            if(!$isSystemUser){
+                core_Users::cancelSystemUser();
             }
         }
 

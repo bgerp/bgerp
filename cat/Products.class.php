@@ -1496,7 +1496,7 @@ class cat_Products extends embed_Manager
         // Ако се затваря артикула затварят се и готовите задания
         if($rec->state == 'closed' && $rec->brState == 'active'){
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')){
-                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'))){
+                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след затваряне на артикул')){
                     core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                 }
             }
@@ -3023,7 +3023,7 @@ class cat_Products extends embed_Manager
 
             // Затваряне и на активните задания с произведено над 0.9 процента
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')) {
-                planning_Jobs::closeActiveJobs($completeJobTolerance, $sd->id);
+                planning_Jobs::closeActiveJobs($completeJobTolerance, $sd->id, null, null, 'Приключване след автоматично закриване на артикул');
             }
         }
 
