@@ -95,7 +95,7 @@ class pwa_Manifest extends core_Mvc
      *
      * @return string - yes|no
      */
-    public static function canUse()
+    public static function canUse($dId = null)
     {
         $defSettings = pwa_Setup::get('DOMAINS');
         if (empty($defSettings)) {
@@ -109,7 +109,11 @@ class pwa_Manifest extends core_Mvc
             return 'no';
         }
 
-        $pDomain = cms_Domains::getPublicDomain('domain');
+        if (isset($dId) && $dId > 0) {
+            $pDomain = cms_Domains::fetchField($dId, 'domain');
+        } else {
+            $pDomain = cms_Domains::getPublicDomain('domain');
+        }
 
         foreach ($defSettings as &$domainId) {
             $domainName = cms_Domains::fetchField($domainId, 'domain');
