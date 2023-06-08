@@ -24,9 +24,9 @@ class pwa_ProfilePlg extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if (core_Users::getCurrent() == $data->rec->userId) {
-            if (pwa_Manifest::canUse()) {
-                $dId = cms_Domains::getCurrent('id', false);
-                if ($dId) {
+            $dId = cms_Domains::getCurrent('id', false);
+            if ($dId) {
+                if (pwa_Manifest::canUse($dId)) {
                     $dRec = cms_Domains::fetch($dId);
                     if ($dRec && $dRec->publicKey) {
                         $data->toolbar->addFnBtn('Известия', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Получаване на известия');
