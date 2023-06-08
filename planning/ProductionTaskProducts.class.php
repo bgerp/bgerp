@@ -74,9 +74,21 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'task,ceo';
-    
-    
+    public $canDelete = 'task, ceo';
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'task, ceo';
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canDeletesysdata = 'task, ceo';
+
+
     /**
      * Кой може да го изтрие?
      */
