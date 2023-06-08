@@ -460,8 +460,9 @@ class cat_Products extends embed_Manager
                 // Задаваме дефолтните свойства
                 $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
             }
-            
+
             // Ако корицата не е на контрагент
+            $lastCode = Mode::get('cat_LastProductCode');
             if (!$cover->haveInterface('crm_ContragentAccRegIntf')) {
                 
                 // Правим кода на артикула задължителен, ако не е шаблон
@@ -469,49 +470,13 @@ class cat_Products extends embed_Manager
                     $form->setField('code', 'mandatory');
                 }
 
-                $lastCode = null;
-                if($data->_isSaveAndNew){
-                    $lastCode = Mode::get('cat_LastProductCode');
-                } elseif($cover->isInstanceOf('cat_Categories')){
+                if ($cover->isInstanceOf('cat_Categories')) {
                     if(empty($cover->fetchField('prefix'))){
                         $lastCode = Mode::get('cat_LastProductCode');
                     }
-                }
 
-                // При клониране се използва кода на клонирания артикул
-                if($data->action == 'clone'){
-                    if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
-                        $lastCode = $clonedCode;
-                    }
-                }
-
-                // Ако има намерен код, прави се опит да се инкрементира, докато се получи свободен код
-                if(!empty($lastCode)){
-                    $newCode = str::increment($lastCode);
-                    if($newCode){
-                        while (cat_Products::getByCode($newCode)) {
-                            if($newCode = str::increment($newCode)){
-                                if (!cat_Products::getByCode($newCode)) {
-                                    break;
-                                }
-                            }
-                        }
-                    } elseif($data->_isSaveAndNew || $data->action == 'clone') {
-                        // Ако все пак има предишен код, който не е инкремениран попълва се той
-                        $newCode = $lastCode;
-                    }
-
-                    // Ако има намерен такъв код - попълва се
-                    if(!empty($newCode)){
-                        $form->setDefault('code', $newCode);
-                    }
-                }
-
-                if ($cover->isInstanceOf('cat_Categories')) {
-                    
                     // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
                     $CategoryRec = $cover->rec();
-
                     if(empty($rec->code)){
                         if ($code = $cover->getDefaultProductCode()) {
                             $form->setDefault('code', $code);
@@ -526,14 +491,41 @@ class cat_Products extends embed_Manager
                     // Ако има избрани мерки, оставяме от всички само тези които са посочени в корицата +
                     // вече избраната мярка ако има + дефолтната за драйвера
                     $categoryMeasures = keylist::toArray($CategoryRec->measures);
-
                     if (countR($categoryMeasures)) {
                         if (isset($rec->measureId)) {
                             $categoryMeasures[$rec->measureId] = $rec->measureId;
                         }
-                        
                         $measureOptions = array_intersect_key($measureOptions, $categoryMeasures);
                     }
+                }
+            }
+
+            // При клониране се използва кода на клонирания артикул
+            if($data->action == 'clone'){
+                if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
+                    $lastCode = $clonedCode;
+                }
+            }
+
+            // Ако има намерен код, прави се опит да се инкрементира, докато се получи свободен код
+            if(!empty($lastCode)){
+                $newCode = str::increment($lastCode);
+                if($newCode){
+                    while (cat_Products::getByCode($newCode)) {
+                        if($newCode = str::increment($newCode)){
+                            if (!cat_Products::getByCode($newCode)) {
+                                break;
+                            }
+                        }
+                    }
+                } elseif($data->_isSaveAndNew || $data->action == 'clone') {
+                    // Ако все пак има предишен код, който не е инкремениран попълва се той
+                    $newCode = $lastCode;
+                }
+
+                // Ако има намерен такъв код - попълва се
+                if(!empty($newCode)){
+                    $form->setDefault('code', $newCode);
                 }
             }
         }
@@ -1675,7 +1667,6 @@ class cat_Products extends embed_Manager
             }
 
             if (isset($params['notDriverId'])) {
-                core_Statuses::newStatus($params['notDriverId']);
                 $query->where("#innerClass != {$params['notDriverId']}");
             }
 

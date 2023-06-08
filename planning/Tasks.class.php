@@ -335,7 +335,6 @@ class planning_Tasks extends core_Master
         $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
         $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
 
-
         $this->setDbIndex('productId');
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
@@ -406,6 +405,8 @@ class planning_Tasks extends core_Master
             $paramTpl = cat_products_Params::renderParams($data->paramData);
             $tpl->append($paramTpl, 'PARAMS');
         }
+
+        $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
     }
 
 
@@ -746,12 +747,14 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            if($mvc->haveRightFor('editprevioustask', $rec)){
-                $rec->_hasManualPreviousTask = true;
-                if(empty($row->manualPreviousTask)){
-                    $row->manualPreviousTask = tr('Няма');
+            if(!Mode::isReadOnly()){
+                if($mvc->haveRightFor('editprevioustask', $rec)){
+                    $rec->_hasManualPreviousTask = true;
+                    if(empty($row->manualPreviousTask)){
+                        $row->manualPreviousTask = tr('Няма');
+                    }
+                    $row->manualPreviousTask .= ht::createLink('', array($mvc, 'editprevioustask', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Задаване/промяна на предходен етап|*!');
                 }
-                $row->manualPreviousTask .= ht::createLink('', array($mvc, 'editprevioustask', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Задаване/промяна на предходен етап|*!');
             }
 
             // Показване на невложеното от предходна ПО

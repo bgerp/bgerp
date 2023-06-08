@@ -171,7 +171,6 @@ class batch_plg_Jobs extends core_Plugin
         } elseif(empty($rec->storeId) && isset($rec->_oldStoreId)){
             batch_BatchesInDocuments::delete("#containerId = {$rec->containerId}");
         } elseif($rec->storeId && $rec->storeId != $rec->_oldStoreId){
-            core_Statuses::newStatus("UP " . time(), 'warning');
             static::modifyBatches($mvc, $rec, 'update');
         }
     }

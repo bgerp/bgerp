@@ -461,7 +461,7 @@ class trans_Lines extends core_Master
             $transUnitsTotal = $rec->transUnitsTotal;
         }
 
-        $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal, false, '<br>');
+        $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal, false, '');
     }
 
 
