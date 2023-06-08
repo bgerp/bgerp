@@ -308,9 +308,10 @@ class planning_plg_StateManager extends core_Plugin
      * @param core_Mvc $mvc
      * @param stdClass $rec
      * @param string $action
+     * @param null|string $logMsg
      * @return void
      */
-    public static function changeState($mvc, $rec, $action)
+    public static function changeState($mvc, $rec, $action, $logMsg = null)
     {
         $logAction = null;
         $now = dt::now();
@@ -326,7 +327,6 @@ class planning_plg_StateManager extends core_Plugin
                 $rec->brState = $rec->state;
                 $rec->state = 'stopped';
                 $logAction = 'Спиране';
-
                 break;
             case 'wakeup':
                 $rec->brState = $rec->state;
@@ -365,7 +365,8 @@ class planning_plg_StateManager extends core_Plugin
 
         // Обновяваме състоянието и старото състояние
         if ($mvc->save($rec, $saveFields)) {
-            $mvc->logWrite($logAction, $rec->id);
+            $log = !empty($logMsg) ? $logMsg : $logAction;
+            $mvc->logWrite($log, $rec->id, 360, core_Users::getCurrent());
             $mvc->invoke('AfterChangeState', array(&$rec, $rec->state));
         }
 
