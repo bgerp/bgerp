@@ -422,7 +422,7 @@ abstract class deals_ClosedDeals extends core_Master
                     }
 
                     // Приключване на активните задания при нужда
-                    if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, null, $closeSaleIds, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'))){
+                    if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, null, $closeSaleIds, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след приключване на сделка')){
                         core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                     }
                 }

@@ -317,4 +317,21 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
             }
         }
     }
+
+
+    /**
+     * Връща свойствата на артикула според драйвера
+     *
+     * @param null|stdClass $rec - текущи мета данни
+     * @return array $metas - кои са дефолтните мета данни
+     */
+    public function getDefaultMetas($rec = null)
+    {
+        $meta = parent::getDefaultMetas($rec);
+        if($rec->planning_Steps_canStore == 'no'){
+            unset($meta['canStore']);
+        }
+
+        return $meta;
+    }
 }

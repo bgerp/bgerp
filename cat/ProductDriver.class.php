@@ -140,20 +140,19 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return array();
     }
-    
-    
+
+
     /**
      * Връща свойствата на артикула според драйвера
      *
-     * @param mixed $metas - текущи мета данни
-     *
+     * @param null|stdClass $rec - текущи мета данни
      * @return array $metas - кои са дефолтните мета данни
      */
-    public function getDefaultMetas($metas = null)
+    public function getDefaultMetas($rec = null)
     {
-        if (isset($metas)) {
+        if (!empty($rec->meta)) {
             
-            return arr::make($metas, true);
+            return arr::make($rec->meta, true);
         }
         
         // Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра

@@ -445,7 +445,7 @@ class cat_Products extends embed_Manager
                 $defMetas = type_Set::toArray($defMetas);
             } else {
                 if ($Driver = $mvc->getDriver($rec)) {
-                    $defMetas = $Driver->getDefaultMetas($rec->meta);
+                    $defMetas = $Driver->getDefaultMetas($rec);
                     if (countR($defMetas)) {
                         $form->setField('meta', 'autohide=any');
                     }
@@ -750,7 +750,7 @@ class cat_Products extends embed_Manager
         
         $defMetas = array();
         if ($Driver = $this->getDriver($rec)) {
-            $defMetas = $Driver->getDefaultMetas();
+            $defMetas = $Driver->getDefaultMetas($rec);
         }
         
         if (!countR($defMetas)) {
@@ -1496,7 +1496,7 @@ class cat_Products extends embed_Manager
         // Ако се затваря артикула затварят се и готовите задания
         if($rec->state == 'closed' && $rec->brState == 'active'){
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')){
-                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'))){
+                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след затваряне на артикул')){
                     core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                 }
             }
@@ -3023,7 +3023,7 @@ class cat_Products extends embed_Manager
 
             // Затваряне и на активните задания с произведено над 0.9 процента
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')) {
-                planning_Jobs::closeActiveJobs($completeJobTolerance, $sd->id);
+                planning_Jobs::closeActiveJobs($completeJobTolerance, $sd->id, null, null, 'Приключване след автоматично закриване на артикул');
             }
         }
 
