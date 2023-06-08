@@ -151,7 +151,6 @@ class acc_RatesDifferences extends core_Master
      * @param string $currencyCode   - код на валута
      * @param double $rate           - валутен курс
      * @param string|null $reason    - основание
-     * @param bool $updateDealItem   - дали да се маркира перото на сделката че е обновено
      * @return int                   - ид-то на създадения/реконтирания документ
      * @throws core_exception_Expect
      */
@@ -176,6 +175,7 @@ class acc_RatesDifferences extends core_Master
         core_Users::cancelSystemUser();
 
         if($isCreated){
+            static::logWrite('Създаване', $id);
             static::conto($id);
         } else {
             $containerId = static::fetchField($rec->id, 'containerId');

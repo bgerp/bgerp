@@ -1137,7 +1137,12 @@ div.acc-detail {
 .itemClass{
 	min-width: 210px;
 }
-
+.inline-checkbox {
+	display: inline-block;
+	margin: 5px 10px !important;
+	position: relative;
+	top: 2px;
+}
 .accToolsCell{
    width: 1%;
    a.linkWithIcon{
