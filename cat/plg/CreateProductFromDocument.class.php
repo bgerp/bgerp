@@ -263,7 +263,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     }
                 }
 
-                $defMetas = $Driver->getDefaultMetas();
+                $defMetas = $Driver->getDefaultMetas($form->rec);
                 if (isset($defMetas['canManifacture'])) {
                     if(!(($mvc instanceof store_InternalDocumentDetail) || ($mvc instanceof deals_DeliveryDocumentDetail))){
                         $form->setField('tolerance', 'input');

@@ -445,7 +445,7 @@ class cat_Products extends embed_Manager
                 $defMetas = type_Set::toArray($defMetas);
             } else {
                 if ($Driver = $mvc->getDriver($rec)) {
-                    $defMetas = $Driver->getDefaultMetas($rec->meta);
+                    $defMetas = $Driver->getDefaultMetas($rec);
                     if (countR($defMetas)) {
                         $form->setField('meta', 'autohide=any');
                     }
@@ -750,7 +750,7 @@ class cat_Products extends embed_Manager
         
         $defMetas = array();
         if ($Driver = $this->getDriver($rec)) {
-            $defMetas = $Driver->getDefaultMetas();
+            $defMetas = $Driver->getDefaultMetas($rec);
         }
         
         if (!countR($defMetas)) {
