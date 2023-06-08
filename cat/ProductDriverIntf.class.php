@@ -31,13 +31,12 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     /**
      * Връща свойствата на артикула според драйвера
      *
-     * @param mixed $metas - текущи мета данни
-     *
+     * @param null|stdClass $rec - текущи мета данни
      * @return array $metas - кои са дефолтните мета данни
      */
-    public function getDefaultMetas()
+    public function getDefaultMetas($rec = null)
     {
-        return $this->class->getDefaultMetas();
+        return $this->class->getDefaultMetas($rec);
     }
     
     
