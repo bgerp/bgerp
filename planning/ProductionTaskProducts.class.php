@@ -211,7 +211,9 @@ class planning_ProductionTaskProducts extends core_Detail
             if(isset($rec->id)){
                 if($data->action != 'replaceproduct'){
                     $form->setReadOnly('productId');
-                    $form->setReadOnly('packagingId');
+                    if(planning_ProductionTaskDetails::fetchField("#taskId = {$masterRec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'")){
+                        $form->setReadOnly('packagingId');
+                    }
                 }
             }
 

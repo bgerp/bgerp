@@ -552,7 +552,7 @@ class planning_Jobs extends core_Master
             $data->listFilter->showFields .= ',view';
         }
         
-        $data->listFilter->setField('selectPeriod', 'caption=Падеж');
+        $data->listFilter->setField('selectPeriod', 'caption=Период');
         $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent,after=view');
         $data->listFilter->input('contragentFolderId', 'silent');
         $data->listFilter->input();
@@ -2138,22 +2138,11 @@ class planning_Jobs extends core_Master
                 if($lastCreatedOn >= $thresholdDate) continue;
             }
 
-            // Затваряне на артикула
-            $rec->brState = $rec->state;
-            $rec->state = 'closed';
-            $rec->timeClosed = dt::now();
-            $count++;
-
             $isSystemUser = core_Users::isSystemUser();
             if(!$isSystemUser){
                 core_Users::forceSystemUser();
             }
-
-            if ($me->save($rec, 'brState,state,timeClosed,modifiedOn,modifiedBy')) {
-                $me->logWrite($logMsg, $rec->id, 360, core_Users::getCurrent());
-                $me->invoke('AfterChangeState', array(&$rec, $rec->state));
-            }
-
+            planning_plg_StateManager::changeState($me, $rec, 'close', $logMsg);
             if(!$isSystemUser){
                 core_Users::cancelSystemUser();
             }
