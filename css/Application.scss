@@ -1462,7 +1462,11 @@ table.listTable > tbody > tr {
     }
 
 }
-
+.planning_ProductionTaskDetails {
+	 table.listTable>tbody>tr:first-child>td {
+		border-top: 1px solid #bbb !important;
+	}
+}
 .portal.planning table.listTable th {
     border: 1px solid #ccc;
     &:first-child {
