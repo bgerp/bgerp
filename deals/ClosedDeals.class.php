@@ -413,6 +413,20 @@ abstract class deals_ClosedDeals extends core_Master
             if($DocClass->hasPlugin('store_plg_StockPlanning')){
                 store_StockPlanning::updateByDocument($DocClass, $rec->docId);
             }
+
+            if(empty($rec->closeWith)){
+                if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')){
+                    $closeSaleIds = array($firstRec->id => $firstRec->id);
+                    if(!empty($firstRec->closedDocuments)){
+                        $closeSaleIds += keylist::toArray($firstRec->closedDocuments);
+                    }
+
+                    // Приключване на активните задания при нужда
+                    if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, null, $closeSaleIds, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след приключване на сделка')){
+                        core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
+                    }
+                }
+            }
         }
         
         doc_DocumentCache::threadCacheInvalidation($rec->threadId);

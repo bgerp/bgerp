@@ -133,12 +133,24 @@ abstract class deals_DealBase extends core_Master
         // Извличаме dealInfo от самата сделка
         $this->pushDealInfo($dealRec->id, $aggregateInfo);
 
+        if (!empty($dealRec->closedDocuments)) {
+            $combinedThreads = deals_Helper::getCombinedThreads($dealRec->threadId);
+            unset($combinedThreads[$dealRec->threadId]);
+
+            $iQuery = doc_Containers::getQuery();
+            $iQuery->in('threadId', $combinedThreads);
+            $iQuery->in('docClass', array(sales_Invoices::getClassId(), purchase_Invoices::getClassId()));
+            $iQuery->where("#state = 'active'");
+            while($iRec = $iQuery->fetch()){
+                if(!array_key_exists($iRec->id, $dealDocuments)){
+                    $dealDocuments[$iRec->id] = doc_Containers::getDocument($iRec->id);
+                }
+            }
+        }
+
         foreach ($dealDocuments as $d) {
             $dState = $d->rec('state');
-            if ($dState == 'draft' || $dState == 'rejected') {
-                // Игнорираме черновите и оттеглените документи
-                continue;
-            }
+            if ($dState == 'draft' || $dState == 'rejected') continue;
 
             if ($d->haveInterface('bgerp_DealIntf')) {
                 try {
@@ -340,7 +352,6 @@ abstract class deals_DealBase extends core_Master
     public function act_Closewith()
     {
         $this->requireRightFor('closewith');
-        core_App::setTimeLimit(2000);
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
 
@@ -355,7 +366,7 @@ abstract class deals_DealBase extends core_Master
         $form->title = "|*{$title} <b>" . $this->getFormTitleLink($id). '</b>' . ' ?';
         $form->info = 'Посочете кои сделки желаете да обедините с тази сделка';
         $form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
-        $form->FLD('rate', "double", 'caption=Общ курс,input=hidden');
+        $form->FLD('rate', "double(decimals=5)", 'caption=Общ курс,input=hidden');
         $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
         $form->setSuggestions('closeWith', $options);
         $form->input();
@@ -402,6 +413,7 @@ abstract class deals_DealBase extends core_Master
                 // Ако ще има преизчисляване на курс
                 $errorArr = array();
                 $deals = keylist::toArray($formRec->closeWith);
+                core_App::setTimeLimit(2000);
 
                 if(countR($threads)){
 
@@ -410,6 +422,7 @@ abstract class deals_DealBase extends core_Master
                     $cRateQuery = acc_RatesDifferences::getQuery();
                     $cRateQuery->where("#state = 'active'");
                     $cRateQuery->in("threadId", $threads);
+                    $cRateQuery->show('id,dealOriginId');
                     while($cRateRec = $cRateQuery->fetch()){
                         $closedDeal = doc_Containers::getDocument($cRateRec->dealOriginId);
 
@@ -456,7 +469,6 @@ abstract class deals_DealBase extends core_Master
                         acc_Items::notifyObject($itemRecToNotify);
                     }
                     cls::get('acc_Items')->flushTouched();
-                    cls::get('acc_Balances')->recalc();
                 }
 
                 // Обединения договор ще е активен
@@ -466,7 +478,7 @@ abstract class deals_DealBase extends core_Master
                 $dealRec->closedDocuments = keylist::merge($dealRec->closedDocuments, $formRec->closeWith);
                 $this->save($dealRec);
 
-                core_App::setTimeLimit(1000);
+                core_App::setTimeLimit(2000);
                 $CloseDoc = cls::get($this->closeDealDoc);
                 foreach ($deals as $dealId) {
 
@@ -929,8 +941,6 @@ abstract class deals_DealBase extends core_Master
             if($itemRec){
                 acc_Items::notifyObject($itemRec);
             }
-
-            cls::get('acc_Balances')->recalc();
 
             acc_RatesDifferences::force($rec->threadId, $rec->currencyId, $fRec->newRate, 'Автоматична корекция на курсови разлики');
             if($itemRec){

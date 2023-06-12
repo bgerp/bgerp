@@ -17,15 +17,13 @@ class pwa_Plugin extends core_Plugin
 
     public function on_Output(&$invoker)
     {
-        if (Request::get('isPwa') !== 'yes') {
-            $canUse = pwa_Manifest::canUse();
+        $canUse = pwa_Manifest::canUse();
 
-            // Ако е активирана опцията за мобилно приложение - манифестираме го
-            if ($canUse == 'yes') {
-                $swDate = filemtime(getFullPath('pwa/js/sw.js'));
-                $swDate = date('Y-m-d H:i:s', $swDate);
-                $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"/pwa.webmanifest\" data-sw-date=\"{$swDate}\">", 'HEAD');
-            }
+        // Ако е активирана опцията за мобилно приложение - манифестираме го
+        if ($canUse == 'yes') {
+            $swDate = filemtime(getFullPath('pwa/js/sw.js'));
+            $swDate = date('Y-m-d H:i:s', $swDate);
+            $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"/pwa.webmanifest\" data-sw-date=\"{$swDate}\">", 'HEAD');
         }
     }
 }

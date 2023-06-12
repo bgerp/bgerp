@@ -74,9 +74,21 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'task,ceo';
-    
-    
+    public $canDelete = 'task, ceo';
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'task, ceo';
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canDeletesysdata = 'task, ceo';
+
+
     /**
      * Кой може да го изтрие?
      */
@@ -199,7 +211,9 @@ class planning_ProductionTaskProducts extends core_Detail
             if(isset($rec->id)){
                 if($data->action != 'replaceproduct'){
                     $form->setReadOnly('productId');
-                    $form->setReadOnly('packagingId');
+                    if(planning_ProductionTaskDetails::fetchField("#taskId = {$masterRec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'")){
+                        $form->setReadOnly('packagingId');
+                    }
                 }
             }
 
@@ -442,13 +456,15 @@ class planning_ProductionTaskProducts extends core_Detail
         } else {
             $query = self::getQuery();
             $query->where("#taskId = {$taskId}");
-            //$query->show('productId,plannedQuantity');
             $query->where("#type = '{$type}'");
             if(isset($inputType)){
                 if($inputType != 'actions'){
-                    $canStoreVal = ($inputType == 'materials') ? 'yes' : 'no';
                     $query->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
-                    $query->where("#canStore = '{$canStoreVal}' AND #indTime IS NULL");
+                    if($inputType == 'materials'){
+                        $query->where("#canStore = 'yes'");
+                    } else {
+                        $query->where("#canStore = 'no' AND #indTime IS NULL");
+                    }
                 } else {
                     $query->where("#indTime IS NOT NULL");
                 }

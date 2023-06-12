@@ -1007,6 +1007,12 @@ div.acc-detail {
 .itemClass {
   min-width: 210px; }
 
+.inline-checkbox {
+  display: inline-block;
+  margin: 5px 10px !important;
+  position: relative;
+  top: 2px; }
+
 .accToolsCell {
   width: 1%; }
   .accToolsCell a.linkWithIcon {
@@ -1274,6 +1280,11 @@ div.acc-detail {
       vertical-align: top !important; }
     .portal table.listTable .portal-date {
       width: 1%; }
+
+  .planning_ProductionTaskDetails table.listTable>tbody>tr>td {
+    border-top: 1px none !important; }
+  .planning_ProductionTaskDetails table.listTable>tbody>tr:first-child>td {
+    border-top: 1px dotted #cccccc !important; }
 
 .portal.planning table.listTable th {
   border: 1px solid #cccccc;

@@ -31,13 +31,12 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     /**
      * Връща свойствата на артикула според драйвера
      *
-     * @param mixed $metas - текущи мета данни
-     *
+     * @param null|stdClass $rec - текущи мета данни
      * @return array $metas - кои са дефолтните мета данни
      */
-    public function getDefaultMetas()
+    public function getDefaultMetas($rec = null)
     {
-        return $this->class->getDefaultMetas();
+        return $this->class->getDefaultMetas($rec);
     }
     
     
@@ -322,19 +321,20 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     {
         return $this->class->addButtonsToDocToolbar($id, $toolbar, $detailClass, $detailId);
     }
-    
-    
+
+
     /**
      * Връща минималното количество за поръчка
      *
      * @param int|NULL $id   - ид на артикул
      * @param string $action - дали да е за продажба или покупка
+     * @param array $params  - масив от параметри
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id = null, $action = 'sell')
+    public function getMoq($id = null, $action = 'sell', $params = array())
     {
-        return $this->class->getMoq($id, $action);
+        return $this->class->getMoq($id, $action, $params);
     }
     
     

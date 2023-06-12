@@ -246,6 +246,12 @@ class cat_BomDetails extends doc_Detail
 
         if($rec->type == 'stage'){
             $form->setField('subTitle', 'input');
+            if($data->masterRec->state == 'active' && isset($rec->id)){
+                foreach (array('subTitle', 'propQuantity', 'position', 'packagingId', 'description', 'parentId') as $fld){
+                    $form->setField($fld, 'input=hidden');
+                }
+            }
+
             if(isset($rec->resourceId)){
 
                 // Ако има данни за производство
@@ -540,8 +546,33 @@ class cat_BomDetails extends doc_Detail
             }
         }
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я връщаща контекста на продуктовите параметри
+     *
+     * @param $rec
+     * @param $masterProductId
+     * @return array $scope
+     */
+    public function getProductParamScope($rec, $masterProductId)
+    {
+        $params = cat_Boms::getProductParams($masterProductId);
+        $path = $this->getProductPath($rec);
+        foreach ($path as $pId) {
+            $newParams = cat_Boms::getProductParams($pId);
+            cat_Boms::pushParams($params, $newParams);
+        }
+
+        // Добавя допустимите параметри във формулата
+        $scope = cat_Boms::getScope($params);
+        $scope['$T'] = 1;
+        $scope['$Начално='] = '$Начално=';
+
+        return $scope;
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -551,24 +582,14 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        $masterProductId = cat_Boms::fetchField($rec->bomId, 'productId');
+        $masterRec = cat_Boms::fetch($rec->bomId);
+        $masterProductId = $masterRec->productId;
         
         // Ако има избран ресурс, добавяме му мярката до полетата за количества
         if (isset($rec->resourceId)) {
-            $params = cat_Boms::getProductParams($masterProductId);
-            $path = $mvc->getProductPath($rec);
-            foreach ($path as $pId) {
-                $newParams = cat_Boms::getProductParams($pId);
-                cat_Boms::pushParams($params, $newParams);
-            }
             
-            // Добавя допустимите параметри във формулата
-            $scope = cat_Boms::getScope($params);
-            $scope['$T'] = 1;
-            $scope['$Начално='] = '$Начално=';
-            
-            $rec->params = $scope;
-            $context = cat_Params::formulaMapToSuggestions($scope);
+            $rec->params = $mvc->getProductParamScope($rec, $masterProductId);
+            $context = cat_Params::formulaMapToSuggestions($rec->params);
             unset($context['$T']);
             $form->setSuggestions('propQuantity', $context);
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
@@ -588,6 +609,10 @@ class cat_BomDetails extends doc_Detail
             } elseif($form->_replaceProduct !== true) {
                 $form->setField('packagingId', 'input');
             }
+        }
+
+        if($masterRec->state == 'active' && $rec->type == 'stage' && isset($rec->id)) {
+            $form->setField('packagingId', 'input=hidden');
         }
         
         // Проверяваме дали е въведено поне едно количество
@@ -817,24 +842,29 @@ class cat_BomDetails extends doc_Detail
             $descriptionArr[] = "<tr><td colspan='2'>" . $mvc->getFieldType('description')->toVerbal($rec->description) . "</td>";
         }
 
-        $productDescriptionStr = '';
+        $productDescriptionTpl = new core_ET("");
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $productDescriptionStr = "<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>";
+            $productDescriptionTpl = new core_ET("<div class='small' style='margin-top:10px'><table class='bomProductionStepTable'>{$description}</table></div>");
         }
 
         if($rec->type == 'stage'){
             $rec->state = cat_Boms::fetchField($rec->bomId, 'state');
             $paramData = cat_products_Params::prepareClassObjectParams($mvc, $rec);
             if (isset($paramData)) {
-                $paramTpl = cat_products_Params::renderParams($paramData);
-                $productDescriptionStr .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
+                 $paramData->minRowToolbar = 2;
+                 $paramTpl = cat_products_Params::renderParams($paramData);
+                 $productDescriptionTpl->append($paramTpl);
             }
         }
 
-        if(!empty($productDescriptionStr)){
-            $row->resourceId = $row->resourceId . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>';
-            $row->resourceId .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>{$productDescriptionStr}</div>";
+        if(!empty($productDescriptionTpl->getContent())){
+            $newTpl = new core_ET("[#resourceId#] [#link#] <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>[#content#]</div>");
+            $newTpl->replace($row->resourceId, 'resourceId');
+            $newTpl->replace(" <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>', 'link');
+            $newTpl->replace($productDescriptionTpl, 'content');
+            $newTpl->removeBlocksAndPlaces();
+            $row->resourceId = $newTpl;
         }
 
         $coefficient = null;
@@ -976,8 +1006,14 @@ class cat_BomDetails extends doc_Detail
         if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'expand' || $action == 'shrink') && isset($rec)) {
             if(isset($rec->bomId)){
                 $masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
-                if ($masterRec->state != 'draft') {
-                    $requiredRoles = 'no_one';
+                if(in_array($action, array('add', 'edit', 'delete')) && $rec->type == 'stage'){
+                    if (in_array($masterRec->state, array('closed', 'rejected'))) {
+                        $requiredRoles = 'no_one';
+                    }
+                } else {
+                    if ($masterRec->state != 'draft') {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
@@ -1219,7 +1255,9 @@ class cat_BomDetails extends doc_Detail
     {
         // Ако сме добавили нов етап
         if (empty($rec->id) && $rec->type == 'stage') {
-            $rec->stageAdded = true;
+            if(!Mode::is('dontAutoAddStepDetails')){
+                $rec->stageAdded = true;
+            }
         }
 
         if(isset($rec->id)){
@@ -1340,7 +1378,7 @@ class cat_BomDetails extends doc_Detail
     {
         $me = cls::get(get_called_class());
         $toBomRec = cat_Boms::fetch($toBomId);
-        
+
         if ($toBomRec->type == 'production') {
             $activeBom = cat_Products::getLastActiveBom($productId, 'production,instant,sales');
         } elseif($toBomRec->type == 'instant'){

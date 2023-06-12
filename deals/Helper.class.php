@@ -1403,8 +1403,7 @@ abstract class deals_Helper
             $oldRate = $rec->{$rateFld};
             $rec->{$rateFld} = $newRate;
             if ($masterMvc instanceof deals_InvoiceMaster) {
-                $rec->displayRate = $newRate;
-
+                //$rec->displayRate = $newRate;
                 if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
                     // Изчисляване на стойността на ддс-то
                     $vat = acc_Periods::fetchByDate()->vatRate;
@@ -1416,22 +1415,26 @@ abstract class deals_Helper
                     }
 
                     if(isset($rec->dpAmount)){
+                        $rec->dealValue = ($rec->dpAmount / $oldRate) * $rec->displayRate;
                         $diff = ($rec->dpAmount / $oldRate) * $newRate;
+                        $rec->dpAmount = $diff;
                     } else {
-                        $diff = $rec->changeAmount * $newRate;
+                        $diff = $rec->changeAmount * $rec->displayRate;
+                        $rec->dealValue = $diff;
                     }
 
                     $rec->vatAmount = $diff * $vat;
-
-                    // Стойността е променената сума
-                    $rec->dealValue = $diff;
                     $updateMaster = false;
+                } elseif($rec->dpOperation == 'deducted' && isset($rec->dpAmount)){
+                    $diff = ($rec->dpAmount / $oldRate) * $newRate;
+                    $rec->dpAmount = $diff;
                 }
             }
         }
         $rec->_recalcRate = true;
         Mode::push('dontUpdateKeywords', true);
         $masterMvc->save($rec);
+
         $logMsg = 'Промяна на курс';
         if ($updateMaster) {
             $masterMvc->updateMaster_($rec);

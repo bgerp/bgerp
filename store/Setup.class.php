@@ -197,6 +197,7 @@ class store_Setup extends core_ProtoSetup
 
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Връзка на ЕН-та с куриерско API', 'store_plg_CourierApiShipment', 'store_ShipmentOrders', 'private');
+        $html .= cls::get('store_ShipmentOrders')->setupMvc();
 
         return $html;
     }

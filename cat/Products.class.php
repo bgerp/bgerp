@@ -380,7 +380,8 @@ class cat_Products extends embed_Manager
         $this->setDbIndex('fixedAsset');
         $this->setDbIndex('state');
         $this->setDbIndex('canManifacture');
-        
+        $this->setDbIndex('createdOn');
+
         $this->setDbUnique('code');
     }
     
@@ -444,7 +445,7 @@ class cat_Products extends embed_Manager
                 $defMetas = type_Set::toArray($defMetas);
             } else {
                 if ($Driver = $mvc->getDriver($rec)) {
-                    $defMetas = $Driver->getDefaultMetas($rec->meta);
+                    $defMetas = $Driver->getDefaultMetas($rec);
                     if (countR($defMetas)) {
                         $form->setField('meta', 'autohide=any');
                     }
@@ -459,8 +460,9 @@ class cat_Products extends embed_Manager
                 // Задаваме дефолтните свойства
                 $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
             }
-            
+
             // Ако корицата не е на контрагент
+            $lastCode = Mode::get('cat_LastProductCode');
             if (!$cover->haveInterface('crm_ContragentAccRegIntf')) {
                 
                 // Правим кода на артикула задължителен, ако не е шаблон
@@ -468,43 +470,13 @@ class cat_Products extends embed_Manager
                     $form->setField('code', 'mandatory');
                 }
 
-                // Кой е последно добавения код
-                $lastCode = Mode::get('cat_LastProductCode');
-
-                // При клониране се използва кода на клонирания артикул
-                if($data->action == 'clone'){
-                    if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
-                        $lastCode = $clonedCode;
-                    }
-                }
-
-                // Ако има намерен код, прави се опит да се инкрементира, докато се получи свободен код
-                if(!empty($lastCode)){
-                    $newCode = str::increment($lastCode);
-                    if($newCode){
-                        while (cat_Products::getByCode($newCode)) {
-                            if($newCode = str::increment($newCode)){
-                                if (!cat_Products::getByCode($newCode)) {
-                                    break;
-                                }
-                            }
-                        }
-                    } elseif($data->_isSaveAndNew || $data->action == 'clone') {
-                        // Ако все пак има предишен код, който не е инкремениран попълва се той
-                        $newCode = $lastCode;
-                    }
-
-                    // Ако има намерен такъв код - попълва се
-                    if(!empty($newCode)){
-                        $form->setDefault('code', $newCode);
-                    }
-                }
-
                 if ($cover->isInstanceOf('cat_Categories')) {
-                    
+                    if(empty($cover->fetchField('prefix'))){
+                        $lastCode = Mode::get('cat_LastProductCode');
+                    }
+
                     // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
                     $CategoryRec = $cover->rec();
-
                     if(empty($rec->code)){
                         if ($code = $cover->getDefaultProductCode()) {
                             $form->setDefault('code', $code);
@@ -519,14 +491,41 @@ class cat_Products extends embed_Manager
                     // Ако има избрани мерки, оставяме от всички само тези които са посочени в корицата +
                     // вече избраната мярка ако има + дефолтната за драйвера
                     $categoryMeasures = keylist::toArray($CategoryRec->measures);
-
                     if (countR($categoryMeasures)) {
                         if (isset($rec->measureId)) {
                             $categoryMeasures[$rec->measureId] = $rec->measureId;
                         }
-                        
                         $measureOptions = array_intersect_key($measureOptions, $categoryMeasures);
                     }
+                }
+            }
+
+            // При клониране се използва кода на клонирания артикул
+            if($data->action == 'clone'){
+                if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
+                    $lastCode = $clonedCode;
+                }
+            }
+
+            // Ако има намерен код, прави се опит да се инкрементира, докато се получи свободен код
+            if(!empty($lastCode)){
+                $newCode = str::increment($lastCode);
+                if($newCode){
+                    while (cat_Products::getByCode($newCode)) {
+                        if($newCode = str::increment($newCode)){
+                            if (!cat_Products::getByCode($newCode)) {
+                                break;
+                            }
+                        }
+                    }
+                } elseif($data->_isSaveAndNew || $data->action == 'clone') {
+                    // Ако все пак има предишен код, който не е инкремениран попълва се той
+                    $newCode = $lastCode;
+                }
+
+                // Ако има намерен такъв код - попълва се
+                if(!empty($newCode)){
+                    $form->setDefault('code', $newCode);
                 }
             }
         }
@@ -751,7 +750,7 @@ class cat_Products extends embed_Manager
         
         $defMetas = array();
         if ($Driver = $this->getDriver($rec)) {
-            $defMetas = $Driver->getDefaultMetas();
+            $defMetas = $Driver->getDefaultMetas($rec);
         }
         
         if (!countR($defMetas)) {
@@ -1466,6 +1465,7 @@ class cat_Products extends embed_Manager
         // Записване в сесията само при създаване на нов артикул а не и при редакция
         if($rec->_isCreated){
             Mode::setPermanent('cat_LastProductCode', $rec->code);
+            Mode::setPermanent("cat_LastProductCode{$rec->folderId}", $rec->code);
         }
         
         if (isset($rec->originId)) {
@@ -1500,7 +1500,7 @@ class cat_Products extends embed_Manager
         // Ако се затваря артикула затварят се и готовите задания
         if($rec->state == 'closed' && $rec->brState == 'active'){
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')){
-                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'))){
+                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след затваряне на артикул')){
                     core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                 }
             }
@@ -1671,7 +1671,6 @@ class cat_Products extends embed_Manager
             }
 
             if (isset($params['notDriverId'])) {
-                core_Statuses::newStatus($params['notDriverId']);
                 $query->where("#innerClass != {$params['notDriverId']}");
             }
 
@@ -3028,7 +3027,7 @@ class cat_Products extends embed_Manager
 
             // Затваряне и на активните задания с произведено над 0.9 процента
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')) {
-                planning_Jobs::closeActiveJobs($completeJobTolerance, $sd->id);
+                planning_Jobs::closeActiveJobs($completeJobTolerance, $sd->id, null, null, 'Приключване след автоматично закриване на артикул');
             }
         }
 
@@ -3817,17 +3816,18 @@ class cat_Products extends embed_Manager
             return (!empty($term)) ? $term : null;
         }
     }
-    
-    
+
+
     /**
      * Връща минималното количество за поръчка
      *
-     * @param int|NULL $id     - ид на артикул
-     * @param string   $action - дали да е за продажба или покупка
+     * @param int|NULL $id   - ид на артикул
+     * @param string $action - дали да е за продажба или покупка
+     * @param array $params  - масив от параметри
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public static function getMoq($id = null, $action = 'sell')
+    public static function getMoq($id = null, $action = 'sell', $params = array())
     {
         // Ако има драйвър, питаме го за МКП-то
         if (!isset($id)) {
@@ -3835,9 +3835,9 @@ class cat_Products extends embed_Manager
         }
         
         expect(in_array($action, array('sell', 'buy')));
-        
+
         if ($Driver = static::getDriver($id)) {
-            $moq = $Driver->getMoq($id, $action);
+            $moq = $Driver->getMoq($id, $action, $params);
             
             return (!empty($moq)) ? $moq : null;
         }

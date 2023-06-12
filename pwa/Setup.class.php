@@ -1,8 +1,8 @@
 <?php
-
+use Minishlink\WebPush\VAPID;
 
 /**
- * Мобилното приложение активно ли е?
+ * За кои домейни да се използва PWA
  */
 defIfNot('PWA_DOMAINS', '');
 
@@ -38,6 +38,21 @@ class pwa_Setup extends core_ProtoSetup
         'PWA_DOMAINS' => array('keylist(mvc=cms_Domains, select=domain, forceGroupBy=domain)', 'caption=Мобилно приложение->Домейни'),
     );
 
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+        'pwa_PushSubscriptions',
+    );
+
+
+
+    /**
+     * Мениджър - входна точка в пакета
+     */
+    public $startCtr = 'pwa_PushSubscriptions';
+
     
     /**
      * Инсталиране на пакета
@@ -51,6 +66,11 @@ class pwa_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина към страницата
         $html .= $Plugins->installPlugin('bgERP PWA', 'pwa_Plugin', 'core_page_Active', 'family');
+        $html .= $Plugins->installPlugin('bgERP PWA Profile', 'pwa_ProfilePlg', 'crm_Profiles', 'private');
+        $html .= $Plugins->installPlugin('bgERP PWA Domains', 'pwa_DomainsPlg', 'cms_Domains', 'private');
+
+        $Domains = cls::get('cms_Domains');
+        $Domains->setupMvc();
 
         $html .= fileman_Buckets::createBucket('pwa', 'Файлове качени с PWA', '', '100MB', 'user', 'every_one');
         
@@ -127,6 +147,77 @@ class pwa_Setup extends core_ProtoSetup
 
                 $html .= '<li>Регистриране на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
             }
+        }
+
+        if (core_Composer::isInUse()) {
+            $cVersion = 7;
+            $pVersion = phpversion();
+            if ((version_compare($pVersion, '7.3') < 0)) {
+                $cVersion = 6;
+            }
+            if ((version_compare($pVersion, '7.2') < 0)) {
+                $cVersion = 5;
+            }
+            if ((version_compare($pVersion, '7.1') < 0)) {
+                $cVersion = 2;
+            }
+
+            if ((version_compare($pVersion, '8') >= 0)) {
+                $cVersion = 8;
+            }
+
+            // 8 -> за PHP > PHP 8.0
+            // 7 -> за PHP > PHP 7.3 7.4
+            // 6 -> PHP 7.2
+            // 3-5 -> PHP 7.1
+            // 2 -> PHP 7.0
+            // 1 -> PHP 5.6
+            $html .= core_Composer::install('minishlink/web-push', $cVersion);
+
+            $dQuery = cms_Domains::getQuery();
+            $existKeysDomainsArr = $notExistKeysDomainsArr =  array();
+            while ($dRec = $dQuery->fetch()) {
+                if (trim($dRec->publicKey) && trim($dRec->privateKey)) {
+                    $existKeysDomainsArr[$dRec->domain][$dRec->id] = $dRec;
+                } else {
+                    $notExistKeysDomainsArr[$dRec->domain][$dRec->id] = $dRec;
+                }
+            }
+
+            foreach ($notExistKeysDomainsArr as $dName => $notDArr) {
+                if ($existKeysDomainsArr[$dName]) {
+                    foreach ($notDArr as $nRec) {
+                        $uRec = reset($existKeysDomainsArr[$dName]);
+                        $nRec->publicKey = $uRec->publicKey;
+                        $nRec->privateKey = $uRec->privateKey;
+                        cms_Domains::save($nRec, 'publicKey, privateKey');
+                    }
+                } else {
+                    $keysArr = array();
+                    try {
+                        $keysArr = VAPID::createVapidKeys();
+                    } catch (core_exception_Expect $e) {
+                        reportException($e);
+                    } catch (Throwable $t) {
+                        reportException($t);
+                    } catch (Error $e) {
+                        reportException($e);
+                    }
+
+                    foreach ($notDArr as $nRec) {
+                        if (!empty($keysArr)) {
+                            $html .= "<li style='green'>Добавени са VAPID ключове към домейн {$nRec->domain}</li>";
+                            $nRec->publicKey = $keysArr['publicKey'];
+                            $nRec->privateKey = $keysArr['privateKey'];
+                            cms_Domains::save($nRec, 'publicKey, privateKey');
+                        }
+                    }
+
+                    sleep(1);
+                }
+            }
+        } else {
+            $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
         }
 
         return $html;

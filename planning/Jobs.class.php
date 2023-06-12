@@ -552,7 +552,7 @@ class planning_Jobs extends core_Master
             $data->listFilter->showFields .= ',view';
         }
         
-        $data->listFilter->setField('selectPeriod', 'caption=Падеж');
+        $data->listFilter->setField('selectPeriod', 'caption=Период');
         $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent,after=view');
         $data->listFilter->input('contragentFolderId', 'silent');
         $data->listFilter->input();
@@ -1349,19 +1349,26 @@ class planning_Jobs extends core_Master
 
         if(countR($defaultTasks)){
             $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Шаблонни операции за артикула'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
-
+            $createAllUrl = array();
             if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'))){
-                $title = tr('Несъздадените шаблонни операции');
+                $title = tr('Избраните шаблонни операции');
                 $createAllUrl = array('planning_Tasks', 'createjobtasks', 'type' => 'all', 'jobId' => $jobRec->id, 'ret_url' => true);
-                $urlLink = ht::createBtn('Създаване', $createAllUrl, 'Наистина ли желаете да създадете наведнъж всички останали шаблонни операции|*?', false, 'title=Създаване на всички шаблонни операции за артикула,ef_icon=img/16/add.png');
+                $createAllUrlString = toUrl($createAllUrl);
+                $urlLinkBtn = ht::createFnBtn('Създаване', null, 'Наистина ли желаете да създадете наведнъж избраните шаблонни операции|*?', array('title' => 'Създаване на всички шаблонни операции за артикула', 'ef_icon' => 'img/16/add.png', 'data-url' => $createAllUrlString, 'class' => 'createAllCheckedTasks'));
+
+                $urlLink = "<input type='checkbox' name='checkAllDefaultTasks' checked class='inline-checkbox'>" . $urlLinkBtn->getContent();
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
 
             // Показване на наличните дефолтни операции
             foreach ($defaultTasks as $sysId => $defTask){
                 $title = $defTask->title;
+                if(!empty($defTask->subTitle)){
+                    $title .= " <i>{$defTask->subTitle}</i>";
+                }
+
                 $warning = false;
-                if($taskId = planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")){
+                if($taskId = planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND (#systemId = {$sysId} OR (#productId = {$defTask->productId} AND #subTitle = '{$defTask->subTitle}'))AND #state != 'rejected'")){
                     $warning = 'Наистина ли желаете да създадете отново шаблонна операция|*?';
                     if(planning_Tasks::haveRightFor('single', $taskId)){
                         $title = ht::createLinkRef($title, planning_Tasks::getSingleUrlArray($taskId), false, 'title=Преглед на производствената операция');
@@ -1375,7 +1382,12 @@ class planning_Jobs extends core_Master
                     $urlAdd = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $defTask->title, 'ret_url' => true, 'systemId' => $sysId);
                 }
 
-                $urlLink = ht::createBtn('Създаване', $urlAdd, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/add.png');
+                $urlLinkBtn = ht::createBtn('Създаване', $urlAdd, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/add.png');
+                $urlLink = $urlLinkBtn->getContent();
+                if(countR($createAllUrl)){
+                    $checked = empty($warning) ? 'checked' : '';
+                    $urlLink = "<input type='checkbox' name='R[{$sysId}]' id='cb_{$sysId}' class='inline-checkbox defaultTaskCheckbox' data-sysId='{$sysId}' {$checked}>{$urlLink}";
+                }
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
         }
@@ -1383,13 +1395,17 @@ class planning_Jobs extends core_Master
         // Показване на наличните опции за клониране на операция от предходно задание
         if (isset($jobRec->oldJobId)) {
             $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), true, true);
+            $urlCloneAll = null;
 
             if (countR($oldTasks)) {
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('От предишно задание') . planning_Jobs::getLink($jobRec->oldJobId, 0), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
                 if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'oldJobId' => $jobRec->oldJobId, 'type' => 'cloneAll'))){
-                    $title = tr('Неклонираните от предишно задание');
+                    $title = tr('Избраните от предишно задание');
                     $urlCloneAll = array('planning_Tasks', 'createjobtasks', 'type' => 'cloneAll', 'jobId' => $jobRec->id, 'oldJobId' => $jobRec->oldJobId, 'ret_url' => true);
-                    $urlLink = ht::createBtn('Клониране', $urlCloneAll, false, false, 'title=Клониране на всички предходни операции,ef_icon=img/16/clone.png');
+                    $cloneAllUrlString = toUrl($urlCloneAll);
+                    $urlLinkBtn = ht::createFnBtn('Клониране', null, 'Наистина ли желаете да клонирате наведнъж избраните операции|*?', array('title' => 'Клониране на всички предходни операции', 'ef_icon' => 'img/16/clone.png', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks'));
+
+                    $urlLink = "<input type='checkbox' name='checkAllClonedTasks' checked class='inline-checkbox'>" . $urlLinkBtn->getContent() ;
                     $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
                 }
 
@@ -1410,6 +1426,11 @@ class planning_Jobs extends core_Master
                     }
 
                     $urlLink = ht::createBtn('Клониране', $urlClone, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/clone.png');
+                    if(countR($urlCloneAll)){
+                        $checked = empty($warning) ? 'checked' : '';
+                        $urlLink = "<input type='checkbox' name='R[{$k1}]' id='cb_{$k1}' class='previousTaskCheckbox inline-checkbox' data-cloneId='{$k1}' {$checked}>{$urlLink}";
+                    }
+
                     $options[] = (object)array('DEFAULT_TASK_CAPTION' => $oldTitle, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
                 }
             }
@@ -1463,7 +1484,10 @@ class planning_Jobs extends core_Master
         }
 
         $tpl = $this->renderWrapping($form->renderHtml());
-        
+
+        $tpl->push('planning/js/TaskSelection.js', 'JS');
+        jquery_Jquery::run($tpl, 'taskSelect();');
+
         return $tpl;
     }
 
@@ -1802,7 +1826,7 @@ class planning_Jobs extends core_Master
             core_Users::forceSystemUser();
         }
 
-        static::closeActiveJobs(planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT'), null, $delay);
+        static::closeActiveJobs(planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT'), null, null, $delay, "Автоматично приключване по разписание");
 
         if(!$isSystemUser){
             core_Users::cancelSystemUser();
@@ -2074,11 +2098,14 @@ class planning_Jobs extends core_Master
      * в последните $noNewDocumentsInMonths месеца
      *
      * @param double $tolerance          - над колко % произведено (включително)
-     * @param int|null $productId        - ид на артикул
+     * @param int|array|null $productIds - ид/масив от ид-та на артикули
+     * @param int|array|null $saleIds    - ид/масив от ид-та от продажби
      * @param int|null $noNewDocumentsIn - за колко време назад да се гледа да няма нови контиращи документи в нишката
+     * @param string $logMsg             - лог при приключване
+     *
      * @return int $count                - колко са приключените задания
      */
-    public static function closeActiveJobs($tolerance, $productId = null, $noNewDocumentsIn = null)
+    public static function closeActiveJobs($tolerance, $productIds = null, $saleIds = null, $noNewDocumentsIn = null, $logMsg = 'Автоматично приключване')
     {
         $thresholdDate = ($noNewDocumentsIn) ? dt::addSecs(-1 * $noNewDocumentsIn, dt::now()) : null;
         $me = cls::get(get_called_class());
@@ -2088,8 +2115,15 @@ class planning_Jobs extends core_Master
         $query->where("#completed >= {$tolerance}");
 
         // Ако ще се гледат само за един артикул - за него, иначе за всички задания към затворени артикули
-        if(isset($productId)){
-            $query->where("#productId = {$productId}");
+        if(isset($productIds)){
+            $productIds = arr::make($productIds, true);
+            $query->in("productId", $productIds);
+        }
+
+        // Ако има продажба, само заданията към нея
+        if(isset($saleIds)){
+            $saleIdArr = arr::make($saleIds, true);
+            $query->in("saleId", $saleIdArr);
         }
 
         $count = 0;
@@ -2104,14 +2138,13 @@ class planning_Jobs extends core_Master
                 if($lastCreatedOn >= $thresholdDate) continue;
             }
 
-            // Затваряне на артикула
-            $rec->brState = $rec->state;
-            $rec->state = 'closed';
-            $rec->timeClosed = dt::now();
-            $count++;
-            if ($me->save($rec, 'brState,state,timeClosed')) {
-                $me->logWrite("Автоматично приключване", $rec->id);
-                $me->invoke('AfterChangeState', array(&$rec, $rec->state));
+            $isSystemUser = core_Users::isSystemUser();
+            if(!$isSystemUser){
+                core_Users::forceSystemUser();
+            }
+            planning_plg_StateManager::changeState($me, $rec, 'close', $logMsg);
+            if(!$isSystemUser){
+                core_Users::cancelSystemUser();
             }
         }
 

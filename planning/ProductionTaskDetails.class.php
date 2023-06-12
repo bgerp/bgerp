@@ -97,7 +97,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity=Колич.,netWeight=Нето (кг),weight=Бруто (кг),employees,fixedAsset=Обор.,date=Дата,info=@';
+    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity=Колич.,netWeight=Нето кг,weight=Бруто кг,employees,fixedAsset=Обор.,date=Дата,info=@';
 
 
     /**
@@ -834,7 +834,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
         }
 
-        $query->where("#originId = {$taskRec->originId} AND #taskId != {$taskRec->id}");
+        $query->where("#taskId != {$taskRec->id}");
+        if($type != 'input'){
+            $query->where("#originId = {$taskRec->originId}");
+        }
         $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
 
         // Сумира се реално произведеното по този проз. номер по операция

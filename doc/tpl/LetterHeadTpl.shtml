@@ -1,6 +1,6 @@
 <!--ET_BEGIN TableRow-->
 	<div class="small antetka">
-		<table class="top-table" style="width:100%;">
+		<table class="top-table [#LETTER_HEAD_TABLE_CLASS#]" style="width:100%;">
 			[#TableRow#]
 		</table>
 	</div>

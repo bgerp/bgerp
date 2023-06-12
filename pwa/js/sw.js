@@ -18,9 +18,7 @@ addEventListener('fetch', function (event) {
 // event.respondWith(fetch(event.request));
 	  return;
   }
-  
-// event.respondWith(Response.redirect('/doc_Files'));
-  
+
   event.waitUntil(async function () {
     const data = await event.request.formData();
     const client = await self.clients.get(event.resultingClientId);
@@ -42,4 +40,68 @@ addEventListener('fetch', function (event) {
 // await fetch('/pwa_Share/Target', {method: "POST", body: data}).then(response => {client.postMessage( response.url );});
     await fetch('/pwa_Share/Target', {method: "POST", body: data}).then(async function(response) {await client.postMessage( response.url );});
   }());
+});
+
+
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+
+    if (event.notification.data.url) {
+        event.waitUntil(
+            clients.openWindow(event.notification.data.url)
+        );
+    }
+})
+
+
+self.addEventListener('push', function (event) {
+
+    if (!(self.Notification && self.Notification.permission === 'granted')) {
+
+        return;
+    }
+
+    const sendNotification = body => {
+        let opt = {};
+
+        bodyData = JSON.parse(body);
+
+        const title = bodyData.title;
+        opt.body = bodyData.text;
+        if (bodyData.icon) {
+            opt.icon = bodyData.icon;
+        }
+
+        if (bodyData.image) {
+            opt.image = bodyData.image;
+        }
+
+        if (bodyData.vibrate) {
+            opt.vibrate = [200, 100, 300, 100, 400, 100, 500];
+        }
+
+        if (!bodyData.sound) {
+            opt.silent = true;
+        }
+
+        if (bodyData.tag) {
+            opt.tag = bodyData.tag;
+        }
+
+        if (bodyData.url) {
+            opt.data = {url: bodyData.url};
+        }
+
+        return self.registration.showNotification(title, opt);
+    };
+
+    if (event.data) {
+        const message = event.data.text();
+        // clients.matchAll({ type: 'window' }).then(function(clientList) {
+            // const client = clientList.find(c => c.visibilityState === 'visible');
+            // if (!client) {
+                event.waitUntil(sendNotification(message));
+            // }
+        // });
+    }
 });

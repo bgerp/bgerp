@@ -483,7 +483,8 @@ class sales_Setup extends core_ProtoSetup
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,
                        sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_reports_SalesByCreators,sales_interface_FreeRegularDelivery,
-                       sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_InvoiceAccView,sales_reports_PassiveCustomers';
+                       sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_InvoiceAccView,sales_reports_PassiveCustomers,
+                       sales_reports_OffersSentWithoutReply';
     
     
     /**
@@ -637,6 +638,7 @@ class sales_Setup extends core_ProtoSetup
 
         $Plugins = cls::get('core_Plugins');
         $res .= $Plugins->installPlugin('Връзка на продажбите с куриерско API', 'store_plg_CourierApiShipment', 'sales_Sales', 'private');
+        $res .= cls::get('sales_Sales')->setupMvc();
 
         return $res;
     }

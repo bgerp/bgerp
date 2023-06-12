@@ -38,7 +38,7 @@ class gdocs_Plugin extends core_Plugin
                         'gDocs',
                         $url,
                         "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/google.png",
-                        array('target' => '_blank', 'order' => '30')
+                        array('target' => '_blank', 'order' => '30', 'row' => 2)
                     );
                 }
             } catch (core_Exception_Expect $expect) {
