@@ -249,7 +249,7 @@ class pwa_PushSubscriptions extends core_Manager
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        $row->brid = str::coloring($rec->brid);
+        $row->brid = log_Browsers::getLink($rec->brid);
     }
 
 
