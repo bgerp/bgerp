@@ -168,7 +168,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                     $diffRate = $rate - $strategyRate;
                     $finalAmountNotRound = $diffRate * $sign * $docRec->amountDeal;
                     $finalAmountNotRoundCheck = preg_replace('/\.(\d{2}).*/', '.$1', abs($finalAmountNotRound));
-                    if(empty($finalAmountNotRoundCheck) || $finalAmountNotRoundCheck < 0.01) continue;
+                    if(empty($finalAmountNotRoundCheck) || $finalAmountNotRoundCheck < 0.005) continue;
 
                     $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
                     $totalAmount += $finalAmount;
