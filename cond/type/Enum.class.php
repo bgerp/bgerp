@@ -26,7 +26,7 @@ class cond_type_Enum extends cond_type_abstract_Proto
     {
         $fieldset->FLD('options', 'text', 'caption=Конкретизиране->Опции,before=default,mandatory');
         $fieldset->FLD('orderBy', 'enum(no=Без,ascKey=Възходящ [ключ],ascVal=Възходящо [стойност],descKey=Низходящо [ключ], descVal=Низходящо [стойност])', 'caption=Конкретизиране->Подредба,mandatory');
-        $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутон,mandatory');
+        $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутони до,mandatory', "unit= |опции (при повече - падащо меню)|*");
         $fieldset->FLD('columns', 'int(Min=0)', 'caption=Конкретизиране->Радио бутон (колони),placeholder=2');
     }
     
