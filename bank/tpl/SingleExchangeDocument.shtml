@@ -45,7 +45,7 @@
                     <!--ET_BEGIN rate-->
                     <tr>
                         <td>
-                            |При курс|*: &nbsp;<b><span style='color:darkgreen'>[#rate#]</span></b>	
+                            |При курс|*: &nbsp;<b><span style='color:darkgreen'>[#rate#]</span></b> [#rateUnit#]
                         </td>
                     </tr>
                     <!--ET_END rate-->
