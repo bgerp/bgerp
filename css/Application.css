@@ -6950,6 +6950,8 @@ only screen and (max-width: 320px) {
     border: none !important; }
   .printing .quiet.saleBankBlock {
     color: #bbbbbb; }
+    .printing .quiet.saleBankBlock .quiet {
+      color: #bbbbbb; }
 
 .narrow .printing .document {
   width: 850px; }
