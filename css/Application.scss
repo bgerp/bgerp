@@ -1462,7 +1462,14 @@ table.listTable > tbody > tr {
     }
 
 }
-
+.planning_ProductionTaskDetails {
+	table.listTable>tbody>tr>td {
+		border-top: 1px none !important;
+	}
+	 table.listTable>tbody>tr:first-child>td {
+		border-top: 1px dotted #ccc !important;
+	}
+}
 .portal.planning table.listTable th {
     border: 1px solid #ccc;
     &:first-child {
@@ -7869,6 +7876,12 @@ body.narrow {
 	}
 	.em-holder .top-table td {
 		border: none !important;
+	}
+	.quiet.saleBankBlock {
+		color: #bbb;
+		.quiet {
+			color: #bbb;
+		}
 	}
 }
 

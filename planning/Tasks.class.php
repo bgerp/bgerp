@@ -290,8 +290,8 @@ class planning_Tasks extends core_Master
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,silent');
-        $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
-        $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено)', 'caption=Отчитане на тегло,notNull,value=yes,autohide');
+        $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа,class=w100');
+        $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено)', 'caption=Отчитане на тегло,notNull,value=yes,autohide,class=w100');
         if (core_Packs::isInstalled('batch')) {
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Партида,input=none');
         }

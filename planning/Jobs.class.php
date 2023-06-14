@@ -552,7 +552,7 @@ class planning_Jobs extends core_Master
             $data->listFilter->showFields .= ',view';
         }
         
-        $data->listFilter->setField('selectPeriod', 'caption=Падеж');
+        $data->listFilter->setField('selectPeriod', 'caption=Период');
         $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent,after=view');
         $data->listFilter->input('contragentFolderId', 'silent');
         $data->listFilter->input();

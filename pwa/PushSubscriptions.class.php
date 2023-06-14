@@ -81,6 +81,7 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни');
 
         $this->setDbUnique('publicKey, authToken');
+        $this->setDbUnique('brid');
     }
 
 
@@ -210,6 +211,7 @@ class pwa_PushSubscriptions extends core_Manager
 
         if ($action == 'unsubscribe') {
             $this->delete(array("#publicKey = '[#1#]' AND #authToken = '[#2#]'", $publicKey, $authToken));
+            $this->delete(array("#brid = '[#1#]'", $brid));
 
             $statusData['text'] = tr('Премахване на Push абонамент за получаване на известия');
         } else {
@@ -247,7 +249,7 @@ class pwa_PushSubscriptions extends core_Manager
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        $row->brid = str::coloring($rec->brid);
+        $row->brid = log_Browsers::getLink($rec->brid);
     }
 
 
