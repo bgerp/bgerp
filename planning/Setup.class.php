@@ -382,7 +382,6 @@ class planning_Setup extends core_ProtoSetup
         }
     }
 
-
     /**
      * Мигриране на етикетирането
      */

@@ -759,7 +759,8 @@ abstract class deals_ClosedDeals extends core_Master
         } elseif($rec->valiorStrategy == 'createdOn'){
             $date = $rec->createdOn;
         } else {
-            $date = $this->getBiggestValiorInDeal($rec);
+            $skipClasses = array(acc_RatesDifferences::getClassId());
+            $date = $this->getBiggestValiorInDeal($rec, $skipClasses);
         }
 
         if(empty($date)){
