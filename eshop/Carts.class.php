@@ -964,7 +964,10 @@ class eshop_Carts extends core_Master
          } catch(core_exception_Expect $e){
             reportException($e);
             eshop_Carts::logErr("Грешка при създаване на онлайн продажба: '{$e->getMessage()}'", $rec->id);
-         }
+            if (!empty($routerExplanation)) {
+                eshop_Carts::logDebug($routerExplanation, $rec->id, 7);
+            }
+        }
         
         if (empty($saleId)) {
             
