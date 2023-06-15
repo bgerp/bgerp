@@ -1741,7 +1741,7 @@ function setMinHeightExt() {
         if ($('body').hasClass('wide')) {
             var add = 16;
         } else {
-            var add = 7;
+            var add = 9;
         }
 
         if ($('#maincontent').length) {
