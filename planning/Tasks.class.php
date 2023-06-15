@@ -464,9 +464,11 @@ class planning_Tasks extends core_Master
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
         }
 
-        $rec->notConvertedQuantity = $mvc->getLeftOverQuantityInStock($rec);
-        $row->notConvertedQuantity = core_Type::getByName('double(smartRound,Min=0)')->toVerbal($rec->notConvertedQuantity);
-        $row->notConvertedQuantity = "<b class='red'>{$row->notConvertedQuantity}</b>";
+        if(isset($fields['-detail'])){
+            $rec->notConvertedQuantity = $mvc->getLeftOverQuantityInStock($rec);
+            $row->notConvertedQuantity = core_Type::getByName('double(smartRound,Min=0)')->toVerbal($rec->notConvertedQuantity);
+            $row->notConvertedQuantity = "<b class='red'>{$row->notConvertedQuantity}</b>";
+        }
 
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity', 'notConvertedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
@@ -1814,7 +1816,7 @@ class planning_Tasks extends core_Master
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
 
-            $jobQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originRec->quantity);
+            $jobQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originRec->quantity / $originRec->quantityInPack);
             $jobMeasureVerbal = cat_UoM::getSmartName($originRec->packagingId, $originRec->quantity);
             $unit = "|за количество от заданието|* <b>{$jobQuantityVerbal} {$jobMeasureVerbal}</b>";
             if ($measuresCount == 1) {

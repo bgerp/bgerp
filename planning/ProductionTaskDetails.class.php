@@ -903,11 +903,22 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Ако не е намерен артикул търси се в етикет от опаковка
         $serialProductId = is_object($pRec) ? $pRec->id : null;
+        $labelOriginTaskId = null;
         if(empty($serialProductId)){
             if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
                 $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
+
                 if($printRec->classId == cat_products_Packagings::getClassId()){
                     $serialProductId = cls::get($printRec->classId)->fetchField($printRec->objectId, 'productId');
+                } elseif($printRec->classId == planning_Tasks::getClassId()) {
+                    if($type == 'production'){
+                        $labelTaskOriginRec = cls::get($printRec->classId)->fetch($printRec->objectId, 'isFinal,originId,productId');
+                        $serialProductId = $labelTaskOriginRec->productId;
+                        if($labelTaskOriginRec->isFinal == 'yes'){
+                            $serialProductId = planning_Jobs::fetchField("#containerId = {$labelTaskOriginRec->originId}", 'productId');
+                        }
+                        $labelOriginTaskId = $labelTaskOriginRec->originId;
+                    }
                 }
             }
         }
@@ -921,8 +932,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
         if ($res['productId'] != $productId && $res['productId'] != $jobProductId) {
             $res['error'] = 'Производственият номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
-        } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
+        } elseif (!$Driver->checkSerial($productId, $serial, $error)) { bp();
             $res['error'] = $error;
+        } elseif(isset($labelOriginTaskId) && $labelOriginTaskId != $taskRec->originId){
+            $res['error'] = 'Производственият номер отпечатан от операция по друго задание|*: <b>' . doc_Containers::getDocument($labelOriginTaskId)->getHyperlink(true) . '</b>';
         }
 
         return $res;

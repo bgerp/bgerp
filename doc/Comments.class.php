@@ -110,7 +110,7 @@ class doc_Comments extends embed_Manager
      *
      * @see change_Plugin
      */
-    public $canChangerec = 'powerUser';
+    public $canChangerec = 'user';
     
     
     /**

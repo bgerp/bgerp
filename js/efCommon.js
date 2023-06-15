@@ -1735,17 +1735,17 @@ function setMinHeightExt() {
         var bf = $('.beforeFooterNewsbar').length ? parseInt($('.beforeFooterNewsbar').outerHeight()) : 0;
         var af = $('.afterFooterNewsbar').length ? parseInt($('.afterFooterNewsbar').outerHeight()) : 0;
         var tf = $('.topPageNewsbar').length ? parseInt($('.topPageNewsbar').outerHeight()) : 0;
+        var ft = $('.additionalFooter').length ? parseInt($('.additionalFooter').outerHeight()) : 0;
 
 
         if ($('body').hasClass('wide')) {
             var add = 16;
         } else {
-            var add = 47 + parseInt($('.additionalFooter').outerHeight());
+            var add = 9;
         }
 
         if ($('#maincontent').length) {
-
-            var h = (clientHeight - ct - cb - cm - add - totalPadding -bf - af - tf);
+            var h = (clientHeight - ct - cb - cm - add - totalPadding -bf - af - tf - ft);
             if (getWindowWidth() > 600 && $('body').hasClass('narrow')) {
                 h -= 3;
             }
