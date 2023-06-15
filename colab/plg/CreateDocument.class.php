@@ -15,6 +15,28 @@
  */
 class colab_plg_CreateDocument extends core_Plugin
 {
+
+
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     *
+     * @param core_Manager $mvc
+     * @param bool         $res
+     * @param object       $rec
+     *
+     * @see change_Plugin
+     */
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        if ($res !== false) {
+            $cu = core_Users::getCurrent();
+            if ($rec->createdBy != $cu && !core_Users::haveRole('powerUser')) {
+                $res = false;
+            }
+        }
+    }
+
+
     /**
      * Какви роли са необходими за качване или сваляне?
      */
