@@ -1741,11 +1741,11 @@ function setMinHeightExt() {
         if ($('body').hasClass('wide')) {
             var add = 16;
         } else {
-            var add = 47 + parseInt($('.additionalFooter').outerHeight());
+            var add = 8;
         }
 
         if ($('#maincontent').length) {
-            var h = (clientHeight - ct - cb - cm - add - totalPadding -bf - af - tf + ft + 1);
+            var h = (clientHeight - ct - cb - cm - add - totalPadding -bf - af - tf - ft);
             if (getWindowWidth() > 600 && $('body').hasClass('narrow')) {
                 h -= 3;
             }
