@@ -1814,7 +1814,7 @@ class planning_Tasks extends core_Master
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
 
-            $jobQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originRec->quantity);
+            $jobQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originRec->quantity / $originRec->quantityInPack);
             $jobMeasureVerbal = cat_UoM::getSmartName($originRec->packagingId, $originRec->quantity);
             $unit = "|за количество от заданието|* <b>{$jobQuantityVerbal} {$jobMeasureVerbal}</b>";
             if ($measuresCount == 1) {
