@@ -601,6 +601,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
 
+            if($rec->state != 'draft'){
+                $dQuery = planning_DirectProductNoteDetails::getQuery();
+                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                $dQuery->where("#noteId = {$rec->id} AND #canStore = 'no'");
+                if(!$dQuery->count()){
+                    unset($row->inputServicesFrom);
+                }
+            }
         } else {
             $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
         }
