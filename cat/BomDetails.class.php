@@ -773,13 +773,13 @@ class cat_BomDetails extends doc_Detail
             
             // Може ли да се разпъне реда
             if ($mvc->haveRightFor('expand', $rec)) {
-                $link = ht::createLink('', array($mvc, 'expand', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/toggle1.png,title=Направи етап');
+                $link = ht::createLink(tr('|*[+ |рецепта|*]'), array($mvc, 'expand', $rec->id, 'ret_url' => true), false, 'title=Направи етап');
                 $extraBtnTpl->append($link, 'BTN');
             }
             
             // Може ли да се свие етапа
             if ($mvc->haveRightFor('shrink', $rec)) {
-                $link = ht::createLink('', array($mvc, 'shrink', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/toggle2.png,title=Свиване на етап');
+                $link = ht::createLink(tr('|*[- |рецепта|*]'), array($mvc, 'shrink', $rec->id, 'ret_url' => true), false, 'title=Свиване на етап');
                 $extraBtnTpl->append($link, 'BTN');
             }
             
@@ -861,7 +861,7 @@ class cat_BomDetails extends doc_Detail
         if(!empty($productDescriptionTpl->getContent())){
             $newTpl = new core_ET("[#resourceId#] [#link#] <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>[#content#]</div>");
             $newTpl->replace($row->resourceId, 'resourceId');
-            $newTpl->replace(" <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>', 'link');
+            $newTpl->replace(" <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/minus-black.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>', 'link');
             $newTpl->replace($productDescriptionTpl, 'content');
             $newTpl->removeBlocksAndPlaces();
             $row->resourceId = $newTpl;
@@ -942,8 +942,18 @@ class cat_BomDetails extends doc_Detail
         if (isset($bomRec)) {
             $rec->coefficient = $bomRec->quantity;
         }
-        $this->save($rec, 'type,primeCost,coefficient');
-        
+
+        $Driver = cat_Products::getDriver($rec->resourceId);
+        if(isset($Driver)){
+            $productionData = $Driver->getProductionData($rec->resourceId);
+            foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld) {
+                $defaultValue = is_array($productionData[$productionFld]) ? keylist::fromArray($productionData[$productionFld]) : $productionData[$productionFld];
+                $rec->{$productionFld} = $defaultValue;
+            }
+        }
+        $this->save($rec);
+
+        static::addParamsToStepRec($masterRec->productId, $rec);
         $title = cat_Products::getTitleById($rec->resourceId);
         $msg = "{$title} |вече е етап|*";
         $this->Master->logWrite('Разпъване на вложен артикул', $rec->bomId);
@@ -967,9 +977,11 @@ class cat_BomDetails extends doc_Detail
         $this->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
         cat_products_Params::delete("#classId = {$this->getClassId()} AND #productId = {$rec->id}");
         $rec->coefficient = null;
-        $rec->centerId = $rec->inputStores = $rec->storeIn = $rec->fixedAssets = $rec->employees = $rec->norm = null;
+        foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld) {
+            $rec->{$productionFld} = null;
+        }
+
         $this->save($rec);
-        
         $title = cat_Products::getTitleById($rec->resourceId);
         $msg = "|Свиване на|* {$title}";
         $this->Master->logRead('Свиване на етап', $rec->bomId);
@@ -1521,6 +1533,46 @@ class cat_BomDetails extends doc_Detail
             if(countR($addStepUrl)){
                 $addStepUrl['ret_url'] = getCurrentUrl();
                 $data->form->toolbar->addBtn('Нов етап', $addStepUrl, 'id=btnReq,order=9.99971', 'ef_icon = img/16/add.png,title=Създаване на артикул за нов етап в производството');
+            }
+        }
+    }
+
+
+    /**
+     * Добавя актуалните параметри, към реда на етапа от рецептата
+     *
+     * @param int $bomProductId
+     * @param stdClass $dRec
+     * @return void
+     */
+    public static function addParamsToStepRec($bomProductId, $dRec)
+    {
+        $StepDriver = cat_Products::getDriver($dRec->resourceId);
+        if(!$StepDriver) return;
+
+        // Винаги се регенерират и параметрите
+        $pData = $StepDriver->getProductionData($dRec->resourceId);
+        if (is_array($pData['planningParams'])) {
+            foreach ($pData['planningParams'] as $paramId){
+                $productParamValues = cat_Products::getParams($bomProductId);
+                $stepParams = cat_Products::getParams($dRec->resourceId);
+
+                $v = null;
+                if(array_key_exists($paramId, $productParamValues)){
+                    $v = $productParamValues[$paramId];
+                } elseif(array_key_exists($paramId, $stepParams)){
+                    $v = $stepParams[$paramId];
+                } else {
+                    $v = cat_Params::getDefaultValue($paramId, cat_Products::getClassId(), $bomProductId);
+                }
+                if(isset($v)){
+                    $dRec->{"paramcat{$paramId}"} = $v;
+                    $dRec->_params["paramcat{$paramId}"] = (object)array('paramId' => $paramId);
+                }
+            }
+
+            if(!empty($dRec->_params)){
+                cat_products_Params::saveParams(cls::get(get_called_class()), $dRec);
             }
         }
     }

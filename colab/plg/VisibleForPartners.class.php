@@ -78,7 +78,9 @@ class colab_plg_VisibleForPartners extends core_Plugin
         }
         
         $data->form->setField('visibleForPartners', 'changable=ifInput');
-        $data->form->setField('visibleForPartners', 'input=none');
+        if (!core_Users::isPowerUser()) {
+            $data->form->setField('visibleForPartners', 'input=none');
+        }
 
         // Сетваме стойността, ако не е зададена
         if (!$rec->id && !$rec->visibleForPartners) {

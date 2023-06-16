@@ -1979,7 +1979,6 @@ class cat_Boms extends core_Master
 
             $newBomId = $this->save($clone);
             $newBomRec = static::fetch($newBomId);
-            //cat_BomDetails::delete("#bomId = $newBomId");
 
             $dQuery = cat_BomDetails::getQuery();
             $dQuery->where("#bomId = {$rec->id} AND #parentId IS NULL");
@@ -2033,35 +2032,7 @@ class cat_Boms extends core_Master
         Mode::pop('dontAutoAddStepDetails');
 
         if($dRec->type == 'stage'){
-            if($StepDriver = cat_Products::getDriver($dRec->resourceId)) {
-
-                // Винаги се регенерират и параметрите
-                $pData = $StepDriver->getProductionData($dRec->resourceId);
-                if (is_array($pData['planningParams'])) {
-                    foreach ($pData['planningParams'] as $paramId){
-                        $productParamValues = cat_Products::getParams($newBomRec->productId);
-                        $stepParams = cat_Products::getParams($dRec->resourceId);
-
-                        $v = null;
-                        if(array_key_exists($paramId, $productParamValues)){
-                            $v = $productParamValues[$paramId];
-                        } elseif(array_key_exists($paramId, $stepParams)){
-                            $v = $stepParams[$paramId];
-                        } else {
-                            $v = cat_Params::getDefaultValue($paramId, cat_Products::getClassId(), $newBomRec->productId);
-                        }
-                        if(isset($v)){
-                            $dRec->{"paramcat{$paramId}"} = $v;
-                            $dRec->_params["paramcat{$paramId}"] = (object)array('paramId' => $paramId);
-                        }
-                    }
-
-                    if(!empty($dRec->_params)){
-                        cat_products_Params::saveParams(cls::get('cat_BomDetails'), $dRec);
-                    }
-                }
-            }
-
+            cat_BomDetails::addParamsToStepRec($newBomRec->productId, $dRec);
             $bomOrder = (($newBomRec->type == 'production') ? 'production,instant,sales' : (($newBomRec->type == 'instant') ? 'instant,sales' : 'sales'));
             $activeBom = cat_Products::getLastActiveBom($dRec->resourceId, $bomOrder);
 
