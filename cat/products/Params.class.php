@@ -695,13 +695,15 @@ class cat_products_Params extends doc_Detail
         }
 
         $stepParams = $prevRecValues = array();
-        if(isset($planningStepProductId) && empty($objectId)){
+        if(isset($planningStepProductId)){
             if($StepDriver = cat_Products::getDriver($planningStepProductId)){
                 $pData = $StepDriver->getProductionData($planningStepProductId);
                 if(is_array($pData['planningParams'])){
                     $params = $pData['planningParams'];
                 }
-                $stepParams = cat_Products::getParams($planningStepProductId);
+                if(empty($objectId)){
+                    $stepParams = cat_Products::getParams($planningStepProductId);
+                }
             }
 
             if($class instanceof planning_Tasks){
