@@ -1,10 +1,7 @@
 <?php
 
 
-require_once 'aws/aws-autoloader.php';
-
 use Aws\S3\S3Client;
-
 
 /**
  * Модул backUp чрез Amazon Web Services (главно S3)
@@ -38,16 +35,18 @@ class backup_Amazon extends core_BaseClass
     
     public function __construct()
     {
-        self::$s3Client = new S3Client([
-            'version' => 'latest',
-            'region' => 'eu-west-1',
-            'credentials' => [
-                'key' => backup_Setup::get('AMAZON_KEY', true),
-                'secret' => backup_Setup::get('AMAZON_SECRET', true),
-            ],
-        ]);
-        
-        self::$bucket = backup_Setup::get('AMAZON_BUCKET', true);
+        if (core_Composer::isInUse()) {
+            self::$s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => 'eu-west-1',
+                'credentials' => [
+                    'key' => backup_Setup::get('AMAZON_KEY', true),
+                    'secret' => backup_Setup::get('AMAZON_SECRET', true),
+                ],
+            ]);
+            
+            self::$bucket = backup_Setup::get('AMAZON_BUCKET', true);
+        }
     }
     
     
