@@ -167,7 +167,7 @@ class cat_Boms extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn';
+    public $filterDateField = 'createdOn,lastUpdatedDetailOn,modifiedOn';
     
     
     /**
@@ -213,7 +213,7 @@ class cat_Boms extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,hash,regeneratedFromId';
+    public $fieldsNotToClone = 'title,hash,regeneratedFromId,lastUpdatedDetailOn,lastUpdatedDetailBy';
 
 
     /**
@@ -240,6 +240,8 @@ class cat_Boms extends core_Master
         $this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
         $this->FLD('hash', 'varchar', 'input=none');
         $this->FLD('regeneratedFromId', 'key(mvc=cat_Boms,select=id)', 'input=none');
+        $this->FLD('lastUpdatedDetailOn', 'datetime(format=smartTime)', 'caption=Промяна на детайла->На,silent,input=none');
+        $this->FLD('lastUpdatedDetailBy', 'key(mvc=core_Users,select=nick)', 'caption=Промяна на детайла->От,input=none');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('productId,state,type');
@@ -548,8 +550,10 @@ class cat_Boms extends core_Master
         }
         
         doc_DocumentCache::cacheInvalidation($rec->containerId);
-        
-        return $this->save_($rec, 'modifiedOn,modifiedBy,searchKeywords');
+        $rec->lastUpdatedDetailOn = dt::now();
+        $rec->lastUpdatedDetailBy = core_Users::getCurrent();
+
+        return $this->save_($rec, 'lastUpdatedDetailOn,lastUpdatedDetailBy,modifiedOn,modifiedBy,searchKeywords');
     }
     
     
@@ -2044,7 +2048,7 @@ class cat_Boms extends core_Master
 
             $dRecs = array();
             if($activeBom){
-                if(!$cloneIfDetailsAreNewer || $oldBomRec->activatedOn <= $activeBom->activatedOn){
+                if(!$cloneIfDetailsAreNewer || $oldBomRec->lastUpdatedDetailOn <= $activeBom->lastUpdatedDetailOn){
                     $bQuery = cat_BomDetails::getQuery();
                     $bQuery->where("#parentId IS NULL AND #bomId = {$activeBom->id}");
                     $dRecs = $bQuery->fetchAll();
