@@ -212,7 +212,9 @@ class backup_Setup extends core_ProtoSetup
         $html = parent::install();
         
         $html .= core_Composer::install('aws/aws-sdk-php', '3.272.2');
-
+        if (!empty(core_Composer::$error)) {
+            return $html;
+        }
         // Отключваме процеса, ако не е бил легално отключен
         backup_Start::unLock();
 
