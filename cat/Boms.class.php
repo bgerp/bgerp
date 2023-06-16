@@ -1726,6 +1726,7 @@ class cat_Boms extends core_Master
                                   'fixedAssets' => $dRec->fixedAssets,
                                   'employees' => $dRec->employees,
                                   'indTime' => $dRec->norm,
+                                  '_inputPreviousSteps' => (($dRec->inputPreviousSteps == 'auto') ? planning_Setup::get('INPUT_PREVIOUS_BOM_STEP') : $dRec->inputPreviousSteps),
                                   '_dId' => $dRec->id,
                                   '_parentId' => $dRec->parentId,
                                   '_position' => $dRec->position,
@@ -1783,7 +1784,9 @@ class cat_Boms extends core_Master
                         $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
                         $foundStepTask = $foundStepArr[key($foundStepArr)];
                         if($foundStepTask){
-                            $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                            if($defTask->_inputPreviousSteps == 'yes'){
+                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                            }
                         }
                     }
                 }

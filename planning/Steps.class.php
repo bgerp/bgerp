@@ -425,7 +425,9 @@ class planning_Steps extends core_Extender
         if(isset($rec->wasteProductId)){
             $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
             $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
-            $row->wasteStart .= " " . cat_UoM::getShortName($wasteProductMeasureId);
+            if(!empty($rec->wasteStart)){
+                $row->wasteStart .= " " . cat_UoM::getShortName($wasteProductMeasureId);
+            }
         }
 
         if($Extended = $mvc->getExtended($rec)){

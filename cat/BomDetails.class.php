@@ -165,6 +165,7 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('inputPreviousSteps', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Планиране - влагане на предходния и вложените Етапи->Избор,autohide,input=hidden');
 
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
         $this->FLD('primeCost', 'double', 'caption=Себестойност,input=none,tdClass=accCell');
@@ -255,6 +256,8 @@ class cat_BomDetails extends doc_Detail
             if(isset($rec->resourceId)){
 
                 // Ако има данни за производство
+                $form->setField('inputPreviousSteps', 'input');
+                $form->setDefault('inputPreviousSteps', 'auto');
                 $form->setField('centerId', 'input');
                 $form->setField('norm', 'input');
                 $form->input('centerId', 'silent');
@@ -836,6 +839,11 @@ class cat_BomDetails extends doc_Detail
             if(!empty($rec->labelTemplate)){
                 $descriptionArr[] = tr("|*<tr><td>|Шаблон|*:</td><td>") . label_Templates::getHyperlink($rec->labelTemplate, true) . "</td></tr>";
             }
+
+            if(!empty($rec->inputPreviousSteps)){
+                $val = ($rec->inputPreviousSteps == 'auto') ? ht::createHint($mvc->getFieldType('inputPreviousSteps')->toVerbal(planning_Setup::get('INPUT_PREVIOUS_BOM_STEP')), 'От настройка в пакета|* "planning"') : $mvc->getFieldType('inputPreviousSteps')->toVerbal($rec->inputPreviousSteps);
+                $descriptionArr[] = tr("|*<tr><td>|Влагане на предходен|*:</td><td>") . $val . "</td></tr>";
+            }
         }
 
         if (!empty($rec->description)) {
@@ -938,7 +946,6 @@ class cat_BomDetails extends doc_Detail
         
         $bomRec = null;
         cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
-        
         if (isset($bomRec)) {
             $rec->coefficient = $bomRec->quantity;
         }
@@ -951,6 +958,7 @@ class cat_BomDetails extends doc_Detail
                 $rec->{$productionFld} = $defaultValue;
             }
         }
+        $rec->inputPreviousSteps = 'auto';
         $this->save($rec);
 
         static::addParamsToStepRec($masterRec->productId, $rec);
@@ -977,7 +985,7 @@ class cat_BomDetails extends doc_Detail
         $this->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
         cat_products_Params::delete("#classId = {$this->getClassId()} AND #productId = {$rec->id}");
         $rec->coefficient = null;
-        foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld) {
+        foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate', 'inputPreviousSteps') as $productionFld) {
             $rec->{$productionFld} = null;
         }
 
