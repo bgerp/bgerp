@@ -1737,6 +1737,9 @@ class cat_Boms extends core_Master
                                   'labelTemplate' => $dRec->labelTemplate,
                                   'showadditionalUom' => ($pRec->planning_Steps_calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $pRec->planning_Steps_calcWeightMode,
                                   'params' => array(),
+                                  'wasteProductId' => $pRec->planning_Steps_wasteProductId,
+                                  'wasteStart' => $pRec->planning_Steps_wasteStart,
+                                  'wastePercent' => $pRec->planning_Steps_wastePercent,
                                   'products' => array('input' => array(), 'waste' => array()));
 
             $pQuery = cat_products_Params::getQuery();

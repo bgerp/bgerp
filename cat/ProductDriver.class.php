@@ -383,7 +383,9 @@ abstract class cat_ProductDriver extends core_BaseClass
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
      *               o description                    - забележки
-     *
+     *               o wasteProductId             - ид на шаблон за етикет
+     *               o wasteStart                 - ид на шаблон за етикет
+     *               o wastePercent                 - ид на шаблон за етикет
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал
      *                  o packagingId    - ид на опаковка
