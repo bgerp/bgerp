@@ -235,6 +235,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $options = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $rec->inputType);
+        $optionsWithoutGroups = array_filter($options, function($a) {return !is_object($a);});
+        $options = (countR($optionsWithoutGroups) > 1) ? array('' => '') + $options : $options;
 
         if ($rec->type == 'scrap') {
             if(empty($rec->scrapRecId)){
@@ -250,15 +252,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setReadOnly('serial');
             }
         } else {
-            $optionsWithoutGroups = array_filter($options, function($a) {return !is_object($a);});
             $optionField = 'productId';
-            $options = (countR($optionsWithoutGroups) > 1) ? array('' => '') + $options : $options;
             $form->setOptions('productId', $options);
             if($rec->inputType == 'actions') {
                 if(countR($optionsWithoutGroups) > 1){
                     $form->setFieldTypeParams('productId', array('forceOpen' => 'forceOpen'));
                 } else {
-                    $form->setDefault('productId', key($optionsWithoutGroups));
                     $form->setField('quantity', 'focus');
                 }
             }
