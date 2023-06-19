@@ -250,8 +250,18 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setReadOnly('serial');
             }
         } else {
+            $optionsWithoutGroups = array_filter($options, function($a) {return !is_object($a);});
             $optionField = 'productId';
-            $form->setOptions('productId', array('' => '') + $options);
+            $options = (countR($optionsWithoutGroups) > 1) ? array('' => '') + $options : $options;
+            $form->setOptions('productId', $options);
+            if($rec->inputType == 'actions') {
+                if(countR($optionsWithoutGroups) > 1){
+                    $form->setFieldTypeParams('productId', array('forceOpen' => 'forceOpen'));
+                } else {
+                    $form->setDefault('productId', key($optionsWithoutGroups));
+                    $form->setField('quantity', 'focus');
+                }
+            }
         }
 
         $form->setDefault('date', Mode::get('taskProgressDate'));
@@ -317,7 +327,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         if($rec->inputType == 'actions'){
-            $form->setFieldTypeParams('productId', array('forceOpen' => 'forceOpen'));
             $form->setField('serial', 'input=none');
             $form->setDefault('quantity', 1);
         }
