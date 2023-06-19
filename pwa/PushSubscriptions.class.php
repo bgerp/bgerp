@@ -31,12 +31,6 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
-     * @var string
-     */
-    public $interfaces = 'remote_SendMessageIntf';
-
-
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2';
@@ -45,7 +39,7 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Кой има право да го променя?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'powerUser';
 
 
     /**
@@ -67,18 +61,58 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
+     * @var string
+     */
+    protected $neverValue = 'Никога';
+
+
+    /**
+     * Дефолтна настройка на полетата за известие
+     */
+    protected $enumOptVal = 'enum(Никога, 1 мин, 5 мин, 20 мин, 1 час, 2 час, 24 часа)';
+
+
+    /**
+     * Вербални стойности на приоритетите
+     */
+    protected $priorityMapVerb = array('warning' => 'Спешно', 'alert' => 'Критично');
+
+
+    /**
+     * Дефолтни стойности на приоритетите
+     */
+    protected $defaultValues = array('criticalWorking' => '5 мин', 'urgentWorking' => '20 мин', 'docWorking' => '1 час', 'allWorking' => '1 час');
+
+
+    /**
      * Описание на модела
      */
     public function description()
     {
-        $this->FLD('userId', 'user', 'caption=Потребител');
-        $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
-        $this->FLD('publicKey', 'varchar', 'caption=Ключ'); //88
-        $this->FLD('authToken', 'varchar', 'caption=Токен'); //24
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн');
-        $this->FLD('contentEncoding', 'varchar', 'caption=Енкодинг');
-        $this->FLD('endpoint', 'Url', 'caption=Точка');
-        $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни');
+        $this->FLD('userId', 'user', 'caption=Потребител, input=none');
+        $this->FLD('brid', 'varchar(8)', 'caption=Браузър, input=none');
+        $this->FLD('publicKey', 'varchar', 'caption=Ключ, input=none'); //88
+        $this->FLD('authToken', 'varchar', 'caption=Токен, input=none'); //24
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн, input=none');
+        $this->FLD('contentEncoding', 'varchar', 'caption=Енкодинг, input=none');
+        $this->FLD('endpoint', 'Url', 'caption=Точка, input=none');
+        $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни, input=none');
+
+        $this->FLD('criticalWorking', $this->enumOptVal, 'caption=Известяване за критични новости->Работно време');
+        $this->FLD('criticalNonWorking', $this->enumOptVal, 'caption=Известяване за критични новости->Неработно време');
+        $this->FLD('criticalNight', $this->enumOptVal, 'caption=Известяване за критични новости->През нощта');
+
+        $this->FLD('urgentWorking', $this->enumOptVal, 'caption=Известяване за спешни и критични новости->Работно време');
+        $this->FLD('urgentNonWorking', $this->enumOptVal, 'caption=Известяване за спешни и критични новости->Неработно време');
+        $this->FLD('urgentNight', $this->enumOptVal, 'caption=Известяване за спешни и критични новости->През нощта');
+
+        $this->FLD('docWorking', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->Работно време');
+        $this->FLD('docNonWorking', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->Неработно време');
+        $this->FLD('docNight', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->През нощта');
+
+        $this->FLD('allWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Работно време');
+        $this->FLD('allNonWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Неработно време');
+        $this->FLD('allNight', $this->enumOptVal, 'caption=Известяване за всякакви новости->През нощта');
 
         $this->setDbUnique('publicKey, authToken');
         $this->setDbUnique('brid');
@@ -95,14 +129,14 @@ class pwa_PushSubscriptions extends core_Manager
      * @param null|bool $tag - таг - ако е зададено, известията ще се презаписват за същия таг
      * @param null|string $icon - икона
      * @param null| string $image - изображение
-     * @param null|integer $domainId - id на домейн
      * @param null|string $brid - id на браузъра
+     * @param null|integer $domainId - id на домейн
      * @param bool $sound - звук
      * @param null|bool $vibration - вибрация
      *
      * @return array
      */
-    public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $domainId = null, $brid = null, $sound = true, $vibration = null)
+    public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $brid = null, $domainId = null, $sound = true, $vibration = null)
     {
         if ($icon !== false) {
             $icon = '/favicon.png';
@@ -178,7 +212,15 @@ class pwa_PushSubscriptions extends core_Manager
                 $data->url = toUrl($url);
             }
 
-            $resArr[] = $webPush->sendOneNotification($subscription, json_encode($data));
+            $statusObj = $webPush->sendOneNotification($subscription, json_encode($data));
+
+            $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId);
+
+            $resArr[$rec->id] =  $statusData;
+
+            if (!$statusData->isSuccess) {
+                self::logDebug("Грешка при изпращане на PUSH известие до браузър с id {$rec->brid} на потребители с id {$rec->userId}");
+            }
         }
 
         return $resArr;
@@ -194,6 +236,19 @@ class pwa_PushSubscriptions extends core_Manager
 
         expect(Request::get('ajax_mode'));
 
+        $brid = log_Browsers::getBrid();
+
+        if (Request::get('haveSubscription')) {
+            $rec = $this->fetch(array("#brid = '[#1#]'", $brid));
+            if ($rec) {
+                $statusObj = new stdClass();
+                $statusObj->func = 'redirect';
+                $statusObj->arg = array('url' => toUrl(array($this, 'edit', $rec->id, 'ret_url' => true)));
+
+                return array($statusObj);
+            }
+        }
+        
         $action = Request::get('action');
         expect($action == 'subscribe' || $action == 'unsubscribe', $action);
 
@@ -205,7 +260,6 @@ class pwa_PushSubscriptions extends core_Manager
         expect($publicKey && $authToken, $publicKey, $authToken);
 
         $cu = core_Users::getCurrent();
-        $brid = log_Browsers::getBrid();
 
         $statusData = array();
 
@@ -213,7 +267,17 @@ class pwa_PushSubscriptions extends core_Manager
             $this->delete(array("#publicKey = '[#1#]' AND #authToken = '[#2#]'", $publicKey, $authToken));
             $this->delete(array("#brid = '[#1#]'", $brid));
 
-            $statusData['text'] = tr('Премахване на Push абонамент за получаване на известия');
+            status_Messages::newStatus('Премахване на Push абонамент за получаване на известия');
+
+            $retUrl = getRetUrl();
+            if (empty($retUrl)) {
+                $retUrl = crm_Profiles::getUrl(core_Users::getCurrent());
+            }
+
+            $statusObj = new stdClass();
+            $statusObj->func = 'redirect';
+            $statusObj->arg = array('url' => toUrl($retUrl));
+            return array($statusObj);
         } else {
             $rec = new stdClass();
             $rec->userId = $cu;
@@ -227,19 +291,78 @@ class pwa_PushSubscriptions extends core_Manager
 
             $this->save($rec, null, 'REPLACE');
 
-            $statusData['text'] = tr('Добавен е Push абонамент за получване на известия');
+            if ($rec->id) {
+                status_Messages::newStatus('Добавен е Push абонамент за получване на известия');
+
+                $statusObj = new stdClass();
+                $statusObj->func = 'redirect';
+                $statusObj->arg = array('url' => toUrl(array($this, 'edit', $rec->id, 'ret_url' => true)));
+
+                return array($statusObj);
+            }
         }
 
         $statusData['type'] = 'notice';
-        $statusData['timeOut'] = 700;
         $statusData['isSticky'] = 0;
+        $statusData['timeOut'] = 700;
         $statusData['stayTime'] = 15000;
+
+        if (!isset($statusData['text'])) {
+            $statusData['text'] = 'Грешка при добавяне на Push абонамент за получаване на известия';
+            $statusData['type'] = 'warning';
+            $statusData['isSticky'] = 1;
+        }
 
         $statusObj = new stdClass();
         $statusObj->func = 'showToast';
         $statusObj->arg = $statusData;
 
         return array($statusObj);
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        foreach ($mvc->defaultValues as $fName => $fVal) {
+            $data->form->setDefault($fName, $fVal);
+        }
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+        if ($data->form->rec->userId == core_Users::getCurrent() && $data->form->rec->brid == log_Browsers::getBrid()) {
+            $data->form->toolbar->addFnBtn('Отписване', '', 'class=fright pwa-push-default-uns button linkWithIcon, order=30, ef_icon=img/16/rowtools-btn-grey-orange.png, title=Спиране на получаването на Push известия, id=push-subscription-button-unsubscribe');
+        }
+    }
+
+
+    /**
+     * Изпълнява се след опаковане на съдаржанието от мениджъра
+     *
+     * @param core_Mvc       $mvc
+     * @param string|core_ET $res
+     * @param string|core_ET $tpl
+     * @param stdClass       $data
+     *
+     * @return boolean
+     */
+    public static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
+    {
+        $res->push('pwa/js/Notifications.js', 'JS');
+
+        $pwaSubscriptionUrl = toUrl(array('pwa_PushSubscriptions', 'Subscribe'), 'local');
+        $pwaSubscriptionUrl = urlencode($pwaSubscriptionUrl);
+        $tpl->appendOnce("const pwaSubsctiptionUrl = '{$pwaSubscriptionUrl}';", 'SCRIPTS');
     }
 
 
@@ -270,6 +393,211 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
+     * Изпращане на известия по крон
+     *
+     * @return void
+     * @throws core_exception_Break
+     */
+    public function cron_PushAlertForNotifications()
+    {
+        $maxNotificationsPerUser = 5;
+
+        // Намираме всички регистрирани потребители, които са активни и имат Push абонамент и ги групираме по BRID
+        $uArr = $allUsersArr = array();
+        $query = $this->getQuery();
+        $query->EXT('uState', 'core_Users', 'externalName=state, externalKey=userId');
+        $query->where("#uState = 'active'");
+        while ($rec = $query->fetch()) {
+            $uArr[$rec->userId][$rec->brid] = $rec;
+            $allUsersArr[$rec->userId] = $rec->userId;
+        }
+
+        if (empty($allUsersArr)) {
+
+            return ;
+        }
+
+        // Кога последно е видян портала от тези потребители
+        $lastPortalSeen = array();
+        foreach ($allUsersArr as $userId => $oArr) {
+            $lastPortalSeen[$userId] = bgerp_LastTouch::get('portal', $userId);
+        }
+
+        // За последните 48 часа вземаме последните 5 известия на потребител, като ги групираме по приорите
+        $ntfsMsg = $userNotifyCnt = array();
+        $nQuery = bgerp_Notifications::getQuery();
+        $nQuery->where("#state = 'active'");
+        $nQuery->where(array("#activatedOn > '[#1#]'", dt::addSecs(-48 * 3600)));
+        $nQuery->in('userId', array_keys($uArr));
+
+        $nQuery->XPR('priorityOrder', 'int', "(CASE #priority WHEN 'alert' THEN 1 WHEN 'warning' THEN 2 WHEN 'normal' THEN 3 ELSE 5 END)");
+        $nQuery->orderBy('#priorityOrder=ASC');
+        $nQuery->orderBy('activatedOn', 'DESC');
+        $nQuery->orderBy('id', 'DESC');
+
+        while ($nRec = $nQuery->fetch()) {
+
+            // Прескачаме тези, които са по-стари от последното виждане на портала
+            if ($lastPortalSeen[$nRec->userId] > $nRec->activatedOn) {
+                continue;
+            }
+
+            // Максимум по 5 известия на потребител
+            if ($userNotifyCnt[$nRec->userId] >= $maxNotificationsPerUser) {
+                continue;
+            }
+
+            $ntfsMsg[$nRec->userId][$nRec->priority][$nRec->id] =  $nRec;
+
+            $userNotifyCnt[$nRec->userId]++;
+        }
+
+        // Определяме времето в момента
+        list($d, $t) = explode(' ', dt::now());
+        if ($t > '22:00:00' || $t < '08:00:00') {
+            $dayTime = 'Night';
+        } elseif ($t > '18:00:00' || $t < '09:00:00' || cal_Calendar::isDayType($d . ' 12:00:00', 'nonworking')) {
+            $dayTime = 'NonWorking';
+        } else {
+            $dayTime = 'Working';
+        }
+
+        // Масис с приоритет спрямо полето
+        $daysFieldArr = array();
+        $daysFieldArr['critical'] = 'critical' . $dayTime;
+        $daysFieldArr['urgent'] = 'urgent' . $dayTime;
+        $daysFieldArr['doc'] = 'doc' . $dayTime;
+        $daysFieldArr['all'] = 'all' . $dayTime;
+
+        foreach ($ntfsMsg as $userId => $nArr) {
+            foreach ($nArr as $priority => $nArr2) {
+                foreach ($nArr2 as $msgObj) {
+                    foreach ((array)$uArr[$userId] as $brid => $uRec) {
+
+                        // Проверяваме дали преди това има изпратено известие
+                        $showUrlHash = md5($msgObj->url . '|' . $userId . '|' . $brid);
+                        if (core_Permanent::get($showUrlHash)) {
+
+                            continue;
+                        }
+
+                        $mustSend = false;
+
+                        // Спрямо настройките, определяме дали трябва да се изпрати известие за тази нотификация
+                        $msg = $msgObj->msg;
+                        $msgLower = mb_strtolower($msg);
+                        foreach ($daysFieldArr as $fType => $fName) {
+                            if ($fType == 'doc') {
+                                $correctDoc = false;
+                                if ((strpos($msgLower, '|добави|') !== false) || (strpos($msgLower, '|хареса') !== false)
+                                    || (strpos($msgLower, '|промени|') !== false) || (strpos($msgLower, '|сподели|') !== false)) {
+
+                                    if ((strpos($msgLower, '|входящ имейл|') !== false) || (strpos($msgLower, '|задача|') !== false)
+                                        || (strpos($msgLower, '|запитване|') !== false)) {
+
+                                        $correctDoc = true;
+                                    }
+                                }
+                                if (!$correctDoc) {
+
+                                    continue;
+                                }
+                            } else {
+                                if ($fType == 'critical') {
+                                    if ($priority != 'alert') {
+                                        continue;
+                                    }
+                                }
+
+                                if ($fType == 'urgent') {
+                                    if (($priority != 'alert') || ($priority != 'warning')) {
+
+                                        continue;
+                                    }
+                                }
+                            }
+
+                            $time = $uRec->{$fName};
+                            if (!isset($time)) {
+                                $time = $this->defaultValues[$fName];
+                            }
+
+                            if (!isset($time)) {
+                                continue;
+                            }
+
+                            if ($time == $this->neverValue) {
+
+                                continue;
+                            }
+
+                            $timeVal = cls::get('type_Time')->fromVerbal($time);
+
+                            $bTime = dt::subtractSecs($timeVal);
+
+                            if ($bTime > $msgObj->activatedOn) {
+                                $mustSend = true;
+                            }
+
+                            if ($mustSend) {
+                                break;
+                            }
+                        }
+
+                        if (!$mustSend) {
+                            continue;
+                        }
+
+                        $priorityVerb = isset($this->priorityMapVerb[$priority]) ?  $this->priorityMapVerb[$priority]: 'Ново';
+                        $msgTitle = "{$priorityVerb} известие в " . core_Setup::get('EF_APP_TITLE', true);
+
+                        // Превеждама заглавието и съобщението спрямо настройките на съответния потребител
+                        $nRecUserId = $nRec->userId;
+                        $sudo = null;
+                        if ($nRecUserId > 0) {
+                            $sudo = core_Users::sudo($nRecUserId);
+                        }
+
+                        $lg = core_Setup::get('EF_USER_LANG', true);
+
+                        if ($lg) {
+                            core_Lg::push($lg);
+                        }
+
+                        $msg = tr("|*{$msg}");
+                        $msgTitle = tr($msgTitle);
+
+                        if ($lg) {
+                            core_Lg::pop();
+                        }
+
+                        if ($sudo) {
+                            core_Users::exitSudo();
+                        }
+
+                        $url = bgerp_Notifications::getUrl($msgObj);
+
+                        // Изпращаме известието и записваме в лога съответното действие
+                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $url, null, null, null, $brid);
+
+                        foreach ($isSendArr as $iVal) {
+                            $resStatusMsg = 'Неуспешно';
+                            if ($iVal->isSuccess) {
+                                $resStatusMsg = 'Успешно';
+                            }
+
+                            self::logDebug($resStatusMsg . ' изпращане на известие до userId=' . $iVal->userId . ' с brid=' . $iVal->brid . ': ' . $msg);
+                        }
+
+                        core_Permanent::set($showUrlHash, 1, 48 * 60);
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
      * Изпраща съобщение до потребител
      *
      * @param $userId
@@ -287,7 +615,7 @@ class pwa_PushSubscriptions extends core_Manager
 
         if (!empty($sArr)) {
             foreach ($sArr as $s) {
-                if ($s->isSuccess()) {
+                if ($s->isSuccess) {
                     $res = true;
 
                     break;
@@ -306,6 +634,6 @@ class pwa_PushSubscriptions extends core_Manager
     {
         requireRole('admin');
 
-        bp($this->sendAlert(core_Users::getCurrent(), 'Тестово известие', 'Тестово известие: ' . rand(1, 1111), array('Portal', 'Show'), 'Test'));
+        bp($this->sendAlert(core_Users::getCurrent(), "Тестово известие", "Тестово известие \nТестово известие \nТестово известие \nТестово известие: " . rand(1, 1111), array('Portal', 'Show'), 'Test'));
     }
 }

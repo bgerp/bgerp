@@ -331,8 +331,28 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 $name = cat_Products::fetch($pRec->productId)->name;
 
-                $jobId = doc_Threads::getFirstDocument($pRec->threadId)->that;
-                $jobProductId = planning_Jobs::fetch($jobId)->productId;
+                $FirstDocument = doc_Threads::getFirstDocument($pRec->threadId);
+
+                $Job = $FirstDocument->fetch('id,productId');
+
+                $jobId = $Job->id;
+
+                $jobProductId = $Job->productId;
+
+                if(!$FirstDocument instanceof planning_Jobs) {
+
+                    $originId = $FirstDocument->fetch('originId')->originId;
+
+                    $Job = doc_Containers::getDocument($originId);
+
+                    $JobRec = $Job->fetch('id,productId');
+
+                    $jobId = $JobRec->id;
+
+                    $jobProductId = $JobRec->productId;
+
+                }
+
                 if ($rec->option == 'yes' && $rec->products) {
 
                     $checkedProds = keylist::toArray($rec->products);

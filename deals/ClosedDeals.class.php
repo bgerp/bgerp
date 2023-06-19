@@ -834,8 +834,8 @@ abstract class deals_ClosedDeals extends core_Master
             if($firstDoc->isInstanceOf('deals_DealMaster')){
 
                 // Ако се приключва сделка с валута различна от BGN и EUR
-                $firstDocCurrencyCode = $firstDoc->fetchField('currencyId');
-                if($firstDocCurrencyCode != 'BGN'){
+                $firstDocRec = $firstDoc->fetch('currencyId,amountPaid');
+                if($firstDocRec->currencyId != 'BGN' && !empty($firstDocRec->amountPaid)){
 
                     // Ако се приключва продажба проверката ще се прави САМО ако няма обратни платежни документи
                     if($firstDoc->isInstanceOf('sales_Sales')){
@@ -860,7 +860,7 @@ abstract class deals_ClosedDeals extends core_Master
                     // Ако най-големия вальор не е в миналия месец или деня е преди нужния за осчетоводяване сетва се грешка
                     if($biggestValior >= $firstDayOfMonth || $today < $nextAccDateValior){
                         $biggestValior = dt::mysql2verbal($biggestValior, 'd.m.Y');
-                        $res = "Не може да се приключи валутна сделка, преди|* {$accDay} |число на месеца следващ най-големия вальор на сделката|*: {$biggestValior}!";
+                        $res = "Не може да се приключи валутна сделка (по която има плащане), преди|* {$accDay} |число на месеца следващ най-големия вальор на сделката|*: {$biggestValior}!";
                     }
                 }
             }
