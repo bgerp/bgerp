@@ -1752,6 +1752,13 @@ function setMinHeightExt() {
             if (h > 60) {
                 $('#maincontent').css('minHeight', h);
             }
+            var lf = $('#login-form').outerHeight();
+            if(lf) {
+                var formMargin = Math.ceil(h - lf)/2;
+                if (formMargin > 20) {
+                    $('#login-form').css('marginTop', formMargin);
+                }
+            }
         }
     } else if ($('.narrowCenter .headerImg').length) {
         // в новата тема при мобилен изчисляваме височината на съдържанието
