@@ -38,7 +38,8 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
      *
      * @var string
      */
-    protected $newFieldsToCheck;
+    protected $newFieldsToCheck = 'folderId';
+
 
 
     /**
@@ -246,13 +247,16 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
 
         if ($export === false) {
             $fld->FLD('dealer', 'key(mvc=core_Users,select=names)', 'caption=Дилър');
-            $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
+            $fld->FLD('folderId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл ->Оферта');
             $fld->FLD('outEmailDatate', 'varchar', 'caption=Изх. имейл ->Дата');
 
         } else {
 
-            $fld->FLD('contragentId', 'varchar', 'caption=Контрагент');
+            $fld->FLD('dealer', 'key(mvc=core_Users,select=names)', 'caption=Дилър');
+            $fld->FLD('folderId', 'varchar', 'caption=Контрагент');
+            $fld->FLD('outEmail', 'varchar', 'caption=Изх. имейл ->Оферта');
+            $fld->FLD('outEmailDatate', 'date', 'caption=Изх. имейл ->Дата');
 
         }
 
@@ -279,7 +283,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->contragentId = doc_Folders::getHyperlink($dRec->folderId);
+        $row->folderId = doc_Folders::getHyperlink($dRec->folderId);
 
         $row->dealer = crm_Profiles::createLink($dRec->dealer);
 
@@ -364,8 +368,12 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
-        $res->contragentId = self::getContragent($dRec, false, $rec);
+        $res->folderId = doc_Folders::fetch($dRec->folderId)->title;
 
+        $res->outEmail = ($dRec->outMail)->subject;
+
+        $res->outEmailDatate = ($dRec->outMail)->createdOn;
 
     }
+
 }

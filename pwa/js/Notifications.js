@@ -1,22 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
     let isPushEnabled = false;
+    if (typeof pwaSubsctiptionUrl === 'undefined') {
+        pwaSubsctiptionUrl = 'pwa_PushSubscriptions/Subscribe';
+    }
 
     // Бутона за абониране и отписване от известия
     const pushButton = document.querySelector('#push-subscription-button');
-    if (!pushButton) {
+    const pushButtonUnsubscribe = document.querySelector('#push-subscription-button-unsubscribe');
+    if (!pushButton && !pushButtonUnsubscribe) {
+
         return;
     }
 
     // Проверява състоянието на абониране
     check_subscription();
 
-    pushButton.addEventListener('click', function() {
-        if (isPushEnabled) {
+    if (pushButton) {
+        pushButton.addEventListener('click', function() {
+            if (isPushEnabled) {
+                getEfae().process({url: pwaSubsctiptionUrl}, {haveSubscription: 1}, false);
+
+                return ;
+            } else {
+                push_subscribe();
+            }
+        });
+    }
+
+    if (pushButtonUnsubscribe) {
+        pushButtonUnsubscribe.addEventListener('click', function() {
             push_unsubscribe();
-        } else {
-            push_subscribe();
-        }
-    });
+        });
+    }
 
     // Проверяваме дали браузърът поддържа Service Workers и Push Notifications
     if (!('serviceWorker' in navigator)) {
@@ -49,6 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function changePushButtonState(state)
     {
+        if (!pushButton) {
+
+            return ;
+        }
         pushButton.classList.add('pwa-push-' + state);
 
         var pushButtonValue = pushButton.value;
@@ -206,10 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
         var authToken = token ? btoa(String.fromCharCode.apply(null, new Uint8Array(token))) : null;
         var endpoint = subscription.endpoint;
         var subscription = subscription;
-
-        if (typeof pwaSubsctiptionUrl === 'undefined') {
-            pwaSubsctiptionUrl = 'pwa_PushSubscriptions/Subscribe';
-        }
 
         getEfae().process({url: pwaSubsctiptionUrl}, {action: action, publicKey: publicKey, authToken: authToken, endpoint: endpoint, contentEncoding: contentEncoding}, false);
 
