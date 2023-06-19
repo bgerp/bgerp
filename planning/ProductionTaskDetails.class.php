@@ -316,6 +316,12 @@ class planning_ProductionTaskDetails extends doc_Detail
             $form->setFieldTypeParams('weight', array('max' => $availableScrap['weight']));
         }
 
+        if($rec->inputType == 'actions'){
+            $form->setFieldTypeParams('productId', array('forceOpen' => 'forceOpen'));
+            $form->setField('serial', 'input=none');
+            $form->setDefault('quantity', 1);
+        }
+
         // Ако е избран артикул
         if (isset($rec->productId)) {
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
