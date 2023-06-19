@@ -22,6 +22,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo, admin, debug, sales';
 
+
+
     /**
      * Кои полета от листовия изглед да може да се сортират
      *
@@ -45,7 +47,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      *
      * @var string
      */
-    protected $newFieldsToCheck;
+    protected $newFieldsToCheck = 'folderId';
 
 
     /**
@@ -109,6 +111,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $form->setDefault('periodActive', '2 години');
 
         $form->setDefault('minShipment', 1000);
+
+
 
 
     }
@@ -323,7 +327,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
 
         if ($export === false) {
-            $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
+            $fld->FLD('folderId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('activSalesNumber', 'int', 'caption=Активен продажби->Брой');
             $fld->FLD('activSalesAmount', 'double(decimals=2)', 'caption=Активен продажби->Стойност');
             $fld->FLD('passivMailsIn', 'int', 'caption=Пасивен Писма->Входящи');
@@ -331,7 +335,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         } else {
 
-            $fld->FLD('contragentId', 'varchar', 'caption=Контрагент');
+            $fld->FLD('folderId', 'varchar', 'caption=Контрагент');
             $fld->FLD('activSalesNumber', 'int', 'caption=Активен продажби->Брой');
             $fld->FLD('activSalesAmount', 'double(decimals=2)', 'caption=Активен продажби->Стойност');
             $fld->FLD('passivMailsIn', 'int', 'caption=Пасивен Писма->Входящи');
@@ -362,7 +366,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->contragentId = doc_Folders::getHyperlink($dRec->folderId);
+        $row->folderId = doc_Folders::getHyperlink($dRec->folderId);
 
         $row->activSalesNumber = $Int->toVerbal($dRec->numberOfSales);
 
@@ -479,12 +483,12 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
-        $res->contragentId = doc_Folders::fetch($dRec->folderId)->title;
+        $res->folderId = doc_Folders::fetch($dRec->folderId)->title;
         $res->activSalesNumber = ($dRec->numberOfSales);
         $res->activSalesAmount = ($dRec->amountDelivered);
         $res->passivMailsIn = ($dRec->numberOfInMails);
         $res->passivMailsOut = ($dRec->numberOfOutMails);
 
-
     }
+
 }
