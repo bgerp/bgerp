@@ -345,9 +345,11 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                     $Job = doc_Containers::getDocument($originId);
 
-                    $jobId = $Job->fetch('id')->id;
+                    $JobRec = $Job->fetch('id,productId');
 
-                    $jobProductId = $Job->productId;
+                    $jobId = $JobRec->id;
+
+                    $jobProductId = $JobRec->productId;
 
                 }
 
