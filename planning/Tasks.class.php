@@ -947,13 +947,13 @@ class planning_Tasks extends core_Master
             planning_Centers::checkDeviationPercents($form);
             if (in_array($form->cmd, array('save_pending', 'save_pending_new'))) {
                 if (empty($rec->indTime) && empty($rec->timeDuration)) {
-                    $form->setError('timeDuration,indTime', "На операцията трябва да може да ѝ се изчисли продължителността|*!");
+                    $form->setError('timeDuration,indTime', "Необходими са данни за да се изчисли продължителността на операцията|*!");
                 }
             }
 
             if (in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
                 if (empty($rec->timeDuration) && empty($rec->assetId)) {
-                    $form->setError('timeDuration,assetId,indTime', "На започната операция, не може да се махне продължителността/нормата или оборудването|*!");
+                    $form->setError('timeDuration,assetId,indTime', "Продължителността/нормата и оборудването са задължителни при започната операция|*!");
                 }
             }
 
