@@ -1729,13 +1729,12 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // На които треда им не е променян от определено време
         // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс или да е NULL
-       // $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
-       // $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
+        $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
+        $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
         
         // Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници или не трябва да се фактурират
-        //$query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
-        //$query->orWhere("#makeInvoice = 'no'");
-        $query->orWhere("#id = 923");
+        $query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
+        $query->orWhere("#makeInvoice = 'no'");
 
         // Ако няма намерени сделки отговарящи на условията пропускат се
         $foundDealsArr = $query->fetchAll();
