@@ -1030,53 +1030,6 @@ abstract class deals_DealBase extends core_Master
 
 
     /**
-     * Колко е средния курс в сделката
-     *
-     * @param $rec
-     * @return double|null
-     */
-    private function getAverageRateInThread($rec)
-    {
-        // Ако е платено с  документа
-        $documents = array();
-        $currencyItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
-        $actions = type_Set::toArray($rec->contoActions);
-        $amountInCurrency = $amountInBaseCurrency = 0;
-        if(isset($actions['pay'])){
-            $documents[] = doc_Containers::getDocument($rec->containerId);
-        }
-
-        $dealDocuments = $this->getDescendants($rec->id);
-        $documents = array_merge($documents, $dealDocuments);
-
-        // Всички платежни документи към сделката
-        foreach ($documents as $Doc){
-            if(!$Doc->isInstanceOf('deals_PaymentDocument') && !$Doc->isInstanceOf('deals_DocumentMaster') ) continue;
-            $jQuery = acc_JournalDetails::getQuery();
-            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId,externalName=docType');
-            $jQuery->EXT('docId', 'acc_Journal', 'externalKey=journalId,externalName=docId');
-            $jQuery->where("#docType = {$Doc->getClassId()} AND #docId = {$Doc->that}");
-            $side = ($this->className == 'sales_Sales') ? 'credit' : 'debit';
-            $jQuery->where("#{$side}Item3 = {$currencyItem}");
-
-            // Сумира се валутата от сделката и сумата в основна валута колко е
-            while($jRec = $jQuery->fetch()){
-                $amountInCurrency += $jRec->{"{$side}Quantity"};
-                $amountInBaseCurrency += $jRec->amount;
-            }
-        }
-
-        if(!empty($amountInCurrency)) {
-            $newRate = round($amountInBaseCurrency / $amountInCurrency, 10);
-
-            return $newRate;
-        }
-
-        return null;
-    }
-
-
-    /**
      * Рекалкулиране на документите с курса на сделките, в сделки, които не са в посочените валути
      *
      * @param array $skipCurrencyCodes
