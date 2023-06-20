@@ -2249,6 +2249,7 @@ class planning_Tasks extends core_Master
                     $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
 
                     if ($filter->state == 'closed') {
+                        $orderByField = 'orderByDate';
                         $orderByDir = 'DESC';
                         $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
                     }
