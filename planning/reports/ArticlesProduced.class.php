@@ -225,7 +225,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $storeId = $planningRec->storeId;
 
             //Вложени материали
-            if ($rec->consumed == 'yes') {
+       //     if ($rec->consumed == 'yes') {
                 $dpRecDetArr = array();
 
                 //Ако е избрана опция за вложените материали по ПРОТОКОЛИ за производство
@@ -240,6 +240,10 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
                         if ($dpRecDet->creditItem1) {
                             $matItemRec = acc_Items::fetch($dpRecDet->creditItem1);
+                            if(!$matItemRec){
+                                acc_Items::fetch($dpRecDet->creditItem2);
+                            }
+
                             $matClassName = core_Classes::fetch($matItemRec->classId)->name;
 
                             //rec-а на вложения материал
@@ -345,7 +349,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
                 }
 
-            }
+       //     }
 
             $id = $planningRec->productId . '|' . '';
 
@@ -486,6 +490,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         if (!empty($amountTotal && $rec->accProd == 'no')) {
             $rec->totalConsumed = array_sum($amountTotal);
         }
+
+     //   bp($recs);
         return $recs;
     }
 
@@ -518,9 +524,9 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption=$text");
-        if ($rec->consumed == 'yes') {
+        //if ($rec->consumed == 'yes') {
             $fld->FLD('amount', 'varchar', 'caption=Стойност,tdClass=centered');
-        }
+       // }
         if ($rec->groupBy != 'month') {
 
             $fld->FLD('department', 'key(mvc=planning_Centers,select=name)', 'caption=Център на дейност');
