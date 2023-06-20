@@ -333,24 +333,33 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 $FirstDocument = doc_Threads::getFirstDocument($pRec->threadId);
 
-                $Job = $FirstDocument->fetch('id,productId');
+                unset($jobId, $jobProductId);
+                if (($FirstDocument->className != 'planning_ReturnNotes') && ($FirstDocument->className != 'planning_ConsumptionNotes')) {
 
-                $jobId = $Job->id;
+                    $Job = $FirstDocument->fetch('id,productId');
 
-                $jobProductId = $Job->productId;
+                    $jobId = $Job->id;
 
-                if($FirstDocument->className != 'planning_Jobs') {
+                    $jobProductId = $Job->productId;
+
+                }
+
+                if ($FirstDocument->className != 'planning_Jobs') {
 
                     $originId = $FirstDocument->fetch('originId')->originId;
+                    if ($originId) {
+                        $Job = doc_Containers::getDocument($originId);
 
-                    $Job = doc_Containers::getDocument($originId);
+                        $JobRec = $Job->fetch('id,productId');
 
-                    $JobRec = $Job->fetch('id,productId');
+                        $jobId = $JobRec->id;
 
-                    $jobId = $JobRec->id;
+                        $jobProductId = $JobRec->productId;
+                    }
 
-                    $jobProductId = $JobRec->productId;
-
+                }
+                if (!$jobId) {
+                    $jobId = $master . $pRec->id;
                 }
 
                 if ($rec->option == 'yes' && $rec->products) {
@@ -361,6 +370,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 }
                 list($year, $mounth) = explode('-', $pRec->valior);
 
+                unset($secondPartKey);
                 if ($rec->groupBy) {
                     switch ($rec->groupBy) {
 
@@ -386,7 +396,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                     }
 
-                    $id = $pRec->productId . '|' . $secondPartKey;
+                    $id = ($secondPartKey) ? $pRec->productId . '|' . $secondPartKey : $pRec->productId . '|' . $master . $pRec->id;
                 } else {
                     $id = $pRec->productId;
                 }
@@ -400,6 +410,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                         'jobId' => $jobId,                                                         //Id на заданието
                         'jobArt' => $jobProductId,                                           // Продукта по заданието
+
+                        'opId' => $pRec->id,
+                        'opCls' => $master,
                         'valior' => $pRec->valior,
                         'mounth' => $mounth,
                         'year' => $year,
@@ -529,7 +542,14 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
 
         if ($rec->groupBy == 'jobId') {
-            $row->jobId = planning_Jobs::getLinkToSingle($dRec->jobId);
+            if (is_numeric($dRec->jobId)) {
+                $row->jobId = planning_Jobs::getLinkToSingle($dRec->jobId);
+            } else {
+
+                $row->jobId = '';
+                $row->jobId .= 'Без задание ';
+                $row->jobId .= $dRec->opCls::getLinkToSingle($dRec->opId);
+            }
         }
 
         if ($rec->groupBy == 'jobArt') {
