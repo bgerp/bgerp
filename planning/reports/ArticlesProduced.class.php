@@ -238,21 +238,30 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                     while ($dpRecDet = $dpQuery->fetch()) {
                         unset($amount, $quantity, $matRec, $matItemRec, $matClassName);
 
-                        if ($dpRecDet->creditItem1) {
+                        if ($dpRecDet->creditItem2) {
                             $matItemRec = acc_Items::fetch($dpRecDet->creditItem2);
-                            if(!$matItemRec){
-                                acc_Items::fetch($dpRecDet->creditItem1);
-                            }
-
                             $matClassName = core_Classes::fetch($matItemRec->classId)->name;
 
                             //rec-а на вложения материал
                             $matRec = $matClassName::fetch($matItemRec->objectId);
 
                             $id = $planningRec->productId . '|' . $matRec->id;
-                        } else {
+                        }
+                        if ($dpRecDet->creditItem1) {
+                            $matItemRec = acc_Items::fetch($dpRecDet->creditItem1);
+                            $matClassName = core_Classes::fetch($matItemRec->classId)->name;
+
+                            //rec-а на вложения материал
+                            $matRec = $matClassName::fetch($matItemRec->objectId);
+
+                            $id = $planningRec->productId . '|' . $matRec->id;
+                        }
+
+                        if(!$dpRecDet->creditItem1 && !$dpRecDet->creditItem2) {
                             $id = $planningRec->productId . '|' . 'distrib';
                         }
+
+
                         $dpRecDetArr[$id] = (object)array('dpRecDet' => $dpRecDet,
                             'matRec' => $matRec);
                     }
