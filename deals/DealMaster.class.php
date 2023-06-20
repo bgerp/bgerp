@@ -1729,12 +1729,13 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // На които треда им не е променян от определено време
         // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс или да е NULL
-        $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
-        $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
+       // $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
+       // $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
         
         // Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници или не трябва да се фактурират
-        $query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
-        $query->orWhere("#makeInvoice = 'no'");
+        //$query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
+        //$query->orWhere("#makeInvoice = 'no'");
+        $query->orWhere("#id = 923");
 
         // Ако няма намерени сделки отговарящи на условията пропускат се
         $foundDealsArr = $query->fetchAll();
@@ -1784,24 +1785,8 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $count = 0;
         foreach ($foundDealsArr as $dRec){
-            if($this instanceof purchase_Purchases){
-
-                // Ако левова сделка модифицирана след подаденото време или е валутна и не отговаря на условията за датите се пропуска
-                if(!(($dRec->currencyId == 'BGN' && $dRec->threadModifiedOn <= $oldBefore) || ($dRec->currencyId != 'BGN' && $day >= $accDay && $dRec->threadModifiedOn <= $firstDayOfMonth))) continue;
-            } else {
-                if($dRec->currencyId == 'BGN' && $dRec->threadModifiedOn > $oldBefore) continue;
-                if($dRec->currencyId != 'BGN'){
-
-                    // Ако е валутна продажба, проверява се има ли активни обратни документи в нея
-                    $countRko = cash_Rko::count("#threadId = {$dRec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
-                    $countSbds = bank_SpendingDocuments::count("#threadId = {$dRec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
-
-                    // Ако има се прилага условието за датите
-                    if($countRko || $countSbds){
-                        if(!($day >= $accDay && $dRec->threadModifiedOn <= $firstDayOfMonth)) continue;
-                    }
-                }
-            }
+            $closeErr = $ClosedDeals->getContoBtnErrStr((object)array('threadId' => $dRec->threadId));
+           if(!empty($closeErr)) continue;
 
             // Ако в нишката на сделката има контиращ документ на заявка/чернова
             if(array_key_exists($dRec->threadId, $draftAndPendingDates)){
