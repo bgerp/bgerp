@@ -467,11 +467,12 @@ class pwa_PushSubscriptions extends core_Manager
             $userNotifyCnt[$nRec->userId]++;
         }
 
+        $now = dt::now();
         // Определяме времето в момента
-        list($d, $t) = explode(' ', dt::now());
+        list($d, $t) = explode(' ', $now);
         if ($t > '22:00:00' || $t < '08:00:00') {
             $dayTime = 'Night';
-        } elseif ($t > '18:00:00' || $t < '09:00:00' || cal_Calendar::isDayType($d . ' 12:00:00', 'nonworking')) {
+        } elseif ($t > '18:00:00' || $t < '09:00:00' || cal_Calendar::isDayType($d . ' 12:00:00', 'nonworking') || cal_Calendar::isHoliday($now)) {
             $dayTime = 'NonWorking';
         } else {
             $dayTime = 'Working';
