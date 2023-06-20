@@ -219,7 +219,8 @@ class pwa_PushSubscriptions extends core_Manager
             $resArr[$rec->id] =  $statusData;
 
             if (!$statusData->isSuccess) {
-                self::logDebug("Грешка при изпращане на PUSH известие до браузър с id {$rec->brid} на потребители с id {$rec->userId}");
+                $reason = $statusObj->getReason();
+                self::logDebug("Грешка при изпращане на PUSH известие до браузър с id {$rec->brid} на потребители с id {$rec->userId}: {$reason}");
             }
         }
 

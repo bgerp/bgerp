@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pushButton.disabled = true;
                 break;
             case 'denied':
-                pushButton.disabled = true;
+                pushButton.onclick = function() { alert(pushButton.title); };
                 break;
             default:
                 break;
