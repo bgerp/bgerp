@@ -339,7 +339,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 $jobProductId = $Job->productId;
 
-                if(!$FirstDocument instanceof planning_Jobs) {
+                if($FirstDocument->className != 'planning_Jobs') {
 
                     $originId = $FirstDocument->fetch('originId')->originId;
 
