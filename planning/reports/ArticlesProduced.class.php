@@ -247,7 +247,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
                             $id = $planningRec->productId . '|' . $matRec->id;
                         }
-                        if ($dpRecDet->creditItem1) {
+                        if (!$dpRecDet->creditItem2 && $dpRecDet->creditItem1) {
                             $matItemRec = acc_Items::fetch($dpRecDet->creditItem1);
                             $matClassName = core_Classes::fetch($matItemRec->classId)->name;
 
