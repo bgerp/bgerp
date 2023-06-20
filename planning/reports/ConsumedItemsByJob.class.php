@@ -320,7 +320,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                     continue;
                 }
 
-                $consumedQuantity = $returnedQuantity = $pRec->quantity;
+                $consumedQuantity = $returnedQuantity = $pRec->quantity = 0;
 
                 if ($master == 'planning_ReturnNotes') {
                     $consumedQuantity = 0;
@@ -552,7 +552,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 $row->jobId = '';
                 $row->jobId .= 'Без задание ';
-               // $row->jobId .= $dRec->opCls::getLinkToSingle($dRec->opId);
+                $row->jobId .= $dRec->opCls::getLinkToSingle($dRec->opId);
             }
         }
 
