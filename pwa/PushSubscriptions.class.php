@@ -468,24 +468,26 @@ class pwa_PushSubscriptions extends core_Manager
         }
 
         $now = dt::now();
-        // Определяме времето в момента
-        list($d, $t) = explode(' ', $now);
-        if ($t > '22:00:00' || $t < '08:00:00') {
-            $dayTime = 'Night';
-        } elseif ($t > '18:00:00' || $t < '09:00:00' || cal_Calendar::isDayType($d . ' 12:00:00', 'nonworking') || cal_Calendar::isHoliday($now)) {
-            $dayTime = 'NonWorking';
-        } else {
-            $dayTime = 'Working';
-        }
-
-        // Масис с приоритет спрямо полето
-        $daysFieldArr = array();
-        $daysFieldArr['critical'] = 'critical' . $dayTime;
-        $daysFieldArr['urgent'] = 'urgent' . $dayTime;
-        $daysFieldArr['doc'] = 'doc' . $dayTime;
-        $daysFieldArr['all'] = 'all' . $dayTime;
 
         foreach ($ntfsMsg as $userId => $nArr) {
+            // Определяме времето в момента
+            list($d, $t) = explode(' ', $now);
+            if ($t > '22:00:00' || $t < '08:00:00') {
+                $dayTime = 'Night';
+            } elseif ($t > '18:00:00' || $t < '09:00:00' || cal_Calendar::isDayType($d . ' 12:00:00', 'nonworking')
+                || cal_Calendar::isHoliday($now) || cal_Calendar::isAbsent($now, $userId)) {
+                $dayTime = 'NonWorking';
+            } else {
+                $dayTime = 'Working';
+            }
+
+            // Масис с приоритет спрямо полето
+            $daysFieldArr = array();
+            $daysFieldArr['critical'] = 'critical' . $dayTime;
+            $daysFieldArr['urgent'] = 'urgent' . $dayTime;
+            $daysFieldArr['doc'] = 'doc' . $dayTime;
+            $daysFieldArr['all'] = 'all' . $dayTime;
+
             foreach ($nArr as $priority => $nArr2) {
                 foreach ($nArr2 as $msgObj) {
                     foreach ((array)$uArr[$userId] as $brid => $uRec) {
