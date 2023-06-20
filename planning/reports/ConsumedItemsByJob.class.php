@@ -334,7 +334,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 $FirstDocument = doc_Threads::getFirstDocument($pRec->threadId);
 
                 unset($jobId, $jobProductId);
-                if (($FirstDocument->className != 'planning_ReturnNotes') && ($FirstDocument->className != 'planning_ConsumptionNotes')) {
+                if (($FirstDocument->className == 'planning_Jobs') || ($FirstDocument->className == 'planning_DirectProductionNote')) {
 
                     $Job = $FirstDocument->fetch('id,productId');
 
