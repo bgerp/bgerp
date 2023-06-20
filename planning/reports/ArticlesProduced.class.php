@@ -239,9 +239,9 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                         unset($amount, $quantity, $matRec, $matItemRec, $matClassName);
 
                         if ($dpRecDet->creditItem1) {
-                            $matItemRec = acc_Items::fetch($dpRecDet->creditItem1);
+                            $matItemRec = acc_Items::fetch($dpRecDet->creditItem2);
                             if(!$matItemRec){
-                                acc_Items::fetch($dpRecDet->creditItem2);
+                                acc_Items::fetch($dpRecDet->creditItem1);
                             }
 
                             $matClassName = core_Classes::fetch($matItemRec->classId)->name;
