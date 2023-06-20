@@ -886,6 +886,8 @@ class core_Url
         
         // Изпълняваме заявката
         $res = @curl_exec($ch);
+
+//        log_System::add(get_called_class(), "URL({$url}) " . json_encode($res), 'debug', 1);
         
         curl_close($ch);
     }
