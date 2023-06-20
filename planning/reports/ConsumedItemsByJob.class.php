@@ -293,7 +293,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
 
 
-            $pQuery->where("#state != 'rejected'");
+            $pQuery->in('state', array('rejected', 'draft'), true);
             $pQuery->where("#canStore != 'no'");
 
             //Ако има избрани задания или центрове на дейност вадим само от техните нишки
@@ -334,7 +334,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 $FirstDocument = doc_Threads::getFirstDocument($pRec->threadId);
 
                 unset($jobId, $jobProductId);
-                if (($FirstDocument->className == 'planning_Jobs') || ($FirstDocument->className == 'planning_DirectProductionNote')) {
+                if (($FirstDocument->className == 'planning_Jobs')) {
 
                     $Job = $FirstDocument->fetch('id,productId');
 
@@ -396,7 +396,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                     }
 
-                    $id = ($secondPartKey) ? $pRec->productId . '|' . $secondPartKey : $pRec->productId . '|' . $master . $pRec->id;
+                    $id = $pRec->productId . '|' . $secondPartKey ;
                 } else {
                     $id = $pRec->productId;
                 }
@@ -453,6 +453,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $orderBy = $rec->orderBy;
 
             arr::sortObjects($recs, $orderBy, $orderType, $order);
+        }
+
+        if ($rec->groupBy == 'jobId'){
+            arr::sortObjects($recs, 'jobId', 'ASC');
         }
 
         return $recs;
@@ -548,7 +552,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 $row->jobId = '';
                 $row->jobId .= 'Без задание ';
-                $row->jobId .= $dRec->opCls::getLinkToSingle($dRec->opId);
+               // $row->jobId .= $dRec->opCls::getLinkToSingle($dRec->opId);
             }
         }
 
