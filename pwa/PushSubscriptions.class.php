@@ -264,16 +264,16 @@ class pwa_PushSubscriptions extends core_Manager
 
         $statusData = array();
 
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = crm_Profiles::getUrl(core_Users::getCurrent());
+        }
+
         if ($action == 'unsubscribe') {
             $this->delete(array("#publicKey = '[#1#]' AND #authToken = '[#2#]'", $publicKey, $authToken));
             $this->delete(array("#brid = '[#1#]'", $brid));
 
             status_Messages::newStatus('Премахване на Push абонамент за получаване на известия');
-
-            $retUrl = getRetUrl();
-            if (empty($retUrl)) {
-                $retUrl = crm_Profiles::getUrl(core_Users::getCurrent());
-            }
 
             $statusObj = new stdClass();
             $statusObj->func = 'redirect';
@@ -293,7 +293,21 @@ class pwa_PushSubscriptions extends core_Manager
             $this->save($rec, null, 'REPLACE');
 
             if ($rec->id) {
-                status_Messages::newStatus('Добавен е Push абонамент за получване на известия');
+
+                // При успешно абониране, показваме PUSH известие
+                $msgTitle = "Абониране за PUSH известия в " . core_Setup::get('EF_APP_TITLE', true);
+                $msg = 'Добавен е Push абонамент за получване на известия в "' . core_Setup::get('EF_APP_TITLE', true) . '"';
+
+                $isSendArr = $this->sendAlert($rec->userId, tr($msgTitle),tr($msg),
+                            array('pwa_PushSubscriptions', 'edit', $rec->id, 'ret_url' => true), null, null, null, $rec->brid);
+
+                foreach ($isSendArr as $iVal) {
+                    if (!$iVal->isSuccess) {
+                        status_Messages::newStatus('Добавен е Push абонамент за получване на известия');
+
+                        break;
+                    }
+                }
 
                 $statusObj = new stdClass();
                 $statusObj->func = 'redirect';
