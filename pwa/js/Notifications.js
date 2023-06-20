@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pushButton.disabled = true;
                 break;
             case 'incompatible':
-                pushButton.disabled = true;
+                pushButton.onclick = function() { alert(pushButton.title); };
                 break;
             case 'denied':
                 pushButton.onclick = function() { alert(pushButton.title); };

@@ -66,7 +66,7 @@ class pwa_ProfilePlg extends core_Plugin
             $pButton->enabled = (object) array('btnText' => tr('Известяване'), 'btnTitle' => tr('Редактиране на настройките за известията'));
             $pButton->disabled = (object) array('btnText' => tr('Известяване'), 'btnTitle' => tr('Пускане на известията'));
             $pButton->computing = (object) array('btnText' => tr('Изчисляване'), 'btnTitle' => tr('Стартиране на ивзестията'));
-            $pButton->incompatible = (object) array('btnText' => tr('Несъвсместимо'), 'btnTitle' => tr('Грешка при пускане на известията'));
+            $pButton->incompatible = (object) array('btnText' => tr('Несъвсместимо'), 'btnTitle' => tr('Първо трябва да инсталирате приложението'));
             $pButton->denied = (object) array('btnText' => tr('Известяване'), 'btnTitle' => tr('От настройките на браузъра, трябва да се разреши получаването на известия'));
 
             $pButton = json_encode($pButton);
