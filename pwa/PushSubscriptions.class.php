@@ -85,6 +85,12 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
+     * Заглавие на единичния обект
+     */
+    public $singleTitle = 'PUSH абонамент';
+
+
+    /**
      * Описание на модела
      */
     public function description()
