@@ -514,6 +514,7 @@ class pwa_PushSubscriptions extends core_Manager
                         // Проверяваме дали преди това има изпратено известие
                         $showUrlHash = md5($msgObj->url . '|' . $userId . '|' . $brid);
                         if (core_Permanent::get($showUrlHash)) {
+                            self::logDebug("Прескочено изпращане на известие за потребител id={$userId} и brid={$brid} поради дублиране на URL: {$msgObj->url}");
 
                             continue;
                         }
@@ -614,23 +615,44 @@ class pwa_PushSubscriptions extends core_Manager
 
                         $url = bgerp_Notifications::getUrl($msgObj);
 
-                        // Изпращаме известието и записваме в лога съответното действие
-                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $url, null, null, null, $brid);
+                        $urlArr = array($this, 'openUrl', 'url' => toUrl($url, 'local'), 'hash' => $showUrlHash);
 
+                        // Изпращаме известието и записваме в лога съответното действие
+                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $urlArr, null, null, null, $brid);
+
+                        $lifetime = 24 * 60;
                         foreach ($isSendArr as $iVal) {
                             $resStatusMsg = 'Неуспешно';
+                            $lifetime = 2 * 60; // 2 часа за повторно изпращане, ако има грешка
                             if ($iVal->isSuccess) {
                                 $resStatusMsg = 'Успешно';
+                                $lifetime = 24 * 60; // 24 часа за повторно изпращане, ако няма грешка
                             }
 
                             self::logDebug($resStatusMsg . ' изпращане на известие до userId=' . $iVal->userId . ' с brid=' . $iVal->brid . ': ' . $msg);
                         }
 
-                        core_Permanent::set($showUrlHash, 1, 48 * 60);
+                        core_Permanent::set($showUrlHash, 1, $lifetime);
                     }
                 }
             }
         }
+    }
+
+
+    /**
+     * След отваряне на линка, премахва хеша от списъка с отворени линкове и редиректва към зададения линк
+     */
+    function act_OpenUrl()
+    {
+        $url = Request::get('url');
+        $hash = Request::get('hash');
+
+        core_Permanent::remove($hash);
+
+        $urlArr = parseLocalUrl($url);
+
+        return new Redirect($urlArr);
     }
 
 
