@@ -239,7 +239,9 @@ class pwa_PushSubscriptions extends core_Manager
             $resArr[$rec->id] =  $statusData;
 
             if (!$statusData->isSuccess) {
-                self::logDebug("Грешка при изпращане на PUSH известие до браузър с id {$rec->brid} на потребители с id {$rec->userId}: {$reason}");
+                self::logDebug("Грешка при изпращане на PUSH известие: {$reason}", $rec->id, 7);
+            } else {
+                self::logDebug("Успешно изпратено на PUSH известие - {$data->text}", $rec->id, 3);
             }
         }
 
@@ -514,7 +516,7 @@ class pwa_PushSubscriptions extends core_Manager
                         // Проверяваме дали преди това има изпратено известие
                         $showUrlHash = md5($msgObj->url . '|' . $userId . '|' . $brid);
                         if (core_Permanent::get($showUrlHash)) {
-                            self::logDebug("Прескочено изпращане на известие за потребител id={$userId} и brid={$brid} поради дублиране на URL: {$msgObj->url}");
+                            self::logDebug("Прескочено изпращане на PUSH известие поради дублиране на URL: {$msgObj->url}", $uRec->id, 7);
 
                             continue;
                         }
@@ -629,7 +631,7 @@ class pwa_PushSubscriptions extends core_Manager
                                 $lifetime = 24 * 60; // 24 часа за повторно изпращане, ако няма грешка
                             }
 
-                            self::logDebug($resStatusMsg . ' изпращане на известие до userId=' . $iVal->userId . ' с brid=' . $iVal->brid . ': ' . $msg);
+                            self::logDebug("{$resStatusMsg} изпращане на известие: '{$msgTitle}': '{$msg}'", $uRec->id, 7);
                         }
 
                         core_Permanent::set($showUrlHash, 1, $lifetime);
