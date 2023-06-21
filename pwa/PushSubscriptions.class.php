@@ -133,7 +133,7 @@ class pwa_PushSubscriptions extends core_Manager
      * @param string $text - текст на съобщението
      * @param null|array $url - линк за отваряне
      * @param null|bool $tag - таг - ако е зададено, известията ще се презаписват за същия таг
-     * @param null|string $icon - икона
+     * @param null|string|false $icon - икона
      * @param null| string $image - изображение
      * @param null|string $brid - id на браузъра
      * @param null|integer $domainId - id на домейн
@@ -204,9 +204,6 @@ class pwa_PushSubscriptions extends core_Manager
                         'privateKey' => $dRec->privateKey
                     ),
                 );
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-                continue;
             } catch (Throwable $t) {
                 reportException($t);
                 continue;
