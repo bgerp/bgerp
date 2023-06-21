@@ -247,7 +247,7 @@ class pwa_PushSubscriptions extends core_Manager
             if (!$statusData->isSuccess) {
                 self::logDebug("Грешка при изпращане на PUSH известие: {$reason}", $rec->id, 7);
             } else {
-                self::logDebug("Успешно изпратено на PUSH известие - {$data->text}", $rec->id, 3);
+                self::logDebug("Успешно изпратено PUSH известие - {$data->text}", $rec->id, 3);
             }
         }
 
