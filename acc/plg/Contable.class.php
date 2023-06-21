@@ -109,6 +109,7 @@ class acc_plg_Contable extends core_Plugin
                 }
                 Mode::pop('recontoTransaction');
             } catch(core_exception_Expect  $e){
+                reportException($e);
                 if($mvc instanceof deals_DealMaster){
                     $rec->contoActions = null;
                     $mvc->save_($rec, 'contoActions');
