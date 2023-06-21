@@ -652,6 +652,11 @@ class pwa_PushSubscriptions extends core_Manager
     {
         requireRole('admin');
 
-        bp($this->sendAlert(core_Users::getCurrent(), "Тестово известие", "Тестово известие \nТестово известие \nТестово известие \nТестово известие: " . rand(1, 1111), array('Portal', 'Show'), 'Test'));
+        $userId = Request::get('userId');
+        if (!isset($userId) || ($userId <= 0)) {
+            $userId = core_Users::getCurrent();
+        }
+
+        bp($this->sendAlert($userId, "Тестово известие", "Тестово известие: " . rand(1, 1111), array('Portal', 'Show'), 'Test'));
     }
 }
