@@ -238,6 +238,7 @@ class purchase_Setup extends core_ProtoSetup
      */
     public function recontoDeals2520v2()
     {
+        if(core_Packs::isMigrationDone('purchase', 'recalcCurrencyPurchases1115')) return;
         cls::get('purchase_Purchases')->recalcDocumentsWithDealCurrencyRate();
     }
 }

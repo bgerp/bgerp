@@ -650,6 +650,7 @@ class sales_Setup extends core_ProtoSetup
      */
     public function recontoDeals2520()
     {
+        if(core_Packs::isMigrationDone('sales', 'recalcCurrencySales1115')) return;
         cls::get('sales_Sales')->recalcDocumentsWithDealCurrencyRate();
     }
 }
