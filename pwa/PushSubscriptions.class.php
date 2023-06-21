@@ -163,6 +163,25 @@ class pwa_PushSubscriptions extends core_Manager
             $query->where(array("#domainId = '[#1#]'", $domainId));
         }
 
+        $cAcc = email_Accounts::getCorporateAcc();
+        if ($cAcc) {
+            $mailTo = $cAcc->email;
+        } else {
+            $common = email_Accounts::getCommonAndCorporate();
+            if (!empty($common)) {
+                $mailTo = reset($common);
+            }
+        }
+
+        if (!isset($mailTo)) {
+            $cDomain = cms_Domains::getCurrent('domain', false);
+            $mailTo = 'team@' . $cDomain;
+        }
+
+        if (!isset($mailTo)) {
+            $mailTo = 'localhost@localhost';
+        }
+
         while ($rec = $query->fetch()) {
             if (isset($rec->domainId)) {
                 $dRec = cms_Domains::fetch($rec->domainId);
@@ -174,9 +193,9 @@ class pwa_PushSubscriptions extends core_Manager
             try {
                 $auth = array(
                     'VAPID' => array(
-                        'subject' => 'bgERP',
+                        'subject' => "mailto:{$mailTo}",
                         'publicKey' => $dRec->publicKey,
-                        'privateKey' => $dRec->privateKey,
+                        'privateKey' => $dRec->privateKey
                     ),
                 );
             } catch (core_exception_Expect $e) {
@@ -213,13 +232,13 @@ class pwa_PushSubscriptions extends core_Manager
             }
 
             $statusObj = $webPush->sendOneNotification($subscription, json_encode($data));
+            $reason = $statusObj->getReason();
 
-            $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId);
+            $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
 
             $resArr[$rec->id] =  $statusData;
 
             if (!$statusData->isSuccess) {
-                $reason = $statusObj->getReason();
                 self::logDebug("Грешка при изпращане на PUSH известие до браузър с id {$rec->brid} на потребители с id {$rec->userId}: {$reason}");
             }
         }
