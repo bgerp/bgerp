@@ -645,6 +645,8 @@ class pwa_PushSubscriptions extends core_Manager
      */
     function act_OpenUrl()
     {
+        $this->requireRightFor('subscribe');
+
         $url = Request::get('url');
         $hash = Request::get('hash');
 
