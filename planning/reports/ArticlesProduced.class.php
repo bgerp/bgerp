@@ -537,7 +537,6 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $fld->FLD('amount', 'varchar', 'caption=Стойност,tdClass=centered');
        // }
         if ($rec->groupBy != 'month') {
-
             $fld->FLD('department', 'key(mvc=planning_Centers,select=name)', 'caption=Център на дейност');
             $fld->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         } else {
@@ -609,6 +608,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
             if ($rec->data->groupByField == 'storeId') {
                 $row->storeId .= 'Склад: ';
+                $row->storeId .= store_Stores::getLinkToSingle_($dRec->storeId, 'name');
+            }else{
                 $row->storeId .= store_Stores::getLinkToSingle_($dRec->storeId, 'name');
             }
 
