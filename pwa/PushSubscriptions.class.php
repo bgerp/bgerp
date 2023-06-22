@@ -85,6 +85,12 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
+     * Заглавие на единичния обект
+     */
+    public $singleTitle = 'PUSH абонамент';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -127,7 +133,7 @@ class pwa_PushSubscriptions extends core_Manager
      * @param string $text - текст на съобщението
      * @param null|array $url - линк за отваряне
      * @param null|bool $tag - таг - ако е зададено, известията ще се презаписват за същия таг
-     * @param null|string $icon - икона
+     * @param null|string|false $icon - икона
      * @param null| string $image - изображение
      * @param null|string $brid - id на браузъра
      * @param null|integer $domainId - id на домейн
@@ -198,9 +204,6 @@ class pwa_PushSubscriptions extends core_Manager
                         'privateKey' => $dRec->privateKey
                     ),
                 );
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-                continue;
             } catch (Throwable $t) {
                 reportException($t);
                 continue;
@@ -239,7 +242,9 @@ class pwa_PushSubscriptions extends core_Manager
             $resArr[$rec->id] =  $statusData;
 
             if (!$statusData->isSuccess) {
-                self::logDebug("Грешка при изпращане на PUSH известие до браузър с id {$rec->brid} на потребители с id {$rec->userId}: {$reason}");
+                self::logDebug("Грешка при изпращане на PUSH известие - '{$reason}'", $rec->id, 7);
+            } else {
+                self::logDebug("Успешно изпратено PUSH известие - '{$data->text}'", $rec->id, 3);
             }
         }
 
@@ -510,10 +515,10 @@ class pwa_PushSubscriptions extends core_Manager
             foreach ($nArr as $priority => $nArr2) {
                 foreach ($nArr2 as $msgObj) {
                     foreach ((array)$uArr[$userId] as $brid => $uRec) {
-
                         // Проверяваме дали преди това има изпратено известие
                         $showUrlHash = md5($msgObj->url . '|' . $userId . '|' . $brid);
-                        if (core_Permanent::get($showUrlHash)) {
+                        if (core_Permanent::get('pwa_' . $showUrlHash)) {
+                            self::logDebug("Прескочено изпращане на PUSH известие поради дублиране на URL - '{$msgObj->url}'", $uRec->id, 7);
 
                             continue;
                         }
@@ -614,23 +619,49 @@ class pwa_PushSubscriptions extends core_Manager
 
                         $url = bgerp_Notifications::getUrl($msgObj);
 
-                        // Изпращаме известието и записваме в лога съответното действие
-                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $url, null, null, null, $brid);
+                        $urlArr = array($this, 'openUrl', 'url' => toUrl($url, 'local'), 'hash' => $showUrlHash);
 
+                        // Изпращаме известието и записваме в лога съответното действие
+                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $urlArr, null, null, null, $brid);
+
+                        $lifetime = 24 * 60;
                         foreach ($isSendArr as $iVal) {
                             $resStatusMsg = 'Неуспешно';
+                            $lifetime = 2 * 60; // 2 часа за повторно изпращане, ако има грешка
                             if ($iVal->isSuccess) {
                                 $resStatusMsg = 'Успешно';
+                                $lifetime = 24 * 60; // 24 часа за повторно изпращане, ако няма грешка
                             }
 
-                            self::logDebug($resStatusMsg . ' изпращане на известие до userId=' . $iVal->userId . ' с brid=' . $iVal->brid . ': ' . $msg);
+                            self::logDebug("{$resStatusMsg} изпращане на известие - '{$msgTitle}': '{$msg}'", $uRec->id, 7);
                         }
 
-                        core_Permanent::set($showUrlHash, 1, 48 * 60);
+                        core_Permanent::set('pwa_' . $showUrlHash, 1, $lifetime);
                     }
                 }
             }
         }
+    }
+
+
+    /**
+     * След отваряне на линка, премахва хеша от списъка с отворени линкове и редиректва към зададения линк
+     */
+    function act_OpenUrl()
+    {
+        $this->requireRightFor('subscribe');
+
+        $url = Request::get('url');
+        $hash = Request::get('hash');
+
+        expect($hash, 'Не е зададен хеш на линка');
+        expect($url, 'Не е зададен линк');
+
+        core_Permanent::remove('pwa_' . $hash);
+
+        $urlArr = parseLocalUrl($url);
+
+        return new Redirect($urlArr);
     }
 
 
