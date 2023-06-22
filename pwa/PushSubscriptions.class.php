@@ -515,10 +515,9 @@ class pwa_PushSubscriptions extends core_Manager
             foreach ($nArr as $priority => $nArr2) {
                 foreach ($nArr2 as $msgObj) {
                     foreach ((array)$uArr[$userId] as $brid => $uRec) {
-
                         // Проверяваме дали преди това има изпратено известие
                         $showUrlHash = md5($msgObj->url . '|' . $userId . '|' . $brid);
-                        if (core_Permanent::get($showUrlHash)) {
+                        if (core_Permanent::get('pwa_' . $showUrlHash)) {
                             self::logDebug("Прескочено изпращане на PUSH известие поради дублиране на URL - '{$msgObj->url}'", $uRec->id, 7);
 
                             continue;
@@ -637,7 +636,7 @@ class pwa_PushSubscriptions extends core_Manager
                             self::logDebug("{$resStatusMsg} изпращане на известие - '{$msgTitle}': '{$msg}'", $uRec->id, 7);
                         }
 
-                        core_Permanent::set($showUrlHash, 1, $lifetime);
+                        core_Permanent::set('pwa_' . $showUrlHash, 1, $lifetime);
                     }
                 }
             }
@@ -655,7 +654,10 @@ class pwa_PushSubscriptions extends core_Manager
         $url = Request::get('url');
         $hash = Request::get('hash');
 
-        core_Permanent::remove($hash);
+        expect($hash, 'Не е зададен хеш на линка');
+        expect($url, 'Не е зададен линк');
+
+        core_Permanent::remove('pwa_' . $hash);
 
         $urlArr = parseLocalUrl($url);
 
