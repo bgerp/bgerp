@@ -362,6 +362,10 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
             $id = $planningRec->productId . '|' . '';
 
+            if($rec->groupBy == 'storeId'){
+                $id = $planningRec->productId . '|' . $storeId;
+            }
+
             //Мярка на артикула
             $measureArtId = cat_Products::fetchField($planningRec->productId, 'measureId');
 
@@ -538,7 +542,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
        // }
         if ($rec->groupBy != 'month') {
             $fld->FLD('department', 'key(mvc=planning_Centers,select=name)', 'caption=Център на дейност');
-            $fld->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
+            //$fld->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         } else {
             $monthArr = $rec->montsArr;
             sort($monthArr);
