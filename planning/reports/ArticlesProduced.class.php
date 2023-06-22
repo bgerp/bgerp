@@ -362,6 +362,10 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
             $id = $planningRec->productId . '|' . '';
 
+            if($rec->groupBy == 'storeId'){
+                $id = $planningRec->productId . '|' . $storeId;
+            }
+
             //Мярка на артикула
             $measureArtId = cat_Products::fetchField($planningRec->productId, 'measureId');
 
