@@ -165,8 +165,11 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('inputPreviousSteps', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Планиране - влагане на предходния и вложените Етапи->Избор,autohide,input=hidden');
+        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производството->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide,input=none');
+        $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък в производството->Начален,autohide,input=none');
+        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък в производството->Допустим,autohide,input=none');
 
+        $this->FLD('inputPreviousSteps', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Планиране - влагане на предходния и вложените Етапи->Избор,autohide,input=hidden');
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
         $this->FLD('primeCost', 'double', 'caption=Себестойност,input=none,tdClass=accCell');
         $this->FLD('params', 'blob(serialize, compress)', 'input=none');
@@ -256,6 +259,11 @@ class cat_BomDetails extends doc_Detail
             if(isset($rec->resourceId)){
 
                 // Ако има данни за производство
+                $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
+                $form->setFieldTypeParams("wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
+                $form->setField('wasteProductId', 'input');
+                $form->setField('wasteStart', 'input');
+                $form->setField('wastePercent', 'input');
                 $form->setField('inputPreviousSteps', 'input');
                 $form->setDefault('inputPreviousSteps', 'auto');
                 $form->setField('centerId', 'input');
@@ -277,8 +285,9 @@ class cat_BomDetails extends doc_Detail
 
                 // Добавяне на дефолтите от производствените данни
                 if($form->cmd == 'refresh' || Request::get('resourceId', 'int')){
-                    if(empty($rec->centerId) && empty($rec->norm) && empty($rec->storeIn) && empty($rec->inputStores) && empty($rec->fixedAssets) && empty($rec->employees) && empty($rec->labelPackagingId) && empty($rec->labelTemplate) && empty($rec->labelType) && empty($rec->labelQuantityInPack)){
-                        foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld){
+
+                    if(empty($rec->centerId) && empty($rec->norm) && empty($rec->storeIn) && empty($rec->inputStores) && empty($rec->fixedAssets) && empty($rec->employees) && empty($rec->labelPackagingId) && empty($rec->labelTemplate) && empty($rec->labelType) && empty($rec->labelQuantityInPack) && empty($rec->wasteProductId) && empty($rec->wasteStart) && empty($rec->wastePercent)){
+                       foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate', 'wasteProductId', 'wasteStart', 'wastePercent') as $productionFld){
                             $defaultValue = is_array($productionData[$productionFld]) ? keylist::fromArray($productionData[$productionFld]) : $productionData[$productionFld];
                             $form->setDefault($productionFld, $defaultValue);
                             if($data->masterRec->type != 'production') {
@@ -814,6 +823,23 @@ class cat_BomDetails extends doc_Detail
             }
             if(!empty($rec->norm)){
                 $descriptionArr[] = tr("|*<tr><td>|Норма|*:</td><td>") . $mvc->getFieldType('norm')->toVerbal($rec->norm) . "</td></tr>";
+            }
+
+            $productionData = array();
+            if($Driver = cat_Products::getDriver($rec->resourceId)){
+                $productionData = $Driver->getProductionData($rec->resourceId);
+            }
+
+            foreach (array('wasteProductId' => 'Отпадък', 'wasteStart' => 'Отпадък: Начален', 'wastePercent' => 'Отпадък: Допустим') as $wasteFld => $wasteCaption){
+                $wasteFldVal = !empty($rec->{$wasteFld}) ? $rec->{$wasteFld} : $productionData[$wasteFld];
+                if(!empty($wasteFldVal)){
+                    $wasteFldValVerbal = $mvc->getFieldType($wasteFld)->toVerbal($wasteFldVal);
+                    if(empty($rec->{$wasteFld})){
+                        $wasteFldValVerbal = "<span style='color:blue'>{$wasteFldValVerbal}</span>";
+                        $wasteFldValVerbal = ht::createHint($wasteFldValVerbal, 'От етапа');
+                    }
+                    $descriptionArr[] = tr("|*<tr><td>|{$wasteCaption}|*:</td><td>") . $wasteFldValVerbal . "</td></tr>";
+                }
             }
 
             if(!empty($rec->labelPackagingId)){
