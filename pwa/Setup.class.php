@@ -8,6 +8,12 @@ defIfNot('PWA_DOMAINS', '');
 
 
 /**
+ * Имейл адрес, който ще се ипозлва за mailto в PWA
+ */
+defIfNot('PWA_MAILTO', '');
+
+
+/**
  * Клас 'pwa_Setup' -  bgERP progressive web application
  *
  *
