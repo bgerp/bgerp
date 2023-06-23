@@ -1264,7 +1264,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 foreach ($copyArr as $jobContainerId){
                     $otherJobStr[] = "#" . doc_Containers::getDocument($jobContainerId)->getHandle();
                 }
-                $msg = "Номерът се среща и следните задания|*: " . implode(',', $otherJobStr);
+                $msg = "Номерът се среща и в задание|* " . implode(',', $otherJobStr);
                 $row->serial = ht::createHint($row->serial, "$msg", 'warning');
                 $styleWithBorder = true;
             }
