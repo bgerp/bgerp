@@ -820,7 +820,15 @@ class core_Master extends core_Manager
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
             $url = array();
         }
-        
+
+        if(isset($attr['limit'])){
+            $originTitle = $title;
+            $title = str::limitLen($title, $attr['limit']);
+            if(mb_strlen($originTitle) > $attr['limit']){
+                $attr['title'] = $originTitle;
+            }
+        }
+
         if ($short === true) {
             if (!Mode::is('printing') && !Mode::is('text', 'xhtml')) {
                 $title = ht::createLinkRef($title, $url, null, $attr);
