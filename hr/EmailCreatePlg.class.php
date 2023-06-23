@@ -16,6 +16,8 @@
  */
 class hr_EmailCreatePlg extends core_Plugin
 {
+
+
     /**
      * Извиква се след описанието на модела
      */
@@ -28,6 +30,49 @@ class hr_EmailCreatePlg extends core_Plugin
         setIfNot($mvc->interfaces['email_DocumentIntf'], 'email_DocumentIntf');
         setIfNot($mvc->useOriginContragentData, true);
         setIfNot($mvc->getContragentDataFromLastDoc, false);
+    }
+
+
+    /**
+     * Извиква се след изпълняването на екшън
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        if (($rec->createdBy > 0) && $mvc->haveRightFor('sendEmail', $rec, $rec->createdBy)) {
+            $cu = core_Users::getCurrent();
+
+            $su = core_Users::sudo($rec->createdBy);
+
+            $cData = $mvc->getContragentData($rec->id);
+
+            // Подготовка на имейла
+            $emailRec = (object) array(
+                'body' => $mvc->getDefaultEmailBody($rec->id),
+                'folderId' => $rec->folderId,
+                'originId' => $rec->containerId,
+                'threadId' => $rec->threadId,
+                'state' => 'active',
+                'email' => $cData->email,
+                'subject' => $mvc->getDefaultEmailSubject($rec->id));
+
+            email_Outgoings::setContragentDataToRec($cData, $emailRec);
+
+            $pNotification = Mode::get('preventNotifications');
+
+            Mode::set('preventNotifications', true);
+
+            email_Outgoings::save($emailRec);
+
+            email_Outgoings::logWrite('Създаване при одобрение', $emailRec->id, 360, $cu);
+            cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
+            email_Outgoings::logWrite('Активиране', $emailRec->id, 360, $cu);
+
+            Mode::set('preventNotifications', $pNotification);
+
+            if ($su) {
+                core_Users::exitSudo();
+            }
+        }
     }
 
 
