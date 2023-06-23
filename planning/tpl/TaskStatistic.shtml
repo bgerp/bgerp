@@ -6,16 +6,16 @@
        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
           <tr>
              <td class = 'sum-th'>
-                 |План|*, [#measureId#]
+                 |План|*,&nbsp;[#measureId#]
              </td>
              <td class = 'sum-th'>
-                 |Прогрес|*, [#measureId#]
+                 |Прогрес|*,&nbsp;[#measureId#]
              </td>
              <td class = 'sum-th'>
-                 |Брак|*, [#measureId#]
+                 |Брак|*,&nbsp;[#measureId#]
              </td>
              <td class = 'sum-th'>
-                 [#producedCaption#], [#measureId#]
+                 [#producedCaption#],&nbsp;[#measureId#]
              </td>
 
              <td class = 'sum-th'>
