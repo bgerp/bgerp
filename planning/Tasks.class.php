@@ -376,7 +376,7 @@ class planning_Tasks extends core_Master
 
                 if ($originRec->oldJobId) {
                     $oldJobProductId = planning_Jobs::fetchField($originRec->oldJobId, 'productId');
-                    $data->row->previousJob = planning_Jobs::getHyperlink($originRec->oldJobId, true, false, array('limit' => 50));
+                    $data->row->previousJob = planning_Jobs::getHyperlink($originRec->oldJobId, true, false, array('limit' => 64));
                     $data->row->previousJobCaption = ($originRec->productId == $oldJobProductId) ? tr('Предходно') : tr('Подобно');
                 }
             }
@@ -683,7 +683,7 @@ class planning_Tasks extends core_Master
             }
 
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-            $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
+            $row->producedCaption = ($canStore == 'yes') ? tr('В склад') : tr('Изпълн.');
 
             // Ако има избрано оборудване
             if (isset($rec->assetId)) {
