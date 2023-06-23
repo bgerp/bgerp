@@ -63,6 +63,7 @@ class pwa_Setup extends core_ProtoSetup
             'controller' => 'pwa_PushSubscriptions',
             'action' => 'PushAlertForNotifications',
             'period' => 1,
+            'delay' => 15,
             'timeLimit' => 50
         )
     );

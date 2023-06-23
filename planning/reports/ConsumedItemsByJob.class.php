@@ -293,7 +293,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
 
 
-            $pQuery->where("#state != 'rejected'");
+            $pQuery->in('state', array('rejected', 'draft'), true);
             $pQuery->where("#canStore != 'no'");
 
             //Ако има избрани задания или центрове на дейност вадим само от техните нишки
@@ -320,7 +320,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                     continue;
                 }
 
-                $consumedQuantity = $returnedQuantity = $pRec->quantity;
+                $consumedQuantity = $returnedQuantity = $pRec->quantity = 0;
 
                 if ($master == 'planning_ReturnNotes') {
                     $consumedQuantity = 0;
@@ -333,24 +333,33 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 $FirstDocument = doc_Threads::getFirstDocument($pRec->threadId);
 
-                $Job = $FirstDocument->fetch('id,productId');
+                unset($jobId, $jobProductId);
+                if (($FirstDocument->className == 'planning_Jobs')) {
 
-                $jobId = $Job->id;
+                    $Job = $FirstDocument->fetch('id,productId');
 
-                $jobProductId = $Job->productId;
+                    $jobId = $Job->id;
 
-                if(!$FirstDocument instanceof planning_Jobs) {
+                    $jobProductId = $Job->productId;
+
+                }
+
+                if ($FirstDocument->className != 'planning_Jobs') {
 
                     $originId = $FirstDocument->fetch('originId')->originId;
+                    if ($originId) {
+                        $Job = doc_Containers::getDocument($originId);
 
-                    $Job = doc_Containers::getDocument($originId);
+                        $JobRec = $Job->fetch('id,productId');
 
-                    $JobRec = $Job->fetch('id,productId');
+                        $jobId = $JobRec->id;
 
-                    $jobId = $JobRec->id;
+                        $jobProductId = $JobRec->productId;
+                    }
 
-                    $jobProductId = $JobRec->productId;
-
+                }
+                if (!$jobId) {
+                    $jobId = $master . $pRec->id;
                 }
 
                 if ($rec->option == 'yes' && $rec->products) {
@@ -361,6 +370,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 }
                 list($year, $mounth) = explode('-', $pRec->valior);
 
+                unset($secondPartKey);
                 if ($rec->groupBy) {
                     switch ($rec->groupBy) {
 
@@ -386,7 +396,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                     }
 
-                    $id = $pRec->productId . '|' . $secondPartKey;
+                    $id = $pRec->productId . '|' . $secondPartKey ;
                 } else {
                     $id = $pRec->productId;
                 }
@@ -400,6 +410,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                         'jobId' => $jobId,                                                         //Id на заданието
                         'jobArt' => $jobProductId,                                           // Продукта по заданието
+
+                        'opId' => $pRec->id,
+                        'opCls' => $master,
                         'valior' => $pRec->valior,
                         'mounth' => $mounth,
                         'year' => $year,
@@ -440,6 +453,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $orderBy = $rec->orderBy;
 
             arr::sortObjects($recs, $orderBy, $orderType, $order);
+        }
+
+        if ($rec->groupBy == 'jobId'){
+            arr::sortObjects($recs, 'jobId', 'ASC');
         }
 
         return $recs;
@@ -529,7 +546,14 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
 
         if ($rec->groupBy == 'jobId') {
-            $row->jobId = planning_Jobs::getLinkToSingle($dRec->jobId);
+            if (is_numeric($dRec->jobId)) {
+                $row->jobId = planning_Jobs::getLinkToSingle($dRec->jobId);
+            } else {
+
+                $row->jobId = '';
+                $row->jobId .= 'Без задание ';
+                $row->jobId .= $dRec->opCls::getLinkToSingle($dRec->opId);
+            }
         }
 
         if ($rec->groupBy == 'jobArt') {

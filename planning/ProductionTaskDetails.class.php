@@ -874,7 +874,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
             }
             $sign = ($rec->type == 'scrap') ? -1 : 1;
-            $foundRecs[$rec->taskId]->quantity += $sign * $rec->quantity;
+            $quantity = $rec->quantity;
+            if($rec->labelPackagingId == $labelPackagingValue){
+                $quantity = 1;
+            }
+
+            $foundRecs[$rec->taskId]->quantity += $sign * $quantity;
             $date = isset($rec->date) ? $rec->date : $rec->createdOn;
             $foundRecs[$rec->taskId]->date = max($foundRecs[$rec->taskId]->date , $date);
         }

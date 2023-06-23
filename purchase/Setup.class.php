@@ -139,6 +139,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_PurchasesData',
         'purchase_Quotations',
         'purchase_QuotationDetails',
+        'migrate::recontoDeals2520v2',
     );
     
     
@@ -229,5 +230,15 @@ class purchase_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('purQuoteFiles', 'Прикачени файлове в офертите от доставчици', null, '104857600', 'user', 'user');
 
         return $html;
+    }
+
+
+    /**
+     * Рекалкулиране на валутните сделки
+     */
+    public function recontoDeals2520v2()
+    {
+        if(core_Packs::isMigrationDone('purchase', 'recalcCurrencyPurchases1115')) return;
+        cls::get('purchase_Purchases')->recalcDocumentsWithDealCurrencyRate();
     }
 }

@@ -1372,4 +1372,25 @@ class core_Packs extends core_Manager
         
         return false;
     }
+
+
+    /**
+     * Дали дадена миграция е успешно изпълнена
+     *
+     * @param string $packName       - име на пакета
+     * @param string $migrationName  - име на търсената миграция
+     * @return bool                  - дали е изпълнена или не
+     */
+    public static function isMigrationDone($packName, $migrationName)
+    {
+        $data = core_Packs::getConfig('core')->_data;
+        if(is_array($data)){
+            $packNameLower = mb_strtolower($packName);
+            $cachedName = "migration_{$packNameLower}_{$migrationName}";
+
+            return $data[$cachedName] === true;
+        }
+
+        return false;
+    }
 }
