@@ -532,11 +532,13 @@ class plg_UserReg extends core_Plugin
         
         if ($corpAcc) {
             $PML = email_Accounts::getPML($corpAcc->email);
+            $PML->SetFrom($corpAcc->email, 'Support');
         } else {
             // Ако е зададен имей по подразбиране, използваме него
             $defaultSentBox = email_Setup::get('DEFAULT_SENT_INBOX');
             if ($defaultSentBox && ($iRec = email_Inboxes::fetch($defaultSentBox))) {
                 $PML = email_Accounts::getPML($iRec->email);
+                $PML->SetFrom($iRec->email, 'Support');
             } else {
                 $PMLSetup = cls::get('phpmailer_Setup');
                 if (strlen($PMLSetup->checkConfig(true)) != 0) {
@@ -572,6 +574,8 @@ class plg_UserReg extends core_Plugin
         $PML->Body = $tpl->getContent();
         
         $PML->Subject = $subject;
+        
+        $PML->From = $subject;
         
         $PML->AddAddress($rec->email);
         

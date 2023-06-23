@@ -961,18 +961,19 @@ abstract class deals_DealBase extends core_Master
     /**
      * Реконтира документите в нишката на сделката с посочения нов курс
      *
-     * @param stdClass $rec
-     * @param double $newRate
+     * @param stdClass $rec            - запис на сделка
+     * @param double $newRate          - нов курс
+     * @param boolean $recontoDealAlso - да реконтира ли сделката с новия курс
      * @return void
      */
-    public function recalcDocumentsWithNewRate($rec, $newRate)
+    public function recalcDocumentsWithNewRate($rec, $newRate, $recontoDealAlso = true)
     {
         // Рекалкулиране на сделката
         $valior = $rec->{$this->valiorFld};
         $periodState = acc_Periods::fetchByDate($valior)->state;
 
         // Рекалкулиране на курса на сделката, само ако не е в затворен период
-        if($periodState != 'closed') {
+        if($periodState != 'closed' && $recontoDealAlso) {
             if ($this instanceof findeals_Deals) {
                 $rec->currencyRate = $newRate;
                 $this->save($rec);
@@ -1029,48 +1030,51 @@ abstract class deals_DealBase extends core_Master
 
 
     /**
-     * Колко е средния курс в сделката
+     * Рекалкулиране на документите с курса на сделките, в сделки, които не са в посочените валути
      *
-     * @param $rec
-     * @return double|null
+     * @param array $skipCurrencyCodes
+     * @return void
      */
-    private function getAverageRateInThread($rec)
+    public function recalcDocumentsWithDealCurrencyRate($skipCurrencyCodes = array('BGN', 'EUR'))
     {
-        // Ако е платено с  документа
-        $documents = array();
-        $currencyItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
-        $actions = type_Set::toArray($rec->contoActions);
-        $amountInCurrency = $amountInBaseCurrency = 0;
-        if(isset($actions['pay'])){
-            $documents[] = doc_Containers::getDocument($rec->containerId);
-        }
+        $iQuery = acc_Items::getQuery();
+        $iQuery->where("#classId = {$this->getClassId()} AND #state = 'active'");
+        $iQuery->EXT('currencyId', $this->className, 'externalName=currencyId,externalKey=objectId');
+        $iQuery->notIn("currencyId", $skipCurrencyCodes);
 
-        $dealDocuments = $this->getDescendants($rec->id);
-        $documents = array_merge($documents, $dealDocuments);
+        $dealIds = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+        $count = countR($dealIds);
 
-        // Всички платежни документи към сделката
-        foreach ($documents as $Doc){
-            if(!$Doc->isInstanceOf('deals_PaymentDocument') && !$Doc->isInstanceOf('deals_DocumentMaster') ) continue;
-            $jQuery = acc_JournalDetails::getQuery();
-            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId,externalName=docType');
-            $jQuery->EXT('docId', 'acc_Journal', 'externalKey=journalId,externalName=docId');
-            $jQuery->where("#docType = {$Doc->getClassId()} AND #docId = {$Doc->that}");
-            $side = ($this->className == 'sales_Sales') ? 'credit' : 'debit';
-            $jQuery->where("#{$side}Item3 = {$currencyItem}");
+        if(!$count) return;
+        core_App::setTimeLimit(0.9 * $count, false, 200);
 
-            // Сумира се валутата от сделката и сумата в основна валута колко е
-            while($jRec = $jQuery->fetch()){
-                $amountInCurrency += $jRec->{"{$side}Quantity"};
-                $amountInBaseCurrency += $jRec->amount;
+        // Ако има намерени сделки
+        $Items = cls::get('acc_Items');
+        $query = $this->getQuery();
+        $query->in('id', $dealIds);
+        $query->where("#state = 'active'");
+
+        $recalcedItems = $saved = array();
+        while($rec = $query->fetch()){
+            $itemRec = acc_Items::fetchItem($this, $rec->id);
+
+            try{
+                // Рекалкулиране на документите с новия курс
+                Mode::push('dontUpdateThread', true);
+                $this->recalcDocumentsWithNewRate($rec, $rec->currencyRate, false);
+                Mode::pop('dontUpdateThread');
+            } catch(acc_journal_Exception $e){
+                $errorMsg = "Курса не може да бъде авт. преизчислен. {$e->getMessage()}";
+                $this->logErr($errorMsg, $rec->id);
+                continue;
             }
+            $recalcedItems[$rec->id] = $itemRec;
         }
 
-        if(!empty($amountInCurrency)) {
-            $newRate = round($amountInBaseCurrency / $amountInCurrency, 10);
-
-            return $newRate;
+        // Нотифициране на перата на сделките
+        foreach ($recalcedItems as $itemRec){
+            acc_Items::notifyObject($itemRec);
         }
-
-        return null;
+        $Items->flushTouched();
     }
 }

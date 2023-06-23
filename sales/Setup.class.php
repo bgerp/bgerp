@@ -458,6 +458,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
+        'migrate::recontoDeals2520',
     );
     
     
@@ -640,5 +641,15 @@ class sales_Setup extends core_ProtoSetup
         $res .= cls::get('sales_Sales')->setupMvc();
 
         return $res;
+    }
+
+
+    /**
+     * Рекалкулиране на валутните сделки
+     */
+    public function recontoDeals2520()
+    {
+        if(core_Packs::isMigrationDone('sales', 'recalcCurrencySales1115')) return;
+        cls::get('sales_Sales')->recalcDocumentsWithDealCurrencyRate();
     }
 }
