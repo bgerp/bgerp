@@ -6,13 +6,13 @@
        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
           <tr>
              <td class = 'sum-th'>
-                 |Планирано|*, [#measureId#]
+                 |План|*, [#measureId#]
              </td>
              <td class = 'sum-th'>
-                 |Произведено|*, [#measureId#]
+                 |Прогрес|*, [#measureId#]
              </td>
              <td class = 'sum-th'>
-                 |Бракувано|*, [#measureId#]
+                 |Брак|*, [#measureId#]
              </td>
              <td class = 'sum-th'>
                  [#producedCaption#], [#measureId#]
@@ -78,7 +78,7 @@
             <tr>
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
-                <td class='sum-th'><b>|Продължителност|* [#recalcBtn#]</b></td>
+                <td class='sum-th'><b>|Продължит-ст|* [#recalcBtn#]</b></td>
                 <td class='sum-th'>[#productCaption#]: <b>[#productId#]</b> <!--ET_BEGIN saoOrder--><b>[<span style="color:blue">[#saoOrder#]</span>/<span style="color:green">[#taskCount#]</span>]</b><!--ET_END saoOrder--></td>
             </tr>
             <tr>
