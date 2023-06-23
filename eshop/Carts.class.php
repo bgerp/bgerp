@@ -2182,7 +2182,8 @@ class eshop_Carts extends core_Master
             
             cond_DeliveryTerms::prepareDocumentForm($form->rec->termId, $form, $this);
         }
-        
+
+        $this->modifyInvoiceFields($form);
         $form->input();
         
         if ($rec->makeInvoice != 'none') {
@@ -3027,7 +3028,17 @@ class eshop_Carts extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        if($data->action != 'order'){
+            $mvc->modifyInvoiceFields($data->form);
+        }
+    }
 
+
+    /**
+     * Помощна ф-я за показване на полетата за фактуриране
+     */
+    private function modifyInvoiceFields(&$form)
+    {
         $invoiceFields = $form->selectFields('#invoiceData');
         if(isset($form->rec->makeInvoice) && $form->rec->makeInvoice != 'none') {
 
