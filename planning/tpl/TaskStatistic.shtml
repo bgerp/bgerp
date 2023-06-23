@@ -14,7 +14,7 @@
              <td class = 'sum-th'>
                  |Брак|*,&nbsp;[#measureId#]
              </td>
-             <td class = 'sum-th'>
+             <td class = 'sum-th nowrap'>
                  [#producedCaption#],&nbsp;[#measureId#]
              </td>
 

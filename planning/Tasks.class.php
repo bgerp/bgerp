@@ -683,7 +683,7 @@ class planning_Tasks extends core_Master
             }
 
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-            $row->producedCaption = ($canStore == 'yes') ? tr('Заскл.') : tr('Изпълн.');
+            $row->producedCaption = ($canStore == 'yes') ? tr('В склад') : tr('Изпълн.');
 
             // Ако има избрано оборудване
             if (isset($rec->assetId)) {
