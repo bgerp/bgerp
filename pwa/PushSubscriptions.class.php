@@ -518,7 +518,7 @@ class pwa_PushSubscriptions extends core_Manager
                         // Проверяваме дали преди това има изпратено известие
                         $showUrlHash = md5($msgObj->url . '|' . $userId . '|' . $brid);
                         if (core_Permanent::get('pwa_' . $showUrlHash)) {
-                            self::logDebug("Прескочено изпращане на PUSH известие поради дублиране на URL - '{$msgObj->url}'", $uRec->id, 7);
+//                            self::logDebug("Прескочено изпращане на PUSH известие поради дублиране на URL - '{$msgObj->url}'", $uRec->id, 7);
 
                             continue;
                         }
@@ -633,7 +633,7 @@ class pwa_PushSubscriptions extends core_Manager
                                 $lifetime = 24 * 60; // 24 часа за повторно изпращане, ако няма грешка
                             }
 
-                            self::logDebug("{$resStatusMsg} изпращане на известие - '{$msgTitle}': '{$msg}'", $uRec->id, 7);
+//                            self::logDebug("{$resStatusMsg} изпращане на известие - '{$msgTitle}': '{$msg}'", $uRec->id, 7);
                         }
 
                         core_Permanent::set('pwa_' . $showUrlHash, 1, $lifetime);
