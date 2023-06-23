@@ -169,22 +169,28 @@ class pwa_PushSubscriptions extends core_Manager
             $query->where(array("#domainId = '[#1#]'", $domainId));
         }
 
-        $cAcc = email_Accounts::getCorporateAcc();
-        if ($cAcc) {
-            $mailTo = $cAcc->email;
-        } else {
-            $common = email_Accounts::getCommonAndCorporate();
-            if (!empty($common)) {
-                $mailTo = reset($common);
+        $mailTo = trim(pwa_Setup::get('MAILTO'));
+        if (empty($mailTo)) {
+            $cAcc = email_Accounts::getCorporateAcc();
+            if ($cAcc) {
+                $mailTo = $cAcc->email;
+            } else {
+                $common = email_Accounts::getCommonAndCorporate();
+                if (!empty($common)) {
+                    $mailTo = reset($common);
+                }
             }
+
+            $mailTo = trim($mailTo);
         }
 
-        if (!isset($mailTo)) {
+        if (empty($mailTo)) {
             $cDomain = cms_Domains::getCurrent('domain', false);
             $mailTo = 'team@' . $cDomain;
+            $mailTo = trim($mailTo);
         }
 
-        if (!isset($mailTo)) {
+        if (empty($mailTo)) {
             $mailTo = 'localhost@localhost';
         }
 
