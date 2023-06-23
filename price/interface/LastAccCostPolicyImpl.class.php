@@ -137,6 +137,9 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
             // Подсигуряване, че сумата няма да е отрицателна 0. -0 и 0 са равни при проверка с ==
             $amount = ($amount == 0) ? 0 : $amount;
 
+            // Ако изчислената средна складова е 0 няма да се запише
+            if(empty($amount)) continue;
+
             $r->quantity = (!$r->quantity) ? 0 : $r->quantity;
             
             $res[$pId] = (object)array('productId'     => $pId,
