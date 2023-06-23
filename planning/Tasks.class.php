@@ -443,11 +443,11 @@ class planning_Tasks extends core_Master
         $blue = new color_Object('green');
         $grey = new color_Object('#bbb');
 
-        $progressPx = min(200, round(200 * $rec->progress));
-        $progressRemainPx = 200 - $progressPx;
+        $progressPx = min(170, round(170 * $rec->progress));
+        $progressRemainPx = 170 - $progressPx;
 
         $color = ($rec->progress <= 1) ? $blue : $red;
-        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 11px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 11px {$grey};width:{$progressRemainPx}px;'></div></div>";
         $grey->setGradient($color, $rec->progress);
 
         $origin = doc_Containers::getDocument($rec->originId);
@@ -572,7 +572,7 @@ class planning_Tasks extends core_Master
             $row->deviationNettoNotice = $eFields['notice'];
             $row->deviationNettoWarning = $eFields['warning'];
             $row->deviationNettoCritical = $eFields['critical'];
-            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true, 150, 10);
+            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true, 150, 9);
             if (is_array($dependentTasks[$rec->id])) {
                 $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
             }
@@ -683,7 +683,7 @@ class planning_Tasks extends core_Master
             }
 
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-            $row->producedCaption = ($canStore == 'yes') ? tr('В склад') : tr('Изпълн.');
+            $row->producedCaption = ($canStore == 'yes') ? 'В&nbsp;склад' : tr('Изпълн.');
 
             // Ако има избрано оборудване
             if (isset($rec->assetId)) {
