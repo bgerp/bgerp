@@ -987,7 +987,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $createdOnVerbal = $mvc->getFieldType('createdOn')->toVerbal($rec->createdOn);
         $dateVerbal = !empty($rec->date) ? ht::createHint($dateVerbal, "Датата е ръчно въведена на|*: {$createdOnVerbal}", 'notice', false) : $dateVerbal;
 
-        $row->date = "<div class='nowrap'>{$dateVerbal}";
+        $row->date = "<div class='nowrap, small'>{$dateVerbal}";
         $row->date .= ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : (($rec->type == 'scrap') ? 'state-hidden' : 'row-removed')));
 
