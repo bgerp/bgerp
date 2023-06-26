@@ -964,7 +964,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
         if ($res['productId'] != $productId && $res['productId'] != $jobProductId) {
             $res['error'] = 'Производственият номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
-        } elseif (!$Driver->checkSerial($productId, $serial, $error)) { bp();
+        } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
         } elseif(isset($labelOriginTaskId) && $labelOriginTaskId != $taskRec->originId){
             $res['error'] = 'Производственият номер отпечатан от операция по друго задание|*: <b>' . doc_Containers::getDocument($labelOriginTaskId)->getHyperlink(true) . '</b>';
