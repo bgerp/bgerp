@@ -1030,7 +1030,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         if ($rec->type == 'production') {
-            $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
+            $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? "<small>" . tr("Произв.|* {$labelPackagingName}") . "</small>": "<small>" . tr('Произвеждане') . "</small>";
         }
 
         $rec->_groupedDate = dt::verbal2mysql($date, false);
