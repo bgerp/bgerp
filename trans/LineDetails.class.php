@@ -467,7 +467,7 @@ class trans_LineDetails extends doc_Detail
         unset($data->listFields['renderDocumentInline']);
 
         $data->listTableMvc->setField('containerId', 'tdClass=documentCol');
-        $data->listTableMvc->FNC('logistic', 'varchar', 'tdClass=small-field logisticCol rightCol');
+        $data->listTableMvc->FNC('logistic', 'varchar', 'tdClass=logisticCol rightCol');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');
