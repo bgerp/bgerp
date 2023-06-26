@@ -145,7 +145,7 @@ abstract class trans_Helper
             $unitNameArr = explode('|', $key);
             $unitName = ($quantity == 1) ? $unitNameArr[0] : $unitNameArr[1];
             $quantity = core_Type::getByName('int')->toVerbal($quantity);
-            $displayArr[] = "{$quantity} {$unitName}";
+            $displayArr[] = "<span class='nowrap'>{$quantity} {$unitName}</span>";
         }
 
         $str = implode($divider, $displayArr);
