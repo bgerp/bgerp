@@ -964,7 +964,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
         if ($res['productId'] != $productId && $res['productId'] != $jobProductId) {
             $res['error'] = 'Производственият номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
-        } elseif (!$Driver->checkSerial($productId, $serial, $error)) { bp();
+        } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
         } elseif(isset($labelOriginTaskId) && $labelOriginTaskId != $taskRec->originId){
             $res['error'] = 'Производственият номер отпечатан от операция по друго задание|*: <b>' . doc_Containers::getDocument($labelOriginTaskId)->getHyperlink(true) . '</b>';
@@ -1030,7 +1030,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         if ($rec->type == 'production') {
-            $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
+            $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? "<small>" . tr("Произв.|* {$labelPackagingName}") . "</small>": "<small>" . tr('Произвеждане') . "</small>";
         }
 
         $rec->_groupedDate = dt::verbal2mysql($date, false);
