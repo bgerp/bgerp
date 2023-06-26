@@ -964,7 +964,10 @@ class eshop_Carts extends core_Master
          } catch(core_exception_Expect $e){
             reportException($e);
             eshop_Carts::logErr("Грешка при създаване на онлайн продажба: '{$e->getMessage()}'", $rec->id);
-         }
+            if (!empty($routerExplanation)) {
+                eshop_Carts::logDebug($routerExplanation, $rec->id, 7);
+            }
+        }
         
         if (empty($saleId)) {
             
@@ -2179,47 +2182,8 @@ class eshop_Carts extends core_Master
             
             cond_DeliveryTerms::prepareDocumentForm($form->rec->termId, $form, $this);
         }
-        
-        $invoiceFields = $form->selectFields('#invoiceData');
-        if(isset($form->rec->makeInvoice) && $form->rec->makeInvoice != 'none') {
-            
-            // Ако има ф-ра полетата за ф-ра се показват
-            $invoiceFields = array_keys($invoiceFields);
-            foreach ($invoiceFields as $name) {
-                $form->setField($name, 'input');
-            }
-            
-            if ($form->rec->makeInvoice == 'person') {
-                $form->setField('invoiceNames', 'caption=Данни за фактуриране->Име');
-                $form->setField('invoiceUicNo', 'caption=Данни за фактуриране->ЕГН');
-                $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
-                $form->setDefault('invoiceNames', $form->rec->personNames);
-            } else {
-                $form->setFieldType('invoiceUicNo', 'drdata_type_Uic');
-                $form->setField('invoiceNames', 'caption=Данни за фактуриране->Фирма');
-                $form->setField('invoiceVatNo', 'caption=Данни за фактуриране->ДДС №||VAT ID');
-            }
 
-            $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
-            $form->setFieldAttr('deliveryPCode', 'data-updateonchange=invoicePCode,class=updateonchange');
-            $form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
-            $form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
-            
-            if (!empty($form->rec->invoiceCountry)) {
-                $form->countries[$form->rec->invoiceCountry] = $form->rec->invoiceCountry;
-            }
-            $form->setOptions('invoiceCountry', drdata_Countries::getOptionsArr($form->countries));
-            if (countR($form->countries) == 1) {
-                $form->setDefault('invoiceCountry', key($form->countries));
-                $form->setReadOnly('invoiceCountry');
-            }
-        } else {
-            $invoiceFields = array_keys($invoiceFields);
-            foreach ($invoiceFields as $name) {
-                $form->setField($name, 'input=none');
-            }
-        }
-        
+        $this->modifyInvoiceFields($form);
         $form->input();
         
         if ($rec->makeInvoice != 'none') {
@@ -3053,5 +3017,66 @@ class eshop_Carts extends core_Master
         }
 
         return $settings->chargeVat;
+    }
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        if($data->action != 'order'){
+            $mvc->modifyInvoiceFields($data->form);
+        }
+    }
+
+
+    /**
+     * Помощна ф-я за показване на полетата за фактуриране
+     */
+    private function modifyInvoiceFields(&$form)
+    {
+        $invoiceFields = $form->selectFields('#invoiceData');
+        if(isset($form->rec->makeInvoice) && $form->rec->makeInvoice != 'none') {
+
+            // Ако има ф-ра полетата за ф-ра се показват
+            $invoiceFields = array_keys($invoiceFields);
+            foreach ($invoiceFields as $name) {
+                $form->setField($name, 'input');
+            }
+
+            if ($form->rec->makeInvoice == 'person') {
+                $form->setField('invoiceNames', 'caption=Данни за фактуриране->Име');
+                $form->setField('invoiceUicNo', 'caption=Данни за фактуриране->ЕГН');
+                $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
+                $form->setDefault('invoiceNames', $form->rec->personNames);
+            } else {
+                $form->setFieldType('invoiceUicNo', 'drdata_type_Uic');
+                $form->setField('invoiceNames', 'caption=Данни за фактуриране->Фирма');
+                $form->setField('invoiceVatNo', 'caption=Данни за фактуриране->ДДС №||VAT ID');
+            }
+
+            $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
+            $form->setFieldAttr('deliveryPCode', 'data-updateonchange=invoicePCode,class=updateonchange');
+            $form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
+            $form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
+
+            if (!empty($form->rec->invoiceCountry)) {
+                $form->countries[$form->rec->invoiceCountry] = $form->rec->invoiceCountry;
+            }
+            $form->setOptions('invoiceCountry', drdata_Countries::getOptionsArr($form->countries));
+            if (countR($form->countries) == 1) {
+                $form->setDefault('invoiceCountry', key($form->countries));
+                $form->setReadOnly('invoiceCountry');
+            }
+        } else {
+            $invoiceFields = array_keys($invoiceFields);
+            foreach ($invoiceFields as $name) {
+                $form->setField($name, 'input=none');
+            }
+        }
     }
 }

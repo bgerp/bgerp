@@ -1382,7 +1382,7 @@ class core_Users extends core_Manager
             $autoUser->nick = 'Auto_' . str::getRand();
             $autoUser->names = 'Автоматично';
             $autoUser->rolesInput = type_Keylist::fromArray(arr::make($rolesArr, true));
-            $autoUser->ps5enc = core_Users::encodePwd(str::getRand(), $napUser->nick);
+            $autoUser->ps5enc = core_Users::encodePwd(str::getRand(), $autoUser->nick);
             $autoUser->state = 'closed';
 
             cls::get('core_Users')->save_($autoUser, null, 'IGNORE');

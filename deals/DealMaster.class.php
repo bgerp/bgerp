@@ -1784,24 +1784,8 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $count = 0;
         foreach ($foundDealsArr as $dRec){
-            if($this instanceof purchase_Purchases){
-
-                // Ако левова сделка модифицирана след подаденото време или е валутна и не отговаря на условията за датите се пропуска
-                if(!(($dRec->currencyId == 'BGN' && $dRec->threadModifiedOn <= $oldBefore) || ($dRec->currencyId != 'BGN' && $day >= $accDay && $dRec->threadModifiedOn <= $firstDayOfMonth))) continue;
-            } else {
-                if($dRec->currencyId == 'BGN' && $dRec->threadModifiedOn > $oldBefore) continue;
-                if($dRec->currencyId != 'BGN'){
-
-                    // Ако е валутна продажба, проверява се има ли активни обратни документи в нея
-                    $countRko = cash_Rko::count("#threadId = {$dRec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
-                    $countSbds = bank_SpendingDocuments::count("#threadId = {$dRec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
-
-                    // Ако има се прилага условието за датите
-                    if($countRko || $countSbds){
-                        if(!($day >= $accDay && $dRec->threadModifiedOn <= $firstDayOfMonth)) continue;
-                    }
-                }
-            }
+            $closeErr = $ClosedDeals->getContoBtnErrStr((object)array('threadId' => $dRec->threadId));
+           if(!empty($closeErr)) continue;
 
             // Ако в нишката на сделката има контиращ документ на заявка/чернова
             if(array_key_exists($dRec->threadId, $draftAndPendingDates)){

@@ -2165,7 +2165,7 @@ class email_Outgoings extends core_Master
      * @param stdClass $contragentData
      * @param stdClass $rec
      */
-    protected static function setContragentDataToRec($contragentData, &$rec)
+    public static function setContragentDataToRec($contragentData, &$rec)
     {
         if (!$contragentData) {
             

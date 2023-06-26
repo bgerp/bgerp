@@ -8,6 +8,12 @@ defIfNot('PWA_DOMAINS', '');
 
 
 /**
+ * Имейл адрес, който ще се ипозлва за mailto в PWA
+ */
+defIfNot('PWA_MAILTO', '');
+
+
+/**
  * Клас 'pwa_Setup' -  bgERP progressive web application
  *
  *
@@ -47,13 +53,28 @@ class pwa_Setup extends core_ProtoSetup
     );
 
 
-
     /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = 'pwa_PushSubscriptions';
 
-    
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'PushAlertForNotifications',
+            'description' => 'Известяване на потребителите за нови нотификации чрез PWA Push',
+            'controller' => 'pwa_PushSubscriptions',
+            'action' => 'PushAlertForNotifications',
+            'period' => 1,
+            'delay' => 15,
+            'timeLimit' => 50
+        )
+    );
+
+
     /**
      * Инсталиране на пакета
      */

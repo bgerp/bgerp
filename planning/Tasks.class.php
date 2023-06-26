@@ -170,7 +170,7 @@ class planning_Tasks extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn,dueDate,lastChangeStateOn';
+    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn,dueDate,lastChangeStateOn,timeClosed';
 
 
     /**
@@ -290,8 +290,8 @@ class planning_Tasks extends core_Master
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,silent');
-        $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
-        $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено)', 'caption=Отчитане на тегло,notNull,value=yes,autohide');
+        $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа,class=w100');
+        $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено)', 'caption=Отчитане на тегло,notNull,value=yes,autohide,class=w100');
         if (core_Packs::isInstalled('batch')) {
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Партида,input=none');
         }
@@ -370,12 +370,13 @@ class planning_Tasks extends core_Master
             if (!countR($in)) {
                 unset($data->paramData->addUrl);
             }
+            $pData['showPreviousJobField'] = true;
             if ($pData['showPreviousJobField']) {
                 $originRec = doc_Containers::getDocument($data->rec->originId)->fetch('oldJobId,productId');
 
                 if ($originRec->oldJobId) {
                     $oldJobProductId = planning_Jobs::fetchField($originRec->oldJobId, 'productId');
-                    $data->row->previousJob = planning_Jobs::getHyperlink($originRec->oldJobId, true);
+                    $data->row->previousJob = planning_Jobs::getHyperlink($originRec->oldJobId, true, false, array('limit' => 64));
                     $data->row->previousJobCaption = ($originRec->productId == $oldJobProductId) ? tr('Предходно') : tr('Подобно');
                 }
             }
@@ -442,11 +443,11 @@ class planning_Tasks extends core_Master
         $blue = new color_Object('green');
         $grey = new color_Object('#bbb');
 
-        $progressPx = min(200, round(200 * $rec->progress));
-        $progressRemainPx = 200 - $progressPx;
+        $progressPx = min(170, round(170 * $rec->progress));
+        $progressRemainPx = 170 - $progressPx;
 
         $color = ($rec->progress <= 1) ? $blue : $red;
-        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 11px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 11px {$grey};width:{$progressRemainPx}px;'></div></div>";
         $grey->setGradient($color, $rec->progress);
 
         $origin = doc_Containers::getDocument($rec->originId);
@@ -464,9 +465,11 @@ class planning_Tasks extends core_Master
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
         }
 
-        $rec->notConvertedQuantity = $mvc->getLeftOverQuantityInStock($rec);
-        $row->notConvertedQuantity = core_Type::getByName('double(smartRound,Min=0)')->toVerbal($rec->notConvertedQuantity);
-        $row->notConvertedQuantity = "<b class='red'>{$row->notConvertedQuantity}</b>";
+        if(isset($fields['-detail'])){
+            $rec->notConvertedQuantity = $mvc->getLeftOverQuantityInStock($rec);
+            $row->notConvertedQuantity = core_Type::getByName('double(smartRound,Min=0)')->toVerbal($rec->notConvertedQuantity);
+            $row->notConvertedQuantity = "<b class='red'>{$row->notConvertedQuantity}</b>";
+        }
 
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity', 'notConvertedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
@@ -569,7 +572,7 @@ class planning_Tasks extends core_Master
             $row->deviationNettoNotice = $eFields['notice'];
             $row->deviationNettoWarning = $eFields['warning'];
             $row->deviationNettoCritical = $eFields['critical'];
-            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true, 150, 10);
+            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true, 150, 9);
             if (is_array($dependentTasks[$rec->id])) {
                 $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
             }
@@ -680,7 +683,7 @@ class planning_Tasks extends core_Master
             }
 
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-            $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
+            $row->producedCaption = ($canStore == 'yes') ? tr('В склад') : tr('Изпълн.');
 
             // Ако има избрано оборудване
             if (isset($rec->assetId)) {
@@ -945,13 +948,13 @@ class planning_Tasks extends core_Master
             planning_Centers::checkDeviationPercents($form);
             if (in_array($form->cmd, array('save_pending', 'save_pending_new'))) {
                 if (empty($rec->indTime) && empty($rec->timeDuration)) {
-                    $form->setError('timeDuration,indTime', "На операцията трябва да може да ѝ се изчисли продължителността|*!");
+                    $form->setError('timeDuration,indTime', "Необходими са данни за да се изчисли продължителността на операцията|*!");
                 }
             }
 
             if (in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
                 if (empty($rec->timeDuration) && empty($rec->assetId)) {
-                    $form->setError('timeDuration,assetId,indTime', "На започната операция, не може да се махне продължителността/нормата или оборудването|*!");
+                    $form->setError('timeDuration,assetId,indTime', "Продължителността/нормата и оборудването са задължителни при започната операция|*!");
                 }
             }
 
@@ -1813,7 +1816,7 @@ class planning_Tasks extends core_Master
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
 
-            $jobQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originRec->quantity);
+            $jobQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originRec->quantity / $originRec->quantityInPack);
             $jobMeasureVerbal = cat_UoM::getSmartName($originRec->packagingId, $originRec->quantity);
             $unit = "|за количество от заданието|* <b>{$jobQuantityVerbal} {$jobMeasureVerbal}</b>";
             if ($measuresCount == 1) {
@@ -2247,6 +2250,7 @@ class planning_Tasks extends core_Master
                     $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
 
                     if ($filter->state == 'closed') {
+                        $orderByField = 'orderByDate';
                         $orderByDir = 'DESC';
                         $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
                     }

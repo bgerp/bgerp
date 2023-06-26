@@ -97,7 +97,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity=Колич.,netWeight=Нето кг,weight=Бруто кг,employees,fixedAsset=Обор.,date=Дата,info=@';
+    public $listFields = 'taskId,type=Операция,serial=Произв. №,productId,taskId,quantity=К-во,netWeight=Нето кг,weight=Бруто кг,employees,fixedAsset=Обор.,date=Дата,info=@';
 
 
     /**
@@ -235,6 +235,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $options = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $rec->inputType);
+        $optionsWithoutGroups = array_filter($options, function($a) {return !is_object($a);});
+        $options = (countR($optionsWithoutGroups) > 1) ? array('' => '') + $options : $options;
 
         if ($rec->type == 'scrap') {
             if(empty($rec->scrapRecId)){
@@ -251,7 +253,14 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         } else {
             $optionField = 'productId';
-            $form->setOptions('productId', array('' => '') + $options);
+            $form->setOptions('productId', $options);
+            if($rec->inputType == 'actions') {
+                if(countR($optionsWithoutGroups) > 1){
+                    $form->setFieldTypeParams('productId', array('forceOpen' => 'forceOpen'));
+                } else {
+                    $form->setField('quantity', 'focus');
+                }
+            }
         }
 
         $form->setDefault('date', Mode::get('taskProgressDate'));
@@ -314,6 +323,11 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $form->setFieldTypeParams('quantity', array('max' => $availableScrap['quantity']));
             $form->setFieldTypeParams('weight', array('max' => $availableScrap['weight']));
+        }
+
+        if($rec->inputType == 'actions'){
+            $form->setField('serial', 'input=none');
+            $form->setDefault('quantity', 1);
         }
 
         // Ако е избран артикул
@@ -830,24 +844,42 @@ class planning_ProductionTaskDetails extends doc_Detail
         if($type == 'input'){
             $pInfo = planning_ProductionTaskProducts::getInfo($taskId, $productId, 'input', $taskRec->assetId);
             $labelPackagingValue = ($pInfo->packagingId) ? $pInfo->packagingId : $pInfo->measureId;
+            $inLabels = array($labelPackagingValue => $labelPackagingValue);
+            $pMeasureId = cat_Products::fetchField($productId, 'measureId');
+            if($pMeasureId == $labelPackagingValue){
+                $pQuery = cat_products_Packagings::getQuery();
+                $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
+                $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                $pQuery->show('packagingId');
+                $inLabels += arr::extractValuesFromArray($pQuery->fetchAll(), 'packagingId');
+           }
         } else {
             $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
+            $inLabels = array($labelPackagingValue => $labelPackagingValue);
         }
 
         $query->where("#taskId != {$taskRec->id}");
         if($type != 'input'){
             $query->where("#originId = {$taskRec->originId}");
         }
-        $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
+
+        $inLabels = implode(',', $inLabels);
+        $query->where("#labelPackagingId IN ({$inLabels}) OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
 
         // Сумира се реално произведеното по този проз. номер по операция
         $query->where(array("#serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
+
         while($rec = $query->fetch()){
             if(!array_key_exists($rec->taskId, $foundRecs)){
                 $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
             }
             $sign = ($rec->type == 'scrap') ? -1 : 1;
-            $foundRecs[$rec->taskId]->quantity += $sign * $rec->quantity;
+            $quantity = $rec->quantity;
+            if($rec->labelPackagingId == $labelPackagingValue){
+                $quantity = 1;
+            }
+
+            $foundRecs[$rec->taskId]->quantity += $sign * $quantity;
             $date = isset($rec->date) ? $rec->date : $rec->createdOn;
             $foundRecs[$rec->taskId]->date = max($foundRecs[$rec->taskId]->date , $date);
         }
@@ -903,11 +935,22 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Ако не е намерен артикул търси се в етикет от опаковка
         $serialProductId = is_object($pRec) ? $pRec->id : null;
+        $labelOriginTaskId = null;
         if(empty($serialProductId)){
             if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
                 $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
+
                 if($printRec->classId == cat_products_Packagings::getClassId()){
                     $serialProductId = cls::get($printRec->classId)->fetchField($printRec->objectId, 'productId');
+                } elseif($printRec->classId == planning_Tasks::getClassId()) {
+                    if($type == 'production'){
+                        $labelTaskOriginRec = cls::get($printRec->classId)->fetch($printRec->objectId, 'isFinal,originId,productId');
+                        $serialProductId = $labelTaskOriginRec->productId;
+                        if($labelTaskOriginRec->isFinal == 'yes'){
+                            $serialProductId = planning_Jobs::fetchField("#containerId = {$labelTaskOriginRec->originId}", 'productId');
+                        }
+                        $labelOriginTaskId = $labelTaskOriginRec->originId;
+                    }
                 }
             }
         }
@@ -921,8 +964,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
         if ($res['productId'] != $productId && $res['productId'] != $jobProductId) {
             $res['error'] = 'Производственият номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
-        } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
+        } elseif (!$Driver->checkSerial($productId, $serial, $error)) { bp();
             $res['error'] = $error;
+        } elseif(isset($labelOriginTaskId) && $labelOriginTaskId != $taskRec->originId){
+            $res['error'] = 'Производственият номер отпечатан от операция по друго задание|*: <b>' . doc_Containers::getDocument($labelOriginTaskId)->getHyperlink(true) . '</b>';
         }
 
         return $res;
@@ -1219,7 +1264,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 foreach ($copyArr as $jobContainerId){
                     $otherJobStr[] = "#" . doc_Containers::getDocument($jobContainerId)->getHandle();
                 }
-                $msg = "Номерът се среща и следните задания|*: " . implode(',', $otherJobStr);
+                $msg = "Номерът се среща и в задание|* " . implode(',', $otherJobStr);
                 $row->serial = ht::createHint($row->serial, "$msg", 'warning');
                 $styleWithBorder = true;
             }

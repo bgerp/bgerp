@@ -29,7 +29,7 @@ class pwa_ProfilePlg extends core_Plugin
                 if (pwa_Manifest::canUse($dId) == 'yes') {
                     $dRec = cms_Domains::fetch($dId);
                     if ($dRec && $dRec->publicKey) {
-                        $data->toolbar->addFnBtn('Известия', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Получаване на известия');
+                        $data->toolbar->addFnBtn('Известяване', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Абониране за получаване на PUSH известия, row=2');
                     }
                 }
             }
@@ -63,11 +63,11 @@ class pwa_ProfilePlg extends core_Plugin
             $tpl->appendOnce("const pwaSubsctiptionUrl = '{$pwaSubscriptionUrl}';", 'SCRIPTS');
 
             $pButton = new stdClass();
-            $pButton->enabled = (object) array('btnText' => tr('Спиране'), 'btnTitle' => tr('Спиране на известията'));
-            $pButton->disabled = (object) array('btnText' => tr('Известия'), 'btnTitle' => tr('Пускане на известията'));
+            $pButton->enabled = (object) array('btnText' => tr('Известяване'), 'btnTitle' => tr('Редактиране на настройките за известията'));
+            $pButton->disabled = (object) array('btnText' => tr('Известяване'), 'btnTitle' => tr('Пускане на известията'));
             $pButton->computing = (object) array('btnText' => tr('Изчисляване'), 'btnTitle' => tr('Стартиране на ивзестията'));
-            $pButton->incompatible = (object) array('btnText' => tr('Несъвсместимо'), 'btnTitle' => tr('Грешка при пускане на известията'));
-            $pButton->denied = (object) array('btnText' => tr('Блокирани'), 'btnTitle' => tr('Трябва да се разрешат получаването на известия от настройките'));
+            $pButton->incompatible = (object) array('btnText' => tr('Несъвсместимо'), 'btnTitle' => tr('Първо трябва да инсталирате приложението'));
+            $pButton->denied = (object) array('btnText' => tr('Известяване'), 'btnTitle' => tr('От настройките на браузъра, трябва да се разреши получаването на известия'));
 
             $pButton = json_encode($pButton);
             $tpl->appendOnce("const pushButtonVals = JSON.parse('{$pButton}');", 'SCRIPTS');

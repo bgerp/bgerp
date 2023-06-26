@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Лог. информация,documentHtml=@,address=@,notes=@,classId=Клас';
+    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логист. информация,documentHtml=@,address=@,notes=@,classId=Клас';
     
     
     /**
@@ -324,7 +324,10 @@ class trans_LineDetails extends doc_Detail
             } else {
                 $logisticArr[] = "<span class='quiet'>N/A</span>";
             }
-            $row->logistic = implode(', ', $logisticArr);
+            $row->logistic = '';
+            foreach ($logisticArr as $lVal){
+                $row->logistic .= "<div class='nowrap'>{$lVal}</div>";
+            }
         } else {
             if(!empty($transportInfo['contragentName'])){
                 $row->address = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
@@ -467,7 +470,7 @@ class trans_LineDetails extends doc_Detail
         unset($data->listFields['renderDocumentInline']);
 
         $data->listTableMvc->setField('containerId', 'tdClass=documentCol');
-        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter,tdClass=small-field logisticCol');
+        $data->listTableMvc->FNC('logistic', 'varchar', 'tdClass=small-field logisticCol rightCol');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');

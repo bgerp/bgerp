@@ -2032,16 +2032,14 @@ class cat_Products extends embed_Manager
 
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
         $date = price_ListToCustomers::canonizeTime($date);
-
         if($isPublic == 'yes'){
 
             // Ако е стандартен първо се търси цената по политика "Себестойност", ако няма от драйвера
             $primeCostDefault = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
             $primeCost = (isset($primeCostDefault)) ? $primeCostDefault : $primeCostDriver;
         } else {
-
             // Ако е нестандартен се търси първо от драйвера, после от себестойност
-            $primeCost = (is_object($primeCostDriver) && isset($primeCostDriver->price) || isset($primeCostDriver)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+            $primeCost = (is_object($primeCostDriver) && !empty($primeCostDriver->price)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
 
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
@@ -3498,28 +3496,31 @@ class cat_Products extends embed_Manager
      * @param float $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     *               o title                          - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
-     *               o plannedQuantity                - планирано к-во в основна опаковка
-     *               o productId                      - ид на артикул
-     *               o packagingId                    - ид на опаковка
-     *               o quantityInPack                 - к-во в 1 опаковка
-     *               o products                       - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     *               o timeStart                      - начало
-     *               o timeDuration                   - продължителност
-     *               o timeEnd                        - край
-     *               o fixedAssets                    - списък (кейлист) от оборудвания
-     *               o employees                      - списък (кейлист) от служители
-     *               o storeId                        - склад
-     *               o indTime                        - норма
-     *               o centerId                       - център на производство
-     *               o indPackagingId                 - опаковка/мярка за норма
-     *               o indTimeAllocation              - начин на отчитане на нормата
-     *               o showadditionalUom              - какъв е режима за изчисляване на теглото
-     *               o description                    - забележки
-     *               o labelPackagingId               - ид на опаковка за етикетиране
-     *               o labelQuantityInPack            - к-во в опаковката
-     *               o labelType                      - как да се въвежда етикета
-     *               o labelTemplate                  - ид на шаблон за етикет
+     *               o title                      - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     *               o plannedQuantity            - планирано к-во в основна опаковка
+     *               o productId                  - ид на артикул
+     *               o packagingId                - ид на опаковка
+     *               o quantityInPack             - к-во в 1 опаковка
+     *               o products                   - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     *               o timeStart                  - начало
+     *               o timeDuration               - продължителност
+     *               o timeEnd                    - край
+     *               o fixedAssets                - списък (кейлист) от оборудвания
+     *               o employees                  - списък (кейлист) от служители
+     *               o storeId                    - склад
+     *               o indTime                    - норма
+     *               o centerId                   - център на производство
+     *               o indPackagingId             - опаковка/мярка за норма
+     *               o indTimeAllocation          - начин на отчитане на нормата
+     *               o showadditionalUom          - какъв е режима за изчисляване на теглото
+     *               o description                - забележки
+     *               o labelPackagingId           - ид на опаковка за етикетиране
+     *               o labelQuantityInPack        - к-во в опаковката
+     *               o labelType                  - как да се въвежда етикета
+     *               o labelTemplate              - ид на шаблон за етикет
+     *               o wasteProductId             - ид на шаблон за етикет
+     *               o wasteStart                 - ид на шаблон за етикет
+     *               o wastePercent                 - ид на шаблон за етикет
      *
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал

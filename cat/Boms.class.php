@@ -167,7 +167,7 @@ class cat_Boms extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn';
+    public $filterDateField = 'createdOn,lastUpdatedDetailOn,modifiedOn';
     
     
     /**
@@ -213,7 +213,7 @@ class cat_Boms extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,hash,regeneratedFromId';
+    public $fieldsNotToClone = 'title,hash,regeneratedFromId,lastUpdatedDetailOn,lastUpdatedDetailBy';
 
 
     /**
@@ -240,6 +240,8 @@ class cat_Boms extends core_Master
         $this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
         $this->FLD('hash', 'varchar', 'input=none');
         $this->FLD('regeneratedFromId', 'key(mvc=cat_Boms,select=id)', 'input=none');
+        $this->FLD('lastUpdatedDetailOn', 'datetime(format=smartTime)', 'caption=Промяна на детайла->На,silent,input=none');
+        $this->FLD('lastUpdatedDetailBy', 'key(mvc=core_Users,select=nick)', 'caption=Промяна на детайла->От,input=none');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('productId,state,type');
@@ -548,8 +550,10 @@ class cat_Boms extends core_Master
         }
         
         doc_DocumentCache::cacheInvalidation($rec->containerId);
-        
-        return $this->save_($rec, 'modifiedOn,modifiedBy,searchKeywords');
+        $rec->lastUpdatedDetailOn = dt::now();
+        $rec->lastUpdatedDetailBy = core_Users::getCurrent();
+
+        return $this->save_($rec, 'lastUpdatedDetailOn,lastUpdatedDetailBy,modifiedOn,modifiedBy,searchKeywords');
     }
     
     
@@ -1726,6 +1730,7 @@ class cat_Boms extends core_Master
                                   'fixedAssets' => $dRec->fixedAssets,
                                   'employees' => $dRec->employees,
                                   'indTime' => $dRec->norm,
+                                  '_inputPreviousSteps' => (($dRec->inputPreviousSteps == 'auto') ? planning_Setup::get('INPUT_PREVIOUS_BOM_STEP') : $dRec->inputPreviousSteps),
                                   '_dId' => $dRec->id,
                                   '_parentId' => $dRec->parentId,
                                   '_position' => $dRec->position,
@@ -1737,6 +1742,9 @@ class cat_Boms extends core_Master
                                   'labelTemplate' => $dRec->labelTemplate,
                                   'showadditionalUom' => ($pRec->planning_Steps_calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $pRec->planning_Steps_calcWeightMode,
                                   'params' => array(),
+                                  'wasteProductId' => ($dRec->wasteProductId) ? $dRec->wasteProductId : $pRec->planning_Steps_wasteProductId,
+                                  'wasteStart' => ($dRec->wasteStart) ? $dRec->wasteStart : $pRec->planning_Steps_wasteStart,
+                                  'wastePercent' => ($dRec->wastePercent) ? $dRec->wastePercent : $pRec->planning_Steps_wastePercent,
                                   'products' => array('input' => array(), 'waste' => array()));
 
             $pQuery = cat_products_Params::getQuery();
@@ -1780,7 +1788,9 @@ class cat_Boms extends core_Master
                         $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
                         $foundStepTask = $foundStepArr[key($foundStepArr)];
                         if($foundStepTask){
-                            $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                            if($defTask->_inputPreviousSteps == 'yes'){
+                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                            }
                         }
                     }
                 }
@@ -1979,7 +1989,6 @@ class cat_Boms extends core_Master
 
             $newBomId = $this->save($clone);
             $newBomRec = static::fetch($newBomId);
-            //cat_BomDetails::delete("#bomId = $newBomId");
 
             $dQuery = cat_BomDetails::getQuery();
             $dQuery->where("#bomId = {$rec->id} AND #parentId IS NULL");
@@ -2033,41 +2042,13 @@ class cat_Boms extends core_Master
         Mode::pop('dontAutoAddStepDetails');
 
         if($dRec->type == 'stage'){
-            if($StepDriver = cat_Products::getDriver($dRec->resourceId)) {
-
-                // Винаги се регенерират и параметрите
-                $pData = $StepDriver->getProductionData($dRec->resourceId);
-                if (is_array($pData['planningParams'])) {
-                    foreach ($pData['planningParams'] as $paramId){
-                        $productParamValues = cat_Products::getParams($newBomRec->productId);
-                        $stepParams = cat_Products::getParams($dRec->resourceId);
-
-                        $v = null;
-                        if(array_key_exists($paramId, $productParamValues)){
-                            $v = $productParamValues[$paramId];
-                        } elseif(array_key_exists($paramId, $stepParams)){
-                            $v = $stepParams[$paramId];
-                        } else {
-                            $v = cat_Params::getDefaultValue($paramId, cat_Products::getClassId(), $newBomRec->productId);
-                        }
-                        if(isset($v)){
-                            $dRec->{"paramcat{$paramId}"} = $v;
-                            $dRec->_params["paramcat{$paramId}"] = (object)array('paramId' => $paramId);
-                        }
-                    }
-
-                    if(!empty($dRec->_params)){
-                        cat_products_Params::saveParams(cls::get('cat_BomDetails'), $dRec);
-                    }
-                }
-            }
-
+            cat_BomDetails::addParamsToStepRec($newBomRec->productId, $dRec);
             $bomOrder = (($newBomRec->type == 'production') ? 'production,instant,sales' : (($newBomRec->type == 'instant') ? 'instant,sales' : 'sales'));
             $activeBom = cat_Products::getLastActiveBom($dRec->resourceId, $bomOrder);
 
             $dRecs = array();
             if($activeBom){
-                if(!$cloneIfDetailsAreNewer || $oldBomRec->activatedOn <= $activeBom->activatedOn){
+                if(!$cloneIfDetailsAreNewer || $oldBomRec->lastUpdatedDetailOn <= $activeBom->lastUpdatedDetailOn){
                     $bQuery = cat_BomDetails::getQuery();
                     $bQuery->where("#parentId IS NULL AND #bomId = {$activeBom->id}");
                     $dRecs = $bQuery->fetchAll();

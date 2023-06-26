@@ -3816,7 +3816,7 @@ fieldset.sharing-history {
 }
 
 .narrow #cmsBottom {
-	min-height:26px;
+	min-height:36px;
 }
 
 .footer-links {
@@ -7876,6 +7876,12 @@ body.narrow {
 	}
 	.em-holder .top-table td {
 		border: none !important;
+	}
+	.quiet.saleBankBlock {
+		color: #bbb;
+		.quiet {
+			color: #bbb;
+		}
 	}
 }
 

@@ -383,7 +383,9 @@ abstract class cat_ProductDriver extends core_BaseClass
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
      *               o description                    - забележки
-     *
+     *               o wasteProductId             - ид на шаблон за етикет
+     *               o wasteStart                 - ид на шаблон за етикет
+     *               o wastePercent                 - ид на шаблон за етикет
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал
      *                  o packagingId    - ид на опаковка
@@ -462,9 +464,11 @@ abstract class cat_ProductDriver extends core_BaseClass
             // Рецептата ще се преизчисли за текущия артикул, В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
             $bomRec->productId = $productId;
             $price = cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
-            $res = (object)array('price' => $price, 'discount' => null);
-            
-            return $res;
+            if(!empty($price)){
+                $res = (object)array('price' => $price, 'discount' => null);
+
+                return $res;
+            }
         }
         
         return null;

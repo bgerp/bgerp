@@ -214,6 +214,8 @@ class cat_Setup extends core_ProtoSetup
         'cat_PackParams',
         'migrate::updateLabelType',
         'migrate::checkParams1110',
+        'migrate::updateBomDetails1622',
+        'migrate::updateBomDates1622',
     );
     
     
@@ -492,5 +494,37 @@ class cat_Setup extends core_ProtoSetup
         if(countR($deleted) || countR($productsToCheck)){
             wp("МИГРАЦИЯ ПАРАМЕТРИ", $deleted, $productsToCheck);
         }
+    }
+
+
+    /**
+     * Миграция на етапите в производството
+     */
+    public function updateBomDetails1622()
+    {
+        $Boms = cls::get('cat_BomDetails');
+        $Boms->setupMvc();
+
+        $inputPreviousStepsColName = str::phpToMysqlName('inputPreviousSteps');
+        $typeTypeColName = str::phpToMysqlName('type');
+        $query = "UPDATE {$Boms->dbTableName} SET {$inputPreviousStepsColName} = 'auto' WHERE {$typeTypeColName} = 'stage' AND {$inputPreviousStepsColName} IS NULL";
+        $Boms->db->query($query);
+    }
+
+
+    /**
+     * Миграция на датата за последна промяна на детайла
+     */
+    public function updateBomDates1622()
+    {
+        $Boms = cls::get('cat_Boms');
+        $Boms->setupMvc();
+
+        $modifiedOnColName = str::phpToMysqlName('modifiedOn');
+        $modifiedByColName = str::phpToMysqlName('modifiedBy');
+        $lastUpdatedDetailOnColName = str::phpToMysqlName('lastUpdatedDetailOn');
+        $lastUpdatedDetailByColName = str::phpToMysqlName('lastUpdatedDetailBy');
+        $query = "UPDATE {$Boms->dbTableName} SET {$lastUpdatedDetailOnColName} = {$modifiedOnColName}, {$lastUpdatedDetailByColName} = {$modifiedByColName} WHERE {$lastUpdatedDetailByColName} IS NULL";
+        $Boms->db->query($query);
     }
 }

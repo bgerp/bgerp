@@ -102,6 +102,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код, groups=Групи, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=6,columns=3,after=primeCostType');
         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
+
     }
 
 
@@ -163,6 +164,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
 
+    /**
+     * Преди подготвяне на едит формата
+     */
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+bp();
+       bp( Request::get());
+
+    }
+
 
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -198,7 +209,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('category', 'input=hidden');
             $form->setField('group', 'input=hidden');
         }
-
 
         $today = dt::today();
         $from = dt::addMonths(-1, $today);
