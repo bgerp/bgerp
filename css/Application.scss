@@ -2400,7 +2400,10 @@ width:1%;
 .small-field{
 width:1%;
 }
-
+.logisticCol {
+	text-align: right;
+	max-width: 500px !important;
+}
 .medium-field{
 width: 200px;
 }
