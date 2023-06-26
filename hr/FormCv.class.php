@@ -20,7 +20,7 @@ class hr_FormCv extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'hr, ceo';
+    public $canRead = 'hr, ceo, hrMaster';
     
     
     /**
@@ -107,6 +107,7 @@ class hr_FormCv extends core_Master
      * @var string|array
      */
     public $canNew = 'every_one';
+    public $canAdd = 'hrMaster';
     
     
     /**
