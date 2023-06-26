@@ -324,7 +324,7 @@ class trans_LineDetails extends doc_Detail
             } else {
                 $logisticArr[] = "<span class='quiet'>N/A</span>";
             }
-            $row->logistic = implode(', ', $logisticArr);
+            $row->logistic = implode(';<small> общо </small>', $logisticArr);
         } else {
             if(!empty($transportInfo['contragentName'])){
                 $row->address = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
