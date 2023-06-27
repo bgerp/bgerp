@@ -847,11 +847,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $inLabels = array($labelPackagingValue => $labelPackagingValue);
             $pMeasureId = cat_Products::fetchField($productId, 'measureId');
             if($pMeasureId == $labelPackagingValue){
-                $pQuery = cat_products_Packagings::getQuery();
-                $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
-                $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-                $pQuery->show('packagingId');
-                $inLabels += arr::extractValuesFromArray($pQuery->fetchAll(), 'packagingId');
+                $inLabels += cat_Products::getPacks($productId);
            }
         } else {
             $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
