@@ -895,7 +895,7 @@ class cat_BomDetails extends doc_Detail
         if(!empty($productDescriptionTpl->getContent())){
             $newTpl = new core_ET("[#resourceId#] [#link#] <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>[#content#]</div>");
             $newTpl->replace($row->resourceId, 'resourceId');
-            $newTpl->replace(" <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/minus-black.png', "'") . ');" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>', 'link');
+            $newTpl->replace(" <a href=\"javascript:toggleDisplay('{$rec->id}inf');saveToggleState();\"  style=\"background-image:url(" . sbf('img/16/minus-black.png', "'") . ');" data-id="' .$rec->id. 'inf" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>', 'link');
             $newTpl->replace($productDescriptionTpl, 'content');
             $newTpl->removeBlocksAndPlaces();
             $row->resourceId = $newTpl;
@@ -916,10 +916,10 @@ class cat_BomDetails extends doc_Detail
 
         if(!is_numeric($propQuantity)){
             if(mb_strlen($rec->propQuantity) > 80){
-                $formula = "<i>" . tr('Покажи') . "</i>" . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+                $formula = "<i>" . tr('Покажи') . "</i>" . " <a href=\"javascript:toggleDisplay('{$rec->id}-formula')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
                 $highlightedExpr = static::highlightExpr($propQuantity, $rec->params, $coefficient);
                 $divContent = ($highlightedExpr instanceof core_ET) ? $highlightedExpr->getContent() : $highlightedExpr;
-                $formula .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;display:none' id='{$rec->id}inf'>{$divContent}</div>";
+                $formula .= "<div style='margin-top:2px;margin-top:2px;margin-bottom:2px;display:none' id='{$rec->id}-formula'>{$divContent}</div>";
                 $row->propQuantity = $formula;
             }
         }
