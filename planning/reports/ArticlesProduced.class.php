@@ -360,11 +360,26 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
        //     }
 
-            $id = $planningRec->productId . '|' . '';
+            unset($secondPartKey);
+            if ($rec->groupBy) {
+                switch ($rec->groupBy) {
 
-            if($rec->groupBy == 'storeId'){
-                $id = $planningRec->productId . '|' . $storeId;
+                    case 'storeId':
+                        $secondPartKey = $storeId;
+                        break;
+
+                    case 'department':
+                        $secondPartKey = $departmentId;
+                        break;
+
+                    default: $secondPartKey = '';
+                            break;
+
+                }
+
             }
+
+            $id = $planningRec->productId . '|' . $secondPartKey;
 
             //Мярка на артикула
             $measureArtId = cat_Products::fetchField($planningRec->productId, 'measureId');

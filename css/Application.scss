@@ -2401,6 +2401,14 @@ width:1%;
 width:1%;
 }
 
+.logisticCol {
+	text-align: right;
+	max-width: 400px !important;
+	.logisticColData {
+		max-width: 400px !important;
+	}
+}
+
 .medium-field{
 width: 200px;
 }

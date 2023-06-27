@@ -899,6 +899,7 @@ class cat_BomDetails extends doc_Detail
             $newTpl->replace($productDescriptionTpl, 'content');
             $newTpl->removeBlocksAndPlaces();
             $row->resourceId = $newTpl;
+            $row->ROW_ATTR['data-id'] = "receiptDetailRecStepTr{$rec->id}";
         }
 
         $coefficient = null;
