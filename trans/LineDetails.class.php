@@ -369,9 +369,6 @@ class trans_LineDetails extends doc_Detail
             }
         }
 
-        if(!empty($row->logistic)){
-            $row->logistic = "<div class='logisticColData'>{$row->logistic}</div>";
-        }
 
         if(!empty($transportInfo['features'])){
             $featuresString = '';
