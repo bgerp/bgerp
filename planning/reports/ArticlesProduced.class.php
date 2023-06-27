@@ -558,17 +558,17 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         $monthArr = $rec->montsArr;
         sort($monthArr);
+        if ($rec->groupBy == 'month') {
+            foreach ($monthArr as $val) {
+                $year = substr($val, 0, 4);
+                $month = substr($val, -2);
+                $months = array('01' => 'Jan', '02' => 'Feb', '03' => 'Mar', '04' => 'Apr', '05' => 'May', '06' => 'Jun', '07' => 'Jul', '08' => 'Aug', '09' => 'Sep', '10' => 'Oct', '11' => 'Nov', '12' => 'Dec');
 
-        foreach ($monthArr as $val) {
-            $year = substr($val, 0, 4);
-            $month = substr($val, -2);
-            $months = array('01' => 'Jan', '02' => 'Feb', '03' => 'Mar', '04' => 'Apr', '05' => 'May', '06' => 'Jun', '07' => 'Jul', '08' => 'Aug', '09' => 'Sep', '10' => 'Oct', '11' => 'Nov', '12' => 'Dec');
+                $monthName = $months[($month)];
 
-            $monthName = $months[($month)];
-
-            $fld->FLD($val, 'double(smartRound,decimals=2)', "smartCenter,caption=${year}->${monthName}");
+                $fld->FLD($val, 'double(smartRound,decimals=2)', "smartCenter,caption=${year}->${monthName}");
+            }
         }
-
         return $fld;
     }
 
