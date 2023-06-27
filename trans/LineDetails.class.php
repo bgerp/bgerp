@@ -316,11 +316,11 @@ class trans_LineDetails extends doc_Detail
                 $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits'], false, ', ');
                 $logisticArr[] = $transUnits;
             } elseif(isset($transportInfo['volume'])){
-                $logisticArr[] = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
+                $logisticArr[] = "<i>" . core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']) . "<i>";
             }
 
             if(isset($transportInfo['weight'])){
-                $logisticArr[] = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
+                $logisticArr[] = "<i>" . core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']) . "<i>";
             } else {
                 $logisticArr[] = "<span class='quiet'>N/A</span>";
             }
