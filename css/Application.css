@@ -2078,7 +2078,9 @@ td.rowtools-column {
   text-align: right;
   max-width: 400px !important; }
   .logisticCol .logisticColData {
-    max-width: 400px !important; }
+    text-align: right;
+    max-width: 400px !important;
+    margin-right: 0 !important; }
 
 .medium-field {
   width: 200px; }
