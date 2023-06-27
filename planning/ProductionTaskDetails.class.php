@@ -847,7 +847,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $inLabels = array($labelPackagingValue => $labelPackagingValue);
             $pMeasureId = cat_Products::fetchField($productId, 'measureId');
             if($pMeasureId == $labelPackagingValue){
-                $inLabels += cat_Products::getPacks($productId);
+                $packs = array_keys(cat_Products::getPacks($productId));
+                $inLabels += array_combine($packs, $packs);
            }
         } else {
             $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
