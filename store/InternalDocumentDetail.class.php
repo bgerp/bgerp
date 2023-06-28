@@ -149,10 +149,10 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             }
             
             if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct')) {
-                $productType = $masterRec->productType;
-                $errorMsg = "Артикулът няма цена в избраната ценова политика.";
+                $productType = ($rec->productType) ? $rec->productType : $masterRec->productType;
+                $errorMsg = "Артикулът няма цена в избраната ценова политика";
                 if($productType == 'other'){
-                    $errorMsg .= " За автоматично попълване на цени - артикулът трябва да е продаваем и да участва в ценова политика към контрагента";
+                    $errorMsg .= ". За автоматично попълване на цени - артикулът трябва да е продаваем и да участва в ценова политика към контрагента";
                 }
                 $form->setError('packPrice', "{$errorMsg}|*!");
             }
