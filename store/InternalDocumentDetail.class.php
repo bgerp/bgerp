@@ -143,16 +143,16 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                     $sharedInFolders = cat_products_SharedInFolders::getSharedFolders($form->rec->productId);
                     unset($sharedInFolders[$pRec->folderId]);
                     if(countR($sharedInFolders)){
-                        $form->setError('productId', 'Нестандартният артикул трябва не трябва да е споделен в друга папка|*!');
+                        $form->setError('productId', 'Не може да бъде получаван на ОП чужд нестандартен артикул споделен/достъпен в друга папка|*!');
                     }
                 }
             }
             
             if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct')) {
                 $productType = ($rec->productType) ? $rec->productType : $masterRec->productType;
-                $errorMsg = "Артикулът няма цена в избраната ценова политика";
+                $errorMsg = "Артикулът няма цена в избраната ценова политика. Въведете цена";
                 if($productType == 'other'){
-                    $errorMsg .= ". За автоматично попълване на цени - артикулът трябва да е продаваем и да участва в ценова политика към контрагента";
+                    $errorMsg .= " или - за автоматично попълване на цени - артикулът трябва да е продаваем и да участва в ценова политика към контрагента";
                 }
                 $form->setError('packPrice', "{$errorMsg}|*!");
             }
