@@ -149,7 +149,12 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             }
             
             if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct')) {
-                $form->setError('packPrice', 'Артикулът няма цена в избраната ценова политика. За автоматично попълване на цени - артикулът трябва да е "Продаваем" и да участва в ценова политика към контрагента|*!');
+                $productType = $masterRec->productType;
+                $errorMsg = "Артикулът няма цена в избраната ценова политика.";
+                if($productType == 'other'){
+                    $errorMsg .= " За автоматично попълване на цени - артикулът трябва да е продаваем и да участва в ценова политика към контрагента";
+                }
+                $form->setError('packPrice', "{$errorMsg}|*!");
             }
             
             // Проверка на цената
