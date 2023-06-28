@@ -844,18 +844,9 @@ class planning_ProductionTaskDetails extends doc_Detail
         if($type == 'input'){
             $pInfo = planning_ProductionTaskProducts::getInfo($taskId, $productId, 'input', $taskRec->assetId);
             $labelPackagingValue = ($pInfo->packagingId) ? $pInfo->packagingId : $pInfo->measureId;
-            $inLabels = array($labelPackagingValue => $labelPackagingValue);
-            $pMeasureId = cat_Products::fetchField($productId, 'measureId');
-            if($pMeasureId == $labelPackagingValue){
-                $pQuery = cat_products_Packagings::getQuery();
-                $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
-                $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-                $pQuery->show('packagingId');
-                $inLabels += arr::extractValuesFromArray($pQuery->fetchAll(), 'packagingId');
-           }
         } else {
             $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
-            $inLabels = array($labelPackagingValue => $labelPackagingValue);
+            $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
         }
 
         $query->where("#taskId != {$taskRec->id}");
@@ -863,20 +854,44 @@ class planning_ProductionTaskDetails extends doc_Detail
             $query->where("#originId = {$taskRec->originId}");
         }
 
-        $inLabels = implode(',', $inLabels);
-        $query->where("#labelPackagingId IN ({$inLabels}) OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
-
         // Сумира се реално произведеното по този проз. номер по операция
         $query->where(array("#serial = '[#1#]' AND #type IN ('production', 'scrap') AND #state != 'rejected'", $serial));
 
+        $labelRec = cat_UoM::fetch($labelPackagingValue, 'name,type');
+
         while($rec = $query->fetch()){
+
             if(!array_key_exists($rec->taskId, $foundRecs)){
                 $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
             }
             $sign = ($rec->type == 'scrap') ? -1 : 1;
             $quantity = $rec->quantity;
-            if($rec->labelPackagingId == $labelPackagingValue){
+
+            $labelProgressRec = isset($rec->labelPackagingId) ? cat_UoM::fetch($rec->labelPackagingId, 'name,type') : cat_UoM::fetch($rec->measureId, 'name,type');
+            if($labelProgressRec->type == 'packaging' && $rec->labelPackagingId == $labelPackagingValue){
                 $quantity = 1;
+            }
+
+            // Ако се влага - правят се преконвертирания
+            if($type == 'input'){
+                $secondMeasureId = cat_Products::getSecondMeasureId($rec->productId);
+                $secondMeasureRec = cat_products_Packagings::getPack($rec->productId, $secondMeasureId);
+                if($labelProgressRec->type == 'uom'){
+                    if($secondMeasureId == $labelRec->id){
+                        if(is_object($secondMeasureRec)){
+                            $quantity /= $secondMeasureRec->quantity;
+                        }
+                    } elseif($labelRec->type == 'packaging') {
+                        $packRec = cat_products_Packagings::getPack($rec->productId, $labelRec->id);
+                        if(is_object($packRec)){
+                            $quantity /= $packRec->quantity;
+                        }
+                    }
+                } elseif($secondMeasureId == $labelRec->id) {
+                    if(is_object($secondMeasureRec)){
+                        $quantity /= $secondMeasureRec->quantity;
+                    }
+                }
             }
 
             $foundRecs[$rec->taskId]->quantity += $sign * $quantity;

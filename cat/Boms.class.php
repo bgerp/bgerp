@@ -1667,7 +1667,14 @@ class cat_Boms extends core_Master
             }
         }
     }
-    
+
+    /**
+     * След рендиране на еденичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        jquery_Jquery::run($tpl,"openBoomRows();", TRUE);
+    }
     
     /**
      * Опит за връщане на масив със задачи за производство от рецептата
