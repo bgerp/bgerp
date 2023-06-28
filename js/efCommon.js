@@ -1232,12 +1232,18 @@ function saveToggleState(){
     });
     sessionStorage.setItem("boomDetailsOpenRows", openRows);
 }
-function clickAllClasses(id,clickClasses) {
-    $("." + clickClasses).each(function(i, obj) {
-        obj.click();
-    })
 
+function clickAllClasses(id,clickClasses) {
     var elem = $("#" + id).parent().children('.more-btn');
+    if (elem.hasClass('show-btn')) {
+        $(".show-btn." + clickClasses).each(function(i, obj) {
+            obj.click();
+        });
+    } else {
+        $(".plus-icon:not('.show-btn')." + clickClasses).each(function(i, obj) {
+            obj.click();
+        });
+    }
     elem.toggleClass('show-btn');
 }
 
