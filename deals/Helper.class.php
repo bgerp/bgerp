@@ -1278,9 +1278,13 @@ abstract class deals_Helper
         while ($dRec = $dQuery->fetch()) {
             
             // Опит за намиране на условията
-            $conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
+            try{
+                $conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
+            } catch(core_exception_Expect $e){
+                $conditions = array();
+            }
+
             $allProducts[$dRec->productId] = $dRec->productId;
-            
             if (is_array($conditions)) {
                 foreach ($conditions as $t) {
                     
