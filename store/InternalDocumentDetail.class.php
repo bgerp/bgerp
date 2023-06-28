@@ -137,6 +137,15 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                         $rec->packPrice = $packPrice * $rec->quantityInPack;
                     }
                 }
+
+                $pRec = cat_Products::fetch($form->rec->productId, 'isPublic,folderId');
+                if($pRec->isPublic == 'no'){
+                    $sharedInFolders = cat_products_SharedInFolders::getSharedFolders($form->rec->productId);
+                    unset($sharedInFolders[$pRec->folderId]);
+                    if(countR($sharedInFolders)){
+                        $form->setError('productId', 'Нестандартния артикул трябва не трябва да е споделен в друга папка|*!');
+                    }
+                }
             }
             
             if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct')) {
@@ -183,11 +192,15 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             return;
         }
         $unsetAmounts = true;
-        
+
         foreach ($data->rows as $i => &$row) {
             $rec = &$data->recs[$i];
             if($data->showCodeColumn){
                 $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+                $singleProductUrl = cat_Products::getSingleUrlArray($rec->productId);
+                if(countR($singleProductUrl)){
+                    $row->productId = ht::createLinkRef($row->productId, $singleProductUrl);
+                }
             } else {
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
             }
@@ -295,5 +308,20 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             $data->toolbar->removeBtn('btnAdd');
             $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterData->rec->id, 'ret_url' => true), "id=btnAdd-{$data->masterData->rec->containerId},order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
         }
+    }
+
+
+    /**
+     * Какви мета свойства се изискват от артикулите в детайла
+     *
+     * @param string $type      - `ours` за наши артикули, `other` за чужди артикули
+     * @param string $direction - `send` за изпращане, `receive` за получаване
+     * @return string           - нужните мета свойства
+     */
+    public function getExpectedProductMetaProperties($type, $direction)
+    {
+        if($type == 'other') return 'canStore';
+
+        return ($direction == 'send') ? 'canSell,canStore' : 'canBuy,canStore';
     }
 }
