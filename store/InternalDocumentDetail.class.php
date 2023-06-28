@@ -143,7 +143,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                     $sharedInFolders = cat_products_SharedInFolders::getSharedFolders($form->rec->productId);
                     unset($sharedInFolders[$pRec->folderId]);
                     if(countR($sharedInFolders)){
-                        $form->setError('productId', 'Нестандартния артикул трябва не трябва да е споделен в друга папка|*!');
+                        $form->setError('productId', 'Нестандартният артикул трябва не трябва да е споделен в друга папка|*!');
                     }
                 }
             }
