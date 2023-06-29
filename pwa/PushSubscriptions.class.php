@@ -272,6 +272,7 @@ class pwa_PushSubscriptions extends core_Manager
         if (Request::get('haveSubscription')) {
             $rec = $this->fetch(array("#brid = '[#1#]'", $brid));
             if ($rec) {
+                expect($rec->userId == core_Users::getCurrent(), $rec->userId, core_Users::getCurrent(), $rec);
                 $statusObj = new stdClass();
                 $statusObj->func = 'redirect';
                 $statusObj->arg = array('url' => toUrl(array($this, 'edit', $rec->id, 'ret_url' => true)));
@@ -707,9 +708,11 @@ class pwa_PushSubscriptions extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'edit') || ($action == 'delete')) {
-            if ($rec->userId != $userId) {
-                if (!haveRole('admin')) {
-                    $requiredRoles = 'no_one';
+            if ($rec) {
+                if ($rec->userId != $userId) {
+                    if (!haveRole('admin')) {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
