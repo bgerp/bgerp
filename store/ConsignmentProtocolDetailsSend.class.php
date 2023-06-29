@@ -89,12 +89,6 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     
     
     /**
-     * Какви мета данни да изискват продуктите, които да се показват
-     */
-    public $metaProducts = 'canSell,canStore';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -114,11 +108,11 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
         $masterRec = $data->masterRec;
-        $params = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic');
+        $params = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasnotProperties' => 'generic');
+        $params['hasProperties'] = $mvc->getExpectedProductMetaProperties($masterRec->productType, 'send');
         if($masterRec->productType == 'other'){
             $params['isPublic'] = 'no';
         }
-
         $data->form->setFieldTypeParams('productId', $params);
     }
 

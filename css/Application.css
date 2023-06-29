@@ -2074,6 +2074,10 @@ td.rowtools-column {
 .small-field {
   width: 1%; }
 
+.logisticCol {
+  text-align: right;
+  max-width: 400px !important; }
+
 .medium-field {
   width: 200px; }
 

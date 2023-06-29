@@ -1208,13 +1208,42 @@ function toggleDisplay(id) {
     elem.toggleClass('show-btn');
 }
 
-function clickAllClasses(id,clickClasses)
-{
-    $("." + clickClasses).each(function(i, obj) {
-        obj.click();
-    })
-
+function toggleDisplayOnload(id) {
     var elem = $("#" + id).parent().children('.more-btn');
+    $("#" + id).toggle();
+    elem.toggleClass('show-btn');
+}
+
+// Отваряне на запомнените редове от рецептата
+function openBoomRows(){
+   var openBoomRows = sessionStorage.getItem("boomDetailsOpenRows");
+    rowsArray = openBoomRows.split(',');
+    rowsArray.forEach((item) => {
+        toggleDisplayOnload(item);
+    });
+}
+
+// Запазване на отворените редове от рецептата
+function saveToggleState(){
+    var openRows = '';
+    $('.cat_BomDetails td .plus-icon.show-btn').each(function(){
+        var currentId = $(this).data('id');
+        openRows = openRows + currentId + ",";
+    });
+    sessionStorage.setItem("boomDetailsOpenRows", openRows);
+}
+
+function clickAllClasses(id,clickClasses) {
+    var elem = $("#" + id).parent().children('.more-btn');
+    if (elem.hasClass('show-btn')) {
+        $(".show-btn." + clickClasses).each(function(i, obj) {
+            obj.click();
+        });
+    } else {
+        $(".plus-icon:not('.show-btn')." + clickClasses).each(function(i, obj) {
+            obj.click();
+        });
+    }
     elem.toggleClass('show-btn');
 }
 

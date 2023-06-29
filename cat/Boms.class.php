@@ -149,7 +149,7 @@ class cat_Boms extends core_Master
     /**
      * Кой може да го регенерира рецептата?
      */
-    public $canRegenerate = 'debug';
+    public $canRegenerate = 'cat,ceo,sales,planning';
 
 
     /**
@@ -574,7 +574,7 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'edit') && isset($rec)) {
+        if (in_array($action, array('add', 'edit', 'regenerate')) && isset($rec)) {
             
             // Може да се добавя само ако има ориджин
             if (empty($rec->productId)) {
@@ -637,7 +637,7 @@ class cat_Boms extends core_Master
         }
         
         if($action == 'recalcselfvalue' && isset($rec)){
-            if(Mode::isReadOnly()){
+            if(Mode::isReadOnly() || $rec->state == 'rejected'){
                 $res = 'no_one';
             }
         }
@@ -650,6 +650,8 @@ class cat_Boms extends core_Master
 
         if ($action == 'regenerate' && isset($rec)) {
             if($rec->state != 'active'){
+                $res = 'no_one';
+            } elseif(!cat_BomDetails::count("#bomId={$rec->id} AND #type = 'stage'")) {
                 $res = 'no_one';
             }
         }
@@ -1665,7 +1667,14 @@ class cat_Boms extends core_Master
             }
         }
     }
-    
+
+    /**
+     * След рендиране на еденичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        jquery_Jquery::run($tpl,"openBoomRows();", TRUE);
+    }
     
     /**
      * Опит за връщане на масив със задачи за производство от рецептата
@@ -1957,7 +1966,7 @@ class cat_Boms extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->haveRightFor('regenerate', $data->rec)) {
-            $data->toolbar->addBtn('Регенериране', array($mvc, 'regenerate', $data->rec->id, 'ret_url' => true), 'title=Създаване на нова регенерирана рецепта,ef_icon=img/16/arrow_refresh.png');
+            $data->toolbar->addBtn('Подновяване', array($mvc, 'regenerate', $data->rec->id, 'ret_url' => true), 'title=Създаване на нова подновена рецепта,ef_icon=img/16/arrow_refresh.png,row=2');
         }
     }
 
@@ -1973,7 +1982,8 @@ class cat_Boms extends core_Master
         $this->requireRightFor('regenerate', $rec);
 
         $form = cls::get('core_Form');
-        $form->title = "Регенериране на детайлите на|* " . cls::get('cat_Boms')->getFormTitleLink($rec->id);
+        $form->info = "<div class='richtext-info-no-image'>Ще се създаде нова рецепта, където ще са обновени поднивата на етапите</div>";
+        $form->title = "Подновяване на детайлите на|* " . cls::get('cat_Boms')->getFormTitleLink($rec->id);
         $form->FNC('select', 'enum(yes=Да,no=Не)', 'caption=Да се регенерерират само при по-нова рецепта->Избор,input');
         $form->setDefault('select', 'yes');
         $form->input();

@@ -450,10 +450,11 @@ class acc_RatesDifferences extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->FLD('currencyCode', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'placeholder=Всички,caption=Валута');
         $data->listFilter->FLD('dealState', 'enum(all=Всички сделки,active=Активни сделки,closed=Затворени сделки)', 'caption=Сделки');
-        $data->listFilter->showFields .= ',dealState';
+        $data->listFilter->showFields .= ',currencyCode,dealState';
         $data->listFilter->setDefault('dealState', 'active');
-        $data->listFilter->input('dealState');
+        $data->listFilter->input('dealState,currencyCode');
 
         if($rec = $data->listFilter->rec){
             if(isset($rec->dealState)){
@@ -461,6 +462,10 @@ class acc_RatesDifferences extends core_Master
                     $data->query->EXT('dealState', 'doc_Containers', 'externalName=state,externalKey=dealOriginId');
                     $data->query->where("#dealState = '{$rec->dealState}'");
                 }
+            }
+
+            if(isset($rec->currencyCode)){
+                $data->query->where("#currencyId = '{$rec->currencyCode}'");
             }
         }
     }
