@@ -702,6 +702,21 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if (($action == 'edit') || ($action == 'delete')) {
+            if ($rec->userId != $userId) {
+                if (!haveRole('admin')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+
+
+    /**
      * Пращане на тестово известие и показване на дебъг информация
      */
     function act_Test()
