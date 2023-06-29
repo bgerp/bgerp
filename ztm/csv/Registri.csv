@@ -33,7 +33,7 @@
 "ac.door_window_blind_2.value","bool","true|false","Access Control","device","false","Door window blind 2 value"
 "ac.zone_1_occupied","bool","true|false","Access Control","device","false","Zone occupied flag"
 "ac.zone_2_occupied","bool","true|false","Access Control","device","false","Zone occupied flag"
-"blinds.blind_1.mechanism","json","","Blinds","system","{""vendor"": ""PT"", ""model"": ""MODv1"", ""options"": {""output_cw"": ""off"", ""output_ccw"": ""off"", ""feedback"": ""off"", ""feedback_tresh"": 0.093, ""min"": 0, ""max"": 180, ""deg_per_sec"": 10.0}}","Window 1 blinds mechanism"
+"blinds.blind_1.mechanism","json","","Blinds","system","{""vendor"": ""Yihao"", ""model"": ""BlindsV2"", ""options"": {""output_cw"": ""off"", ""output_ccw"": ""off"", ""feedback"": ""off"", ""feedback_tresh"": 0.093, ""min"": 0, ""max"": 180, ""deg_per_sec"": 10.0, ""uart"": 0, ""mb_id"": 11}}","Window 1 blinds mechanism"
 "blinds.blind_1.position","float","0.0/180.0","Blinds","both",0.0,"Position [deg]"
 "blinds.blind_1.object_height","float","0.0/","Blinds","system",2.0,"Object height [m]."
 "blinds.blind_1.sunspot_limit","float","0.0/","Blinds","system",1.0,"Sun spot limit [m]."
