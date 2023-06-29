@@ -27,7 +27,7 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'PWA Push абонанаменти';
+    public $title = 'PWA Push абонаменти';
 
 
     /**
