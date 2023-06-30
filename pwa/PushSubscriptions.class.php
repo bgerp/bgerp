@@ -81,7 +81,7 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Дефолтни стойности на приоритетите
      */
-    protected $defaultValues = array('criticalWorking' => '5 мин', 'urgentWorking' => '20 мин', 'docWorking' => '1 час', 'allWorking' => '1 час');
+    protected $defaultValues = array('criticalWorking' => '5 мин', 'urgentWorking' => '20 мин', 'shareWorking' => '20 мин', 'docWorking' => '1 час', 'allWorking' => '1 час');
 
 
     /**
@@ -115,6 +115,10 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('docWorking', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->Работно време');
         $this->FLD('docNonWorking', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->Неработно време');
         $this->FLD('docNight', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->През нощта');
+
+        $this->FLD('shareWorking', $this->enumOptVal, 'caption=Известяване за споделяне->Работно време');
+        $this->FLD('shareNonWorking', $this->enumOptVal, 'caption=Известяване за споделяне->Неработно време');
+        $this->FLD('shareNight', $this->enumOptVal, 'caption=Известяване за споделяне->През нощта');
 
         $this->FLD('allWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Работно време');
         $this->FLD('allNonWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Неработно време');
@@ -517,6 +521,7 @@ class pwa_PushSubscriptions extends core_Manager
             $daysFieldArr['critical'] = 'critical' . $dayTime;
             $daysFieldArr['urgent'] = 'urgent' . $dayTime;
             $daysFieldArr['doc'] = 'doc' . $dayTime;
+            $daysFieldArr['share'] = 'share' . $dayTime;
             $daysFieldArr['all'] = 'all' . $dayTime;
 
             foreach ($nArr as $priority => $nArr2) {
@@ -548,6 +553,11 @@ class pwa_PushSubscriptions extends core_Manager
                                     }
                                 }
                                 if (!$correctDoc) {
+
+                                    continue;
+                                }
+                            } elseif ($fType == 'share') {
+                                if (strpos($msgLower, '|сподели|') === false) {
 
                                     continue;
                                 }
