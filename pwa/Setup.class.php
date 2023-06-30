@@ -170,23 +170,23 @@ class pwa_Setup extends core_ProtoSetup
             }
         }
 
-        if (core_Composer::isInUse()) {
-            $cVersion = 7;
-            $pVersion = phpversion();
-            if ((version_compare($pVersion, '7.3') < 0)) {
-                $cVersion = 6;
-            }
-            if ((version_compare($pVersion, '7.2') < 0)) {
-                $cVersion = 5;
-            }
-            if ((version_compare($pVersion, '7.1') < 0)) {
-                $cVersion = 2;
-            }
+        $cVersion = 7;
+        $pVersion = phpversion();
+        if ((version_compare($pVersion, '7.3') < 0)) {
+            $cVersion = 6;
+        }
+        if ((version_compare($pVersion, '7.2') < 0)) {
+            $cVersion = 5;
+        }
+        if ((version_compare($pVersion, '7.1') < 0)) {
+            $cVersion = 2;
+        }
 
-            if ((version_compare($pVersion, '8') >= 0)) {
-                $cVersion = 8;
-            }
+        if ((version_compare($pVersion, '8') >= 0)) {
+            $cVersion = 8;
+        }
 
+        try {
             // 8 -> за PHP > PHP 8.0
             // 7 -> за PHP > PHP 7.3 7.4
             // 6 -> PHP 7.2
@@ -237,7 +237,11 @@ class pwa_Setup extends core_ProtoSetup
                     sleep(1);
                 }
             }
-        } else {
+        } catch (core_exception_Expect $e) {
+            $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
+        } catch (Throwable $t) {
+            $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
+        } catch (Error $e) {
             $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
         }
 
