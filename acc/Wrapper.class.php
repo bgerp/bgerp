@@ -58,6 +58,7 @@ class acc_Wrapper extends plg_ProtoWrapper
         $this->TAB('acc_BalanceRepairs', 'Документи->Поправки', 'ceo,acc');
         $this->TAB('acc_BalanceTransfers', 'Документи->Трансфери', 'ceo,accMaster');
         $this->TAB('acc_ValueCorrections', 'Документи->Корекции', 'ceo,acc');
+        $this->TAB('acc_RatesDifferences', 'Документи->Курсови разлики', 'ceo,acc');
         $this->TAB('acc_CostAllocations', 'Дебъг', 'debug');
         
         $this->title = 'Книги « Счетоводство';

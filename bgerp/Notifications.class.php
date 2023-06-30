@@ -132,6 +132,7 @@ class bgerp_Notifications extends core_Manager
         $this->setDbIndex('urlId');
         $this->setDbIndex('customUrlId');
         
+        $this->setDbIndex('activatedOn');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('lastTime');
     }
@@ -360,7 +361,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Връща текста на активното съобщение, ако има такова
      */
-    public static function getActiveMsgFor($urlArr, $userId)
+    public static function getActiveMsgFor($urlArr, $userId, &$customUrl = null, &$messageDate = null)
     {
         $url = toUrl($urlArr, 'local', false);
         
@@ -379,7 +380,11 @@ class bgerp_Notifications extends core_Manager
         $query->limit(1);
         
         if ($rec = $query->fetch()) {
-            
+
+            $customUrl = $rec->customUrl;
+
+            $messageDate = $rec->modifiedOn;
+
             return $rec->msg;
         }
     }

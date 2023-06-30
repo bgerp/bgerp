@@ -154,7 +154,7 @@ class core_Mode
     {
         $sessPrefix = core_Session::getDecoratePrefix();
         
-        if (is_null(self::$mode[$sessPrefix])) {
+        if (!isset(self::$mode[$sessPrefix]) || self::$mode[$sessPrefix] === null) {
             self::$mode[$sessPrefix] = core_Session::get(EF_MODE_SESSION_VAR);
             
             if (!is_array(self::$mode[$sessPrefix])) {

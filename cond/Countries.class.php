@@ -4,14 +4,11 @@
 /**
  * Клас 'cond_Countries' - Условия на доставка
  *
- * Набор от стандартните условия на доставка (FOB, DAP, ...)
- *
- *
  * @category  bgerp
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -71,9 +68,9 @@ class cond_Countries extends core_Manager
      */
     public function description()
     {
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,silent,placeholder=Всички държави');
-        $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value,remember');
-        $this->FLD('value', 'text', 'caption=Стойност, mandatory,remember');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,silent,placeholder=Всички държави,remember');
+        $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
+        $this->FLD('value', 'text', 'caption=Стойност, mandatory');
         
         $this->setDbIndex('country,conditionId');
     }
@@ -89,8 +86,7 @@ class cond_Countries extends core_Manager
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
-        
+
         if ($rec->conditionId) {
             if ($Type = cond_Parameters::getTypeInstance($rec->conditionId, 'drdata_Countries', $rec->country, $rec->value)) {
                 $form->setField('value', 'input');
@@ -98,21 +94,6 @@ class cond_Countries extends core_Manager
                 $form->setDefault('value', cond_Parameters::getDefaultValue($rec->conditionId, $rec->cClass, $rec->cId, $rec->value));
             } else {
                 $form->setError('conditionId', 'Има проблем при зареждането на типа');
-            }
-        }
-    }
-    
-    
-    /**
-     * Проверка след изпращането на формата
-     */
-    protected static function on_AfterInputEditForm($mvc, $form)
-    {
-        $rec = &$form->rec;
-        
-        if ($form->isSubmitted()) {
-            if (empty($rec->country)) {
-                $rec->country = null;
             }
         }
     }

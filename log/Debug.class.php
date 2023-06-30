@@ -498,6 +498,10 @@ class log_Debug extends core_Manager
                     'method' => 'POST',
                     'content' => http_build_query($dataArr),
                 ),
+                "ssl"=>array(
+                    "verify_peer"=>false,
+                    "verify_peer_name"=>false,
+                )
             );
             $context = stream_context_create($options);
             $url = help_Setup::get('BGERP_SUPPORT_URL', true);
@@ -1266,6 +1270,12 @@ class log_Debug extends core_Manager
             
             if ($requiredRoles != 'no_one') {
                 if (!defined('DEBUG_FATAL_ERRORS_PATH')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+
+            if ($requiredRoles != 'no_one') {
+                if (!defined('DEBUG_FATAL_ERRORS_FILE')) {
                     $requiredRoles = 'no_one';
                 }
             }

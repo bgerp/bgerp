@@ -11,7 +11,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -161,6 +161,12 @@ class sales_Quotations extends deals_QuotationMaster
      * Полета свързани с цени
      */
     public $priceFields = 'expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost';
+
+
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,dec_SourceIntf';
 
 
     /**
@@ -498,8 +504,21 @@ class sales_Quotations extends deals_QuotationMaster
             $tpl->removeBlock('TRANSPORT_BAR');
         }
     }
-    
-    
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+
+        if (dec_Declarations::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
+            $data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/declarations.png, row=2, title=Създаване на декларация за съответсвие');
+        }
+    }
+
+
     /**
      * След проверка на ролите
      */
@@ -670,7 +689,7 @@ class sales_Quotations extends deals_QuotationMaster
         $count = countR($productsWithoutPrices);
         if ($count) {
             $imploded = implode(', ', $productsWithoutPrices);
-            $start = ($count == 1) ? 'артикулът' : 'артикулите';
+            $start = ($count == 1) ? 'артикула' : 'артикулите';
             $mid = ($count == 1) ? 'му' : 'им';
             $error = "На {$start}|* <b>{$imploded}</b> |трябва да {$mid} се въведе цена|*!";
             core_Statuses::newStatus($error, 'error');
@@ -737,37 +756,59 @@ class sales_Quotations extends deals_QuotationMaster
 
 
     /**
-     * Най-големия срок на доставка
+     * Колко е максималния срок на доставка
      *
      * @param int|stdClass $id
      * @return int|NULL
      */
     protected function calcDeliveryTime($id)
     {
-        $maxDeliveryTime = null;
         $rec = $this->fetchRec($id);
 
-        // Добавяне на срока за транспорт към локацията
-        $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
-        if(is_object($Calculator)){
-            $locationId = isset($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
-            $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
-            $deliveryParams = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode']);
-            $maxDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryParams);
+        $defaultDeliveryTime = null;
+
+        // Ако доставката е с явен транспорт, намира се максималния срок на доставка до мястото
+        if($rec->deliveryCalcTransport == 'no'){
+            $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
+            if(is_object($Calculator)){
+                $locationId = isset($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+                $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
+                $deliveryParams = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode']);
+                $defaultDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryParams);
+            }
         }
 
+        // Колко е максималният срок за доставка от детайлите
         $Detail = cls::get($this->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #optional = 'no'");
         $dQuery->show("productId,term,quantity,quotationId");
-
-        while ($dRec = $dQuery->fetch()) {
-            $term = (!isset($term)) ? cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity) : $dRec->term;
-            if (isset($term)) {
-                $maxDeliveryTime = max($maxDeliveryTime, $term);
-            }
-        }
+        $maxDeliveryTime = deals_Helper::calcMaxDeliveryTime($this, $rec, $Detail, $dQuery, $defaultDeliveryTime);
 
         return $maxDeliveryTime;
+    }
+
+
+    /**
+     * Помощна ф-я връщаща артикулите за избор в декларацията от източника
+     * @see dec_SourceIntf
+     *
+     * @param stdClass $rec
+     * @return array
+     *          'productId'
+     *          'batches'
+     */
+    public function getProducts4Declaration($rec)
+    {
+        $res = array();
+        $rec = $this->fetchRec($rec);
+        $dQuery = sales_QuotationsDetails::getQuery();
+        $dQuery->where("#quotationId = {$rec->id}");
+        $dQuery->show('productId');
+        while($dRec = $dQuery->fetch()){
+            $res[$dRec->productId] = (object)array('productId' => $dRec->productId, 'batches' => array());
+        }
+
+        return $res;
     }
 }

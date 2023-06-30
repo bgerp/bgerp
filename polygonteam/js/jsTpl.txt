@@ -1,8 +1,27 @@
+var isTabActive;
+
+window.onfocus = function () {
+	isTabActive = true;
+};
+
+window.onblur = function () {
+	isTabActive = false;
+};
+
+window.onload = function () {
+	isTabActive = true;
+};
+
 function readScale() {
     if ($("[name=[#_weight#]]").length && $("[name=[#_weight#]]").attr('type') != 'hidden') {
         $('<input>', {type: 'hidden', name: '[#_liveWeight#]',}).appendTo("form");
         
         setInterval(function() {
+            if (!window.isTabActive) {
+
+                return ;
+            }
+
             $.ajax({
                    async: true,
                    type: "GET",

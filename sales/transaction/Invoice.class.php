@@ -8,7 +8,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,18 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             'entries' => array(),
         );
 
-        if (Mode::get('saveTransaction')) {
+        if($rec->type != 'dc_note'){
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($receiptId = pos_Receipts::fetchField("#transferredIn = {$firstDoc->that}")) {
+                if(pos_Reports::getReportReceiptIsIn($receiptId)){
+
+                    // Ако ф-та е към договор към приключена пос бележка с отчет да не прави контировка
+                    return $result;
+                }
+            }
+        }
+
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $productArr = array();
             $error = null;
             if (!$this->class->isAllowedToBePosted($rec, $error, true)) {
@@ -101,7 +112,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
         }
         
         $origin = $this->class->getOrigin($rec);
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if ($rec->type != 'invoice' && empty($rec->changeAmount)) {
                 $this->class->updateMaster_($cloneRec, false);
                 if (round($rec->dealValue, 4) != round($cloneRec->dealValue, 4) || round($rec->vatAmount, 4) != round($cloneRec->vatAmount, 4) || round($rec->discountAmount, 4) != round($cloneRec->discountAmount, 4)) {
@@ -129,7 +140,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             $origin = $origin->getOrigin();
             
             // Ако е Ди или Ки без промяна не може да се контира
-            if (Mode::get('saveTransaction')) {
+            if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
                 if (!$rec->dealValue) {
                     acc_journal_RejectRedirect::expect(false, 'Дебитното/кредитното известие не може да бъде контирано, докато сумата е нула');
                 }

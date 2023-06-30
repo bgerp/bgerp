@@ -220,7 +220,7 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '22.31-Orlovets');
+define('CORE_CODE_VERSION', '23.26-Aleko');
 
 
 /**
@@ -343,7 +343,7 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_AUTOHIDE_SHARED_USERS' => array('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
         
-        'EF_APP_TITLE' => array('varchar(16)', 'caption=Наименование на приложението->Име'),
+        'EF_APP_TITLE' => array('varchar(16)', 'caption=Наименование на приложението->Име, customizeBy=admin'),
         
         'CORE_SYSTEM_NICK' => array('varchar(16)', 'caption=Системен потребител->Ник'),
         
@@ -351,7 +351,7 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_FIRST_ADMIN' => array('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
         
-        'CORE_LOGIN_INFO' => array('varchar', 'caption=Информация във формата за логване->Текст'),
+        'CORE_LOGIN_INFO' => array('varchar', 'caption=Информация във формата за логване->Текст, customizeBy=admin'),
         
         'EF_MAX_EXPORT_CNT' => array('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
         

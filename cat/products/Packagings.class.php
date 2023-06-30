@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -50,9 +50,15 @@ class cat_products_Packagings extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created,plg_Modified';
-    
-    
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created,plg_Modified,plg_State2';
+
+
+    /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'packEdit,ceo';
+
+
     /**
      * Кой има право да променя системните данни?
      */
@@ -118,7 +124,7 @@ class cat_products_Packagings extends core_Detail
         'purchase_ServicesDetails',
         'cat_ListingDetails',
         'pos_ReceiptDetails',
-        'planning_Tasks',
+        'planning_ProductionTaskDetails',
         'planning_ProductionTaskProducts',
         'store_ConsignmentProtocolDetailsReceived',
         'store_TransfersDetails',
@@ -184,7 +190,25 @@ class cat_products_Packagings extends core_Detail
                     $form->setError('quantity', 'Количеството не може да е различно от единица за избраната мярка/опаковка');
                 }
             }
-            
+
+            if(isset($rec->id)){
+                $packType = cat_UoM::fetchField($rec->packagingId, 'type');
+                if($packType == 'uom'){
+                    $oldQuantity = $mvc->fetchField($rec->id, 'quantity');
+                    if(round($oldQuantity, 5) != round($rec->quantity, 5)){
+                        $tQuery = planning_Tasks::getQuery();
+                        $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
+                        $tQuery->where("#jobProductId = {$rec->productId} AND #state NOT IN ('closed', 'rejected') AND #measureId = {$rec->packagingId} AND #isFinal = 'yes'");
+                        $notClosedFound = $tQuery->count();
+                        if($notClosedFound){
+                            $notClosedFoundVerbal = core_Type::getByName('int')->toVerbal($notClosedFound);
+                            $errorMsgPart = ($notClosedFound == 1) ? 'неприключена финална операция! За да редактирате количеството операцита трябва да бъде приключена и след промяната на количеството в мярката - създадена (без клониране) отново' : 'неприключени финални операции! За да редактирате количеството операциите трябва да бъдат приключени и след промяната на количеството в мярката - създадени (без клониране) отново';
+                            $form->setError('quantity', "За артикула има |{$notClosedFoundVerbal}|* {$errorMsgPart}!");
+                        }
+                    }
+                }
+            }
+
             if ($rec->eanCode) {
                 
                 // Проверяваме дали има продукт с такъв код (като изключим текущия)
@@ -404,6 +428,12 @@ class cat_products_Packagings extends core_Detail
         // Ако опаковката вече е използвана не може да се изтрива
         if ($action == 'delete' && isset($rec)) {
             if (self::isUsed($rec->productId, $rec->packagingId, strtolower(Request::get('Act')) == 'list')) {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if ($action == 'edit' && isset($rec)) {
+            if ($rec->state == 'closed') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -744,6 +774,11 @@ class cat_products_Packagings extends core_Detail
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
+
+        if($rec->state == 'closed' && $rec->isBase == 'yes'){
+            $rec->isBase = 'no';
+            $mvc->save_($rec, 'isBase');
+        }
     }
 
 
@@ -1150,7 +1185,7 @@ class cat_products_Packagings extends core_Detail
     {
         // Подобрение за бързодействие при проверка - да се използват новите полета
         if (!$checkAll) {
-            $pRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
+            $pRec = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
 
             if ($pRec && $pRec->firstClassId) {
 
@@ -1159,11 +1194,11 @@ class cat_products_Packagings extends core_Detail
         }
 
         $cacheKey = "{$productId}|{$uomId}";
-        
+
         // Ако искаме кеширани данни
         if ($cache === true) {
             $isUsed = false;
-            
+
             // Проверяваме имали кеш
             $hasCache = core_Cache::get('cat_Products', $cacheKey);
             
@@ -1195,9 +1230,7 @@ class cat_products_Packagings extends core_Detail
         $isUsed = false;
         foreach ($details as $Detail) {
             $dInst = cls::get($Detail);
-
             $dQuery = $dInst->getQuery();
-
             $dQuery->limit(1);
 
             $haveModified = false;
@@ -1243,16 +1276,17 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#productId = '[#1#]' AND #action = 'sale|code' AND #value = '[#2#]'", $productId, $uomId));
             } elseif($Detail == 'planning_Jobs'){
                 $dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
-            } elseif ($Detail == 'cat_BomDetails') {//bp();
+            } elseif ($Detail == 'cat_BomDetails') {
                 $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             } elseif ($Detail == 'store_TransfersDetails') {
                 $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
-            } elseif ($Detail == 'planning_Tasks') {
-                $dQuery->where(array("#productId = '[#1#]' AND #labelPackagingId = '[#2#]'", $productId, $uomId));
+            } elseif ($Detail == 'planning_ProductionTaskDetails') {
+                $dQuery->EXT('labelPackagingId', 'planning_Tasks', 'externalKey=taskId,externalName=labelPackagingId');
+                $dQuery->where(array("#productId = '[#1#]' AND #labelPackagingId = '[#2#]' AND #state != 'rejected'", $productId, $uomId));
             } else {
                 $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             }
-
+            $dQuery->show('id,modifiedOn');
             $dRec = $dQuery->fetch();
 
             if ($dRec) {
@@ -1277,7 +1311,7 @@ class cat_products_Packagings extends core_Detail
         } else {
             core_Cache::set('cat_Products', $cacheKey, 'n', 10080);
         }
-        
+
         // Връщаме резултат
         return $isUsed;
     }
@@ -1501,7 +1535,13 @@ class cat_products_Packagings extends core_Detail
         $packQuery->where('#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL');
         $packQuery->orderBy('quantity', 'DESC');
         $packQuery->limit(1);
-        $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
+
+        // Ако има посочени опаковки за игнориране - игнорират се
+        $ignorePackIds = keylist::toArray(cat_Setup::get('PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC'));
+        if(countR($ignorePackIds)){
+            $packQuery->notIn('packagingId', $ignorePackIds);
+        }
+        $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity,packagingId');
         $packRec = $packQuery->fetch();
 
         // Ако няма опаковка с въведени габарити, няма да се изчислява нищо
@@ -1528,7 +1568,7 @@ class cat_products_Packagings extends core_Detail
     {
         $options = array();
         $query = static::getQuery();
-        $query->where("#productId = {$productId}");
+        $query->where("#productId = {$productId} AND #state = 'active'");
         $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
         $query->where("#type = 'packaging'");
         while($rec = $query->fetch()){

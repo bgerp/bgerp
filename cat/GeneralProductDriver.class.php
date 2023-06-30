@@ -202,30 +202,53 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         $arr = (array) $rec;
         $classId = $Embedder->getClassId();
-        
+
         // За всеко поле от записа
+        $updateRecs = array();
         foreach ($arr as $key => $value) {
-            
-            // Ако името му съдържа ключова дума
             if (strpos($key, 'paramcat') !== false) {
                 $paramId = substr($key, 8);
-                
-                // Има стойност и е разпознато ид на параметър
-                if (cat_Params::fetch($paramId) && !empty($value)) {
-                    $dRec = (object) array('productId' => $rec->id,
-                        'classId' => $classId,
-                        'paramId' => $paramId,
-                        'paramValue' => $value);
-                    
-                    // Записваме продуктовия параметър с въведената стойност
-                    if (!cls::get('cat_products_Params')->isUnique($dRec, $fields, $exRec)) {
-                        $dRec->id = $exRec->id;
-                    }
-                    
-                    cat_products_Params::save($dRec);
-                }
+
+                if (!isset($value)) continue;
+                $paramDriver = cat_Params::getDriver($paramId);
+                if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image || $paramDriver instanceof cond_type_Files) && empty($value)) continue;
+
+                $dRec = (object) array('productId' => $rec->id, 'classId' => $classId, 'paramId' => $paramId, 'paramValue' => $value);
+                $updateRecs[] = $dRec;
             }
         }
+
+        if(!countR($updateRecs)) return;
+
+        core_Debug::startTimer('saveParams');
+        core_Debug::log('START SAVE_ALL_PARAMS');
+
+        $exQuery = cat_products_Params::getQuery();
+        $exQuery->fetch("#classId = {$classId} AND #productId = {$rec->id}");
+        $exRecs = $exQuery->fetch();
+
+        $syncedArr = arr::syncArrays($updateRecs, $exRecs, 'classId,productId,paramId', 'paramValue');
+        $Params = cls::get('cat_products_Params');
+        if(countR($syncedArr['insert'])){
+            $Params->saveArray($syncedArr['insert']);
+        }
+
+        if(countR($syncedArr['update'])){
+            $Params->saveArray($syncedArr['update'], 'id,paramValue');
+        }
+
+        if(countR($syncedArr['delete'])){
+            $inStr = implode(',', $syncedArr['delete']);
+            $Params->delete("#id IN ({$inStr})");
+        }
+
+        if($classId == cat_Products::getClassId()){
+            acc_Features::syncFeatures(cat_Products::getClassId(), $rec->id);
+        }
+        plg_Search::forceUpdateKeywords($Embedder, $rec);
+
+        core_Debug::stopTimer('saveParams');
+        core_Debug::log('END SAVE_ALL_PARAMS: ' . round(core_Debug::$timers['saveParams']->workingTime, 2));
     }
     
     
@@ -253,10 +276,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         // Ако има посочено име се посочва директно стойноста му
         if (isset($name)) {
-            
-            return cat_products_Params::fetchParamValue($classId, $id, $name, $verbal);
+            $res = cat_products_Params::fetchParamValue($classId, $id, $name, $verbal);
+            if($name == 'preview' && !$res){
+                $res = cls::get($classId)->fetch($id)->photo;
+            }
+
+            return $res;
         }
-        
+
         // Ако не искаме точен параметър връщаме всичките параметри за артикула
         $params = array();
         $classId = cat_Products::getClassId();
@@ -264,14 +291,18 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $pQuery->where("#productId = {$id}");
         $pQuery->where("#classId = {$classId}");
         $pQuery->show('paramId,paramValue');
-        
         while ($pRec = $pQuery->fetch()) {
             if ($verbal === true) {
                 $pRec->paramValue = cat_Params::toVerbal($pRec->paramId, $classId, $id, $pRec->paramValue);
             }
             $params[$pRec->paramId] = $pRec->paramValue;
         }
-        
+
+        $previewId = cat_Params::force('preview', 'Изглед||Preview', 'cond_type_Image', null, '', true);
+        if(!array_key_exists($previewId, $params)){
+            $params[$previewId] = cls::get($classId)->fetch($id)->photo;
+        }
+
         return $params;
     }
     
@@ -288,9 +319,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function getPreview($rec, embed_Manager $Embedder, $size = array('280', '150'), $maxSize = array('550', '550'))
     {
         $preview = null;
-        $previewHandler = cat_Products::getParams($rec->id, 'preview');
+        $previewHandler = $this->getParams($Embedder, $rec->id, 'preview');
         $handler = !empty($previewHandler) ? $previewHandler : $rec->photo;
-        
+
         if (!empty($handler)) {
             $Fancybox = cls::get('fancybox_Fancybox');
             $preview = $Fancybox->getImage($handler, $size, $maxSize);
@@ -328,11 +359,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function renderProductDescription($data)
     {
         // Вербализиране на снимката, да е готова за показване
-        $data->rec->photo =  cat_Products::getParams($data->rec->id, 'preview');
+        $data->rec->photo =  $this->getParams(cls::get($data->Embedder)->getClassId(), $data->rec->id, 'preview');
         if ($data->rec->photo) {
             $size = array(280, 150);
             $Fancybox = cls::get('fancybox_Fancybox');
-            $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
+            $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(1200, 1200));
         }
         
         // @TODO ревербализиране на описанието
@@ -487,5 +518,26 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 }
             }
         }
+    }
+
+
+    /**
+     * Връща масив с файловете цитирани в артикула
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array           - масив от файл хендлъри и имена
+     */
+    public function getLinkedFiles($id)
+    {
+        $fhArr = array();
+        $rec = cat_Products::fetchRec($id);
+        if(!empty($rec->info)){
+            $fhArr += fileman_RichTextPlg::getFiles($rec->info);
+        }
+        if(!empty($rec->infoInt)){
+            $fhArr += fileman_RichTextPlg::getFiles($rec->infoInt);
+        }
+
+        return $fhArr;
     }
 }

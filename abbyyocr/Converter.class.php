@@ -171,7 +171,7 @@ class abbyyocr_Converter extends core_Manager
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (core_Locks::isLocked($params['lockId'])) {
-            if ($params['asynch']) {
+            if (isset($params['asynch'])) {
                 // Добавяме съобщение
                 status_Messages::newStatus('|В момента се прави тази обработка');
             }
@@ -232,7 +232,7 @@ class abbyyocr_Converter extends core_Manager
         // Скрипта, който ще конвертира
         $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
-        if ($params['asynch']) {
+        if (isset($params['asynch'])) {
             // Функцията, която ще се извика след приключване на операцията
             $Script->callBack($params['callBack']);
         }

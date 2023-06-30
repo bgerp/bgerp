@@ -445,7 +445,7 @@ class eshop_Products extends core_Master
             $row->nearLink = ht::createLink($productTitle, $productUrl, null, 'class=productName');
             
             // Ако има се показва тъмбнейл, към него
-            $thumb = static::getProductThumb($productRec, 200, 200);
+            $thumb = static::getProductThumb($productRec, 400, 400);
             if (empty($thumb)) {
                 $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 300, 300, 'path');
             }
@@ -564,7 +564,7 @@ class eshop_Products extends core_Master
      *
      * @return thumb_Img|NULL
      */
-    public static function getProductThumb($rec, $width = 120, $height = 120)
+    public static function getProductThumb($rec, $width = 240, $height = 240)
     {
         $imageArr = array();
         foreach (array('', '2', '3', '4', '5') as $i) {
@@ -979,7 +979,7 @@ class eshop_Products extends core_Master
         }
         
         if ($hasImage === false) {
-            $data->row->image = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), 120, 120, 'path');
+            $data->row->image = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), 180, 180, 'path');
             $data->row->image = $data->row->image->createImg(array('width' => 160, 'height' => 160, 'class' => 'product-image'));
         }
         

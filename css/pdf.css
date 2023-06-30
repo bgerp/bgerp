@@ -55,3 +55,11 @@ thead {
 .wrap {
   white-space: normal !important;
 }
+
+.display-table {
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
+  word-break: break-word;
+}

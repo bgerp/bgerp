@@ -67,7 +67,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, marketing_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, drdata_PhonePlg';
     
     
@@ -428,7 +428,12 @@ class marketing_Inquiries2 extends embed_Manager
             } else {
                 $form->setFieldTypeParams('proto', 'isPublic=yes,showTemplates');
             }
-            $form->setField('proto', 'input');
+
+            if(countR($form->getFieldType('proto')->getOptions())){
+                $form->setField('proto', 'input,class=w100');
+            } else {
+                $form->setField('proto', 'input=none');
+            }
         }
         
         if (cls::load($form->rec->innerClass, true)) {
@@ -759,8 +764,12 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $rec = $this->fetchRec($id);
         $name = $this->getFieldType('personNames')->toVerbal((($rec->company) ? $rec->company : $rec->personNames));
-        $subject = "{$name} / {$rec->title}";
-        
+        $pTitle = $rec->title;
+        if(strpos($pTitle, '||')){
+            $pTitle = tr($pTitle);
+        }
+
+        $subject = "{$name} / {$pTitle}";
         $Varchar = cls::get('type_Varchar');
         
         return $Varchar->toVerbal($subject);
@@ -1021,7 +1030,7 @@ class marketing_Inquiries2 extends embed_Manager
         $customizeProto = !empty($customizeProto) ? $customizeProto : 'yes';
         $Source = cls::getInterface('marketing_InquirySourceIntf', $classId);
         $sourceData = $Source->getInquiryData($objectId);
-        
+
         $this->requireRightFor('new');
         expect404($drvId = $sourceData['drvId']);
         $proto = $sourceData['protos'];
@@ -1226,7 +1235,20 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($form->isSubmitted()) {
-            $moqVerbal = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($rec->moq);
+
+            // Подаване на параметрите от формата за проверка на МКП
+            if($Driver = cat_Products::getDriver($rec)){
+                $params = array();
+                $driverFields = marketing_Inquiries2::getDriverFields($Driver);
+                foreach (array_keys($driverFields) as $driverFld){
+                    $params[$driverFld] = $rec->{$driverFld};
+                }
+                $moqAfterTheParamsAreKnown = $Driver->getMoq(null, 'sell', $params);
+                if(isset($moqAfterTheParamsAreKnown)){
+                    $rec->moq = $moqAfterTheParamsAreKnown;
+                }
+            }
+            $moqVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->moq);
             
             // Ако няма въведени количества
             if (empty($rec->quantity1) && empty($rec->quantity2) && empty($rec->quantity3)) {

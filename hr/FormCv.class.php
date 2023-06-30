@@ -20,7 +20,7 @@ class hr_FormCv extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'hr, ceo';
+    public $canRead = 'hr, ceo, hrMaster';
     
     
     /**
@@ -146,8 +146,10 @@ class hr_FormCv extends core_Master
         
         $period = '';
         $months = '';
-        
-        for ($i = 1989;$i <= 2017;$i++) {
+
+        $endYear = date('Y', strtotime(dt::today()));
+
+        for ($i = 1989; $i <= $endYear; $i++) {
             $period .= $i.'|';
         }
         
@@ -171,9 +173,9 @@ class hr_FormCv extends core_Master
     {
         $this->requireRightFor('new');
         
-        // 		expect($id = Request::get('id'));
-        // 		expect($rec = $this->fetch($id));
-        // 		$this->requireRightFor('new', $rec);
+//         		expect($id = Request::get('id'));
+//         		expect($rec = $this->fetch($id));
+//         		$this->requireRightFor('new', $rec);
         
         $form = $this->getForm();
         foreach (array('folderId', 'threadId', 'originId', 'id') as $fld) {

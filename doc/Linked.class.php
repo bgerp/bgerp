@@ -119,7 +119,8 @@ class doc_Linked extends core_Manager
         $this->setDbUnique('outType, outVal, inType, inVal');
         $this->setDbIndex('outType, outVal');
         $this->setDbIndex('inType, inVal');
-    }
+        $this->setDbIndex('createdOn');
+     }
     
     
     /**
@@ -147,7 +148,45 @@ class doc_Linked extends core_Manager
         
         return $sId;
     }
-    
+
+
+    /**
+     * Връща всички свързани документи или файлвое и ги групира по тип
+     *
+     * @param string $type - doc|file - типа на документа, за който търсим връзка
+     * @param int $id - id на документа, за който търсим връзка
+     * @param string $resType - file|doc - филтриране на резултата - да показва само тези, които са от типа $resType
+     * @param bool $showRejected - показване на оттеглените записи
+     *
+     * @return array - масив с типа и съответните стойности
+     * ['doc'] => Масив с id-тата на документите
+     * ['file'] => Масив с id-тата на файловете
+     */
+    public static function getResForIdByType($type, $id, $resType = null, $showRejected = false)
+    {
+        $res = self::getRecsForType($type, $id, $showRejected, 100000);
+
+        $resArr = array();
+
+        foreach ($res as $r) {
+            if (($r->outType == $type) && ($r->outVal == $id)) {
+                if (isset($resType) && ($resType != $r->inType)) {
+
+                    continue;
+                }
+                $resArr[$r->inType][$r->inVal] = $r->inVal;
+            } else {
+                if (isset($resType) && ($resType != $r->outType)) {
+
+                    continue;
+                }
+                $resArr[$r->outType][$r->outVal] = $r->outVal;
+            }
+        }
+
+        return $resArr;
+    }
+
     
     /**
      * Връща всички записи за подадените типове
@@ -1085,6 +1124,11 @@ class doc_Linked extends core_Manager
                         }
                         
                         try {
+                            if (!isset($cRec->docClass)) {
+
+                                continue;
+                            }
+
                             $dInst = cls::get($cRec->docClass);
                             
                             if (!$dInst->haveRightFor('single', $cRec->docId)) {
@@ -1092,8 +1136,7 @@ class doc_Linked extends core_Manager
                             }
                             
                             $title = '';
-                            
-                            if ($cRec->docId) {
+                            if (isset($cRec->docId)) {
                                 $oRow = $dInst->getDocumentRow($cRec->docId);
                                 $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
                                 $title = trim($title);
@@ -1140,12 +1183,14 @@ class doc_Linked extends core_Manager
             }
             
             try {
-                $dInst = cls::get($cRec->docClass);
-                $oRow = $dInst->getDocumentRow($cRec->docId);
-                $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
-                $title = trim($title);
-                $title = str::limitLen($title, self::$titleLen);
-                $sArr[$cRec->id] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
+                if (isset($cRec->docClass) && isset($cRec->docId)) {
+                    $dInst = cls::get($cRec->docClass);
+                    $oRow = $dInst->getDocumentRow($cRec->docId);
+                    $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                    $title = trim($title);
+                    $title = str::limitLen($title, self::$titleLen);
+                    $sArr[$cRec->id] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
+                }
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 continue;
@@ -1472,12 +1517,15 @@ class doc_Linked extends core_Manager
                         
                         if ($tRec->firstDocClass) {
                             try {
-                                $dInst = cls::get($tRec->firstDocClass);
-                                
-                                $oRow = $dInst->getDocumentRow($tRec->firstDocId);
-                                $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
-                                $title = trim($title);
-                                $title = str::limitLen($title, self::$titleLen);
+                                $title = '';
+                                if (isset($tRec->firstDocClass) && isset($tRec->firstDocId)) {
+                                    $dInst = cls::get($tRec->firstDocClass);
+
+                                    $oRow = $dInst->getDocumentRow($tRec->firstDocId);
+                                    $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                                    $title = trim($title);
+                                    $title = str::limitLen($title, self::$titleLen);
+                                }
                             } catch (core_exception_Expect $e) {
                                 // Не се променя title
                             }
@@ -1517,12 +1565,14 @@ class doc_Linked extends core_Manager
             
             if ($rec->firstDocClass) {
                 try {
-                    $dInst = cls::get($rec->firstDocClass);
-                    
-                    $oRow = $dInst->getDocumentRow($rec->firstDocId);
-                    $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
-                    $title = trim($title);
-                    $title = str::limitLen($title, self::$titleLen);
+                    if (isset($rec->firstDocClass) && isset($rec->firstDocId)) {
+                        $dInst = cls::get($rec->firstDocClass);
+
+                        $oRow = $dInst->getDocumentRow($rec->firstDocId);
+                        $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                        $title = trim($title);
+                        $title = str::limitLen($title, self::$titleLen);
+                    }
                 } catch (core_exception_Expect $e) {
                     // Не се променя title
                 }
@@ -1588,6 +1638,11 @@ class doc_Linked extends core_Manager
     {
         if ($type == 'doc') {
             try{
+                if (!isset($valId)) {
+
+                    return ;
+                }
+
                 // Документа
                 $doc = doc_Containers::getDocument($valId);
                 

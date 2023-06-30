@@ -1,6 +1,5 @@
 var shortURL;
 
-
 function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
         refresh = true;
@@ -1209,6 +1208,45 @@ function toggleDisplay(id) {
     elem.toggleClass('show-btn');
 }
 
+function toggleDisplayOnload(id) {
+    var elem = $("#" + id).parent().children('.more-btn');
+    $("#" + id).toggle();
+    elem.toggleClass('show-btn');
+}
+
+// Отваряне на запомнените редове от рецептата
+function openBoomRows(){
+   var openBoomRows = sessionStorage.getItem("boomDetailsOpenRows");
+    rowsArray = openBoomRows.split(',');
+    rowsArray.forEach((item) => {
+        toggleDisplayOnload(item);
+    });
+}
+
+// Запазване на отворените редове от рецептата
+function saveToggleState(){
+    var openRows = '';
+    $('.cat_BomDetails td .plus-icon.show-btn').each(function(){
+        var currentId = $(this).data('id');
+        openRows = openRows + currentId + ",";
+    });
+    sessionStorage.setItem("boomDetailsOpenRows", openRows);
+}
+
+function clickAllClasses(id,clickClasses) {
+    var elem = $("#" + id).parent().children('.more-btn');
+    if (elem.hasClass('show-btn')) {
+        $(".show-btn." + clickClasses).each(function(i, obj) {
+            obj.click();
+        });
+    } else {
+        $(".plus-icon:not('.show-btn')." + clickClasses).each(function(i, obj) {
+            obj.click();
+        });
+    }
+    elem.toggleClass('show-btn');
+}
+
 
 // Скриване на полета с определен клас при натискане на конкретен бутон
 function toggleDisplayByClass(btnId, toggleClass, toggleParent) {
@@ -1238,10 +1276,10 @@ function setTrigger() {
          var sp = $(this);
          if (!($(obj).hasClass('hidden'))) {
              $(obj).slideUp(400);
-             sp.html('►'); $(obj).addClass('hidden');
+             sp.html('▶'); $(obj).addClass('hidden');
          } else {
              $(obj).slideDown(400);
-             sp.html('▼'); $(obj).removeClass('hidden');
+             sp.html('▽'); $(obj).removeClass('hidden');
          }
          event.stopPropagation();
     });
@@ -1726,22 +1764,29 @@ function setMinHeightExt() {
         var bf = $('.beforeFooterNewsbar').length ? parseInt($('.beforeFooterNewsbar').outerHeight()) : 0;
         var af = $('.afterFooterNewsbar').length ? parseInt($('.afterFooterNewsbar').outerHeight()) : 0;
         var tf = $('.topPageNewsbar').length ? parseInt($('.topPageNewsbar').outerHeight()) : 0;
+        var ft = $('.additionalFooter').length ? parseInt($('.additionalFooter').outerHeight()) : 0;
 
 
         if ($('body').hasClass('wide')) {
             var add = 16;
         } else {
-            var add = 47 + parseInt($('.additionalFooter').outerHeight());
+            var add = 9;
         }
 
         if ($('#maincontent').length) {
-
-            var h = (clientHeight - ct - cb - cm - add - totalPadding -bf - af - tf);
+            var h = (clientHeight - ct - cb - cm - add - totalPadding -bf - af - tf - ft);
             if (getWindowWidth() > 600 && $('body').hasClass('narrow')) {
                 h -= 3;
             }
             if (h > 60) {
                 $('#maincontent').css('minHeight', h);
+            }
+            var lf = $('#login-form').outerHeight();
+            if(lf) {
+                var formMargin = Math.ceil(h - lf)/2;
+                if (formMargin > 20) {
+                    $('#login-form').css('marginTop', formMargin);
+                }
             }
         }
     } else if ($('.narrowCenter .headerImg').length) {
@@ -2224,7 +2269,12 @@ function appendQuote(id, line, useParagraph) {
                             isBegin = false;
                         } else {
                             lastVal = newText.pop();
-                            newText.push(lastVal + "[/bQuote]");
+
+                            if (!isBegin) {
+                                lastVal += "[/bQuote]";
+                            }
+
+                            newText.push(lastVal);
                             isBegin = true;
                         }
                     });
@@ -2348,7 +2398,7 @@ function refreshForm(form, removeFields) {
 		form.submit(); return;
 	}
 
-//	form.submit(); return;
+ 	//form.submit(); return;
 	
 	$.ajax({
 		type: frm.attr('method'),
@@ -4281,6 +4331,55 @@ function render_redirect(data) {
     document.location = url;
 }
 
+
+/**
+ * Скирва основната секция и показва само върнатия HTML резултат
+ *
+ * @param object data - Обект с необходимите стойности
+ * data.html - HTML, който да се замести
+ * data.js - стойност за render_js
+ */
+function render_printPage(data) {
+    getEfae().waitPeriodicAjaxCall = 100;
+
+    document.body.innerHTML = '<div id="origContentForHide">' + document.body.innerHTML + '</div>';
+    document.body.innerHTML += '<div id="contentForPrint">' + data.html + '</div>';
+
+    var hideElem = document.getElementById("origContentForHide");
+    hideElem.style.display = 'none';
+
+    render_js(data);
+}
+
+
+/**
+ * Оправя екрана след отпечатване
+ *
+ * @param object data - Обект с необходимите стойности
+ * data.timeOut - колко време да изчака преди това
+ */
+function render_afterPrintPage(data)
+{
+    if (!data.timeOut) {
+        data.timeOut = 1;
+    }
+
+    setTimeout(function() {
+        var bodyHTML = document.getElementById("origContentForHide").innerHTML;
+        document.body.innerHTML = bodyHTML;
+        document.body.style.cursor = '';
+
+        getEfae().waitPeriodicAjaxCall = 0;
+
+        // Пускаме всички `AJAX` заявки след обновяване на страницата
+        for (var lt in getEfae().lastTimeArr) {
+            getEfae().lastTimeArr[lt] = 10000000;
+        }
+        getEfae().process(getEfae().getSubscribed());
+    }, data.timeOut);
+}
+
+
 var oldTitle;
 var oldIconPath;
 var isChanged = false;
@@ -5749,41 +5848,42 @@ JSON.parse = JSON.parse || function (str) {
 
 
 /**
- * Функция за синхронизиране между регистрирания и желания ServiceWorker
+ * Управление на полето за нова фирма
  */
-function syncServiceWorker() {
+function checkVatAndTriger(name) {
+	const vatRegex = new RegExp('^[a-z]{2}[0-9]{6,15}$', 'i');
+	const uicRegex = RegExp('^[0-9]{9,13}$');
+	
+	let target = null;
 
-    if(!isIE() && ('serviceWorker' in navigator)) {
+	name.value = name.value.trim();
 
-        if(typeof navigator.serviceWorker !== 'undefined') {
-            navigator.serviceWorker.getRegistrations().then(function(r) {
-                r.forEach(function(sw) {
-                    if(typeof serviceWorkerURL !== 'undefined') {
-                        if (sw.active.scriptURL.indexOf(serviceWorkerURL) != -1) {
-                            console.log('ServiceWorker registration skiped: ' + serviceWorkerURL);
-                            serviceWorkerURL = false;
-                        } else {
-                            sw.unregister();
-                            console.log('ServiceWorker registration unregistered: ' + sw.active.scriptURL);
-                        }
-                    }
-                });
+	if(vatRegex.test(name.value)) {
+		target = document.getElementsByName("vatId")[0];
+	} else {
+		if (uicRegex.test(name.value)) {
+			target = document.getElementsByName("uicId")[0];
+		}
+	}
+ 
+	if(target != null) {
 
-                // Рефистрираме новия ServiceWorker
-                if((typeof serviceWorkerURL !== 'undefined') && (serviceWorkerURL !== false)) {
-          
-                    navigator.serviceWorker.register(serviceWorkerURL, {scope: '/'}).then(function(registration) {
-                    // Registration was successful
-                        console.log('ServiceWorker registration successful: ' + serviceWorkerURL);
-                    }, function(err) {
-                        // registration failed :(
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-                 }
-            })
-        }
-    }
+		target.value = name.value;
+		name.value = '';
+		const e = new Event("change");
+		target.dispatchEvent(e);
+	} else {
+ 
+		if(name.value != '') {
+ 
+			let vatId = document.getElementsByName("vatId")[0];
+			vatId.setAttribute('onchange', '');
+			let uicId = document.getElementsByName("uicId")[0];
+			uicId.setAttribute('onchange', '');
+		}
+	}
 }
+
 
 /**
  * smartresize - намалява събитията на on resize
@@ -5822,4 +5922,3 @@ runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
-runOnLoad(syncServiceWorker);

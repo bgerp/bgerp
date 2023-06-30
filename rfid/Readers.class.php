@@ -6,8 +6,6 @@
  *
  * Съхранява данни за четците - действие, което описват
  * /вход, изход, маркиране на вал, преминаване на палет и др./.
- * Четеца има драйвер, от който се разбира с какво действие е обвързан,
- * както и попълва данните в Events.
  *
  *
  * @category  bgerp
@@ -21,10 +19,6 @@
  */
 class rfid_Readers extends core_Manager
 {
-    /**
-     * Свойство, което указва интерфейса на вътрешните обекти
-     */
-    public $driverInterface = 'rfid_ReaderIntf';
     
     /**
      * Заглавие
@@ -87,7 +81,6 @@ class rfid_Readers extends core_Manager
     {
         $this->FLD('title', 'varchar', 'caption=Име,mandatory');
         $this->FLD('settins', 'varchar', 'caption=Състояние,mandatory');
-        $this->FLD('driver', 'class(interface=rfid_ReaderIntf)', 'caption=Драйвер,mandatory');
         
         /*
         Формата на серийният номер на картата се изчислява по следните начини и зависи от четеца

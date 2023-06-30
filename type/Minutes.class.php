@@ -45,8 +45,8 @@ class type_Minutes extends type_Int
         $val = strtolower(str::utf2ascii($val));
         
         // Проверка за стойности, означаващи 0, на момента, on time
-        $zeroArr = array('на момента', 'веднага', 'on time');
-        
+        $zeroArr = array('на момента', 'веднага', 'on time', 'без ограничение');
+
         foreach ($zeroArr as $w) {
             if ($val == $w || $val == tr($w)) {
                 

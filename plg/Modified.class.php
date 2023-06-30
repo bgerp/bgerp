@@ -65,7 +65,7 @@ class plg_Modified extends core_Plugin
     public static function on_AfterSetupMVC($mvc, &$res)
     {
         $modRecs = 0;
-        if ($mvc->count('1=1') && !$mvc->count("#modifiedOn > '1971-01-01 00:00:00'")) {
+        if ($mvc->fetch('1=1') && !$mvc->fetch("#modifiedOn > '1971-01-01 00:00:00'")) {
             if($mvc->getField('createdOn', false)){
                 $query = $mvc->getQuery();
                 $query->show('createdOn,createdBy,modifiedOn');

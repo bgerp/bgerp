@@ -79,8 +79,8 @@ class cond_Ranges extends core_Manager
     {
         // Информация за нишката
         $this->FLD('class', 'class(interface=doc_DocumentIntf,select=title)', 'mandatory,caption=Документ');
-        $this->FLD('min', 'bigint(min=0)', 'mandatory,caption=Долна граница');
-        $this->FLD('max', 'bigint(Min=0)', 'mandatory,caption=Горна граница');
+        $this->FLD('min', 'bigint(min=0)', 'mandatory,caption=От №, unit= включително (долна граница), class=w25');
+        $this->FLD('max', 'bigint(Min=0)', 'mandatory,caption=До №, unit= включително (горна граница), class=w25');
         $this->FLD('isDefault', 'enum(no=Не,yes=Да)', 'maxRadio=1,caption=По подразбиране,notNull,value=no');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Достъп->Роли,autohide');
         $this->FLD('users', 'userList', 'caption=Достъп->Потребители,autohide');
@@ -449,7 +449,13 @@ class cond_Ranges extends core_Manager
                     $form->setError('min', "Долната граница не може да е по-голяма от текущия номер|*: <b>{$rec->current}</b>");
                 }
             }
-            
+
+            if($rec->class == sales_Invoices::getClassId()){
+                if($rec->max > 9999999999){
+                    $form->setError('max', "За изходящи фактури, максималния номер трябва да е десетразряден");
+                }
+            }
+
             // Ако диапазона ще е дефолтен, всички останали няма да са дефолтни
             if($rec->isDefault == 'yes'){
                 $id = $rec->id;

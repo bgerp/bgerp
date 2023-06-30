@@ -99,8 +99,8 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         
         $data->rec = $this->innerForm;
         
-        $queryProduct = cat_Products::getQuery();
-        $queryProduct->where("#canManifacture = 'yes' ");
+        // $queryProduct = cat_Products::getQuery();
+        // $queryProduct->where("#canManifacture = 'yes' ");
         
         $query = sales_Sales::getQuery();
         $queryJob = planning_Jobs::getQuery();

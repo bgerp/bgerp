@@ -59,7 +59,7 @@ class select2_Adapter
 
         if ($forceOpen) {
             if (!Request::get('ajax_mode')) {
-                if ($forceOpen != 'onlyFocus') {
+                if ($forceOpen !== 'onlyFocus') {
                     jquery_Jquery::run($tpl, "$('#" . $id . "').select2('open');", true);
                 }
                 jquery_Jquery::run($tpl, "$('#" . $id . "').focus();", true);

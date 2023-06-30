@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-class fileman_webdrv_Debug extends fileman_webdrv_Txt
+class fileman_webdrv_Debug extends fileman_webdrv_Json
 {
     /**
      * Кой таб да е избран по подразбиране

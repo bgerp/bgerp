@@ -61,6 +61,8 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
         $dQuery = planning_ReturnNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
+            if(empty($dRec->quantity)) continue;
+
             $prodRec = cat_Products::fetch($dRec->productId, 'canStore,fixedAsset');
             $productsArr[$dRec->productId] = $dRec->productId;
             $creditArr = null;
@@ -115,7 +117,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
         }
         
         // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if (countR($errorArr)) {
                 $errorArr = implode(', ', $errorArr);
                 acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");

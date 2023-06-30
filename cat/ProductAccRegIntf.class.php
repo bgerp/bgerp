@@ -200,11 +200,10 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
-     *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
-     *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
-     *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
      *               o description                    - забележки
-     *
+     *               o wasteProductId             - ид на шаблон за етикет
+     *               o wasteStart                 - ид на шаблон за етикет
+     *               o wastePercent                 - ид на шаблон за етикет
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал
      *                  o packagingId    - ид на опаковка
@@ -269,18 +268,20 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
         return $this->class->getDeliveryTime($id, $quantity);
     }
-    
-    
+
+
     /**
      * Връща минималното количество за поръчка
      *
-     * @param int|NULL $id - ид на артикул
+     * @param int|NULL $id   - ид на артикул
+     * @param string $action - дали да е за продажба или покупка
+     * @param array $params  - масив от параметри
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id = null)
+    public function getMoq($id = null, $action = 'sell', $params = array())
     {
-        return $this->class->getMoq($id = null);
+        return $this->class->getMoq($id, $action, $params);
     }
     
     
@@ -319,5 +320,17 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     public function getHash($rec)
     {
         return $this->class->getHash($rec);
+    }
+
+
+    /**
+     * Връща масив с файловете цитирани в артикула
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array           - масив от файл хендлъри и имена
+     */
+    public function getLinkedFiles($id)
+    {
+        return $this->class->getLinkedFiles($id);
     }
 }

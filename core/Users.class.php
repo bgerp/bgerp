@@ -1382,7 +1382,7 @@ class core_Users extends core_Manager
             $autoUser->nick = 'Auto_' . str::getRand();
             $autoUser->names = 'Автоматично';
             $autoUser->rolesInput = type_Keylist::fromArray(arr::make($rolesArr, true));
-            $autoUser->ps5enc = core_Users::encodePwd(str::getRand(), $napUser->nick);
+            $autoUser->ps5enc = core_Users::encodePwd(str::getRand(), $autoUser->nick);
             $autoUser->state = 'closed';
 
             cls::get('core_Users')->save_($autoUser, null, 'IGNORE');
@@ -2418,6 +2418,21 @@ class core_Users extends core_Manager
         $user = static::fetch(array("LOWER(#nick) = LOWER('[#1#]') AND #state = 'active'", $nick));
         
         return $user;
+    }
+
+
+    /**
+     * Проверяваме дали потребителят е активен
+     *
+     * @param int $id
+     *
+     * @return bool
+     */
+    public static function isActiveUserId($id)
+    {
+        $user = static::fetch(array("#id = '[#1#]' AND #state = 'active'", $id));
+
+        return (bool) $user;
     }
     
     

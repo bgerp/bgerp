@@ -45,11 +45,10 @@ class batch_plg_TaskDetails extends core_Plugin
         $jobProductId = $Job->fetchField('productId');
         $BatchClass = batch_Defs::getBatchDef($jobProductId);
 
-        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct != 'yes' || !$BatchClass) return;
+        if($rec->type != 'production' || $taskRec->followBatchesForFinalProduct != 'yes' || !$BatchClass) return;
 
         $form->setField('batch', 'input,unit=|*<small>|на|* ' . cat_Products::getTitleById($jobProductId) . "</small>");
         $batchClassType = $BatchClass->getBatchClassType();
-
 
         $form->setFieldType('batch', $batchClassType);
         if (isset($BatchClass->fieldPlaceholder)) {
@@ -59,20 +58,27 @@ class batch_plg_TaskDetails extends core_Plugin
         // Ако има само позволени опции само тях
         $rec->_jobProductId = $jobProductId;
         $allowedOptions = $mvc->getAllowedInBatches($rec);
+
         if(is_array($allowedOptions)){
+            unset($allowedOptions['']);
             $form->setOptions('batch', array('' => '') + $allowedOptions);
+            if(countR($allowedOptions) == 1){
+                $form->setDefault('batch', key($allowedOptions));
+            }
         }
 
         // Ако има налични партиди в склада да се показват като предложения
-        $exBatches = batch_Items::getBatchQuantitiesInStore($jobProductId, $taskRec->storeId);
-        if (countR($exBatches)) {
-            $suggestions = array();
-            foreach ($exBatches as $b => $q) {
-                $verbal = strip_tags($BatchClass->toVerbal($b));
-                $suggestions[$verbal] = $verbal;
-            }
+        if(isset($taskRec->storeId)){
+            $exBatches = batch_Items::getBatchQuantitiesInStore($jobProductId, $taskRec->storeId);
+            if (countR($exBatches)) {
+                $suggestions = array();
+                foreach ($exBatches as $b => $q) {
+                    $verbal = strip_tags($BatchClass->toVerbal($b));
+                    $suggestions[$verbal] = $verbal;
+                }
 
-            $form->setSuggestions('batch', $suggestions);
+                $form->setSuggestions('batch', array('' => '') + $suggestions);
+            }
         }
 
         $fieldCaption = $BatchClass->getFieldCaption();
@@ -100,7 +106,7 @@ class batch_plg_TaskDetails extends core_Plugin
         $Job = doc_Containers::getDocument($taskRec->originId);
 
         $jobProductId = $Job->fetchField('productId');
-        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct != 'yes') return;
+        if($rec->type != 'production' || $taskRec->followBatchesForFinalProduct != 'yes') return;
 
         if (isset($jobProductId)) {
             $BatchClass = batch_Defs::getBatchDef($jobProductId);
@@ -192,32 +198,53 @@ class batch_plg_TaskDetails extends core_Plugin
         $jobRec = planning_Jobs::fetch("#containerId = {$masterRec->originId}");
         $batchDef = batch_Defs::getBatchDef($jobRec->productId);
         if(!is_object($batchDef)) return;
+        $cu = core_Users::getCurrent();
+        $cuPersonId = crm_Profiles::getPersonByUser($cu);
+        $currentUserIsOperator = false;
 
         $batchesSummary = array();
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->where("#containerId = {$masterRec->originId}");
         while($bRec = $bQuery->fetch()){
-            $batchesSummary[$bRec->batch] = array('planned' => $bRec->quantity / $masterRec->quantityInPack, 'produced' => 0, 'batch' => $batchDef->toVerbal($bRec->batch));
+            $batchesSummary[$bRec->batch] = array('planned' => $bRec->quantity / $masterRec->quantityInPack, 'produced' => 0, 'currentUserProduced' => 0, 'batch' => $batchDef->toVerbal($bRec->batch));
         }
-        if(!countR($batchesSummary)) return;
+
+        $dQuery = planning_ProductionTaskDetails::getQuery();
+        $dQuery->where("#taskId = {$masterRec->id} AND (#type = 'production' OR #type = 'scrap') AND #state != 'rejected'");
+        while($dRec = $dQuery->fetch()){
+            $sign = ($dRec->type == 'scrap') ? -1 : 1;
+            if(!array_key_exists($dRec->batch, $batchesSummary)){
+                $batchesSummary[$dRec->batch] = array('planned' => 0, 'produced' => 0, 'currentUserProduced' => 0, 'batch' => $batchDef->toVerbal($dRec->batch));
+            }
+
+            // Ако текущия потребител е и оператор показва се в отделна колонка
+            if(keylist::isIn($cuPersonId, $dRec->employees)){
+                $batchesSummary[$dRec->batch]['currentUserProduced'] += $sign * ($dRec->quantity / $masterRec->quantityInPack);
+                $currentUserIsOperator = true;
+            }
+            $batchesSummary[$dRec->batch]['produced'] += $sign * ($dRec->quantity / $masterRec->quantityInPack);
+        }
 
         $plannedByNow = arr::sumValuesArray($batchesSummary, 'planned');
         $withoutBatch = ($jobRec->quantity / $masterRec->quantityInPack) - $plannedByNow;
         if($withoutBatch > 0){
-            $batchesSummary[null] = array('planned' => $withoutBatch, 'produced' => 0, 'batch' => null);
+            $batchesSummary[null] = array('planned' => $withoutBatch, 'currentUserProduced' => 0, 'produced' => 0, 'batch' => null);
         }
 
-        $dQuery = planning_ProductionTaskDetails::getQuery();
-        $dQuery->where("#taskId = {$masterRec->id} AND #type = 'production'");
-        while($dRec = $dQuery->fetch()){
-            $batchesSummary[$dRec->batch]['produced'] += $dRec->quantity / $masterRec->quantityInPack;
-        }
-
-        $tpl = new core_ET("<table>[#ROWS#]</table>");
-        $block = new core_ET("<tr ><td><span style='font-weight:normal'><!--ET_BEGIN label-->[#label#]: <!--ET_END label-->[#batch#]</span></td><td>[#produced#] <i style='font-weight:normal'>([#planned#])</i></td>");
+        $tpl = new core_ET("<table class='docHeaderVal'>[#ROWS#]</table>");
+        $block = new core_ET("<tr ><td><span style='font-weight:normal'><!--ET_BEGIN label-->[#label#]: <!--ET_END label-->[#batch#]</span></td><td><!--ET_BEGIN currentUserProduced-->[#currentUserProduced#] <span style='font-weight:normal'>/</span><!--ET_END currentUserProduced--> [#produced#] <i style='font-weight:normal'>/</i> [#planned#]</td>");
         foreach ($batchesSummary as $arr){
             $arr['planned'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['planned']) . " " . cat_UoM::getShortName($masterRec->measureId);
+            $arr['planned'] = ht::createHint($arr['planned'], 'Планирано по Задание', 'noicon');
             $arr['produced'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['produced']);
+            $arr['produced'] = ht::createHint($arr['produced'], 'Общо произведено по партидата', 'noicon');
+            if($currentUserIsOperator){
+                $arr['currentUserProduced'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['currentUserProduced']);
+                $arr['currentUserProduced'] = ht::createElement("span", array('style' => 'color:green'), $arr['currentUserProduced']);
+                $arr['currentUserProduced'] = ht::createHint($arr['currentUserProduced'], 'Произведеното от текущия потребител по партидата', 'noicon');
+            } else {
+                unset($arr['currentUserProduced']);
+            }
 
             $batchArr = array();
             if(!empty($arr['batch'])){

@@ -57,6 +57,12 @@ class sales_SalesDetails extends deals_DealDetail
 
 
     /**
+     * Да се показва ли вашия номер
+     */
+    public $showReffCode = true;
+
+
+    /**
      * Полета за скриване/показване от шаблоните
      */
     public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума';
@@ -144,8 +150,16 @@ class sales_SalesDetails extends deals_DealDetail
      * Какви мета данни да изискват продуктите, които да се показват
      */
     public $metaProducts = 'canSell';
-    
-    
+
+
+    /**
+     * Кой може клонира артикулите от оригиналния клониран договор?
+     *
+     * @var string|array
+     */
+    public $canCopydetailsfromcloned = 'ceo, sales';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -230,7 +244,7 @@ class sales_SalesDetails extends deals_DealDetail
                 deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
             }
             
-            if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
+            if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice)) {
                $hintField = isset($data->listFields['packPrice']) ? 'packPrice' : 'amount';
                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
                
@@ -244,13 +258,15 @@ class sales_SalesDetails extends deals_DealDetail
                        $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
                        $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                    }
-                   
-                   $row->{$hintField} = ht::createHint($row->{$hintField}, $warning, 'warning', false);
+                   if(!Mode::isReadOnly()){
+                       $row->{$hintField} = "<span class='priceBellowPrimeCost'>{$row->{$hintField}}</span>";
+                       $row->{$hintField} = ht::createHint($row->{$hintField}, $warning, 'img/16/red-warning.png', false)->getContent();
+                   }
                } elseif(in_array($masterRec->state, array('pending', 'draft'))){
                    
                    // Предупреждение дали цената е под очакваната за клиента
                    $useQuotationPrice = isset($masterRec->originId);
-                   $discount = isset($rec->discount) ? $rec->discount : $rec->autoDiscount;
+                   $discount = $rec->discount ?? $rec->autoDiscount;
                    $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
                         $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false);
@@ -261,7 +277,7 @@ class sales_SalesDetails extends deals_DealDetail
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
             $fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
-            if(doc_plg_HidePrices::canSeePriceFields($masterRec)){
+            if(doc_plg_HidePrices::canSeePriceFields($mvc->Master, $masterRec)){
                 $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
             }
         }
@@ -269,17 +285,28 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Изпълнява се преди клониране
+     * Изпълнява се преди клониране на детайла
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
-        // Преди клониране клонира се и сумата на цената на транспорта
-        $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
-        if (isset($cRec)) {
-            $rec->fee = $cRec->fee;
-            $rec->deliveryTimeFromFee = $cRec->deliveryTime;
-            $rec->_transportExplained = $cRec->explain;
-            $rec->syncFee = true;
+        $masterRec = sales_Sales::fetch($rec->saleId);
+
+        // Прави се опит да се преизичсли наново цената
+        $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
+        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+        if (isset($policyInfo->price)) {
+
+            // Ако има нова цена подменя се
+            $rec->price = $policyInfo->price;
+            $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
+            $rec->discount = $policyInfo->discount;
+        } else {
+
+            // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
+            $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+            if (isset($cRec->fee) && $cRec->fee > 0) {
+                $rec->price -= $cRec->fee / $rec->quantity;
+            }
         }
     }
     
@@ -289,6 +316,29 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        if($rec->_isClone){
+            $masterRec = $mvc->Master->fetch($rec->saleId);
+            if($masterRec->deliveryCalcTransport == 'yes'){
+
+                // След клониране се прави опит да се преизчисли транспорта
+                sales_TransportValues::recalcTransport($mvc->getClassId(), $rec->id);
+                $cRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
+                if (isset($cRec)) {
+                    // Ако може то той ще се запише
+                    $rec->fee = $cRec->fee;
+                    $rec->deliveryTimeFromFee = $cRec->deliveryTime;
+                    $rec->_transportExplained = $cRec->explain;
+                    $rec->syncFee = true;
+
+                    // Към новата или старата цена (без транспорт) се добавя този на новия изчислен транспорт
+                    if (isset($rec->fee) && $rec->fee > 0) {
+                        $rec->price += $rec->fee / $rec->quantity;
+                        $mvc->save_($rec, 'price');
+                    }
+                }
+            }
+        }
+
         // Синхронизиране на сумата на транспорта
         if ($rec->syncFee === true) {
             sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);

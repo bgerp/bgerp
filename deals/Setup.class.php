@@ -8,19 +8,19 @@ defIfNot('DEALS_BALANCE_TOLERANCE', '0.01');
 
 
 /**
- * Напомняне за неконтиран документ със стар вальор първо
+ * Напомняне за неконтиран документ с минал падеж/вальор първо
  */
 defIfNot('DEALS_OVERDUE_PENDING_DAYS_1', '1');
 
 
 /**
- * Напомняне за неконтиран документ със стар вальор второ
+ * Напомняне за неконтиран документ с минал падеж/вальор второ
  */
-defIfNot('DEALS_OVERDUE_PENDING_DAYS_2', '5');
+defIfNot('DEALS_OVERDUE_PENDING_DAYS_2', '6');
 
 
 /**
- * Напомняне за неконтиран документ със стар вальор трето
+ * Напомняне за неконтиран документ с минал падеж/вальор трето
  */
 defIfNot('DEALS_OVERDUE_PENDING_DAYS_3', '14');
 
@@ -116,9 +116,9 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
         'DEALS_ISSUER_USER' => array('user(roles=ceo|salesMaster,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител'),
         'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Или'),
-        'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Първо след,unit=дни'),
-        'DEALS_OVERDUE_PENDING_DAYS_2' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Второ след,unit=дни'),
-        'DEALS_OVERDUE_PENDING_DAYS_3' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Трето след,unit=дни'),
+        'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Първо след,unit=дни'),
+        'DEALS_OVERDUE_PENDING_DAYS_2' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Второ след,unit=дни'),
+        'DEALS_OVERDUE_PENDING_DAYS_3' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Трето след,unit=дни'),
         'DEALS_ACTIVE_DEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни продажби и покупки без нови документи->Хоризонт'),
         'DEALS_ACTIVE_FINDEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни финансови сделки без нови документи->Хоризонт'),
         'DEALS_TEST_VAT_CALC' => array('enum(no=Не,yes=Да)', 'caption=Дебъг->Тестово закръгляне,autohide=any'),
@@ -255,7 +255,9 @@ class deals_Setup extends core_ProtoSetup
                         
                         // Подготовка на текста на нотификацията
                         $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($dRec->amount);
+                        Mode::push('text', 'plain');
                         $amountVerbal = currency_Currencies::decorate($amountVerbal, $dRec->currencyId);
+                        Mode::pop('text');
                         $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
                         $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
                         $msg = "|Просрочен документ|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";

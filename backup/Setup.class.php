@@ -1,6 +1,9 @@
 <?php
 
 
+
+use Aws\S3\S3Client;
+
 /**
  * Уникален префикс за имената на архивираните файлове
  */
@@ -49,11 +52,6 @@ defIfNot('BACKUP_MYSQL_USER_NAME', 'backup');
  */
 defIfNot('BACKUP_MYSQL_USER_PASS', 'swordfish');
 
-
-/**
- * MySql host за бекъп
- */
-defIfNot('BACKUP_MYSQL_HOST', 'localhost');
 
 
 /**
@@ -178,7 +176,7 @@ class backup_Setup extends core_ProtoSetup
         'BACKUP_FILEMAN_COUNT_FILES' => array('int', 'caption=По колко файла да се архивират наведнъж->Брой'),
         'BACKUP_MYSQL_USER_NAME' => array('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
         'BACKUP_MYSQL_USER_PASS' => array('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
-        'BACKUP_MYSQL_HOST' => array('varchar', 'caption=Връзка към MySQL->Хост'),
+//        'BACKUP_MYSQL_HOST' => array('varchar', 'caption=Връзка към MySQL->Хост'),
         'BACKUP_CLEAN_KEEP' => array('int', 'caption=Колко пълни бекъп-и да се пазят?->Брой'),
         'BACKUP_CRYPT' => array('enum(yes=Да, no=Не)', 'notNull,value=no,maxRadio=2,caption=Сигурност на архивите->Криптиране'),
         'BACKUP_PASS' => array('password', 'caption=Сигурност на архивите->Парола'),
@@ -213,15 +211,19 @@ class backup_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
+        $html .= core_Composer::install('aws/aws-sdk-php', '3.272.2');
+        if (!empty(core_Composer::$error)) {
+            return $html;
+        }
         // Отключваме процеса, ако не е бил легално отключен
         backup_Start::unLock();
-        
+
         $cfgRes = $this->checkConfig(true);
         
         // Имаме грешка в конфигурацията - не добавяме задачите на крона
         if (!is_null($cfgRes)) {
-            
-            return $html;
+
+            return $cfgRes;
         }
         
         
@@ -307,47 +309,47 @@ class backup_Setup extends core_ProtoSetup
         
         // проверка дали всичко е наред с mysqldump-a
         $cmd = 'mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h'
-                . $conf->BACKUP_MYSQL_HOST . ' -u'
+            . EF_DB_HOST . ' -u'
                         . $conf->BACKUP_MYSQL_USER_NAME . ' -p'
                                 . $conf->BACKUP_MYSQL_USER_PASS . ' ' . EF_DB_NAME . ' 2>&1';
         @exec($cmd, $output, $returnVar);
         
         if ($returnVar !== 0) {
-            
-            return "|*<li class='debug-error'>|mysqldump грешка при свързване|*!</li>";
+            // print_r($output);die;
+            return "|*<li class='debug-error'>|mysqldump грешка при свързване!|*</li>";
         }
         
         // Проверка дали gzip е наличен
         @exec('gzip --version', $output, $returnVar);
         if ($returnVar !== 0) {
             
-            return "<li class='debug-error'>липсва gzip!</li>";
+            return "|*<li class='debug-error'>|Липсва gzip!|*</li>";
         }
         
         // Проверка дали tar е наличен
         @exec('tar --version', $output, $returnVar);
         if ($returnVar !== 0) {
             
-            return "<li class='debug-error'>липсва tar!</li>";
+            return "|*<li class='debug-error'>|Липсва tar!|*</li>";
         }
         
         // Проверка дали MySql сървъра е настроен за binlog
-        $res = @exec('mysql -u' . EF_DB_USER . '  -p' . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
+        $res = @exec('mysql -h' . EF_DB_HOST . ' -u' . EF_DB_USER . '  -p' . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
         
         // Премахваме всички табулации, нови редове и шпации - log_bin ON
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'log_binon') {
-            
-            return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
+
+            return "|*<li class='debug-error'>|MySQL-a не е настроен за binlog!|*</li>";
         }
         
-        $res = @exec('mysql -u' . EF_DB_USER . '  -p' . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
+        $res = @exec('mysql -h' . EF_DB_HOST . ' -u' . EF_DB_USER . '  -p' . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
         
         // Премахваме всички табулации, нови редове и шпации - server_id 1
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'server_id1') {
             
-            return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
+            return "|*<li class='debug-error'>|MySQL-a не е настроен за binlog!|*</li>";
         }
     }
 }

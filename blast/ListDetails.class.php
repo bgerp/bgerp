@@ -565,8 +565,8 @@ class blast_ListDetails extends doc_Detail
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
         $exp->question('#csvData', tr('Моля, поставете данните') . ':', "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за контакти'));
         
-        $exp->DEF('#companiesGroup=Група фирми', 'group(base=crm_Companies,keylist=groupList)', 'mandatory');
-        $exp->DEF('#personsGroup=Група лица', 'group(base=crm_Persons,keylist=groupList)', 'mandatory');
+        $exp->DEF('#companiesGroup=Група фирми', 'group(base=crm_Companies,keylist=groupList,allowEmpty)', 'notNull');
+        $exp->DEF('#personsGroup=Група лица', 'group(base=crm_Persons,keylist=groupList,allowEmpty)', 'notNull');
         $exp->DEF('#inChargeUsers=Отговорници', 'userList', 'notNull');
         
         $exp->question('#companiesGroup,#inChargeUsers', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
@@ -955,10 +955,12 @@ class blast_ListDetails extends doc_Detail
         }
         
         $cQuery = $class::getQuery();
-        $groupId = self::expandTree($groupId);
-        
-        $cQuery->likeKeylist('groupList', $groupId);
-        
+        if ($groupId) {
+            $groupId = self::expandTree($groupId);
+
+            $cQuery->likeKeylist('groupList', $groupId);
+        }
+
         $cQuery->groupBy('country');
         
         $cQuery->orderBy('country', 'ASC');
@@ -1406,7 +1408,7 @@ class blast_ListDetails extends doc_Detail
                     
                     $allEmailArr[$email] = $email;
 
-                    if (self::isContragentEmailHaveRightAccess($contragentAccess, $email)) {
+                    if (!self::isContragentEmailHaveRightAccess($contragentAccess, $email)) {
 
                         continue;
                     }
@@ -1481,10 +1483,12 @@ class blast_ListDetails extends doc_Detail
         $mvc = cls::get($className);
         
         $cQuery = $mvc->getQuery();
-        $groupId = self::expandTree($groupId);
+        if ($groupId) {
+            $groupId = self::expandTree($groupId);
+            $cQuery->likeKeylist('groupList', $groupId);
+        }
         $cQuery->where("#state != 'rejected'");
-        $cQuery->likeKeylist('groupList', $groupId);
-        
+
         if ($inChargeUsers) {
             $cQuery->in('inCharge', $inChargeUsers);
         }

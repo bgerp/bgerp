@@ -1537,9 +1537,9 @@ class crm_Profiles extends core_Master
             $row = $Users->recToVerbal($rec, 'nick');
             $title = 'на|*: ' . $row->nick;
         } else {
-            $roleId = type_UserOrRole::getRoleIdFromSys($userOrRoleId);
+            type_UserOrRole::getRoleIdFromSys($userOrRoleId, $roleType);
             
-            $title = 'за роля';
+            $title = $roleType == 'domain' ? 'за домейн': 'за роля';
         }
         
         // Определяме заглавито

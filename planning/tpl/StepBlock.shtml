@@ -1,6 +1,13 @@
 [#info#]
 <div class="stepProductSingleGroup">|Етап в производството - спецификация|*</div>
     <table class="stepParamTable">
+		<!--ET_BEGIN image-->
+		<div class="productImage">
+			<div>
+				[#image#]
+			</div>
+		</div>
+		<!--ET_END image-->
     	<tr>
     		<td class='quiet'>|Операция|*:</td>
     		<td>[#planning_Steps_name#]</td>
@@ -37,10 +44,16 @@
 		<!--ET_END planning_Steps_planningParams-->
 		<!--ET_BEGIN planning_Steps_showPreviousJobField-->
 		<tr>
-			<td class='quiet'>|Предх. Зад.|*:</td>
+			<td class='quiet nowrap'>|Предх. Зад.|*:</td>
 			<td>[#planning_Steps_showPreviousJobField#]</td>
 		</tr>
 		<!--ET_END planning_Steps_showPreviousJobField-->
+		<!--ET_BEGIN planning_Steps_calcWeightMode-->
+		<tr>
+			<td class='quiet nowrap'>|Изчисляване на тегло|*:</td>
+			<td>[#planning_Steps_calcWeightMode#]</td>
+		</tr>
+		<!--ET_END planning_Steps_calcWeightMode-->
 
 		<!--ET_BEGIN PARAMS-->
 		<tr>
@@ -112,6 +125,12 @@
 			<td>[#planning_Steps_labelQuantityInPack#]</td>
 		</tr>
 		<!--ET_END planning_Steps_labelQuantityInPack-->
+		<!--ET_BEGIN planning_Steps_labelTransferQuantityInPack-->
+		<tr>
+			<td class='quiet'>|К-во|*:</td>
+			<td>[#planning_Steps_labelTransferQuantityInPack#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelTransferQuantityInPack-->
 
 		<!--ET_BEGIN planning_Steps_labelType-->
 		<tr>

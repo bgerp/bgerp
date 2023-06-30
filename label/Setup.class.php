@@ -1,5 +1,14 @@
 <?php
 
+/**
+<<<<<<< HEAD
+ * Автоматичнот отпечатване слез "Запис и Нов"
+=======
+ * Автоматично отпечатване след "Запис и Нов"
+>>>>>>> refs/remotes/origin/test
+ */
+defIfNot('LABEL_AUTO_PRINT_AFTER_SAVE_AND_NEW', 'no');
+
 
 /**
  * Инсталиране/Деинсталиране на
@@ -9,7 +18,7 @@
  * @package   label
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -69,6 +78,14 @@ class label_Setup extends core_ProtoSetup
         array('seeLabelAll', 'seeLabel'),
         array('seeLabelAllGlobal', 'seeLabelAll'),
     );
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'LABEL_AUTO_PRINT_AFTER_SAVE_AND_NEW' => array('enum(no=Не,yes=Да)', 'caption=Автоматично отпечатване след "Запис и Нов"->Избор,customizeBy=label'),
+    );
     
     
     /**
@@ -85,9 +102,24 @@ class label_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Принтиране на етикети от прогрес на производствена операция', 'label_plg_Print', 'planning_ProductionTaskDetails', 'private');
         $html .= $Plugins->installPlugin('Принтиране на етикети от протокол за производство', 'label_plg_Print', 'planning_DirectProductionNote', 'private');
         $html .= $Plugins->installPlugin('Принтиране на етикети от производствена операция', 'label_plg_Print', 'planning_Tasks', 'private');
+        $html .= $Plugins->installPlugin('Принтиране на етикети от договор за продажба', 'label_plg_Print', 'sales_Sales', 'private');
 
         core_Interfaces::add('label_TemplateRendererIntf');
-        
+
         return $html;
+    }
+
+
+    /**
+     * Миграция на етикети
+     */
+    public function closeTemplates2246()
+    {
+        $labelRec = label_Templates::fetch("#sysId = 'defaultTplShipmentOrderDetail'");
+        if(is_object($labelRec)){
+            $labelRec->state = 'closed';
+            $labelRec->exState = 'active';
+            label_Templates::save($labelRec);
+        }
     }
 }

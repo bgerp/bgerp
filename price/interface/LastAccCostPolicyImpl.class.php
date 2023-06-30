@@ -70,6 +70,15 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
             
             return $res;
         } else {
+
+            // Ако баланса се записва в момента, чака се докато свърши
+            $maxTry = 5;
+            while(core_Locks::isLocked(acc_Balances::saveLockKey)){
+                sleep(1);
+                $maxTry--;
+                if($maxTry <= 0) break;
+            }
+
             if(is_array($affectedTargetedProducts)){
                 foreach ($affectedTargetedProducts as $key => $productId){
                     if(array_key_exists($productId, self::$cache)){
@@ -127,6 +136,10 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
 
             // Подсигуряване, че сумата няма да е отрицателна 0. -0 и 0 са равни при проверка с ==
             $amount = ($amount == 0) ? 0 : $amount;
+            $amountToCheck = round($amount, 5);
+
+            // Ако изчислената средна складова е 0 няма да се запише
+            if(empty($amountToCheck)) continue;
 
             $r->quantity = (!$r->quantity) ? 0 : $r->quantity;
             

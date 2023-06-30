@@ -19,14 +19,40 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,planning,hrMaster';
+    public $canSelectDriver = 'ceo,task,hrMaster';
 
     /**
      * Кои полета от листовия изглед да може да се сортират
      *
      * @var int
      */
-    protected $sortableListFields = 'employees';
+    protected $sortableListFields;
+
+    /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields;
+
+
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО';
+
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    protected $groupByField ;
+
+
+    /**
+     * По-кое поле да се групират данните след групиране, вътре в групата
+     */
+    protected $subGroupFieldOrder;
 
 
     /**
@@ -38,9 +64,17 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
 
     /**
+     * Максимален допустим брой записи на страница
+     *
+     * @var int
+     */
+    protected $maxListItemsPerPage = 1000;
+
+
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'start,to,resultsOn,centre,assetResources,employees';
+    protected $changeableFields = 'start,to,resultsOn,centre,assetResources,typeOfReport';
 
 
     /**
@@ -53,13 +87,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fieldset->FLD('start', 'datetime', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'datetime', 'caption=До,after=start,single=none,mandatory');
 
-        $fieldset->FLD('centre', 'key(mvc=planning_Centers,title=name)', 'caption=Център,removeAndRefreshForm,after=to,silent');
-        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,title=title)', 'caption=Машини,placeholder=Всички,after=centre,single=none');
-        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none');
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,after=to,single=none');
+        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources)', 'caption=Машини,placeholder=Всички,after=centre,single=none,input=none');
+        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none,input=none');
 
         $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
 
-        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,maxRadio=4,columns=4,after=typeOfReport,single=none');
+        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
 
         $fieldset->FNC('indTimeSumArr', 'blob', 'caption=Времена,input=none,single=none');
     }
@@ -86,24 +120,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $form->setField('resultsOn', 'input=none');
         }
 
-
-        if ($rec->centre) {
-
-            $suggestions = array();
-            $suggestions = planning_Hr::getByFolderId(planning_Centers::fetch($rec->centre)->folderId);
-
-            foreach ($suggestions as $key => $val) {
-                $suggestions[$key] = crm_Persons::fetch($key)->name;
-            }
-
-            $form->setSuggestions('employees', $suggestions);
-
-            $suggestions = '';
-
-            $suggestions = planning_AssetResources::getByFolderId(planning_Centers::fetch($rec->centre)->folderId);
-
-            $form->setSuggestions('assetResources', $suggestions);
-        }
     }
 
 
@@ -138,6 +154,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $quantitiesByMeasure = array();
 
         $query = planning_ProductionTaskDetails::getQuery();
 
@@ -149,22 +166,30 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         // Ако е посочена начална дата на период
         if ($rec->start) {
-            $query->where("(#date IS NOT NULL AND #date >= '$rec->start .00:00:01') OR (#date IS NULL AND #createdOn >= '$rec->start .00:00:01')");
+            $query->where("(#date IS NOT NULL AND #date >= '$rec->start') OR (#date IS NULL AND #createdOn >= '$rec->start')");
         }
 
         //Крайна дата / 'към дата'
-        if ($rec->to) {
-            $query->where("(#date IS NOT NULL AND #date <= '$rec->to.23:59:59') OR (#date IS NULL AND #createdOn <= '$rec->to.23:59:59')");
+        $date = strtotime($rec->to);
+        if ($rec->to && date('H:i:s', $date) == '00:00:00') {
+            $date = date('Y:m:d 23:59:59', $date);
+
+            $query->where("(#date IS NOT NULL AND #date <= '$date')OR (#date IS NULL AND #createdOn <= '$date')");
+        } else {
+            $query->where("(#date IS NOT NULL AND #date <= '$rec->to')OR (#date IS NULL AND #createdOn <= '$rec->to')");
         }
 
         //Филтър по център на дейност
         if ($rec->centre) {
-            $cFolderId = planning_Centers::fetch($rec->centre)->folderId;
-            $query->where("#folderId = $cFolderId");
+
+            foreach (keylist::toArray($rec->centre) as $cent) {
+                $centFoldersArr[planning_Centers::fetch($cent)->folderId] = planning_Centers::fetch($cent)->folderId;
+            }
+            $query->in('folderId', $centFoldersArr);
         }
 
         //Филтър по служители
-        if ($rec->employees) {
+        if ($rec->employees && $rec->resultsOn != 'arts') {
             $query->likeKeylist('employees', $rec->employees);
         }
 
@@ -177,6 +202,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         $indTimeSumArr = array();
+        $typesQuantities = (object)array(
+
+            'total' => 'total',
+            'production' => 0,
+            'input' => 0,
+            'waste' => 0,
+            'quantitiesByMeasure' => array(),
+        );
+
         while ($tRec = $query->fetch()) {
             $id = self::breakdownBy($tRec, $rec);
 
@@ -190,10 +224,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
 
             foreach ($counter as $val) {
+
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
-                $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity,originId');
+
+                $iRec = $Task->fetch('id,containerId,saoOrder,measureId,folderId,quantityInPack,indTimeAllocation,labelPackagingId,indTime,indPackagingId,totalQuantity,originId');
 
                 $quantity = $tRec->quantity;
+                $weight = round($tRec->weight, 3);
+                $crapQuantity = 0;
 
                 //Количеството се преизчилсява според мерките за производство
                 $quantityInPack = 1;
@@ -225,9 +263,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 }
 
                 if ($divisor) {
-
                     $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
-
                     $indTimeSum = $timeAlocation * $normTime;
 
                 } else {
@@ -235,6 +271,16 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 }
 
                 $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
+
+                //Ако е брак
+                if ($tRec->type == 'scrap') {
+                    // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
+                    $crapQuantity = round(($tRec->quantity), 3);
+                    $quantity = round(($tRec->quantity * (-1)), 3);
+                    $weight = round($tRec->weight * (-1), 3);
+                    $labelQuantity = 0;
+                    $indTimeSum = $indTimeSum * (-1);
+                }
 
 
                 // Запис в масива
@@ -244,38 +290,37 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'taskId' => $tRec->taskId,
                         'originId' => $tRec->originId,
                         'detailId' => $tRec->id,
+                        'saoOrder' => $iRec->saoOrder,
+                        'type' => $tRec->type,
                         'indTime' => $normTime,
                         'indTimeSum' => $indTimeSum,
                         'indPackagingId' => $iRec->indPackagingId,
-                        'indTimeAllocation' => $iRec->indTimeAllocation,
                         'quantityInPack' => $iRec->quantityInPack,
-
                         'employees' => $employees,
                         'employeesName' => $employeesName,
                         'assetResources' => $tRec->fixedAsset,
-
+                        'indTimeAllocation' => $iRec->indTimeAllocation,
                         'productId' => $tRec->productId,
                         'measureId' => $pRec->measureId,
 
-                        'quantity' => $tRec->quantity,
-                        'scrap' => $tRec->scrappedQuantity,
+                        'quantity' => $quantity,
+                        'scrap' => $crapQuantity,
 
                         'labelMeasure' => $iRec->labelPackagingId,
                         'labelQuantity' => $labelQuantity,
 
-                        'weight' => $tRec->weight,
+                        'weight' => $weight,
                         'indTimeSumArr' => '',
 
                     );
                 } else {
                     $obj = &$recs[$id];
 
-                    $obj->quantity += $tRec->quantity;
-                    $obj->scrap += $tRec->scrappedQuantity;
+                    $obj->quantity += $quantity;
+                    $obj->scrap += $crapQuantity;
                     $obj->labelQuantity += $labelQuantity;
                     $obj->indTimeSum += $indTimeSum;
-
-                    $obj->weight += $tRec->weight;
+                    $obj->weight += $weight;
                 }
             }
         }
@@ -283,11 +328,24 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if (countR($recs)) {
             arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
         }
+        if ($rec->typeOfReport == 'short') {
+            $this->summaryListFields = 'labelQuantity';
+        }
 
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
-            if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+
+            if ($rec->resultsOn == 'users') {
+                $this->subGroupFieldOrder = 'taskId';
                 $this->groupByField = 'employees';
+
+            }
+
+            if ($rec->resultsOn == 'usersMachines') {
+
+                $this->subGroupFieldOrder = 'assetResources';
+                $this->groupByField = 'employees';
+
             }
 
             //Разпределяне по работници,или по машини
@@ -303,17 +361,16 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $clone = clone $val;
 
-
                 foreach ($arr as $k => $v) {
                     unset($id);
 
-                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees))) {
+                    if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees)) && $rec->resultsOn != 'arts' && $rec->resultsOn != 'machines') {
                         continue;
                     }
 
                     if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                         $employeesName = crm_Persons::getTitleById($v);
-                    }else{
+                    } else {
                         $employeesName = '';
                     }
 
@@ -332,12 +389,32 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         $id = $val->taskId . '|' . $val->productId . '|' . '|' . $v . '|' . '|' . $val->assetResources;
                     }
 
+                    $labelQuantity = $clone->labelQuantity;
                     if ($divisor) {
                         $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
                         $indTimeSum = $timeAlocation * $clone->indTime;
+                        if ($clone->type == 'input') {
+                            $labelQuantity = 1;
+                        }
                     } else {
                         $indTimeSum = 0;
                     }
+
+                    //Попълваме масива с количствата по различните видове етикетирания(производство, влагане, отпадък)
+                    if ($clone->type == 'production' || $clone->type == 'scrap') {
+                        $typesQuantities->production += $clone->labelQuantity;
+                    } elseif ($clone->type == 'waste') {
+                        $typesQuantities->waste += $clone->labelQuantity;
+                    } elseif ($clone->type == 'input') {
+                        $typesQuantities->input += 1;
+                    }
+
+                    if (!array_key_exists($clone->measureId, $quantitiesByMeasure)) {
+                        $quantitiesByMeasure[$clone->measureId] = $clone->quantity;
+                    } else {
+                        $quantitiesByMeasure[$clone->measureId] += $clone->quantity;
+                    }
+
 
                     $indTimeSum = $clone->indTimeSum;
 
@@ -348,25 +425,23 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                             'taskId' => $clone->taskId,
                             'originId' => $clone->originId,
+                            'saoOrder' => $clone->saoOrder,
                             'detailId' => $clone->detailId,
+                            'type' => $clone->type,
                             'indTime' => $clone->indTime,
                             'indPackagingId' => $clone->indPackagingId,
-                            'indTimeAllocation' => $clone->indTimeAllocation,
-
                             'indTimeSum' => $indTimeSum,
-
                             'employees' => '|' . $v . '|',
                             'employeesName' => $employeesName,
                             'assetResources' => $clone->assetResources,
-
+                            'indTimeAllocation' => $clone->indTimeAllocation,
                             'productId' => $clone->productId,
                             'measureId' => $clone->measureId,
-
                             'quantity' => $clone->quantity / $divisor,
                             'scrap' => $clone->scrap / $divisor,
 
                             'labelMeasure' => $clone->labelMeasure,
-                            'labelQuantity' => $clone->labelQuantity / $divisor,
+                            'labelQuantity' => $labelQuantity / $divisor,
 
                             'weight' => $clone->weight / $divisor,
 
@@ -376,7 +451,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                         $obj->quantity += $clone->quantity / $divisor;
                         $obj->scrap += $clone->scrap / $divisor;
-                        $obj->labelQuantity += $clone->labelQuantity / $divisor;
+                        $obj->labelQuantity += $labelQuantity / $divisor;
                         $obj->weight += $clone->weight / $divisor;
                         $obj->indTimeSum += $indTimeSum;
                     }
@@ -399,6 +474,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         $rec->indTimeSumArr = $indTimeSumArr;
+        $typesQuantities->quantitiesByMeasure = $quantitiesByMeasure;
+
+        //Ако резбивката е по артикули, справката е подробна добавям първи ред със
+        //сумарните ко.личества по дености
+        if ($rec->typeOfReport == 'full' && ($rec->resultsOn == 'arts' || $rec->resultsOn == 'machines')) {
+            array_unshift($recs, $typesQuantities);
+        }
 
         return $recs;
     }
@@ -407,10 +489,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param stdClass $rec
-     *                         - записа
-     * @param bool $export
-     *                         - таблицата за експорт ли е
+     * @param stdClass $rec- записа
+     *
+     * @param bool $export - таблицата за експорт ли е
      *
      * @return core_FieldSet - полетата
      */
@@ -419,16 +500,23 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         if ($export === false) {
+
             if ($rec->typeOfReport == 'full') {
+                if ($rec->resultsOn == 'arts' || $rec->resultsOn == 'machines') {
+                    $fld->FLD('total', 'varchar', 'caption=@Total,tdClass=leftCol');
+                }
+
                 $fld->FLD('jobs', 'varchar', 'caption=Задание');
                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
                 $fld->FLD('article', 'varchar', 'caption=Артикул');
 
                 $fld->FLD('measureId', 'varchar', 'caption=Произведено->Мярка,tdClass=centered');
-                $fld->FLD('quantity', 'double', 'caption=Произведено->Кол');
-                $fld->FLD('scrap', 'double', 'caption=Брак');
-                $fld->FLD('weight', 'double', 'caption=Тегло');
-                $fld->FLD('min', 'double(smartRound,decimals=2)', 'caption=Минути');
+                $fld->FLD('quantity', 'double(decimals=2)', 'caption=Произведено->Кол');
+
+                $fld->FLD('scrap', 'double(decimals=2)', 'caption=Брак');
+                $fld->FLD('weight', 'double(decimals=2)', 'caption=Тегло');
+
+                $fld->FLD('min', 'double(decimals=2)', 'caption=Минути');
                 if ($rec->resultsOn != 'arts') {
                     if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                         $fld->FLD('employees', 'varchar', 'caption=Служител');
@@ -445,17 +533,41 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
             $fld->FLD('labelQuantity', 'varchar', 'caption=Етикет->кол,tdClass=centered');
         } else {
-            $fld->FLD('taskId', 'varchar', 'caption=Задача');
-            $fld->FLD('article', 'varchar', 'caption=Артикул');
 
-            $fld->FLD('measureId', 'varchar', 'caption=Произведено->Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'varchar', 'caption=Произведено->Кол');
+            if ($rec->typeOfReport == 'full') {
+
+                if ($rec->resultsOn != 'arts') {
+                    if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+                        $fld->FLD('employees', 'varchar', 'caption=Служител');
+                    }
+
+                    if ($rec->resultsOn == 'usersMachines' || $rec->resultsOn == 'machines') {
+                        $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
+                    }
+
+                }
+
+                $fld->FLD('jobs', 'varchar', 'caption=Задание');
+                $fld->FLD('taskId', 'varchar', 'caption=Операция');
+                $fld->FLD('article', 'varchar', 'caption=Артикул');
+
+                $fld->FLD('measureId', 'varchar', 'caption=Произведено->Мярка,tdClass=centered');
+                $fld->FLD('quantity', 'double(decimals=2)', 'caption=Произведено->Кол');
+
+                $fld->FLD('scrap', 'double(decimals=2)', 'caption=Брак');
+                $fld->FLD('weight', 'double(decimals=2)', 'caption=Тегло');
+
+                $fld->FLD('min', 'double(decimals=2)', 'caption=Минути');
+            }
+
+            if ($rec->typeOfReport == 'short') {
+                $fld->FLD('employees', 'varchar', 'caption=Служител');
+                $fld->FLD('indTimeSum', 'double(decimals=2)', 'caption=Време->min,tdClass=centered');
+            }
+
             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
-            $fld->FLD('labelQuantity', 'varchar', 'caption=Етикет->кол,tdClass=centered');
-            $fld->FLD('scrap', 'varchar', 'caption=Брак');
-            $fld->FLD('weight', 'varchar', 'caption=Тегло');
-            $fld->FLD('employees', 'varchar', 'caption=Служител');
-            $fld->FLD('assetResources', 'varchar', 'caption=Оборудване,tdClass=centered');
+            $fld->FLD('labelQuantity', 'double(decimals=2)', 'caption=Етикет->кол,tdClass=centered');
+            $fld->FLD('total', 'varchar', 'caption=@ТОТАЛ');
         }
 
         return $fld;
@@ -474,29 +586,45 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        $isPlain = Mode::is('text', 'plain');
-        $Int = cls::get('type_Int');
-        $Date = cls::get('type_Date');
-        $Time = cls::get('type_Time');
+
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+
         $row = new stdClass();
 
+        if ($dRec->total) {
+            $row->total = '';
+            $row->total .= 'Етикетирано ' . $dRec->production . " ; ";
+            $row->total .= 'Вложено ' . $dRec->input . " ; ";
+            $row->total .= 'Отпадък ' . $dRec->waste;
+            $row->total .= "</br>" . 'Произведено: ';
+            if(is_array($dRec->quantitiesByMeasure)){
+                foreach ($dRec->quantitiesByMeasure as $meas => $q) {
+
+                    $row->total .= cat_UoM::fetch($meas)->name . ' - ' . $q . " ; ";
+
+                }
+            }
+
+
+            return $row;
+        }
 
         if ($dRec->originId) {
             $Job = doc_Containers::getDocument($dRec->originId);
             $row->jobs = ht::createLink($Job->getHandle(), array($Job->getInstance(), 'single', $Job->that));
         }
 
-        $row->taskId = planning_Tasks::getHyperlink($dRec->taskId, true);
+        if ($dRec->taskId){
+            $row->taskId = '№'.$dRec->saoOrder.' / '. planning_Tasks::getHyperlink($dRec->taskId, true);
+        }
+
         $row->article = cat_Products::getHyperlink($dRec->productId, true);
 
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
 
-        $row->labelMeasure = isset($dRec->labelMeasure) ? cat_UoM::getShortName($dRec->labelMeasure) : '';
-
-
+        $row->labelMeasure = ($dRec->type == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure);
         $row->labelQuantity = $Double->toVerbal($dRec->labelQuantity);
 
         $row->scrap = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->scrap);
@@ -513,7 +641,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                     $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val]);
 
-                    $name = crm_Persons::fetch($val)->name;
+                    $name = crm_Persons::fetch($val)->name.' / '.planning_Hr::getCodeLink($val);
                     $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
 
                     $row->employees .= $pers . '</br>';
@@ -521,7 +649,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
         }
         if (isset($dRec->assetResources)) {
-            $row->assetResources = planning_AssetResources::fetch($dRec->assetResources)->name;
+            $assetResources = '[' . planning_AssetResources::fetch($dRec->assetResources)->code . ']' . planning_AssetResources::fetch($dRec->assetResources)->name;
+            $row->assetResources = ht::createLink($assetResources, array('planning_AssetResources', 'single', $dRec->assetResources));
         } else {
             $row->assetResources = '';
         }
@@ -548,8 +677,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN start--><div>|От|*: [#start#]</div><!--ET_END start-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN centre--><div>|Центрове|*: [#centre#]</div><!--ET_END centre-->
                                         <!--ET_BEGIN employees--><div>|Служители|*: [#employees#]</div><!--ET_END employees-->
                                         <!--ET_BEGIN assetResources--><div>|Оборудване|*: [#assetResources#]</div><!--ET_END assetResources-->
+                                        <!--ET_BEGIN button--><div>|Филтри |*: [#button#]</div><!--ET_END button-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -561,6 +692,27 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
             }
 
+            if (isset($data->rec->centre)) {
+                $marker = 0;
+                $empText = 'Всички от избраните центрове';
+                $worning = null;
+
+                foreach (type_Keylist::toArray($data->rec->centre) as $ce) {
+                    $marker++;
+
+                    $centreVerb .= (planning_Centers::getHyperlink(($ce)));
+
+                    if ((countR(type_Keylist::toArray($data->rec->centre))) - $marker != 0) {
+                        $centreVerb .= ', ';
+                    }
+                }
+
+                $fieldTpl->append('<b>' . $centreVerb . '</b>', 'centre');
+            } else {
+                $worning = "warning='Липсва избран център на дейност'";
+                $empText = 'Всички';
+            }
+
 
             if (($data->rec->resultsOn == 'users' || $data->rec->resultsOn == 'usersMachines')) {
                 if (isset($data->rec->employees)) {
@@ -568,7 +720,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
                         $marker++;
 
-                        $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
+                        $employeesVerb .= (crm_Persons::getHyperlink($empl, 'name'));
 
                         if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
@@ -577,15 +729,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                     $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
                 } else {
-                    $fieldTpl->append('<b>' . 'Всички от този център на дейност' . '</b>', 'employees');
+                    $fieldTpl->append('<b>' . $empText . '</b>', 'employees');
                 }
             } else {
-                if (isset($data->rec->employees)) {
+                if (isset($data->rec->employees) && ($data->rec->resultsOn != 'arts')) {
                     $marker = 0;
                     foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
                         $marker++;
 
-                        $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
+                        $employeesVerb .= (crm_Persons::getHyperlink($empl, 'name'));
 
                         if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
@@ -593,6 +745,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     }
 
                     $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
+                } else {
+                    $fieldTpl->append('<b>' . $empText . '</b>', 'employees');
                 }
             }
 
@@ -601,7 +755,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 foreach (type_Keylist::toArray($data->rec->assetResources) as $asset) {
                     $marker++;
 
-                    $assetVerb .= planning_AssetResources::fetch($asset)->name;
+                    $assetVerb .= planning_AssetResources::getHyperlink($asset);
 
                     if ((countR(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
                         $assetVerb .= ', ';
@@ -611,6 +765,17 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $fieldTpl->append('<b>' . $assetVerb . '</b>', 'assetResources');
             }
 
+            $grUrl = array('planning_reports_Workflows', 'employeesAndAssets', 'recId' => $data->rec->id, 'ret_url' => true);
+
+            $toolbar = cls::get('core_Toolbar');
+
+            if ($data->rec->resultsOn != 'arts') {
+                $toolbar->addBtn('Филтър по служители и оборудване', toUrl($grUrl), null, $worning);
+            }
+
+
+            $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
+
             $tpl->append($fieldTpl, 'DRIVER_FIELDS');
         }
     }
@@ -618,7 +783,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
     /**
      * Кой може да избере драйвера
-     * ceo, planning+officer
+     * ceo, task+officer
      */
     public function canSelectDriver($userId = null)
     {
@@ -627,7 +792,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             return true;
         }
 
-        if (!haveRole('ceo', $userId) && haveRole('planning', $userId)) {
+        if (!haveRole('ceo', $userId) && haveRole('task', $userId)) {
             if (haveRole('officer', $userId)) {
 
                 return true;
@@ -650,14 +815,20 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        if ($dRec->originId) {
+            $Job = doc_Containers::getDocument($dRec->originId);
+            $handle = $Job->getHandle();
+
+            $res->jobs = $handle;
+        }
         $res->taskId = planning_Tasks::getTitleById($dRec->taskId);
         $res->article = cat_Products::getTitleById($dRec->productId);
+        $res->measureId = cat_UoM::getShortName($dRec->measureId);
 
         if (isset($dRec->employees)) {
             foreach (keylist::toArray($dRec->employees) as $key => $val) {
-                $pers = (core_Users::getNick(crm_Profiles::getUserByPerson($val)));
 
-                $res->employees .= $pers . ', ';
+                $res->employees = crm_Persons::fetch($val)->name;
             }
         }
 
@@ -666,6 +837,16 @@ class planning_reports_Workflows extends frame2_driver_TableData
         } else {
             $res->assetResources = '';
         }
+
+        if ($rec->typeOfReport == 'short') {
+            $res->indTimeSum = ($dRec->indTimeSum / 60);
+        }
+
+
+        $res->min = ($dRec->indTimeSum / 60);
+
+        $res->labelMeasure = ($dRec->type == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure);
+        $res->labelQuantity = ($dRec->labelQuantity);
     }
 
 
@@ -707,7 +888,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
         return $key;
     }
 
-
     /**
      * След рендиране на единичния изглед
      *
@@ -718,6 +898,110 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        $row->centre = planning_Centers::getHyperlink($rec->centre, true);
+        //  $row->centre = planning_Centers::getHyperlink($rec->centre, true);
     }
+
+    /**
+     * Филтриране служител
+     *
+     */
+    public static function act_EmployeesAndAssets()
+    {
+
+        expect($recId = Request::get('recId', 'int'));
+
+        $rec = frame2_Reports::fetch($recId);
+
+        frame2_Reports::refresh($rec);
+
+        $form = cls::get('core_Form');
+
+        $form->title = "Филтър по служители и машини ";
+
+
+        if ($rec->centre) {
+
+
+            $suggestionsEmpl = array();
+            $suggestionsAssets = array();
+
+            foreach (keylist::toArray($rec->centre) as $val) {
+
+                $sugg = planning_Hr::getByFolderId(planning_Centers::fetch($val)->folderId);
+
+                if (empty($suggestionsEmpl)) {
+                    $suggestionsEmpl = $sugg;
+                } else {
+
+                    foreach ($sugg as $key => $v) {
+
+                        if (!in_array($key, array_keys($suggestionsEmpl))) {
+                            $suggestionsEmpl[$key] = $v;
+                        }
+                    }
+
+                }
+
+                unset($sugg);
+
+                $sugg = planning_AssetResources::getByFolderId(planning_Centers::fetch($val)->folderId);
+
+                if (empty($suggestionsAssets)) {
+                    $suggestionsAssets = $sugg;
+                } else {
+                    foreach ($sugg as $key => $v) {
+
+                        if (!in_array($key, array_keys($suggestionsAssets))) {
+                            $suggestionsAssets[$key] = $v;
+                        }
+                    }
+                }
+                unset($sugg);
+            }
+
+            $form->FLD('empployFilter', 'keylist(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Избери служители,placeholder=Изчисти филтъра,silent');
+
+            $form->FLD('assetFilter', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Избери оборудване,placeholder=Изчисти филтъра,silent');
+
+            $form->setSuggestions('empployFilter', $suggestionsEmpl);
+            $form->setSuggestions('assetFilter', $suggestionsAssets);
+            if ($rec->employees) {
+                $form->rec->empployFilter = $rec->employees;
+            }
+            if ($rec->assetResources) {
+                $form->rec->assetFilter = $rec->assetResources;
+            }
+
+            $mRec = $form->input();
+
+            $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+
+            $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+            if ($form->isSubmitted()) {
+
+                if (!$form->rec->empployFilter) {
+                    $rec->employees = null;
+                } else {
+                    $rec->employees = $form->rec->empployFilter;
+                }
+                if (!$form->rec->assetFilter) {
+                    $rec->assetResources = null;
+                } else {
+                    $rec->assetResources = $form->rec->assetFilter;
+                }
+
+                frame2_Reports::save($rec);
+                frame2_Reports::refresh($rec);
+                return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
+            }
+
+        } else {
+            status_Messages::newStatus('Липсва избран център на дейност', 'warning');
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
+        }
+        return $form->renderHtml();
+    }
+
+
 }

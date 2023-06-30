@@ -545,7 +545,7 @@ class acc_Accounts extends core_Manager
         while ($rec = $query->fetch($where)) {
             $title = $this->getRecTitle($rec, false);
             
-            if ($rec->isSynthetic) {
+            if ($rec->isSynthetic != 0) {
                 $res[$rec->{$index}] = (object) array(
                     'title' => $title,
                     'group' => true
@@ -565,7 +565,7 @@ class acc_Accounts extends core_Manager
          * Окастряне на сухите клони на дървото - клоните, които нямат листа.
          */
         foreach ($leafCount as $d) {
-            if ($d[0] == 0) {
+            if (isset($d[0]) && $d[0] == 0) {
                 unset($res[$d[1]]);
             }
         }

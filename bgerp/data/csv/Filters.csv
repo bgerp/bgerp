@@ -1,0 +1,27 @@
+lastAdded,Последно добавени,,"cat_Products,store_Products"
+privateProducts,Нестандартни,Тип,"cat_Products,store_Products"
+publicProducts,Стандартни,Тип,"cat_Products,store_Products"
+eshopProducts,Е-маг артикули,Тип,"cat_Products,store_Products",eshop
+active,Активни,Състояние,
+closed,Закрити,Състояние,
+templates,Шаблонни,Състояние,
+withBatches,С партидност,Партидност,"cat_Products,store_Products",batch
+withoutBatches,Без партидност,Партидност,"cat_Products,store_Products",batch
+vat0,ДДС 0%,ДДС група,"cat_Products,store_Products"
+vat9,ДДС 9%,ДДС група,"cat_Products,store_Products"
+vat20,ДДС 20%,ДДС група,"cat_Products,store_Products"
+reservedQuantity,Запазени,Количество,"store_Products"
+expectedQuantity,Очаквани,Количество,"store_Products"
+freeQuantity,Разполагаеми,Количество,"store_Products"
+canSell,Продаваеми,Свойства,"cat_Products"
+canBuy,Купуваеми,Свойства,"cat_Products"
+canStore,Складируеми,Свойства,"cat_Products"
+services,Услуги,Свойства,"cat_Products"
+canConvert,Вложими,Свойства,"cat_Products"
+canConvertMaterials,Вложими материали,Свойства,"cat_Products"
+canConvertServices,Вложими услуги,Свойства,"cat_Products"
+fixedAsset,Дълготрайни активи,Свойства,"cat_Products"
+fixedAssetStorable,Дълготрайни материални активи,Свойства,"cat_Products"
+fixedAssetNotStorable,Дълготрайни НЕматериални активи,Свойства,"cat_Products"
+canManifacture,Производими,Свойства,"cat_Products"
+generic,Генерични,Свойства,"cat_Products"

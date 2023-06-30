@@ -486,10 +486,13 @@ class type_Keylist extends core_Type
             $query = $mvc->getQuery();
             
             if ($groupBy = $this->params['groupBy']) {
-                $query->orderBy("#{$groupBy}")
-                ->show($groupBy);
+                $query->orderBy("#{$groupBy}")->show($groupBy);
             }
-            
+
+            if ($forceGroupBy = $this->params['forceGroupBy']) {
+                $query->groupBy("{$forceGroupBy}");
+            }
+
             if ($where = $this->params['where']) {
                 $query->where("{$where}");
             }

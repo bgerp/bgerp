@@ -140,20 +140,19 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return array();
     }
-    
-    
+
+
     /**
      * Връща свойствата на артикула според драйвера
      *
-     * @param mixed $metas - текущи мета данни
-     *
+     * @param null|stdClass $rec - текущи мета данни
      * @return array $metas - кои са дефолтните мета данни
      */
-    public function getDefaultMetas($metas = null)
+    public function getDefaultMetas($rec = null)
     {
-        if (isset($metas)) {
+        if (!empty($rec->meta)) {
             
-            return arr::make($metas, true);
+            return arr::make($rec->meta, true);
         }
         
         // Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра
@@ -383,11 +382,10 @@ abstract class cat_ProductDriver extends core_BaseClass
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
-     *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
-     *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
-     *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
      *               o description                    - забележки
-     *
+     *               o wasteProductId             - ид на шаблон за етикет
+     *               o wasteStart                 - ид на шаблон за етикет
+     *               o wastePercent                 - ид на шаблон за етикет
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал
      *                  o packagingId    - ид на опаковка
@@ -466,9 +464,11 @@ abstract class cat_ProductDriver extends core_BaseClass
             // Рецептата ще се преизчисли за текущия артикул, В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
             $bomRec->productId = $productId;
             $price = cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
-            $res = (object)array('price' => $price, 'discount' => null);
-            
-            return $res;
+            if(!empty($price)){
+                $res = (object)array('price' => $price, 'discount' => null);
+
+                return $res;
+            }
         }
         
         return null;
@@ -594,7 +594,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $folderId = $Master->fetchField($dRec->{$Detail->masterKey}, 'folderId');
         
         if(haveRole('partner') && marketing_Inquiries2::haveRightFor('add', (object)array('folderId' => $folderId, 'innerClass' => $this->getClassId()))){
-            $toolbar->addLink('Ново запитване||New enquiry', array('marketing_Inquiries2', 'add', 'folderId' => $folderId, 'innerClass' => $this->getClassId(), 'proto' => $id, 'quantity1' => $dRec->packQuantity,'ret_url' => true), 'ef_icon=img/16/help_contents.png');
+            $toolbar->addLink('Ново запитване||New inquiry', array('marketing_Inquiries2', 'add', 'folderId' => $folderId, 'innerClass' => $this->getClassId(), 'proto' => $id, 'quantity1' => $dRec->packQuantity,'ret_url' => true), 'ef_icon=img/16/help_contents.png');
        }
     }
     
@@ -623,17 +623,18 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getDeliveryTime($id, $quantity)
     {
     }
-    
-    
+
+
     /**
      * Връща минималното количество за поръчка
      *
      * @param int|NULL $id   - ид на артикул
      * @param string $action - дали да е за продажба или покупка
+     * @param array $params  - масив от параметри
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id = null, $action = 'sell')
+    public function getMoq($id = null, $action = 'sell', $params = array())
     {
     }
     
@@ -775,11 +776,6 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function generateSerial($id, $sourceClassId = null, $sourceObjectId = null)
     {
-        if(isset($sourceClassId) && cls::get($sourceClassId) instanceof planning_Tasks){
-            $canStore = cat_Products::fetchField($id, 'canStore');
-            if($canStore == 'no') return;
-        }
-
         return cat_Serials::generateSerial($sourceClassId, $sourceObjectId);
     }
     
@@ -1017,9 +1013,52 @@ abstract class cat_ProductDriver extends core_BaseClass
      *          string      ['wasteProductId']       - ид на отпадък
      *          string      ['wasteStart']           - начално количество отпадък
      *          string      ['wastePercent']         - процент отпадък
+     *          string      ['calcWeightMode']       - изчисляване на тегло или не
      */
     public function getProductionData($productId)
     {
         return array();
+    }
+
+
+    /**
+     * Връща масив с файловете цитирани в артикула
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array           - масив от файл хендлъри и имена
+     */
+    public function getLinkedFiles($id)
+    {
+        return array();
+    }
+
+
+    /**
+     * Кои папки да се игнорират при избор на шаблонни артикули
+     *
+     * @return array
+     */
+    public function getFoldersToIgnoreTemplates()
+    {
+        return array();
+    }
+
+
+    /**
+     * Достъпните шаблони
+     */
+    public static function on_AfterGetPrototypes(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
+    {
+        $ignoreFolderIds = $Driver->getFoldersToIgnoreTemplates();
+        if(countR($ignoreFolderIds)){
+
+            // Премахване на шаблоните от избраната категория за създаване на шаблонни артикули с рецепта
+            $pQuery = cat_Products::getQuery();
+            $pQuery->where("#innerClass={$Driver->getClassId()} AND #state = 'template'");
+            $pQuery->in('folderId', $ignoreFolderIds);
+            $pQuery->show('id');
+            $skipIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+            $res = array_diff_key($res, $skipIds);
+        }
     }
 }

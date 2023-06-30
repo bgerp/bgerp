@@ -23,7 +23,7 @@ class label_plg_Print extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         setIfNot($mvc->canPrintlabel, 'label, admin, ceo');
-        setIfNot($mvc->canPrintPeripheralLabel, 'label, admin, ceo');
+        setIfNot($mvc->canPrintperipherallabel, 'label, admin, ceo');
         setIfNot($mvc->printLabelCaptionPlural, 'Етикети');
         setIfNot($mvc->printLabelCaptionSingle, 'Етикет');
     }
@@ -44,17 +44,31 @@ class label_plg_Print extends core_Plugin
             // Ако има бутон за печат на бърз етикет, показва се
             if($mvc->haveRightFor('printperipherallabel', $rec)){
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink($mvc->printLabelCaptionSingle, array($mvc, 'printperipherallabel', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/printer.png', 'title' => 'Разпечатване на ' . mb_strtolower($mvc->printLabelCaptionSingle), 'style' => 'position: relative; top: -2px;'), 'alwaysShow');
+                $lUrl = toUrl(array($mvc, 'printperipherallabel', $rec->id), 'local');
+                $lUrl = urlencode($lUrl);
+
+                $attr = array('ef_icon' => 'img/16/printer.png', 'title' => 'Разпечатване на ' . mb_strtolower($mvc->printLabelCaptionSingle), 'style' => 'position: relative; top: -2px;');
+                if ($printedByNow = core_Permanent::get("printPeripheral{$mvc->className}_{$rec->id}")) {
+                    $attr['alwaysShowCaption'] = "<span class='green'>({$printedByNow})</span>";
+                } else {
+                    $attr['alwaysShowCaption'] = "<span class='quiet'>(0)</span>";
+                }
+
+                $row->_rowTools->addFnLink($mvc->printLabelCaptionSingle, "getEfae().process({url: '{$lUrl}'});", $attr, 'alwaysShow');
                 $alwaysShow = false;
             }
-            
-            $btnParams = self::getLabelBtnParams($mvc, $rec);
-            if (!empty($btnParams['url'])) {
-                core_RowToolbar::createIfNotExists($row->_rowTools);
-                $btnParams['attr'] = arr::make($btnParams['attr']);
-                $btnParams['attr']['style'] = 'position: relative; top: -2px;';
-                $alwaysShow = ($alwaysShow) ? 'alwaysShow' : null;
-                $row->_rowTools->addLink($mvc->printLabelCaptionPlural, $btnParams['url'], $btnParams['attr'], $alwaysShow);
+
+            if(($mvc instanceof core_Master && isset($fields['-single'])) || (!($mvc instanceof core_Master))){
+                $btnsArr = self::getLabelBtnParams($mvc, $rec);
+                foreach ($btnsArr as $btnArr){
+                    if (!empty($btnArr['url'])) {
+                        core_RowToolbar::createIfNotExists($row->_rowTools);
+                        $btnArr['attr'] = arr::make($btnArr['attr']);
+                        $btnArr['attr']['style'] = 'position: relative; top: -2px;';
+                        $alwaysShow = ($alwaysShow) ? 'alwaysShow' : null;
+                        $row->_rowTools->addLink($btnArr['caption'], $btnArr['url'], $btnArr['attr'], $alwaysShow);
+                    }
+                }
             }
         }
     }
@@ -75,9 +89,6 @@ class label_plg_Print extends core_Plugin
             expect($rec = $mvc->fetch($id));
             $mvc->requireRightFor('printperipherallabel', $rec);
             
-            $res = new core_ET('');
-            $res->append('<body><div class="fullScreenBg" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: block;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Разпечатва се етикет ...<br> Моля, изчакайте!</h3></div></body>');
-            
             // Ако има периферия за печат на етикети
             expect($deviceRec = peripheral_Devices::getDevice('peripheral_PrinterIntf'));
             $source = $mvc->getLabelSource($rec);
@@ -87,29 +98,34 @@ class label_plg_Print extends core_Plugin
             
             Request::setProtected('hash');
             $hash = str::addHash('fastlabel', 4);
-            $responseUrl = toUrl(array($mvc, 'printfastlabelresponse', $rec->id, 'ret_url' => getRetUrl(), 'hash' => $hash));
             Request::removeProtected('hash');
             
             // Прави се опит за печат от периферията
-            $interface = core_Cls::getInterface('escpos_PrinterIntf', $deviceRec->driverClass);
-            $js = $interface->getJS($deviceRec, $labelContent);
-            $js .= " function escPrintOnSuccess(res) {
-            if (res == 'OK') {
-                document.location = '{$responseUrl}&res=' + res;
-            } else {
-                    escPrintOnError(res);
-                }
-            }   
-            function escPrintOnError(res) {
-                if($.isPlainObject(res)){
-                    res = res.status  + '. ' +  res.statusText;
-                }
+            $interface = core_Cls::getInterface('peripheral_BrowserPrinterIntf', $deviceRec->driverClass);
 
-                document.location = '{$responseUrl}&type=error&res=' + res;
-            }";
-            
-            $res->append($js, 'SCRIPTS');
-            
+            $responseUrl = array($mvc, 'printfastlabelresponse', $rec->id, 'ret_url' => getRetUrl(), 'hash' => $hash);
+            $refreshUrl = Request::get('refreshUrl');
+            if ($refreshUrl) {
+                $responseUrl['refreshUrl'] = $refreshUrl;
+            }
+
+            $html = $interface->getHTML($deviceRec, $labelContent);
+            $js = $interface->getJS($deviceRec, $labelContent);
+            $js .= $interface->afterResultJS($deviceRec, $labelContent, $responseUrl);
+
+            $js = minify_Js::process($js);
+
+            if (Request::get('ajax_mode')) {
+                // Добавяме резултата
+                $resObj = new stdClass();
+                $resObj->func = 'printPage';
+                $resObj->arg = array('html' => $html, 'js' => $js);
+
+                $res = array($resObj);
+            }
+
+            Mode::setPermanent("{$mvc->className}_PREV_SAVED_ID", null);
+
             return false;
         }
         
@@ -125,21 +141,72 @@ class label_plg_Print extends core_Plugin
             expect($res = Request::get('res', 'varchar'));
             $logMvc = ($mvc instanceof core_Detail) ? $mvc->Master : $mvc;
             $logId = ($mvc instanceof core_Detail) ? $rec->{$mvc->masterKey} : $rec->id;
-            
+
+            $lRec = $logMvc->fetch($logId);
+            if ($lRec->threadId) {
+                doc_ThreadRefreshPlg::checkHash($lRec->threadId, array(), true);
+            }
+
             $msg = tr("Етикетът е разпечатан успешно|*!");
             $type = Request::get('type', 'varchar');
-            
+
+            $statusData = array();
+
+            $statusData['type'] = 'notice';
+            $statusData['timeOut'] = 1700;
+            $statusData['stayTime'] = 7000;
+            $statusData['isSticky'] = 0;
+
+            $cacheSuccess = true;
             if($type == 'error'){
                 $msg = $res;
                 $logMvc->logDebug($msg, $logId);
                 $msg = haveRole('debug') ? $msg : tr('Проблем при разпечатването|*!');
-                core_Statuses::newStatus($msg, 'error');
+                $statusData['type'] = 'error';
+                $statusData['isSticky'] = 1;
+                $cacheSuccess = false;
+            } elseif ($type == 'unknown') {
+                $logMvc->logWrite('Опит за разпечатване на бърз етикет', $logId);
+                $msg = tr("Отпечатването завърши|*!");
             } else {
                 $logMvc->logWrite('Разпечатване на бърз етикет', $logId);
-                core_Statuses::newStatus($msg);
             }
-            
-            followRetUrl();
+
+            if($cacheSuccess){
+                if ($printedByNow = core_Permanent::get("printPeripheral{$mvc->className}_{$rec->id}")) {
+                    $printedByNow += 1;
+                } else {
+                    $printedByNow = 1;
+                }
+                core_Permanent::set("printPeripheral{$mvc->className}_{$rec->id}", $printedByNow, 129600);
+            }
+
+            $statusData['text'] = $msg;
+
+            $statusObj = new stdClass();
+            $statusObj->func = 'showToast';
+            $statusObj->arg = $statusData;
+
+            $afterPrint = new stdClass();
+            $afterPrint->func = 'afterPrintPage';
+            $afterPrint->arg = array('timeOut' => 700);
+
+            $res =  array($statusObj, $afterPrint);
+
+            if ($refreshUrl = Request::get('refreshUrl')) {
+                status_Messages::newStatus($msg, $statusData['type']);
+
+                $res = array();
+
+                // Добавяме резултата
+                $redirectObj = new stdClass();
+                $redirectObj->func = 'redirect';
+                $redirectObj->arg = array('url' => $refreshUrl);
+
+                $res[] = $redirectObj;
+            }
+
+            return false;
         }
     }
     
@@ -156,26 +223,28 @@ class label_plg_Print extends core_Plugin
      */
     private static function getLabelBtnParams($mvc, $rec)
     {
-        $res = array('url' => null, 'attr' => '');
-        
-        if ($mvc->haveRightFor('printlabel', $rec)) {
-            $templates = $mvc->getLabelTemplates($rec, false);
-            
-            $title = tr($mvc->title);
-            $title = mb_strtolower($title);
-            
-            $error = (!countR($templates)) ? ",error=Няма наличен шаблон за етикети от|* \"{$title}\"" : '';
-            $source = $mvc->getLabelSource($rec);
-            
-            if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id']))) {
-                core_Request::setProtected(array('classId, objectId'));
-                $res['url'] = array('label_Prints', 'add', 'classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'ret_url' => true);
-                $res['url'] = toUrl($res['url']);
-                core_Request::removeProtected('classId,objectId');
-                $res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на ". mb_strtolower($mvc->printLabelCaptionSingle). " от|* {$title} №{$rec->id}{$error}";
+        $series = $mvc->getLabelSeries($rec);
+        $title = tr($mvc->title);
+        $title = mb_strtolower($title);
+        $source = $mvc->getLabelSource($rec);
+
+        $res = array();
+        foreach ($series as $series => $caption){
+            $res[$series] = array('url' => null, 'attr' => '', 'caption' => $caption);
+            if ($mvc->haveRightFor('printlabel', $rec)) {
+                $templates = $mvc->getLabelTemplates($rec, $series, false);
+                if(countR($templates)){
+                    if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series))) {
+                        core_Request::setProtected(array('classId,objectId,series'));
+                        $res[$series]['url'] = array('label_Prints', 'add', 'classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series, 'ret_url' => true);
+                        $res[$series]['url'] = toUrl($res[$series]['url']);
+                        core_Request::removeProtected(array('classId,objectId,series'));
+                        $res[$series]['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на ". mb_strtolower($mvc->printLabelCaptionSingle). " от|* {$title} №{$rec->id}{$error}";
+                    }
+                }
             }
         }
-        
+
         return $res;
     }
     
@@ -197,17 +266,34 @@ class label_plg_Print extends core_Plugin
             $res = array('class' => $mvc, 'id' => $rec->id);
         }
     }
-    
-    
+
+
+    /**
+     * Връща наличните серии за етикети от източника
+     *
+     * @param $mvc
+     * @param $res
+     * @param $rec
+     * @return void
+     */
+    public static function on_AfterGetLabelSeries($mvc, &$res, $rec = null)
+    {
+        // По дефолт е текущия клас
+        if(!isset($res)){
+            $res = array('label' => $mvc->printLabelCaptionPlural);
+        }
+    }
+
+
     /**
      * Параметрите на бутона за етикетиране
      *
      * @return array $res - наличните шаблони за етикети
      */
-    public static function on_AfterGetLabelTemplates($mvc, &$res, $rec)
+    public static function on_AfterGetLabelTemplates($mvc, &$res, $rec, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
         if(!isset($res)){
-            $res = label_Templates::getTemplatesByClass($mvc);
+            $res = label_Templates::getTemplatesByClass($mvc, $series, $ignoreWithPeripheralDriver);
         }
     }
     
@@ -220,9 +306,11 @@ class label_plg_Print extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        $btnParams = self::getLabelBtnParams($mvc, $data->rec);
-        if (!empty($btnParams['url'])) {
-            $data->toolbar->addBtn($mvc->printLabelCaptionPlural, $btnParams['url'], null, $btnParams['attr']);
+        $btnsArr = self::getLabelBtnParams($mvc, $data->rec);
+        foreach ($btnsArr as $btnArr){
+            if (!empty($btnArr['url'])) {
+                $data->toolbar->addBtn($btnArr['caption'], $btnArr['url'], null, $btnArr['attr']);
+            }
         }
     }
     
@@ -245,7 +333,7 @@ class label_plg_Print extends core_Plugin
         }
         
         if($action == 'printperipherallabel' && isset($rec)){
-            $deviceRec = peripheral_Devices::getDevice('peripheral_PrinterIntf');
+            $deviceRec = peripheral_Devices::getDevice('peripheral_BrowserPrinterIntf');
             if(!$deviceRec){
                 $requiredRoles = 'no_one';
             } else {
@@ -279,6 +367,33 @@ class label_plg_Print extends core_Plugin
         } elseif ($mvc instanceof core_Detail) {
             $rec = $mvc->fetchRec($id);
             $res = $mvc->Master->getFormTitleLink($rec->{$mvc->masterKey});
+        }
+    }
+
+
+    /**
+     * Изпълнява се след запис/промяна на роля
+     */
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
+    {
+        Mode::setPermanent("{$mvc->className}_PREV_SAVED_ID", $rec->id);
+    }
+
+
+    /**
+     * След рендиране на обвивката
+     */
+    public function on_AfterRenderWrapping($invoker, &$tpl)
+    {
+        if ($invoker->_isSaveAndNew && ($prevSavedId = Mode::get("{$invoker->className}_PREV_SAVED_ID"))) {
+            if (label_Setup::get('AUTO_PRINT_AFTER_SAVE_AND_NEW') == 'yes') {
+                if ($invoker->haveRightFor('printperipherallabel', $prevSavedId)) {
+                    $lUrl = toUrl(array($invoker, 'printperipherallabel', $prevSavedId, 'refreshUrl' => toUrl(getCurrentUrl())), 'local');
+                    $lUrl = urlencode($lUrl);
+
+                    jquery_Jquery::run($tpl, "getEfae().process({url: '{$lUrl}'});", TRUE);
+                }
+            }
         }
     }
 }

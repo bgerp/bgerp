@@ -109,6 +109,11 @@ defIfNot('POS_CRON_CACHE_SELLABLE_PERIOD', 3600);
 defIfNot('POS_RATINGS_DATA_FOR_THE_LAST',  6 * core_DateTime::SECONDS_IN_MONTH);
 
 
+/**
+ *  Да се показват ли точните наличности в склада при филтрирането на резултати
+ */
+defIfNot('POS_SHOW_EXACT_QUANTITIES', 'no');
+
 
 /**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
@@ -118,7 +123,7 @@ defIfNot('POS_RATINGS_DATA_FOR_THE_LAST',  6 * core_DateTime::SECONDS_IN_MONTH);
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -177,6 +182,7 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
         'POS_CRON_CACHE_SELLABLE_PERIOD' => array('time', 'caption=Време за изпълнение на периодичните процеси->Кеш на продаваемите артикули'),
         'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
+        'POS_SHOW_EXACT_QUANTITIES' => array('enum(no=Не,yes=Да)', 'caption=Показване на наличните к-ва в терминала->Избор'),
     );
     
     

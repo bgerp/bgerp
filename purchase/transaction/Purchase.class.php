@@ -106,7 +106,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         
         // Проверка дали артикулите отговарят на нужните свойства
         $products = arr::extractValuesFromArray($rec->details, 'productId');
-        if (Mode::get('saveTransaction') && countR($products)) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost() && countR($products)) {
             if($redirectError = deals_Helper::getContoRedirectError($products, 'canBuy', 'generic', 'вече не са купуваеми или са генерични')){
                 
                 acc_journal_RejectRedirect::expect(false, $redirectError);

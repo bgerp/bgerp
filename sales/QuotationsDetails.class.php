@@ -95,7 +95,7 @@ class sales_QuotationsDetails extends deals_QuotationDetails
      */
     public static function calcLivePrice($rec, $masterRec, $force = false)
     {
-        if ($force !== true && !haveRole('seePrice,ceo')) {
+        if ($force !== true && !doc_plg_HidePrices::canSeePriceFields(cls::get(get_called_class())->Master, $masterRec)) {
             
             return;
         }

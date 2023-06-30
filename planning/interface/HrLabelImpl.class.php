@@ -21,10 +21,13 @@ class planning_interface_HrLabelImpl
      * Инстанция на класа
      */
     public $class;
-    
-    
+
+
     /**
      * Връща масив с данните за плейсхолдерите
+     *
+     * @param int|NULL $objId
+     * @param string $series
      *
      * @return array
      *               Ключа е името на плейсхолдера и стойностите са обект:
@@ -35,7 +38,7 @@ class planning_interface_HrLabelImpl
      *               importance -> (int|double) - тежест/важност на плейсхолдера
      *               example -> (string) - примерна стойност
      */
-    public function getLabelPlaceholders($objId = null)
+    public function getLabelPlaceholders($objId = null, $series = 'label')
     {
         $placeholders = array();
         $placeholders['QR_CODE'] = (object) array('type' => 'text', 'hidden' => true);
@@ -43,7 +46,7 @@ class planning_interface_HrLabelImpl
         $placeholders['NAME'] = (object) array('type' => 'text');
         
         if (isset($objId)) {
-            $labelData = $this->getLabelData($objId, 1, true);
+            $labelData = $this->getLabelData($objId, 1, true, null, $series);
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
                     if (!array_key_exists($key, $placeholders)) {
@@ -56,56 +59,55 @@ class planning_interface_HrLabelImpl
         
         return $placeholders;
     }
-    
-    
+
+
     /**
      * Броя на етикетите, които могат да се отпечатат
      *
-     * @param int    $id
-     * @param string $allowSkip
+     * @param int $id
+     * @param string $series
      *
      * @return int
-     *
-     * @see label_SequenceIntf
      */
-    public function getLabelEstimatedCnt($id)
+    public function getLabelEstimatedCnt($id, $series = 'label')
     {
     }
-    
-    
+
+
     /**
      * Връща масив с всички данни за етикетите
      *
      * @param int  $id
      * @param int  $cnt
      * @param bool $onlyPreview
+     * @param stdClass $lRec
+     * @param string $series
      *
-     * @return array - масив от масиви с ключ плейсхолдера и стойността
+     * @return array - масив от масив с ключ плейсхолдера и стойността
      */
-    public function getLabelData($id, $cnt, $onlyPreview = false)
+    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null, $series = 'label')
     {
         $rec = $this->class->fetchRec($id);
         $name = crm_Persons::getVerbal($rec->personId, 'name');
-        $singleUrl = toUrl(array('crm_Persons', 'single', $rec->personId), 'absolute');
-        
+
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('QR_CODE' => $singleUrl, 'HR_CODE' => $rec->code, 'NAME' => $name);
+            $res = array('QR_CODE' => $rec->code, 'HR_CODE' => $rec->code, 'NAME' => $name);
             $arr[] = $res;
         }
        
         return $arr;
     }
-    
-    
+
+
     /**
      * Връща наименованието на етикета
      *
      * @param int $id
-     *
+     * @param string $series
      * @return string
      */
-    public function getLabelName($id)
+    public function getLabelName($id, $series = 'label')
     {
         $rec = $this->class->fetchRec($id);
         $productName = crm_Persons::getVerbal($rec->personId, 'name');
@@ -148,9 +150,10 @@ class planning_interface_HrLabelImpl
      * Кой е дефолтния шаблон за печат към обекта
      *
      * @param $id
+     * @param string $series
      * @return int|null
      */
-    public function getDefaultLabelTemplateId($id)
+    public function getDefaultLabelTemplateId($id, $series = 'label')
     {
         return null;
     }

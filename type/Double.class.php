@@ -188,6 +188,10 @@ class type_Double extends core_Type
             // За да знаем броя знаци след десетичния знак обръща се във удобен вид
             $value = rtrim(sprintf('%.9F', $value), '0');
             $decimals = strlen(substr(strrchr($value, '.'), 1));
+
+            if(isset($this->params['maxDecimals'])) {
+                $decimals = min($decimals, $this->params['maxDecimals']);
+            }
         }
         
         // Ограничаване на минималния брой знаци след десетичната точка
@@ -195,7 +199,7 @@ class type_Double extends core_Type
             $decimals = max($decimals, $this->params['minDecimals']);
         }
         
-        if(is_infinite($decimals)){
+        if(is_infinite((double)$decimals)){
             wp($value, $this->params);
             $decimals = 0;
         }

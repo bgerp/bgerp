@@ -457,10 +457,11 @@ class doc_Containers extends core_Manager
         }
         
         expect($data->threadRec->firstContainerId, 'Проблемен запис на нишка', $data->threadRec);
+        $lastThread = (empty($data->threadRec->last)) ? '0000-00-00' : $data->threadRec->last;
 
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         $otherDocChanges = doc_Threads::fetch(array("#id != '[#1#]' AND #folderId = '[#2#]' AND #state != 'rejected' AND #last > '[#3#]'",
-                                        $data->threadRec->id, $data->threadRec->folderId, $data->threadRec->last));
+                                        $data->threadRec->id, $data->threadRec->folderId, $lastThread));
         if (!$otherDocChanges) {
             bgerp_Recently::add('folder', $data->threadRec->folderId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         }
@@ -848,7 +849,7 @@ class doc_Containers extends core_Manager
      * Създава нов контейнер за документ от посочения клас
      * Връща $id на новосъздадения контейнер
      */
-    public static function create($class, $threadId, $folderId, $createdOn, $createdBy)
+    public static function create($class, $threadId, $folderId, $createdOn, $createdBy, $notModified = null)
     {
         $className = cls::getClassName($class);
         
@@ -858,6 +859,7 @@ class doc_Containers extends core_Manager
         $rec->folderId = $folderId;
         $rec->createdOn = $createdOn;
         $rec->createdBy = $createdBy;
+        $rec->_notModified = $notModified;
         
         self::save($rec);
         
@@ -871,7 +873,7 @@ class doc_Containers extends core_Manager
      *
      * @param int $id key(mvc=doc_Containers)
      */
-    public static function update_($id, $updateAll = true)
+    public static function update_($id, $updateAll = true, $notModified = null)
     {
         expect($rec = doc_Containers::fetch($id), $id);
         
@@ -901,9 +903,11 @@ class doc_Containers extends core_Manager
         // 3. Промяна на папката на документа
         
         $fields = 'state,folderId,threadId,containerId,originId';
-        
-        if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
-            $fields .= ',searchKeywords';
+
+        if(!Mode::is('dontUpdateKeywords')){
+            if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
+                $fields .= ',searchKeywords';
+            }
         }
         
         $updateField = null;
@@ -932,6 +936,8 @@ class doc_Containers extends core_Manager
         }
         
         if ($mustSave) {
+            $rec->_notModified = $notModified;
+
             doc_Containers::save($rec, $updateField);
             
             // Ако този документ носи споделяния на нишката, добавяме ги в списъка с отношения
@@ -945,7 +951,9 @@ class doc_Containers extends core_Manager
             
             if ($rec->threadId && $rec->docId) {
                 // Предизвиква обновяване на треда, след всяко обновяване на контейнера
-                doc_Threads::updateThread($rec->threadId);
+                if(!Mode::is('dontUpdateThread')){
+                    doc_Threads::updateThread($rec->threadId);
+                }
             }
             
             
@@ -1113,7 +1121,15 @@ class doc_Containers extends core_Manager
             
             return;
         }
-        
+
+        $uActiveMsgArr = $customUrlArr =  array();
+
+        // Кой линк да се използва за изичстване на нотификация
+        $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+
+        // Къде да сочи линка при натискане на нотификацията
+        $customUrl = array($docMvc, 'single', $rec->docId);
+
         // Ако няма да се споделя, а ще се добавя или променя
         if ($action != 'сподели') {
             
@@ -1201,13 +1217,32 @@ class doc_Containers extends core_Manager
                 }
             }
         }
-        
+
         // Ако няма потребители за нотифирциране
         if (!$usersArr) {
             
             return ;
         }
-        
+
+        // Линка да сочи до първия документ, който е споделен, но не е видян
+        foreach ($usersArr as $uId) {
+            $customUrlFromLast = $messageDate = null;
+            $activeMsg = bgerp_Notifications::getActiveMsgFor($url, $uId, $customUrlFromLast, $messageDate);
+
+            if ($activeMsg && mb_strpos($activeMsg, ' |сподели|* ') !== false) {
+                if ($customUrlFromLast) {
+                    $customUrlFromLast = parseLocalUrl($customUrlFromLast, false);
+                    if ($customUrlFromLast) {
+                        $customUrlArr[$uId] = $customUrlFromLast;
+
+                        if (!$messageDate || (dt::addDays(7, $messageDate) > dt::now())) {
+                            $uActiveMsgArr[$uId] = $activeMsg;
+                        }
+                    }
+                }
+            }
+        }
+
         static $threadTitleArr = array();
         
         // Броя на потребителите, които ще се показват в съобщението на нотификацията
@@ -1235,12 +1270,6 @@ class doc_Containers extends core_Manager
             // Определяме заглавието и добавяме в масива
             $threadTitleArr[$rec->threadId] = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, false), doc_Threads::maxLenTitle);
         }
-        
-        // Кой линк да се използва за изичстване на нотификация
-        $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-        
-        // Къде да сочи линка при натискане на нотификацията
-        $customUrl = array($docMvc, 'single', $rec->docId);
         
         // Обхождаме масива с всички потребители, които ще имат съответната нотификация
         foreach ((array) $usersArr as $userId) {
@@ -1385,9 +1414,28 @@ class doc_Containers extends core_Manager
             } else {
                 $messageN = $message;
             }
-            
+
+            $customUrlNew = $customUrl;
+
+            if ($uActiveMsgArr[$userId]) {
+
+                $eArr = explode('". ', $uActiveMsgArr[$userId]);
+
+                if ($eArr && countR($eArr) > 1) {
+                    $delim = '". ';
+                } else {
+                    $delim = '. ';
+                }
+
+                $messageN = $eArr[0] . $delim . $messageN;
+            }
+
+            if ($customUrlArr[$userId]) {
+                $customUrlNew = $customUrlArr[$userId];
+            }
+
             // Нотифицираме потребителя
-            bgerp_Notifications::add($messageN, $url, $userId, $priority, $customUrl);
+            bgerp_Notifications::add($messageN, $url, $userId, $priority, $customUrlNew);
             
             // Добавяме в масива, за да не се нотифицара повече
             $notifiedUsersArr[$userId] = $userId;
@@ -1445,6 +1493,7 @@ class doc_Containers extends core_Manager
         $query->where(array("#threadId = '[#1#]'", $threadId));
         $query->where("#state != 'draft'");
         $query->where("#state != 'rejected'");
+        $query->where("#modifiedBy = #activatedBy");
         $query->orderBy('modifiedOn', 'DESC');
         
         // Масив с потребителите

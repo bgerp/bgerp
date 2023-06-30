@@ -70,7 +70,7 @@ defIfNot('PURCHASE_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
 /**
  * Показване на ваш реф в нишката на покупката
  */
-defIfNot('PURCHASE_SHOW_REFF_IN_SALE_THREAD', 'no');
+defIfNot('PURCHASE_SHOW_REFF_IN_PURCHASE_THREAD', 'no');
 
 
 /**
@@ -139,6 +139,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_PurchasesData',
         'purchase_Quotations',
         'purchase_QuotationDetails',
+        'migrate::recontoDeals2520v2',
     );
     
     
@@ -155,7 +156,7 @@ class purchase_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'PURCHASE_OVERDUE_CHECK_DELAY' => array('time', 'caption=Толеранс за просрочване на покупката->Време'),
-        'PURCHASE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на продажби в BGN / EUR->Дни'),
+        'PURCHASE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на покупки в BGN / EUR->Дни'),
         'PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
             'int(Min=0)',
             'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'
@@ -174,16 +175,16 @@ class purchase_Setup extends core_ProtoSetup
             'mandatory,caption=Действие на бързия бутон "Покупка" и "Оферта от доставчик" в папките->Оферта от доставчик,customizeBy=ceo|sales|purchase',
         ),
         'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за липсваща фактура за направено плащане->Време'),
-        'PURCHASE_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
+        'PURCHASE_SHOW_REFF_IN_PURCHASE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
         'PURCHASE_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен закупчик в покупката->Избор'),
-    );
+        );
     
     
     /**
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('purchase', 'invoicer,seePrice'),
+        array('purchase', 'invoicer'),
         array('purchaseMaster', 'purchase'),
     );
     
@@ -229,5 +230,15 @@ class purchase_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('purQuoteFiles', 'Прикачени файлове в офертите от доставчици', null, '104857600', 'user', 'user');
 
         return $html;
+    }
+
+
+    /**
+     * Рекалкулиране на валутните сделки
+     */
+    public function recontoDeals2520v2()
+    {
+        if(core_Packs::isMigrationDone('purchase', 'recalcCurrencyPurchases1115')) return;
+        cls::get('purchase_Purchases')->recalcDocumentsWithDealCurrencyRate();
     }
 }

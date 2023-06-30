@@ -14,12 +14,6 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_WIDTH', 90);
 
 
 /**
- * Допустим толеранс на тегллото при ПО
- */
-defIfNot('PLANNING_TASK_WEIGHT_TOLERANCE_WARNING', 0.05);
-
-
-/**
  * Допустим толеранс за втората мярка в протокола за производство
  */
 defIfNot('PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING', 0.1);
@@ -53,18 +47,6 @@ defIfNot('PLANNING_PRODUCTION_NOTE_REJECTION', 'no');
  * Име за показване на неопределения център на дейност
  */
 defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
-
-
-/**
- * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
- */
-defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
-
-
-/**
- * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
- */
-defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
 
 
 /**
@@ -110,33 +92,75 @@ defIfNot('PLANNING_MIN_TASK_DURATION', 5*60);
 
 
 /**
- * Позволено ли е да се въвежда сериен номер от друга ПО
- */
-defIfNot('PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS', 'no');
-
-
-/**
- * Позволено ли е да се въвежда сериен номер от друга ПО
- */
-defIfNot('PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS', 'no');
-
-
-/**
  * Показване на предишно задание в ПО
  */
 defIfNot('PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK', 'yes');
 
 
 /**
- * Задължителен избор за оператор в ПО
- */
-defIfNot('PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR', 'yes');
-
-
-/**
  * Колко време след приключване на ПО може да се въвежда прогрес по нея
  */
 defIfNot('PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE', 60 * 60 * 24 * 5);
+
+
+/**
+ * Колко време след приключване на ПО може да се произведе ДРУГ артикул
+ */
+defIfNot('PLANNING_TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE', 60 * 60 * 24 * 30);
+
+
+/**
+ * Да се показва ли предупреждение при дублирани серийни номера в ПО
+ */
+defIfNot('PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS', 'yes');
+
+
+/**
+ * Показване на статус при разминаване на нетото в ПО->Предупреждение
+ */
+defIfNot('PLANNING_TASK_NET_WEIGHT_WARNING', 0.05);
+
+
+/**
+ * Задаване на оператори в прогреса на ПО
+ */
+defIfNot('PLANNING_TASK_PROGRESS_OPERATOR', 'lastAndMandatory');
+
+
+/**
+ * Макс бруто тегло при въвеждане на прогрес в ПО
+ */
+defIfNot('PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT', '100000');
+
+
+/**
+ * Поле което да определя опресняване на кеширането на артикула в заданието
+ */
+defIfNot('PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE', 'yes');
+
+
+/**
+ * Да се показва ли колонка за продажба в листа на ПО
+ */
+defIfNot('PLANNING_SHOW_SALE_IN_TASK_LIST', 'no');
+
+
+/**
+ * До колко предходни операции да се показват в сингъла и листа
+ */
+defIfNot('PLANNING_SHOW_PREVIOUS_TASK_BLOCKS', '2');
+
+
+/**
+ * Стратегия за подреждане на операциите в заданието
+ */
+defIfNot('PLANNING_SORT_TASKS_IN_JOB_STRATEGY', '');
+
+
+/**
+ * Операция от Етап в рецепта - Влагане на предходния и вложените Етапи->Планиране
+ */
+defIfNot('PLANNING_INPUT_PREVIOUS_BOM_STEP', 'yes');
 
 
 /**
@@ -158,32 +182,32 @@ class planning_Setup extends core_ProtoSetup
      * Версия на пакета
      */
     public $version = '0.1';
-    
-    
+
+
     /**
      * Необходими пакети
      */
     public $depends = 'cat=0.1';
-    
-    
+
+
     /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = 'planning_Wrapper';
-    
-    
+
+
     /**
      * Екшън - входна точка в пакета
      */
     public $startAct = 'planning_DirectProductionNote';
-    
-    
+
+
     /**
      * Описание на модула
      */
     public $info = 'Производствено планиране';
-    
-    
+
+
     /**
      * Описание на конфигурационните константи за този модул
      */
@@ -195,20 +219,26 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
         'PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Толеранс за разминаване между очакваното съответствие в протоколите за производство->Предупреждение'),
-        'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Отчитане на теглото в ПО->Предупреждение'),
-        'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
-
+        'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено)', 'caption=Отчитане на теглото в ПО->Режим'),
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на Задание без нови контиращи документи->Повече от'),
         'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на Задание без нови контиращи документи->И Заскладено над,callOnChange=planning_Setup::setJobAutoClose'),
         'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
-        'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),minPer1000=Минути за 1000 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
+        'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(secsPer10=Секунди за 10 (мярка),secsPer100=Секунди за 100 (мярка),secsPer1000=Секунди за 1000 (мярка),minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),minPer1000=Минути за 1000 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
         'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
-        'PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Въвеждане на производ. № в ПО от друга операция->Избор'),
-        'PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR' => array('enum(yes=Задължително,no=Опционално)', 'caption=Въвеждане на прогрес в ПО->Оператор(и)'),
+        'PLANNING_TASK_PROGRESS_OPERATOR' => array('enum(lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално),current=Текущ оператор)', 'caption=Задаване на оператори в прогреса на ПО->Оператори,customizeBy=taskWorker|ceo'),
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
+        'PLANNING_TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се произведе ДРУГ артикул->Време'),
+        'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
+        'PLANNING_TASK_NET_WEIGHT_WARNING' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Предупреждение'),
+        'PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT' => array('int(Min=0)', 'caption=Максимално допустимо бруто тегло в прогреса на ПО->Максимално до,unit=кг'),
+        'PLANNING_SHOW_SALE_IN_TASK_LIST' => array('enum(yes=Да,no=Не)', 'caption=Показване на продажбата в списъка на ПО->Избор'),
+        'PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE' => array('enum(yes=Да,no=Не)', 'caption=Обновяване на параметрите на артикула в заданието при Пускане/Събуждане->По подразбиране'),
+        'PLANNING_SHOW_PREVIOUS_TASK_BLOCKS' => array('int(min=0)', 'caption=За колко от предходните Операции да се визуализира готовността->Брой'),
+        'PLANNING_SORT_TASKS_IN_JOB_STRATEGY' => array('class(interface=planning_OrderTasksInJobStrategyIntf,select=title)', 'caption=Подреждане на операциите в заданието->Стратегия'),
+        'PLANNING_INPUT_PREVIOUS_BOM_STEP' => array('enum(yes=Влагат се,no=Не се влагат)', 'caption=Операция от Етап в рецепта - Влагане на предходния и вложените Етапи->Планиране'),
     );
 
 
@@ -253,58 +283,76 @@ class planning_Setup extends core_ProtoSetup
         'planning_Points',
         'planning_GenericMapper',
         'planning_StepConditions',
-        'migrate::updatePlanningStages1',
-        'migrate::updateTaskAssets',
-        'migrate::reorderTasks2',
-        'migrate::migrateOldTasks',
+        'planning_GenericProductPerDocuments',
+        'migrate::updateLabelType',
+        'migrate::deletePoints',
+        'migrate::changeCentreFieldToKeylistInWorkflows',
+        'migrate::removeOldRoles',
+        'migrate::updateLastChangedOnState',
+        'migrate::updateTasks1',
+        'migrate::updateCenters2244',
+        'migrate::cleanClosedTasks2250',
+        'migrate::updateTasks1520',
+        'migrate::updateMigratedTasks1620',
     );
-    
-    
+
+
     /**
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('production'),
-        array('taskWorker'),
-        array('taskPlanning', 'taskWorker'),
-        array('planning', 'taskPlanning'),
+        array('jobSee'),
+        array('job', 'jobSee'),
+        array('taskSee'),
+        array('taskWorker', 'taskSee'),
+        array('taskPostProduction', 'taskWorker'),
+        array('task', 'taskPostProduction'),
+        array('consumption', 'jobSee, taskSee'),
+        array('production', 'jobSee, taskSee'),
+        array('planning'),
         array('planningMaster', 'planning'),
-        array('job')
     );
-    
-    
+
+
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.21, 'Производство', 'Планиране', 'planning_DirectProductionNote', 'list', 'ceo,planning,store,production'),
+        array(3.21, 'Производство', 'Планиране', 'planning_Centers', 'dispatch', 'ceo,planning,production,jobSee'),
     );
-    
-    
+
+
     /**
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
-                          planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,planning_Terminal,
-                          planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning';
-    
-    
+                          planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
+                          planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
+                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep';
+
+
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-        
+
         // Кофа за снимки
         $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'every_one', 'powerUser');
-        
         $html .= fileman_Buckets::createBucket('workCards', 'Работни карти', 'pdf,jpg,jpeg,png', '200MB', 'powerUser', 'powerUser');
-        
+
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
-        
+
+        $config = core_Packs::getConfig('planning');
+        if (strlen($config->PLANNING_SORT_TASKS_IN_JOB_STRATEGY) === 0) {
+            core_Classes::add('planning_interface_TopologicalOrderTasksInJob');
+            $classId = core_Classes::getId('planning_interface_TopologicalOrderTasksInJob');
+            core_Packs::setConfig('planning', array('PLANNING_SORT_TASKS_IN_JOB_STRATEGY' => $classId));
+        }
+
         return $html;
     }
 
@@ -315,19 +363,19 @@ class planning_Setup extends core_ProtoSetup
     public static function setJobAutoClose($Type, $oldValue, $newValue)
     {
         $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
-        if(empty($newValue)){
-            if(is_object($exRec)){
+        if (empty($newValue)) {
+            if (is_object($exRec)) {
                 $exRec->state = 'stopped';
                 core_Cron::save($exRec, 'state');
             }
-        } elseif(empty($oldValue)) {
+        } elseif (empty($oldValue)) {
             $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
-            if($exRec->state == 'stopped'){
+            if ($exRec->state == 'stopped') {
                 $exRec->state = 'free';
                 core_Cron::save($exRec, 'state');
             } else {
                 $rec = new stdClass();
-                $rec->systemId =  'Close Old Jobs';
+                $rec->systemId = 'Close Old Jobs';
                 $rec->description = 'Затваряне на стари задания';
                 $rec->controller = 'planning_Jobs';
                 $rec->action = 'CloseOldJobs';
@@ -341,122 +389,275 @@ class planning_Setup extends core_ProtoSetup
         }
     }
 
-
     /**
-     * Миграция на производствените етапи
+     * Мигриране на етикетирането
      */
-    public function updatePlanningStages1()
+    function updateLabelType()
     {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+
+        $labelTypeColName = str::phpToMysqlName('labelType');
+        $query = "UPDATE {$Tasks->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
+        $Tasks->db->query($query);
+
         $Steps = cls::get('planning_Steps');
         $Steps->setupMvc();
 
-        $update = array();
-        $query = $Steps->getQuery();
-        $query->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty,makeLinks)');
-        $query->where("#centerId IS NULL AND #folders IS NOT NULL");
+        $query = "UPDATE {$Steps->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
+        $Steps->db->query($query);
+    }
 
-        while($rec = $query->fetch()){
-            $oldFolders = keylist::toArray($rec->folders);
-            if(countR($oldFolders)){
-                $firstFolderId = key($oldFolders);
-                $Cover = doc_Folders::getCover($firstFolderId);
-                if($Cover->isInstanceOf('planning_Centers')){
-                    $rec->centerId =  $Cover->that;
-                    $update[$rec->id] = $rec;
+    /**
+     * Миграция за поправка на centre полето от key на keylist
+     */
+    function changeCentreFieldToKeylistInWorkflows()
+    {
+        $frameCls = cls::get('frame2_Reports');
+
+        $query = $frameCls::getQuery();
+
+        $repClass = planning_reports_Workflows::getClassId();
+
+        $query->where("#driverClass = $repClass");
+
+        while ($rec = $query->fetch()) {
+            if (is_integer($rec->centre)) {
+                $rec->centre = keylist::fromArray(array($rec->centre => $rec->centre));
+                $frameCls->save_($rec, $frameCls->centre);
+            }
+        }
+    }
+
+
+    /**
+     * Изтриване на старите поризводствени точки
+     */
+    function deletePoints()
+    {
+        planning_Points::truncate();
+    }
+
+
+    /**
+     * Премахва стари роли
+     */
+    function removeOldRoles()
+    {
+        $remRoleId = core_Roles::fetchByName('taskPlanning');
+        if (!$remRoleId) return;
+
+        core_Roles::removeRoles(array($remRoleId));
+        core_Users::rebuildRoles();
+    }
+
+
+    /**
+     * Задаване на стойности на полетата за последна промяна на състоянията
+     */
+    function updateLastChangedOnState()
+    {
+        foreach (array('planning_Jobs', 'planning_Tasks') as $class) {
+            $Class = cls::get($class);
+            $Class->setupMvc();
+            if ($Class->count()) {
+                $tableName = $Class->dbTableName;
+                $lastChangeStateOnColName = str::phpToMysqlName('lastChangeStateOn');
+                $modifiedOnColName = str::phpToMysqlName('modifiedOn');
+
+                $lastChangeStateByColName = str::phpToMysqlName('lastChangeStateBy');
+                $modifiedByColName = str::phpToMysqlName('modifiedBy');
+
+                $query = "UPDATE {$tableName} SET {$lastChangeStateOnColName} = {$modifiedOnColName}, {$lastChangeStateByColName} = {$modifiedByColName}";
+                $Class->db->query($query);
+            }
+        }
+    }
+
+
+    /**
+     * Миграция на ПО
+     */
+    public function updateTasks1()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        if (!$Tasks->count()) return;
+
+        $colName = str::phpToMysqlName('showadditionalUom');
+        $query = "UPDATE {$Tasks->dbTableName} SET {$colName} = 'yes' WHERE {$colName} = 'mandatory'";
+        $Tasks->db->query($query);
+    }
+
+
+    /**
+     * Миграция на центровете на дейност
+     */
+    public function updateCenters2244()
+    {
+        $Centers = cls::get('planning_Centers');
+        if (!$Centers->count()) return;
+
+        $colName = str::phpToMysqlName('mandatoryOperatorsInTasks');
+        $query = "UPDATE {$Centers->dbTableName} SET {$colName} = 'lastAndMandatory' WHERE {$colName} = 'yes'";
+        $Centers->db->query($query);
+    }
+
+
+    /**
+     * Миграция на замърсените ПО
+     */
+    public function cleanClosedTasks2250()
+    {
+        core_App::setTimeLimit(300);
+        $assets = $saveRecs = array();
+
+        // Зануляване на приключените ПО в подредбата
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#state = 'closed' AND #orderByAssetId IS NOT NULL AND #assetId IS NOT NULL");
+        $tQuery->show('id,assetId,orderByAssetId');
+
+        while($tRec = $tQuery->fetch()){
+            $tRec->orderByAssetId = null;
+            $saveRecs[$tRec->id] = $tRec;
+            $assets[$tRec->assetId] = $tRec->assetId;
+        }
+
+        if(countR($saveRecs)){
+            cls::get('planning_Tasks')->saveArray($saveRecs, 'id,orderByAssetId');
+        }
+
+        // За всяка засегната машина
+        if(countR($assets)){
+            foreach ($assets as $assetId){
+
+                // нулира се кеша ѝ за да може да се преизчисли наново
+                core_Permanent::remove("assetTaskOrder|{$assetId}");
+            }
+        }
+    }
+
+
+    /**
+     * Миграция на създадените ПО без данни дали са финални или не
+     */
+    public function updateTasks1520()
+    {
+        $query = planning_Tasks::getQuery();
+        $query->where('#isFinal IS NULL AND #state != "rejected"');
+
+        $taskRecs = $query->fetchAll();
+        $productIds = arr::extractValuesFromArray($taskRecs, 'productId');
+
+        if(countR($productIds)){
+            $steps = array();
+            $classId = cat_Products::getClassId();
+            $sQuery = planning_Steps::getQuery();
+            $sQuery->in('objectId', $productIds);
+            $sQuery->where("#classId = {$classId}");
+            $sQuery->show('isFinal, objectId');
+            while($sRec = $sQuery->fetch()){
+                $steps[$sRec->objectId] = $sRec->isFinal;
+            }
+
+            $count = countR($steps);
+            if($count){
+                core_App::setTimeLimit($count * 0.6, false, 300);
+                $Tasks = cls::get('planning_Tasks');
+                foreach ($taskRecs as $taskRec){
+                    $taskRec->isFinal = $steps[$taskRec->productId];
+                    if($steps[$taskRec->productId] == 'yes'){
+                        $Tasks->save($taskRec);
+                    }
                 }
             }
         }
-
-        if(countR($update)){
-            $Steps->saveArray($update, 'id,centerId');
-        }
     }
 
 
     /**
-     * Обновяване на полета за оборудване
+     * Миграция на миграцията
      */
-    public function updateTaskAssets()
+    public function updateMigratedTasks1620()
     {
-        $arr = array();
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-        $query = $Tasks->getQuery();
-        $query->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Производство->Оборудване');
-        $query->where("#fixedAssets IS NOT NULL");
-        $query->show('id,fixedAssets');
-        while($rec = $query->fetch()){
-            $assetId = key(keylist::toArray($rec->fixedAssets));
-            $rec->assetId = $assetId;
-            $arr[] = $rec;
-        }
+        core_App::setTimeLimit(300);
 
-        if(countR($arr)){
-            $Tasks->saveArray($arr, 'id,assetId');
-        }
-    }
-
-
-    /**
-     * Преподредба на операциите към оборудванията
-     */
-    public function reorderTasks2()
-    {
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-
-        // Кои оборудвания са към операции
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
-        $tQuery->where('#assetId IS NOT NULl');
-        $tQuery->show('assetId');
-
-        // Ако има такива
-        $assets = arr::extractValuesFromArray($tQuery->fetchAll(), 'assetId');
-        if(!countR($assets)) return;
-
-        // Нулиране на подредбата на всички ПО
-        $lastUpdatedColName = str::phpToMysqlName('orderByAssetId');
-        $query = "UPDATE {$Tasks->dbTableName} SET {$lastUpdatedColName} = NULL";
-        $Tasks->db->query($query);
-
-        // За всяко оборудване с операция - преизчислява се подредбата
-        foreach ($assets as $assetId){
-            planning_AssetResources::reOrderTasks($assetId);
-        }
-    }
-
-
-    /**
-     * Миграция на стари операции
-     */
-    public function migrateOldTasks()
-    {
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-
-        if(!planning_Tasks::count()) return;
-
-        core_App::setTimeLimit(400);
         $query = planning_Tasks::getQuery();
-        $query->EXT('driverClass', 'cat_Products', 'externalName=innerClass,externalKey=productId');
-        $query->where("#isFinal IS NULL");
-        $query->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
-        $query->in('state', array('active', 'wakeup', 'stopped', 'pending', 'waiting'));
-        $query->show('productId,jobProductId,driverClass');
+        $query->where("#isFinal = 'yes'");
+        $finalTaskRecs = $query->fetchAll();
+        $finalTaskIds = arr::extractValuesFromArray($finalTaskRecs, 'id');
+        $originIds = arr::extractValuesFromArray($finalTaskRecs, 'originId');
+        if(!countR($finalTaskIds)) return;
 
-        $saveTasks = array();
-        $saveDetails = array();
-        while($rec = $query->fetch()){
-            if($rec->jobProductId == $rec->productId){
-                $rec->isFinal = 'yes';
-                $saveTasks[$rec->id] = $rec;
-                $dRec = (object)array('taskId' => $rec->id, 'productId' => $rec->jobProductId, 'type' => 'production');
-                $saveDetails[$rec->id] = $dRec;
+        $res = $jobs = array();
+        $pQuery = planning_ProductionTaskProducts::getQuery();
+        $pQuery->where("#type = 'production' OR #type = ''");
+        $pQuery->in("taskId", $finalTaskIds);
+        while($pRec = $pQuery->fetch()){
+            $res[$pRec->taskId][$pRec->productId] = $pRec->productId;
+        }
+
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in("containerId", $originIds);
+        $jQuery->show('containerId,productId');
+        while($jRec = $jQuery->fetch()){
+            $jobs[$jRec->containerId] = $jRec->productId;
+        }
+
+        $Products = cls::get('planning_ProductionTaskProducts');
+        foreach ($finalTaskRecs as $finalTaskRec){
+            $originProductId = $jobs[$finalTaskRec->originId];
+
+            $add = false;
+            if(isset($res[$finalTaskRec->id])){
+                if(!array_key_exists($originProductId, $res[$finalTaskRec->id])){
+                    $add = true;
+                }
+            } else {
+                $add = true;
+            }
+
+            if($add){
+                $nRec = new stdClass();
+                $nRec->taskId = $finalTaskRec->id;
+                $nRec->productId = $originProductId;
+                $nRec->type = 'production';
+                $fields = $exRec = null;
+                if (!$Products->isUnique($nRec, $fields, $exRec)) {
+                    $nRec->id = $exRec->id;
+                }
+                $Products->save($nRec);
             }
         }
 
-        $Tasks->saveArray($saveTasks, 'id,isFinal');
-        cls::get('planning_ProductionTaskProducts')->saveArray($saveDetails);
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#innerClass=" . planning_interface_StepProductDriver::getClassId());
+        $pQuery->show('id, innerClass');
+
+        $stepIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+        if(!countR($stepIds)) return;
+
+        $dQuery = planning_ProductionTaskDetails::getQuery();
+        $dQuery->EXT('isFinal', 'planning_Tasks', "externalName=isFinal,externalKey=taskId");
+        $dQuery->EXT('taskProductId', 'planning_Tasks', "externalName=productId,externalKey=taskId");
+        $dQuery->EXT('originId', 'planning_Tasks', "externalName=originId,externalKey=taskId");
+        $dQuery->where("#isFinal = 'yes' AND #productId = #taskProductId");
+        $dQuery->in("taskProductId", $stepIds);
+        $dRecs = $dQuery->fetchAll();
+
+        $jobProductIds = array();
+        $jobContainerIds = arr::extractValuesFromArray($dRecs, 'originId');
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in('containerId', $jobContainerIds);
+        $jQuery->show('containerId,productId');
+        while($jRec = $jQuery->fetch()){
+            $jobProductIds[$jRec->containerId] = $jRec->productId;
+        }
+
+        foreach ($dRecs as $dRec){
+            if(isset($jobProductIds[$dRec->originId])){
+                $dRec->productId = $jobProductIds[$dRec->originId];
+                planning_ProductionTaskDetails::save($dRec);
+            }
+        }
     }
 }

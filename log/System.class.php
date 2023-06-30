@@ -106,12 +106,10 @@ class log_System extends core_Manager
         $this->FLD('lastSaved', 'datetime(smartTime)', 'caption=Последно');
         
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('createdOn, className');
         $this->setDbIndex('lastSaved');
         $this->setDbIndex('className');
         $this->setDbIndex('objectId');
-        $this->setDbIndex('type');
-        
-        $this->setDbIndex('type, createdOn, className');
         
         $this->dbEngine = 'InnoDB';
         

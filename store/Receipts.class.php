@@ -46,12 +46,18 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, sales_plg_CalcPriceDelta,store_plg_Request, plg_Sorting,purchase_plg_ExtractPurchasesData,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, change_Plugin, deals_plg_SaveValiorOnActivation, store_Wrapper, sales_plg_CalcPriceDelta,store_plg_Request, plg_Sorting,purchase_plg_ExtractPurchasesData,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
     /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'note,detailOrderBy';
+	
+	
+	/**
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
@@ -212,7 +218,9 @@ class store_Receipts extends store_DocumentMaster
         $this->setField('pCode', 'caption=Адрес за натоварване->П. код');
         $this->setField('place', 'caption=Адрес за натоварване->Град/с');
         $this->setField('address', 'caption=Адрес за натоварване->Адрес');
-        $this->setField('addressInfo', 'caption=Адрес за натоварване->Особености');
+        $this->setField('addressInfo', 'caption=Адрес за натоварване->Други');
+        $this->setField('features', 'caption=Адрес за натоварване->Особености');
+
         $this->setFieldTypeParams("deliveryTime", array('defaultTime' => $endTime));
     }
     
@@ -242,6 +250,13 @@ class store_Receipts extends store_DocumentMaster
     {
         $form = &$data->form;
         $form->setField('locationId', 'caption=Обект от');
+
+        $origin = static::getOrigin($form->rec);
+        if ($origin->isInstanceOf('purchase_Purchases')) {
+            if (!isset($rec->id)) {
+                $data->form->FNC('importProducts', 'enum(notshipped=Недоставени (Всички),notshippedstorable=Недоставени (Складируеми),notshippedservices=Недоставени (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
+            }
+        }
     }
     
     

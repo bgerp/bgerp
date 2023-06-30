@@ -112,8 +112,6 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
         $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
-        $rolesForTeamsArr = arr::make($mvc->filterRolesForTeam, true);
-        $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
         
         $mvc->filterRolesForAll .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_ALL');
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
@@ -125,12 +123,17 @@ class acc_plg_DocumentSummary extends core_Plugin
             foreach ($rolesAllArr as $roleStr) {
                 $roleStr = trim($roleStr);
                 $mvc->filterRolesForAll .= ',' . $roleStr . 'Global';
+                $mvc->filterRolesForTeam .= ',' . $roleStr;
             }
         }
+        $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
+        $rolesForTeamsArr = arr::make($mvc->filterRolesForTeam, true);
+        $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
+
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
         $rolesForAllArr = arr::make($mvc->filterRolesForAll, true);
         $mvc->filterRolesForAll = implode('|', $rolesForAllArr);
-        
+
         setIfNot($mvc->filterAutoDate, true);
         if(!$mvc->hidePeriodFilter){
             $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
@@ -237,7 +240,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if (!$defaultFilterDateField) {
                         $defaultFilterDateField = $f;
                     }
-                    $caption = $mvc->getField($f)->caption;
+                    $caption = $data->listFilter->getField($f)->caption;
                     if (strpos($caption, '->')) {
                         list($l, $r) = explode('->', $caption);
                         $caption = tr($l) . ' » ' . tr($r);
@@ -276,10 +279,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,allowEmpty)', 'caption=Папка,silent,after=users');
             $data->listFilter->showFields .= ',folder';
             
-            $cKey = $mvc->className . core_Users::getCurrent();
+            $cKey = $mvc->className . '|' . core_Users::getCurrent();
             $haveUsers = false;
             
             if ($lastUsers = core_Permanent::get('userFilter' . $cKey)) {
+                $usedUsers = $lastUsers;
                 $type = $data->listFilter->getField('users')->type;
                 $type->prepareOptions();
                 foreach ($type->options as $key => $optObj) {
@@ -324,7 +328,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if($mvc->filterAllowState){
                 if($mvc->getField('state', false)){
                     $stateOptions = $mvc->getFieldType('state')->options;
-                    $stateOptions = array_intersect_key($stateOptions, arr::make(array('draft', 'pending', 'active', 'waiting', 'stopped', 'wakeup', 'closed'), true));
+                    $stateOptions = array_intersect_key($stateOptions, arr::make(array('draft', 'pending', 'active', 'waiting', 'stopped', 'wakeup', 'closed', 'template'), true));
                     foreach ($stateOptions as $k => $v){
                         $stateOptions[$k] = is_object($v) ? $v->title : $v;
                     }
@@ -347,7 +351,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
 
             // Записваме в кеша последно избраните потребители
-            if ($usedUsers = $filter->users) {
+            if ($data->listFilter->isSubmitted() && ($usedUsers = $filter->users)) {
                 if (($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }
@@ -361,11 +365,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             // Филтрираме по потребители
             if ($filter->users && $isDocument) {
                 $userIds = keylist::toArray($filter->users);
-                
+
                 // Ако не се търси по всички
-                if (!$userIds[-1]) {
+                if ($usedUsers != 'all_users') {
                     $userArr = implode(',', $userIds);
-                   
+
                     if(in_array($filter->filterDateField, $userFields)){
                         $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
                     } else {
@@ -373,7 +377,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                         $useUserField = isset($map[$filter->filterDateField]) ? $map[$filter->filterDateField] : $mvc->filterFieldUsers;
 
                         $data->query->where("#{$useUserField} IN ({$userArr})");
-                        if(!isset($map[$filter->filterDateField])){
+                        if(!isset($map[$filter->filterDateField]) && $useUserField != $mvc->filterFieldUsers){
                             $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
                         }
                     }
@@ -409,12 +413,13 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
             }
 
+
             if ($dateRange[0] || $dateRange[1]) {
                 $nullCond = '';
                 $where = '';
 
                 if ($fromField) {
-                    $autoCalcField = $mvc->getFieldParam($fromField, 'autoCalcDateField');
+                    $autoCalcField = $data->listFilter->getFieldParam($fromField, 'autoCalcDateField');
 
                     if ($dateRange[0] && $dateRange[1]) {
 
@@ -428,6 +433,12 @@ class acc_plg_DocumentSummary extends core_Plugin
                             $where .= "(#{$fromField} >= '[#1#]')";
                             if($autoCalcField){
                                 $where .= " OR (#{$fromField} IS NULL AND #{$autoCalcField} >= '[#1#]')";
+                                $where = "({$where})";
+                            }
+
+                            $oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate();
+                            if($dateRange[0] == $oldestAvailableDate && empty($dateRange[1])){
+                                $where .= " OR (#{$fromField} IS NULL)";
                                 $where = "({$where})";
                             }
                         }
@@ -512,42 +523,53 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
         
         // Ще се преброяват всички неоттеглени документи
-        $data->listSummary->query->where("#state != 'rejected' OR #state IS NULL");
-        $data->listSummary->summary = array();
+        core_Debug::startTimer('RENDER_SUMMARY');
+        $sQuery = clone $data->listSummary->query;
+        $sQuery->where("#state != 'rejected' OR #state IS NULL");
 
-        // Кои полета трябва да се обобщят
+        $data->listSummary->summary = array();
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
+        $showFields = arr::make(array_keys($fieldsArr), true);
+        $showFields['state'] = 'state';
+        if($mvc->getField('rate', false)){
+            $showFields['rate'] = 'rate';
+        }
+        $showFields = implode(',', $showFields);
+        $sQuery->show($showFields);
+
 
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
-        
-        while ($rec = $data->listSummary->query->fetch()) {
+        $draftCount = $activeCount = $pendingCount = 0;
+        while ($rec = $sQuery->fetch()) {
+            $mvc->fillSummaryRec($rec, $fieldsArr);
             self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
+            if($rec->state == 'draft'){
+                $draftCount++;
+            } elseif($rec->state == 'pending'){
+                $pendingCount++;
+            } elseif(in_array($rec->state, array('closed', 'active'))){
+                $activeCount++;
+            }
         }
-        
-        $Double = cls::get('type_Double', array('params' => array('decimals' => 0)));
-        
-        // Преброяване на черновите документи
-        $activeQuery = clone $data->listSummary->query;
-        $pendingQuery = clone $data->listSummary->query;
-        $data->listSummary->query->where("#state = 'draft'");
-        $draftCount = $data->listSummary->query->count();
-        
-        // Преброяване на активираните/затворени документи
-        $activeQuery->where("#state = 'active' OR #state = 'closed'");
-        $activeCount = $activeQuery->count();
-        
-        // Преброяване на заявките
-        $pendingQuery->where("#state = 'pending'");
-        $pendingCount = $pendingQuery->count();
-        
+
         // Добавяне в обобщението на броя активирани и броя чернови документи
         $data->listSummary->summary['countA'] = (object) array('caption' => "<span style='float:right'>" . tr('Активирани') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $activeCount);
         $data->listSummary->summary['countC'] = (object) array('caption' => "<span style='float:right'>" . tr('Заявки') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object) array('caption' => "<span style='float:right'>" . tr('Чернови') . '</span>', 'measure' => tr('бр') . '.', 'quantity' => $draftCount);
+        core_Debug::stopTimer('RENDER_SUMMARY');
     }
-    
-    
+
+
+    /**
+     * Метод по подразбиране допълващ полетата за филтриране
+     */
+    public static function on_AfterFillSummaryRec($mvc, $res, &$rec, &$summaryFields)
+    {
+
+    }
+
+
     /**
      * След рендиране на List Summary-то
      */

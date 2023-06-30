@@ -138,6 +138,8 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input,mandatory');
+
+        $this->setDbIndex('newProductId');
     }
     
     
@@ -254,7 +256,7 @@ class store_TransfersDetails extends doc_Detail
             $storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $masterRec->fromStore, $deliveryDate);
             $form->info = $storeInfo->formInfo;
             
-            $packs = cat_Products::getPacks($rec->newProductId);
+            $packs = cat_Products::getPacks($rec->newProductId, $rec->packagingId);
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));

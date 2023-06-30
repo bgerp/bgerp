@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @title     Интерфейс за притежатели на  RFID
  */
-class rfid_HolderIntf
+class rfid_HolderIntf extends embed_DriverIntf
 {
     /**
      * Инстанция на класа имплементиращ интерфейса
@@ -28,9 +28,9 @@ class rfid_HolderIntf
      *
      * @param core_Fieldset $fieldset
      */
-    public function addFields(core_Form &$form)
+    public function addFields(core_Fieldset &$fieldset)
     {
-        return $this->class->addFields($form);
+        return $this->class->addFields($fieldset);
     }
     
     

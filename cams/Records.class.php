@@ -179,10 +179,8 @@ class cams_Records extends core_Master
             $img = imagecreatefromjpeg($fp->imageFile);
         }
         
-        // Кеширане в браузъра в рамките на 1 ч.
-        $cacheTime = 60 * 60;
-        
-        session_cache_limiter('none');
+        // Кеширане в браузъра в рамките на 2 ч.
+        $cacheTime = 2 * 60 * 60;
         
         // Then send Cache-Control: max-age=number_of_seconds and
         // optionally equivalent Expires: header.
@@ -225,7 +223,7 @@ class cams_Records extends core_Master
         
         // Подготвяме пътищата до различните медийни файлове
         $fp = $this->getFilePaths($rec->startTime, $rec->cameraId);
-        
+
         $data = new stdClass();
         
         // Настройваме параметрите на плеъра
@@ -354,6 +352,15 @@ class cams_Records extends core_Master
      */
     public function convertToMp4($mp4Path, $mp4File)
     {
+        // Ако кодека е h264 не конвертираме видеото
+        $output = array();
+        exec ('ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 ' . $mp4Path, $output);
+        if ($output[0] === 'h264') {
+            copy($mp4Path, $mp4File);
+            
+            return;
+        }
+        
         core_Locks::get(basename($mp4File), 300, 0, false);
         
         $cmdTmpl = 'ffmpeg -hide_banner -loglevel panic -i [#INPUTF#] -preset fast -crf 35 -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]';
@@ -508,7 +515,7 @@ class cams_Records extends core_Master
         
         $startTime = dt::timestamp2Mysql(round(time() / $conf->CAMS_CLIP_DURATION) * $conf->CAMS_CLIP_DURATION);
         
-        $images = $clips = 0;
+        $clips = 0;
         
         while ($camRec = $camsQuery->fetch()) {
             $fp = $this->getFilePaths($startTime, $camRec->id);
@@ -519,7 +526,7 @@ class cams_Records extends core_Master
                 continue;
             }
             
-            $driver->captureVideo($fp->videoFile, $conf->CAMS_CLIP_DURATION + 7);
+            $driver->captureVideo($fp->videoFile, $conf->CAMS_CLIP_DURATION + 1);
             
             if ($imageStr = $driver->getPicture()) {
                 imagejpeg($imageStr, $fp->imageFile);

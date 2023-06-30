@@ -117,7 +117,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                         $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $bdRec->quantity;
                         foreach ($batchesArr as $batchValue){
                             $inStore = isset($quantitiesInStore[$batchValue]) ? $quantitiesInStore[$batchValue] : 0;
-                            if($quantity > $inStore){
+                            if(round($quantity, 5) > round($inStore, 5)){
                                 $productsWithNotExistingBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
                             }
                         }
@@ -125,7 +125,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 }
                
                 // Ако някои от тях нямат посочена партида, документа няма да се контира
-                if($checkIfBatchIsMandatory == 'yes' && $sum < $dRec->{$Detail->quantityFld}){
+                if($checkIfBatchIsMandatory == 'yes' && round($sum, 3) < round($dRec->{$Detail->quantityFld}, 3)){
                     $productsWithoutBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
                 }
             }
@@ -161,7 +161,7 @@ class batch_plg_DocumentMovement extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFields = null)
     {
         // Ако документа се променя от бутона за промяна или при преизчисляване на курса да не се дублират партидите
-        if($rec->__isBeingChanged || $rec->_recalcRate) return;
+        if($rec->__isBeingChanged || $rec->_recalcRate || $rec->_changeLine) return;
 
         if ($rec->state == 'active') {
             if ($mvc->hasPlugin('acc_plg_Contable')) {
@@ -192,7 +192,9 @@ class batch_plg_DocumentMovement extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if (batch_Movements::haveRightFor('list') && $data->rec->state == 'active') {
-            $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Добавяне като ресурс,row=2');
+            if(batch_Movements::count("#docType = {$mvc->getClassId()} AND #docId = {$data->rec->id}")){
+                $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Показване на движенията на партидите генерирани от документа,row=2');
+            }
         }
     }
 }

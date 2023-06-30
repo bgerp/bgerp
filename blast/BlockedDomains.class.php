@@ -18,7 +18,7 @@ class blast_BlockedDomains extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Адреси, на които не се изпращат циркулярни имейли';
+    public $title = 'Домейни, на които не се изпращат циркулярни имейли';
     
     
     /**
@@ -60,7 +60,7 @@ class blast_BlockedDomains extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'blast_Wrapper, plg_RowTools2, plg_Sorting';
+    public $loadList = 'email_Wrapper, plg_RowTools2, plg_Sorting';
     
     
     /**

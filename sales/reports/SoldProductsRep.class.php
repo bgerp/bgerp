@@ -80,7 +80,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealers');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
 
-        $fieldset->FLD('typeOfGroups', 'enum(no=Без групи, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Групи,removeAndRefreshForm,after=crmGroup');
+        $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
         $fieldset->FLD('category', 'keylist(mvc=cat_Categories,select=name)', 'caption=Артикули->Категории артикули,after=typeOfGroups,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=category,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,placeholder=Всички,after=group,single=none,input=none,class=w100');
@@ -90,17 +90,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Покаване на резултата
         $fieldset->FLD('grouping', 'enum(yes=По групи, no=По артикули)', 'caption=Показване->Вид,removeAndRefreshForm,after=quantityType');
         $fieldset->FLD('currency', 'key(mvc=currency_Currencies,select=code,allowEmpty)', 'caption=Показване->Валута,removeAndRefreshForm,single=none,after=grouping,placeholder=Основна');
-        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Разбивка по контрагенти,after=currency,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->По контрагенти,after=currency,removeAndRefreshForm,single=none,silent');
         $fieldset->FLD('seeCategory', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи категория,after=seeByContragent,single=none,silent');
 
         $fieldset->FLD('engName', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Име EN,after=seeByContragent,single=none');
         $fieldset->FLD('seeDelta', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи делти,after=engName,single=none');
         $fieldset->FLD('seeWeight', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи тегло,after=seeDelta,single=none');
+        $fieldset->FLD('primeCostType', 'enum(standartPrimeCost=Стандартна, dealerPrimeCost=Дилърска)', 'caption=Показване->Себестойност,after=seeWeight,single=none');
 
 
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=seeWeight');
+        $fieldset->FLD('orderBy', 'enum(code=Код, groups=Групи, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=6,columns=3,after=primeCostType');
         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
+
     }
 
 
@@ -162,6 +164,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
 
+    /**
+     * Преди подготвяне на едит формата
+     */
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+bp();
+       bp( Request::get());
+
+    }
+
 
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -197,7 +209,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('category', 'input=hidden');
             $form->setField('group', 'input=hidden');
         }
-
 
         $today = dt::today();
         $from = dt::addMonths(-1, $today);
@@ -248,6 +259,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setDefault('order', 'desc');
 
         $form->setDefault('quantityType', 'shipped');
+
+        $form->setDefault('primeCostType', 'standartPrimeCost');
 
         if ($rec->quantityType != 'invoiced') {
 
@@ -429,20 +442,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $invQuantity = $correctionArray['quanttity'];
                     $invAmount = $correctionArray['amount'];
 
-//                    $originId = doc_Containers::getDocument($invDetRec->originId)->that;
-//                    $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$invDetRec->productId}");
-//                    $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
-//                    $changeQuatity = $invQuantity - $originQuantity;
-//                    $changePrice = $invDetRec->price - $originDetRec->price;
-//
-//                    if ($changeQuatity == 0 && $changePrice == 0) {
-//                        continue;
-//                    }
-//                    $invQuantity = $changeQuatity != 0 ? $changeQuatity :0;
-//                    $invAmount = $changeQuatity == 0 ? $changePrice * $invDetRec->quantity * $invDetRec->quantityInPack : $invDetRec->price * $invQuantity;
-//                    if ($invDetRec->discount) {
-//                        $invAmount = $invAmount * (1 - $invDetRec->discount);
-//                    }
                 }
 
                 // Запис в масива с фактурираните артикули $invProd
@@ -640,6 +639,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $categoryId = doc_Folders::fetch($recPrime->prodFolderId)->coverId;
 
+            //rec-a на артикула
+            $prodRec = cat_Products::fetch($recPrime->productId);
+
             //Ключ на масива
             $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId : $recPrime->productId;
 
@@ -647,7 +649,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $artCode = $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}";
 
             //Мярка на артикула
-            $measureArt = cat_Products::fetch($recPrime->productId)->measureId;
+            $measureArt = $prodRec->measureId;
+
+            $conf = core_Packs::getConfig('sales');
+            $deltaMinCoef = (!is_numeric($conf->SALES_DELTA_MIN_PERCENT)) ? 0 : $conf->SALES_DELTA_MIN_PERCENT;
 
             //Данни за ПРЕДХОДЕН ПЕРИОД или МЕСЕЦ
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
@@ -657,12 +662,24 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                         $quantityPrevious = (-1) * $recPrime->quantity;
                         $primeCostPrevious = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
+
+                        //@todo: на складовите разписки делтата е отрцателна по дефиниция. Как да се реагира?
                         $deltaPrevious = (-1) * $recPrime->delta;
 
-                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails) {
+                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
                         $quantityPrevious = $recPrime->quantity;
                         $primeCostPrevious = $recPrime->{"${price}"} * $recPrime->quantity;
-                        $deltaPrevious = $recPrime->delta;
+
+
+
+                        //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
+                        // приемаме че, себестойността е 95% от продажната цена
+                        if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
+                            $deltaPrevious = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity;
+                        } else {
+                            $deltaPrevious = $recPrime->delta;
+                        }
+
 
                     } elseif ($DetClass instanceof sales_InvoiceDetails) {
 
@@ -698,11 +715,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $primeCostLastYear = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
                         $deltaLastYear = (-1) * $recPrime->delta;
 
-                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails) {
+                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
 
                         $quantityLastYear = $recPrime->quantity;
                         $primeCostLastYear = $recPrime->{"${price}"} * $recPrime->quantity;
-                        $deltaLastYear = $recPrime->delta;
+
+                        //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
+                        // приемаме че, себестойността е 95% от продажната цена
+                        if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
+                            $deltaLastYear = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity;
+                        } else {
+                            $deltaLastYear = $recPrime->delta;
+                        }
 
                     } elseif ($DetClass instanceof sales_InvoiceDetails) {
 
@@ -736,12 +760,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     $delta = (-1) * $recPrime->delta;
 
-                } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails) {
+                } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
                     $quantity = $recPrime->quantity;
 
                     $primeCost = $recPrime->{"${price}"} * $recPrime->quantity;
 
-                    $delta = $recPrime->delta;
+                    //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
+                    // приемаме че, себестойността е 95% от продажната цена
+                    if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
+                        $delta = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity;
+                    } else {
+                        $delta = $recPrime->delta;
+                    }
+
                 } elseif ($DetClass instanceof sales_InvoiceDetails) {
 
                     if ($recPrime->type == 'invoice') {
@@ -929,7 +960,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             //Когато НЕ СА ИЗБРАНИ групи артикули
             if (!($rec->$typeGroup)) {
                 if (keylist::isKeylist(($v->$typeGroup))) {
-                    $v->$typeGroup = keylist::toArray($v->$typeGroup); //Кейлиста с гупите го записва като масив
+                    $v->$typeGroup = keylist::toArray($v->$typeGroup); //Кейлиста с групите го записва като масив
                 } elseif (is_numeric($v->$typeGroup)) {
                     $v->$typeGroup = array($v->$typeGroup => $v->$typeGroup); //Ако е избрана категория
                 } else {
@@ -1354,35 +1385,35 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
 
             $fld->FLD('code', 'varchar', 'caption=Код');
-            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
 
             if ($rec->engName == 'yes') {
                 $fld->FLD('engName', 'varchar', 'caption=Артикул[EN]');
             }
 
-            $fld->FLD('measure', 'key( да дам мнmvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('measure', 'key( mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             if ($rec->seeCategory == 'yes') {
                 $fld->FLD('category', 'varchar', 'caption=Категория');
             }
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Продажби");
-            $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Стойност");
+            $fld->FLD('quantity', 'double(sdecimals=2)', "smartCenter,caption={$name1} Продажби");
+            $fld->FLD('primeCost', 'double(decimals=2)', "smartCenter,caption={$name1} Стойност");
 
             if ($rec->seeByContragent == 'yes') {
-                $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->количество');
-                $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
+                $fld->FLD('invQuantity', 'double(decimals=2)', 'smartCenter,caption=Фактурирано->количество');
+                $fld->FLD('invAmount', 'double(decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
             }
 
             if ($rec->seeDelta == 'yes') {
-                $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Делта");
+                $fld->FLD('delta', 'double(decimals=2)', "smartCenter,caption={$name1} Делта");
             }
 
 
             if ($rec->compare != 'no') {
-                $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Продажби,tdClass=newCol");
-                $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Стойност,tdClass=newCol");
-                $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Делта,tdClass=newCol");
-                $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна Стойност');
-                $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна Делти');
+                $fld->FLD('quantityCompare', 'double(decimals=2)', "smartCenter,caption={$name2} Продажби,tdClass=newCol");
+                $fld->FLD('primeCostCompare', 'double(decimals=2)', "smartCenter,caption={$name2} Стойност,tdClass=newCol");
+                $fld->FLD('deltaCompare', 'double(decimals=2)', "smartCenter,caption={$name2} Делта,tdClass=newCol");
+                $fld->FLD('changeSales', 'double(decimals=2)', 'smartCenter,caption=Промяна Стойност');
+                $fld->FLD('changeDeltas', 'double(decimals=2)', 'smartCenter,caption=Промяна Делти');
             }
         }
 
@@ -1438,7 +1469,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $group = cat_Groups::getVerbal($dRec->group, 'name');
             }
         }
-
+;
         return $group;
     }
 
@@ -1735,6 +1766,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                         <!--ET_BEGIN art--><div>|Артикули|*: [#art#]</div><!--ET_END art-->
                                         <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
                                         <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
+                                        <!--ET_BEGIN minDelta--><div>|Мин. делта|*: [#minDelta#]</div><!--ET_END minDelta-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -1845,6 +1877,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $baseCurrency . ' (основна)' . '</b>', 'currency');
         }
 
+        if ($data->rec->primeCostType == 'dealerPrimeCost'){
+            $coefDelta = core_Packs::getConfig('sales')->SALES_DELTA_MIN_PERCENT;
+            $fieldTpl->append('<b>' . $coefDelta*100 .'%'. '</b>', 'minDelta');
+
+        }
+
+
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
@@ -1859,9 +1898,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+
         $res->group = self::getGroups($dRec, false, $rec);
         if (isset($dRec->measure)) {
-            $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
+            $res->measure = $dRec->measure;
+        }
+        if(isset($dRec->productId)){
+            $res->productId = cat_Products::fetch($dRec->productId)->name;
         }
 
         if ($rec->compare != 'no') {
@@ -1870,7 +1913,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $res->primeCostCompare = $dRec->primeCostPrevious;
                 $res->deltaCompare = $dRec->deltaPrevious;
                 $res->changeSales = $dRec->primeCost - $dRec->primeCostPrevious;
-                $res->changeDeltas = ($dRec->delta - $dRec->deltaPrevious);
+                $res->changeDeltas = $dRec->delta - $dRec->deltaPrevious;
             }
 
             if ($rec->compare == 'year') {
@@ -1882,7 +1925,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         } else {
             if ($rec->seeByContragent == 'yes') {
-                $res->contragent = doc_Folders::getTitleById($dRec->contragent);
+                if (isset($res->contragent)){
+                    $res->contragent = doc_Folders::fetch($dRec->contragent)->title;
+                }
+
             }
         }
 
@@ -1914,6 +1960,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $prodCategory = doc_Folders::fetch($prodFolderId)->title;
                 $res->category = $prodCategory;
             }
+            $res->productId = $dRec->productId;
         }
     }
 

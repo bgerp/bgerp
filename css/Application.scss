@@ -1137,7 +1137,12 @@ div.acc-detail {
 .itemClass{
 	min-width: 210px;
 }
-
+.inline-checkbox {
+	display: inline-block;
+	margin: 5px 10px !important;
+	position: relative;
+	top: 2px;
+}
 .accToolsCell{
    width: 1%;
    a.linkWithIcon{
@@ -1457,7 +1462,14 @@ table.listTable > tbody > tr {
     }
 
 }
-
+.planning_ProductionTaskDetails {
+	table.listTable>tbody>tr>td {
+		border-top: 1px none !important;
+	}
+	 table.listTable>tbody>tr:first-child>td {
+		border-top: 1px dotted #ccc !important;
+	}
+}
 .portal.planning table.listTable th {
     border: 1px solid #ccc;
     &:first-child {
@@ -2387,6 +2399,11 @@ width:1%;
 
 .small-field{
 width:1%;
+}
+
+.logisticCol {
+	text-align: right;
+	max-width: 400px !important;
 }
 
 .medium-field{
@@ -3665,8 +3682,10 @@ fieldset.sharing-history {
 .externalPage {
 	font-family:Verdana,Helvetica,Arial,Sans-serif;
 }
-.wide .externalPage{
+
+.wide .externalPage {
 	font-size: 16px;
+	font-size: unquote("calc(16px +  min(4px, max(0px, (20 - 16) * (calc(100vw - 800px) / (1900 - 800)))))"); 
 }
 
 .narrow  .externalPage #cmsTop {
@@ -3802,7 +3821,7 @@ fieldset.sharing-history {
 }
 
 .narrow #cmsBottom {
-	min-height:26px;
+	min-height:36px;
 }
 
 .footer-links {
@@ -3860,7 +3879,7 @@ fieldset.sharing-history {
 #all {
 	border: solid 1px #777;
 	border-bottom: solid 1px #000;
-	max-width: 1400px;
+	max-width: 80em;
 	display: block;
 	margin: 0 auto;
 	#searchform {
@@ -7863,6 +7882,12 @@ body.narrow {
 	.em-holder .top-table td {
 		border: none !important;
 	}
+	.quiet.saleBankBlock {
+		color: #bbb;
+		.quiet {
+			color: #bbb;
+		}
+	}
 }
 
 .narrow .printing .document{
@@ -8459,3 +8484,41 @@ table.bomProductionStepTable td{
 .stepParamTable td {
 	text-indent: 15px;
 }
+
+.warning-balloon {
+	border:1px dotted #fb9531;
+	display:inline-block;
+	padding:2px;
+	border-radius:3px;
+}
+
+.taskInJobListRow {
+	display:none;
+}
+
+.saleBankBlock a:link, .saleBankBlock a:visited{
+	color:#888888;
+}
+
+.rateDiffDocumentTable td.rateDifferenceDocumentGroup {
+	background-color:#eee;
+	border:1px solid #bbbbbb54;
+}
+
+.rateDiffDocumentTable td{
+	padding-top:4px;
+	padding-bottom:4px;
+}
+
+.rateDiffDocumentTable td.rateDifferenceDocumentLink {
+	text-indent:20px;
+}
+
+.priceBellowPrimeCost {
+	font-weight:bold;
+	background-color:red;
+	color:white;
+	padding: 1px 3px;
+}
+
+

@@ -22,6 +22,9 @@
             <div style="margin-bottom:2px"><span class="quiet">|В състава на|*:</span> [#parentId#]</div>
             <!--ET_END parentId-->
             <div style="margin-bottom:2px"><span class="quiet">|Сортиране по|*:</span> [#orderProductBy#]</div>
+            <!--ET_BEGIN defaultOverheadCostsPercent-->
+            <div style="margin-bottom:2px"><span class="quiet">|Режийни разходи|*:</span> [#defaultOverheadCostsPercent#]</div>
+            <!--ET_END defaultOverheadCostsPercent-->
             <div style="margin-bottom:2px"><span class="quiet">|Наследниците да бъдат ли счетоводни признаци|*: </span> [#makeDescendantsFeatures#]</div>
             <div style="margin-bottom:2px"><span class="quiet">|Създаване|*:</span> [#createdBy#], [#createdOn#]</div>
             <!--ET_BEGIN sysId-->

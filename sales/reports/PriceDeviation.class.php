@@ -688,13 +688,8 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      * @param object      $rec
      * @param object      $row
      */
-    public static function on_AfterGetHideArrForLetterHead(
-    frame2_driver_Proto $Driver,
-    embed_Manager $Embedd,
-    &$res,
-    $rec,
-    $row
-) {
+    public static function on_AfterGetHideArrForLetterHead(frame2_driver_Proto $Driver, embed_Manager $Embedd, &$res, $rec, $row)
+    {
         $res = arr::make($res);
         
         $res['external']['selfPriceTolerance'] = true;

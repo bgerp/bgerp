@@ -70,7 +70,7 @@ class core_Settings extends core_Manager
     {
         $this->FLD('key', 'varchar(16)', 'caption=Ключ');
         $this->FLD('objectId', 'int', 'caption=Обект, input=none');
-        $this->FLD('userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin)', 'caption=Потребител/Роля');
+        $this->FLD('userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin, rolesForDomains=admin)', 'caption=Потребител/Роля');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('key, objectId, userOrRole');
@@ -114,7 +114,6 @@ class core_Settings extends core_Manager
     public static function getModifyUrl($key, $className, $userOrRole = null)
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
-        
         $userOrRole = type_UserOrRole::getOptVal($userOrRole);
         
         // Защитаваме get параметрите
@@ -168,7 +167,9 @@ class core_Settings extends core_Manager
         } else {
             $query->where(array("#key = '[#1#]'", $key));
         }
-        
+
+        $domainId = null;
+
         // Ако е потребител
         if ($userOrRole > 0) {
             
@@ -188,20 +189,28 @@ class core_Settings extends core_Manager
             }
         } elseif ($userOrRole < 0) {
             
-            // Ако е група
-            
+            // Ако е група от тип роля
+
             // Всички роли, които наследява групата
-            $roleId = type_UserOrRole::getRoleIdFromSys($userOrRole);
+            $roleId = type_UserOrRole::getRoleIdFromSys($userOrRole, $roleType);
             if ($roleId) {
-                $rolesArr = core_Roles::expand($roleId);
+                if ($roleType == 'role') {
+                    $rolesArr = core_Roles::expand($roleId);
+                }
+
+                if ($roleType == 'domain') {
+                    $rolesArr = array();
+                    $domainId = $roleId;
+                }
             }
         }
-        
+
         // Добавяме ролята за цялата система
         $rolesArr[0] = 0;
         
         // Добавяме всички групи в условието
         if ($rolesArr) {
+
             $rolesArrSysId = array_map(array('type_UserOrRole', 'getSysRoleId'), $rolesArr);
             
             $uWhere = '#userOrRole IN (' . implode(',', $rolesArrSysId) . ')';
@@ -211,11 +220,24 @@ class core_Settings extends core_Manager
             } else {
                 $query->where($uWhere);
             }
+
+            $orToPrevious = true;
         }
-        
+
+        setIfNot($domainId, cms_Domains::getCurrent('id', false));
+
+        if (isset($domainId)) {
+            $domainSysRoleId = type_UserOrRole::getSysRoleId($domainId, 'domain');
+            $query->where(array("#userOrRole = '[#1#]'", $domainSysRoleId), $orToPrevious);
+
+            // От домейна да са с най-нисък приоритет - след ролите
+            $query->XPR('orderForDomain', 'int', "IF((#userOrRole = '{$domainSysRoleId}'), 1, 2)");
+            $query->orderBy('#orderForDomain=DESC');
+        }
+
         // С по-голям приоритет са данните въведени от потребителя
         $query->orderBy('userOrRole', 'DESC');
-        
+
         // Обхождаме всички записи и добавяме в масива
         while ($rec = $query->fetch()) {
             if (!$rec->data) {
@@ -228,7 +250,7 @@ class core_Settings extends core_Manager
                 $allResArr[$keyHash][$property] = $val;
             }
         }
-        
+
         return $allResArr[$keyHash];
     }
     
@@ -280,8 +302,10 @@ class core_Settings extends core_Manager
             
             // Определяме потребителите
             if ($rec->userOrRole < 0) {
-                $roleId = type_UserOrRole::getRoleIdFromSys($rec->userOrRole);
-                $userArr = $userRolesArr[$roleId];
+                $roleId = type_UserOrRole::getRoleIdFromSys($rec->userOrRole, $type);
+                if ($type == 'role') {
+                    $userArr = $userRolesArr[$roleId];
+                }
             } else {
                 $userArr = arr::make($rec->userOrRole, true);
             }
@@ -386,7 +410,7 @@ class core_Settings extends core_Manager
         $form->title = 'Персонализиране';
         
         // Добавяме необходимите полета
-        $form->FNC('_userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin)', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
+        $form->FNC('_userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin, rolesForDomains=admin)', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
         $form->FNC('_key', 'varchar', 'input=none, silent');
         $form->FNC('_className', 'varchar', 'input=none, silent');
         
@@ -491,9 +515,9 @@ class core_Settings extends core_Manager
         if (($form->rec->_userOrRole > 0) && ($form->rec->_userOrRole != core_Users::getCurrent())) {
             $sudo = core_Users::sudo($form->rec->_userOrRole);
         }
-        
+
         $allSystemId = type_UserOrRole::getAllSysTeamId();
-        
+
         // Задаваме стойностите на полетата и ги забраняваме за промяна, ако е задено и текущия потребителя няма права
         $sudoCu = core_Users::getCurrent();
         if (!empty($uSettingForAllArr)) {
@@ -700,7 +724,7 @@ class core_Settings extends core_Manager
         if (!$userOrRole) {
             $userOrRole = core_Users::getCurrent();
         }
-        
+
         // Ако е системата, използваме всички
         if ($userOrRole == -1) {
             $userOrRole = type_UserOrRole::getAllSysTeamId();

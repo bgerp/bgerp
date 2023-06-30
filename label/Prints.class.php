@@ -131,7 +131,7 @@ class label_Prints extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, mediaId=Медия, source=Източник, templateId, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, createdOn, createdBy';
+    public $listFields = 'title, mediaId=Медия, source=Източник, templateId, series, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, createdOn, createdBy';
     
     
     public $rowToolsSingleField = 'title';
@@ -170,7 +170,9 @@ class label_Prints extends core_Master
         
         $this->FLD('classId', 'class(interface=label_SequenceIntf)', 'caption=Клас, silent, input=hidden');
         $this->FLD('objectId', 'int', 'caption=Обект, title=Обект, silent, input=hidden');
-        
+
+        $this->FLD('series', 'varchar', 'caption=Серия,notNull,value=label,input=hidden,silent');
+
         $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
         
         $this->FLD('rows', 'blob(1000000,serialize,compress)', 'caption=Кеш, input=none');
@@ -212,11 +214,11 @@ class label_Prints extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        Request::setProtected(array('classId, objectId'));
+        Request::setProtected(array('classId,objectId,series'));
         
         $form = $data->form;
         $rec = $form->rec;
-        
+
         // Ако е подаден клас и обект
         $classId = $rec->classId;
         $objId = $rec->objectId;
@@ -237,8 +239,8 @@ class label_Prints extends core_Master
                 core_Lg::push($lang);
                 $oLang = $lang;
             }
-            $labelDataArr = $intfInst->getLabelPlaceholders($objId);
-            
+            $labelDataArr = $intfInst->getLabelPlaceholders($objId, $rec->series);
+
             if ($lang) {
                 core_Lg::pop();
             }
@@ -247,7 +249,8 @@ class label_Prints extends core_Master
         
         // Определяме най-добрия шаблон
         if (!empty($labelDataArr)) {
-            $templatesArr = cls::get($classId)->getLabelTemplates($objId);
+            $templatesArr = cls::get($classId)->getLabelTemplates($objId, $rec->series, true);
+
             if (!countR($templatesArr)) {
                 
                 return followRetUrl(null, '|Няма шаблон, който да се използва', 'error');
@@ -329,7 +332,7 @@ class label_Prints extends core_Master
             // Ако е променен езика, вземаме данните пак
             if ($lang != $oLang) {
                 if ($classId && $objId) {
-                    $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+                    $labelDataArr = $intfInst->getLabelPlaceholders($objId, $rec->series);
                 }
             }
 
@@ -413,12 +416,12 @@ class label_Prints extends core_Master
         if ($classId && $objId) {
             $mvc->requireRightFor('add', (object) array('classId' => $classId, 'objectId' => $objId));
             
-            $lName = $intfInst->getLabelName($objId);
+            $lName = $intfInst->getLabelName($objId, $rec->series);
             if ($lName) {
                 $form->setDefault('title', $lName);
             }
             
-            $estCnt = $intfInst->getLabelEstimatedCnt($objId);
+            $estCnt = $intfInst->getLabelEstimatedCnt($objId, $rec->series);
         }
         
         if(isset($rec->mediaId)){
@@ -604,7 +607,7 @@ class label_Prints extends core_Master
             if ($rec->classId && $rec->objectId) {
                 $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 
-                $estCnt = $intfInst->getLabelEstimatedCnt($rec->objectId);
+                $estCnt = $intfInst->getLabelEstimatedCnt($rec->objectId, $rec->series);
                 
                 // Ако излезем над разрешената стойност
                 if (isset($estCnt) && $rec->labelsCnt > $estCnt) {
@@ -650,7 +653,7 @@ class label_Prints extends core_Master
                 
                 $tpl = new ET("<div class='preview-holder floatedElement' style='display: inline-block; min-width: 0;'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Етикет') . "</b></div><div class='preview-label'>[#LABEL_PREVIEW#]</div></div><div class='clearfix21'></div>");
                 
-                $pData = $mvc->getLabelDataFromRec($rec, true);
+                $pData = $mvc->getLabelDataFromRec($rec, true, null, $rec->series);
                 
                 $labelPreview = $mvc->renderLabel($pData);
                 
@@ -952,7 +955,7 @@ class label_Prints extends core_Master
         
         if ($action == 'add' && $rec && $requiredRoles != 'no_one') {
             if ($rec->classId && $rec->objectId) {
-                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId)) {
+                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId, false, $rec->series)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -1043,8 +1046,8 @@ class label_Prints extends core_Master
                 
                 core_Mode::push('prepareLabel', true);
                 core_Lg::push($lang);
-                $labelDataArr = (array) $intfInst->getLabelData($rec->objectId, $pData->cnt, $preview, $rec);
-                $placeArr = (array) $intfInst->getLabelPlaceholders($rec->objectId);
+                $labelDataArr = (array) $intfInst->getLabelData($rec->objectId, $pData->cnt, $preview, $rec, $rec->series);
+                $placeArr = (array) $intfInst->getLabelPlaceholders($rec->objectId, $rec->series);
                 core_Lg::pop();
                 core_Mode::pop('prepareLabel');
                 

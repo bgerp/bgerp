@@ -66,7 +66,7 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
         );
         
         // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             // Проверка на артикулите
             $property = ($rec->isReverse == 'yes') ? 'canBuy' : 'canSell';
             

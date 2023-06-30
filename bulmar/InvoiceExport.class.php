@@ -239,6 +239,10 @@ class bulmar_InvoiceExport extends core_Manager
                     unset($nRec->amountPaid);
                 }
             }
+        } elseif($rec->paymentType == 'card'){
+            $nRec->amountCardPaid = $nRec->amount;
+        } elseif($rec->paymentType == 'postal'){
+            $nRec->amountPostalPaid = $nRec->amount;
         }
         
         if(round($nRec->productsAmount + $nRec->servicesAmount, 2) != round($nRec->baseAmount, 2)){
@@ -308,7 +312,15 @@ class bulmar_InvoiceExport extends core_Manager
             if ($rec->amountPaid) {
                 $line .= "{$rec->num}|2|{$static->paymentOp}|{$static->debitPayment}|||{$rec->amountPaid}||{$static->creditPayment}|AN|$|{$rec->amountPaid}||" . "\r\n";
             }
-            
+
+            if ($rec->amountCardPaid) {
+                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->cardAnal}||{$rec->amountCardPaid}||{$static->creditPayment}|AN|$|{$rec->amountCardPaid}||" . "\r\n";
+            }
+
+            if ($rec->amountPostalPaid) {
+                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->pptAnal}||{$rec->amountPostalPaid}||{$static->creditPayment}|AN|$|{$rec->amountPostalPaid}||" . "\r\n";
+            }
+
             $content .= $line;
         }
         
@@ -339,7 +351,12 @@ class bulmar_InvoiceExport extends core_Manager
         $staticData->creditPayment = $conf->BULMAR_INV_CREDIT_PAYMENT;
         $staticData->advancePayment = $conf->BULMAR_INV_AV_OPERATION;
         $staticData->creditAdvance = $conf->BULMAR_INV_CREDIT_AV;
-        
+
+        $staticData->pptAnal = $conf->BULMAR_INV_PPT_ANAL;
+        $staticData->cardAnal = $conf->BULMAR_INV_CARD_PAYMENT_ANAL;
+        $staticData->pptAndCardAccount = $conf->BULMAR_INV_PPT_AND_CARD_PAYMENT;
+        $staticData->pptAndCardOperation = $conf->BULMAR_INV_PPT_AND_CARD_OPERATION;
+
         $myCompany = crm_Companies::fetchOwnCompany();
         $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
         $staticData->OWN_COMPANY_BULSTAT = $num;

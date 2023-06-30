@@ -34,21 +34,7 @@ class cond_type_Keylist extends cond_type_abstract_Proto
      */
     protected static function on_AfterPrepareEditForm(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$data)
     {
-        $managerClasses = core_Classes::getOptionsByInterface('core_ManagerIntf', 'title');
-        $options = array();
-        foreach ($managerClasses as $classId => $classTitle){
-            if($className = cls::get($classId)->className){
-                $options[$className] = $classTitle;
-            }
-        }
-
-        $form = &$data->form;
-        $form->setOptions('class', array('' => '') + $options);
-
-        if(isset($form->rec->class)){
-            $fieldsOptions = arr::make(array_keys(cls::get($form->rec->class)->selectFields()), true);
-            $form->setOptions('select', array('' => '') + $fieldsOptions);
-        }
+        cond_type_Key::modifyEditForm($Driver, $Embedder, $data);
     }
 
 

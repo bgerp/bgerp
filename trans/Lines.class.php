@@ -302,7 +302,7 @@ class trans_Lines extends core_Master
         }
 
         if (!$data->toolbar->haveButton('btnActivate')) {
-            if (in_array($rec->state, array('draft', 'pending')) && self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
+            if (in_array($rec->state, array('draft', 'pending')) && self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf', store_Receipts::getClassId())) {
                 $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В транспортната линия има заявки, чернови или оттеглени експедиционни документи|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на транспортната линия'));
             }
         }
@@ -327,7 +327,7 @@ class trans_Lines extends core_Master
     protected static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
     {
         $form = &$data->form;
-        $form->setFieldTypeParams('start', array('defaultTime' => trans_Setup::get('START_WORK_TIME')));
+        $form->setFieldTypeParams('start', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
         $vehicleOptions = trans_Vehicles::makeArray4Select();
         if (countR($vehicleOptions) && is_array($vehicleOptions)) {
             $form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, true));
@@ -570,12 +570,13 @@ class trans_Lines extends core_Master
     /**
      * Връща броя на документите в посочената линия
      *
-     * @param int $id - ид
-     * @param array $states - състояния
-     * @param null|string $interface - интерфейс на документи
-     * @return int                   - брой документи в линията, отговарящи на условията
+     * @param int $id                         - ид на линия
+     * @param array $states                   - състояния, за които да се следи
+     * @param null|string $interface          - интерфейс на документи
+     * @param null|mixed $skipDocumentClasses - класове, които да се пропуснат
+     * @return int                            - брой документи в линията, отговарящи на условията
      */
-    private static function countDocumentsByState($id, $states, $interface = null)
+    private static function countDocumentsByState($id, $states, $interface = null, $skipDocumentClasses = null)
     {
         $states = arr::make($states);
         $query = trans_LineDetails::getQuery();
@@ -588,6 +589,11 @@ class trans_Lines extends core_Master
                 $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
                 $query->in('docClass', $iOptions);
             }
+        }
+
+        if(isset($skipDocumentClasses)){
+            $skipDocumentClasses = arr::make($skipDocumentClasses, true);
+            $query->notIn('docClass', $skipDocumentClasses);
         }
 
         return $query->count();
@@ -798,7 +804,7 @@ class trans_Lines extends core_Master
         if ($action == 'activate' && isset($rec)) {
             if (!trans_LineDetails::fetchField("#lineId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
-            } elseif (self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
+            } elseif (self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf', store_Receipts::getClassId())) {
                 $requiredRoles = 'no_one';
             }
         }

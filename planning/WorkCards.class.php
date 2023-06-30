@@ -155,30 +155,29 @@ class planning_WorkCards extends core_Master
             fileman_Indexes::prepare($data, $fRec->fileHnd);
         }
     }
-    
-    
+
+
     /**
      * Връща наименованието на етикета
      *
      * @param int $id
-     *
+     * @param string $series
      * @return string
-     * 
-     * @see label_SequenceIntf
      */
-    public function getLabelName($id)
+    public function getLabelName($id, $series = 'label')
     {
         if ($id === -1) {
             
             return tr('Стойност за работна карта');
         }
     }
-    
-    
+
+
     /**
      * Връща масив с данните за плейсхолдерите
      *
      * @param int|NULL $objId
+     * @param string $series
      *
      * @return array
      *               Ключа е името на плейсхолдера и стойностите са обект:
@@ -188,10 +187,8 @@ class planning_WorkCards extends core_Master
      *               hidden -> (boolean) - данните не могат да се променят от потребителя
      *               importance -> (int|double) - тежест/важност на плейсхолдера
      *               example -> (string) - примерна стойност
-     * 
-     * @see label_SequenceIntf
      */
-    public function getLabelPlaceholders($objId = null)
+    public function getLabelPlaceholders($objId = null, $series = 'label')
     {
         $placeholders = array();
         if ($objId === -1) {
@@ -201,35 +198,33 @@ class planning_WorkCards extends core_Master
         
         return $placeholders;
     }
-    
-    
+
+
     /**
      * Броя на етикетите, които могат да се отпечатат
      *
      * @param int $id
+     * @param string $series
      *
      * @return int
-     * 
-     * @see label_SequenceIntf
      */
-    public function getLabelEstimatedCnt($id)
+    public function getLabelEstimatedCnt($id, $series = 'label')
     {
     }
-    
-    
+
+
     /**
      * Връща масив с всички данни за етикетите
      *
-     * @param int      $id
-     * @param int      $cnt
-     * @param bool     $onlyPreview
+     * @param int  $id
+     * @param int  $cnt
+     * @param bool $onlyPreview
      * @param stdClass $lRec
+     * @param string $series
      *
      * @return array - масив от масив с ключ плейсхолдера и стойността
-     * 
-     * @see label_SequenceIntf
      */
-    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null)
+    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null, $series = 'label')
     {
         if ($id === -1) {
             $arr = array();
@@ -592,9 +587,10 @@ class planning_WorkCards extends core_Master
      * Кой е дефолтния шаблон за печат към обекта
      *
      * @param $id
+     * @param string $series
      * @return int|null
      */
-    public function getDefaultLabelTemplateId($id)
+    public function getDefaultLabelTemplateId($id, $series = 'label')
     {
         return null;
     }

@@ -312,14 +312,20 @@ class doc_Folders extends core_Master
         // на модела ще се появят
         $data->listFilter->showFields = 'search,users,order';
         $data->listFilter->input('search,users,order', 'silent');
-        
+
+        $cu = core_Users::getCurrent();
+
         if (!$data->listFilter->rec->users) {
-            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+            $data->listFilter->rec->users = '|' . $cu . '|';
         }
         
         if (!$data->listFilter->rec->search) {
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+            $uArr = type_Keylist::toArray($data->listFilter->rec->users);
+
+            if ($uArr[$cu] && (countR($uArr) == 1)) {
+                $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+            }
             $data->title = 'Папките на |*<span class="green">' .
             $data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</span>';
         } else {
@@ -484,10 +490,12 @@ class doc_Folders extends core_Master
 
             if($fields['-list']){
                 if($rec->coverClass == doc_UnsortedFolders::getClassId()){
-                    $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
-                    if(!empty($unsortedFolderContragentId)){
-                        $subTitle = doc_Folders::recToVerbal($unsortedFolderContragentId)->title;
-                        $row->title .= "<br><small style='padding-left:10px'>» {$subTitle}</small>";
+                    if ($rec->coverId) {
+                        $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
+                        if(!empty($unsortedFolderContragentId)){
+                            $subTitle = doc_Folders::recToVerbal($unsortedFolderContragentId)->title;
+                            $row->title .= "<br><small style='padding-left:10px'>» {$subTitle}</small>";
+                        }
                     }
                 }
             }
@@ -510,14 +518,14 @@ class doc_Folders extends core_Master
         
         $attr = array();
         $attr['class'] = 'linkWithIcon';
-        
+
         if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
 
         $maxLenTitle = isset($limitLen) ? $limitLen : self::maxLenTitle;
         if (mb_strlen($title) > $maxLenTitle) {
-            $attr['title'] = $title;
+            $attr['title'] = '|*' . $rec->title;
             $title = str::limitLen($title, $maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
@@ -2008,7 +2016,8 @@ class doc_Folders extends core_Master
         $form->setDefault('personalEmailIncoming', 'default');
         $form->setDefault('newThread', 'default');
         $form->setDefault('newDoc', 'default');
-        
+        $form->setDefault('shareMaxCnt', 10);
+
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
         

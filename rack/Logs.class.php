@@ -49,7 +49,7 @@ class rack_Logs extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,rack';
+    public $canList = 'ceo,rackSee';
 
 
     /**

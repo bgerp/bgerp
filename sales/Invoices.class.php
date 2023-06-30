@@ -19,7 +19,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=sales_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=sales_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf,dec_SourceIntf';
     
     
     /**
@@ -240,6 +240,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $this->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед,notChangeableByContractor,silent,removeAndRefreshForm=additionalInfo');
         $this->FNC('selectInvoiceText', 'enum(,private=Частно,public=Общо,both=Частно и общо)', 'caption=Допълнително->Други условия,removeAndRefreshForm=additionalInfo,silent,before=additionalInfo');
         $this->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
+        $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
 
         $this->setDbUnique('number');
     }
@@ -330,7 +331,16 @@ class sales_Invoices extends deals_InvoiceMaster
         
         parent::prepareInvoiceForm($mvc, $data);
         if(empty($rec->id)){
-            $form->setDefault('importProducts', 'shippedNotInvoiced');
+            $defaultImportProducts = 'shippedNotInvoiced';
+
+            // Ако договора е към приключена ПОС бележка включена в ПОС отчет по дефолт ще са всички артикули от договора
+            if($receiptId = pos_Receipts::fetchField("#transferredIn = {$firstDoc->that}")){
+                $reportId = pos_Reports::getReportReceiptIsIn($receiptId);
+                if(isset($reportId)){
+                    $defaultImportProducts = 'onlyFromDeal';
+                }
+            }
+            $form->setDefault('importProducts', $defaultImportProducts);
         }
 
         if(!empty($form->rec->contragentVatNo)){
@@ -508,7 +518,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        if ($rec->type == 'invoice' && $rec->state == 'active' && $rec->dpOperation != 'accrued') {
+        if ($rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
             if (dec_Declarations::haveRightFor('add', (object) array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))) {
                 $data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/declarations.png, row=2, title=Създаване на декларация за съответсвие');
             }
@@ -570,6 +580,30 @@ class sales_Invoices extends deals_InvoiceMaster
                 $row->number = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
                 $row->number = "<span style='color:blue;'>{$row->number}</span>";
                 $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
+            }
+
+            // Показване на допълнителните условия от банковата сметка
+            $conditions = $rec->additionalConditions;
+            if (empty($conditions)) {
+                if (in_array($rec->state, array('pending', 'draft'))) {
+                    if(!empty($rec->accountId)){
+                        $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                        $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $rec->tplLang);
+                        if (!empty($condition)) {
+                            if (!Mode::isReadOnly()) {
+                                $condition = "<span style='color:blue'>{$condition}</span>";
+                            }
+                            $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
+                            $conditions = array($condition);
+                        }
+                    }
+                }
+            }
+
+            if (is_array($conditions)) {
+                foreach ($conditions as $cond) {
+                    $row->additionalInfo .= "\n" . $cond;
+                }
             }
         }
     }
@@ -846,6 +880,16 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $rec = $mvc->fetchRec($rec);
 
+        if (empty($rec->additionalConditions)) {
+            if(!empty($rec->accountId)) {
+                $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+                $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
+                $rec->additionalConditions = array($condition);
+                $mvc->save_($rec, 'additionalConditions');
+            }
+        }
+
         if (!empty($rec->sourceContainerId)) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('store_ShipmentOrders')) {
@@ -888,5 +932,29 @@ class sales_Invoices extends deals_InvoiceMaster
                 $Detail->saveArray($saveDetails, "id,{$updateFields}");
             }
         }
+    }
+
+
+    /**
+     * Помощна ф-я връщаща артикулите за избор в декларацията от източника
+     * @see dec_SourceIntf
+     *
+     * @param stdClass $rec
+     * @return array
+     *          'productId'
+     *          'batches'
+     */
+    public function getProducts4Declaration($rec)
+    {
+        $res = array();
+        $rec = $this->fetchRec($rec);
+        $dQuery = sales_InvoiceDetails::getQuery();
+        $dQuery->where("#invoiceId = {$rec->id}");
+        $dQuery->show('productId,batches');
+        while($dRec = $dQuery->fetch()){
+            $res[$dRec->productId] = (object)array('productId' => $dRec->productId, 'batches' => $dRec->batches);
+        }
+
+        return $res;
     }
 }

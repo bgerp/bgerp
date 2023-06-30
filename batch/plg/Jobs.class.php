@@ -107,10 +107,12 @@ class batch_plg_Jobs extends core_Plugin
                         $saveBatches = array();
                         $bQuery = batch_BatchesInDocuments::getQuery();
                         $bQuery->EXT('threadId', 'doc_Containers', "externalName=threadId,externalKey=containerId");
+                        $bQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
                         $bQuery->where("#threadId = {$threadId} AND #productId = {$rec->productId} AND #storeId = {$rec->storeId}");
-                        $bQuery->show('batch,quantity');
+                        $bQuery->groupBy('batch');
+                        $bQuery->show('batch,sumQuantity');
                         while($bRec = $bQuery->fetch()){
-                            $saveBatches["{$bRec->batch}"] = $bRec->quantity;
+                            $saveBatches["{$bRec->batch}"] = $bRec->sumQuantity;
                         }
 
                         if(countR($saveBatches)){
@@ -163,7 +165,9 @@ class batch_plg_Jobs extends core_Plugin
     public function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         if($rec->_isCreated){
-            static::modifyBatches($mvc, $rec, 'add');
+            if(!$rec->_activateAfterCreation){
+                static::modifyBatches($mvc, $rec, 'add');
+            }
         } elseif(empty($rec->storeId) && isset($rec->_oldStoreId)){
             batch_BatchesInDocuments::delete("#containerId = {$rec->containerId}");
         } elseif($rec->storeId && $rec->storeId != $rec->_oldStoreId){
@@ -219,7 +223,7 @@ class batch_plg_Jobs extends core_Plugin
                 $BatchType = $BatchDef->getBatchClassType();
                 if($BatchType instanceof type_Enum){
                     $options = $BatchType->options;
-                    $res = array_combine(array_values($options), array_values($options));
+                    $res = $options;
                 }
             }
         }
@@ -258,11 +262,11 @@ class batch_plg_Jobs extends core_Plugin
                 $BatchType = $BatchClass->getBatchClassType();
                 if($BatchType instanceof type_Enum){
                     $options = $BatchType->options;
-                    $options = array_combine(array_values($options), array_values($options));
+                    unset($options['']);
                 }
             }
 
-            $res = countR($options) ? array_combine($options, $options) : null;
+            $res = countR($options) ? $options : null;
         }
     }
 }

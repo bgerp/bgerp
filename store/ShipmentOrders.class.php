@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,7 +56,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'note';
+    public $changableFields = 'detailOrderBy,note,courierApi';
 
 
     /**
@@ -251,9 +251,11 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
+        $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,placeholder=Автоматично,caption=Допълнително->Куриерско Api,after=template,notChangeableIfHidden');
         $this->setField('deliveryTime', 'caption=Товарене');
         $this->setFieldTypeParams("deliveryTime", array('defaultTime' => $startTime));
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('state');
     }
 
 
@@ -265,11 +267,19 @@ class store_ShipmentOrders extends store_DocumentMaster
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if (!isset($rec->id)) {
-            expect($origin = static::getOrigin($rec), $rec);
-            if ($origin->isInstanceOf('sales_Sales')) {
-                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули, input,after=responsible');
+        expect($origin = static::getOrigin($rec), $rec);
 
+        if ($origin->isInstanceOf('sales_Sales')) {
+            if (!isset($rec->id)) {
+                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
+            }
+
+            $form->setField('courierApi', 'input');
+            $courierApi = $origin->getCourierApi4Document();
+            if(isset($courierApi)){
+                if (!isset($rec->id)) {
+                    $form->setDefault('courierApi', $courierApi);
+                }
             }
         }
     }
@@ -465,32 +475,33 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @param mixed $rec - ид или запис на документ
      * @return array      - логистичните данни
      *
-     *        string(2)     ['fromCountry']         - международното име на английски на държавата за натоварване
-     *        string|NULL   ['fromPCode']           - пощенски код на мястото за натоварване
-     *        string|NULL   ['fromPlace']           - град за натоварване
-     *        string|NULL   ['fromAddress']         - адрес за натоварване
-     *    string|NULL   ['fromCompany']         - фирма
-     *    string|NULL   ['fromPerson']          - лице
+     *		string(2)     ['fromCountry']         - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']           - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']           - град за натоварване
+     * 		string|NULL   ['fromAddress']         - адрес за натоварване
+     *  	string|NULL   ['fromCompany']         - фирма
+     *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromPersonPhones']    - телефон на лицето
      *      string|NULL   ['fromLocationId']      - лице
      *      string|NULL   ['fromAddressInfo']     - особености
      *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
-     *        datetime|NULL ['loadingTime']         - дата на натоварване
-     *        string(2)     ['toCountry']           - международното име на английски на държавата за разтоварване
-     *        string|NULL   ['toPCode']             - пощенски код на мястото за разтоварване
-     *        string|NULL   ['toPlace']             - град за разтоварване
-     *    string|NULL   ['toAddress']           - адрес за разтоварване
-     *    string|NULL   ['toCompany']           - фирма
-     *    string|NULL   ['toPerson']            - лице
+     * 		datetime|NULL ['loadingTime']         - дата на натоварване
+     * 		string(2)     ['toCountry']           - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']             - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']             - град за разтоварване
+     *  	string|NULL   ['toAddress']           - адрес за разтоварване
+     *   	string|NULL   ['toCompany']           - фирма
+     *   	string|NULL   ['toPerson']            - лице
      *      string|NULL   ['toLocationId']        - лице
      *      string|NULL   ['toPersonPhones']      - телефон на лицето
      *      string|NULL   ['toAddressInfo']       - особености
      *      string|NULL   ['toAddressFeatures']   - особености на транспорта
      *      string|NULL   ['instructions']        - инструкции
-     *        datetime|NULL ['deliveryTime']        - дата на разтоварване
-     *        text|NULL      ['conditions']          - други условия
-     *        varchar|NULL  ['ourReff']             - наш реф
-     *        double|NULL   ['totalWeight']         - общо тегло
-     *        double|NULL   ['totalVolume']         - общ обем
+     * 		datetime|NULL ['deliveryTime']        - дата на разтоварване
+     * 		text|NULL 	  ['conditions']          - други условия
+     *		varchar|NULL  ['ourReff']             - наш реф
+     * 		double|NULL   ['totalWeight']         - общо тегло
+     * 		double|NULL   ['totalVolume']         - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -616,8 +627,11 @@ class store_ShipmentOrders extends store_DocumentMaster
         }
 
         if (in_array($rec->state, array('active', 'pending')) && $rec->isReverse == 'no') {
-            if (cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
-                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
+            $contragentCountryId = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
+            if($contragentCountryId == drdata_Countries::getIdByName('Bulgaria')) {
+                if (cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
+                    $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ,row=2');
+                }
             }
         }
     }
@@ -687,7 +701,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId));
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
     }
 
 
@@ -882,5 +896,40 @@ class store_ShipmentOrders extends store_DocumentMaster
         setIfNot($loadingDate, $rec->valior, $rec->activatedOn, $rec->createdOn);
 
         return $loadingDate;
+    }
+
+
+    /**
+     * Връща наличните серии за етикети от източника
+     *
+     * @param null|stdClass $rec
+     * @return array
+     */
+    public function getLabelSeries($rec = null)
+    {
+        return array('label' => $this->printLabelCaptionPlural, 'detail' => 'Артикули');
+    }
+
+
+    /**
+     * Кой клас е избран за куриерско АПИ в документа
+     *
+     * @param stdClass $rec
+     * @return null|int
+     */
+    public function getCourierApi4Document($rec)
+    {
+        // Ако има конкретно посочено куриерско API
+        $rec = $this->fetchRec($rec);
+        if(isset($rec->courierApi)) {
+            return cls::load($rec->courierApi, true) ? $rec->courierApi : null;
+        }
+
+        $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+        if($firstDocument->isInstanceOf('sales_Sales')){
+            return $firstDocument->getCourierApi4Document();
+        }
+
+        return null;
     }
 }

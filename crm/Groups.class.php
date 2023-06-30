@@ -413,7 +413,11 @@ class crm_Groups extends core_Master
                 'exName' => 'Потребителски профили',
                 'allow' => 'persons',
             ),
-        
+            array(
+                'name' => 'Индикатори',
+                'sysId' => 'indicators',
+                'exName' => 'Индикатори',
+            ),
         );
         
         // END масив с данни за инициализация
@@ -471,15 +475,8 @@ class crm_Groups extends core_Master
             $res .= "<li class='debug-new'>Обновени са {$nUpdated} групи.</li>";
         }
     }
-    
 
-    function act_Test()
-    {
-        $supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
-        $groupRec = (object)array('name' => 'Оферта', 'sysId' => 'quotationsSuppliers44447', 'parentId' => $supplierGroupId);
-        $groupId = crm_Groups::forceGroup($groupRec);
-bp($groupId);
-    }
+
     /**
      * Създава, ако не е групата с посочениете данни и връща id-то и
      * $rec->name

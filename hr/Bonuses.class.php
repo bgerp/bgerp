@@ -243,9 +243,10 @@ class hr_Bonuses extends core_Master
     {
         $query = self::getQuery();
         $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
-        
-        $iRec = hr_IndicatorNames::force('Бонус', __CLASS__, 1);
+
         $result = array();
+        $iRec = hr_IndicatorNames::force('Бонус', __CLASS__, 1);
+        if($iRec->state == 'closed') return $result;
         
         while ($rec = $query->fetch()) {
             $result[] = (object) array(
@@ -274,7 +275,9 @@ class hr_Bonuses extends core_Master
     {
         $result = array();
         $rec = hr_IndicatorNames::force('Бонус', __CLASS__, 1);
-        $result[$rec->id] = $rec->name;
+        if($rec->state != 'closed'){
+            $result[$rec->id] = $rec->name;
+        }
         
         return $result;
     }

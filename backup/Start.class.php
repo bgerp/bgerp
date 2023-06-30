@@ -87,9 +87,7 @@ class backup_Start extends core_Manager
         
         // Заключваме цялата система
         core_SystemLock::block('Процес на архивиране на данните', 1800); // 30 мин.
-        
-        
-        exec('mysqldump --max_allowed_packet=512M --lock-tables --delete-master-logs -u'
+        exec('mysqldump -h' . EF_DB_HOST . ' --max_allowed_packet=512M --lock-tables --delete-master-logs -u'
             . self::$conf->BACKUP_MYSQL_USER_NAME . ' -p' . self::$conf->BACKUP_MYSQL_USER_PASS . ' ' . EF_DB_NAME
             . ' >' . EF_TEMP_PATH . '/' . self::$backupFileName . ' 2>&1', $output, $returnVar);
         
@@ -139,7 +137,7 @@ class backup_Start extends core_Manager
         $db = cls::get(
             'core_Db',
             array('dbUser' => self::$conf->BACKUP_MYSQL_USER_NAME,
-                'dbHost' => self::$conf->BACKUP_MYSQL_HOST,
+                'dbHost' => EF_DB_HOST,
                 'dbPass' => self::$conf->BACKUP_MYSQL_USER_PASS,
                 'dbName' => 'information_schema')
             );
@@ -216,7 +214,7 @@ class backup_Start extends core_Manager
         $db = cls::get(
             'core_Db',
             array('dbUser' => self::$conf->BACKUP_MYSQL_USER_NAME,
-                'dbHost' => self::$conf->BACKUP_MYSQL_HOST,
+                'dbHost' => EF_DB_HOST,
                 'dbPass' => self::$conf->BACKUP_MYSQL_USER_PASS,
                 'dbName' => 'information_schema')
         );
@@ -240,7 +238,7 @@ class backup_Start extends core_Manager
             $cmdBinLog = 'mysqlbinlog --database=' . EF_DB_NAME . ' --read-from-remote-server -u'
                 . self::$conf->BACKUP_MYSQL_USER_NAME
                 . ' -p' . self::$conf->BACKUP_MYSQL_USER_PASS . " {$binLogFileName} -h"
-                . self::$conf->BACKUP_MYSQL_HOST . ' | gzip -1 > ' . EF_TEMP_PATH . '/' . $binLogFileNameGz;
+                . EF_DB_HOST . ' | gzip -1 > ' . EF_TEMP_PATH . '/' . $binLogFileNameGz;
             
             exec($cmdBinLog, $output, $returnVar);
             

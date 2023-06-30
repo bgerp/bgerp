@@ -344,13 +344,13 @@ class hr_Trips extends core_Master
         $toDate = ($cYear + 2) . '-12-31';
         
         // Префикс на ключовете за записите в календара от тази задача
-        $prefix = "TRIP-{$id}";
+        $prefix = "TRIP-{$id}-";
         
         $curDate = $rec->startDate;
         
         while ($curDate < $rec->toDate) {
             // Подготвяме запис за началната дата
-            if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
+            if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
                 $calRec = new stdClass();
                 
                 // Ключ на събитието
@@ -371,24 +371,28 @@ class hr_Trips extends core_Master
                 $calRec->title = "Командировка: {$personName}";
                 
                 $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
-                $personId = array($personProfile->userId => 0);
-                $user = keylist::fromArray($personId);
-                
-                // В чии календари да влезе?
-                $calRec->users = $user;
-                
-                // Статус на задачата
-                $calRec->state = $rec->state;
-                
-                // Url на задачата
-                $calRec->url = array('hr_Trips', 'Single', $id);
-                
-                $events[] = $calRec;
+                if ($personProfile) {
+                    $personId = array($personProfile->userId => 0);
+                    $user = keylist::fromArray($personId);
+
+                    // В чии календари да влезе?
+                    $calRec->users = $user;
+
+                    // Статус на задачата
+                    $calRec->state = $rec->state;
+
+                    // Url на задачата
+                    $calRec->url = array('hr_Trips', 'Single', $id);
+
+                    $events[] = $calRec;
+                }
             }
             $curDate = dt::addDays(1, $curDate);
         }
+
+        $onlyDel = $rec->state == 'rejected' ? true : false;
         
-        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
     }
     
     

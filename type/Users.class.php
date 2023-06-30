@@ -138,7 +138,7 @@ class type_Users extends type_Keylist
                 if (haveRole($this->params['rolesForAll'])) {
                     // Добавя в началото опция за избор на всички потребители на системата
                     $all = new stdClass();
-                    $all->title = tr('Всички потребители');
+                    $all->title = tr('Всички');
                     $all->attr = array('class' => 'all-users', 'style' => 'color:#777;');
 
                     $all->keylist = keylist::normalize("|{$allUsers}|-1|0|");

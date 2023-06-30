@@ -120,5 +120,11 @@ class bgerp_iface_DealProduct
     /**
      * Партиди
      */
-    public $batches = array();
+    public $batches = null;
+
+
+    /**
+     * Толеранс
+     */
+    public $tolerance;
 }

@@ -35,7 +35,7 @@ class cms_VerbalIdPlg extends core_Plugin
     public function on_AfterDescription(&$mvc)
     {
         // Добавяне на необходимите полета
-        $this->fieldName = $mvc->vidFieldName ? $mvc->vidFieldName : 'vid';
+        $this->fieldName = isset($mvc->vidFieldName) ? $mvc->vidFieldName : 'vid';
         
         $mvc->FLD($this->fieldName, 'varchar(' . EF_VID_LEN . ')', 'caption=SEO->Вербално ID, column=none, width=100%,autohide=any');
         
@@ -59,7 +59,7 @@ class cms_VerbalIdPlg extends core_Plugin
         $mvc->searchFields[] = 'seoDescription';
         $mvc->searchFields[] = 'seoKeywords';
 
-        if($mvc->changableFields) {
+        if(isset($mvc->changableFields)) {
             $mvc->changableFields = arr::make($mvc->changableFields, true);
             $mvc->changableFields['seoTitle'] = 'seoTitle';
             $mvc->changableFields['seoDescription'] = 'seoDescription';

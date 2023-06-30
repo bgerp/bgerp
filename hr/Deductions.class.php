@@ -234,6 +234,8 @@ class hr_Deductions extends core_Master
         $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
         
         $iRec = hr_IndicatorNames::force('Удръжка', __CLASS__, 1);
+        if($iRec->state == 'closed') return $result;
+
         while ($rec = $query->fetch()) {
             $result[] = (object) array(
                 'date' => $rec->date,
@@ -261,7 +263,9 @@ class hr_Deductions extends core_Master
     {
         $result = array();
         $rec = hr_IndicatorNames::force('Удръжка', __CLASS__, 1);
-        $result[$rec->id] = $rec->name;
+        if($rec->state != 'closed'){
+            $result[$rec->id] = $rec->name;
+        }
         
         return $result;
     }

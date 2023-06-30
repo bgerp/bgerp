@@ -43,5 +43,6 @@ class core_page_Active extends page_Html
         $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=\"" . getBoot(true, true, true) . '/favicon.ico"' . ' type="image/x-icon">', 'HEAD');
+        $this->appendOnce("\n<meta  name=\"theme-color\" content=\"black\">", 'HEAD');
     }
 }

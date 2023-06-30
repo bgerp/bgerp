@@ -7,7 +7,10 @@
     <!--ET_BEGIN primeCost-->
     	<div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: <b>[#primeCost#]</b></div>
     <!--ET_END primeCost-->
-   
+    <!--ET_BEGIN primeCostWithOverheadCost-->
+    <div style='margin-top:5px'><span class='quiet'>|Себестойност с реж. разходи|*</span>: <b>[#primeCostWithOverheadCost#]</b></div>
+    <!--ET_END primeCostWithOverheadCost-->
+
     <!--ET_BEGIN expenses-->
     	<div style='margin-top:5px'><span class='quiet'>|Режийни разходи|*</span>: <b>[#expenses#]</b></div>
     <!--ET_END expenses-->
@@ -16,9 +19,17 @@
     	<div style='margin-top:5px'><span class='quiet'>|Показване в артикула|*</span>: <b>[#showInProduct#]</b></div>
     <!--ET_END showInProduct-->
 
-    <div style='margin-top:5px'><span class='quiet'>|Пълна рецепта|*</span>: [#isComplete#]</div>
+    <div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: [#isComplete#]</div>
     <div style='margin-top:5px'><span class='quiet'>|Модифициранe|*</span>: <b>[#modifiedOn#]</b> |от|* [#modifiedBy#]</div>
-    
+    <!--ET_BEGIN lastUpdatedDetailOn-->
+    <div style='margin-top:5px'><span class='quiet'>|Последна промяна на детайл|*</span>: <b>[#lastUpdatedDetailOn#]</b> |от|* [#lastUpdatedDetailBy#]</div>
+    <!--ET_END lastUpdatedDetailOn-->
+    <!--ET_BEGIN clonedFromId-->
+    <div style='margin-top:5px'><span class='quiet'>|Клонирано от|*</span>: <b>[#clonedFromId#]</b></div>
+    <!--ET_END clonedFromId-->
+    <!--ET_BEGIN regeneratedFromId-->
+    <div style='margin-top:5px'><span class='quiet'>|Регенерирано от|*</span>: <b>[#regeneratedFromId#]</b></div>
+    <!--ET_END regeneratedFromId-->
     <div class="scrolling-holder" style='margin:10px 0'>
 	    [#cat_BomDetails#]
 	</div>

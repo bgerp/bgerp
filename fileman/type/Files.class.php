@@ -102,7 +102,9 @@ class fileman_type_Files extends type_Keylist
         
         foreach ($fhArr as $id) {
             $fh = fileman_Files::fetchField($id, 'fileHnd');
-            $res .= fileman_Files::getLink($fh);
+            if (isset($fh)) {
+                $res .= fileman_Files::getLink($fh);
+            }
         }
         if (!$res) {
             

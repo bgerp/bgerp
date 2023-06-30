@@ -186,10 +186,10 @@ class doc_Threads extends core_Manager
         
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
-        $this->setDbIndex('last');
+        $this->setDbIndex('modifiedOn');
         $this->setDbIndex('state');
         $this->setDbIndex('last, id');
-        
+
         $this->setDbIndex('firstContainerId');
     }
     
@@ -922,6 +922,10 @@ class doc_Threads extends core_Manager
         
         if ($filter->documentClassId) {
             $query->where("#firstDocClass = {$filter->documentClassId}");
+            if (cls::load($filter->documentClassId, true)) {
+                $dMvc = cls::get($filter->documentClassId);
+                $dMvc->invoke('prepareListQuery', array(&$query));
+            }
         }
         
         $lastFieldName = $filter->LastFieldName ? $filter->LastFieldName : 'last';
@@ -1121,13 +1125,14 @@ class doc_Threads extends core_Manager
     /**
      * Създава нов тред
      */
-    public static function create($folderId, $createdOn, $createdBy)
+        public static function create($folderId, $createdOn, $createdBy, $notModified = null)
     {
         $rec = new stdClass();
         $rec->folderId = $folderId;
         $rec->createdOn = $createdOn;
         $rec->createdBy = $createdBy;
-        
+        $rec->_notModified = $notModified;
+
         self::save($rec);
         
         return $rec->id;
@@ -1151,7 +1156,9 @@ class doc_Threads extends core_Manager
             
             $tRec = $this->fetch($threadId);
         }
-        
+
+        Mode::set('threadMove', true);
+
         // TODO RequireRightFor
         $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
         $exp->DEF('#Selected=Избрани', 'varchar', 'fromRequest');
@@ -1214,7 +1221,8 @@ class doc_Threads extends core_Manager
         $exp->ASSUME('#email', "getContragentData(#threadId, 'email')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#country', "getContragentData(#threadId, 'countryId')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#company', "getContragentData(#threadId, 'company')", "#dest == 'newCompany' || #dest == 'newPerson'");
-        $exp->ASSUME('#tel', "getContragentData(#threadId, 'tel')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#name', "getContragentData(#threadId, 'attn')", "#dest == 'newPerson'");
+        $exp->ASSUME('#tel', "getContragentData(#threadId, 'tel|pMobile')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#fax', "getContragentData(#threadId, 'fax')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#pCode', "getContragentData(#threadId, 'pCode')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#place', "getContragentData(#threadId, 'place')", "#dest == 'newCompany' || #dest == 'newPerson'");
@@ -2155,7 +2163,7 @@ class doc_Threads extends core_Manager
 
                 try{
                     acc_Journal::saveTransaction($cRec->docClass, $cRec->docId);
-                } catch (acc_journal_RejectRedirect $e) {
+                } catch (acc_journal_Exception $e) {
                     $url = $Class->getSingleUrlArray($cRec->docId);
                     redirect($url, false, '|' . $e->getMessage(), 'error');
                 }
@@ -2604,8 +2612,26 @@ class doc_Threads extends core_Manager
                 $className = Cls::getClassName($rec->docClass);
                 
                 if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
+                    $contragentData = new stdClass();
+                    cls::get($className)->invoke('alternativeGetContragentData', array(&$contragentData, $rec->docId));
+                    $haveSomething = false;
+                    if (!empty((array)$contragentData)) {
+                        $haveSomething = true;
+                        $rate = self::calcPoints($contragentData);
+
+                        if ($rate > $bestRate) {
+                            $bestContragentData = clone($contragentData);
+                            $bestRate = $rate;
+                        }
+                    }
+
                     $contragentData = $className::getContragentData($rec->docId);
-                    
+
+                    if ($haveSomething) {
+                        self::fillCountry($bestContragentData, $contragentData);
+                        self::fillCompany($bestContragentData, $contragentData);
+                    }
+
                     $rate = self::calcPoints($contragentData);
                     
                     // Даваме предпочитания на документите, създадени от потребители на системата
@@ -2619,19 +2645,21 @@ class doc_Threads extends core_Manager
                     }
                 }
             }
-            
+
             // Вземаме данните на потребителя от папката
             // След като приключим обхождането на треда
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
             
             $contragentData = doc_Folders::getContragentData($folderId);
+
+            self::fillCountry($bestContragentData, $contragentData);
             
             if ($contragentData) {
                 $rate = self::calcPoints($contragentData) + 4;
             } else {
                 $rate = 0;
             }
-            
+
             if ($rate > $bestRate) {
                 if ($bestContragentData->company == $contragentData->company) {
                     foreach (array('tel', 'fax', 'email', 'web', 'address', 'person') as $part) {
@@ -2644,7 +2672,7 @@ class doc_Threads extends core_Manager
                 $bestContragentData = $contragentData;
                 $bestRate = $rate;
             }
-            
+
             // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
             if ($bestContragentData->countryId && !$bestContragentData->country) {
                 
@@ -2655,7 +2683,7 @@ class doc_Threads extends core_Manager
                     $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonName');
                 }
             }
-            
+
             // Попълваме вербалното или индексното представяне на фирмата, ако е налично другото
             if ($bestContragentData->companyId && !$bestContragentData->company) {
                 $bestContragentData->company = crm_Companies::fetchField($bestContragentData->companyId, 'name');
@@ -2676,9 +2704,26 @@ class doc_Threads extends core_Manager
             
             $cache[$threadId] = $bestContragentData;
         }
-        
+
         if ($field) {
-            
+
+            // Възможност за конкатенация на полета
+            if (stripos($field, '|') !== false) {
+                $fArr = explode('|', $field);
+                $bFieldVal = '';
+
+                foreach ($fArr as $f) {
+                    if ($bestContragentData->{$f}) {
+                        $bFieldVal .= $bestContragentData->{$f} . ', ';
+                    }
+                }
+
+                $bFieldVal = trim($bFieldVal);
+                $bFieldVal = trim($bFieldVal, ',');
+
+                return $bFieldVal;
+            }
+
             return $bestContragentData->{$field};
         }
 
@@ -2686,7 +2731,63 @@ class doc_Threads extends core_Manager
 
         return $bestContragentData;
     }
-    
+
+
+    /**
+     * Попълване на държавата
+     *
+     * @param $bestContragentData
+     * @param $contragentData
+     * @return void
+     */
+    protected static function fillCountry(&$bestContragentData, &$contragentData)
+    {
+        if (!$bestContragentData) {
+
+            return ;
+        }
+
+        if (!$bestContragentData->countryId && $bestContragentData->country) {
+            $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+        }
+
+        if (!$bestContragentData->countryId && $bestContragentData->country) {
+            $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#formalName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+        }
+
+        if (!$bestContragentData->countryId && $bestContragentData->country) {
+            $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+        }
+
+        if (!isset($bestContragentData->countryId) && $contragentData) {
+            if ($contragentData->countryId) {
+                $bestContragentData->countryId = $contragentData->countryId;
+            }
+
+            if ($contragentData->country) {
+                $bestContragentData->country = $contragentData->country;
+            }
+        }
+    }
+
+
+    /**
+     * Попълване на държавата
+     *
+     * @param $bestContragentData
+     * @param $contragentData
+     * @return void
+     */
+    protected static function fillCompany(&$bestContragentData, &$contragentData)
+    {
+        if (!$bestContragentData || !$contragentData) {
+
+            return ;
+        }
+
+        setIfNot($bestContragentData->company, $contragentData->company);
+    }
+
     
     /**
      * Изчислява точките (рейтинга) на подадения масив

@@ -20,7 +20,7 @@
              </td>
              <!--ET_END INVOICE_DOWNPAYMENT_TH-->
              <td class = 'sum-th'>
-                 |Информация|* [#visiblePricesByAllInThread#]
+                 |Информация|* [#visiblePricesByAllInThread#] [#detailOrderBy#]
              </td>
           </tr>
           <tr>
@@ -65,6 +65,12 @@
                   <!--ET_BEGIN clonedFromId-->
                   <span style='font-weight:normal'>|Клонирано от|*</span>: [#clonedFromId#]<br>
                   <!--ET_END clonedFromId-->
+                  <!--ET_BEGIN receiptId-->
+                  <span style='font-weight:normal'>|Бележка|*</span>: [#receiptId#]<br>
+                  <!--ET_END receiptId-->
+                  <!--ET_BEGIN courierApi-->
+                  <span style='font-weight:normal'>|Куриерско API|*</span>: [#courierApi#] <!--ET_BEGIN courierApiPrice--><i style="color:#555">([#courierApiPrice#])</i><!--ET_END courierApiPrice--><br>
+                  <!--ET_END courierApi-->
               </td>
            </tr>
            <tr>

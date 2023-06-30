@@ -64,7 +64,9 @@ class transsrv_Import extends core_BaseClass
                     $state = $doc->fetchField('state');
                     if (in_array($state, array('draft', 'active', 'pending'))) {
                         $rData = (object) $doc->getLogisticData();
-                        
+                        if(!empty($rData->toPersonPhones)){
+                            $rData->toPerson .= "; tel: {$rData->toPersonPhones}";
+                        }
                         foreach (array('from', 'to') as $prefix) {
                             if ($rData->{"{$prefix}Country"} == $data->{"{$prefix}Country"}) {
                                 setIfNot($data->{"{$prefix}PCode"}, $rData->{"{$prefix}PCode"});

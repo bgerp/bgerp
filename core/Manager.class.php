@@ -555,9 +555,9 @@ class core_Manager extends core_Mvc
     {
         $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 1000) ?
         Request::get('PerPage', 'int') : $this->listItemsPerPage;
-        
+        setIfNot($data->useExactPaging, $this->useExactPaging, false);
         if ($perPage) {
-            $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar));
+            $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar, 'exactPaging' => $data->useExactPaging));
             $data->pager->itemsPerPage = $perPage;
             if (isset($data->rec->id)) {
                 $data->pager->setPageVar($this->className, $data->rec->id);
@@ -1299,7 +1299,7 @@ class core_Manager extends core_Mvc
         
         // Ако заявката не е по AJAX и няма нищо записано в лога, записваме екшъна
         if (!Request::get('ajax_mode') && !countR(log_Data::$toAdd)) {
-            if (Request::$vars['_POST']) {
+            if (Request::$vars['_POST'] && Mode::get('haveErrInAct') !== true) {
                 self::logWrite(ucfirst($act), Request::get('id'), 180);
             } else {
                 self::logInfo(ucfirst($act), Request::get('id'));

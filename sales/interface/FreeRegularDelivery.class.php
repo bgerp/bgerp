@@ -91,36 +91,6 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
     
     
     /**
-     * Кои марршрути са допустими за избор
-     * 
-     * @param int $locationId  - към коя локация
-     * @param int $inDays - в следващите колко дни? null за без ограничение
-     * @return string[] $routeOptions - опции от маршрути
-     */
-    private static function getRouteOptions($locationId, $inDays = null)
-    {
-        $today = dt::today();
-        
-        $routeOptions = array();
-        $rQuery = sales_Routes::getQuery();
-        $rQuery->where("#locationId = '{$locationId}' AND #nextVisit > '{$today}' AND #state != 'rejected'");
-        if(isset($inDays)){
-            $inDays = dt::addDays($inDays, $today, false);
-            $rQuery->where("#nextVisit <= '{$inDays}'");
-        }
-        
-        $rQuery->show('id,nextVisit');
-        $rQuery->orderBy('id', "ASC");
-        
-        while($rRec = $rQuery->fetch()){
-            $routeOptions[$rRec->id] = sales_Routes::getSmartTitle($rRec);
-        }
-        
-        return $routeOptions;
-    }
-    
-    
-    /**
      * Добавя полета за доставка към форма
      *
      * @param core_FieldSet $form
@@ -136,7 +106,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
         $locationId = ($Document instanceof eshop_Carts) ? $form->rec->locationId : $form->rec->deliveryLocationId;
       
         if(isset($locationId)){
-            $routeOptions = self::getRouteOptions($locationId, $inDays);
+            $routeOptions = sales_Routes::getRouteOptions($locationId, $inDays);
             $countRoutes = countR($routeOptions);
             $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Доставка на');
             

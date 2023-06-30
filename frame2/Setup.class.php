@@ -89,4 +89,19 @@ class frame2_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'frame2_CsvExport';
+
+
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+
+        // Добавяме кофа за файловете от Метро
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('reports', 'Файлове за импортиране данни за справки', 'csv,xml,txt', '20MB', 'user', 'every_one');
+
+        return $html;
+    }
 }

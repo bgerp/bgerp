@@ -394,6 +394,26 @@ class core_ProtoSetup
         
         return $res;
     }
+
+
+    /**
+     * Помощна функция, която връща стойността на посочената константа, без персонализиране
+     *
+     * @param string $name
+     * @param boolean $absolute
+     * @param null|integer $userId
+     *
+     * @return mixed
+     */
+    public static function getGlobal($name, $absolute = false, $userId = null)
+    {
+        $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+        core_ObjectConfiguration::$stopInvoke = true;
+        $res = label_Setup::get($name, $absolute, $userId);
+        core_ObjectConfiguration::$stopInvoke = $stopInvoke;
+
+        return $res;
+    }
     
     
     /**
@@ -598,6 +618,18 @@ class core_ProtoSetup
      * @return void
      */
     public function manageConfigDescriptionForm(&$configForm)
+    {
+        return null;
+    }
+
+
+    /**
+     * След инпутване на формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function inputConfigDescriptionForm(&$configForm)
     {
         return null;
     }

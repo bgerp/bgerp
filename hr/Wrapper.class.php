@@ -25,6 +25,7 @@ class hr_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('hr_Indicators', 'Заплащане->Индикатори', 'ceo,hrMaster');
+        $this->TAB('hr_IndicatorFormulas', 'Заплащане->Формули', 'ceo,hrMaster');
         $this->TAB('hr_Payroll', 'Заплащане->Ведомост', 'ceo,hrMaster');
         $this->TAB('hr_IndicatorNames', 'Заплащане->Видове индикатори', 'debug,admin');
         

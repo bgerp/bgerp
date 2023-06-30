@@ -87,8 +87,14 @@ class cat_products_SharedInFolders extends core_Manager
      * Кой може да изтрива
      */
     public $canDelete = 'ceo,cat,sales,purchase';
-    
-    
+
+
+    /**
+     * Кой може да променя състоянието
+     */
+    public $canChangepublicstate = 'ceo,cat';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -146,11 +152,9 @@ class cat_products_SharedInFolders extends core_Manager
         }
         
         if ($action == 'changepublicstate') {
-            $pRec = (isset($rec->productId)) ? cat_Products::fetch($rec->productId, 'state,folderId') : null;
-            $requiredRoles = cat_Products::getRequiredRoles('edit', $pRec, $userId);
-
-            if ($requiredRoles != 'no_one' && isset($rec->productId)) {
-                if ($pRec->state != 'active') {
+            if(isset($rec->productId) && $requiredRoles != 'no_one'){
+                $pRec = cat_Products::fetch($rec->productId, 'state,folderId');
+                if (!cat_Products::haveRightFor('edit', $rec->productId, $userId)) {
                     $requiredRoles = 'no_one';
                 } else {
                     $folderCover = doc_Folders::fetchCoverClassName($pRec->folderId);
@@ -182,7 +186,7 @@ class cat_products_SharedInFolders extends core_Manager
         
         $data->recs = $data->rows = array();
         if ($data->isProto !== true && $masterRec->isPublic != 'yes') {
-            $data->recs[$masterRec->folderId] = (object) array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id);
+            $data->recs[$masterRec->folderId] = (object) array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id, '_isLive' => true);
         }
         $query = self::getQuery();
         $query->where("#productId = {$masterRec->id}");
@@ -193,6 +197,10 @@ class cat_products_SharedInFolders extends core_Manager
         foreach ($data->recs as $id => $rec) {
             $row = static::recToVerbal($rec);
             $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
+            if($rec->_isLive){
+                $row->folderId = ht::createHint($row->folderId, 'Артикулът е създаден в папката и по подразбиране е споделен в нея');
+                unset($row->tools);
+            }
             $data->rows[$id] = $row;
         }
         
@@ -216,8 +224,13 @@ class cat_products_SharedInFolders extends core_Manager
         
         $pRec->isPublic = ($pRec->isPublic == 'yes') ? 'no' : 'yes';
         $title = ($pRec->isPublic == 'yes') ? 'стандартен' : 'нестандартен';
+        $msg = ($pRec->isPublic == 'yes') ? "Артикулът става стандартен" : "Артикулът става нестандартен";
         cls::get('cat_Products')->save($pRec, 'isPublic');
-        
+        if($pRec->isPublic == 'yes'){
+            static::delete("#productId = {$productId}");
+        }
+        cls::get('cat_Products')->logWrite($msg, $pRec->id);
+
         return followRetUrl(array('cat_Products', 'single', $productId), " Артикулът вече е {$title}");
     }
     
@@ -252,11 +265,6 @@ class cat_products_SharedInFolders extends core_Manager
                     $tpl->append('<div><b>' . tr('Артикулът е стандартен и е достъпен само в изброените папки.') . '</b></div>', 'content');
                 } else {
                     $tpl->append('<div><b>' . tr('Артикулът е стандартен и е достъпен във всички папки.') . '</b></div>', 'content');
-                }
-
-                $folderCover = doc_Folders::fetchCoverClassName($data->masterData->rec->folderId);
-                if (cls::haveInterface('crm_ContragentAccRegIntf', $folderCover)) {
-                    $tpl->append("<div style='margin-bottom:5px'><i><small>" . tr('Като частен е бил споделен в папките на:') . '</small></i></div>', 'content');
                 }
             }
         }

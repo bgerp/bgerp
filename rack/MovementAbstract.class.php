@@ -20,13 +20,21 @@ abstract class rack_MovementAbstract extends core_Manager
     /**
      * Полета по които да се търси
      */
-    public $searchFields = 'palletId,position,positionTo,note';
+    public $searchFields = 'palletId,position,positionTo,note,batch';
 
 
     /**
      * Шаблон за реда в листовия изглед
      */
     public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     * @var string
+     */
+    public $hideListFieldsIfEmpty = 'batch, documents';
 
 
     /**
@@ -42,7 +50,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         // Палет, позиции и зони
         $mvc->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->От,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
-        $mvc->FLD('batch', 'text', 'silent,input=none,before=positionTo,removeAndRefreshForm');
+        $mvc->FLD('batch', 'text', 'silent,input=none,before=positionTo,removeAndRefreshForm,remember');
         $mvc->FLD('position', 'rack_PositionType', 'caption=Движение->От,input=none');
         $mvc->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Към,input=none');
         $mvc->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden');
@@ -131,6 +139,20 @@ abstract class rack_MovementAbstract extends core_Manager
                 $row->movement = ht::createHint($row->movement, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", null,true, array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18));
             } else {
                 $row->productId = ht::createHint($row->productId, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}",  null,true, array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18));
+            }
+        }
+
+        if(!$fields['-inline'] && !$fields['-inline-single']){
+            if($Def = batch_Defs::getBatchDef($rec->productId)){
+                if(!empty($rec->batch)){
+                    $row->batch = $Def->toVerbal($rec->batch);
+                    $row->batch = ht::createElement("span", array('class' => 'small'), $row->batch);
+                    if(rack_ProductsByBatches::haveRightFor('list')){
+                        $row->batch = ht::createLink($row->batch, array('rack_ProductsByBatches', 'list', 'search' => $rec->batch));
+                    }
+                } else {
+                    $row->batch = "<i class='quiet'>" . tr("Без партида") . "</i>";
+                }
             }
         }
     }
@@ -322,6 +344,7 @@ abstract class rack_MovementAbstract extends core_Manager
             }
         }
 
+        arr::placeInAssocArray($data->listFields, array('batch' => 'Партида'), null, 'productId');
         $data->query->orderBy('orderByState=ASC,createdOn=DESC');
     }
 

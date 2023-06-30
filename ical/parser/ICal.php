@@ -254,6 +254,7 @@ class ICal
                 }
             }
 
+
             $this->processEvents();
             $this->processRecurrences();
             $this->processDateConversions();
@@ -480,7 +481,7 @@ class ICal
      *
      * @return string Ymd\THis date
      */
-    public function iCalDateWithTimeZone($event, $key)
+    public function iCalDateWithTimeZone($event, $key, $dTz = '')
     {
         $defaultTimeZone = $this->calendarTimeZone();
         if (!$defaultTimeZone) {
@@ -512,7 +513,13 @@ class ICal
         } else {
             $tz = new \DateTimeZone($defaultTimeZone);
             $offset1 = timezone_offset_get($tz, $dateTime);
-            $tz = new \DateTimeZone($timeZone);
+
+            if ($dTz) {
+                $tz = new \DateTimeZone($dTz);
+            } else {
+                $tz = new \DateTimeZone($timeZone);
+            }
+
             $offset2 = timezone_offset_get($tz, $dateTime);
             $offset = $offset1 - $offset2;
         }
@@ -1128,10 +1135,46 @@ class ICal
         }
 
         foreach ($events as $key => $anEvent) {
-            $events[$key]['DTSTART_tz'] = $this->iCalDateWithTimeZone($anEvent, 'DTSTART');
+            $dTZ = '';
+            if ($events[$key]['DTSTART']) {
+                if (date('I', $events[$key]['DTSTART'])) {
+                    $dTZ = $this->cal['DAYLIGH']['TZOFFSETFROM'] ? $this->cal['DAYLIGH']['TZOFFSETFROM'] : '';
+                    if (!$dTZ) {
+                        $dTZ = $this->cal['STANDARD']['TZOFFSETFROM'] ? $this->cal['STANDARD']['TZOFFSETFROM'] : '';
+                    }
+                } else {
+                    $dTZ = $this->cal['STANDARD']['TZOFFSETTO'] ? $this->cal['STANDARD']['TZOFFSETTO'] : '';
+                    if (!$dTZ) {
+                        $dTZ = $this->cal['DAYLIGH']['TZOFFSETTO'] ? $this->cal['DAYLIGH']['TZOFFSETTO'] : '';
+                    }
+                }
+            }
+
+            $events[$key]['DTSTART_tz'] = $this->iCalDateWithTimeZone($anEvent, 'DTSTART', $dTZ);
+            if ($dTZ) {
+                $events[$key]['DTSTART'] = $this->iCalDateWithTimeZone($anEvent, 'DTSTART', $dTZ);
+            }
+
+            $dTZ = '';
+            if ($events[$key]['DTEND']) {
+                if (date('I', $events[$key]['DTEND'])) {
+                    $dTZ = $this->cal['DAYLIGH']['TZOFFSETFROM'] ? $this->cal['DAYLIGH']['TZOFFSETFROM'] : '';
+                    if (!$dTZ) {
+                        $dTZ = $this->cal['STANDARD']['TZOFFSETFROM'] ? $this->cal['STANDARD']['TZOFFSETFROM'] : '';
+                    }
+                } else {
+                    $dTZ = $this->cal['STANDARD']['TZOFFSETTO'] ? $this->cal['STANDARD']['TZOFFSETTO'] : '';
+                    if (!$dTZ) {
+                        $dTZ = $this->cal['DAYLIGH']['TZOFFSETTO'] ? $this->cal['DAYLIGH']['TZOFFSETTO'] : '';
+                    }
+                }
+            }
 
             if ($this->iCalDateWithTimeZone($anEvent, 'DTEND')) {
-                $events[$key]['DTEND_tz'] = $this->iCalDateWithTimeZone($anEvent, 'DTEND');
+                $events[$key]['DTEND_tz'] = $this->iCalDateWithTimeZone($anEvent, 'DTEND', $dTZ);
+                if ($this->cal['STANDARD']['TZOFFSETFROM']) {
+                    $events[$key]['DTEND'] = $this->iCalDateWithTimeZone($anEvent, 'DTEND', $dTZ);
+                }
             }
         }
 

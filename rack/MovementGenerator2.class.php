@@ -138,24 +138,17 @@ class rack_MovementGenerator2 extends core_Manager
      * @param float $volume    Обем на единица от продукта в литри
      *
      * @param float $weight    Тегло на единица продукт
-     * 
+     * @param int|null $storeId    Склад
      * @return array Генерираните движения или false в случай на грешка
      * 
      */
-    public static function mainP2Q($pallets, $zones, $packaging = array(), $volume = null, $weight = null)
+    public static function mainP2Q($pallets, $zones, $packaging = array(), $volume = null, $weight = null, $storeId = null)
     { 
         // Сумарно колко трябва да доставим
         $sumZ = array_sum($zones); 
  
         // Ммножител за скалиране на количествата
         $scale = 1;
-        
-        // Ако имаме дробни количества в опаковки, умножаваме всичко по 1000
-       /* foreach($packaging as $pack) {bp(fmod($pack->quantity * $scale, 1), $pack);
-            while(fmod($pack->quantity * $scale, 1) > 0) {
-                $scale *= 10;
-            }
-        } */
  
         
         // Изискването за твърде голямо скалиране се приема за грешка във входните данни
@@ -179,6 +172,8 @@ class rack_MovementGenerator2 extends core_Manager
             $packArr["{$k}"] = $pack->packagingId;
         }
         krsort($packArr);
+
+        Mode::push('pickupStoreId', $storeId);
 
         // Подготвяме данни свързани с палетите
         $sumP = 0;
@@ -335,7 +330,9 @@ class rack_MovementGenerator2 extends core_Manager
                 $res[] = $m;
             }
         }
- 
+
+        Mode::pop('pickupStoreId');
+
         return $res;
     }
 
@@ -365,7 +362,13 @@ class rack_MovementGenerator2 extends core_Manager
 
         if(!array_key_exists("{$num}|{$row}", static::$firstRowTo)){
             if($num){
-                $storeId = store_Stores::getCurrent();
+                $sessionStoreId = Mode::get('pickupStoreId');
+                if(isset($sessionStoreId)){
+                    $storeId = $sessionStoreId;
+                } else {
+                    wp('Форсиране на склад', $pos);
+                    $storeId = store_Stores::getCurrent();
+                }
                 static::$firstRowTo["{$num}|{$row}"] = strtolower(rack_Racks::fetchField(array('#storeId = [#1#] AND #num = [#2#]', $storeId, $num), 'firstRowTo'));
             } else {
                 static::$firstRowTo["{$num}|{$row}"] = 'a';
@@ -518,9 +521,7 @@ class rack_MovementGenerator2 extends core_Manager
      */
     private static function timeToCount($s, $d, $packs)
     {  
-        set_time_limit(5);
-
-        expect($pallet >= $q);
+//        expect($pallet >= $q);
         
         $sec = rack_Setup::get('TIME_COUNT');
 
@@ -553,6 +554,8 @@ class rack_MovementGenerator2 extends core_Manager
         $sI = $dI = $i;
 
  //bp($sArr, $dArr, $pArr, $s, $d, $res);
+        $maxTries = 10;
+        $try = 1;
 
         while($sI > 0 && $dI > 0) {
             $sQ = $sArr[$sI] * $pArr[$sI];
@@ -586,7 +589,12 @@ class rack_MovementGenerator2 extends core_Manager
             if($dArr[$dI] <= 0) {
                 $dI--;
             }
-            
+
+            if($try >= $maxTries)  {
+                wp($sArr, $dArr, $sI, $dI, $s, $d, $packs);
+                break;
+            }
+            $try++;
             // if($i++ > 10)  bp($sArr, $dArr, $sI, $dI);
         }
 

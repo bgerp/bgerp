@@ -36,7 +36,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
@@ -49,37 +49,37 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Кой има право да чете?
      */
-    public $canConto = 'ceo,planning,store';
+    public $canConto = 'ceo,consumption,store';
     
     
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,planning,store';
+    public $canPending = 'ceo,consumption,store';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,planning,store';
+    public $canList = 'ceo,consumption,store';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,planning,store';
+    public $canSingle = 'ceo,consumption,store';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,planning,store';
+    public $canEdit = 'ceo,consumption,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,planning,store';
+    public $canAdd = 'ceo,consumption,store';
     
     
     /**
@@ -247,16 +247,16 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         // Може да добавяме или към нишка в която има задание
         if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-            
+
             return true;
         }
         
         // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-            
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
+
             return true;
         }
-        
+
         return false;
     }
     
@@ -272,18 +272,21 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         // ако има източник ПО, копират се вложените неща по нея
         if(isset($rec->originId)){
             $origin = doc_Containers::getDocument($rec->originId);
-            $dQuery = planning_ProductionTaskProducts::getQuery();
-            $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-            $dQuery->where("#taskId = {$origin->that} AND #totalQuantity != 0 AND #type = 'input'");
-            if(isset($rec->storeId)){
-                $dQuery->where("#storeId = {$rec->storeId} OR #storeId IS NULL");
-            } else {
-                $dQuery->where("#canStore = 'no'");
-            }
+            if($origin->isInstanceOf('planning_Tasks')){
+                $dQuery = planning_ProductionTaskProducts::getQuery();
+                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                $dQuery->where("#taskId = {$origin->that} AND #totalQuantity != 0 AND #type = 'input'");
+                if(isset($rec->storeId)){
+                    $dQuery->where("(#storeId = {$rec->storeId} OR #storeId IS NULL) AND #canStore != 'no'");
+                }
 
-            while($dRec = $dQuery->fetch()){
-                $newRec = (object)array('noteId' => $rec->id, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'quantity' => $dRec->totalQuantity);
-                planning_ConsumptionNoteDetails::save($newRec);
+                while($dRec = $dQuery->fetch()){
+                    $newRec = (object)array('noteId' => $rec->id, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'quantity' => $dRec->totalQuantity * $dRec->quantityInPack);
+                    if($genericProductId = planning_GenericProductPerDocuments::getRec('planning_ProductionTaskProducts', $dRec->id)){
+                        $newRec->_genericProductId = $genericProductId;
+                    }
+                    planning_ConsumptionNoteDetails::save($newRec);
+                }
             }
         }
     }
@@ -296,14 +299,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         if ($action == 'add' && isset($rec)) {
             if (isset($rec->originId)) {
-                $origin = doc_Containers::getDocument($rec->originId);
-                if(!$origin->isInstanceOf('planning_Tasks')){
+                if(!$mvc->canAddToOriginId($rec->originId, $userId)){
                     $requiredRoles = 'no_one';
-                } else {
-                    $state = $origin->fetchField('state');
-                    if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped', 'pending'))) {
-                        $requiredRoles = 'no_one';
-                    }
                 }
             }
         }

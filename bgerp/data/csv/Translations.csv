@@ -150,6 +150,7 @@ en,Активни+Чакащи,Active+Waiting
 en,Активни,Active
 en,Активно+Чакащо,Active+Waiting
 en,Активно,Active
+en,Актуализиране,Update
 en,Аларма,Alarm
 en,Английски,English
 en,Анкета,Survey
@@ -338,6 +339,7 @@ en,Всички,All
 en,Всяка сряда,Every Wednesday
 en,Всяка събота,Every Saturday
 en,Вто,Tue
+en,Вторник,Tuesday
 en,Вход в,Sign in
 en,Вход,Enter
 en,Входящ документ,Incoming Document
@@ -486,6 +488,7 @@ en,Диплома №,Diploma №
 en,Длъжност,Position
 en,Длъжности,Positions
 en,Дневни менюта,Daily menus
+en,Дни,Days 
 en,До 10 дни след фактуриране,Until 10 days after invoicing
 en,До 15 дни след фактуриране,Until 15 days after invoicing
 en,До 21 дни след фактуриране,Until 21 days after invoicing
@@ -584,6 +587,7 @@ en,Експедиция,Shipping
 en,Експорт в CSV,CSV export
 en,Експорт,Export
 en,Експортиране,Export
+en,Експортиране на,Export of
 en,Екстрактнато,Extracted
 en,Екшън лог на по_7b22,Action-log of user
 en,Екшън,Action
@@ -643,9 +647,9 @@ en,Записи на индикаторите,Indicators records
 en,Записи на камера,Records from cam
 en,Записи от сензорите,Records from sensors
 en,Записи,Recordings
-en,Запитване за поръчков продукт,Custom Product Enquiry
-en,Запитване за,Enquiry about
-en,Запитване,Enquiry
+en,Запитване за поръчков продукт,Custom product inquiry
+en,Запитване за,inquiry about
+en,Запитване,inquiry
 en,Запитване->Драйвер,Inquiry->Driver
 en,Запитване->МКП,Inquiry->MOQ
 en,Запитване->Параметри,Inquiry->Parameters
@@ -1136,6 +1140,7 @@ en,Неактивиран,Inactivated
 en,Невалиден имейл!,Invalid email!
 en,Невалидна дълж_838c,Invalid digits length
 en,Нед,Sun
+en,Неделя,Sunday
 en,Недопустими символи в число/израз,Inadmissible symbols in number/expression
 en,Недоставени,Undelivered
 en,Незаскладено,Not stored
@@ -1264,6 +1269,7 @@ en,Освободено,Released
 en,Основание за р_b916b,Reason for the VAT amount
 en,Основание за с_ee041,Reason for creation
 en,Основание,Reason
+en,Основна мярка,Main measure
 en,Основно меню,Main Menu
 en,Осредняване,Averaging
 en,Остатък,Balance
@@ -1389,6 +1395,7 @@ en,Персонализация,Personalization
 en,Персонализира_fce24,Customize settings for
 en,Персонализиране,Customize
 en,Пет,Fri
+en,Петък,Friday
 en,Печалба по арт_373cd,Profit per articles
 en,Печалба по кли_0b887,Profit per customers
 en,Печат на страницата,Print page
@@ -1475,6 +1482,7 @@ en,Получено на,Received on
 en,Получено,Received
 en,Получил,Received by
 en,Пон,Mon
+en,Понеделник,Monday
 en,Поотделно,Separately
 en,Поправка,Repair
 en,Популярни продукти,Popular products
@@ -1740,6 +1748,7 @@ en,Разходни банко_a3df,Outgoing bank transfers
 en,Разходни докум_4dc4,Expenditure documents
 en,Разходни касов_8e6a,Debit cash orders
 en,Разширения,File extensions
+en,разширени настройки,Advanced Settings
 en,Разширено,Extensively
 en,Ранг,Rank
 en,Рег. номер,Reg. number
@@ -1847,6 +1856,7 @@ en,Скриване,Hide
 en,Скриптове,Scripts
 en,Скрито,Hidden
 en,Следващо напом_731f,Next reminder
+en,Следващо,Next
 en,Следене,Tracking
 en,Следени,Followed
 en,Сложи,Put
@@ -1896,6 +1906,7 @@ en,Срок до,Date to
 en,Срок,Deadline 
 en,Срочност,Term
 en,Сря,Wed
+en,Сряда,Wednesday
 en,Стандартна вът_9205,Standard internal theme
 en,Стара парола,Current password
 en,Стара стойност,Old value
@@ -1949,6 +1960,7 @@ en,Считано,Regarded
 en,Считано->До,Regarded->To
 en,Считано->От,Regarded->From
 en,Съб,Sat
+en,Събота,Saturday
 en,Събирателна,Collecting
 en,Събитие,Event
 en,Събития за година,Events for the year
@@ -2086,6 +2098,7 @@ en,Управител,Manager
 en,Управители,Managers
 en,Управление на _1cd80,Package manager
 en,Условие на дос_9b604,Delivery term
+en,Условие на доставката,Delivery term
 en,Условие,Condition
 en,Условия на доставка,Delivery terms
 en,Условия на про_52100,Terms of sale
@@ -2186,6 +2199,7 @@ en,Чакащи,Pending
 en,Чакащите,Pending
 en,Чакащо,Pending
 en,Час,Hour
+en,Часове,Hours
 en,Частен,Private
 en,Частни,Private
 en,Червен фон,Red background
@@ -2197,6 +2211,7 @@ en,Чернови документи,Draft documents
 en,Чернови,Drafts
 en,Черта,Line
 en,Чет,Thu
+en,Четвъртък,Thursday
 en,Четене,Reading
 en,Четец,Reader
 en,Четци,Readers
@@ -2355,6 +2370,7 @@ en,Намаляване на количеството,Decrease quantity
 en,Увеличаване на количеството,Increase quantity
 en,намиращи се в,located in
 en,напомняне,reminder
+en,настройки,settings
 en,начално,start
 en,не съществува,not exists
 en,неплатен,unpaid
@@ -2399,6 +2415,7 @@ en,продукти и услуги,products and services
 en,промяна,change
 en,просрочване с,overdue with
 en,протокол за отговорно пазене,consignment protocols
+en,разширени настройки,advanced settings
 en,разширение,extension
 en,ролка,roll
 en,с ДДС,VAT included
@@ -2513,6 +2530,7 @@ en,Нов партньор от,New partner from
 en,Експортиране на документ,Document export
 en,Интернет линк,Internet link
 en,CSV файл,CSV file
+en,DOC файл,DOC file
 en,HTML файл,HTML file
 en,XLS таблица,XLS table
 en,PDF файл,PDF file
@@ -2657,7 +2675,7 @@ en,"Логнете се,за да видите нишката","Login to see the
 en,"Не, благодаря","No, thanks!"
 en,Отворени сделки,Open deals
 en,Системата,The System
-en,Изпратете запитване за,Send an enquiry about
+en,Изпратете запитване за,Send an inquiry about
 en,общо тегло,total weight
 en,тегло на ролка,roll weight
 en,тегло на 1 кв. м,weight per sq. m.
@@ -2858,7 +2876,7 @@ en,"Поръчката ще бъде изпълнена след получав�
 en,Данни за фактуриране,Billing information
 en,Липсват данните за фактуриране,Missing billing information
 en,"Нямате избрани артикули","You haven't selected any items"
-en,изпращане на запитването,send the enquiry
+en,изпращане на запитването,send the nquiry
 en,Безплатна,Free
 en,Безплатно,Free
 en,безплатна,free
@@ -2921,8 +2939,8 @@ en,лв,lv
 en,"второ напомняне","second reminder"
 en,"трето напомняне","third reminder"
 en,"Просрочен документ","Overdue document"
-en,"Имате създадени, но неактивирани","You've created,but haven't activated"
-en,"Имате създаден, но неактивиран","You've created,but haven't activated"
+en,"Имате създадени, но неактивирани","You've created, but haven't activated"
+en,"Имате създаден, но неактивиран","You've created, but haven't activated"
 en,"до 30 дни след фактуриране, отстъпка 2% при плащане до 5 работни дни","Up to 30 days after invoicing with 2% discount up to 5 days"
 en,Ваш №,Your No
 en,Фактуриран аванс,Downpayment invoiced
@@ -2987,3 +3005,16 @@ en,На имейла от регистрацията е изпратена ин�
 en,"Посоченият имейл е запазен за вътрешните потребители на системата. Моля посочете друг имейл", "The email is reserved for internal users only. Please use another email"
 en,Разбиване на цитиран текст на параграфи,Separate text to paragraph on quote
 en,Връщане на стока,Return of goods
+en,Популярни артикули,Best sellers
+en,ДДС (VAT) №,VAT ID
+en,Имена на колони,Column names
+en,Десетичен знак,Decimal point
+en,Формат за дата,Date format
+en,Формат за дата и час,Date and time format
+en,Кодиране,Coding
+en,Файлово разширение,File extension
+en,Нов ред,New line
+en,Ограждане,Enclosure
+en,Цена без ДДС,Price without VAT
+en,Напишете поне две имена разделени с интервал,Write at least two names separated by a space
+en,Продадени с фактура,Sold with invoice,

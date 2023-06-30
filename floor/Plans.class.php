@@ -226,9 +226,21 @@ class floor_Plans extends core_Master {
 
             $styleStr = implode(';', $style);
 
+            $styleObj = array();
+            $min = min($w, $h);
+            if($min < 20) { ;
+                $styleObj[] = "font-size: " . round($min/20, 2) . 'em';  
+            }
+            
+            if(count($styleObj)) {
+                $styleObj = 'style="' . implode(';', $styleObj) . '"';
+            } else {
+                $styleObj = '';
+            }
+
             $r = round(min($w, $h) * $oRec->round);
             $tpl->append("<div id='{$oRec->id}' class='floor-object' {$dblClick} style=\"left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;border: {$borderWidth}px solid {$borderColor};{$styleStr};\">
-                <div class='floor-obj'>{$text}</div></div>", 'OBJECTS');
+                <div class='floor-obj' {$styleObj}>{$text}</div></div>", 'OBJECTS');
         }
 
         return $tpl;

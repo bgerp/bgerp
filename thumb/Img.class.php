@@ -575,7 +575,7 @@ class thumb_Img
     /**
      * Връща урл към умаленото изображение
      *
-     * @param string $mode Режим за генериране на URL: 'auto', 'deferred', 'forced'
+     * @param string $mode Режим за генериране на URL: 'auto', 'deferred', 'forced', 'forceDeferred'
      *
      * $return string
      */
@@ -587,7 +587,13 @@ class thumb_Img
         }
         
         $path = $this->getThumbPath();
-        
+
+        if ($mode == 'forceDeferred') {
+            $url = $this->getDeferredUrl();
+
+            return $url;
+        }
+
         if (!file_exists($path) || (filemtime($path) + $this->expirationTime < time())) {
             if (($this->sourceType != 'gdRes') && ($mode == 'deferred' || ($mode == 'auto' && !Mode::is('text', 'xhtml')))) {
                 $url = $this->getDeferredUrl();
@@ -687,8 +693,8 @@ class thumb_Img
         setIfNot($attr['src'], $this->getUrl());
         
         $this->getSize();
-        setIfNot($attr['width'], $this->scaledWidth);
-        setIfNot($attr['height'], $this->scaledHeight);
+        setIfNot($attr['width'], $attr['imgWidth'], $this->scaledWidth);
+        setIfNot($attr['height'], $attr['imgHeight'], $this->scaledHeight);
         
         if ((log_Browsers::isRetina() && $this->size2x) || (Mode::get('screenWidth') > 1024)) {
             // За случаите, когато имаме дисплей с по-висока плътност

@@ -85,7 +85,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         }
         
         // Проверка на артикулите преди контиране
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $productsArr = array_filter($rec->details['receiptDetails'], function($a){return $a->action == 'sale';});
             $productsArr = arr::extractValuesFromArray($productsArr, 'value');
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');

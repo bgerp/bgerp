@@ -48,14 +48,8 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, store, distributor';
-    
-    
-    /**
-     * Какви мета данни да изискват продуктите, които да се показват
-     */
-    public $metaProducts = 'canSell,canStore';
-    
-    
+
+
     /**
      * Кой има право да добавя?
      */
@@ -122,11 +116,11 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
         $masterRec = $data->masterRec;
-        $params = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic');
+        $params = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasnotProperties' => 'generic');
+        $params['hasProperties'] = $mvc->getExpectedProductMetaProperties($masterRec->productType, 'receive');
         if($masterRec->productType == 'other'){
             $params['isPublic'] = 'no';
         }
-
         $data->form->setFieldTypeParams('productId', $params);
     }
 }

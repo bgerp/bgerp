@@ -19,7 +19,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     /**
      * Заглавие
      */
-    public $title = 'Импорт на артикули от последната работна рецепта';
+    public $title = 'Импорт на артикули от последната активна рецепта';
     
     
     /**
@@ -35,16 +35,48 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         $rec = &$form->rec;
         $rec->detailsDef = array();
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        expect($bomId = self::getLastActiveBom($masterRec));
-        $form->info = tr('По рецепта') . ' ' . cat_Boms::getHyperlink($bomId, true);
+        $bomId = null;
+
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+        if($firstDoc->isInstanceOf('planning_Jobs')) {
+
+            // Ако Протокола за влагане е към задание и за артикула има активна рецепта - нея
+            $productId = $firstDoc->fetchField('productId');
+            expect($bomId = cat_Products::getLastActiveBom($productId, 'production,sales'));
+            $form->info = tr('По рецепта') . ': ' . cat_Boms::getHyperlink($bomId, true);
+            $defaultQuantity = $firstDoc->fetchField('quantity');
+        } else {
+            $form->info = tr('От планираното по') . ': ' . $firstDoc->getHyperlink(true);
+            $defaultQuantity = $firstDoc->fetchField('plannedQuantity');
+        }
 
         $form->FLD("forQuantity", 'int', "input,caption=За количество,silent");
-        $form->setDefault('forQuantity', $firstDoc->fetchField('quantity'));
+        $form->setDefault('forQuantity', $defaultQuantity);
         $form->input('forQuantity', 'silent');
 
-        // Взимате се материалите за производството на к-то от заданието
-        $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $masterRec->storeId);
+        if($firstDoc->isInstanceOf('planning_Jobs')) {
+
+            // Ако е към задание ще се импортират материалите от заданието
+            $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $masterRec->storeId);
+            foreach ($details as $d1){
+                $d1->quantity /= $d1->quantityInPack;
+            }
+        } else {
+            $details = array();
+            $dQuery = planning_ProductionTaskProducts::getQuery();
+            $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+            $dQuery->where("#taskId = {$firstDoc->that} AND #type = 'input' AND #canStore = 'yes'");
+
+            $plannedQuantity = $firstDoc->fetchField('plannedQuantity');
+            $ratio = $rec->forQuantity / $plannedQuantity;
+
+            while($dRec = $dQuery->fetch()){
+                $round = cat_UoM::fetchField($dRec->packagingId, 'round');
+                $newQuantity = round($dRec->plannedQuantity * $ratio, $round);
+                $details[$dRec->id] = (object)array('productId' => $dRec->productId, 'quantity' => $newQuantity, 'quantityInPack' => $dRec->quantityInPack, 'packagingId' => $dRec->packagingId);
+            }
+        }
+
         foreach ($details as $dRec) {
             $dRec->caption = cat_Products::getTitleById($dRec->productId);
             $dRec->caption = str_replace(',', ' ', $dRec->caption);
@@ -53,7 +85,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             $key = "{$dRec->productId}_{$dRec->packagingId}";
             $shortUom = cat_UoM::getShortName($dRec->packagingId);
 
-            $equivalentArr = planning_GenericMapper::getEquivalentProducts($dRec->productId);
+            $equivalentArr = planning_GenericMapper::getEquivalentProducts($dRec->productId, $dRec->genericProductId, false, true);
             if(countR($equivalentArr) > 1){
                 unset($equivalentArr[$dRec->productId]);
                 $form->FLD("{$key}_replaceId", 'int', "input,caption={$dRec->caption}->Заместител");
@@ -61,7 +93,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             }
 
             $form->FLD($key, 'double(Min=0)', "input,caption={$dRec->caption}->К-во,unit={$shortUom}");
-            $form->setDefault($key, $dRec->quantity / $dRec->quantityInPack);
+            $form->setDefault($key, $dRec->quantity);
             $rec->detailsDef[$key] = $dRec;
         }
 
@@ -133,37 +165,6 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     
     
     /**
-     * Намира последната работна рецепта
-     *
-     * @param stdClass $masterRec
-     *
-     * @return mixed
-     */
-    private static function getLastActiveBom($masterRec)
-    {
-        // Опит за намиране на първата работна рецепта
-        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-        if (!$firstDoc->isInstanceOf('planning_Jobs')) {
-            
-            return false;
-        }
-        $productId = $firstDoc->fetchField('productId');
-        $bomId = cat_Products::getLastActiveBom($productId, 'production,sales');
-        
-        // Ако има рецепта, проверява се има ли редове в нея
-        if (!empty($bomId)) {
-            $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
-            if (countR($details)) {
-
-                return $bomId;
-            }
-        }
-        
-        return false;
-    }
-    
-    
-    /**
      * Може ли драйвера за импорт да бъде избран
      *
      * @param core_Manager $mvc      - клас в който ще се импортира
@@ -178,10 +179,30 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
 
         if (isset($masterId)) {
             $masterRec = $mvc->Master->fetchRec($masterId);
-            if(empty($masterRec->storeId)) return;
 
-            $bomId = self::getLastActiveBom($masterRec);
-            if (empty($bomId)) return false;
+            $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+            if($firstDoc->isInstanceOf('planning_Jobs')){
+                if(empty($masterRec->storeId)) return false;
+
+                // Ако Протокола за влагане е към задание и за артикула има активна рецепта - нея
+                $productId = $firstDoc->fetchField('productId');
+                $bomId = cat_Products::getLastActiveBom($productId, 'production,sales');
+                if(empty($bomId)) return false;
+
+                $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
+                if (!countR($details)) return false;
+
+            } elseif($firstDoc->isInstanceOf('planning_Tasks')){
+                // Ако е към ПО само ако има посочени в таба планиране артикули за влагане
+                $dQuery = planning_ProductionTaskProducts::getQuery();
+                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                $dQuery->where("#type = 'input' && #taskId = {$firstDoc->that} AND #canStore = 'yes'");
+                $countPlanned = $dQuery->count();
+
+                if(!$countPlanned) return false;
+            } else {
+                return false;
+            }
         }
         
         return true;

@@ -11,7 +11,7 @@ class cams_ONVIFTest extends core_Manager
         $onvif = new Ponvif(); 
         $onvif->setUsername('admin');
         $onvif->setPassword('Admin555');
-        $onvif->setIPAddress('10.7.0.100');
+        $onvif->setIPAddress('10.9.0.247');
         
 //         $onvif->setUsername('admin');
 //         $onvif->setPassword('admin');
@@ -27,24 +27,29 @@ class cams_ONVIFTest extends core_Manager
             $sources = $onvif->getSources(); 
             $profileToken = $sources[0][0]['profiletoken']; //echo $sources[0][1]['profiletoken']; echo ("<pre>");print_r($sources);die;
              $mediaUri = $onvif->media_GetStreamUri($profileToken);
-             $mediaSnapshotUri = $onvif->media_GetSnapshotUri($profileToken);  die($mediaSnapshotUri);
+             $mediaSnapshotUri = $onvif->media_GetSnapshotUri($profileToken); die($mediaUri);
              // $onvif->getPTZUri();
              //$presets = $onvif->ptz_GetPresets($profileToken);  echo ("<pre>");print_r($presets);die;
              //$capabilities = $onvif->core_getCapabilities(); echo ("<pre>");print_r($capabilities);die; // Not implemented
              // $deviceInfo = $onvif->core_GetDeviceInformation(); echo ("<pre>");print_r($deviceInfo);die; // Action Not Implemented
              //$dateTime = $onvif->core_GetSystemDateAndTime(); echo ("<pre>"); print_r($dateTime); die; // Action Not Implemented
-              echo ("<pre>"); print_r($onvif->getCapabilities()); die;
+             // echo ("<pre>"); print_r($onvif->getCapabilities()); die;
              //$onvif->ptz_GotoPreset($profileToken,8,2,2,2);
              //$onvif->ptz_RelativeMoveZoom($profileToken,0.05,10); // $zoom,$speedZoom
-             die;
-             $onvif->ptz_ContinuousMove($profileToken,0.1,0);
-             sleep(10);
-             $onvif->ptz_Stop($profileToken,'TRUE','TRUE'); //$profileToken,$pantilt(bool),$zoom(bool)
-             sleep(10);
-             $onvif->ptz_RelativeMove($profileToken,1,-0.5,0.1,0.1);
+             //die;
+     //        $onvif->ptz_ContinuousMove($profileToken,0.1,0);
+       //      sleep(10);
+         //    $onvif->ptz_Stop($profileToken,'TRUE','TRUE'); //$profileToken,$pantilt(bool),$zoom(bool)
+           //  sleep(10);
+             //$onvif->ptz_AbsoluteMove($profileToken,0,0.3,0); die;
+             // $onvif->ptz_RelativeMove($profileToken,0.1,0,0,0.1,0); // Движение надясно
+             // $onvif->ptz_RelativeMove($profileToken,-0.1,0,0,-0.1,0); // Движение наляво
+             //$onvif->ptz_RelativeMove($profileToken,0,-0.1,0,0,-0.1); // Движение надолу
+             //$onvif->ptz_RelativeMove($profileToken,0,0.1,0,0,0.1); // Движение нагоре
              // $translation_pantilt_x,$translation_pantilt_y,$speed_pantilt_x,$speed_pantilt_y
-             //echo ("<pre>"); print_r($this->ptzuri);die;
+             $onvif->ptz_RelativeMoveZoom($profileToken,-0.02,0.01); // $zoom,$speedZoom
              echo ("<pre>"); print_r($onvif->getPTZUri());
+             echo ("<pre>"); print_r($onvif->media_GetStreamUri($profileToken));
             
              echo "\n\n\n --------------------------------------------- \n\n\n";
             die;

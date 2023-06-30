@@ -67,6 +67,7 @@ class doc_plg_Close extends core_Plugin
     {
         if (empty($res)) {
             $firstContainerId = ($rec->threadId) ? doc_Threads::getFirstContainerId($rec->threadId) : null;
+
             if ($rec->state == 'closed') {
                 if($firstContainerId == $rec->containerId){
                     $res = ($mvc->hasPlugin('doc_FolderPlg')) ? 'Сигурни ли сте, че искате да откриете тази папка и да може да се добавят документи в нея|*?' : 'Сигурни ли сте, че искате да откриете тази нишка и да може да се добавят документи в нея|*?';

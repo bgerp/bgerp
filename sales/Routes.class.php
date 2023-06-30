@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'contragent=Клиент,locationId,nextVisit=Посещения->Следващо,repeat=Посещения->Период,dateFld=Посещения->Начало,salesmanId,state,createdOn,createdBy';
+    public $listFields = 'contragent=Контрагент,locationId,nextVisit=Посещения->Следващо,dateFld=Посещения->Начало,repeat=Посещения->Период,salesmanId,state,createdOn,createdBy';
     
     
     /**
@@ -151,8 +151,8 @@ class sales_Routes extends core_Manager
             $locRec = crm_Locations::fetch($locRec->id);
             if (cls::load($locRec->contragentCls, true)) {
                 $contragentCls = cls::get($locRec->contragentCls);
-                $contagentName = $contragentCls->fetchField($locRec->contragentId, 'name');
-                $lockName = $varchar->toVerbal($locRec->title) . ' « ' . $varchar->toVerbal($contagentName);
+                $contragentName = $contragentCls->fetchField($locRec->contragentId, 'name');
+                $lockName = $varchar->toVerbal($locRec->title) . ' « ' . $varchar->toVerbal($contragentName);
                 $options[$locRec->id] = $lockName;
             }
         }
@@ -222,7 +222,7 @@ class sales_Routes extends core_Manager
             return $currentUserId;
         }
         
-        // NULL ако никое от горните не е изпълнено
+        return null;
     }
     
     
@@ -268,7 +268,7 @@ class sales_Routes extends core_Manager
         $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
         
         if (!$rec->repeat) {
-            $row->repeat = "<span class='quiet'>" . tr('еднократно') . '</span>';
+            $row->repeat = "<span class='quiet'>" . tr('n/a') . '</span>';
         }
         
         $locationRec = crm_Locations::fetch($rec->locationId);
@@ -307,8 +307,8 @@ class sales_Routes extends core_Manager
         $query = $this->getQuery();
         $query->where(array('#locationId = [#1#]', $data->masterData->rec->id));
         $query->where("#state = 'active'");
-        
         while ($rec = $query->fetch()) {
+            $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = static::recToVerbal($rec);
         }
         
@@ -378,7 +378,6 @@ class sales_Routes extends core_Manager
         $tpl->replace($title, 'title');
         
         $table = cls::get('core_TableView');
-        
         $data->listFields = $listFields;
         $this->invoke('BeforeRenderListTable', array($data, $data));
         
@@ -415,8 +414,7 @@ class sales_Routes extends core_Manager
     
     
     /**
-     * Променя състоянието на всички маршрути след промяна на
-     * това на локацията им
+     * Променя състоянието на всички маршрути след промяна на това на локацията им
      *
      * @param int $locationId - id на локация
      */
@@ -437,9 +435,9 @@ class sales_Routes extends core_Manager
      * Връща търговеца с най-близък маршрут
      *
      * @param int    $locationId - ид на локация
-     * @param string $date       - дата, NULL за текущата дата
+     * @param string|null $date       - дата, NULL за текущата дата
      *
-     * @return $salesmanId - ид на търговец
+     * @return int|null $salesmanId - ид на търговец
      */
     public static function getSalesmanId($locationId, $date = null)
     {
@@ -600,5 +598,69 @@ class sales_Routes extends core_Manager
         }
         
         return $routeOptions;
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $filteredDate = $data->listFilter->rec->date;
+        if(!empty($filteredDate)){
+            arr::placeInAssocArray($data->listFields, array('plannedDate' => 'Посещения->Планувано'), 'nextVisit');
+        }
+
+        if(!countR($data->rows)) return;
+
+        $today = dt::today();
+        $locationIds = arr::extractValuesFromArray($data->recs, 'locationId');
+        $routesByLocation = array();
+
+        // Групиране на бъдещите посещения за филтрираните локации
+        $query = static::getQuery();
+        $query->in('locationId', $locationIds);
+        $query->where("#nextVisit >= '{$today}'");
+        if(!empty($filteredDate)){
+            $query->XPR('dif', 'int', "DATEDIFF(#dateFld , '{$filteredDate}')");
+            $query->where("(#repeat IS NOT NULL AND MOD(#dif, round(#repeat / 86400 )) = 0) OR #nextVisit = '{$filteredDate}'");
+        }
+        $query->where("#state = 'active'");
+
+        while($fRec = $query->fetch()){
+            $date = !empty($filteredDate) ? $filteredDate : $fRec->nextVisit;
+            if(!array_key_exists("{$fRec->locationId}|{$date}", $routesByLocation)){
+                $routesByLocation["{$fRec->locationId}|{$date}"] = (object)array('count' => 0, 'ids' => array());
+            }
+
+            // Преброява се за всяка локация колко бъдещи посещения има за същата дата
+            $salesperson = core_Users::getNick($fRec->salesmanId);
+            $routesByLocation["{$fRec->locationId}|{$date}"]->count++;
+            $routesByLocation["{$fRec->locationId}|{$date}"]->ids[$fRec->id] = $salesperson;
+        }
+
+        foreach ($data->rows as $id => $row){
+            $rec = $data->recs[$id];
+
+            // За всяка активна локация се гледа има ли повече от 1 посещение за въпросната дата
+            $dateFld = 'nextVisit';
+            if(!empty($filteredDate)){
+                $dateFld = 'plannedDate';
+                $rec->plannedDate = $filteredDate;
+                $row->plannedDate = $mvc->getFieldType('nextVisit')->toVerbal($filteredDate);
+            }
+
+            if($rec->state == 'active' && array_key_exists("{$rec->locationId}|{$rec->{$dateFld}}", $routesByLocation)){
+
+                // Ако има показва се хинт с информация за другите посещение за този обект за тази дата
+                if($routesByLocation["{$rec->locationId}|{$rec->{$dateFld}}"]->count > 1){
+                    $ids = $routesByLocation["{$rec->locationId}|{$rec->{$dateFld}}"]->ids;
+                    unset($ids[$rec->id]);
+                    $word = (countR($ids) > 1) ? 'посещения' : 'посещение';
+                    $msg = tr("Има {$word} на тази дата от|*: ") . implode(', ', $ids);
+                    $row->{$dateFld} = ht::createHint($row->{$dateFld}, $msg, 'warning', false);
+                }
+            }
+        }
     }
 }

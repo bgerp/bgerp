@@ -80,7 +80,7 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
             }
         }
         
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $productsArr = arr::extractValuesFromArray($details, 'productId');
             if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canBuy', 'generic,canStore', 'трябва да са купуваеми и да не са складируеми или генерични')){
                 acc_journal_RejectRedirect::expect(false, $redirectError);

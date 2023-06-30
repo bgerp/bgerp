@@ -390,14 +390,12 @@ class cond_PaymentMethods extends embed_Manager
     public static function hasDownpayment($id)
     {
         // Ако няма избран метод се приема, че няма авансово плащане
-        if (!$id) {
-            
-            return false;
-        }
+        if (!$id) return false;
+
+        $rec = static::fetch($id);
+        if(!is_object($rec)) return false;
         
-        expect($rec = static::fetch($id));
-        
-        return ($rec->downpayment) ? true : false;
+        return !empty($rec->downpayment);
     }
     
     

@@ -70,6 +70,8 @@ class core_Detail extends core_Manager
             // Ако мастър ключа не е индексиран, добавяме го като индекс
             $mvc->setDbIndex($mvc->masterKey);
         }
+
+        setIfNot($mvc->requireMasterBeInstanceOfCoreMaster, true);
     }
     
     
@@ -262,7 +264,9 @@ class core_Detail extends core_Manager
         
         // Очакваме да masterKey да е зададен
         expect($data->masterKey, $data);
-        expect($data->masterMvc instanceof core_Master, $data);
+        if($this->requireMasterBeInstanceOfCoreMaster){
+            expect($data->masterMvc instanceof core_Master, $data);
+        }
         
         $masterKey = $data->masterKey;
         
@@ -307,14 +311,14 @@ class core_Detail extends core_Manager
         if (!$preposition) {
             $preposition = tr('към');
         }
-        
+
         if ($singleTitle) {
             $single = ' на|* ' . tr(mb_strtolower($singleTitle));
         }
-        
+
         $title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
         $title .= ' ' . cls::get($master)->getFormTitleLink($masterId);
-        
+
         return $title;
     }
     

@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,7 +38,7 @@ class price_Cache extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, listId, productId, price,createdOn,createdBy';
+    public $listFields = 'id, listId, productId, price,discount,createdOn,createdBy';
     
     
     /**
@@ -97,7 +97,8 @@ class price_Cache extends core_Manager
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис, autoFilter');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Продукт,mandatory,silent, autoFilter');
         $this->FLD('price', 'double(decimals=5)', 'caption=Цена');
-        
+        $this->FLD('discount', 'percent', 'caption=Отстъпка');
+
         $this->setDbUnique('listId,productId');
     }
     
@@ -136,25 +137,27 @@ class price_Cache extends core_Manager
     /**
      * Връща кешираната цена за продукта
      */
-    public static function getPrice($listId, $productId, $packagingId = null)
+    public static function getPrice($listId, $productId, $packagingId = null, &$discount = null)
     {
         $cond = "#listId = {$listId} AND #productId = {$productId}";
         
-        $price = self::fetchField($cond, 'price');
-        
-        return $price;
+        $priceRec = self::fetch($cond, 'price,discount');
+        $discount = $priceRec->discount;
+
+        return $priceRec->price;
     }
     
     
     /**
      * Записва кеш за цената на продукта
      */
-    public static function setPrice($price, $listId, $productId)
+    public static function setPrice($price, $listId, $productId, $discount = null)
     {
         $rec = new stdClass();
         $rec->listId = $listId;
         $rec->productId = $productId;
         $rec->price = $price;
+        $rec->discount = $discount;
         self::save($rec, null, 'REPLACE');
         
         return $rec;

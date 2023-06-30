@@ -145,6 +145,8 @@ class core_String
         
         $pLen = strlen($pattern);
         
+        $res = '';
+
         for ($i = 0; $i < $pLen; $i++) {
             $p = $pattern[$i];
             
@@ -1003,7 +1005,7 @@ class core_String
         $wordsArr = arr::make($wordsArr);
         
         // Ако в масива има търсения стринг
-        if ($wordsArr[$string]) {
+        if (isset($wordsArr[$string])) {
             $percent = 100;
             
             return $string;
@@ -1452,5 +1454,26 @@ class core_String
         json_decode($string);
         
         return (json_last_error() == JSON_ERROR_NONE);
+    }
+
+
+    /**
+     * Проверява дали има дума в подадения стринг
+     *
+     * @param $str
+     * @param $skipCyrillic - дали да се игнорира кирилицата от проверката
+     *
+     * @return int
+     */
+    public static function hasWords($str, $skipCyrillic = false)
+    {
+        $str = html_entity_decode($str);
+        $str = strip_tags($str);
+
+        if($skipCyrillic) {
+            $str = preg_replace('/[\\x{0400}-\\x{04FF}]/u', ' ', $str);
+        }
+
+        return preg_match('/(?:^|[^\\p{L}0-9])\\p{L}+(?:$|[^\\p{L}0-9])/u', ' ' . $str . ' ', $matches);
     }
 }

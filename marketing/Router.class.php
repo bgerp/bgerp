@@ -41,8 +41,12 @@ class marketing_Router extends core_Manager
             $settings = cms_Domains::getSettings($domainId);
             if(isset($settings->dealerId)){
                 if(haveRole('sales', $settings->dealerId)){
-                    
-                    return $settings->dealerId;
+                    if (core_Users::isActiveUserId($settings->dealerId)) {
+
+                        return $settings->dealerId;
+                    } else {
+                        cms_Domains::logErr('Отговорникът не е активен потребител с роля "sales" в настройките на домейна', $domainId);
+                    }
                 }
             }
         }
@@ -59,8 +63,12 @@ class marketing_Router extends core_Manager
             
             // Ако има такава папка, взимаме и отговорника
             if ($inCharge) {
-                
-                return $inCharge;
+                if (core_Users::isActiveUserId($inCharge)) {
+
+                    return $inCharge;
+                } else {
+                    doc_UnsortedFolders::logErr('Отговорникът не е активен потребител в папка ' . $unsortedName, doc_UnsortedFolders::fetchField(array("#name = '[#1#]'", $unsortedName), 'id'));
+                }
             }
         }
         
@@ -73,8 +81,12 @@ class marketing_Router extends core_Manager
             
             // Ако има, взимаме нейния отговорник
             if ($inCharge) {
-                
-                return $inCharge;
+                if (core_Users::isActiveUserId($inCharge)) {
+
+                    return $inCharge;
+                } else {
+                    doc_UnsortedFolders::logErr('Отговорникът не е активен потребител в папка ' . $unsortedName, doc_UnsortedFolders::fetchField(array("#name = '[#1#]'", $unsortedName), 'id'));
+                }
             }
         }
         
@@ -89,8 +101,12 @@ class marketing_Router extends core_Manager
             
             // Ако има, взимаме нейния отговорник
             if ($inCharge) {
-                
-                return $inCharge;
+                if (core_Users::isActiveUserId($inCharge)) {
+
+                    return $inCharge;
+                } else {
+                    doc_Folders::logErr("Отговорникът на корпоративната сметка не е активен потребител", doc_Folders::fetchField("#coverClass = {$inboxClassId} AND #coverId = {$corpAccId}", 'id'));
+                }
             }
         }
         
@@ -431,11 +447,16 @@ class marketing_Router extends core_Manager
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
         $canonizedId = str::removeWhiteSpace($vatId);
 
-        if($id = $Class->fetchField(array("(#{$field} = '[#1#]' || #{$field} = '[#2#]') AND #state != 'rejected'", $vatId, $canonizedId))){
+        $query = $Class->getQuery();
+        $query->where(array("(#{$field} = '[#1#]' || #{$field} = '[#2#]') AND #state != 'rejected'", $vatId, $canonizedId));
+        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+        $query->orderBy('#orderByState=ASC');
+        $foundRec = $query->fetch();
+        if(is_object($foundRec)){
 
-            return $Class->forceCoverAndFolder((object) array('id' => $id, 'inCharge' => $inCharge));
+            return $Class->forceCoverAndFolder((object) array('id' => $foundRec->id, 'inCharge' => $inCharge));
         }
-        
+
         return null;
     }
     

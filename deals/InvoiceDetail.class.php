@@ -177,7 +177,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
         // За всеки артикул от договора, копира се 1:1
         if (is_array($dealInfo->dealProducts)) {
-            
             foreach ($dealInfo->dealProducts as $det) {
                 $det->{$this->masterKey} = $id;
                 $det->amount = $det->price * $det->quantity;
@@ -185,6 +184,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if(is_array($det->batches) && countR($det->batches)){
                     $det->_batches = array_keys($det->batches);
                 }
+
                 unset($det->batches);
                 $det->_importBatches = $importBatches;
                 $this->save($det);
@@ -397,9 +397,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $data->rows = array();
                 
                 // Показване на сумата за промяна на известието
-                $Type = $mvc->getFieldType('amount');
-                $Type->params['decimals'] = 2;
-                $amount = $Type->toVerbal($masterRec->dealValue / $masterRec->rate);
+                $Type = core_Type::getByName('double(decimals=2)');
+                $rate = !empty($masterRec->displayRate) ? $masterRec->displayRate : $masterRec->rate;
+                $amount = $Type->toVerbal($masterRec->dealValue / $rate);
                 $originRec = doc_Containers::getDocument($masterRec->originId)->rec();
                 
                 if ($originRec->dpOperation == 'accrued') {
@@ -538,7 +538,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $vat = cat_Products::getVat($rec->productId, $masterRec->date);
             $productInfo = cat_Products::getProductInfo($rec->productId);
             
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             
@@ -610,14 +610,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
                 
                 if (!$policyInfo) {
+                    $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                     $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
-                    $Policy = cls::get('price_ListToCustomers');
                     $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
                 }
                 
                 // Ако няма последна покупна цена и не се обновява запис в текущата покупка
                 if (!isset($policyInfo->price)) {
-                    $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (3)');
+                    $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
+                    $form->setError('packPrice', $errorMsg);
                 } else {
                     
                     // Ако се обновява запис се взима цената от него, ако не от политиката

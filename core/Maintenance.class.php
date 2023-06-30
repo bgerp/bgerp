@@ -50,9 +50,18 @@ class core_Maintenance extends core_Manager
             if (cls::load($stp, true)) {
                 $setups[$rec->name] = cls::get($stp);
                 if (is_array($setups[$rec->name]->systemActions)) {
-                    $res .= "\n<div style='margin-top:15px; background-color:#66a; color:white; padding:5px;'><strong>" . $rec->name . '</strong> - ' . $setups[$rec->name]->info . '</div>';
+                    $str = "\n<div style='margin-top:15px; background-color:#66a; color:white; padding:5px;'><strong>" . $rec->name . '</strong> - ' . $setups[$rec->name]->info . '</div>';
+                    $actionsAdded = 0;
                     foreach ($setups[$rec->name]->systemActions as $a) {
-                        $res .= "\n<div style='margin-top:5px;'>" . ht::createBtn($a['title'], $a['url'], null, false, $a['params']) . $a['params']['title'] . '</div>';
+                        if(isset($a['roles'])){
+                            if(!haveRole($a['roles'])) continue;
+                        }
+                        $str .= "\n<div style='margin-top:5px;'>" . ht::createBtn($a['title'], $a['url'], null, false, $a['params']) . $a['params']['title'] . '</div>';
+                        $actionsAdded++;
+                    }
+
+                    if($actionsAdded){
+                        $res .= $str;
                     }
                 }
             }

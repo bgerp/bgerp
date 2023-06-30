@@ -161,7 +161,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Кой може да превалутира документите в нишката
      */
-    public $canChangerate = 'ceo, purchaseMaster';
+    public $canChangerate = 'debug';
 
 
     /**
@@ -182,7 +182,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery';
+    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery,detailOrderBy';
 
 
     /**
@@ -198,7 +198,7 @@ class purchase_Purchases extends deals_DealMaster
         'deliveryLocationId' => 'lastDocUser|lastDoc',
         'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
-        'shipmentStoreId' => 'clientCondition',
+        'shipmentStoreId' => 'defMethod',
         'oneTimeDelivery' => 'clientCondition'
     );
     
@@ -503,6 +503,7 @@ class purchase_Purchases extends deals_DealMaster
 
         $deliveryTime = !empty($rec->deliveryTermTime) ? (dt::addSecs($rec->deliveryTermTime, $rec->valior, false) . " " . trans_Setup::get('END_WORK_TIME') . ":00") : $rec->deliveryTime;
         $result->setIfNot('deliveryTime', $deliveryTime);
+        $result->setIfNot('detailOrderBy', $rec->detailOrderBy);
 
         $result->setIfNot('amount', $rec->amountDeal);
         $result->setIfNot('currency', $rec->currencyId);
@@ -528,7 +529,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('amountPaid', $paidAmount);
         $result->set('deliveryAmount', $deliveredAmount);
         $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries, $rec->id));
-        
+
         // Опитваме се да намерим очакваното плащане
         $expectedPayment = null;
         if ($deliveredAmount > $paidAmount) {
@@ -575,6 +576,8 @@ class purchase_Purchases extends deals_DealMaster
         $detailClassId = purchase_PurchasesDetails::getClassId();
         $agreed = array();
         $agreed2 = array();
+
+        $showReffInThread = purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
@@ -582,8 +585,10 @@ class purchase_Purchases extends deals_DealMaster
             }
 
             if(Mode::is('isClosedWithDeal')){
-                if(!empty($rec->reff)){
-                    $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                if($showReffInThread == 'yes'){
+                    if(!empty($rec->reff)){
+                        $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                    }
                 }
             }
 
@@ -594,7 +599,11 @@ class purchase_Purchases extends deals_DealMaster
                 $bQuery->where("#detailClassId = {$detailClassId}");
                 $bQuery->where("#detailRecId = {$dRec->id}");
                 $bQuery->where("#productId = {$dRec->productId}");
-                $p->batches = $bQuery->fetchAll();
+                $bQuery->show('quantity,batch,productId');
+                $p->batches = array();
+                while ($bRec = $bQuery->fetch()){
+                    $p->batches[$bRec->batch] = $bRec->quantity;
+                }
             }
             
             $agreed[] = $p;
@@ -760,6 +769,8 @@ class purchase_Purchases extends deals_DealMaster
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }
+		
+		$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
     }
 
 

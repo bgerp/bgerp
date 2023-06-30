@@ -114,7 +114,7 @@ class change_Plugin extends core_Plugin
         
         // Вземаме всички позволени полета
         $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
-        
+
         // Очакваме да има зададени полета, които ще се променят
         expect(countR($allowedFieldsArr));
         
@@ -130,6 +130,8 @@ class change_Plugin extends core_Plugin
         // Всички полета, които ще се показват да се инпутват
         foreach ($fieldsArrShow as $f) {
             expect(is_object($form->fields[$f]), "Липсващо поле '{$f}'", $form->fields);
+            if($form->fields[$f]->notChangeableIfHidden && in_array($form->fields[$f]->input, array('hidden', 'none'))) continue;
+
             $form->fields[$f]->input = 'input';
         }
         

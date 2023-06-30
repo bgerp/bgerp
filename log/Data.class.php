@@ -122,7 +122,7 @@ class log_Data extends core_Manager
         $this->setDbIndex('time');
         $this->setDbIndex('type');
         $this->setDbIndex('actionCrc');
-        $this->setDbIndex('classCrc,objectId');
+        $this->setDbIndex('objectId,classCrc');
         
         $this->dbEngine = 'InnoDB';
     }
@@ -418,6 +418,7 @@ class log_Data extends core_Manager
     {
         // Записва в БД всички действия от стека
         self::flush();
+        log_Mysql::flush();
     }
     
     
@@ -450,7 +451,7 @@ class log_Data extends core_Manager
             $hash = md5("{$rec->userId}|{$rec->actionCrc}|{$rec->classCrc}|{$rec->objectId}|{$rec->type}|{$rec->lifeTime}|{$rec->ipId}|{$rec->brId}");
             
             if (isset(self::$toAddHash[$hash])) {
-                log_System::add('log_Data', 'Дублирана заявка за лог в хит: ' . core_Type::mixedToString($rec), self::$toAddHash[$hash], 'warning');
+                log_System::add('log_Data', 'Дублирана заявка за лог в хит: ' . core_Type::mixedToString($rec), self::$toAddHash[$hash], 'info');
                 
                 continue;
             }

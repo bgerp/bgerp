@@ -18,6 +18,12 @@
 class store_InventoryNoteSummary extends doc_Detail
 {
     /**
+     * @var string
+     */
+    public $productFld = 'productId';
+
+
+    /**
      * Заглавие
      */
     public $title = 'Детайли на протокола за инвентаризация';
@@ -366,9 +372,6 @@ class store_InventoryNoteSummary extends doc_Detail
                         $row->quantity = $row->blQuantity;
                         $row->quantity = "<span class='quiet small'>{$row->quantity}</span>";
                     }
-                } else {
-                    $row->quantity = "<span style='color:blue'>{$row->quantity}</span>";
-                    $row->quantity = ht::createHint($row->quantity, 'Към количеството са добавени и неуточнените партиди', 'notice', false);
                 }
             }
 

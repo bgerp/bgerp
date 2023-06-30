@@ -119,8 +119,7 @@ class acc_Journal extends core_Master
         $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
         
-        $this->setDbUnique('docType,docId,state');
-        $this->setDbIndex('docType,docId');
+        $this->setDbUnique('docId,docType,state');
         $this->setDbIndex('valior');
         $this->setDbIndex('createdOn');
     }
@@ -158,13 +157,13 @@ class acc_Journal extends core_Master
                 if (is_object($doc)) {
                     
                     // Показваме документа и другите документи в нишката му
-                    $data->query->orWhere("#docType = '{$doc->getClassId()}' AND #docId = '{$doc->that}'");
+                    $data->query->orWhere("#docId = '{$doc->that}' AND #docType = '{$doc->getClassId()}'");
                     
                     $chain = $doc->getDescendants();
                     
                     if (countR($chain)) {
                         foreach ($chain as $desc) {
-                            $data->query->orWhere("#docType = '{$desc->getClassId()}' AND #docId = '{$desc->that}'");
+                            $data->query->orWhere("#docId = '{$desc->that}' AND #docType = '{$desc->getClassId()}'");
                         }
                     }
                 }
@@ -451,23 +450,34 @@ class acc_Journal extends core_Master
     {
         $docClassId = cls::get($doc)->getClassId();
         
-        return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
+        return self::fetch("#docId = {$docId} AND #docType = {$docClassId}");
     }
-    
-    
+
+
     /**
-     * Изтриване на транзакция
+     * Изтриване на транзакцията
+     *
+     * @param mixed $docClassId         - документ
+     * @param int $docId                - ид на документ
+     * @param stdClass|null $deletedRec - изтрития запис
+     * @return array
      */
-    public static function deleteTransaction($docClassId, $docId)
+    public static function deleteTransaction($docClassId, $docId, &$deletedRec = null)
     {
         $docClassId = cls::get($docClassId)->getClassId();
         $query = static::getQuery();
-        $query->where("#docType = {$docClassId} AND #docId = {$docId}");
+        $query->where("#docId = {$docId} AND #docType = {$docClassId}");
         
         // Изтриваме всички записи направени в журнала от документа
         while ($rec = $query->fetch()) {
+            // Запомняне на изтрития запис от журнала + детайлите
+            $deletedRec = $rec;
+            $dQuery = acc_JournalDetails::getQuery();
+            $dQuery->where("#journalId = {$rec->id}");
+            $dQuery->orderBy('id', 'ASC');
+            $deletedRec->_details = $dQuery->fetchAll();
+
             acc_JournalDetails::delete("#journalId = {$rec->id}");
-            
             static::delete($rec->id);
             
             // Инвалидираме балансите, които се променят от този вальор
@@ -539,7 +549,8 @@ class acc_Journal extends core_Master
         // Избиране на всички чернови в журнала, По стари от 5 минути
         $query = self::getQuery();
         $query->where("#state = 'draft'");
-        $query->where('#createdOn < (NOW() - INTERVAL 5 MINUTE)');
+        $before5m = dt::addSecs(-5*60);
+        $query->where("#createdOn < '{$before5m}'");
         
         while ($rec = $query->fetch()) {
             try {
@@ -724,10 +735,11 @@ class acc_Journal extends core_Master
         // Групираме записите по документи
         $query->show('docId,docType,valior');
         $query->groupBy('docId,docType');
-        
         $recs = $query->fetchAll();
 
         // За всеки запис ако има
+        $count = 0;
+        $deletedRecs = array();
         if (countR($recs)) {
             foreach ($recs as $rec) {
                 
@@ -738,13 +750,29 @@ class acc_Journal extends core_Master
                 }
                 
                 // Изтриваме му транзакцията
-                acc_Journal::deleteTransaction($rec->docType, $rec->docId);
+                $deletedRec = null;
+                acc_Journal::deleteTransaction($rec->docType, $rec->docId, $deletedRec);
+                $deletedRecs[$rec->docType][$rec->docId] = $deletedRec;
             }
-            
-            // Преизчисляваме баланса
+
+            // Преизчисляване на балансите
             cls::get('acc_Balances')->recalc();
             foreach ($recs as $rec) {
-                $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
+                try{
+                    if(is_object($deletedRecs[$rec->docType][$rec->docId])){
+                        Mode::push('recontoWithCreatedOnDate', $deletedRecs[$rec->docType][$rec->docId]->createdOn);
+                    }
+                    $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
+                    $count++;
+                    if(is_object($deletedRecs[$rec->docType][$rec->docId])){
+                        Mode::pop('recontoWithCreatedOnDate');
+                    }
+                } catch(core_exception_Expect $e){
+                    if(is_object($deletedRecs[$rec->docType][$rec->docId])){
+                        acc_Journal::restoreDeleted($rec->docType, $rec->docId, $deletedRecs[$rec->docType][$rec->docId], $deletedRecs[$rec->docType][$rec->docId]->_details);
+                    }
+                    wp($e);
+                }
             }
         }
 
@@ -767,13 +795,18 @@ class acc_Journal extends core_Master
 
                 // Да се реконтират и те
                 while($dRec = $query->fetch()){
-                    $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
+                    try{
+                        $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
+                        $count++;
+                    } catch(core_exception_Expect $e){
+                        wp($e);
+                    }
                 }
             }
         }
 
-        // Засегнатите документи
-        return countR($recs);
+        // Реконтираните документи
+        return $count;
     }
 
 
@@ -809,7 +842,7 @@ class acc_Journal extends core_Master
      */
     public function act_Reconto()
     {
-        requireRole('admin,ceo');
+        requireRole('debug');
         
         $form = cls::get('core_Form');
         $form->title = tr('Реконтиране на документи');
@@ -817,6 +850,9 @@ class acc_Journal extends core_Master
         $form->FLD('to', 'date', 'caption=До,mandatory');
         $form->FLD('accounts', 'acc_type_Accounts', 'caption=Сметки');
         $form->FLD('types', 'keylist(mvc=core_Classes)', 'caption=Документи');
+
+        $form->setDefault('from', Mode::get('recontoJournalLastDateFrom'));
+        $form->setDefault('to', Mode::get('recontoJournalLastDateTo'));
         $form->setSuggestions('types', core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title'));
         
         $form->input();
@@ -845,9 +881,11 @@ class acc_Journal extends core_Master
                     $accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
                 }
                 $res = $this->recontoAll($accounts, $rec->from, $rec->to, $types);
-                
-                $this->logWrite('Реконтиране на документ', $rec->id);
-                
+                $this->logWrite('Реконтиране на документи', $rec->id);
+
+                Mode::setPermanent('recontoJournalLastDateFrom', $rec->from);
+                Mode::setPermanent('recontoJournalLastDateTo', $rec->to);
+
                 return followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"), 'warning');
             }
         }
@@ -1011,5 +1049,148 @@ class acc_Journal extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Помощен метод проверяващ дали да се троуне грешка при опит за контиране
+     *
+     * @return bool
+     */
+    public static function throwErrorsIfFoundWhenTryingToPost()
+    {
+        return (Mode::is('saveTransaction') && !Mode::is('recontoTransaction'));
+    }
+
+
+    /**
+     * Възстановяване на изтрит журнал
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $deletedRec
+     * @param array $deletedDetails
+     * @return void
+     */
+    public static function restoreDeleted($mvc, $id, $deletedRec, $deletedDetails)
+    {
+        // Ако документа няма журнал - възстановява се стария му
+        if(!acc_Journal::fetchByDoc($mvc, $id)){
+            unset($deletedRec->id);
+            unset($deletedRec->_details);
+            cls::get('acc_Journal')->save_($deletedRec);
+            if(is_array($deletedDetails)){
+                array_walk($deletedDetails, function($a) use ($deletedRec){unset($a->id); $a->journalId = $deletedRec->id;});
+                cls::get('acc_JournalDetails')->saveArray($deletedDetails);
+            }
+        }
+    }
+
+
+    /**
+     * Дебъг екшън за поправяне на документи
+     */
+    function act_fixDocsWithoutJournal()
+    {
+        requireRole('debug');
+        $documents = static::getPostedDocumentsWithoutJournal();
+        if(!countR($documents)) followRetUrl(null, "Няма контирани документи без журнал|*!");
+
+        $tpl = new core_ET("");
+        foreach ($documents as $class => $res){
+            $Class = cls::get($class);
+            foreach ($res as $docId){
+                $tpl->append("<li>");
+                $tpl->append($Class->getLink($docId, 0));
+                if($Class->haveRightFor('debugreconto', $docId)){
+                    $tpl->append(" -> ");
+                    $tpl->append(ht::createLink('', array($Class, 'debugreconto', $docId, 'ret_url' => true), 'Наистина ли желаете да реконтирате документа|*?', 'ef_icon=img/16/arrow_refresh.png,title=Реконтиране на документа'));
+                }
+            }
+        }
+
+        return $tpl;
+    }
+
+
+    /**
+     * Кои са контираните документи без журнал
+     *
+     * @param array $res
+     */
+    private static function getPostedDocumentsWithoutJournal()
+    {
+        $documents = array('sales_Sales', 'purchase_Purchases', 'store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'sales_Invoices', 'purchase_Invoices', 'sales_Services', 'purchase_Services', 'acc_Articles', 'planning_DirectProductionNote', 'planning_ConsumptionNotes', 'planning_ReturnNotes', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'cash_Pko', 'cash_Rko');
+
+        $res = array();
+        foreach ($documents as $docId){
+            $Class = cls::get($docId);
+
+            $jRecs = array();
+            $jQuery = acc_Journal::getQuery();
+            $jQuery->where("#docType = {$Class->getClassId()}");
+            $jQuery->show('id,docId');
+            while($jRec = $jQuery->fetch()){
+                $jRecs[$jRec->docId] = $jRec->docId;
+            }
+
+            if(countR($jRecs)){
+                $query = $Class->getQuery();
+                $query->in("state", array('closed', 'active'));
+                $query->show('id');
+                $query->notIn('id', $jRecs);
+                if($Class instanceof sales_Sales || $Class instanceof purchase_Purchases){
+                    $query->show('id,contoActions');
+                    $query->where("#contoActions != '' AND #contoActions != 'activate'");
+                }
+
+                while($rec = $query->fetch()){
+                    if($Class instanceof store_ShipmentOrders || $Class instanceof store_Receipts){
+                        $Detail = cls::get($Class->mainDetail);
+                        if(!$Detail->count("#{$Detail->masterKey} = {$rec->id}")) continue;
+                    }
+                    if(!array_key_exists($Class->className, $res)){
+                        $res[$Class->className] = array();
+                    }
+                    $res[$Class->className][$rec->id] = $rec->id;
+                }
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Екшън визуализиращ приключените сделки с активни пера
+     */
+    function act_findDeals()
+    {
+        requireRole('debug');
+
+        $listId = acc_Lists::fetchBySystemId('deals')->id;
+        $tpl = new core_ET("");
+        foreach (array('purchase_Purchases', 'sales_Sales', 'findeals_Deals') as $class){
+            $Class = cls::get($class);
+            $classId = $Class->getClassId();
+
+            $iQuery = acc_Items::getQuery();
+            $iQuery->where("#state = 'active' AND #classId = {$classId}");
+            $ids = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+
+            $query = $Class->getQuery();
+            $query->in('id', $ids);
+            $query->where("#state != 'active'");
+            while($rec = $query->fetch()){
+                $tpl->append("<li>");
+                $tpl->append($Class->getLink($rec->id, 0));
+
+                $handle = "#" . $Class->getHandle($rec->id);
+                $itemLink = array('acc_Items', 'list', 'listId' => $listId, 'search' => $handle);
+                $tpl->append(" -> " . ht::createLink('Перо', $itemLink));
+            }
+        }
+
+        return $tpl;
     }
 }

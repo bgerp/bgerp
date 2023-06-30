@@ -63,8 +63,8 @@ class hr_Indicators extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'date, docId=Документ, personId, indicatorId, value';
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -79,8 +79,8 @@ class hr_Indicators extends core_Manager
         $this->FLD('value', 'double(smartRound,decimals=2)', 'caption=Стойност,mandatory');
         
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
-        $this->setDbIndex('docClass,docId');
-        $this->setDbIndex('date');
+        $this->setDbIndex('docId,docClass');
+        $this->setDbIndex('date,personId');
         $this->setDbIndex('indicatorId');
     }
     
@@ -141,7 +141,9 @@ class hr_Indicators extends core_Manager
             
             $this->logWrite("Преизчисляване на индикаторите");
             $sources = !empty($rec->sources) ? keylist::toArray($rec->sources) : null;
+            Mode::push('manualRecalc', true);
             self::recalc($rec->timeline, $sources);
+            Mode::pop('manualRecalc');
 
             followRetUrl(null, 'Индикаторите са преизчислени');
         }
@@ -211,7 +213,10 @@ class hr_Indicators extends core_Manager
         
         // Масив със записи на счетоводни периоди, които връщаме
         $periods = array();
-        
+
+        // Еднократно кеширане на формулите за индикаторите
+        hr_IndicatorFormulas::cacheAll();
+
         // Намираме всички класове съдържащи интерфейса
         if(is_array($sources) && countR($sources)){
             $docArr = $sources;
@@ -224,7 +229,7 @@ class hr_Indicators extends core_Manager
                 return $periods;
             }
         }
-        
+
         // Зареждаме всеки един такъв клас
         foreach ($docArr as $class) {
             $sMvc = cls::get($class);
@@ -234,12 +239,17 @@ class hr_Indicators extends core_Manager
                 $data = $sMvc->getIndicatorValues($timeline);
                 
             } catch(core_exception_Expect $e){
+                // Ако грешката е сетната при ръчно обновяване от дебъг потребител - да се визуализира
+                if(Mode::is('manualRecalc') && haveRole('debug')){
+                    bp($e);
+                }
+
                 reportException($e);
                 hr_Indicators::logWarning("Грешка при подготвяне на индикаторите за: {$sMvc->className}");
                 
                 continue;
             }
-            
+
             if (is_array($data) && countR($data)) {
                 
                 // Даваме време
@@ -255,10 +265,11 @@ class hr_Indicators extends core_Manager
                     }
                     
                     $periodRec = acc_Periods::fetchByDate($rec->date);
-                    
+                    if(!is_object($periodRec)) continue;
+
                     // Запомняме за кой период е документа
                     $periods[$periodRec->id] = $periodRec;
-                    
+
                     // Оттеглените източници ги записваме само за почистване
                     if ($rec->isRejected === true) {
                         continue;
@@ -273,7 +284,10 @@ class hr_Indicators extends core_Manager
                                                 #personId = {$rec->personId}"));
                     
                     $persons[$rec->personId] = $rec->personId;
-                    
+
+                    // Преизчисляване на стойността през формула, ако има зададена за индикатора
+                    $rec->value = static::calcIfFormula($rec->indicatorId, $rec->value, true);
+
                     if ($exRec) {
                         $rec->id = $exRec->id;
                         $forClean[$key][$rec->id] = $rec->id;
@@ -283,7 +297,7 @@ class hr_Indicators extends core_Manager
                             continue;
                         }
                     }
-                    
+
                     // Ако имаме уникален запис го записваме
                     self::save($rec);
                     $forClean[$key][$rec->id] = $rec->id;
@@ -312,10 +326,13 @@ class hr_Indicators extends core_Manager
     private static function calcPeriod($pRec)
     {
         // Намираме последните, активни договори за назначения, които се засичат с периода
+        $start = (empty($pRec->start)) ? '0000-00-00' : $pRec->start;
+        $end = (empty($pRec->end)) ? '0000-00-00' : $pRec->end;
+
         $ecQuery = hr_EmployeeContracts::getQuery();
         $ecQuery->where("#state = 'active' OR #state = 'closed'");
-        $ecQuery->where("#startFrom <= '{$pRec->end}'");
-        $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$pRec->start}')");
+        $ecQuery->where("#startFrom <= '{$end}'");
+        $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$start}')");
         $ecQuery->orderBy('#dateId', 'DESC');
         
         $ecArr = array();
@@ -360,8 +377,8 @@ class hr_Indicators extends core_Manager
             }
             
             $query = self::getQuery();
-            $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
             $query->where("#personId = {$personId}");
+            $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
             while ($rec = $query->fetch()) {
                 $indicator = $names[$rec->sourceClass][$rec->indicatorId];
                 $sum[$indicator] += $rec->value;
@@ -469,7 +486,9 @@ class hr_Indicators extends core_Manager
             
             return;
         }
-        
+
+        $formula = '';
+        $indicators = array();
         if (!empty($contractRec->positionId)) {
             
             // Ако има формула за заплата
@@ -513,8 +532,9 @@ class hr_Indicators extends core_Manager
         while ($rec = $data->IData->query->fetch()) {
             $data->IData->recs[$rec->id] = $rec;
             $data->IData->rows[$rec->id] = $this->recToVerbal($rec);
+            $data->IData->rows[$rec->id]->value = core_Type::getByName('double(smartRound,maxDecimals=2)')->toVerbal($rec->value);
         }
-        
+
         // Сумиране на индикаторите
         $data->IData->summaryRecs = $data->IData->summaryRows = array();
         while ($sRec = $data->IData->fullQuery->fetch()) {
@@ -530,9 +550,9 @@ class hr_Indicators extends core_Manager
             $indicatorVerbal = $this->getFieldType('indicatorId')->toVerbal($iId);
             $value = array_key_exists($iId, $data->IData->summaryRecs) ? $data->IData->summaryRecs[$iId]->value : 0;
             $context['$' . $indicatorVerbal] = $value;
-            $data->IData->summaryRows[$iId] = (object) array('indicatorId' => $indicatorVerbal, 'value' => core_Type::getByName('double(smartRound)')->toVerbal($value));
+            $data->IData->summaryRows[$iId] = (object) array('indicatorId' => $indicatorVerbal, 'value' => core_Type::getByName('double(smartRound,maxDecimals=2)')->toVerbal($value));
         }
-        
+
         if (!empty($contractRec->salaryBase)) {
             $context['$' . 'BaseSalary'] = $contractRec->salaryBase;
         }
@@ -547,7 +567,9 @@ class hr_Indicators extends core_Manager
             $data->IData->salary = core_type::getByName('double(decimals=2)')->toVerbal($data->IData->salary);
             $data->IData->salary = ht::styleIfNegative($data->IData->salary, $data->IData->salary);
             $data->IData->salary =  currency_Currencies::decorate($data->IData->salary);
-            $data->IData->salary = ht::createHint($data->IData->salary, '|*' . $formula, 'notice', true, 'width=12px,height=12px');
+            if(haveRole('ceo,hrMaster')){
+                $data->IData->salary = ht::createHint($data->IData->salary, '|*' . $formula, 'notice', true, 'width=12px,height=12px');
+            }
             if ($success === false) {
                 $data->IData->salary = ht::styleIfNegative(tr('Грешка в калкулацията'), -1);
             }
@@ -773,5 +795,52 @@ class hr_Indicators extends core_Manager
             $ref = &$result[$key];
             $ref->value += $value;
         }
+    }
+
+
+    /**
+     * Изчисляване на формулата на индикатора,
+     * ако няма или върне грешка оставя стойността непроменена
+     *
+     * @param int $indicatorId
+     * @param int $v
+     * @param boolean $useCache
+     * @return double $res
+     * @throws Exception
+     */
+    public static function calcIfFormula($indicatorId, $v, $useCache = false)
+    {
+        $res = $v;
+        // Имали формула за индикатора
+        if($useCache){
+            $formula = hr_IndicatorFormulas::$cachedFormulas[$indicatorId];
+        } else {
+            $formula = hr_IndicatorFormulas::fetchField("#indicatorId = {$indicatorId}", 'formula');
+        }
+
+        if(empty($formula)) return $v;
+
+        // Заместване на стойността във формулата
+        $expr = strtr($formula, array(hr_IndicatorFormulas::VALUE_VARIABLE => $v));
+
+        if (str::prepareMathExpr($expr) === false) {
+
+            // лог при грешка и връщане на стойността непроменена
+            hr_Indicators::logWarning("Грешка при изчисление на формула: IND{$indicatorId} VAL{$v} '{$formula}'");
+
+            return $res;
+        } else {
+            // опит за изчисление на формулата
+            $success = null;
+            $res = str::calcMathExpr($expr, $success);
+
+            // Ако формулата не е изчислена, логване и връщане на стойността непроменена
+            if ($success === false) {
+                $res = $v;
+                hr_Indicators::logWarning("Грешка при изчисление на формула: IND{$indicatorId} VAL{$v} '{$formula}'");
+            }
+        }
+
+        return $res;
     }
 }

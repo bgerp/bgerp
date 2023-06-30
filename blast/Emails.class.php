@@ -224,11 +224,11 @@ class blast_Emails extends core_Master
         $this->FLD('negativeList', 'keylist(mvc=blast_Lists, select=title, where=#state !\\= \\\'rejected\\\')', 'caption=Списък->Игнориране');
         
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
-        $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
+        $this->FLD('subject', 'varchar(autocomplete=off)', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast,oembed=none)', 'caption=Съобщение,mandatory, changable');
         $this->FLD('unsubscribe', 'text(rows=3,oembed=none)', 'caption=Отписване, changable', array('attr' => array('id' => 'unsId')));
 
-        $this->FLD('canUnsubscribe', 'enum(yes=Да,no=Не)', 'caption=Възможност за отипсване->Избор,changable,notNull,removeAndRefreshForm=unsubscribe,silent, hint=Дали потребителя да може да се отписва от циркулярния имейл и ако е отписан да не му се изпраща');
+        $this->FLD('canUnsubscribe', 'enum(yes=Да,no=Не)', 'caption=Възможност за отписване->Избор,changable,notNull,removeAndRefreshForm=unsubscribe,silent, hint=Дали потребителя да може да се отписва от циркулярния имейл и ако е отписан да не му се изпраща');
 
         $this->FLD('sendPerCall', 'int(min=1, max=100)', 'caption=Изпращания заедно, input=none, mandatory, oldFieldName=sendPerMinute, title=Максимален брой изпращания за минута, unit=на мин.');
         

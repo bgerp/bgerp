@@ -149,7 +149,6 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->mustUpdateUsed, false);
         setIfNot($mvc->canMovelast, 'powerUser');
         
-        $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
@@ -172,6 +171,7 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->fetchFieldsBeforeDelete .= 'containerId';
 
         setIfNot($mvc->addSubTitleToList, false);
+        setIfNot($mvc->minRangForEditForeignDoc, 'officer');
     }
     
     
@@ -866,7 +866,7 @@ class doc_DocumentPlg extends core_Plugin
                 $updateAll = false;
             }
 
-            doc_Containers::update($containerId, $updateAll);
+            doc_Containers::update($containerId, $updateAll, $rec->_notModified);
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
@@ -1056,13 +1056,13 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме тред - създаваме нов тред в тази папка
         if (!$rec->threadId) {
-            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
         }
         
         // Ако нямаме контейнер - създаваме нов контейнер за
         // този клас документи в определения тред
         if (!$rec->containerId) {
-            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy);
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
         }
     }
     
@@ -2829,7 +2829,7 @@ class doc_DocumentPlg extends core_Plugin
                     $rec = $mvc->fetch($rec->id);
                 }
                 if ($userId && $userId != $rec->createdBy) {
-                    $requiredRoles = 'officer';
+                    $requiredRoles = $mvc->minRangForEditForeignDoc;
                 }
             }
         }
@@ -3926,7 +3926,7 @@ class doc_DocumentPlg extends core_Plugin
         // За всеки намерен документ, вкарва се във веригата
         foreach ($chainContainers as $cc) {
             try {
-                $chain[] = doc_Containers::getDocument($cc->id);
+                $chain[$cc->id] = doc_Containers::getDocument($cc->id);
             } catch (core_exception_Expect $e) {
             }
         }
@@ -4751,7 +4751,9 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetchRec($rec);
         if (!isset($res)) {
             if ($mvc->visibleForPartners) {
-                $res = true;
+                if ($rec->visibleForPartners != 'no') {
+                    $res = true;
+                }
             }
         }
     }

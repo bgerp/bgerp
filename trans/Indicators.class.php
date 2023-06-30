@@ -38,13 +38,19 @@ class trans_Indicators extends core_BaseClass
         
         // Индикатор за брой транспортни линии за шофьор
         $rec = hr_IndicatorNames::force('Брой_транспортни_линии', __CLASS__, 1);
-        $result[$rec->id] = $rec->name;
+        if($rec->state != 'closed'){
+            $result[$rec->id] = $rec->name;
+        }
         
         $rec = hr_IndicatorNames::force('Брой_доставени_пратки', __CLASS__, 2);
-        $result[$rec->id] = $rec->name;
+        if($rec->state != 'closed'){
+            $result[$rec->id] = $rec->name;
+        }
         
         $rec = hr_IndicatorNames::force('Доставено_тегло', __CLASS__, 3);
-        $result[$rec->id] = $rec->name;
+        if($rec->state != 'closed'){
+            $result[$rec->id] = $rec->name;
+        }
 
         // Връщане на всички индикатори
         return $result;
@@ -95,7 +101,10 @@ class trans_Indicators extends core_BaseClass
     private static function getNumberOfTransportLines($timeline)
     {
         $result = array();
-        $numberOfTransportLines = hr_IndicatorNames::force('Брой_транспортни_линии', __CLASS__, 1)->id;
+        $numberOfTransportLineRec = hr_IndicatorNames::force('Брой_транспортни_линии', __CLASS__, 1);
+        if($numberOfTransportLineRec->state == 'closed') return $result;
+
+        $numberOfTransportLines = $numberOfTransportLineRec->id;
         $from = trans_Setup::get('DATE_FOR_TRANS_INDICATORS');
         
         if (empty($from)) return $result;
@@ -131,7 +140,10 @@ class trans_Indicators extends core_BaseClass
     private static function getNumberOfShipmentsDelivered($timeline)
     {
         $result = array();
-        $numberOfShipmentsDelivered = hr_IndicatorNames::force('Брой_доставени_пратки', __CLASS__, 2)->id;
+        $numberOfShipmentsDeliveredRec = hr_IndicatorNames::force('Брой_доставени_пратки', __CLASS__, 2);
+        if($numberOfShipmentsDeliveredRec->state == 'closed') return $result;
+
+        $numberOfShipmentsDelivered = $numberOfShipmentsDeliveredRec->id;
         $from = trans_Setup::get('DATE_FOR_TRANS_INDICATORS');
 
         if (empty($from)) return $result;
@@ -186,8 +198,10 @@ class trans_Indicators extends core_BaseClass
     private static function getDeliveredWeight($timeline)
     {
         $result = array();
-        $deliveredWeight = hr_IndicatorNames::force('Доставено_тегло', __CLASS__, 3)->id;
-        
+        $deliveredWeightRec = hr_IndicatorNames::force('Доставено_тегло', __CLASS__, 3);
+        if($deliveredWeightRec->state == 'closed') return $result;
+
+        $deliveredWeight = $deliveredWeightRec->id;
         $from = trans_Setup::get('DATE_FOR_TRANS_INDICATORS');
         
         if (empty($from)) return $result;

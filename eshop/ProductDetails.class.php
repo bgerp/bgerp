@@ -157,7 +157,7 @@ class eshop_ProductDetails extends core_Detail
             }
             
             if ($productRec->canStore == 'yes') {
-                $packs = cat_Products::getPacks($rec->productId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
                 
                 $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, null, 'showPacks');
                 if(countR($allowedPacks)){

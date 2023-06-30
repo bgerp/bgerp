@@ -64,8 +64,9 @@ class batch_definitions_Job extends batch_definitions_Proto
     public function getDefaultBatchName($jobId)
     {
         $jobProductId = planning_Jobs::fetchField($jobId, 'productId');
-        $res = "JOB{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), ' ');
-        
+        $res = "Job:{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), ' ');
+        $res = str_replace(' [Art', ' [Art:', $res);
+
         return $res;
     }
     
@@ -81,8 +82,8 @@ class batch_definitions_Job extends batch_definitions_Proto
      */
     public function isValid($value, $quantity, &$msg)
     {
-        if (!preg_match("/^JOB[0-9]+\\//" , $value)) {
-            $msg = "Формата трябва да започва с|* JOB1/";
+        if (!preg_match("/^Job:[0-9]+\\//" , $value) && !preg_match("/^JOB[0-9]+\\//" , $value)) {
+            $msg = "Формата трябва да започва с|* Job:XXX/";
             
             return false;
         }
@@ -112,23 +113,27 @@ class batch_definitions_Job extends batch_definitions_Proto
     public function filterBatches($quantities, $mvc, $id)
     {
         $Detail = cls::get($mvc);
-        if($Detail instanceof planning_DirectProductNoteDetails){
-            $originId = planning_DirectProductionNote::fetchField($Detail->fetchRec($id, 'noteId')->noteId, 'originId');
-            $origin = doc_Containers::getDocument($originId);
-            if($origin->isInstanceOf('planning_Tasks')){
-                $jobId = $origin->fetchField('originId');
-                $originJob = doc_Containers::getDocument($jobId);
-                $jobId = $originJob->that;
-            } else {
-                $jobId = $origin->that;
+        if(($Detail instanceof planning_DirectProductNoteDetails) || ($Detail instanceof planning_ConsumptionNoteDetails)){
+            $masterRec = $Detail->Master->fetch($Detail->fetchRec($id, 'noteId')->noteId, 'originId,threadId');
+            $origin = isset($masterRec->originId) ? doc_Containers::getDocument($masterRec->originId) : doc_Threads::getFirstDocument($masterRec->threadId);
+            if(is_object($origin)){
+                if($origin->isInstanceOf('planning_Tasks')){
+                    $jobId = $origin->fetchField('originId');
+                    $originJob = doc_Containers::getDocument($jobId);
+                    $jobId = $originJob->that;
+                } else {
+                    $jobId = $origin->that;
+                }
+
+                $startString = "JOB{$jobId}/";
+                $startString1 = "Job:{$jobId}/";
+                foreach ($quantities as $b => $q){
+                    if(strpos($b, $startString) === 0 || strpos($b, $startString1) === 0){
+                        return array($b => $q);
+                    }
+                }
             }
-            
-            $batchName = $this->getDefaultBatchName($jobId);
-            if(array_key_exists($batchName, $quantities)){
-                
-                return array($batchName => $quantities[$batchName]);
-            }
-            
+
             return array();
         }
         

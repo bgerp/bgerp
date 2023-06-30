@@ -94,19 +94,31 @@ class acc_plg_Contable extends core_Plugin
             $mvc->requireRightFor('debugreconto', $rec);
             
             // Изтриваме му транзакцията
-            acc_Journal::deleteTransaction($mvc, $rec->id);
-            
+            $deletedRec = null;
+            acc_Journal::deleteTransaction($mvc, $rec->id, $deletedRec);
+
             // Записване на новата транзакция на документа
             try{
                 Mode::push('recontoTransaction', true);
+                if(is_object($deletedRec)){
+                    Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                }
                 $success = acc_Journal::saveTransaction($mvc, $rec->id, false);
+                if(is_object($deletedRec)){
+                    Mode::pop('recontoWithCreatedOnDate');
+                }
                 Mode::pop('recontoTransaction');
-            } catch(acc_journal_RejectRedirect  $e){
+            } catch(core_exception_Expect  $e){
+                reportException($e);
                 if($mvc instanceof deals_DealMaster){
                     $rec->contoActions = null;
                     $mvc->save_($rec, 'contoActions');
                 }
-                
+
+                if(is_object($deletedRec)){
+                    acc_Journal::restoreDeleted($mvc, $rec->id, $deletedRec, $deletedRec->_details);
+                }
+
                 $url = $mvc->getSingleUrlArray($rec->id);
                 redirect($url, false, '|' . $e->getMessage(), 'error');
             }

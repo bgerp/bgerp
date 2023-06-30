@@ -102,7 +102,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, peripheralDriverClassId, createdOn, createdBy, lastUsedOn=Последно, state';
+    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, series, peripheralDriverClassId, createdOn, createdBy, lastUsedOn=Последно, state';
     
     
     /**
@@ -158,15 +158,17 @@ class label_Templates extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
-        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник->Клас');
-        $this->FLD('peripheralDriverClassId', 'class(interface=peripheral_PrinterIntf, select=title, allowEmpty)', 'caption=Източник->Периферия');
-        
+        $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
+        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник->Клас,silent,removeAndRefreshForm=series');
+        $this->FLD('series', 'varchar', 'caption=Източник->Серия,notNull,value=label');
+
         $this->FLD('template', 'html(tinyEditor=no)', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
         $this->FLD('sysId', 'varchar', 'input=none');
-        $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
-        $this->FLD('rendererClassId', 'class(interface=label_TemplateRendererIntf, select=title, allowEmpty)', 'caption=Източник->Рендер');
-        
+
+        $this->FLD('peripheralDriverClassId', 'class(interface=peripheral_PrinterIntf, select=title, allowEmpty)', 'caption=Допълнително->Периферия,autohide');
+        $this->FLD('rendererClassId', 'class(interface=label_TemplateRendererIntf, select=title, allowEmpty)', 'caption=Допълнително->Обработвач,autohide');
+
         $this->setDbUnique('sysId');
         $this->setDbIndex('classId');
     }
@@ -292,10 +294,14 @@ class label_Templates extends core_Master
         
         // Вземаме записа
         $rec = self::fetch($id);
-        
-        // Вкарваме CSS-а, като инлайн
-        $templateArrCss[$hash] = self::templateWithInlineCSS($template, $rec->css);
-        
+
+        $templateArrCss[$hash] = $template;
+
+        if ($rec->css) {
+            // Вкарваме CSS-а, като инлайн
+            $templateArrCss[$hash] = self::templateWithInlineCSS($template, $rec->css);
+        }
+
         return $templateArrCss[$hash];
     }
     
@@ -349,16 +355,18 @@ class label_Templates extends core_Master
         
         // Вземаме пакета
         $conf = core_Packs::getConfig('csstoinline');
-        
+
         // Класа
         $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
         
         // Инстанция на класа
         $inst = cls::get($CssToInline);
-        
+
         // Стартираме процеса
         $template = $inst->convert($template, $css);
-        
+
+        $template = html_entity_decode($template);
+
         // Вземамема само шаблона, без допълнителните добавки
         $template = str::cut($template, '<div id="begin">', '<div id="end">');
         
@@ -378,6 +386,15 @@ class label_Templates extends core_Master
         $row->template = static::templateWithInlineCSS($row->template, $rec->css);
         if(isset($rec->clonedFromId)){
             $row->clonedFromId = static::getHyperlink($rec->clonedFromId, true);
+        }
+
+        if(isset($rec->classId)){
+            if(cls::haveInterface('label_SequenceIntf', $rec->classId)){
+                $series = cls::get($rec->classId)->getLabelSeries();
+                $row->series = $series[$rec->series];
+            } else {
+                $row->classId = ht::createHint($row->classId, "Източникът не поддържа вече интерфейса|*: 'label_SequenceIntf'", 'error');
+            }
         }
     }
     
@@ -496,9 +513,19 @@ class label_Templates extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Добавяме всички възжможни избори за медия
+        $form = $data->form;
+        $rec = $form->rec;
         $sizesArr = label_Media::getAllSizes();
         $sizesArr = array('' => '') + $sizesArr;
         $data->form->setSuggestions('sizes', $sizesArr);
+
+        if(isset($rec->classId)){
+            $series = cls::get($rec->classId)->getLabelSeries();
+            $form->setOptions('series', $series);
+            $form->setDefault('series', key($series));
+        } else {
+            $form->setField('series', 'input=hidden');
+        }
     }
     
     
@@ -623,7 +650,7 @@ class label_Templates extends core_Master
      *
      * @return stdClass|FALSE - записа на шаблона или FALSE ако не е променян
      */
-    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null, $rendererClassId = null, $cssPath = null)
+    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null, $rendererClassId = null, $cssPath = null, $series = 'label')
     {
         // Проверки на данните
         expect(in_array($lang, array('bg', 'en')), $lang);
@@ -632,6 +659,7 @@ class label_Templates extends core_Master
         $sizes = implode('x', $sizes) . ' mm';
         expect($path = getFullPath($filePath), $path);
         $templateHash = md5_file($path);
+        $series = isset($series) ? $series : 'label';
 
         if(isset($cssPath)){
             expect($cssPath = getFullPath($cssPath), $cssPath);
@@ -656,7 +684,7 @@ class label_Templates extends core_Master
         }
 
         // Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
-        if ($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId) {
+        if ($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId && $exRec->series == $series) {
             
             return false;
         }
@@ -676,7 +704,8 @@ class label_Templates extends core_Master
         $exRec->sizes = $sizes;
         $exRec->lang = $lang;
         $exRec->state = 'active';
-        
+        $exRec->series = $series;
+
         if (isset($classId)) {
             $exRec->classId = $classId;
         }
@@ -708,7 +737,7 @@ class label_Templates extends core_Master
      */
     public static function addDefaultLabelsFromArray($sysId, $array, &$modified, &$skipped)
     {
-        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass'], $array['rendererClassId'], $array['cssPath']);
+        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass'], $array['rendererClassId'], $array['cssPath'], $array['series']);
         
         if ($tRec !== false) {
             label_TemplateFormats::delete("#templateId = {$tRec->id}");
@@ -748,7 +777,7 @@ class label_Templates extends core_Master
                         $type = 'caption';
                         $params = array();
                         if ($placeholder == 'PREVIEW') {
-                            $type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
+                            $type = 'image';
                             $params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
                         }
                         
@@ -778,8 +807,10 @@ class label_Templates extends core_Master
                        'defaultTplPriceListEan' => array('title' => 'Ценоразпис с EAN', 'path' => 'label/tpl/DefaultPricelistEAN.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
                        'defaultTplHrCodes' => array('title' => 'QR на служител', 'path' => 'label/tpl/DefaultHrCodes.shtml', 'lang' => 'bg', 'class' => 'planning_Hr', 'sizes' => array('64.5', '33.5')),
                        'defaultTplWorkCards' => array('title' => 'Стойности на раб. карти', 'path' => 'label/tpl/DefaultWorkCards.shtml', 'lang' => 'bg', 'class' => 'planning_WorkCards', 'sizes' => array('100', '72')),
-        );
-        
+                       'defaultPrintTaskRec' => array('title' => 'Разпечатване на прогрес на производствена операция', 'path' => 'planning/tpl/DefaultTaskProgressLabelPrint.shtml', 'lang' => 'bg', 'class' => 'planning_ProductionTaskDetails', 'sizes' => array('210', '148'), 'peripheralDriverClass' => peripheral_printer_Browser::getClassId()),
+                       'defaultTplShipmentOrderDetail' => array('title' => 'Етикети на детайлите на ЕН', 'path' => 'label/tpl/DefaultLabelShipmentOrderDetail.shtml', 'lang' => 'bg', 'class' => 'store_ShipmentOrders', 'sizes' => array('100', '72'), 'series' => 'detail'),
+            );
+
         core_Users::forceSystemUser();
         foreach ($array as $sysId => $cArr) {
             static::addDefaultLabelsFromArray($sysId, $cArr, $modified, $skipped);
@@ -788,7 +819,10 @@ class label_Templates extends core_Master
         
         $class = ($modified > 0) ? ' class="green"' : '';
         $res = "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
-        
+
+        //@todo да се махне след рилийз
+        $res .= cls::get('label_Setup')->callMigrate('closeTemplates2246', 'label');
+
         return $res;
     }
     
@@ -797,9 +831,11 @@ class label_Templates extends core_Master
      * Извлича шаблоните към класа
      * 
      * @param mixed $class
+     * @param string $series
+     * @param boolean $ignoreWithPeripheralDriver
      * @return array $res
      */
-    public static function getTemplatesByClass($class, $ignoreWithPeripheralDriver = true)
+    public static function getTemplatesByClass($class, $series = 'label', $ignoreWithPeripheralDriver = true)
     {
         $Class = cls::get($class);
         $tQuery = label_Templates::getQuery();
@@ -807,7 +843,10 @@ class label_Templates extends core_Master
         if($ignoreWithPeripheralDriver){
             $tQuery->where("#peripheralDriverClassId IS NULL");
         }
-        
+        if($series){
+            $tQuery->where("#series = '{$series}'");
+        }
+
         $res = array();
         while ($tRec = $tQuery->fetch()) {
             $res[$tRec->id] = $tRec;

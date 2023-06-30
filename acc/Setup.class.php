@@ -196,6 +196,9 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
+        'acc_RatesDifferences',
+        'migrate::updatePriceRoles2247',
+        'migrate::deleteEmptyRateDifferences1620',
     );
     
     
@@ -283,6 +286,12 @@ class acc_Setup extends core_ProtoSetup
             'seePrice'
         ),
         array(
+            'seePriceSale'
+        ),
+        array(
+            'seePricePurchase'
+        ),
+        array(
             'invoicer'
         ),
         array(
@@ -349,7 +358,7 @@ class acc_Setup extends core_ProtoSetup
         ),
         array(
             'accMaster',
-            'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'
+            'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal, seePriceSale, seePricePurchase'
         ),
         array(
             'repAll'
@@ -398,11 +407,38 @@ class acc_Setup extends core_ProtoSetup
             'params' => array(
                 'title' => 'Реконтиране на документите',
                 'ef_icon' => 'img/16/arrow_refresh.png'
-            )
+            ),
+            'roles' => 'debug',
+        ),
+        array(
+            'title' => 'Док. без журнал',
+            'url' => array(
+                'acc_Journal',
+                'fixDocsWithoutJournal',
+                'ret_url' => true
+            ),
+            'params' => array(
+                'title' => 'Поправка на контирани документи без журнал',
+                'ef_icon' => 'img/16/arrow_refresh.png'
+            ),
+            'roles' => 'debug',
+        ),
+        array(
+            'title' => 'Прикл. сделки с активни пера',
+            'url' => array(
+                'acc_Journal',
+                'findDeals',
+                'ret_url' => true
+            ),
+            'params' => array(
+                'title' => 'Има ли неактивни сделки с приключени пера',
+                'ef_icon' => 'img/16/arrow_refresh.png'
+            ),
+            'roles' => 'debug',
         )
     );
-    
-    
+
+
     /**
      * Настройки за Cron
      */
@@ -449,10 +485,19 @@ class acc_Setup extends core_ProtoSetup
             'period' => 480,
             'offset' => 1,
             'timeLimit' => 60
+        ),
+        array(
+            'systemId' => 'RecontoRateDiffs',
+            'description' => 'Рекалкулиране на курсовите разлики',
+            'controller' => 'acc_RatesDifferences',
+            'action' => 'RecontoActive',
+            'period' => 30,
+            'offset' => 1,
+            'timeLimit' => 300
         )
     );
-    
-    
+
+
     /**
      * Дефинирани класове, които имат интерфейси
      */
@@ -553,5 +598,44 @@ class acc_Setup extends core_ProtoSetup
         $options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         
         return $options;
+    }
+
+
+    /**
+     * Миграция на ролите за виждане на цени
+     */
+    public function updatePriceRoles2247()
+    {
+        if(defined('BGERP_DONT_MIGRATE_USERS_WITH_SEE_PRICE')) return;
+
+        $seePriceRoleId = core_Roles::fetchByName('seePrice');
+        $seePriceSaleRoleId = core_Roles::fetchByName('seePriceSale');
+        $seePricePurchaseRoleId = core_Roles::fetchByName('seePricePurchase');
+
+        $updateUsers = array();
+        $uQuery = core_Users::getQuery();
+        $uQuery->where("#state != 'rejected' && LOCATE('|{$seePriceRoleId}|', #roles)");
+
+        $addKeylist = keylist::fromArray(array($seePriceSaleRoleId => $seePriceSaleRoleId, $seePricePurchaseRoleId => $seePricePurchaseRoleId));
+        while($uRec = $uQuery->fetch()){
+            if(!keylist::isIn($seePriceSaleRoleId, $uRec->roles) && !keylist::isIn($seePricePurchaseRoleId, $uRec->roles)){
+                $uRec->rolesInput = keylist::merge($uRec->rolesInput, $addKeylist);
+                $uRec->roles = keylist::merge($uRec->roles, $addKeylist);
+                $updateUsers[$uRec->id] = $uRec;
+            }
+        }
+
+        if(countR($updateUsers)){
+            cls::get('core_Users')->saveArray($updateUsers, 'id,roles,rolesInput');
+        }
+    }
+
+
+    /**
+     * Миграция за изтриване на замърсени данни за курсови разлики
+     */
+    public function deleteEmptyRateDifferences1620()
+    {
+        acc_RatesDifferences::delete("#threadId IS NULL AND #containerId IS NULL");
     }
 }

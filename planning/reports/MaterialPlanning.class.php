@@ -367,20 +367,26 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-        
-        if ($rec->period == 'byweek') {
-            $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-            $fld->FLD('docs', 'varchar', 'smartCenter,caption=@Задания');
-            
-            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            
-            $fld->FLD('materialQuantiry', 'double(smartRound,decimals=2)', 'smartCenter,caption=Необходимо Количество');
-        } else {
-            $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('materialQuantiry', 'double(smartRound,decimals=2)', 'smartCenter,caption=Необходимо Количество');
+        if ($export === false) {
+            if ($rec->period == 'byweek') {
+                $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+                $fld->FLD('docs', 'varchar', 'smartCenter,caption=@Задания');
+
+                $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+
+                $fld->FLD('materialQuantiry', 'double(smartRound,decimals=2)', 'smartCenter,caption=Необходимо Количество');
+            } else {
+                $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+                $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+                $fld->FLD('materialQuantiry', 'double(smartRound,decimals=2)', 'smartCenter,caption=Необходимо Количество');
+            }
+        }else{
+        $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+        $fld->FLD('code', 'varchar', 'caption=Код');
+        $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+        $fld->FLD('materialQuantiry', 'double(decimals=2)', 'smartCenter,caption=Необходимо Количество');
+
         }
-        
         return $fld;
     }
     
@@ -515,6 +521,14 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+
+        $prodRec = cat_Products::fetch($dRec->materialId);
+        $code = ($prodRec->code) ? : 'Арт'.$prodRec->id;
+
+        $res->code = $code;
+        $res->measure = cat_UoM::fetchField($prodRec->measureId, 'shortName');
+
+
     }
     
     

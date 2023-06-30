@@ -51,6 +51,21 @@ class escpos_printer_TD2120N extends peripheral_DeviceDriver
     {
         return true;
     }
+
+
+    /**
+     * Връща HTML, който ще се използва при печат
+     *
+     * @param stdClass $rec
+     * @param string $text
+     *
+     * @return string
+     */
+    public function getHTML($rec, $text)
+    {
+
+        return '<div class="fullScreenBg" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: block;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Разпечатва се етикет ...<br> Моля, изчакайте!</h3></div>';
+    }
     
     
     /**
@@ -75,11 +90,43 @@ class escpos_printer_TD2120N extends peripheral_DeviceDriver
         $DATA = base64_encode(gzcompress(serialize($conf)));
         
         $jsTpl->replace(json_encode($DATA), 'DATA');
-        
-        // Минифициране на JS
-        $js = minify_Js::process($jsTpl->getContent());
-        
+
+        $js = $jsTpl->getContent();
+
         return $js;
+    }
+
+
+    /**
+     * Отпечатва подадени текст
+     *
+     * @param stdClass $rec
+     * @param string $text
+     * @param string $url
+     *
+     * @return string
+     */
+    public function afterResultJS($rec, $text, $url)
+    {
+        $url = toUrl($url, 'local');
+        $url = urlencode($url);
+
+        $res = " function escPrintOnSuccess(res) {
+                    if (res == 'OK') {
+                        getEfae().process({resUrl: '{$url}'}, {res:  res});
+                    } else {
+                        escPrintOnError(res);
+                    }
+                }
+                
+                function escPrintOnError(res) {
+                    if($.isPlainObject(res)){
+                        res = res.status  + '. ' +  res.statusText;
+                    }
+                    getEfae().process({resUrl: '{$url}'}, {type: 'error', res:  res});
+                }";
+
+        return $res;
     }
     
     

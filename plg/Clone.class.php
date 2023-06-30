@@ -25,7 +25,7 @@ class plg_Clone extends core_Plugin
         setIfNot($invoker->canCloneuserdata, 'user');
         setIfNot($invoker->canClonerec, 'user');
         
-        $invoker->FLD('clonedFromId', "key(mvc={$invoker->className})", 'input=hidden,forceField,single=none');
+        $invoker->FLD('clonedFromId', "key(mvc={$invoker->className})", 'caption=Клонирано,input=hidden,forceField,single=none,column=none');
     }
     
     
@@ -81,7 +81,7 @@ class plg_Clone extends core_Plugin
         
         // Генерираме събитие в $this, след въвеждането на формата
         $mvc->invoke('AfterInputEditForm', array($form));
-        
+
         // Ако формата е изпратена без грешки
         if ($form->isSubmitted()) {
             

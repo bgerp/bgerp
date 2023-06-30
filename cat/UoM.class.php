@@ -301,18 +301,21 @@ class cat_UoM extends core_Manager
      * Функция връщащи масив от всички мерки които са сродни
      * на посочената мярка (примерно за грам това са : килограм, тон и др)
      *
-     * @param int  $measureId
-     * @param bool $short
+     * @param int  $measureId  - ид на мярка
+     * @param bool $short      - кратко или дълго наименование
+     * @param bool $skipClosed - да се показват ли само активните записи или всички
      *
      * @return array
      */
-    public static function getSameTypeMeasures($measureId, $short = false)
+    public static function getSameTypeMeasures($measureId, $short = false, $skipClosed = true)
     {
         if(!array_key_exists("{$measureId}|{$short}", static::$cacheSimilarArr)){
             expect($rec = static::fetch($measureId, 'baseUnitId,id'), 'Няма такава мярка');
 
             $query = static::getQuery();
-            $query->where("#state = 'active'");
+            if($skipClosed){
+                $query->where("#state = 'active'");
+            }
             $baseId = ($rec->baseUnitId) ? $rec->baseUnitId : $rec->id;
             $query->where("#baseUnitId = {$baseId} OR #id = {$baseId}");
             $query->show('shortName,name');
@@ -327,10 +330,10 @@ class cat_UoM extends core_Manager
                 $options = array('' => '') + $options;
             }
 
-            static::$cacheSimilarArr["{$measureId}|{$short}"] = $options;
+            static::$cacheSimilarArr["{$measureId}|{$short}|{$skipClosed}"] = $options;
         }
 
-        return static::$cacheSimilarArr["{$measureId}|{$short}"];
+        return static::$cacheSimilarArr["{$measureId}|{$short}|{$skipClosed}"];
     }
     
     
@@ -722,5 +725,28 @@ class cat_UoM extends core_Manager
         $kgUoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
         
         return array_key_exists($uomId, $kgUoms);
+    }
+
+
+    /**
+     * Колко е най-големия брой десетични знаци за показване от посочените мерки
+     *
+     * @param array $packagings - мерки
+     * @return null|int $maxDecimals - най-голям брой цифри за показване след десетичния знак
+     */
+    public static function getMaxRound($packagings)
+    {
+        // Колко е най-голямото закръгляне на използваните мерки
+        $usedMeasures = arr::make($packagings, true);
+        if(!countR($usedMeasures)) return null;
+
+        $uQuery = cat_UoM::getQuery();
+        $uQuery->XPR('maxDecimals', 'double', 'MAX(#round)');
+        $uQuery->in('id', $usedMeasures);
+        $uQuery->show('maxDecimals');
+        $maxDecimals = $uQuery->fetch()->maxDecimals;
+        $maxDecimals = empty($maxDecimals) ? 0 : $maxDecimals;
+
+        return  $maxDecimals;
     }
 }

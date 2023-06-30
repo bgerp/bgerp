@@ -19,24 +19,30 @@ class deals_plg_EditClonedDetails extends core_Plugin
     /**
      * Кои детайли да се клонират с промяна
      *
+     * @param core_Mvc $mvc
      * @param stdClass $rec
-     * @param mixed    $Detail
+     * @return array $res
+     *          ['recs'] - записи за промяна
+     *          ['detailMvc] - модел от който са
      *
-     * @return array
      */
-    public static function on_AfterGetDetailsToCloneAndChange($mvc, &$res, $rec, &$Detail = null)
+    public static function on_AfterGetDetailsToCloneAndChange($mvc, &$res, $rec)
     {
         if (!$res) {
             $res = array();
-            if (!$rec->clonedFromId) {
-                
-                return;
-            }
-            
+            if (!$rec->clonedFromId) return;
+
+            $recs = array();
             $Detail = cls::get($mvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->clonedFromId}");
-            $res = $dQuery->fetchAll();
+            while($dRec = $dQuery->fetch()){
+                if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
+                    $dRec->_genericProductId = $genericProductId;
+                }
+                $recs[$dRec->id] = $dRec;
+            }
+            $res = array('recs' => $recs, 'detailMvc' => $Detail);
         }
     }
     
@@ -49,31 +55,48 @@ class deals_plg_EditClonedDetails extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->action != 'clone') {
-            
-            return;
-        }
+        if ($data->action != 'clone') return;
+
         $form = &$data->form;
         $rec = $form->rec;
-        
-        $Detail = null;
-        $detailsToClone = $mvc->getDetailsToCloneAndChange($rec, $Detail);
-        setIfNot($Detail, cls::get($mvc->mainDetail));
-        if (!countR($detailsToClone)) {
-            
-            return;
-        }
+
+        $MainDetail = cls::get($mvc->mainDetail);
+        $detailsToCloneArr = $mvc->getDetailsToCloneAndChange($rec);
+        $detailsToClone = $detailsToCloneArr['recs'];
+        $Detail = $detailsToCloneArr['detailMvc'];
+
+        if (!countR($detailsToClone)) return;
         setIfNot($Detail->productFld, 'productId');
         setIfNot($Detail->quantityFld, 'quantity');
-        
         $rec->details = array();
-        
+
         // Ако ориджина има артикули
         $num = 1;
         $detailId = $Detail->getClassId();
         $installedBatch = core_Packs::isInstalled('batch');
-        
+
+        // Ако мастъра на детайла има поле за подреждане на редовете
+        if(isset($Detail->Master->detailOrderByField)){
+            $firstKey = key($detailsToClone);
+            if(isset($firstKey)){
+
+                // и то е за сортиране по код. Извлича се кода и се сортират
+                $masterKeyId = $detailsToClone[$firstKey]->{$Detail->masterKey};
+                $orderByField = $Detail->Master->fetchField($masterKeyId, $Detail->Master->detailOrderByField);
+                if($orderByField == 'code'){
+                    array_walk($detailsToClone, function($a) use ($Detail) {
+                        $a->_code = cat_Products::fetchField($a->{$Detail->productFld}, 'code');
+                        if(empty($a->_code)){
+                            $a->_code = "Art{$a->{$Detail->productFld}}";
+                        }
+                    });
+                    arr::sortObjects($detailsToClone, '_code', 'ASC', 'natural');
+                }
+            }
+        }
+
         foreach ($detailsToClone as $dRec) {
+            if($Detail->className != $MainDetail->className && empty($dRec->{$Detail->quantityFld})) continue;
             $caption = cat_Products::getTitleById($dRec->{$Detail->productFld});
             $caption .= ' / ' . cat_UoM::getShortName($dRec->packagingId);
             $caption = str_replace(',', ' ', $caption);
@@ -99,19 +122,19 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 $quantity = $dRec->{$Detail->quantityFld} / $dRec->quantityInPack;
                 while ($bRec = $bQuery->fetch()) {
                     $verbal = strip_tags($Def->toVerbal($bRec->batch));
-                    $b = str_replace(',', '', $bRec->batch);
-                    $b = str_replace('.', '', $b);
-                    $b = str::removeWhiteSpace($b);
+                    $batchMd5 = md5($bRec->batch);
 
                     $bQuantity = $bRec->{$Detail->quantityFld} / $bRec->quantityInPack;
                     $quantity -= $bQuantity;
                     
                     $max = ($Def instanceof batch_definitions_Serial) ? 'max=1' : '';
-                    $key = "quantity|{$b}|{$dRec->id}|";
+                    $key = "quantity|{$batchMd5}|{$dRec->id}|";
                     $form->FLD($key, "double(Min=0,{$max})", "input,caption={$caption}->|*{$verbal}");
                     
                     $rec->details[$dRec->id]->batches[$bRec->id] = $bRec;
-                    $form->setDefault($key, $bQuantity);
+                    if($bQuantity > 0){
+                        $form->setDefault($key, $bQuantity);
+                    }
                 }
                 
                 // Показване на полетата без партиди
@@ -123,7 +146,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
             } else {
                 // Показване на полетата без партиди
                 $form->FLD("quantity||{$dRec->id}|", 'double(Min=0)', "input,caption={$caption}->Количество");
-                $form->setDefault("quantity||{$dRec->id}|", $dRec->packQuantity);
+                if($dRec->packQuantity > 0){
+                    $form->setDefault("quantity||{$dRec->id}|", $dRec->packQuantity);
+                }
                 
                 if ($dRec->autoBatches === true && $installedBatch) {
                     $type = $Detail->getBatchMovementDocument($dRec);
@@ -136,11 +161,11 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 
                 $rec->details["quantity||{$dRec->id}|"] = $dRec;
             }
-            
+
             $rec->cloneAndChange = true;
             $num++;
         }
-        
+
         if (!isset($rec->clonedFromId)) {
             
             return;
@@ -203,6 +228,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
         
         if (countR($rec->details)) {
+
             foreach ($rec->details as $det) {
                 if (!empty($det->baseQuantity)) {
                     $det->quantityInPack = $det->baseQuantity / $det->packQuantity;
@@ -212,12 +238,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 $newPackQuantity = $updatePackQuantity = 0;
                 if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
                     foreach ($det->batches as &$bRec) {
-                        $b = str_replace(',', '', $bRec->batch);
-                        $b = str_replace('.', '', $b);
-                        $b = str::removeWhiteSpace($b);
-                        $key = "quantity|{$b}|{$det->id}|";
-                        
-                        
+                        $bMd5 = md5($bRec->batch);
+                        $key = "quantity|{$bMd5}|{$det->id}|";
+
                         $q = $rec->{$key};
                         if ($q > ($bRec->quantity / $bRec->quantityInPack)) {
                             $q = $bRec->quantity / $bRec->quantityInPack;

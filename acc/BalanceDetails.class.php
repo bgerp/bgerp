@@ -589,7 +589,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         if ($action == 'group') {
-            unset($listFields['history'], $listFields['baseQuantity'], $listFields['debitQuantity'], $listFields['creditQuantity'], $listFields['blQuantity']);
+            unset($listFields['history']);
         }
     }
     

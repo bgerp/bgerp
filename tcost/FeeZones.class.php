@@ -53,12 +53,6 @@ class tcost_FeeZones extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,tcost';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,tcost';
@@ -208,7 +202,7 @@ class tcost_FeeZones extends core_Master
                 $multiplier *= 1000;
             }
 
-            // Ако има тегло и има стойност за над и теглото е под нея, няма да се сметя обемното тегло
+            // Ако има тегло и има стойност за над и теглото е под нея, няма да се смята обемното тегло
             if(!empty($weight) && isset($zoneRec->volume2quantityValidForAbove) && $weight <= $zoneRec->volume2quantityValidForAbove){
 
                 return $weight;
@@ -239,7 +233,7 @@ class tcost_FeeZones extends core_Master
         $toCountry = $params['deliveryCountry'];
         $toPostalCode = $params['deliveryPCode'];
         
-        // Определяне на зоната на транспорт, за зададеното условие на доставка
+        // Определяне на зоната на транспорт за зададеното условие на доставка
         $singleWeight = $volumicWeight;
         
         // Ако няма, цената няма да може да се изчисли
@@ -266,7 +260,8 @@ class tcost_FeeZones extends core_Master
             
             $zoneName = tcost_FeeZones::getTitleById($zoneId);
             $termCode = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName');
-            $explain = ", {$termCode}, ZONE = '{$zoneName}', VOL_WT = '{$singleWeight}', TAX = {$taxes['tax']}, ADD_PER_KG = {$taxes['addPerKg']}, TOTAL_VOL_WT = '{$totalVolumicWeight}'";
+            $delTimeExplained = $deliveryTime / (24 * 60 * 60);
+            $explain = ", {$termCode}, ZONE = '{$zoneName}', VOL_WT = '{$singleWeight}', TAX = {$taxes['tax']}, ADD_PER_KG = {$taxes['addPerKg']}, TOTAL_VOL_WT = '{$totalVolumicWeight}', DEL_TIME = '{$delTimeExplained} d'";
         }
         
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime, 'explain' => $explain);
@@ -325,7 +320,7 @@ class tcost_FeeZones extends core_Master
         // Вземаме съответстващата форма на този модел
         $form = cls::get('core_Form');
         $form->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName,allowEmpty)', 'caption=Условие на доставка, mandatory');
-        $form->FLD('countryId', 'key(mvc = drdata_Countries, select=commonName,allowEmpty)', 'caption=Държава, mandatory,smartCenter');
+        $form->FLD('countryId', 'key(mvc = drdata_Countries, select=commonName,selectBg=commonNameBg, allowEmpty)', 'caption=Държава, mandatory,smartCenter');
         $form->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
         $form->FLD('singleWeight', 'double(Min=0)', 'caption=Единично тегло,mandatory');
         $form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.,mandatory');
@@ -534,5 +529,27 @@ class tcost_FeeZones extends core_Master
         $res = (is_array($zoneArr) && !empty($zoneArr['deliveryTime'])) ? $zoneArr['deliveryTime'] : null;
 
         return $res;
+    }
+
+
+    /**
+     * Сортиране по name
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->showFields = 'deliveryTermId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+
+        if($rec = $data->listFilter->rec){
+            if(isset($rec->deliveryTermId)){
+                $data->query->where("#deliveryTermId = {$rec->deliveryTermId}");
+            }
+        }
     }
 }

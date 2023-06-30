@@ -48,7 +48,7 @@ class apachetika_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'APACHE_TIKA_VERSION' => array('enum(1.7, 1.24.1)', 'caption=Версия на програмата'),
+        'APACHE_TIKA_VERSION' => array('enum(1.7, 1.24.1, 2.6.0)', 'caption=Версия на програмата'),
     
     );
 }

@@ -137,7 +137,6 @@
                             <td>[#lineId#]</td>
                         </tr>
                         <!--ET_END lineId-->
-                       [#InvoicesToDocuments#]
                        <!--ET_BEGIN note-->
                        <tr>
                            <td colspan="2" >
@@ -165,6 +164,10 @@
                        </tr>
                        <!--ET_END logisticInfo-->
                    </table>
+					<table>
+						<hr>
+							[#InvoicesToDocuments#]
+					</table>
                 </td>
                 <td>
 

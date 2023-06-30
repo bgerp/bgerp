@@ -211,6 +211,51 @@ defIfNot('SALES_SHOW_PRICE_IN_PRODUCT_SELECTION', 'no');
  */
 defIfNot('SALES_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
 
+/**
+ * Дефолтен текст на циркулярен имейл за просрочени фактури
+ */
+defIfNot('SALES_DEFAULT_BLAST_BODY_BG',  "Здравейте,\nС настоящото бихме желали да Ви обърнем внимание, че към [#date#] година имате просрочия по фактури:\n[#docs#]\nна обща стойност [#sum#] [#currency#]\nМолим във възможно най-кратки срокове да погасите цитираното задължение.\nВ случай, че вече сте направили плащане по посочените документи, молим да ни извините и да игнорирате настоящото писмо.\n\nТова е автоматично генерирано съобщение, което не изисква отговор. За допълнителни въпроси и информация моля, свържете се с наш представител.\n\nС уважение");
+
+/**
+ * Дефолтен subject на циркулярен имейл за просрочени фактури
+ */
+defIfNot('SALES_DEFAULT_BLAST_SUBJECT_BG', "Просрочени задължения към [#date#]
+");
+
+/**
+ * Дефолтен текст на циркулярен имейл за просрочени фактури на английски
+ */
+defIfNot('SALES_DEFAULT_BLAST_BODY_EN',  "Hello,\nThis letter is to bring to your attention that as of [#date#] no payment has been received for the invoices\nlisted below [#docs#],\ntotal value [#sum#] [#currency#].\n\nWe kindly ask you to promptly settle the outstanding invoices.\n\nIn case you have already made payment, please excuse us and ignore this reminder.\n\nThis letter is automatically generated that does not require a response. For additional questions and information, please contact our representative.\n\nWith respect");
+
+/**
+ * Дефолтен subject на циркулярен имейл за просрочени фактури на английски
+ */
+defIfNot('SALES_DEFAULT_BLAST_SUBJECT_EN', "Dunning Notice");
+
+
+/**
+ * Непродавани от кога артикули да се считат за нови
+ */
+defIfNot('SALES_DELTA_NEW_PRODUCT_TO', 1);
+
+
+/**
+ * Непродавани от кога артикули да се считат за нови
+ */
+defIfNot('SALES_DELTA_NEW_PRODUCT_FROM', 12 * dt::SECONDS_IN_MONTH);
+
+
+/**
+ * Очаква ли се аванс от чуждестранни клиенти
+ */
+defIfNot('SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS', 'no');
+
+
+/**
+ * Продажба дали да се избира единствената налична банкова сметка
+ */
+defIfNot('SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE', 'yes');
+
 
 /**
  * Продажби - инсталиране / деинсталиране
@@ -265,7 +310,7 @@ class sales_Setup extends core_ProtoSetup
         ),
         'SALES_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
             'int(Min=0)',
-            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'
+            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на изходяща фактура" за приключване на валутни сделки->Дни'
         ),
         'SALE_CLOSE_OLDER_NUM' => array(
             'int',
@@ -379,6 +424,16 @@ class sales_Setup extends core_ProtoSetup
         'SALES_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към продажба->Избор'),
         'SALES_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен търговец в продажбите->Избор'),
         'SALES_SHOW_PRICE_IN_PRODUCT_SELECTION' => array('enum(no=Изключено,measureId=Основна мярка,basePack=Избраната за основна мярка/опаковка)', 'caption=Показване на продажната цена при избор на артикул в документи->Избор'),
+
+        'SALES_DEFAULT_BLAST_SUBJECT_BG' => array('varchar', 'caption=Циркулярен имейл за просрочени плащания->Subject BG, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_SUBJECT_EN' => array('varchar', 'caption=Циркулярен имейл за просрочени плащания->Subject EN, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_BODY_BG' => array('richtext(rows=5,bucket=Blast)', 'caption=Циркулярен имейл за просрочени плащания->Текст BG, customizeBy=blast'),
+        'SALES_DEFAULT_BLAST_BODY_EN' => array('richtext(rows=5,bucket=Blast)', 'caption=Циркулярен имейл за просрочени плащания->Текст EN, customizeBy=blast'),
+
+        'SALES_DELTA_NEW_PRODUCT_FROM' => array('time', 'caption=Непродавани артикули от колко време да се считат за нов артикул->От,unit=назад'),
+        'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
+        'SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS' => array('enum(no=Без фактуриране,yes=Фактуриране)', 'caption=Аванси от чуждестранни клиенти->Избор'),
+        'SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE' => array('enum(no=Да не се избира,yes=Автоматичен избор)', 'caption=Автоматичен избор на наша сметка в продажбите ако е само една достъпна->Избор'),
     );
     
     
@@ -402,6 +457,8 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
+        'sales_LastSaleByContragents',
+        'migrate::recontoDeals2520',
     );
     
     
@@ -426,8 +483,10 @@ class sales_Setup extends core_ProtoSetup
     public $defClasses = 'sales_SalesLastPricePolicy, 
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,
-                       sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_interface_FreeRegularDelivery,
-                       sales_reports_PriceComparison';
+                       sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_reports_SalesByCreators,sales_interface_FreeRegularDelivery,
+                       sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_InvoiceAccView,sales_reports_PassiveCustomers,
+                       sales_reports_OffersSentWithoutReply';
+    
     
     /**
      * Настройки за Cron
@@ -467,7 +526,7 @@ class sales_Setup extends core_ProtoSetup
             'offset' => 190,
             'period' => 1440,
             'timeLimit' => 500
-        )
+        ),
     );
     
     
@@ -477,7 +536,7 @@ class sales_Setup extends core_ProtoSetup
     public $roles = array(
         array(
             'sales',
-            'invoicer,seePrice,dec'
+            'invoicer,seePrice,dec,seePriceSale'
         ),
         array(
             'salesMaster',
@@ -577,7 +636,21 @@ class sales_Setup extends core_ProtoSetup
                 $res .= "<li style='color:green'>Добавени са дефолтни артикули за транспорт</b></li>";
             }
         }
-        
+
+        $Plugins = cls::get('core_Plugins');
+        $res .= $Plugins->installPlugin('Връзка на продажбите с куриерско API', 'store_plg_CourierApiShipment', 'sales_Sales', 'private');
+        $res .= cls::get('sales_Sales')->setupMvc();
+
         return $res;
+    }
+
+
+    /**
+     * Рекалкулиране на валутните сделки
+     */
+    public function recontoDeals2520()
+    {
+        if(core_Packs::isMigrationDone('sales', 'recalcCurrencySales1115')) return;
+        cls::get('sales_Sales')->recalcDocumentsWithDealCurrencyRate();
     }
 }

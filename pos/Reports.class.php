@@ -934,4 +934,29 @@ class pos_Reports extends core_Master
         
         return $res;
     }
+
+
+    /**
+     * Помощна ф-я в кой пос отчет е включена въпросната бележка
+     *
+     * @param $receiptId
+     * @return void
+     */
+    public static function getReportReceiptIsIn($receiptId)
+    {
+        $reportQuery = pos_Reports::getQuery();
+        $reportQuery->where("#state = 'active' || #state = 'closed'");
+        $reportQuery->show('details');
+
+        // Опитваме се да намерим репорта в който е приключена бележката
+        //@TODO не е много оптимално защото търсим в блоб поле...
+        while ($rRec = $reportQuery->fetch()) {
+            $found = array_filter($rRec->details['receipts'], function ($e) use (&$receiptId) {
+
+                return $e->id == $receiptId;
+            });
+
+            if ($found) return $rRec->id;
+        }
+    }
 }

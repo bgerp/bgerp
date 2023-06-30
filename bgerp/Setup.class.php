@@ -232,6 +232,7 @@ class bgerp_Setup extends core_ProtoSetup
             'bgerp_Bookmark',
             'bgerp_LastTouch',
             'bgerp_F',
+            'bgerp_Filters',
         );
         
         $instances = array();
@@ -264,8 +265,30 @@ class bgerp_Setup extends core_ProtoSetup
 
         // Добавяме допълнителните пакети, само при първоначален Setup
         if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
-            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef,tinymce';
+            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,tnef,tinymce';
         } else {
+
+            try {
+                $Roles = cls::get('core_Roles');
+                $rQuery = $Roles->getQuery();
+                $rQuery->where("#createdBy = -1");
+                while ($rRec = $rQuery->fetch()) {
+                    if (!$rRec->inheritInput && !$rRec->inherit) {
+                        continue;
+                    }
+
+                    $rRec->inheritInput = '';
+                    $rRec->inherit = '';
+
+                    $Roles->save_($rRec, 'inheritInput, inherit');
+                }
+            } catch (Exception $t) {
+
+            }
+            catch (Throwable $t) {
+
+            }
+
             $packs = arr::make($packs, true);
             $pQuery = $Packs->getQuery();
             $pQuery->where("#state = 'active'");

@@ -229,48 +229,67 @@ class drdata_Eori extends core_Manager
      *
      * @param string $eori Каноничен ват
      *
-     * @return string 'valid', 'invalid', 'unknown'
+     * @return array
+     * [0] => res
+     * [1] => info
+     * [3] => infoArr
      */
     public function checkStatus($eori)
     {
+        $info = null;
+        $rArr = array();
+
         // Ако синтаксиса не отговаря на EORI, статуса сигнализира за това
         if (!$this->checkSyntax($eori)) {
             $res = self::statusSyntax;
         }
 
-        $info = null;
-        $rArr = array();
+        $curl = curl_init('https://api.service.hmrc.gov.uk/customs/eori/lookup/check-multiple-eori');
+
+        $params = new stdClass();
+        $params->eoris = array();
+        $params->eoris[] = $eori;
+
+        // Да не се проверява сертификата
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Accept: application/json"));
+
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+
+        curl_setopt($curl, CURLOPT_POSTFIELDS, @json_encode($params));
+
+        core_Debug::startTimer('drdata_Eori_check');
+        $responseJson = @curl_exec($curl);
+        core_Debug::stopTimer('drdata_Eori_check');
 
         if (!$res) {
-            
-            $countryCode = substr($eori, 0, 2);
-            $eoriNumber = substr($eori, 2);
-            
-            try {
-                $client = @new SoapClient('https://ec.europa.eu/taxation_customs/dds2/eos/validation/services/validation?wsdl', array('connection_timeout' => 4));
-                $result = @$client->validateEORI(array('eori' => $eori));
-            } catch (Exception $e) {
-                reportException($e);
-                $result = new stdClass();
-            } catch (Throwable $t) {
-                reportException($t);
-                $result = new stdClass();
-            }
-            
-            $res = self::statusUnknown;
+            if (!$responseJson) {
+                $res = self::statusInvalid;
+            } else {
+                $response = @json_decode($responseJson);
 
-            if (is_object($result)) {
-                $r = $result->return->result;
-                if ($r->status === 0) {
-                    $res = self::statusValid;
-                    $info = $r->country . "\n" . $r->postalCode . ', ' . $r->city . "\n" . $r->street . "\n" . $r->name;
-                    $rArr['name'] = $r->name;
-                    $rArr['street'] = $r->street;
-                    $rArr['postalCode'] = $r->postalCode;
-                    $rArr['city'] = $r->city;
-                    $rArr['country'] = $r->country;
-                } else {
+                if (!$response) {
                     $res = self::statusInvalid;
+                } else {
+                    if ($response[0]->valid) {
+                        $res = self::statusValid;
+                        if ($response[0]->companyDetails) {
+                            $info = $response[0]->companyDetails->address->postcode . ', ' . $response[0]->companyDetails->address->cityName . "\n" .
+                                $response[0]->companyDetails->address->streetAndNumber . "\n" .
+                                $response[0]->companyDetails->traderName;
+
+                            $rArr['name'] = $response[0]->companyDetails->traderName;
+                            $rArr['street'] = $response[0]->companyDetails->address->streetAndNumber;
+                            $rArr['postalCode'] = $response[0]->companyDetails->address->postcode;
+                            $rArr['city'] = $response[0]->companyDetails->address->cityName;
+                        }
+                    } else {
+                        $res = self::statusInvalid;
+                    }
                 }
             }
         }

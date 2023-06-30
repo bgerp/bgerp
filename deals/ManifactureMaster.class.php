@@ -149,6 +149,7 @@ abstract class deals_ManifactureMaster extends core_Master
         }
         
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
+            if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
             $requiredRoles = 'no_one';
         }
     }
@@ -204,5 +205,48 @@ abstract class deals_ManifactureMaster extends core_Master
         
         
         return false;
+    }
+
+
+    /**
+     * Помощна ф-я дали документа може да се добавя с подадения ориджин
+     *
+     * @param int $containerId
+     * @param int|null $userId
+     * @return bool
+     */
+    protected function canAddToOriginId($containerId, $userId = null)
+    {
+        $origin = doc_Containers::getDocument($containerId);
+        if (!$origin->isInstanceOf('planning_Tasks') && !$origin->isInstanceOf('planning_ConsumptionNotes')) {
+            return false;
+        }elseif($origin->isInstanceOf('planning_Tasks')){
+            $state = $origin->fetchField('state');
+            if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
+                return false;
+            } elseif ($state == 'closed') {
+                if (!planning_Tasks::isProductionAfterClosureAllowed($origin->that, $userId, 'taskPostProduction,ceo,consumption')) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $res
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        if(isset($data->form->rec->originId)){
+            $data->form->toolbar->removeBtn('btnNewThread');
+        }
+        $data->form->toolbar->setBtnOrder('btnPending', 10);
     }
 }

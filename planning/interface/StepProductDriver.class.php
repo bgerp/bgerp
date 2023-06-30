@@ -149,21 +149,52 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          string      ['wasteProductId']       - ид на отпадък
      *          string      ['wasteStart']           - начално количество отпадък
      *          string      ['wastePercent']         - процент отпадък
+     *          string      ['calcWeightMode']       - изчисляване на тегло или не
      */
     public function getProductionData($productId)
     {
         $rec = planning_Steps::getRec('cat_Products', $productId);
+        $measureId = cat_Products::fetchField($productId, 'measureId');
+        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent);
+        if(!empty($rec->norm)){
+            $res['norm'] = $rec->norm;
+            $res['normPackagingId'] = $measureId;
+        }
 
-        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'norm' => $rec->norm, 'normPackagingId' => cat_Products::fetchField($productId, 'measureId'), 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent);
-        $res['fixedAssets'] = !empty($rec->fixedAssets) ? keylist::toArray($rec->fixedAssets) : null;
+        $res['fixedAssets'] = null;
+        if(!empty($rec->fixedAssets)){
+
+            // От свързаните оборудвания остават само активните
+            $res['fixedAssets'] = keylist::toArray($rec->fixedAssets);
+            $fQuery = planning_AssetResources::getQuery();
+            $fQuery->where("#state = 'active'");
+            $fQuery->in('id', $res['fixedAssets']);
+            $fQuery->show('id');
+            $res['fixedAssets'] = arr::extractValuesFromArray($fQuery->fetchAll(), 'id');
+        }
+
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
         $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();
+        $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
+
+        if($rec->showPreviousJobField == 'auto'){
+            $centerShowPreviousJobField = planning_Centers::fetchField($rec->centerId, 'showPreviousJobField');
+            if($centerShowPreviousJobField == 'auto'){
+                $res['showPreviousJobField'] = (planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK') == 'yes');
+            } else {
+                $res['showPreviousJobField'] = ($centerShowPreviousJobField == 'yes');
+            }
+        } else {
+            $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
+        }
+
         $res['isFinal'] = $rec->isFinal;
-        $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
         if($rec->canStore == 'yes'){
             $res['labelPackagingId'] = $rec->labelPackagingId;
-            $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+            if($rec->labelTransferQuantityInPack != 'no'){
+                $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+            }
             $res['labelType'] = $rec->labelType;
             $res['labelTemplate'] = $rec->labelTemplate;
         }
@@ -199,6 +230,14 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         if (!empty($info)) {
             $data->row->info = core_Type::getByName('richtext')->toVerbal($info);
         }
+
+        $data->rec->photo =  cat_Products::getParams($data->rec->id, 'preview');
+        if ($data->rec->photo) {
+            $size = array(280, 150);
+            $Fancybox = cls::get('fancybox_Fancybox');
+            $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
+        }
+
         $tpl->placeObject($data->row);
 
         if ($data->noChange !== true || countR($data->params)) {
@@ -271,12 +310,28 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      */
     public static function on_AfterGetRequiredRoles(cat_ProductDriver $Driver, cat_Products $Embedder, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'editplanned' && isset($rec)){
-            if(empty($rec->planning_Steps_fixedAssets)){
+        if($action == 'editplanned'){
+            $requiredRoles = $Embedder->getRequiredRoles('edit', $rec, $userId);
+            if(isset($rec) && empty($rec->planning_Steps_fixedAssets)){
                 $requiredRoles = 'no_one';
-            } else {
-                $requiredRoles = $Embedder->getRequiredRoles('edit', $rec, $userId);
             }
         }
+    }
+
+
+    /**
+     * Връща свойствата на артикула според драйвера
+     *
+     * @param null|stdClass $rec - текущи мета данни
+     * @return array $metas - кои са дефолтните мета данни
+     */
+    public function getDefaultMetas($rec = null)
+    {
+        $meta = parent::getDefaultMetas($rec);
+        if($rec->planning_Steps_canStore == 'no'){
+            unset($meta['canStore']);
+        }
+
+        return $meta;
     }
 }

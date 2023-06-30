@@ -69,7 +69,7 @@
                 <!--ET_END currencyCode-->
                 <!--ET_BEGIN bankAccountId-->
                 <hr>
-                <div class='cellRow'>
+                <div class='cellRow [#BANK_BLOCK_CLASS#]'>
                     <span class='quiet'>Bank account: </span>[#bankAccountId#]<!--ET_BEGIN bank-->,<div>
                     [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
                 </div>

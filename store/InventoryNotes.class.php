@@ -372,7 +372,9 @@ class store_InventoryNotes extends core_Master
         
         if (core_Packs::isInstalled('batch')) {
             if (batch_Movements::haveRightFor('list') && $data->rec->state == 'active') {
-                $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Добавяне като ресурс,row=2');
+                if(batch_Movements::count("#docType = {$mvc->getClassId()} AND #docId = {$data->rec->id}")){
+                    $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Показване на движенията на партидите генерирани от документа,row=2');
+                }
             }
         }
         
@@ -1018,17 +1020,46 @@ class store_InventoryNotes extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $this->requireRightFor('fillreport', $rec);
-        
+
         $summaryQuery = store_InventoryNoteSummary::getQuery();
         $summaryQuery->where("#noteId = {$rec->id} AND #quantity IS NULL");
-        
+
         while ($summaryRec = $summaryQuery->fetch()) {
-            $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1);
-            $dRec->packagingId = cat_Products::fetchField($summaryRec->productId, 'measureId');
-            $dRec->quantity = 0;
-            store_InventoryNoteDetails::save($dRec);
+            $packagingId = cat_Products::fetchField($summaryRec->productId, 'measureId');
+
+            if(core_Packs::isInstalled('batch')){
+                $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $rec->storeId, $rec->valior, null, array(), true);
+
+                $save = true;
+                if(countR($batchQuantities)){
+                    $noBatchQuantity = $summaryRec->blQuantity - array_sum($batchQuantities);
+                    if(isset($noBatchQuantity)){
+                        $batchQuantities[''] = $noBatchQuantity;
+                        $save = false;
+                    }
+
+                    foreach ($batchQuantities as $batch => $batchQuantity){
+                        if(store_InventoryNoteDetails::fetchField(array("#noteId = {$id} AND #productId = {$summaryRec->productId} AND #batch = '[#1#]'", $batch))) continue;
+
+                        $dRec = (object) array('noteId' => $id,
+                            'productId' => $summaryRec->productId,
+                            'quantityInPack' => 1,
+                            'quantity' => 0,
+                            'batch' => $batch,
+                            'packagingId' => $packagingId);
+
+                        store_InventoryNoteDetails::save($dRec);
+                    }
+                }
+
+                if($save){
+                    $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1, 'packagingId' => $packagingId);
+                    $dRec->quantity = 0;
+                    store_InventoryNoteDetails::save($dRec);
+                }
+            }
         }
-        
+
         $this->logInAct('Нулиране на невъведените артикули', $id);
         
         followRetUrl('Всички артикули с невъведени количества са нулирани');

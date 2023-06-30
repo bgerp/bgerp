@@ -35,7 +35,7 @@ class lab_Tests extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2,doc_ActivatePlg,plg_Clone,doc_DocumentPlg,plg_Printing,
-                     lab_Wrapper, plg_Sorting,plg_Search,docarch_plg_Archiving, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
+                     lab_Wrapper, doc_plg_TplManager, plg_Sorting,plg_Search,docarch_plg_Archiving, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
     
     
     /**
@@ -723,5 +723,17 @@ class lab_Tests extends core_Master
         }
         
         return $paramsArr;
+    }
+
+
+    /**
+     * Зарежда шаблоните на тестовете в doc_TplManager
+     */
+    public function loadSetupData()
+    {
+        $tplArr = array();
+        $tplArr[] = array('name' => 'Лабораторни тестове', 'content' => 'lab/tpl/SingleLayoutTests.shtml', 'lang' => 'bg');
+
+        return doc_TplManager::addOnce($this, $tplArr);
     }
 }

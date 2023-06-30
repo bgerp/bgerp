@@ -24,8 +24,7 @@ class acc_FeatureTitles extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'acc_WrapperSettings, plg_State2, plg_Search,
-                     plg_Created, plg_Sorting';
+    public $loadList = 'acc_WrapperSettings, plg_State2, plg_Created, plg_Sorting';
     
     
     /**

@@ -235,6 +235,7 @@ class bglocal_Address extends core_MVC
      */
     public function act_Test()
     {
+        requireRole('debug');
         $form = cls::get('core_Form');
         
         $form->FNC('text', 'text', 'caption=Текст,input');

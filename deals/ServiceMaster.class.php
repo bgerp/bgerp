@@ -99,7 +99,7 @@ abstract class deals_ServiceMaster extends core_Master
         
         $Detail = $this->mainDetail;
         $query = $this->{$Detail}->getQuery();
-        $query->where("#{$this->{$Detail}->masterKey} = '{$id}'");
+        $query->where("#{$this->{$Detail}->masterKey} = '{$rec->id}'");
         $recs = $query->fetchAll();
         
         deals_Helper::fillRecs($this, $recs, $rec);

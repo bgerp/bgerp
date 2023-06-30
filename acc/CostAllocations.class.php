@@ -864,10 +864,12 @@ class acc_CostAllocations extends core_Manager
     public static function getIndicatorNames()
     {
         $result = array();
-        
+
         // Показател за делта на търговеца
         $rec = hr_IndicatorNames::force('salesExpenses', __CLASS__, 1);
-        $result[$rec->id] = $rec->name;
+        if($rec->state != 'closed'){
+            $result[$rec->id] = $rec->name;
+        }
         
         return $result;
     }
@@ -892,11 +894,13 @@ class acc_CostAllocations extends core_Manager
     public static function getIndicatorValues($timeline)
     {
         $result = array();
-        
+
         // Показател за делта на търговеца
-        $expenseIndicatorId = hr_IndicatorNames::force('salesExpenses', __CLASS__, 1)->id;
+        $expenseIndicatorRec = hr_IndicatorNames::force('salesExpenses', __CLASS__, 1);
+        if($expenseIndicatorRec->state == 'closed') return $result;
+
+        $expenseIndicatorId = $expenseIndicatorRec->id;
         $eQuery = self::getIndicatorQuery($timeline);
-        
         $wh = $eQuery->getWhereAndHaving();
         if (empty($wh->w)) {
             

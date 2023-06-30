@@ -51,12 +51,12 @@
 			</tr>
 			<!--ET_END contragentLocationId-->
 			
-			<!--ET_BEGIN transferedIn-->
+			<!--ET_BEGIN transferredIn-->
 			<tr>
 				<td>|Прехвълено към|*:</td>
-				<td><b>[#transferedIn#]</b></td>
+				<td><b>[#transferredIn#]</b></td>
 			</tr>
-			<!--ET_END transferedIn-->
+			<!--ET_END transferredIn-->
 			
 			<!--ET_BEGIN inReport-->
 			<tr>

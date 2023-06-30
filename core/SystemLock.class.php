@@ -140,11 +140,12 @@ class core_SystemLock
                     <meta charset=\"UTF-8\">
                     {$refresh}</head>
                     <body bgcolor='#000'><div style='font-family: Verdana,Geneva,sans-serif;color:white;position:fixed;top:50%;" . $style , " '>
-                    <h1 style='border-bottom:solid 1px white;padding-bottom:10px;'>bgERP system maintenance</h1>
+                    <h1 style='border-bottom:solid 3px white;padding-bottom:10px;'>bgERP system maintenance</h1>
                     <h2>We'll be back in {$afterEn}...</h2>
                     <h2>Ще сме на разположение след {$after}...</h2>
                     <p>{$msg}</p>
                     </div></body>";
+            flush();
             die;
         }
     }

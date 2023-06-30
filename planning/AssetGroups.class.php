@@ -32,8 +32,14 @@ class planning_AssetGroups extends core_Master
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, planningMaster';
-    
-    
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo, planningMaster';
+
+
     /**
      * Кой има право да добавя?
      */
@@ -101,11 +107,36 @@ class planning_AssetGroups extends core_Master
     {
         $this->FLD('name', 'varchar(64,ci)', 'caption=Име, mandatory');
         $this->FLD('type', 'enum(material=Материален, nonMaterial=Нематериален)', 'caption=Тип, mandatory, notNull');
-        $this->FLD('showInPlanningTasks', 'enum(yes=Да,no=Не)', 'caption=Производствени операции->Допустимост, mandatory,notNull,value=no');
+        $this->FLD('showInPlanningTasks', 'enum(yes=Да,no=Не)', 'caption=Производствени операции->Допустимост, mandatory,notNull,value=no,silent,removeAndRefreshForm=planningParams');
+        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри за планиране->Списък,input=none');
         $this->setDbUnique('name');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$data->form->rec;
+
+        if($rec->showInPlanningTasks == 'yes'){
+
+            // Ако групата ще се използва в ПО се показва полето за избор на планиращи параметри
+            $form->setField('planningParams', 'input');
+            $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams);
+            $form->setSuggestions("planningParams", $paramSuggestions);
+        }
+
+        if($rec->createdBy == core_Users::SYSTEM_USER){
+            foreach (array('name', 'type', 'showInPlanningTasks') as $fld){
+                $form->setReadOnly($fld);
+            }
+        }
+    }
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -113,6 +144,12 @@ class planning_AssetGroups extends core_Master
     {
         if ($action == 'delete' && isset($rec)) {
             if (planning_AssetResources::fetchField("#groupId = {$rec->id} AND #state = 'active'") || planning_AssetResourcesNorms::fetchField("#objectId = {$rec->id} AND #classId = {$mvc->getClassId()}")) {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'changestate' && isset($rec)){
+            if($rec->createdBy == core_Users::SYSTEM_USER){
                 $requiredRoles = 'no_one';
             }
         }
@@ -187,19 +224,20 @@ class planning_AssetGroups extends core_Master
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search,type,showInPlanningTasks';
         $data->listFilter->setFieldType('type', 'enum(all=Всички,material=Материален,nonMaterial=Нематериален)');
-        $data->listFilter->setFieldType('showInPlanningTasks', 'enum(all=Всички,yes=Допустими в ПО,no=Недопустими в ПО)');
+        $data->listFilter->FLD('showInPlanningTasksF', 'enum(all=Всички,yes=Допустими в ПО,no=Недопустими в ПО)');
+        $data->listFilter->showFields = 'search,type,showInPlanningTasksF';
         $data->listFilter->setDefault('type', 'all');
-        $data->listFilter->setDefault('showInPlanningTasks', 'all');
+        $data->listFilter->setDefault('showInPlanningTasksF', 'all');
         $data->listFilter->input();
+
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         if ($rec = $data->listFilter->rec) {
-
             if (!empty($rec->type) && $rec->type != 'all') {
                 $data->query->where("#type = '{$rec->type}'");
             }
 
-            if (!empty($rec->showInPlanningTasks) && $rec->showInPlanningTasks != 'all') {
-                $data->query->where("#showInPlanningTasks = '{$rec->showInPlanningTasks}'");
+            if (!empty($rec->showInPlanningTasksF) && $rec->showInPlanningTasksF != 'all') {
+                $data->query->where("#showInPlanningTasks = '{$rec->showInPlanningTasksF}'");
             }
         }
     }

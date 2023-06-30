@@ -102,7 +102,7 @@ class price_ListRules extends core_Detail
         $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory,silent');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС');
-        
+
         // Марж за група
         $this->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,remember=info');
         $this->FLD('calculation', 'enum(forward,reverse)', 'caption=Изчисляване,remember');
@@ -306,12 +306,12 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
-    public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true, $rate = 1, $chargeVat = 'no')
+    public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true, $rate = 1, $chargeVat = 'no', &$discountIncluded = null)
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
 
-        if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId)) === null) {
+        if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
             $query = self::getQuery();
             $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
@@ -334,13 +334,18 @@ class price_ListRules extends core_Detail
             if ($rec) {
                 if ($rec->type == 'value') {
                     $vat = cat_Products::getVat($productId, $datetime);
-                    $price = self::normalizePrice($rec, $vat, $datetime);                     
+                    $price = self::normalizePrice($rec, $vat, $datetime);
+                    if(!empty($rec->discount)){
+                        // От цената се приспада отстъпката
+                        $price *= (1 - $rec->discount);
+                        $discountIncluded = $rec->discount;
+                    }
+
                     $validFrom = $rec->validFrom;
                 } else {
                     $validFrom = $rec->validFrom;
                     expect($parent = $listRec->parent);
-                    $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false);
-                    
+                    $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false, 1, 'no', $discountIncluded);
                     if (isset($price)) {
                         if ($rec->calculation == 'reverse') {
                             $price = $price / (1 + $rec->discount);
@@ -357,7 +362,7 @@ class price_ListRules extends core_Detail
                     if ($parent = $listRec->parent) {
 
                         // Питаме бащата за цената
-                        $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
+                        $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, true, 1, 'no', $discountIncluded);
                         
                         // Ако има цена добавяме и дефолтната надценка
                         if (isset($price)) {
@@ -369,7 +374,7 @@ class price_ListRules extends core_Detail
 
             // Ако има цена
             if (isset($price)) {
-                $vat = $rate = 1;
+                $vat = 1;
                 if($isFirstCall) {
                     if ($listRec->vat == 'yes') {
                          $vat = 1 + cat_Products::getVat($productId, $datetime);
@@ -377,6 +382,7 @@ class price_ListRules extends core_Detail
 
                     $cRate = currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
                     if(!empty($cRate)){
+                        //$price *= 1 + $discountIncluded;
                         $rate = 1 / $cRate;
                         $price = $price * $vat * $rate;
                         $price = price_Lists::roundPrice($listRec, $price);
@@ -388,8 +394,9 @@ class price_ListRules extends core_Detail
                 }
                
                 if ($canUseCache) {
-                    price_Cache::setPrice($price, $listId, $productId);
+                    price_Cache::setPrice($price, $listId, $productId, $discountIncluded);
                 }
+
             }
         }
 
@@ -484,7 +491,9 @@ class price_ListRules extends core_Detail
                 $form->getField('targetPrice')->unit .= ($masterRec->vat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
                  break;
             case 'value':
-                $form->setField('groupId,discount,calculation,targetPrice', 'input=none');
+                $form->setFieldType('discount', core_Type::getByName('percent(Min=0)'));
+                $form->setField('discount', 'caption=Отстъпка');
+                $form->setField('groupId,calculation,targetPrice', 'input=none');
                 $data->singleTitle = 'правило за продуктова цена';
                 if (!$rec->id) {
                     $form->setDefault('currency', $masterRec->currency);
@@ -731,6 +740,10 @@ class price_ListRules extends core_Detail
                 $vat = ($vat == 'yes') ? 'с ДДС' : 'без ДДС';
                 
                 $row->rule = tr("|*{$price} <span class='cCode'>{$currency}</span> |{$vat}|*");
+                if(!empty($rec->discount)){
+                    $discount = $mvc->getVerbal($rec, 'discount');
+                    $row->rule .= "&nbsp;<span style= 'font-weight:normal;' class='small'>(&nbsp;" . tr('TO') . ":&nbsp;{$discount})</span>";
+                }
                 break;
         }
         
@@ -1005,29 +1018,8 @@ class price_ListRules extends core_Detail
                 $pQuery->likeKeylist('groups', $params['groups']);
             }
         }
-        
-        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
-        
-        if ($q) {
-            if ($q[0] == '"') {
-                $strict = true;
-            }
-            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
-            $q = mb_strtolower($q);
-            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
-            
-            $pBegin = type_Key2::getRegexPatterForSQLBegin();
-            foreach ($qArr as $w) {
-                $pQuery->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
-            }
-        }
-        
-        if ($limit) {
-            $pQuery->limit($limit);
-        }
-        
-        $pQuery->show('id,name,code,isPublic,nameEn');
-        
+
+        cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }

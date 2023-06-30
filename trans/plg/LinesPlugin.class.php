@@ -127,8 +127,8 @@ class trans_plg_LinesPlugin extends core_Plugin
         $form->setAction(getCurrentUrl());
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
         $form->FLD('id', 'int', 'input=hidden,silent,caption=№');
-        $form->FLD('lineFolderId', 'int', 'caption=Избор на Транспортна линия->От папка,silent,removeAndRefreshForm=lineId');
-        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Избор на Транспортна линия->Транспорт');
+        $form->FLD('lineFolderId', 'int', 'caption=Избор на транспортна линия->От папка,silent,removeAndRefreshForm=lineId');
+        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Избор на транспортна линия->Транспорт');
         $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Логистична информация->Забележки,after=volume');
 
         // Показване на полетата за датите
@@ -151,10 +151,9 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
         }
 
-        $form->setFieldTypeParams('lineFolderId', array('restrictViewAccess' => 'yes', 'containingDocumentIds' => trans_Lines::getClassId()));
         $form->input(null, 'silent');
-
         $folderOptions = trans_Lines::getSelectableFolderOptions();
+
         // Ако има избрана линия за избрана папка е избраната на линията
         if(isset($rec->{$mvc->lineFieldName})){
             $lineFolderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'folderId');
@@ -164,23 +163,33 @@ class trans_plg_LinesPlugin extends core_Plugin
             if(!array_key_exists($lineFolderId, $folderOptions)){
                 $folderOptions[$lineFolderId] = doc_Folders::getTitleById($lineFolderId, false);
             }
-            $form->setDefault('lineFolderId', key($folderOptions));
         } else {
-            $form->setDefault('lineFolderId', cls::get('trans_Lines')->getDefaultFolder());
+            $userDefaultFolder = cls::get('trans_Lines')->getDefaultFolder();
+            if(array_key_exists($userDefaultFolder, $folderOptions)){
+                $form->setDefault('lineFolderId', $userDefaultFolder);
+            }
         }
 
+        $form->setDefault('lineFolderId', key($folderOptions));
         $linesArr = trans_Lines::getSelectableLines($form->rec->lineFolderId);
         if(isset($rec->{$mvc->lineFieldName}) && !array_key_exists($rec->{$mvc->lineFieldName}, $linesArr)){
             $linesArr[$rec->{$mvc->lineFieldName}] = trans_Lines::getTitleById($rec->{$mvc->lineFieldName}, false);
         }
-        $form->setOptions('lineId', array('' => '') + $linesArr);
 
+        if(!countR($folderOptions)){
+            $form->info = tr("|*<div style='margin:5px;color:red; background-color:yellow; border: dotted 1px red; padding:5px;'>|Потребителят няма споделени папки от, които да избира транспортна линия|*</div>");
+            $form->setField('lineFolderId', 'input=none');
+            $form->setField('lineId', 'input=none');
+        } else {
+            $form->setOptions('lineFolderId', $folderOptions);
+            $form->setOptions('lineId', array('' => '') + $linesArr);
+        }
         if(!countR($linesArr)){
             $form->info = tr("Няма транспортни линии на заявка с бъдеща дата в избраната папка");
         }
 
         $form->setDefault('lineNotes', $rec->lineNotes);
-        $form->setOptions('lineFolderId', $folderOptions);
+
 
         // Ако е складов документ показват се и полета за складова информация
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){

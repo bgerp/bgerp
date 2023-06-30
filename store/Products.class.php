@@ -72,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'history,code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,lastUpdated';
+    public $listFields = 'history,code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,lastUpdated=Промяна на||Changed on';
     
     
     /**
@@ -91,6 +91,12 @@ class store_Products extends core_Detail
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
     public $hideListFieldsIfEmpty = 'history';
+
+
+    /**
+     * По колко максимум документа да се показват в хинта за запазващите документи
+     */
+    const SHOW_DOCUMENTS_IN_PLANNED_STOCK_HINT = 15;
 
 
     /**
@@ -214,15 +220,14 @@ class store_Products extends core_Detail
         }
 
         // Подготвяме формата
-        cat_Products::expandFilter($data->listFilter);
-        $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
-        if(!core_Packs::isInstalled('eshop')){
-            unset($orderOptions['eproduct']);
-        }
-        $data->listFilter->setOptions('order', $orderOptions);
+        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=store_Products)", 'caption=Филтри,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
         $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input,class=w30');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         $data->listFilter->FNC('setting', 'enum(productMeasureId=Основна мярка,basePack=Основна опаковка)', 'caption=Настройка,input,silent,recently');
+        $data->query->XPR('free', 'double', 'ROUND(COALESCE(#quantity, 0) - COALESCE(#reservedQuantity, 0), 2)');
+        $data->listFilter->view = 'horizontal';
 
         $hKey = 'productHorizonFilter' . core_Users::getCurrent();
         if ($lastHorizon = core_Permanent::get($hKey)) {
@@ -249,6 +254,7 @@ class store_Products extends core_Detail
         
         // Подготвяме в заявката да може да се търси по полета от друга таблица
         $data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
+        $data->query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $data->query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $data->query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $data->query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -256,16 +262,14 @@ class store_Products extends core_Detail
         $data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
 
         if (isset($data->masterMvc)) {
-            $data->listFilter->setDefault('order', 'all');
             $data->listFilter->showFields = 'horizon,search,groupId';
-
             if($data->masterMvc instanceof store_Stores){
                 $data->listFilter->setDefault('setting', $data->masterData->rec->displayStockMeasure);
             }
         } else {
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-            $data->listFilter->setDefault('order', 'active');
-            $data->listFilter->showFields = 'search,productId,storeId,order,groupId,horizon,setting';
+            $data->listFilter->setDefault('filters', 'active');
+            $data->listFilter->showFields = 'search,productId,storeId,filters,groupId,horizon,setting';
             unset($data->listFilter->view);
 
             $sKey = "stockSettingFilter" . core_Users::getCurrent();
@@ -274,7 +278,7 @@ class store_Products extends core_Detail
             }
         }
         $data->listFilter->setDefault('setting', 'productMeasureId');
-        $data->listFilter->input('horizon,productId,storeId,order,groupId,search,setting', 'silent');
+        $data->listFilter->input('horizon,productId,storeId,filters,groupId,search,setting', 'silent');
 
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
@@ -307,64 +311,33 @@ class store_Products extends core_Detail
                     $data->query->orWhere("#productId = {$rec->search}");
                 }
             }
-            
-            // Подредба
-            if (isset($rec->order)) {
-                switch ($data->listFilter->rec->order) {
-                    case 'all':
-                        break;
-                    case 'private':
-                        $data->query->where("#isPublic = 'no'");
-                        break;
-                    case 'last':
-                          $data->query->orderBy('#createdOn=DESC');
-                        break;
-                    case 'closed':
-                        $data->query->where("#state = 'closed'");
-                        break;
-                    case 'active':
-                        $data->query->where("#state != 'closed'");
-                        break;
-                    case 'reserved':
-                        $data->query->where("#reservedQuantity IS NOT NULL");
-                        break;
-                    case 'eproduct':
-                        $eProductArr = eshop_Products::getProductsInEshop();
-                        if(countR($eProductArr)){
-                            $data->query->in("productId", $eProductArr);
-                        } else {
-                            $data->query->where("1=2");
-                        }
-                        break;
-                    case 'free':
-                        $data->query->XPR('free', 'double', 'ROUND(COALESCE(#quantity, 0) - COALESCE(#reservedQuantity, 0), 2)');
-                        $data->query->orderBy('free', 'ASC');
-                        break;
-                    default:
-                        $data->query->where("#isPublic = 'yes'");
-                        break;
-                }
 
-                if(!empty($rec->horizon)){
+            $filtersArr = bgerp_type_CustomFilter::toArray($data->listFilter->rec->filters);
+            cat_Products::applyAdditionalListFilters($filtersArr, $data->query);
 
-                    // Добавяне в лист изгледа
-                    $data->horizon = dt::addSecs($rec->horizon, null, false);
-                    $horizonVerbal = dt::mysql2verbal($data->horizon, 'd.m.Y');
+            if(!empty($rec->horizon)){
 
-                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>"), null, 'freeQuantityMin');
-                    arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>"), null, 'reservedOut');
-                    arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>"), null, 'expectedIn');
-                    $mvc->FNC('reservedOut', 'double', ',tdClass=horizonCol red');
-                    $mvc->FNC('expectedIn', 'double', ',tdClass=horizonCol green');
-                    $mvc->FNC('resultDiff', 'double', ',tdClass=horizonCol');
+                // Добавяне в лист изгледа
+                $data->horizon = dt::addSecs($rec->horizon, null, false);
+                $horizonVerbal = dt::mysql2verbal($data->horizon, 'd.m.Y');
 
-                    core_Permanent::set($hKey, $rec->horizon);
-                } else {
-                    core_Permanent::remove($hKey);
-                }
+                arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}->|*<span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>"), null, 'freeQuantityMin');
+                arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}->|*<span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>"), null, 'reservedOut');
+                arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}->|*<span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>"), null, 'expectedIn');
+                $mvc->FNC('reservedOut', 'double', ',tdClass=horizonCol red');
+                $mvc->FNC('expectedIn', 'double', ',tdClass=horizonCol green');
+                $mvc->FNC('resultDiff', 'double', ',tdClass=horizonCol');
+
+                core_Permanent::set($hKey, $rec->horizon);
+            } else {
+                core_Permanent::remove($hKey);
             }
-            
-            $data->query->orderBy('#state,#code');
+
+            if(isset($filtersArr['lastAdded'])){
+                $data->query->orderBy('#productCreatedOn=DESC');
+            } else {
+                $data->query->orderBy('#state,#code');
+            }
             
             // Филтър по групи на артикула
             if (!empty($rec->groupId)) {
@@ -761,6 +734,7 @@ class store_Products extends core_Detail
         $toDate = Request::get('date', 'date');
         $today = dt::today();
         $recs = store_StockPlanning::getRecs($productId, $stores, $toDate, $field);
+        $recs = array_splice($recs, 0, static::SHOW_DOCUMENTS_IN_PLANNED_STOCK_HINT);
 
         $links = '';
         foreach($recs as $dRec){
@@ -798,6 +772,12 @@ class store_Products extends core_Detail
             $link->placeObject($row);
             $links .= $link->getContent();
         }
+
+        $storeId = (countR($stores) == 1) ? key($stores) : null;
+        Request::setProtected('hash');
+        $linkToFilter = ht::createLink(tr('Още|* ...'), array('store_StockPlanning', 'Browse', 'storeId' => $storeId, 'productId' => $productId, 'hash' => md5(store_StockPlanning::LIST_CACHE_STRING)))->getContent();
+        Request::removeProtected('hash');
+        $links .= "<br><div style='float:left;padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
 
         $tpl = new core_ET($links);
 
@@ -837,7 +817,9 @@ class store_Products extends core_Detail
                 
                 // Сумира се какво е общото к-во и сумата му
                 $dQuery = $Detail->getQuery();
-                $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+
+                $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
+                $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
                 $dRecs = $dQuery->fetchAll();
                 
                 if(countR($dRecs)){

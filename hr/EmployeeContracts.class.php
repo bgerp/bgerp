@@ -472,7 +472,7 @@ class hr_EmployeeContracts extends core_Master
             $recPosition = new stdClass();
             $recPosition->id = $position;
             
-            // Намираме всички останали активни рецепти
+            // Намираме всички останали активни договори
             $query = static::getQuery();
             $query->where("#state = 'active' AND #id != {$rec->id} AND #personId = {$rec->personId}");
             
@@ -876,5 +876,19 @@ class hr_EmployeeContracts extends core_Master
     public function cron_SetPersonDayType()
     {
         $this->colectPersonDaysType();
+    }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    protected static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($rec->brState == 'active' && $mvc->fetchField("#personId = {$rec->personId} AND #state = 'active'")){
+            core_Statuses::newStatus('Не може да възстановите договора, докато има друг активен|*!', 'error');
+
+            return false;
+        }
     }
 }

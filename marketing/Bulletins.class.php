@@ -80,7 +80,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'marketing_Wrapper,  plg_RowTools2, plg_Created, plg_State2, plg_Sorting';
+    public $loadList = 'blast_Wrapper,  plg_RowTools2, plg_Created, plg_State2, plg_Sorting';
     
     
     /**
@@ -340,7 +340,7 @@ class marketing_Bulletins extends core_Master
         if ($bRec->logo) {
             $thmb = new thumb_Img(array($bRec->logo, 400, 400, 'isAbsolute' => true));
             
-            $logoUrl = $thmb->getUrl('deferred');
+            $logoUrl = $thmb->getUrl('forceDeferred');
             $logoUrl = preg_replace("/^https?\:\/\//", '//', $logoUrl, 1);
             $logoUrl = addslashes($logoUrl);
             $logoUrl = self::prepareUrlForHostName($logoUrl, $isLocal);

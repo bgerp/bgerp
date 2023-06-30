@@ -55,7 +55,7 @@ class rack_Racks extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,rack';
+    public $canList = 'ceo,rackSee';
     
     
     /**

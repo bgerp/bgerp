@@ -129,7 +129,7 @@ class email_Outgoings extends core_Master
      */
     public $loadList = 'email_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, change_Plugin';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, change_Plugin, plg_Sorting';
     
     
     /**
@@ -214,7 +214,7 @@ class email_Outgoings extends core_Master
      */
     public function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText,changable,tdClass=emailListTitle');
+        $this->FLD('subject', 'varchar(autocomplete=off)', 'caption=Относно,mandatory,width=100%,reduceText,changable,tdClass=emailListTitle');
         $this->FLD('body', 'richtext(rows=15,bucket=Postings,passage,oembed=none)', 'caption=Съобщение,mandatory,changable');
         
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
@@ -1328,11 +1328,10 @@ class email_Outgoings extends core_Master
                         if (!cls::load($fileInfo['className'], true)) {
                             continue;
                         }
-                        
-                        $cls = cls::get($fileInfo['className']);
-                        
-                        $hRec = $cls->fetch($fileInfo['id']);
-                        
+
+                        $className = $fileInfo['className'];
+                        $hRec = $className::fetchByHandle($fileInfo);
+
                         if (($form->rec->theadId && (($form->rec->theadId != $hRec->threadId))) ||
                             ($form->rec->folderId && (($form->rec->folderId != $hRec->folderId)))) {
                             $quotOtherArr[$hnd] = $hnd;
@@ -2166,7 +2165,7 @@ class email_Outgoings extends core_Master
      * @param stdClass $contragentData
      * @param stdClass $rec
      */
-    protected static function setContragentDataToRec($contragentData, &$rec)
+    public static function setContragentDataToRec($contragentData, &$rec)
     {
         if (!$contragentData) {
             
@@ -2409,11 +2408,11 @@ class email_Outgoings extends core_Master
         
         // Вземаме данните за нашата фирма
         $companyRec = crm_Companies::fetch($companyId);
-        
+
         $footerData = array();
         
         // Името на компанията
-        $footerData['company'] = transliterate(tr($companyRec->name));
+        $footerData['company'] = crm_Companies::getVerbal($companyRec, 'name');
         
         // Името на потребителя
         $footerData['name'] = transliterate($personRec->name);
@@ -2633,23 +2632,25 @@ class email_Outgoings extends core_Master
         }
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
-        
+
         if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active' || $data->rec->state == 'pending')) {
             $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
-            $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
-            $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
-            if (!$notifyUserId) {
-                $notifyUserId = $data->rec->activatedBy;
-            }
-            $data->row->notifyUser = crm_Profiles::createLink($notifyUserId);
-            
-            if ($mvc->haveRightFor('close', $data->rec)) {
-                $data->row->removeNotify = ht::createLink(
-                    '',
-                    array($mvc, 'close', $data->rec->id, 'ret_url' => true),
-                    tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
-                                                            array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => 'Премахване на изчакването за отговор')
-                );
+            if ($notifyDate > dt::now()) {
+                $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
+                $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
+                if (!$notifyUserId) {
+                    $notifyUserId = $data->rec->activatedBy;
+                }
+                $data->row->notifyUser = crm_Profiles::createLink($notifyUserId);
+
+                if ($mvc->haveRightFor('close', $data->rec)) {
+                    $data->row->removeNotify = ht::createLink(
+                        '',
+                        array($mvc, 'close', $data->rec->id, 'ret_url' => true),
+                        tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
+                                                                array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => 'Премахване на изчакването за отговор')
+                    );
+                }
             }
         }
         
@@ -2879,9 +2880,10 @@ class email_Outgoings extends core_Master
         
         // Вземаме всички чакащи или събудени имейли
         $query = static::getQuery();
-        $query->where("#state = 'waiting'");
-        $query->orWhere("#state = 'wakeup'");
-        
+        $query->where("#state = 'wakeup'");
+        $query->orWhere("#state = 'waiting'");
+        $query->orWhere("#waiting > 0 AND (#state = 'waiting' OR #state = 'active' OR #state = 'pending')");
+
         while ($rec = $query->fetch()) {
             
             // Дали да се записва
@@ -2932,7 +2934,7 @@ class email_Outgoings extends core_Master
                     self::logWrite('Събуждане', $rec->id);
                 }
             }
-            
+
             // Ако е вдигнат флага, записваме
             if ($flagSave) {
                 if (static::save($nRec, $saveFiedsArr)) {

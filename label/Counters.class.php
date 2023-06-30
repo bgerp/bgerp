@@ -60,12 +60,6 @@ class label_Counters extends core_Master
     
     
     /**
-     * Кой има право да го види?
-     */
-    public $canView = 'label, admin, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'label, admin, ceo';

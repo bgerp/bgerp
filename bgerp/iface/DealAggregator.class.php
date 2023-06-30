@@ -122,4 +122,18 @@ class bgerp_iface_DealAggregator
         $a = &$this->{$name};
         $a[$index][] = $array;
     }
+
+
+    /**
+     * Сумира към стойност от индекс
+     *
+     * @param string $name  - име на пропърти
+     * @param string $value - име на пропърти
+     * @param mixed  $index - индекс
+     */
+    public function sumByArrIndex($name, $value, $index)
+    {
+        $a = &$this->{$name};
+        $a[$index] += $value;
+    }
 }

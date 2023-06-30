@@ -53,12 +53,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        if (isset($rec->id)) {
-            
+        if (isset($rec->id) && $data->action != 'clone') {
+
             return;
         }
         $form->FNC('batch', 'text', 'caption=Партида,after=productId,input=none');
-        
+
         // Задаване на типа на партидата на полето
         if (isset($rec->{$mvc->productFieldName})) {
             $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
@@ -69,7 +69,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 // Ако има само позволени опции само тях
                 $allowedOptions = $mvc->getAllowedInBatches($rec);
                 if(is_array($allowedOptions)){
-                    $form->setOptions('batch', array('' => '') + $allowedOptions);
+                    if(countR($allowedOptions) == 1){
+                        $form->setOptions('batch', $allowedOptions);
+                        $form->setDefault('batch', key($allowedOptions));
+                    } else {
+                        $form->setOptions('batch', array('' => '') + $allowedOptions);
+                    }
                 }
 
                 if (isset($BatchClass->fieldPlaceholder)) {
@@ -138,7 +143,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        if (isset($rec->id)) {
+
+        if (isset($rec->id) && !$form->_cloneForm) {
             
             return;
         }
@@ -247,7 +253,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         } else {
             $rec->batch = null;
         }
-        
+
         // Ако записа е редактиран и к-то е променено
         if ($rec->isEdited === true && isset($rec->id)) {
             if ($rec->quantity != $mvc->fetchField($rec->id, 'quantity')) {
@@ -271,13 +277,15 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
-            if ($rec->autoAllocate === true) {
-                batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
-                self::autoAllocate($mvc, $rec);
-                core_Statuses::newStatus('Преразпределени партиди, поради променено количество');
+            if($rec->_forceBatch !== true){
+                if ($rec->autoAllocate === true) {
+                    batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
+                    self::autoAllocate($mvc, $rec);
+                    core_Statuses::newStatus('Преразпределени партиди, поради променено количество');
+                }
+
+                return;
             }
-            
-            return;
         }
         
         if ($rec->isEdited === true) {
@@ -431,7 +439,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             // Ако има склад и документа е входящ, не може
             $info = $mvc->getRowInfo($rec);
 
-            $storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+            $storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : (isset($mvc->Master) ? $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName) : null);
 
             if (!$storeId || !is_array($info->operation) || !countR($info->operation)) {
                 $res = 'no_one';

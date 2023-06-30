@@ -352,9 +352,9 @@ class cat_Products extends embed_Manager
     {
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
-        $this->FLD('code', 'varchar(32, ci)', 'caption=Код,remember=info,width=15em,focus');
-        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field,remember');
-        $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
+        $this->FLD('code', 'varchar(32, ci, autocomplete=off)', 'caption=Код,remember=info,width=15em,focus');
+        $this->FLD('name', 'varchar(autocomplete=off)', 'caption=Наименование,remember=info,width=100%, translate=field,remember');
+        $this->FLD('nameEn', 'varchar(autocomplete=off)', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes, passage)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,silent,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
@@ -378,8 +378,10 @@ class cat_Products extends embed_Manager
         $this->setDbIndex('canStore');
         $this->setDbIndex('canConvert');
         $this->setDbIndex('fixedAsset');
+        $this->setDbIndex('state');
         $this->setDbIndex('canManifacture');
-        
+        $this->setDbIndex('createdOn');
+
         $this->setDbUnique('code');
     }
     
@@ -410,7 +412,8 @@ class cat_Products extends embed_Manager
                 if (!empty($lastDriver)) {
                     if (cls::load($lastDriver, true)) {
                         if (cls::get($lastDriver)->canSelectDriver()) {
-                            return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver));
+
+                            return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver, 'ret_url' => getRetUrl()));
                         }
                     }
                 }
@@ -442,7 +445,7 @@ class cat_Products extends embed_Manager
                 $defMetas = type_Set::toArray($defMetas);
             } else {
                 if ($Driver = $mvc->getDriver($rec)) {
-                    $defMetas = $Driver->getDefaultMetas($rec->meta);
+                    $defMetas = $Driver->getDefaultMetas($rec);
                     if (countR($defMetas)) {
                         $form->setField('meta', 'autohide=any');
                     }
@@ -457,8 +460,9 @@ class cat_Products extends embed_Manager
                 // Задаваме дефолтните свойства
                 $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
             }
-            
+
             // Ако корицата не е на контрагент
+            $lastCode = Mode::get('cat_LastProductCode');
             if (!$cover->haveInterface('crm_ContragentAccRegIntf')) {
                 
                 // Правим кода на артикула задължителен, ако не е шаблон
@@ -466,43 +470,13 @@ class cat_Products extends embed_Manager
                     $form->setField('code', 'mandatory');
                 }
 
-                // Кой е последно добавения код
-                $lastCode = Mode::get('cat_LastProductCode');
-
-                // При клониране се използва кода на клонирания артикул
-                if($data->action == 'clone'){
-                    if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
-                        $lastCode = $clonedCode;
-                    }
-                }
-
-                // Ако има намерен код, прави се опит да се инкрементира, докато се получи свободен код
-                if(!empty($lastCode)){
-                    $newCode = str::increment($lastCode);
-                    if($newCode){
-                        while (cat_Products::getByCode($newCode)) {
-                            if($newCode = str::increment($newCode)){
-                                if (!cat_Products::getByCode($newCode)) {
-                                    break;
-                                }
-                            }
-                        }
-                    } elseif($data->_isSaveAndNew || $data->action == 'clone') {
-                        // Ако все пак има предишен код, който не е инкремениран попълва се той
-                        $newCode = $lastCode;
-                    }
-
-                    // Ако има намерен такъв код - попълва се
-                    if(!empty($newCode)){
-                        $form->setDefault('code', $newCode);
-                    }
-                }
-
                 if ($cover->isInstanceOf('cat_Categories')) {
-                    
+                    if(empty($cover->fetchField('prefix'))){
+                        $lastCode = Mode::get('cat_LastProductCode');
+                    }
+
                     // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
                     $CategoryRec = $cover->rec();
-
                     if(empty($rec->code)){
                         if ($code = $cover->getDefaultProductCode()) {
                             $form->setDefault('code', $code);
@@ -521,13 +495,41 @@ class cat_Products extends embed_Manager
                         if (isset($rec->measureId)) {
                             $categoryMeasures[$rec->measureId] = $rec->measureId;
                         }
-                        
                         $measureOptions = array_intersect_key($measureOptions, $categoryMeasures);
                     }
                 }
             }
+
+            // При клониране се използва кода на клонирания артикул
+            if($data->action == 'clone'){
+                if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
+                    $lastCode = $clonedCode;
+                }
+            }
+
+            // Ако има намерен код, прави се опит да се инкрементира, докато се получи свободен код
+            if(!empty($lastCode)){
+                $newCode = str::increment($lastCode);
+                if($newCode){
+                    while (cat_Products::getByCode($newCode)) {
+                        if($newCode = str::increment($newCode)){
+                            if (!cat_Products::getByCode($newCode)) {
+                                break;
+                            }
+                        }
+                    }
+                } elseif($data->_isSaveAndNew || $data->action == 'clone') {
+                    // Ако все пак има предишен код, който не е инкремениран попълва се той
+                    $newCode = $lastCode;
+                }
+
+                // Ако има намерен такъв код - попълва се
+                if(!empty($newCode)){
+                    $form->setDefault('code', $newCode);
+                }
+            }
         }
-        
+
         // Ако артикула е създаден от източник
         if (isset($rec->originId) && $form->cmd != 'refresh') {
             $document = doc_Containers::getDocument($rec->originId);
@@ -551,9 +553,15 @@ class cat_Products extends embed_Manager
             $form->setDefault('measureId', $defaultUomId);
             $form->setField('measureId', 'input=hidden');
         } else {
-            if ($defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')) {
-                $measureOptions[$defMeasure] = cat_UoM::getTitleById($defMeasure, false);
-                $form->setDefault('measureId', $defMeasure);
+            if ($defMeasureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')) {
+                if(array_key_exists($defMeasureId, $measureOptions)){
+                    $form->setDefault('measureId', $defMeasureId);
+                } elseif(countR($measureOptions)) {
+                    $form->setDefault('measureId', key($measureOptions));
+                } else {
+                    $measureOptions[$defMeasureId] = cat_UoM::getTitleById($defMeasureId, false);
+                    $form->setDefault('measureId', $defMeasureId);
+                }
             }
             
             // Задаваме позволените мерки като опция
@@ -651,6 +659,21 @@ class cat_Products extends embed_Manager
             if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $rec->id, $metaError)) {
                 $form->setError('meta', $metaError);
             }
+
+            if(isset($rec->id)){
+                $jobArr = array();
+                $jQuery = planning_Jobs::getQuery();
+                $jQuery->where("#productId = {$rec->id} AND #state IN ('active', 'stopped', 'wakeup')");
+                $jQuery->show('id');
+                while($jRec = $jQuery->fetch()){
+                    $jobArr[$jRec->id] = planning_Jobs::getLink($jRec->id, 0)->getContent();
+                }
+
+                if(countR($jobArr)){
+                    $jobString = implode(',', $jobArr);
+                    $form->setWarning('name', "Артикулът се използва в|*: {$jobString}<br>|За да се отрази промяната в заданията, те трябва да бъдат спрени (бутон „Пауза“) и пуснати отново|*!");
+                }
+            }
         }
     }
     
@@ -727,7 +750,7 @@ class cat_Products extends embed_Manager
         
         $defMetas = array();
         if ($Driver = $this->getDriver($rec)) {
-            $defMetas = $Driver->getDefaultMetas();
+            $defMetas = $Driver->getDefaultMetas($rec);
         }
         
         if (!countR($defMetas)) {
@@ -944,165 +967,208 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Добавяне на полета към филтър форма
-     *
-     * @param core_Form $listFilter
-     *
-     * @return void
-     */
-    public static function expandFilter(&$listFilter)
-    {
-        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%,withBatches=С партидност,withoutBatches=Без партидност');
-        if (!core_Packs::isInstalled('eshop')) {
-            unset($orderOptions['eproduct']);
-        }
-        if (!core_Packs::isInstalled('batch')) {
-            unset($orderOptions['withBatches'], $orderOptions['withoutBatches']);
-        }
-        $orderOptions = arr::fromArray($orderOptions);
-        $listFilter->FNC('order', "enum({$orderOptions})", 'caption=Подредба,input,silent,remember,autoFilter');
-        $listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
-        
-        $listFilter->view = 'horizontal';
-    }
-    
-    
-    /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        static::expandFilter($data->listFilter);
-        
+        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=cat_Products)", 'caption=Филтри,input,silent,remember,autoFilter,row=2');
+        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
+        $data->listFilter->view = 'horizontal';
+
         $data->listFilter->input(null, 'silent');
-        $defOrder = 'standard';
+        $defOrder = 'publicProducts,active';
         if ($data->listFilter->rec->groupId) {
-            $defOrder = 'all';
+            $defOrder = null;
         }
-        $data->listFilter->setDefault('order', $defOrder);
-        
+
+        $data->listFilter->setDefault('filters', $defOrder);
         $data->listFilter->FNC('type', 'class', 'caption=Вид');
         $classes = core_Classes::getOptionsByInterface('cat_ProductDriverIntf', 'title');
         $data->listFilter->setOptions('type', array('' => '') + $classes);
-        
-        $data->listFilter->FNC('meta1', 'enum(all=Свойства,
-       							canSell=Продаваеми,
-                                canBuy=Купуваеми,
-                                canStore=Складируеми,
-    							services=Услуги,
-                                canConvert=Вложими,
-    							canConvertServices=Вложими услуги,
-                                fixedAsset=Дълготрайни активи,
-    							fixedAssetStorable=Дълготрайни материални активи,
-    							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
-        					    canManifacture=Производими,generic=Генерични)', 'input,autoFilter');
-        $data->listFilter->showFields = 'search,order,type,meta1,groupId';
-        $data->listFilter->input('order,groupId,search,meta1,type', 'silent');
-        
-        // Ако е избран маркер и той е указано да се подрежда по код, сортираме по код
-        $orderBy = 'state';
-        if (!empty($data->listFilter->rec->groupId)) {
-            $gRec = cat_Groups::fetch($data->listFilter->rec->groupId);
-            if ($gRec->orderProductBy == 'code') {
-                $orderBy .= ',code';
-            } else {
-                $orderBy .= ',name';
-            }
-        } else {
-            $orderBy .= ',createdOn=DESC';
-        }
-        
-        if ($data->listFilter->rec->type) {
-            $data->query->where("#innerClass = {$data->listFilter->rec->type}");
-        }
-        
-        switch ($data->listFilter->rec->order) {
-            case 'all':
-                $data->query->orderBy($orderBy);
-                break;
-            case 'private':
-                $data->query->where("#isPublic = 'no'");
-                $data->query->orderBy($orderBy);
-                break;
-            case 'last':
+        $data->listFilter->showFields = 'search,filters,type,groupId,folder';
+        $data->listFilter->input('filters,groupId,search,type,folder', 'silent');
+
+        if($filterRec = $data->listFilter->rec){
+            $filtersArr = bgerp_type_CustomFilter::toArray($filterRec->filters);
+            if(isset($filtersArr['lastAdded'])){
                 $data->query->orderBy('#createdOn=DESC');
-                break;
-            case 'closed':
-                $data->query->where("#state = 'closed'");
-                $data->query->orderBy($orderBy);
-                break;
-            case 'prototypes':
-                $data->query->where("#state = 'template'");
-                break;
-            case 'eproduct':
-                $eProductArr = eshop_Products::getProductsInEshop();
-                if (countR($eProductArr)) {
-                    $data->query->in('id', $eProductArr);
+            } else {
+                // Ако е избран маркер и той е указано да се подрежда по код, сортираме по код
+                $orderBy = 'state';
+                if (!empty($filterRec->groupId)) {
+                    $gRec = cat_Groups::fetch($filterRec->groupId);
+                    if ($gRec->orderProductBy == 'code') {
+                        $orderBy .= ',code';
+                    } else {
+                        $orderBy .= ',name';
+                    }
                 } else {
-                    $data->query->where('1=2');
+                    $orderBy .= ',createdOn=DESC';
                 }
-                break;
-            case 'vat09':
-            case 'vat0':
-                $v = ($data->listFilter->rec->order == 'vat09') ? 0.09 : 0;
-                $products = cat_products_VatGroups::getByVatPercent($v);
-                if (countR($products)) {
-                    $data->query->in('id', $products);
-                } else {
-                    $data->query->where('1=2');
-                }
-                break;
-            case 'withBatches':
-                $productsWithBatches = batch_Items::getProductsWithDefs();
-                if(countR($productsWithBatches)){
-                    $data->query->where("#canStore = 'yes'");
-                    $data->query->in('id', array_keys($productsWithBatches));
-                }
-                break;
-            case 'withoutBatches':
-                $productsWithBatches = batch_Items::getProductsWithDefs();
-                if(countR($productsWithBatches)){
-                    $data->query->where("#canStore = 'yes'");
-                    $data->query->notIn('id', array_keys($productsWithBatches));
-                }
-                break;
-            default:
-                $data->query->where("#isPublic = 'yes' AND #state != 'template' AND #state != 'closed'");
                 $data->query->orderBy($orderBy);
-                break;
-        }
-        
-        // Филтър по свойства
-        if ($data->listFilter->rec->meta1) {
-            switch ($data->listFilter->rec->meta1) {
-                case 'services':
-                    $data->query->where("#canStore = 'no'");
-                    break;
-                case 'fixedAssetStorable':
-                    $data->query->where("#canStore = 'yes' and #fixedAsset = 'yes'");
-                    break;
-                case 'fixedAssetNotStorable':
-                    $data->query->where("#canStore = 'no' and #fixedAsset = 'yes'");
-                    break;
-                case 'canConvertServices':
-                    $data->query->where("#canConvert = 'yes' and #canStore = 'no'");
-                    break;
-                case 'all':
-                    break;
-                default:
-                    $data->query->like('meta', $data->listFilter->rec->meta1);
-                    break;
             }
-        }
-        
-        if ($data->listFilter->rec->groupId) {
-            $data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groups)");
+
+            if ($filterRec->type) {
+                $data->query->where("#innerClass = {$filterRec->type}");
+            }
+
+            if (!empty($filterRec->folder)) {
+                $data->query->where("#folderId = {$filterRec->folder}");
+            }
+
+            if (!empty($filterRec->groupId)) {
+                $data->query->where("LOCATE('|{$filterRec->groupId}|', #groups)");
+            }
+
+            static::applyAdditionalListFilters($filtersArr, $data->query);
         }
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
-    
-    
+
+
+    /**
+     * Прилагане на разширени филтри от bgerp_Filters
+     *
+     * @param array|string $filtersArr
+     * @param core_Query $query
+     * @return void
+     */
+    public static function applyAdditionalListFilters($filtersArr, &$query)
+    {
+        $filtersArr = is_array($filtersArr) ? $filtersArr : bgerp_type_CustomFilter::toArray($filtersArr);
+        if(!countR($filtersArr)) return;
+
+        $whereArr = array();
+        $wherePartOne = '';
+        if(isset($filtersArr['publicProducts'])){
+            $wherePartOne .= "#isPublic = 'yes'";
+        }
+        if(isset($filtersArr['privateProducts'])){
+            $wherePartOne .= (!empty($wherePartOne) ? ' OR ' : '') . "#isPublic = 'no'";
+        }
+        if(isset($filtersArr['eshopProducts'])) {
+            $eProductArr = eshop_Products::getProductsInEshop();
+            if(countR($eProductArr)){
+                $eProductArrStr = implode(',',  $eProductArr);
+                $wherePartOne .= (!empty($wherePartOne) ? ' OR ' : '') . "#id IN ({$eProductArrStr})";
+            }
+        }
+        if(!empty($wherePartOne)){
+            $whereArr[] = $wherePartOne;
+        }
+
+        $wherePartTwo = '';
+        if(isset($filtersArr['active'])) {
+            $wherePartTwo .= "#state = 'active'";
+        }
+        if(isset($filtersArr['templates'])) {
+            $wherePartTwo .= (!empty($wherePartTwo) ? ' OR ' : '') . "#state = 'template'";
+        }
+        if(isset($filtersArr['closed'])) {
+            $wherePartTwo .= (!empty($wherePartTwo) ? ' OR ' : '') . "#state = 'closed'";
+        }
+        if(!empty($wherePartTwo)){
+            $whereArr[] = $wherePartTwo;
+        }
+
+        if(isset($filtersArr['withBatches']) || isset($filtersArr['withoutBatches'])){
+            $wherePartThree = "#canStore = 'yes'";
+            $productsWithBatches = batch_Items::getProductsWithDefs(false);
+            $productsWithBatchesStr = implode(',', $productsWithBatches);
+
+            if(isset($filtersArr['withBatches']) && !isset($filtersArr['withoutBatches'])){
+                if(!empty($productsWithBatchesStr)){
+                    $wherePartThree .= " AND #id IN ({$productsWithBatchesStr})";
+                } else {
+                    $wherePartThree .= " AND 1=2";
+                }
+            }
+            if(isset($filtersArr['withoutBatches']) && !isset($filtersArr['withBatches'])){
+                if(!empty($productsWithBatchesStr)){
+                    $wherePartThree .= " AND #id NOT IN ({$productsWithBatchesStr})";
+                }
+            }
+            $whereArr[] = $wherePartThree;
+        }
+
+        $wherePartFour = "";
+        if(isset($filtersArr['vat0'])) {
+            $productWithVat = cat_products_VatGroups::getByVatPercent(0);
+            if(countR($productWithVat)){
+                $productWithVatStr = implode(',', $productWithVat);
+                $wherePartFour = "#id IN ({$productWithVatStr})";
+            } else {
+                $wherePartFour = "1=2";
+            }
+        }
+
+        if(isset($filtersArr['vat9'])) {
+            $productWithVat = cat_products_VatGroups::getByVatPercent(0.09);
+            if(countR($productWithVat)){
+                $productWithVatStr = implode(',', $productWithVat);
+                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#id IN ({$productWithVatStr})";
+            } else{
+                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
+            }
+        }
+
+        if(isset($filtersArr['vat20'])) {
+            $productWithWith0And9Vat = cat_products_VatGroups::getByVatPercent(0) + cat_products_VatGroups::getByVatPercent(0.09);
+            if(countR($productWithWith0And9Vat)){
+                $productWithVatStr = implode(',', $productWithWith0And9Vat);
+                $wherePartFour = "#id NOT IN ({$productWithVatStr})";
+            } else {
+                $wherePartFour = "1=2";
+            }
+        }
+
+        if(!empty($wherePartFour)){
+            $whereArr[] = $wherePartFour;
+        }
+
+        $wherePartFive = '';
+        foreach (array('reservedQuantity' => 'reservedQuantity', 'expectedQuantity' => 'expectedQuantity', 'freeQuantity' => 'free') as $filter => $field){
+            if(isset($filtersArr[$filter])) {
+                $wherePartFive = (!empty($wherePartFive) ? ' OR ' : '') . "#{$field} IS NOT NULL";
+            }
+        }
+        if(!empty($wherePartFive)){
+            $whereArr[] = $wherePartFive;
+        }
+
+        $wherePartSix = '';
+        foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'generic') as $meta){
+            if(isset($filtersArr[$meta])) {
+                $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "#{$meta} = 'yes'";
+            }
+        }
+        if(isset($filtersArr['services'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "#canStore = 'no'";
+        }
+        if(isset($filtersArr['fixedAssetStorable'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "(#canStore = 'yes' AND #fixedAsset = 'yes')";
+        }
+        if(isset($filtersArr['fixedAssetNotStorable'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "(#canStore = 'no' and #fixedAsset = 'yes')";
+        }
+        if(isset($filtersArr['canConvertServices'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "(#canConvert = 'yes' and #canStore = 'no')";
+        }
+        if(isset($filtersArr['canConvertMaterials'])) {
+            $wherePartSix .= (!empty($wherePartSix) ? ' OR ' : '') . "(#canConvert = 'yes' and #canStore = 'yes')";
+        }
+        if(!empty($wherePartSix)){
+            $whereArr[] = $wherePartSix;
+        }
+
+        foreach ($whereArr as $where){
+            $query->where($where);
+        }
+    }
+
+
     /**
      * Перо в номенклатурите, съответстващо на този продукт
      *
@@ -1153,14 +1219,30 @@ class cat_Products extends embed_Manager
      * @param core_Query $query
      * @param string|bool $order - ако е false - не подрежда, а само добавя полето. Може да е `DESC` или `ASC`
      * @param string $prefix - префикс, когато няма код се използва `id`, а този префикс се добавя преди него. Може и да е празен стринг
+     * @params int $priority - приоритет на подредбата
      */
-    public static function setCodeToQuery(&$query, $order = 'DESC', $prefix = 'Art')
+    public static function setCodeToQuery(&$query, $order = 'DESC', $prefix = 'Art', $priority = 0)
     {
         $query->XPR('calcCode', 'varchar', "IF((#code IS NULL OR #code = ''), CONCAT('{$prefix}', #id), #code)");
 
         if ($order !== false) {
-            $query->orderBy('calcCode', $order);
+            $query->orderBy('calcCode', $order, $priority);
         }
+    }
+
+
+    /**
+     * Прихваща извикването на prepareListQuery в doc_Threads
+     * Подрежда артикулите в папката по код
+     *
+     * @param $mvc
+     * @param core_Query $threadQuery
+     * @return void
+     */
+    public static function on_PrepareListQuery($mvc, &$threadQuery)
+    {
+        $threadQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=firstDocId');
+        $mvc->setCodeToQuery($threadQuery, 'ASC', 'Art', -0.015);
     }
 
 
@@ -1379,8 +1461,12 @@ class cat_Products extends embed_Manager
                 price_Cache::invalidateProduct($rec->id);
             }
         }
-        
-        Mode::setPermanent('cat_LastProductCode', $rec->code);
+
+        // Записване в сесията само при създаване на нов артикул а не и при редакция
+        if($rec->_isCreated){
+            Mode::setPermanent('cat_LastProductCode', $rec->code);
+            Mode::setPermanent("cat_LastProductCode{$rec->folderId}", $rec->code);
+        }
         
         if (isset($rec->originId)) {
             doc_DocumentCache::cacheInvalidation($rec->originId);
@@ -1414,7 +1500,7 @@ class cat_Products extends embed_Manager
         // Ако се затваря артикула затварят се и готовите задания
         if($rec->state == 'closed' && $rec->brState == 'active'){
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')){
-                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'))){
+                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след затваряне на артикул')){
                     core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                 }
             }
@@ -1521,8 +1607,18 @@ class cat_Products extends embed_Manager
         } else {
             if($params['showTemplates']) {
                 $query->where("#state = 'active' OR #state = 'template'");
+                if(isset($params['driverId'])){
+                    $ignoreFolderIds = cls::get($params['driverId'])->getFoldersToIgnoreTemplates();
+                    if(countR($ignoreFolderIds)){
+                        $query->notIn('folderId', $ignoreFolderIds);
+                    }
+                }
             } elseif($params['onlyTemplates']){
                 $query->where("#state = 'template'");
+                $ignoreFolderIds = cls::get($params['driverId'])->getFoldersToIgnoreTemplates();
+                if(countR($ignoreFolderIds)){
+                    $query->notIn('folderId', $ignoreFolderIds);
+                }
             } else {
                 $query->where("#state = 'active'");
             }
@@ -1574,6 +1670,10 @@ class cat_Products extends embed_Manager
                 $query->where("#innerClass = {$params['driverId']}");
             }
 
+            if (isset($params['notDriverId'])) {
+                $query->where("#innerClass != {$params['notDriverId']}");
+            }
+
             // Ако има ограничение по ид-та
             if (isset($params['onlyIn'])) {
                 $query->in('id', $params['onlyIn']);
@@ -1600,10 +1700,23 @@ class cat_Products extends embed_Manager
         }
 
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id, ' ', #id))");
-        $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
-        $query->orderBy('isPublic', $direction);
-        if (!trim($q)) {
-            $query->orderBy('createdOn', 'DESC');
+        $query->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
+
+        if(isset($params['orderBy'])){
+            list($orderByField, $orderByDir) = explode('=', $params['orderBy']);
+            if($orderByField == 'code'){
+                $orderByField = 'codeExp';
+            } else {
+                $orderByField = 'id';
+            }
+
+            $query->orderBy($orderByField, $orderByDir);
+        } else {
+            $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
+            $query->orderBy('isPublic', $direction);
+            if (!trim($q)) {
+                $query->orderBy('createdOn', 'DESC');
+            }
         }
 
         if ($q) {
@@ -1635,44 +1748,56 @@ class cat_Products extends embed_Manager
         $mArr = array();
 
         // Подготвяне на опциите
-        $showFields = 'isPublic,folderId,meta,id,code,name,nameEn,state,measureId,innerClass';
+        $showFields = 'isPublic,folderId,meta,id,code,name,nameEn,state,measureId,innerClass,info';
         if (isset($params['listId'])) {
             $showFields .= ",reff";
         }
         $query->show($showFields);
 
         while ($rec = $query->fetch()) {
-            $title = static::getRecTitle($rec, false);
-            if(!empty($rec->reff)){
-                $title = "[{$rec->reff}]  {$title}";
+            $title = null;
+            if($params['display'] == 'info'){
+                Mode::push('text', 'plain');
+                $info = cat_Products::getVerbal($rec->id, 'info');
+                Mode::pop('text');
+                if(!empty($info)){
+                    $title = $info;
+                }
             }
 
-            // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
-            $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
-            if(!is_numeric($onlyIds)){
-                if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
-                    $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
-                    if(isset($policyInfo->price)){
-                        $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
-                        $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
-                        $measureId = $rec->measureId;
+            if(empty($title)){
+                $title = static::getRecTitle($rec, false);
+                if(!empty($rec->reff)){
+                    $title = "[{$rec->reff}]  {$title}";
+                }
 
-                        if($showPrices == 'basePack'){
-                            if($packRec = cat_products_Packagings::fetch("#productId = {$rec->id} AND #isBase = 'yes'", 'packagingId,quantity')){
-                                $measureId = $packRec->packagingId;
-                                $price *= $packRec->quantity;
+                // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
+                $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
+                if(!is_numeric($onlyIds)){
+                    if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
+                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
+                        if(isset($policyInfo->price)){
+                            $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
+                            $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
+                            $measureId = $rec->measureId;
+
+                            if($showPrices == 'basePack'){
+                                if($packRec = cat_products_Packagings::fetch("#productId = {$rec->id} AND #isBase = 'yes'", 'packagingId,quantity')){
+                                    $measureId = $packRec->packagingId;
+                                    $price *= $packRec->quantity;
+                                }
                             }
-                        }
 
-                        Mode::push('text', 'plain');
-                        $priceVerbal = price_Lists::roundPrice($listId, $price, true);
-                        Mode::pop();
-                        $measureName = cat_UoM::getShortName($measureId);
-						
-						if ($params['priceData']['currencyId'] == 'BGN') {
-							$title .= " ...... {$priceVerbal} " . tr('лв') . "/{$measureName}";
-						} else
-							$title .= " ...... {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
+                            Mode::push('text', 'plain');
+                            $priceVerbal = price_Lists::roundPrice($listId, $price, true);
+                            Mode::pop();
+                            $measureName = cat_UoM::getShortName($measureId);
+
+                            if ($params['priceData']['currencyId'] == 'BGN') {
+                                $title .= " ...... {$priceVerbal} " . tr('лв') . "/{$measureName}";
+                            } else
+                                $title .= " ...... {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
+                        }
                     }
                 }
             }
@@ -1701,17 +1826,19 @@ class cat_Products extends embed_Manager
             });
         }
 
-        // Подредба по азбучен ред
-        if ($q) {
-            if (!empty($products)) {
-                asort($products);
-            }
-            if (!empty($private)) {
-                asort($private);
-            }
+        if(!isset($params['orderBy'])) {
+            // Подредба по азбучен ред
+            if ($q) {
+                if (!empty($products)) {
+                    asort($products);
+                }
+                if (!empty($private)) {
+                    asort($private);
+                }
 
-            if (!empty($templates)) {
-                asort($templates);
+                if (!empty($templates)) {
+                    asort($templates);
+                }
             }
         }
 
@@ -1759,7 +1886,9 @@ class cat_Products extends embed_Manager
 
         // Частните артикули излизат преди публичните
         if (countR($private)) {
-            krsort($private);
+            if(!isset($params['orderBy'])) {
+                krsort($private);
+            }
             if (!isset($onlyIds)) {
                 $private = array('pr' => (object) array('group' => true, 'title' => tr('Нестандартни'))) + $private;
             }
@@ -1903,16 +2032,14 @@ class cat_Products extends embed_Manager
 
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
         $date = price_ListToCustomers::canonizeTime($date);
-
         if($isPublic == 'yes'){
 
             // Ако е стандартен първо се търси цената по политика "Себестойност", ако няма от драйвера
             $primeCostDefault = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
             $primeCost = (isset($primeCostDefault)) ? $primeCostDefault : $primeCostDriver;
         } else {
-
             // Ако е нестандартен се търси първо от драйвера, после от себестойност
-            $primeCost = (is_object($primeCostDriver) && isset($primeCostDriver->price) || isset($primeCostDriver)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+            $primeCost = (is_object($primeCostDriver) && !empty($primeCostDriver->price)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
 
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
@@ -1954,12 +2081,13 @@ class cat_Products extends embed_Manager
      * Първия елемент на масива е основната опаковка (ако няма основната мярка)
      *
      * @param int            $productId    - ид на артикул
+     * @param null|int       $exPackId     - съществуваща опаковка
      * @param bool           $onlyMeasures - дали да се връщат само мерките на артикула
      * @param false|null|int $secondMeasureId - коя да е втората мярка
      *
      * @return array $options - опаковките
      */
-    public static function getPacks($productId, $onlyMeasures = false, $secondMeasureId = false)
+    public static function getPacks($productId, $exPackId = null, $onlyMeasures = false, $secondMeasureId = false)
     {
         $options = array();
         expect($productRec = cat_Products::fetch($productId, 'measureId,canStore'));
@@ -1990,6 +2118,11 @@ class cat_Products extends embed_Manager
                 } else {
                     $packQuery->where("1=2");
                 }
+            }
+
+            $packQuery->where("#state != 'closed'");
+            if($exPackId){
+                $packQuery->orWhere("#packagingId = '{$exPackId}'");
             }
 
             while ($packRec = $packQuery->fetch()) {
@@ -2026,14 +2159,14 @@ class cat_Products extends embed_Manager
     public static function getParams($id, $name = null, $verbal = false)
     {
         $res = (isset($name)) ? null : array();
+
         // Ако има драйвър, питаме него за стойността
         if ($Driver = static::getDriver($id)) {
+            core_Debug::startTimer('GET_PARAMS');
             $res = $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
+            core_Debug::stopTimer('GET_PARAMS');
         }
-        if ($name == 'preview' && !$res) {
-            $rec = self::fetch($id);
-            $res = $rec->photo;
-        }
+
         // Ако няма връщаме празен масив
         return $res;
     }
@@ -2641,13 +2774,22 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
+
+                if(isset($rec->folderId) && $res != 'no_one'){
+                    $Cover = doc_Folders::getCover($rec->folderId);
+                    if($Cover->isInstanceOf('cat_Categories')){
+                        if (!haveRole('ceo,cat')) {
+                            $res = 'no_one';
+                        }
+                    }
+                }
             }
         }
         
         // Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
-        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec' || $action == 'close') && isset($rec)) {
+        if (($action == 'edit' || $action == 'write' || $action == 'clonerec' || $action == 'close') && isset($rec)) {
             if ($rec->isPublic == 'yes') {
-                if (!haveRole('ceo,cat')) {
+                if (!haveRole('ceo,cat,catEdit')) {
                     $res = 'no_one';
                 }
             }
@@ -2863,8 +3005,8 @@ class cat_Products extends embed_Manager
             $quoteQuery->EXT('qActivatedOn', 'sales_Quotations', "externalName=activatedOn,externalKey=quotationId");
             $quoteQuery->EXT('qDate', 'sales_Quotations', "externalName=date,externalKey=quotationId");
             $quoteQuery->EXT('qCreatedOn', 'sales_Quotations', "externalName=createdOn,externalKey=quotationId");
-            $quoteQuery->XPR('since', 'date', 'COALESCE(#qActivatedOn, #qDate,#qCreatedOn)');
-            $quoteQuery->where("#since >= '{$activeThen}' AND #state = 'active'");
+            $quoteQuery->XPR('since', 'date', 'COALESCE(#qActivatedOn, #qDate, #qCreatedOn)');
+            $quoteQuery->where("#since >= '{$activeThen}' AND #state != 'rejected'");
             $quoteQuery->in("productId", array_keys($saveArr));
             $quoteQuery->show('productId');
 
@@ -2883,7 +3025,7 @@ class cat_Products extends embed_Manager
 
             // Затваряне и на активните задания с произведено над 0.9 процента
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')) {
-                planning_Jobs::closeActiveJobs(planning_Setup::get($completeJobTolerance, $sd->id));
+                planning_Jobs::closeActiveJobs($completeJobTolerance, $sd->id, null, null, 'Приключване след автоматично закриване на артикул');
             }
         }
 
@@ -2962,10 +3104,11 @@ class cat_Products extends embed_Manager
      * @param int      $productId - ид на артикула
      * @param datetime $date      - към коя дата
      * @param string   $stores    - склад или складове или '*' за всички
+     * @param int|null   $maxTry  - брой максимални опити за търсене ако не се намери в текущия период
      *
      * @return mixed $amount   - сумата или NULL ако няма
      */
-    public static function getWacAmountInStore($quantity, $productId, $date, $stores = array())
+    public static function getWacAmountInStore($quantity, $productId, $date, $stores = array(), $maxTry = null)
     {
         $item2 = acc_Items::fetchItem('cat_Products', $productId)->id;
         if (!$item2) {
@@ -2983,8 +3126,7 @@ class cat_Products extends embed_Manager
         }
         
         // Намираме сумата която струва к-то от артикула в склада
-        $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
-        
+        $maxTry = isset($maxTry) ? $maxTry : core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
         $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
         
         if (isset($amount)) {
@@ -3144,7 +3286,11 @@ class cat_Products extends embed_Manager
         if (!countR($components)) {
             return;
         }
-        
+
+        $measureArr = arr::extractValuesFromArray($components, '_measureId');
+        $maxDecimals = cat_UoM::getMaxRound($measureArr);
+        $Double = core_Type::getByName("double(decimals={$maxDecimals})");
+
         $compTpl = getTplFromFile('cat/tpl/Components.shtml');
         $block = $compTpl->getBlock('COMP');
         foreach ($components as $obj) {
@@ -3154,8 +3300,6 @@ class cat_Products extends embed_Manager
             } else {
                 $obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
                 $quantity = $obj->quantity / $obj->divideBy;
-                
-                $Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
                 $obj->quantity = $Double->toVerbal($quantity);
             }
             
@@ -3276,6 +3420,7 @@ class cat_Products extends embed_Manager
                 
                 $obj->title = cat_Products::getTitleById($dRec->resourceId);
                 $obj->measureId = $row->packagingId;
+                $obj->_measureId = $dRec->packagingId;
                 $obj->quantity = $dRec->rowQuantity;
                 
                 $obj->level = substr_count($obj->code, '.');
@@ -3351,31 +3496,31 @@ class cat_Products extends embed_Manager
      * @param float $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     *               o title                          - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
-     *               o plannedQuantity                - планирано к-во в основна опаковка
-     *               o productId                      - ид на артикул
-     *               o packagingId                    - ид на опаковка
-     *               o quantityInPack                 - к-во в 1 опаковка
-     *               o products                       - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     *               o timeStart                      - начало
-     *               o timeDuration                   - продължителност
-     *               o timeEnd                        - край
-     *               o fixedAssets                    - списък (кейлист) от оборудвания
-     *               o employees                      - списък (кейлист) от служители
-     *               o storeId                        - склад
-     *               o indTime                        - норма
-     *               o centerId                       - център на производство
-     *               o indPackagingId                 - опаковка/мярка за норма
-     *               o indTimeAllocation              - начин на отчитане на нормата
-     *               o showadditionalUom              - какъв е режима за изчисляване на теглото
-     *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
-     *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
-     *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
-     *               o description                    - забележки
-     *               o labelPackagingId               - ид на опаковка за етикетиране
-     *               o labelQuantityInPack            - к-во в опаковката
-     *               o labelType                      - как да се въвежда етикета
-     *               o labelTemplate                  - ид на шаблон за етикет
+     *               o title                      - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     *               o plannedQuantity            - планирано к-во в основна опаковка
+     *               o productId                  - ид на артикул
+     *               o packagingId                - ид на опаковка
+     *               o quantityInPack             - к-во в 1 опаковка
+     *               o products                   - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     *               o timeStart                  - начало
+     *               o timeDuration               - продължителност
+     *               o timeEnd                    - край
+     *               o fixedAssets                - списък (кейлист) от оборудвания
+     *               o employees                  - списък (кейлист) от служители
+     *               o storeId                    - склад
+     *               o indTime                    - норма
+     *               o centerId                   - център на производство
+     *               o indPackagingId             - опаковка/мярка за норма
+     *               o indTimeAllocation          - начин на отчитане на нормата
+     *               o showadditionalUom          - какъв е режима за изчисляване на теглото
+     *               o description                - забележки
+     *               o labelPackagingId           - ид на опаковка за етикетиране
+     *               o labelQuantityInPack        - к-во в опаковката
+     *               o labelType                  - как да се въвежда етикета
+     *               o labelTemplate              - ид на шаблон за етикет
+     *               o wasteProductId             - ид на шаблон за етикет
+     *               o wasteStart                 - ид на шаблон за етикет
+     *               o wastePercent                 - ид на шаблон за етикет
      *
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал
@@ -3579,14 +3724,11 @@ class cat_Products extends embed_Manager
             return $primeCost;
         }
         
-        if ($onlyManager === true) {
-            return;
-        }
-        
-        $pRec = cat_Products::fetch($productId, 'canConvert,canManifacture,canStore');
-        
+        if ($onlyManager === true) return;
+
         // Ако е вложим
-        if ($pRec->canConvert == 'yes') {
+        $pRec = cat_Products::fetch($productId, 'canConvert,canManifacture,canStore,generic');
+        if ($pRec->canConvert == 'yes' && $pRec->generic == 'yes') {
             
             // Кои са му еквивалентните
             $similar = planning_GenericMapper::getEquivalentProducts($productId);
@@ -3636,8 +3778,6 @@ class cat_Products extends embed_Manager
                 return $primeCost;
             }
         }
-        
-        // Ако нищо не намери
     }
     
     
@@ -3677,17 +3817,18 @@ class cat_Products extends embed_Manager
             return (!empty($term)) ? $term : null;
         }
     }
-    
-    
+
+
     /**
      * Връща минималното количество за поръчка
      *
-     * @param int|NULL $id     - ид на артикул
-     * @param string   $action - дали да е за продажба или покупка
+     * @param int|NULL $id   - ид на артикул
+     * @param string $action - дали да е за продажба или покупка
+     * @param array $params  - масив от параметри
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public static function getMoq($id = null, $action = 'sell')
+    public static function getMoq($id = null, $action = 'sell', $params = array())
     {
         // Ако има драйвър, питаме го за МКП-то
         if (!isset($id)) {
@@ -3695,9 +3836,9 @@ class cat_Products extends embed_Manager
         }
         
         expect(in_array($action, array('sell', 'buy')));
-        
+
         if ($Driver = static::getDriver($id)) {
-            $moq = $Driver->getMoq($id, $action);
+            $moq = $Driver->getMoq($id, $action, $params);
             
             return (!empty($moq)) ? $moq : null;
         }
@@ -3860,6 +4001,12 @@ class cat_Products extends embed_Manager
             $dQuery->orderBy('id', 'ASC');
 
             while ($dRec = $dQuery->fetch()) {
+                if (!$dInst || !$dInst->productFld) {
+                    wp('Лоши данни при експорт', $dName, $dInst, $dInst->productFld, $dRec);
+
+                    continue;
+                }
+
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
                     $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};
@@ -4220,28 +4367,27 @@ class cat_Products extends embed_Manager
             
             return $res;
         }
-        
-        // Ако артикула, има доп. мярка, която е от същата група като на $toUomId
-        $pQuery = cat_products_Packagings::getQuery();
-        $pQuery->where("#productId = {$productId}");
-        $pQuery->in('packagingId', array_keys($sameTypeMeasures));
-        $pQuery->orderBy('id', 'ASC');
-        $pQuery->show('quantity,packagingId');
-        while ($pRec = $pQuery->fetch()) {
-            
-            // Връща се отношението и за 1-ца към $toUomId
-            if ($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)) {
-                if(empty($pRec->quantity)) {
-                    wp($pRec);
-                    continue;
-                }
 
-                $res = $res / $pRec->quantity;
-                
-                return $res;
+        // Ако артикула не е произв. етап и има доп. мярка, която е от същата група като на $toUomId
+        if(!static::haveDriver($productId, 'planning_interface_StepProductDriver')){
+            $pQuery = cat_products_Packagings::getQuery();
+            $pQuery->where("#productId = {$productId}");
+            $pQuery->in('packagingId', array_keys($sameTypeMeasures));
+            $pQuery->orderBy('id', 'ASC');
+            $pQuery->show('quantity,packagingId');
+            while ($pRec = $pQuery->fetch()) {
+
+                // Връща се отношението и за 1-ца към $toUomId
+                if ($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)) {
+                    if(!empty($pRec->quantity)) {
+                        $res = $res / $pRec->quantity;
+
+                        return $res;
+                    }
+                }
             }
         }
-        
+
         // Ако търсената мярка е от групата на килограмите
         $kgUom = cat_UoM::fetchBySysId('kg')->id;
         $kgUoms = cat_UoM::getSameTypeMeasures($kgUom);
@@ -4323,5 +4469,73 @@ class cat_Products extends embed_Manager
                 $searchKeywords .= ' ' . plg_Search::normalizeText($packRec->eanCode);
             }
         }
+    }
+
+
+    /**
+     * Помощна ф-я за добавяне на заявка за търсене към опциите използвани в key
+     */
+    public static function addSearchQueryToKey2SelectArr(&$query, $q, $limit)
+    {
+        $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
+
+        if ($q) {
+            $strict = ($q[0] == '"');
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = mb_strtolower($q);
+            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
+
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $query->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        $query->show('id,name,code,isPublic,nameEn');
+    }
+
+
+    /**
+     * Колко са дефолтните режихни разходи на артикула намира в следната последователност
+     * 1. Стойност на продуктов параметър "режийни разходи"
+     * 2. Най-големия процент режийни разходи от групите на артикула
+     * 3. Стойноста на глобалната константа за системата
+     *
+     * @param int $productId             - ид на артикули
+     * @return array|null $overheadCost - дефолтната стойност
+     *         * ['overheadCost'] double
+     *         * ['hint'] varchar
+     */
+    public static function getDefaultOverheadCost($productId)
+    {
+        // Има ли стойност параметъра "режийни разходи"
+        $hint = null;
+        $overheadCost = cat_Products::getParams($productId, 'expenses');
+
+        // Ако няма:Най-големия процент режийни разходи от групите на артикула
+        if(empty($overheadCost)){
+            $overheadCostArr = cat_Groups::getDefaultOverheadCostsByProductId($productId);
+            if(is_array($overheadCostArr)){
+                $overheadCost = $overheadCostArr['value'];
+                $hint = tr('от група|*: ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
+            }
+
+        } else {
+            $hint = tr('от Артикула<br>(параметър "Режийни разходи")');
+        }
+
+        // Ако не е намерена стойност гледа се глобалната константа
+        if(!isset($overheadCost)) {
+            $overheadCost = cat_Setup::get('DEFAULT_PRODUCT_OVERHEAD_COST');
+            $hint = tr('от пакета "cat"<br>(обща настройка по подразбиране за системата)');
+        }
+
+        $overheadCost = !isset($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
+
+        return $overheadCost;
     }
 }

@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -17,6 +17,13 @@
  */
 class price_PolicyIntf
 {
+
+    /**
+     * Съобщение, което да се покаже на потребителя, ако няма намерена цена
+     */
+    public $notFoundPriceErrorMsg;
+
+
     /**
      * Връща цената на продукта на посочения клиент
      *

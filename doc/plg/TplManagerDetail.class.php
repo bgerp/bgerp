@@ -97,7 +97,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
     public function on_BeforePrepareListRows($mvc, &$res, $data)
     {
         // Ако има скриптов клас за шаблона, подаваме му данните
-        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template)) {
+        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template, $data->masterData->rec->createdOn)) {
             $Script->beforePrepareDetailListRows($mvc, $data);
         }
     }
@@ -109,7 +109,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
     public static function on_AfterPrepareListRows($mvc, &$data)
     {
         // Ако има скриптов клас за шаблона, подаваме му данните
-        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template)) {
+        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template, $data->masterData->rec->createdOn)) {
             $Script->modifyDetailData($mvc, $data);
         }
     }
@@ -120,7 +120,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template)) {
+        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template, $data->masterData->rec->createdOn)) {
             $Script->beforeRenderListTable($mvc, $tpl, $data);
         }
     }
@@ -131,7 +131,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
      */
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
-        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template)) {
+        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template, $data->masterData->rec->createdOn)) {
             $Script->modifyDetailTpl($mvc, $tpl, $data);
         }
     }

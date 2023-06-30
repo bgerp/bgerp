@@ -206,6 +206,7 @@ class bulmar_BankDocumentExport extends core_Manager
                 }
             }
         }
+
         return $data;
     }
     

@@ -75,7 +75,7 @@ if(php_sapi_name() == 'cli') {
 
 
 // Подсигуряваме $_GET['virtual_url']
-if(!$_GET['virtual_url']) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
+if (!isset($_GET['virtual_url'])) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
 
 try {
     $isDefinedFatalErrPath = defined('DEBUG_FATAL_ERRORS_PATH');
@@ -490,7 +490,7 @@ function sbf($rPath, $qt = '"', $absolute = false)
  * Създава URL от параметрите
  *
  * @param array   $params
- * @param string  $type         Може да бъде relative|absolute|internal
+ * @param string  $type         Може да бъде relative|absolute|internal|absolute-base|absolute-force
  * @param boolean $protect
  * @param array   $preParamsArr - Масив с имената на параметрите, които да се добавят в pre вместо, като GET
  *

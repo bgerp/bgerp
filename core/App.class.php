@@ -28,8 +28,8 @@ class core_App
         if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
-        
-        if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,4}$/i', $filename)) {
+
+        if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,11}$/i', $filename)) {
             
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
             core_Webroot::serve($filename);
@@ -107,7 +107,7 @@ class core_App
         
         
         // Вътрешно кодиране
-        mb_internal_encoding('UTF-8');
+//        mb_internal_encoding('UTF-8'); # php8 error
         
         
         // Локал за функции като basename
@@ -801,7 +801,7 @@ class core_App
             
             // Премахваме защитата на id-то, ако има такава
             if ($get['id'] && $unprotect) {
-                expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'));
+                expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'), $get['id'], strlen($get['id']));
             }
             
             if ($get['App']) {
@@ -940,26 +940,26 @@ class core_App
         
         $Request = core_Cls::get('core_Request');
         
-        if ($params[0]) {
+        if (isset($params[0])) {
             $params['Ctr'] = $params[0];
             unset($params[0]);
         }
         
-        if (is_object($params['Ctr'])) {
+        if (isset($params['Ctr']) && is_object($params['Ctr'])) {
             $params['Ctr'] = core_Cls::getClassName($params['Ctr']);
         }
         
-        if ($params[1]) {
+        if (isset($params[1])) {
             $params['Act'] = $params[1];
             unset($params[1]);
         }
         
-        if ($params[2]) {
+        if (isset($params[2])) {
             $params['id'] = $params[2];
             unset($params[2]);
         }
         
-        if (!$params['App']) {
+        if (!isset($params['App'])) {
             $params['App'] = $Request->get('App');
         }
         
@@ -967,25 +967,25 @@ class core_App
             $params['Ctr'] = EF_DEFAULT_CTR_NAME;
         }
         
-        if (is_string($params['Act']) && !$params['Act']) {
+        if (isset($params['Act']) && is_string($params['Act']) && !isset($params['Act'])) {
             $params['Act'] = EF_DEFAULT_ACT_NAME;
         }
         
-        if (!$params['Ctr']) {
+        if (!isset($params['Ctr'])) {
             $params['Ctr'] = $Request->get('Ctr');
             
-            if (!$params['Ctr']) {
+            if (!isset($params['Ctr'])) {
                 $params['Ctr'] = 'Index';
             }
             
-            if (!$params['Act']) {
+            if (!isset($params['Act'])) {
                 $params['Act'] = $Request->get('Act');
             }
         }
         
         // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
         // И той е TRUE - това е сигнал да вземем текущото URL
-        if ($params['ret_url'] === true) {
+        if (isset($params['ret_url']) && $params['ret_url'] === true) {
             if ($retUrl = Mode::get('ret_url')) {
                 $params['ret_url'] = $retUrl;
             } else {
@@ -1022,11 +1022,11 @@ class core_App
         // Задължително слагаме контролера
         $pre = '/' . $params['Ctr'] . '/';
         
-        if ($params['Act'] && (strtolower($params['Act']) !== 'default' || $params['id'])) {
+        if (isset($params['Act']) && (strtolower($params['Act']) !== 'default' || $params['id'])) {
             $pre .= $params['Act'] . '/';
         }
         
-        if ($params['id']) {
+        if (isset($params['id'])) {
             $pre .= urlencode($params['id']) . '/';
         }
         
@@ -1057,7 +1057,8 @@ class core_App
             }
         }
         
-        if ($urlHash = $params['#']) {
+        if (isset($params['#'])) {
+            $urlHash = $params['#'];
             unset($params['#']);
         }
         
@@ -1065,11 +1066,11 @@ class core_App
             $urlQuery = http_build_query($params);
         }
         
-        if ($urlQuery) {
+        if (isset($urlQuery)) {
             $urlQuery = '/?' . $urlQuery;
         }
         
-        if ($urlHash) {
+        if (isset($urlHash)) {
             $urlQuery .= '#' . $urlHash;
         }
         
@@ -1087,9 +1088,13 @@ class core_App
             case 'absolute':
                 $url = rtrim(static::getBoot(true, false, true), '/') . $pre . $urlQuery;
                 break;
-            
+
             case 'absolute-force':
                 $url = rtrim(static::getBoot(true, true, true), '/') . $pre . $urlQuery;
+                break;
+
+            case 'absolute-base':
+                $url = rtrim(static::getBoot('base', false, true), '/') . $pre . $urlQuery;
                 break;
         }
         
@@ -1121,7 +1126,7 @@ class core_App
     /**
      * Връща относително или пълно URL до папката на index.php
      *
-     * @param bool $absolute
+     * @param bool|string $absolute
      * @param bool $forceHttpHost
      *
      * @return string
@@ -1153,15 +1158,19 @@ class core_App
             } else {
                 $auth = '';
             }
-            
-            if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
-                $boot = $protocol . '://' . $auth . $domain . $dirName;
-            } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
-                $boot = $protocol . '://' . $auth . $domain . $dirName;
-            } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+
+            if (($absolute === 'base') && defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                 $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
             } else {
-                $boot = $protocol . '://' . $auth . $_SERVER['HTTP_HOST'] . $dirName;
+                if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
+                    $boot = $protocol . '://' . $auth . $domain . $dirName;
+                } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
+                    $boot = $protocol . '://' . $auth . $domain . $dirName;
+                } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                    $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
+                } else {
+                    $boot = $protocol . '://' . $auth . $_SERVER['HTTP_HOST'] . $dirName;
+                }
             }
         } else {
             $scriptName = $_SERVER['SCRIPT_NAME'];
@@ -1177,7 +1186,7 @@ class core_App
         }
         
         $boot = rtrim($boot, '/');
-        
+
         if (EF_APP_NAME_FIXED !== true && $addAppName) {
             $boot .= '/' . (Request::get('App') ? Request::get('App') : EF_APP_NAME);
         }

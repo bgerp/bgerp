@@ -234,11 +234,14 @@ class cond_plg_DefaultValues extends core_Plugin
         if ($fromUser) {
             $query->where("#createdBy = '{$cu}'");
         }
-        
+
+        $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('folderId'))));
+        $query->useIndex($indexName);
+
         $query->orderBy('createdOn', 'DESC');
         $query->show($name);
         $query->limit(1);
-        
+
         return $query->fetch()->{$name};
     }
     
@@ -462,8 +465,9 @@ class cond_plg_DefaultValues extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = array())
     {
         if ($rec->folderId) {
-            $updateFields = $mvc->getContragentCoverFieldsToUpdate($rec);
+            if (Mode::is('isMigrate')) return;
 
+            $updateFields = $mvc->getContragentCoverFieldsToUpdate($rec);
             if (countR($updateFields) && isset($mvc::$defaultStrategies) && countR($mvc::$defaultStrategies)) {
                 $fRec = doc_Folders::fetch($rec->folderId);
                 

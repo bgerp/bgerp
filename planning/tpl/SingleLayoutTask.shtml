@@ -1,7 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
   <!--ET_BEGIN productDescription-->
   <div class="groupTitle">
-      <div style='margin: 2px 0;'><b>|Спецификация|* </b>[#toggleBtn#]<div style="display: none; margin-top: 5px;" id='[#tId#]inf'>[#productDescription#]</div></div>
+      <div style='margin: 2px 0;'><b>|Спецификация|* </b>[#toggleBtn#]<div style='[#productDescriptionStyle#] margin-top: 5px;' id='[#tId#]inf'>[#productDescription#]</div></div>
   </div>
   <!--ET_END productDescription-->
   [#PARAMS#]

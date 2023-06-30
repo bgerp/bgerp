@@ -362,27 +362,30 @@ class cat_Categories extends core_Master
         
         return arr::make($rec->meta, true);
     }
-    
-    
+
+
     /**
      * Връща дефолтния код на артикула добавен в папката на корицата
+     *
+     * @param int $id
+     * @return string|null $code
      */
     public function getDefaultProductCode($id)
     {
         $rec = $this->fetchRec($id);
         
         // Ако има представка
-        if ($rec->prefix) {
-            $minCodeLen = !empty($rec->minCodePad) ? $rec->minCodePad : static::MIN_CODE_PADDING;
-            $startCode = str_pad('1', $minCodeLen, '0', STR_PAD_LEFT);
+        if(!isset($rec->prefix)) return null;
 
-            // Опитваме се да намерим първия код започващ с представката
-            $code = str::addIncrementSuffix('', $rec->prefix, $startCode);
-            while (cat_Products::getByCode($code)) {
-                $code = str::addIncrementSuffix($code, $rec->prefix, $startCode);
-                if (!cat_Products::getByCode($code)) {
-                    break;
-                }
+        $minCodeLen = !empty($rec->minCodePad) ? $rec->minCodePad : static::MIN_CODE_PADDING;
+        $startCode = str_pad('1', $minCodeLen, '0', STR_PAD_LEFT);
+
+        // Опитваме се да намерим първия код започващ с представката
+        $code = str::addIncrementSuffix('', $rec->prefix, $startCode);
+        while (cat_Products::getByCode($code)) {
+            $code = str::addIncrementSuffix($code, $rec->prefix, $startCode);
+            if (!cat_Products::getByCode($code)) {
+                break;
             }
         }
         
@@ -609,7 +612,7 @@ class cat_Categories extends core_Master
             
             if(core_Packs::isInstalled('eshop')){
                 if(!isset($metasArr['canSell']) && eshop_ProductDetails::count("#productId = {$productId}")){
-                    $error = "Артикулът се използва е Е-маг. Трябва да остане продаваем|*!";
+                    $error = "Артикулът се използва в Е-маг. Трябва да остане продаваем|*!";
                 }
             }
 

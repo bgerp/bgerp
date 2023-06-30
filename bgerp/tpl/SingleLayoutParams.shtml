@@ -22,7 +22,12 @@
                 <td>[#sysId#]</td>
             </tr>
             <!--ET_END sysId-->
-            
+            <!--ET_BEGIN valueType-->
+            <tr>
+                <td class="title-style">|Стойност|*</td>
+                <td>[#valueType#]</td>
+            </tr>
+            <!--ET_END valueType-->
             <!--ET_BEGIN lastUsedOn-->
             <tr>
                 <td class="title-style nowrap">|Последно използване|*</td>
@@ -83,7 +88,14 @@
                 <td>[#max#]</td>
             </tr>
             <!--ET_END max-->
-            
+
+            <!--ET_BEGIN formula-->
+            <tr>
+                <td class="title-style">|Формула|*</td>
+                <td>[#formula#]</td>
+            </tr>
+            <!--ET_END formula-->
+
             <!--ET_BEGIN options-->
             <tr>
                 <td class="title-style" style='vertical-align:top'>|Опции|*</td>
@@ -110,13 +122,48 @@
                 <td>[#productGroups#]</td>
             </tr>
             <!--ET_END productGroups-->
+            <!--ET_BEGIN show-->
+            <tr>
+                <td class="title-style">|Показване|*</td>
+                <td>[#show#]</td>
+            </tr>
+            <!--ET_END show-->
+            <!--ET_BEGIN orderBy-->
+            <tr>
+                <td class="title-style">|Подредба|*</td>
+                <td>[#orderBy#]</td>
+            </tr>
+            <!--ET_END orderBy-->
+            <!--ET_BEGIN maxRadio-->
+            <tr>
+                <td class="title-style">|Радио бутон|*</td>
+                <td>[#maxRadio#]</td>
+            </tr>
+            <!--ET_END maxRadio-->
+            <!--ET_BEGIN columns-->
+            <tr>
+                <td class="title-style">|Колони|*</td>
+                <td>[#columns#]</td>
+            </tr>
+            <!--ET_END columns-->
+            <!--ET_BEGIN display-->
+            <tr>
+                <td class="title-style">|Избор|*</td>
+                <td>[#display#]</td>
+            </tr>
+            <!--ET_END display-->
             <!--ET_BEGIN rows-->
             <tr>
                 <td class="title-style">|Редове|*</td>
                 <td>[#rows#]</td>
             </tr>
             <!--ET_END rows-->
-            
+            <!--ET_BEGIN parser-->
+            <tr>
+                <td class="title-style">|Парсатор|*</td>
+                <td>[#parser#]</td>
+            </tr>
+            <!--ET_END parser-->
             <!--ET_BEGIN lenght-->
             <tr>
                 <td class="title-style">|Дължина|*</td>

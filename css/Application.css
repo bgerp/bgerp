@@ -1007,6 +1007,12 @@ div.acc-detail {
 .itemClass {
   min-width: 210px; }
 
+.inline-checkbox {
+  display: inline-block;
+  margin: 5px 10px !important;
+  position: relative;
+  top: 2px; }
+
 .accToolsCell {
   width: 1%; }
   .accToolsCell a.linkWithIcon {
@@ -1274,6 +1280,11 @@ div.acc-detail {
       vertical-align: top !important; }
     .portal table.listTable .portal-date {
       width: 1%; }
+
+  .planning_ProductionTaskDetails table.listTable>tbody>tr>td {
+    border-top: 1px none !important; }
+  .planning_ProductionTaskDetails table.listTable>tbody>tr:first-child>td {
+    border-top: 1px dotted #cccccc !important; }
 
 .portal.planning table.listTable th {
   border: 1px solid #cccccc;
@@ -2062,6 +2073,10 @@ td.rowtools-column {
 
 .small-field {
   width: 1%; }
+
+.logisticCol {
+  text-align: right;
+  max-width: 400px !important; }
 
 .medium-field {
   width: 200px; }
@@ -3126,7 +3141,8 @@ span.sharing-history-title {
   font-family: Verdana, Helvetica, Arial, Sans-serif; }
 
 .wide .externalPage {
-  font-size: 16px; }
+  font-size: 16px;
+  font-size: calc(16px +  min(4px, max(0px, (20 - 16) * (calc(100vw - 800px) / (1900 - 800))))); }
 
 .narrow  .externalPage #cmsTop {
   background-color: white; }
@@ -3251,7 +3267,7 @@ span.sharing-history-title {
   _height: 1%; }
 
 .narrow #cmsBottom {
-  min-height: 26px; }
+  min-height: 36px; }
 
 .footer-links {
   padding-top: 5px;
@@ -3300,7 +3316,7 @@ span.sharing-history-title {
 #all {
   border: solid 1px #777777;
   border-bottom: solid 1px black;
-  max-width: 1400px;
+  max-width: 80em;
   display: block;
   margin: 0 auto; }
   #all #searchform {
@@ -6936,6 +6952,10 @@ only screen and (max-width: 320px) {
     font-size: 1.1em; }
   .printing .em-holder .top-table td {
     border: none !important; }
+  .printing .quiet.saleBankBlock {
+    color: #bbbbbb; }
+    .printing .quiet.saleBankBlock .quiet {
+      color: #bbbbbb; }
 
 .narrow .printing .document {
   width: 850px; }
@@ -7437,4 +7457,34 @@ table.bomProductionStepTable td {
 
 .stepParamTable td {
   text-indent: 15px; }
+
+.warning-balloon {
+  border: 1px dotted #fb9531;
+  display: inline-block;
+  padding: 2px;
+  border-radius: 3px; }
+
+.taskInJobListRow {
+  display: none; }
+
+.saleBankBlock a:link,
+.saleBankBlock a:visited {
+  color: #888888; }
+
+.rateDiffDocumentTable td.rateDifferenceDocumentGroup {
+  background-color: #eeeeee;
+  border: 1px solid #bbbbbb 54; }
+
+.rateDiffDocumentTable td {
+  padding-top: 4px;
+  padding-bottom: 4px; }
+
+.rateDiffDocumentTable td.rateDifferenceDocumentLink {
+  text-indent: 20px; }
+
+.priceBellowPrimeCost {
+  font-weight: bold;
+  background-color: red;
+  color: white;
+  padding: 1px 3px; }
 

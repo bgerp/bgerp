@@ -82,6 +82,7 @@ class marketing_Setup extends core_ProtoSetup
         'marketing_Inquiries2',
         'marketing_Bulletins',
         'marketing_BulletinSubscribers',
+        'migrate::regenerateBulletins2318',
     );
     
     
@@ -89,15 +90,7 @@ class marketing_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'marketing';
-    
-    
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(3.1, 'Търговия', 'Маркетинг', 'marketing_Inquiries2', 'default', 'ceo, marketing'),
-    );
-    
+
     
     /**
      * Инсталиране на пакета
@@ -114,5 +107,17 @@ class marketing_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');
         
         return $html;
+    }
+
+
+    /**
+     * Миграция за обновява всички записи, за да се обнови кеша
+     */
+    public static function regenerateBulletins2318()
+    {
+        $query = marketing_Bulletins::getQuery();
+        while ($rec = $query->fetch()) {
+            marketing_Bulletins::save($rec);
+        }
     }
 }

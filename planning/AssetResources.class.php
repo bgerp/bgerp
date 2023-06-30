@@ -69,7 +69,7 @@ class planning_AssetResources extends core_Master
     /**
      * Кой има право да форсира преизчисляването на времето?
      */
-    public $canRecalctime = 'ceo, taskPlanning, debug';
+    public $canRecalctime = 'ceo, task, debug';
 
 
     /**
@@ -148,7 +148,8 @@ class planning_AssetResources extends core_Master
         $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty)', 'caption=Използване за производство->Работен график');
         $this->FLD('assetUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване за производство->Отговорници, remember');
         $this->FLD('simultaneity', 'int(min=0)', 'caption=Използване за производство->Едновременност,notNull,value=1, oldFieldName=quantity, remember');
-        
+        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване за производство->Параметри за планиране');
+
         $this->FLD('systemFolderId', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Поддръжка->Система, remember');
         $this->FLD('systemUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Поддръжка->Отговорници, remember');
         
@@ -199,7 +200,11 @@ class planning_AssetResources extends core_Master
                 }
             }
         }
-        
+
+        // Добавяне на достъпните за избор планиращи параметри
+        $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams);
+        $form->setSuggestions("planningParams", $paramSuggestions);
+
         if (!core_Packs::isInstalled('tracking')) {
             $form->setField('vehicle', 'input=none');
         }
@@ -282,6 +287,16 @@ class planning_AssetResources extends core_Master
         }
 
         if (isset($fields['-single'])) {
+
+            // Ако няма посочени планиращи параметри - показват се тези от групата
+            if(empty($rec->planningParams)){
+                $groupPlanningParams = planning_AssetGroups::fetchField($rec->groupId, 'planningParams');
+                if(!empty($groupPlanningParams)){
+                    $row->planningParams = $mvc->getFieldType('planningParams')->toVerbal($groupPlanningParams);
+                    $row->planningParams = ht::createHint($row->planningParams, 'Посочени са в групата на оборудването', 'notice', false);
+                }
+            }
+
             if(isset($rec->scheduleId)){
                 $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
             }
@@ -1051,7 +1066,7 @@ class planning_AssetResources extends core_Master
             }
 
             $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
-            $simultaneity = isset($taskRec->simultaneity) ? : $assetRec->simultaneity;
+            $simultaneity = isset($taskRec->simultaneity) ? $taskRec->simultaneity : $assetRec->simultaneity;
             $duration = round($indTime / $simultaneity);
         }
 
@@ -1120,7 +1135,7 @@ class planning_AssetResources extends core_Master
         // Всички оборудвания, които са закачени към ПО
         $tQuery = planning_Tasks::getQuery();
         $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
-        $tQuery->where('#assetId IS NOT NULl');
+        $tQuery->where('#assetId IS NOT NULL');
         $tQuery->show('assetId,id,progress,orderByAssetId,indTime,indPackagingId,plannedQuantity,state,timeStart,timeDuration,simultaneity');
         $assetArr = array();
         while($tRec = $tQuery->fetch()){

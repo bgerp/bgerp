@@ -211,9 +211,10 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
         $form = &$data->form;
+        $rec = &$form->rec;
         $masterRec = $data->masterRec;
         
-        if (isset($form->rec->id)) {
+        if (isset($rec->id)) {
             $form->setField('type', 'input');
         }
         
@@ -221,8 +222,9 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         $Cover = doc_Folders::getCover($masterRec->folderId);
         $form->setDefault('productType', 'ours');
 
-        $params = array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'hasProperties' => 'canStore', 'groups' => $groupId, 'hasnotProperties' => 'generic');
-        if($form->rec->productType == 'other'){
+        $params = array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'groups' => $groupId, 'hasnotProperties' => 'generic');
+        $params['hasProperties'] = $mvc->getExpectedProductMetaProperties($rec->productType, (($rec->type == 'in') ? 'receive' : 'send'));
+        if($rec->productType == 'other'){
             $params['isPublic'] = 'no';
         }
 
@@ -307,7 +309,47 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 
             $entries[] = $entry;
         }
-        
+
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            $oursSend = $oursReceived = $otherSend = $otherReceived = array();
+            array_walk($combined, function($a) use (&$oursSend, &$oursReceived, &$otherSend, &$otherReceived){
+                if($a->productType == 'ours'){
+                    $v = ($a->type == 'in') ? 'oursReceived' : 'oursSend';
+                } else {
+                    $v = ($a->type == 'in') ? 'otherReceived' : 'otherSend';
+                }
+                ${"{$v}"}[$a->productId] = $a->productId;
+            });
+
+            if(countR($oursSend)){
+                $haveOursMetaToSend = cls::get('store_DocumentPackagingDetail')->getExpectedProductMetaProperties('ours', 'send');
+                if ($redirectError = deals_Helper::getContoRedirectError($oursSend, $haveOursMetaToSend, 'generic', 'трябва да са складируеми и продаваеми и да не са генерични')) {
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
+            }
+
+            if(countR($oursReceived)){
+                $haveOursMetaToReceive = cls::get('store_DocumentPackagingDetail')->getExpectedProductMetaProperties('ours', 'receive');
+                if ($redirectError = deals_Helper::getContoRedirectError($oursReceived, $haveOursMetaToReceive, 'generic', 'трябва да са складируеми и купуваеми и да не са генерични')) {
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
+            }
+
+            if(countR($otherSend)){
+                $haveOtherMetaToSend = cls::get('store_DocumentPackagingDetail')->getExpectedProductMetaProperties('other', 'send');
+                if ($redirectError = deals_Helper::getContoRedirectError($otherSend, $haveOtherMetaToSend, 'generic', 'трябва да са складируеми и да не са генерични')) {
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
+            }
+
+            if(countR($otherReceived)){
+                $haveOtherMetaToReceive = cls::get('store_DocumentPackagingDetail')->getExpectedProductMetaProperties('other', 'receive');
+                if ($redirectError = deals_Helper::getContoRedirectError($otherReceived, $haveOtherMetaToReceive, 'generic', 'трябва да са складируеми и да не са генерични')) {
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
+            }
+        }
+
         return $entries;
     }
     
@@ -318,6 +360,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->type = "<div class='centered'>{$row->type}</div>";
+        $row->productId = "<div class='centered'>{$row->type}</div>";
     }
 
 

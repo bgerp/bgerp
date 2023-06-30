@@ -10,6 +10,7 @@
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
+ * @deprecated
  *
  * @since     v 0.1
  */
@@ -415,7 +416,7 @@ class planning_Terminal extends peripheral_Terminal
         expect($taskRec = planning_Tasks::fetch($currentTaskId));
         $Details = cls::get('planning_ProductionTaskDetails');
         Mode::push('terminalProgressForm', $currentTaskId);
-        $mandatoryClass = ($taskRec->showadditionalUom == 'mandatory') ? ' mandatory' : '';
+        $mandatoryClass = ($taskRec->showadditionalUom == 'yes') ? ' mandatory' : '';
         
         $form = cls::get('core_Form');
         $form->formAttr['id'] = $Details->className . '-EditForm';

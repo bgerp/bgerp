@@ -21,7 +21,8 @@
              </td>
              <!--ET_END INVOICE_DOWNPAYMENT_TH-->
              <td class = 'sum-th'>
-                 |Информация|*
+                 |Информация|* [#detailOrderBy#]
+				 
              </td>
           </tr>
           <tr>

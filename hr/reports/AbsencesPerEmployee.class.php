@@ -126,6 +126,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $recs = array();
         $pRecs = array();
         $arr = array();
+        $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays =0;
         
         $typeOfAbsent = explode(',', $rec->type);
         
@@ -134,7 +135,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $rec->periods = dt::mysql2verbal($rec->from, 'dmy');
         
         $period = 1;
-        
+
         do {
             $lastDayOfPeriod = dt::addDays(($rec->days - 1), $rec->firstDayOfPeriod, false);
             
@@ -216,8 +217,9 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                         $obj->numberOfSickdays += $numberOfSickdays;
                     }
                 }
+                $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays =0;
             }
-            
+
             // Отпуски
             if (in_array('leave', $typeOfAbsent)) {
                 $doc = array();
@@ -249,6 +251,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                         $obj->numberOfLeavesDays += $numberOfLeavesDays;
                     }
                 }
+                $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays =0;
             }
             
             // Командировъчни
@@ -281,8 +284,9 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                         $obj->numberOfTripsesDays += $numberOfTripsesDays;
                     }
                 }
+                $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays =0;
             }
-           
+
             foreach ($pRecs as $key => $val) {
                 if (!array_key_exists($key, $recs)) {
                     $recs[$key] = (object) array(
@@ -316,11 +320,11 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             unset($tripsQuery);
             
             $pRecs = array();
+
+            $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays = 0;
             
             $period++;
         } while ($period <= $rec->numberOfPeriods);
-       
-
         
         foreach ($recs as $key => $val){
             

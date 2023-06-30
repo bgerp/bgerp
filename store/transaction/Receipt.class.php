@@ -45,7 +45,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         
         $error = null;
         $rec = $this->fetchShipmentData($id, $error);
-        if (Mode::get('saveTransaction')) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if ($error === true) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }
@@ -155,7 +155,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $currencyId = currency_Currencies::getIdByCode($currencyCode);
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
         $dClass = ($reverse) ? 'store_ShipmentOrderDetails' : 'store_ReceiptDetails';
-       
+
         foreach ($rec->details as $detailRec) {
             if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
                 continue;
@@ -164,11 +164,11 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
-            
+
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
                 $splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $detailRec->id, $detailRec->productId, $detailRec->quantity, $amount, $detailRec->discount);
-                
+
                 foreach ($splitRecs as $dRec1) {
                     $amount = $dRec1->amount;
                     $amountAllocated = $amount * $rec->currencyRate;
@@ -198,23 +198,26 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 }
             } else {
                 $debitAccId = '321';
-                
+
                 $debit = array(
                     $debitAccId,
                     array('store_Stores', $rec->storeId), // Перо 1 - Склад
                     array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
                     'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
                 );
-                
+
+                $cQuantity = $sign * $amount;
+                $amount = $sign * $amount * $rec->currencyRate;
+
                 $entries[] = array(
-                    'amount' => $sign * $amount * $rec->currencyRate,
+                    'amount' => $amount,
                     'debit' => $debit,
                     'credit' => array(
                         $rec->accountId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
                         array($origin->className, $origin->that),		   // Перо 2 - Сделка
                         array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                        'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
+                        'quantity' => $cQuantity, // "брой пари" във валутата на покупката
                     ),
                 );
             }

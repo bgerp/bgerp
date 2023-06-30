@@ -54,7 +54,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Етап,centerId=Център,fixedAssets,employees,storeIn,inputStores,norm,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
+    public $listFields = 'name=Етап,centerId=Център,fixedAssets,employees,storeIn=Складове->Произвеждане,inputStores=Складове->Влагане,norm=Норма,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
 
 
     /**
@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent';
+    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent';
 
 
     /**
@@ -97,7 +97,7 @@ class planning_Steps extends core_Extender
     public function description()
     {
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name)', 'caption=Използване в производството->Център,mandatory,silent');
-        $this->FLD('name', 'varchar', 'caption=Използване в производството->Операция,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
+        $this->FLD('name', 'varchar', 'caption=Използване в производството->Операция,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol wrapText');
         
         $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
         
@@ -106,18 +106,20 @@ class planning_Steps extends core_Extender
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване в производството->Параметри');
         $this->FLD('isFinal', 'enum(no=Междинен етап,yes=Финален етап)', 'caption=Използване в производството->Вид,notNull,value=no');
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,no=Скриване,yes=Показване)', 'caption=Използване в производството->Предходно задание,notNull,value=no');
+        $this->FLD('calcWeightMode', 'enum(auto=Автоматично,no=Изключено,yes=Включено)', 'caption=Използване в производството->Въвеждане на тегло,notNull,value=auto');
 
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Складове->Складируем,notNull,value=yes,silent');
-        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Складове->Материали');
-        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Произвеждане');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Складове->Влагане ОТ');
+        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Произвеждане В');
         
         $this->FLD('planningActions', 'keylist(mvc=cat_Products,select=name,makeLink)', 'caption=Планиране на производството->Действия');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Планиране на производството->Норма');
         $this->FLD('interruptOffset', 'time', 'caption=Планиране на производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
-        $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковката (к-во),tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelTransferQuantityInPack', 'enum(yes=Прехвърляне на к-то в операцията,no=Да не се прехвърля к-то в операцията)', 'caption=Етикиране в производството->Към операцията,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelType', 'enum(print=Генериране,scan=Сканиране,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
         $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
@@ -158,15 +160,8 @@ class planning_Steps extends core_Extender
         $form->setFieldTypeParams("{$mvc->className}_wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
 
         // Добавяне на избор само на Параметрите за производствени операции
-        $paramOptions = array();
-        $taskParamIds = cat_Params::getTaskParamIds();
-        $exParamIds = keylist::toArray($rec->{"{$mvc->className}_planningParams"});
-        $allowedParamIds = $taskParamIds + $exParamIds;
-        foreach ($allowedParamIds as $paramId){
-            $paramOptions[$paramId] = cat_Params::getVerbal($paramId, 'typeExt');
-        }
-        $form->setSuggestions("{$mvc->className}_planningParams", $paramOptions);
-
+        $paramSuggestions = cat_Params::getTaskParamOptions($rec->{"{$mvc->className}_planningParams"});
+        $form->setSuggestions("{$mvc->className}_planningParams", $paramSuggestions);
         if($form->getField('meta', false)){
             $form->setField('meta', 'input=none');
         }
@@ -202,10 +197,8 @@ class planning_Steps extends core_Extender
             $form->setField("{$mvc->className}_labelPackagingId", 'input');
 
             // Ако артикула е съществуващ само наличните опаковки са достъпни
-            if(isset($rec->id)){
-                $packs = array('' => '') + cat_Products::getPacks($rec->id);
-                $form->setOptions("{$mvc->className}_labelPackagingId", array('' => '') + $packs);
-            }
+            $labelPacks = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId, $rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
+            $form->setOptions("{$mvc->className}_labelPackagingId", $labelPacks);
 
             // Ако има избрана опаковка за етикиране
             if(!empty($rec->{"{$mvc->className}_labelPackagingId"})){
@@ -215,6 +208,7 @@ class planning_Steps extends core_Extender
                 $form->setField("{$mvc->className}_labelQuantityInPack", 'input');
                 $form->setField("{$mvc->className}_labelType", 'input');
                 $form->setField("{$mvc->className}_labelTemplate", 'input');
+                $form->setField("{$mvc->className}_labelTransferQuantityInPack", 'input');
 
                 // При редакция на артикул наличните опаковки за етикетиране са само тези на артикула
                 if(isset($rec->id)){
@@ -273,7 +267,7 @@ class planning_Steps extends core_Extender
                         $form->setError("{$mvc->className}_labelQuantityInPack", 'Ако за етикиране е избрана основната мярка, то количеството не може да е различно от 1|*!');
                     }
                 } elseif(!isset($rec->id) || isset($rec->clonedFromId)){
-                    $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да е въвдено количество при добавяне на нова опаковка|*!');
+                    $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да е въведено количество при добавяне на нова опаковка|*!');
                 }
             }
         }
@@ -431,7 +425,9 @@ class planning_Steps extends core_Extender
         if(isset($rec->wasteProductId)){
             $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
             $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
-            $row->wasteStart .= " " . cat_UoM::getShortName($wasteProductMeasureId);
+            if(!empty($rec->wasteStart)){
+                $row->wasteStart .= " " . cat_UoM::getShortName($wasteProductMeasureId);
+            }
         }
 
         if($Extended = $mvc->getExtended($rec)){
@@ -470,6 +466,15 @@ class planning_Steps extends core_Extender
             if(isset($rec->labelTemplate)){
                 $row->labelTemplate = label_Templates::getHyperlink($rec->labelTemplate, true);
             }
+
+            if($rec->calcWeightMode == 'auto'){
+                $row->calcWeightMode = $mvc->getFieldType('calcWeightMode')->toVerbal(planning_Setup::get('TASK_WEIGHT_MODE'));
+                $row->calcWeightMode = ht::createHint($row->calcWeightMode, 'По подразбиране', 'notice', 'false');
+            }
+
+            if(empty($rec->labelPackagingId)){
+                unset($row->labelTransferQuantityInPack);
+            }
         }
     }
     
@@ -481,6 +486,7 @@ class planning_Steps extends core_Extender
     {
         $data->listFilter->FLD('finalType', 'enum(all=Всички,no=Междинен етап,yes=Финален етап)');
         $data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
+        $data->listFilter->setFieldType('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)');
         $data->listFilter->setOptions('assetId', planning_AssetResources::getByFolderId());
         $data->listFilter->setDefault('finalType', 'all');
         $data->listFilter->showFields = 'search,centerId,assetId,finalType';
@@ -488,7 +494,7 @@ class planning_Steps extends core_Extender
         $data->listFilter->input();
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->query->orderBy('centerId,state', 'asc');
+        $data->query->orderBy('centerId,state,id', 'asc');
         
         if($filterRec = $data->listFilter->rec){
             if(!empty($filterRec->centerId)){
@@ -561,5 +567,116 @@ class planning_Steps extends core_Extender
         }
         
         return $tpl;
+    }
+
+
+    /**
+     * Връща активните операции за предходните етапи, на етапа в рамките на подаденото задание
+     *
+     * @param int $stepId      - ид на артикул - етап
+     * @param int $containerId - контейнер на задание, в което ще се търсят операциите
+     * @return array $res
+     */
+    public static function getPreviousStepTaskIds($stepId, $containerId)
+    {
+        $res = array();
+
+        // Кои са предходните етапи на този етап
+        $cQuery = planning_StepConditions::getQuery();
+        $cQuery->where("#stepId = {$stepId}");
+        $cQuery->show('prevStepId');
+        $prevStepIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'prevStepId');
+        if(!countR($prevStepIds)) return $res;
+
+        // Всички текущи ПО към заданието за посочените етапи
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$containerId} AND #state IN ('active', 'stopped', 'wakeup', 'closed')");
+        $tQuery->in('productId', $prevStepIds);
+        $tQuery->show('id');
+        $res = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
+
+        return $res;
+    }
+
+
+    /**
+     * Връща достъпните избираеми продуктови етапи
+     */
+    public static function getSelectableSteps($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $productClassId = cat_Products::getClassId();
+        $driverClassId = planning_interface_StepProductDriver::getClassId();
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#innerClass = {$driverClassId}");
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+            $ids = implode(',', $onlyIds);
+            $pQuery->where("#id IN ({$ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $pQuery->where("#id = ${onlyIds}");
+        } else {
+            $pQuery->where("#state != 'closed' AND #state != 'rejected'");
+
+            if(isset($params['centerFolderId'])){
+                $sQuery = planning_Steps::getQuery();
+                $Cover = doc_Folders::getCover($params['centerFolderId']);
+                $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
+                $sQuery->show('objectId');
+                $in = arr::extractValuesFromArray($sQuery->fetchAll(), 'objectId');
+
+                if(countR($in)){
+                    $pQuery->in('id', $in);
+                } else {
+                    $pQuery->where("1=2");
+                }
+            }
+        }
+
+        cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);
+        $res = $finalSteps = $nonFinalSteps = array();
+        while ($pRec = $pQuery->fetch()) {
+            $isFinal = planning_Steps::fetchField("#objectId = {$pRec->id} AND #classId = {$productClassId}", 'isFinal');
+            if($isFinal == 'yes'){
+                $finalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+            } else {
+                $nonFinalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+            }
+        }
+
+        if (countR($nonFinalSteps)) {
+            asort($nonFinalSteps, SORT_NATURAL);
+            if (!isset($onlyIds)) {
+                $nonFinalSteps = array('nfs' => (object) array('group' => true, 'title' => tr('Междинни етапи'))) + $nonFinalSteps;
+            }
+            $res += $nonFinalSteps;
+        }
+
+        if (countR($finalSteps)) {
+            asort($finalSteps, SORT_NATURAL);
+            if (!isset($onlyIds)) {
+                $finalSteps = array('fs' => (object) array('group' => true, 'title' => tr('Финални етапи'))) + $finalSteps;
+            }
+            $res += $finalSteps;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Колко са активните етапи в папката на посочения център на дейност
+     *
+     * @param int $folderId  - ид на папка
+     * @return int           - брой намерени етапи
+     */
+    public static function getCountByCenterFolderId($folderId)
+    {
+        $Cover = doc_Folders::getCover($folderId);
+        $productClassId = cat_Products::getClassId();
+
+        return static::count("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
     }
 }

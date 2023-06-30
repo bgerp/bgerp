@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Лог. информация,documentHtml=@,address=@,notes=@,classId=Клас';
+    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логист. информация,documentHtml=@,address=@,notes=@,classId=Клас';
     
     
     /**
@@ -278,6 +278,26 @@ class trans_LineDetails extends doc_Detail
         }
         $row->address = str_replace(', <div', '<div', $row->address);
 
+        // Показане на свързаните файлове
+        $linkedDocs = doc_Linked::getRecsForType('doc', $rec->containerId, false);
+        if(countR($linkedDocs)){
+            $linkedFiles = array();
+            foreach ($linkedDocs as $linkRec){
+                if ($linkRec->inType == 'file') {
+                    $valId = $linkRec->inVal;
+                } elseif ($linkRec->outType == 'file') {
+                    $valId = $linkRec->outVal;
+                } else {
+                    continue;
+                }
+
+                $clsInst = cls::get('fileman_Files');
+                $valId = fileman::idToFh($valId);
+                $linkedFiles[] = $clsInst->getLinkToSingle($valId)->getContent();
+            }
+            $row->notes .= "<div>" . implode(' | ', $linkedFiles);
+        }
+
         // Ако е складов документ
         if($Document->haveInterface('store_iface_DocumentIntf')){
 
@@ -293,18 +313,18 @@ class trans_LineDetails extends doc_Detail
             // Подготовка на логистичната информация за документа
             $logisticArr = array();
             if(!empty($transportInfo['transportUnits'])){
-                $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits'], false, '<br>');
+                $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits'], false, ', ');
                 $logisticArr[] = $transUnits;
             } elseif(isset($transportInfo['volume'])){
-                $logisticArr[] = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
+                $logisticArr[] = "<i>" . core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']) . "<i>";
             }
 
             if(isset($transportInfo['weight'])){
-                $logisticArr[] = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
+                $logisticArr[] = "<i>" . core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']) . "<i>";
             } else {
                 $logisticArr[] = "<span class='quiet'>N/A</span>";
             }
-            $row->logistic = implode(', ', $logisticArr);
+            $row->logistic = implode('; ', $logisticArr);
         } else {
             if(!empty($transportInfo['contragentName'])){
                 $row->address = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
@@ -349,12 +369,24 @@ class trans_LineDetails extends doc_Detail
             }
         }
 
+
         if(!empty($transportInfo['features'])){
             $featuresString = '';
             foreach ($transportInfo['features'] as $transFeatureId){
                 $featuresString .= "<span class='lineFeature'>" . trans_Features::getVerbal($transFeatureId, 'name') . "</span>";
             }
             $row->containerId .= " {$featuresString}";
+        }
+
+        if($Document->isInstanceOf('store_ShipmentOrders')){
+            $invoicesInShipment = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            if(countR($invoicesInShipment)){
+                $invoiceArr = array();
+                foreach ($invoicesInShipment as $iRec){
+                    $invoiceArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
+                }
+                $row->containerId .= " <small>" . implode(',', $invoiceArr) . "</small>";
+            }
         }
 
         // Ако има платежни документи към складовия
@@ -436,7 +468,7 @@ class trans_LineDetails extends doc_Detail
         unset($data->listFields['renderDocumentInline']);
 
         $data->listTableMvc->setField('containerId', 'tdClass=documentCol');
-        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter,tdClass=small-field logisticCol');
+        $data->listTableMvc->FNC('logistic', 'varchar', 'tdClass=logisticCol');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');

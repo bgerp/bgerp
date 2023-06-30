@@ -680,7 +680,7 @@ abstract class deals_Helper
     public static function normalizeProducts($arrays, $subtractArrs = array())
     {
         $combined = array();
-        
+
         foreach (array('arrays', 'subtractArrs') as $parameter) {
             $var = ${$parameter};
             
@@ -700,6 +700,11 @@ abstract class deals_Helper
                                 
                                 if (!empty($p->notes)) {
                                     $combined[$index]->notes = $p->notes;
+                                }
+
+                                if(is_array($p->batches)){
+                                    $combined[$index]->batches = array();
+                                    $combined[$index]->batchesSums = array();
                                 }
                             }
                             
@@ -721,11 +726,16 @@ abstract class deals_Helper
                             }
                             
                             $sign = ($parameter == 'arrays') ? 1 : -1;
-                            
-                            //@TODO да може да е -
                             $d->quantity += $sign * $p->quantity;
                             $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
-                            
+
+                            if(is_array($p->batches)){
+                                foreach ($p->batches as $batch => $batchQuantity){
+                                    $d->batches[$batch] += $sign * $batchQuantity;
+                                    $d->batchesSums[$batch] += $sign * ($batchQuantity * $p->price * (1 - $p->discount));
+                                }
+                            }
+
                             if (empty($d->packagingId)) {
                                 $d->packagingId = $p->packagingId;
                                 $d->quantityInPack = $p->quantityInPack;
@@ -740,9 +750,29 @@ abstract class deals_Helper
                 }
             }
         }
-        
+
         if (countR($combined)) {
             foreach ($combined as &$det) {
+                //$det->sumAmounts = core_Math::roundNumber($det->sumAmounts);
+                if(is_array($det->batches) && countR($det->batches)){
+                    $sumBatches = $sumQuantities = 0;
+                    foreach ($det->batches as $b => $q){
+                        if($q <= 0) {
+                            unset($det->batches[$b]);
+                            unset($det->batchesSums[$b]);
+                        } else {
+                            $sumBatches += $det->batchesSums[$b];
+                            $sumQuantities += $det->batches[$b];
+                        }
+                    }
+                    $sumBatches = core_Math::roundNumber($sumBatches);
+                    $sumQuantities = core_Math::roundNumber($sumQuantities);
+
+                    $det->sumAmounts = max($det->sumAmounts, $sumBatches);
+                    $det->quantity = max($det->quantity, $sumQuantities);
+                    unset($det->batchesSums);
+                }
+
                 $delimiter = ($det->quantity * (1 - $det->discount));
                 if (!empty($delimiter)) {
                     $det->price = $det->sumAmounts / $delimiter;
@@ -755,7 +785,7 @@ abstract class deals_Helper
                 }
             }
         }
-        
+
         return $combined;
     }
     
@@ -805,7 +835,7 @@ abstract class deals_Helper
 
                 if($skip != true){
                     $iQuery = store_StockPlanning::getQuery();
-                    $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that}");
+                    $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that} AND #storeId IS NOT NULL");
                     $iQuery->show('quantityIn,quantityOut');
                     $iRec = $iQuery->fetch();
 
@@ -1248,9 +1278,13 @@ abstract class deals_Helper
         while ($dRec = $dQuery->fetch()) {
             
             // Опит за намиране на условията
-            $conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
+            try{
+                $conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
+            } catch(core_exception_Expect $e){
+                $conditions = array();
+            }
+
             $allProducts[$dRec->productId] = $dRec->productId;
-            
             if (is_array($conditions)) {
                 foreach ($conditions as $t) {
                     
@@ -1346,13 +1380,19 @@ abstract class deals_Helper
                 $rec->rate = $newRate;
             }
         } elseif(isset($masterMvc->mainDetail)) {
+
             $Detail = cls::get($masterMvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
 
             Mode::push("stopMasterUpdate{$rec->id}", true);
             while ($dRec = $dQuery->fetch()) {
-                $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+                if($rec->{$rateFld}){
+                    $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+                } else {
+                    $dRec->{$priceFld} = $dRec->{$priceFld} * $newRate;
+                    wp($dRec, $rec, $rateFld);
+                }
 
                 if ($masterMvc instanceof deals_InvoiceMaster) {
                     $dRec->packPrice = $dRec->{$priceFld} * $dRec->quantityInPack;
@@ -1364,39 +1404,83 @@ abstract class deals_Helper
             Mode::pop("stopMasterUpdate{$rec->id}");
 
             $updateMaster = true;
+            $oldRate = $rec->{$rateFld};
             $rec->{$rateFld} = $newRate;
             if ($masterMvc instanceof deals_InvoiceMaster) {
-                $rec->displayRate = $newRate;
-
+                //$rec->displayRate = $newRate;
                 if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
                     // Изчисляване на стойността на ддс-то
                     $vat = acc_Periods::fetchByDate()->vatRate;
+                    if(isset($rec->dpVatGroupId)){
+                        $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
+                    }
                     if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
                         $vat = 0;
                     }
 
-                    $diff = $rec->changeAmount * $newRate;
-                    $rec->vatAmount = $diff * $vat;
+                    if(isset($rec->dpAmount)){
+                        $rec->dealValue = ($rec->dpAmount / $oldRate) * $rec->displayRate;
+                        $diff = ($rec->dpAmount / $oldRate) * $newRate;
+                        $rec->dpAmount = $diff;
+                    } else {
+                        $diff = $rec->changeAmount * $rec->displayRate;
+                        $rec->dealValue = $diff;
+                    }
 
-                    // Стойността е променената сума
-                    $rec->dealValue = $diff;
+                    $rec->vatAmount = $diff * $vat;
                     $updateMaster = false;
+                } elseif($rec->dpOperation == 'deducted' && isset($rec->dpAmount)){
+                    $diff = ($rec->dpAmount / $oldRate) * $newRate;
+                    $rec->dpAmount = $diff;
                 }
             }
         }
         $rec->_recalcRate = true;
+        Mode::push('dontUpdateKeywords', true);
         $masterMvc->save($rec);
-        $masterMvc->logWrite('Ръчна промяна на курса', $rec->id);
 
+        $logMsg = 'Промяна на курс';
         if ($updateMaster) {
             $masterMvc->updateMaster_($rec);
         }
-        
+        Mode::pop('dontUpdateKeywords');
         if ($rec->state == 'active') {
-            acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id);
-            acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
-            $masterMvc->logWrite('Реконтиране след промяна на курса', $rec->id);
+
+            $deletedRec = null;
+            acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id, $deletedRec);
+
+            $popReconto = $popRecontoDate = false;
+            try{
+                if(is_object($deletedRec)){
+                    Mode::push('recontoWithCreatedOnDate', $deletedRec->createdOn);
+                    $popRecontoDate = true;
+                }
+                Mode::push('recontoTransaction', true);
+                $popReconto = true;
+                acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
+                Mode::pop('recontoTransaction');
+                $popReconto = false;
+                if($popRecontoDate){
+                    Mode::pop('recontoWithCreatedOnDate');
+                    $popRecontoDate = false;
+                }
+                $logMsg = 'Реконтиране след промяна на курса';
+            } catch(acc_journal_RejectRedirect  $e) {
+                if(is_object($deletedRec)) {
+                    acc_Journal::restoreDeleted($masterMvc->getClassId(), $rec->id, $deletedRec, $deletedRec->_details);
+                }
+                if($popReconto){
+                    Mode::pop('recontoTransaction');
+                }
+                if($popRecontoDate){
+                    Mode::pop('recontoWithCreatedOnDate');
+                }
+                wp($e);
+                $logMsg = 'Грешка при опит за реконтиране';
+            }
         }
+
+        $masterMvc->logWrite($logMsg, $rec->id);
     }
     
     
@@ -1597,12 +1681,14 @@ abstract class deals_Helper
     public static function getCombinedThreads($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if(!is_object($firstDoc)) return array();
         if (!$firstDoc->isInstanceOf('deals_DealBase')) return array();
 
         // Ако сделката е приключена, проверява се дали не е приключена с друга сделка
         if ($firstDoc->fetchField('state') == 'closed') {
+            $firstDocRec = $firstDoc->fetch('folderId,id');
             $dQuery = $firstDoc->getInstance()->getQuery();
-            $dQuery->where("LOCATE('|{$firstDoc->that}|', #closedDocuments)");
+            $dQuery->where("LOCATE('|{$firstDocRec->id}|', #closedDocuments) AND #folderId = {$firstDocRec->folderId}");
 
             // Ако е подменя се треда с този на обединяващата сделка, защото тя ще се използва за основа
             if ($combinedThread = $dQuery->fetch()->threadId) {
@@ -2030,10 +2116,9 @@ abstract class deals_Helper
      */
     public static function getAvailableQuantityAfter($productId, $storeId, $quantity)
     {
-        $stRec = store_Products::fetch("#productId = '{$productId}' AND #storeId = {$storeId}", 'quantity,reservedQuantity');
-        $quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
-        
-        return $quantityInStore - $quantity;
+        $stRec = store_Products::fetch("#productId = '{$productId}' AND #storeId = {$storeId}", 'quantity');
+
+        return $stRec->quantity - $quantity;
     }
     
     
@@ -2473,7 +2558,7 @@ abstract class deals_Helper
     {
         $firstDocument = doc_Threads::getFirstDocument($threadId);
         if($firstDocument->isInstanceOf('deals_DealMaster')){
-            $show = $firstDocument->isInstanceOf('sales_Sales') ? sales_Setup::get('SHOW_REFF_IN_SALE_THREAD') : purchase_Setup::get('SHOW_REFF_IN_SALE_THREAD');
+            $show = $firstDocument->isInstanceOf('sales_Sales') ? sales_Setup::get('SHOW_REFF_IN_SALE_THREAD') : purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
             if($show == 'yes') {
                 $reff = $firstDocument->fetchField('reff');
                 if(!empty($reff)) return $reff;
@@ -2481,5 +2566,134 @@ abstract class deals_Helper
         }
 
         return null;
+    }
+
+
+    /**
+     * Помощна функция връщаща използваните файлове в един документ
+     *
+     * @param mixed $mvc                  - модел
+     * @param stdClass|int $rec           - запис
+     * @param array $masterRichtextFields - масив с полета от мастъра, където да се търсят файлове
+     * @param array $detailRichtextFields - масив с полета от детайла, където да се търсят файлове
+     * @return array $fhArr               - намерените файлове с ключ хендлъра им и стойност името
+     */
+    public static function getLinkedFilesInDocument($mvc, $rec, $masterRichtextFields = array(), $detailRichtextFields = array())
+    {
+        $fhArr = $showFields = array();
+        $Class = cls::get($mvc);
+        $rec = $Class->fetchRec($rec);
+
+        // Ако има зададени мастър полета в които да се търсят файлове, извличат се
+        $masterRichtextFields = arr::make($masterRichtextFields);
+        foreach ($masterRichtextFields as $masterRichTextField){
+            if(!empty($rec->{$masterRichTextField})){
+                $fhArr += fileman_RichTextPlg::getFiles($rec->{$masterRichTextField});
+            }
+        }
+
+        // Ако има детайл и има зададени полета от детайла, от които да се извличат файлове
+        if(isset($mvc->mainDetail)){
+            $detailRichtextFields = arr::make($detailRichtextFields);
+            $Detail = cls::get($mvc->mainDetail);
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            if(countR($detailRichtextFields)){
+                $showFields = $detailRichtextFields;
+            }
+            if(isset($Detail->productFld)){
+                $showFields[] = $Detail->productFld;
+            }
+            if(countR($showFields)){
+                $dQuery->show(implode(',', $showFields));
+
+                // Извличане на файлове от детайла
+                while($dRec = $dQuery->fetch()){
+                    foreach ($detailRichtextFields as $detField){
+                        if(!empty($dRec->{$detField})){
+                            $fhArr += fileman_RichTextPlg::getFiles($dRec->{$detField});
+                        }
+
+                        // Ако има артикул извличат се файловете от него
+                        if(isset($Detail->productFld)) {
+                            if($Driver = cat_Products::getDriver($dRec->{$Detail->productFld})){
+                                $fhArr += $Driver->getLinkedFiles($dRec->{$Detail->productFld});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Връщане на намерените файлове, ако има такива
+        return $fhArr;
+    }
+
+
+    /**
+     * Помощна ф-я намираща максималния срок за доставка от детайлите
+     *
+     * @param core_Mvc $masterMvc           - модел на мастъра
+     * @param mixed $masterId               - ид/запис на мастъра
+     * @param core_Mvc $Detail              - детайла
+     * @param core_Query $dQuery            - заявка към детайлите
+     * @param int|null $defaultDeliveryTime - дефолтно време за доставка
+     * @param string $productFieldName      - името на полето с ид-то на артикула
+     * @param string $termFieldName         - името на полето със записания срок
+     * @param string $quantityFld           - името на полето с к-то
+     * @param string $storeFieldName        - името на полето за склада
+     *
+     * @return int|null $maxDeliveryTime - максималния срок за доставка от детайлите
+     */
+    public static function calcMaxDeliveryTime($masterMvc, $masterId, $Detail, core_Query $dQuery, $defaultDeliveryTime = null, $productFieldName = 'productId', $termFieldName = 'term', $quantityFld = 'quantity', $storeFieldName = null)
+    {
+        $deliveryTimes = array();
+        $masterRec = $masterMvc->fetchRec($masterId);
+
+        // Обиколка на детайлите
+        while ($dRec = $dQuery->fetch()) {
+            $term = null;
+
+            // Ако има ръчно въведен срок - него
+            if(isset($dRec->{$termFieldName})){
+                $term = $dRec->{$termFieldName};
+            } else {
+
+                // Ако няма се търси производствения срок на артикула за нужното к-во
+                if($productDeliveryTime = cat_Products::getDeliveryTime($dRec->{$productFieldName}, $dRec->{$quantityFld})){
+                    $term = $productDeliveryTime;
+
+                    // Ако има изчислена доставка и за нея има срок на доставка добавя се
+                    if ($deliveryTime = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id)->deliveryTime) {
+                        $term += $deliveryTime;
+                    } elseif($defaultDeliveryTime){
+
+                        // Ако няма за реда, но има дефолтна изчислява се тя
+                        $term += $defaultDeliveryTime;
+                    }
+                }
+            }
+
+            if (isset($term)) {
+                $deliveryTimes[] = $term;
+            }
+        }
+
+
+        $maxDeliveryTime = null;
+        if(countR($deliveryTimes)){
+
+            // Взима се най-големия срок за доставка от детайлите
+            $maxDeliveryTime = max($deliveryTimes);
+
+            // Към тях се добавя нужното време за подготовка от склада (ако има)
+            $storeId = isset($storeFieldName) ? $masterRec->{$storeFieldName} : null;
+            $defaultShipmentTime = store_Stores::getShipmentPreparationTime($storeId);
+            if(!empty($defaultShipmentTime)){
+                $maxDeliveryTime += $defaultShipmentTime;
+            }
+        }
+
+        return $maxDeliveryTime;
     }
 }

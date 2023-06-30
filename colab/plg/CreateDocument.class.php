@@ -15,6 +15,28 @@
  */
 class colab_plg_CreateDocument extends core_Plugin
 {
+
+
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     *
+     * @param core_Manager $mvc
+     * @param bool         $res
+     * @param object       $rec
+     *
+     * @see change_Plugin
+     */
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        if ($res !== false) {
+            $cu = core_Users::getCurrent();
+            if ($rec->createdBy != $cu && !core_Users::haveRole('powerUser')) {
+                $res = false;
+            }
+        }
+    }
+
+
     /**
      * Какви роли са необходими за качване или сваляне?
      */
@@ -86,7 +108,11 @@ class colab_plg_CreateDocument extends core_Plugin
         // Контракторите да не могат да споделят потребители
         if (core_Users::haveRole('partner')) {
             if ($mvc->getField('sharedUsers', false)) {
-                $data->form->fields['sharedUsers']->type->params['roles'] = 'no_one';
+                if (colab_Setup::get('SHARE_USERS_FROM_FOLDER') == 'yes') {
+                    $data->form->fields['sharedUsers']->type->params['roles'] = 'no_one';
+                } else {
+                    $data->form->setField('sharedUsers', 'input=none');
+                }
             }
         }
     }

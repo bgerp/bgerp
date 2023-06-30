@@ -36,7 +36,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, deals_plg_SaveValiorOnActivation, store_plg_StockPlanning, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, deals_plg_SaveValiorOnActivation, store_plg_StockPlanning, store_plg_Request, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, plg_Sorting,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
     
     
@@ -58,31 +58,31 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кой има право да чете?
      */
-    public $canConto = 'ceo,planning,store';
+    public $canConto = 'ceo,consumption,store';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,planning,store,production';
+    public $canList = 'ceo,consumption,store';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,planning,store,production';
+    public $canSingle = 'ceo,consumption,store';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,planning,store,production';
+    public $canEdit = 'ceo,consumption,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,planning,store,production';
+    public $canAdd = 'ceo,consumption,store';
     
     
     /**
@@ -140,7 +140,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,planning,store,production';
+    public $canPending = 'ceo,consumption,store';
     
     
     /**
@@ -165,11 +165,11 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Кои детайли да се клонират с промяна
      *
      * @param stdClass $rec
-     * @param mixed    $Detail
-     *
-     * @return array
+     * @return array $res
+     *          ['recs'] - записи за промяна
+     *          ['detailMvc] - модел от който са
      */
-    public function getDetailsToCloneAndChange($rec, &$Detail)
+    public function getDetailsToCloneAndChange_($rec)
     {
         $Detail = cls::get($this->mainDetail);
         $id = $rec->clonedFromId;
@@ -182,15 +182,22 @@ class planning_ReturnNotes extends deals_ManifactureMaster
             }
         }
 
+        $recs = array();
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
         $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         if(!isset($rec->storeId)){
             $dQuery->where("#canStore = 'no'");
         }
+        while($dRec = $dQuery->fetch()){
+            if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
+                $dRec->_genericProductId = $genericProductId;
+            }
+            $recs[$dRec->id] = $dRec;
+        }
+        $res = array('recs' => $recs, 'detailMvc' => $Detail);
 
-        //bp($rec, $dQuery->fetchAll());
-        return $dQuery->fetchAll();
+        return $res;
     }
     
     
@@ -232,7 +239,8 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         $form = &$data->form;
         $rec = &$form->rec;
         $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
-        
+        $form->setDefault('valior', dt::today());
+
         $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
             $form->setDefault('departmentId', $folderCover->that);
@@ -278,11 +286,31 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         }
 
         // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
 
             return true;
         }
 
         return false;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'add' && isset($rec)) {
+            if (isset($rec->originId)) {
+                if(!$mvc->canAddToOriginId($rec->originId, $userId)){
+                    $requiredRoles = 'no_one';
+                } else {
+                    $threadId = doc_Containers::fetchField($rec->originId, 'threadId');
+                    if(!planning_ConsumptionNotes::count("#threadId = {$threadId} AND #state IN ('active', 'pending')")){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
     }
 }

@@ -74,9 +74,8 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         $sendQuery->where("#protocolId = {$rec->id}");
         $sendAll = $sendQuery->fetchAll();
 
-        if (Mode::get('saveTransaction')) {
-            $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
-            if($allowNegativeShipment == 'no'){
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            if(!store_Setup::canDoShippingWhenStockIsNegative()){
                 if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($sendAll, $rec->storeId, $rec->state)) {
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
@@ -158,15 +157,26 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             );
 
             if($creditAccId == '3232'){
-                $amount = $amount = round($recRec->amount * $rate, 2);
+                $amount = round($recRec->amount * $rate, 2);
                 $entry['amount'] = $amount;
             }
 
             $entries[] = $entry;
         }
-        
-        if (Mode::get('saveTransaction')) {
-            if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canStore,canSell', 'generic', 'трябва да са складируеми и продаваеми и да не са генерични')){
+
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            $sendProductsArr = arr::extractValuesFromArray($sendArr, 'productId');
+            $receivedProductsArr = arr::extractValuesFromArray($receivedArr, 'productId');
+
+            $haveMetaToSend = cls::get('store_ConsignmentProtocolDetailsSend')->getExpectedProductMetaProperties($rec->productType, 'send');
+            $sendErrorMsg = ($rec->productType == 'ours') ? 'трябва да са складируеми и продаваеми и да не са генерични' : 'трябва да са складируеми и да не са генерични';
+            if($redirectError = deals_Helper::getContoRedirectError($sendProductsArr, $haveMetaToSend, 'generic', $sendErrorMsg)){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+
+            $haveMetaToReceive = cls::get('store_ConsignmentProtocolDetailsReceived')->getExpectedProductMetaProperties($rec->productType, 'receive');
+            $receiveErrorMsg = ($rec->productType == 'ours') ? 'трябва да са складируеми и купуваеми и да не са генерични' : 'трябва да са складируеми и да не са генерични';
+            if($redirectError = deals_Helper::getContoRedirectError($receivedProductsArr, $haveMetaToReceive, 'generic', $receiveErrorMsg)){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }

@@ -57,7 +57,9 @@ class core_Debug
     
     public static $lastMicroTime;
     
-    
+    /**
+     * Колко време е работил хита
+     */
     public static $debugTime = array();
     
     
@@ -82,7 +84,7 @@ class core_Debug
      */
     public static $isDebug;
     
-    
+
     /**
      * При дъмп - колко нива преглеждаме
      */
@@ -165,6 +167,9 @@ class core_Debug
         
         if (self::$timers[$name]->start) {
             $workingTime = core_DateTime::getMicrotime() - self::$timers[$name]->start;
+            if(!isset(self::$timers[$name]->workingTime)) {
+                self::$timers[$name]->workingTime = 0;
+            }
             self::$timers[$name]->workingTime += $workingTime;
             self::$timers[$name]->start = null;
         }
@@ -976,6 +981,12 @@ class core_Debug
                     'header' => "Content-type: application/x-www-form-urlencoded\r\n",
                     'method' => 'POST',
                     'content' => http_build_query($data),
+                    'timeout' => 5,
+                ),
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
                 ),
             );
             $context = stream_context_create($options);

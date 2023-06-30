@@ -1,0 +1,8 @@
+<div class="richtext-message richtext-success">
+    <div><b>|Стойност без ДДС|*:</b> [#price#] лв.</div>
+    <div><b>|Стойност с ДДС|*:</b>[#priceWithVat#] лв.</div>
+    <hr />
+    [#ADDITIONAL#]
+</div>
+
+

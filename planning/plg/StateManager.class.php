@@ -70,6 +70,15 @@ class planning_plg_StateManager extends core_Plugin
         if (isset($mvc->demandReasonChangeState)) {
             $mvc->demandReasonChangeState = arr::make($mvc->demandReasonChangeState, true);
         }
+
+        if (!$mvc->fields['lastChangeStateOn']) {
+            $mvc->FLD('lastChangeStateOn', 'datetime(format=smartTime)', 'caption=Промяна състояние->На,input=none');
+        }
+
+        if (!$mvc->fields['lastChangeStateBy']) {
+            $mvc->FLD('lastChangeStateBy', 'key(mvc=core_Users,select=nick)', 'caption=Промяна състояние->От на,input=none');
+        }
+
         $mvc->setDbIndex('timeClosed');
     }
     
@@ -148,7 +157,7 @@ class planning_plg_StateManager extends core_Plugin
         if ($mvc->haveRightFor('activateAgain', $rec)) {
             $warning = $mvc->getChangeStateWarning($rec, null);
             
-            $attr = array('ef_icon' => 'img/16/control_play.png', 'title' => 'Активиране на документа','warning' => $warning, 'order' => 30);
+            $attr = array('ef_icon' => 'img/16/control_play.png', 'title' => 'Пускане на документа','warning' => $warning, 'order' => 30);
             if (isset($mvc->demandReasonChangeState, $mvc->demandReasonChangeState['activateAgain'])) {
                 unset($attr['warning']);
             }
@@ -270,10 +279,13 @@ class planning_plg_StateManager extends core_Plugin
                 if (in_array($action, $mvc->demandReasonChangeState)) {
                     if (!$reason = Request::get('reason', 'text')) {
                         $res = self::getReasonForm($mvc, $action, $rec);
-                        
+
                         return false;
                     }
                     $rec->_reason = $reason;
+                    if($updateProductParams = Request::get('updateProductParams', 'enum(yes,no)')){
+                        $rec->_updateProductParams = $updateProductParams;
+                    }
                 }
             }
             
@@ -296,23 +308,25 @@ class planning_plg_StateManager extends core_Plugin
      * @param core_Mvc $mvc
      * @param stdClass $rec
      * @param string $action
+     * @param null|string $logMsg
      * @return void
      */
-    public static function changeState($mvc, $rec, $action)
+    public static function changeState($mvc, $rec, $action, $logMsg = null)
     {
         $logAction = null;
+        $now = dt::now();
+        $cu = core_Users::getCurrent();
         switch ($action) {
             case 'close':
                 $rec->brState = $rec->state;
                 $rec->state = 'closed';
-                $rec->timeClosed = dt::now();
+                $rec->timeClosed = $now;
                 $logAction = 'Приключване';
                 break;
             case 'stop':
                 $rec->brState = $rec->state;
                 $rec->state = 'stopped';
                 $logAction = 'Спиране';
-
                 break;
             case 'wakeup':
                 $rec->brState = $rec->state;
@@ -334,21 +348,25 @@ class planning_plg_StateManager extends core_Plugin
         }
 
         // Ако ще активираме: запалваме събитие, че ще активираме
-        $saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
+        $saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed,lastChangeStateOn,lastChangeStateBy';
         if($mvc instanceof planning_Tasks){
             $saveFields .= ",orderByAssetId";
         }
 
+        $rec->lastChangeStateOn = $now;
+        $rec->lastChangeStateBy = $cu;
+
         if ($action == 'activate' && empty($activateErrMsg)) {
-            $rec->activatedBy = core_Users::getCurrent();
-            $rec->activatedOn = dt::now();
+            $rec->activatedBy = $cu;
+            $rec->activatedOn = $now;
             $mvc->invoke('BeforeActivation', array(&$rec));
             $saveFields = null;
         }
 
         // Обновяваме състоянието и старото състояние
         if ($mvc->save($rec, $saveFields)) {
-            $mvc->logWrite($logAction, $rec->id);
+            $log = !empty($logMsg) ? $logMsg : $logAction;
+            $mvc->logWrite($log, $rec->id, 360, core_Users::getCurrent());
             $mvc->invoke('AfterChangeState', array(&$rec, $rec->state));
         }
 
@@ -358,6 +376,14 @@ class planning_plg_StateManager extends core_Plugin
                 $mvc->invoke('AfterActivation', array(&$rec));
             } else {
                 core_Statuses::newStatus($activateErrMsg, 'warning');
+            }
+        }
+
+        if($action == 'close' && isset($rec->threadId)){
+            $threadRec = doc_Threads::fetch($rec->threadId, 'state,id');
+            if($threadRec->state == 'opened'){
+                $threadRec->state = 'closed';
+                cls::get('doc_Threads')->save($threadRec, 'state');
             }
         }
     }
@@ -370,6 +396,10 @@ class planning_plg_StateManager extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         $mvc->invoke('AfterChangeState', array(&$rec, 'rejected'));
+
+        $rec->lastChangeStateOn = dt::now();
+        $rec->lastChangeStateBy = core_Users::getCurrent();
+        $mvc->save_($rec, 'lastChangeStateOn,lastChangeStateBy');
     }
     
     
@@ -435,6 +465,10 @@ class planning_plg_StateManager extends core_Plugin
         if ($rec->state != 'rejected') {
             $mvc->invoke('AfterChangeState', array(&$rec, 'restore'));
         }
+
+        $rec->lastChangeStateOn = dt::now();
+        $rec->lastChangeStateBy = core_Users::getCurrent();
+        $mvc->save_($rec, 'lastChangeStateOn,lastChangeStateBy');
     }
     
     
@@ -468,6 +502,7 @@ class planning_plg_StateManager extends core_Plugin
         $form->FLD('reason', 'text(rows=2)', 'caption=Основание,mandatory');
         $actionVerbal = strtr($action, $actionArr);
         $form->title = $actionVerbal . '|* ' . tr('на') . '|* ' . planning_Jobs::getHyperlink($rec->id, true);
+        $mvc->invoke('AfterGetDemandReasonFormForChange', array(&$form, $action, $rec));
         $form->input();
         
         if ($form->isSubmitted()) {
@@ -557,8 +592,31 @@ class planning_plg_StateManager extends core_Plugin
             $mvc->logWrite('Активиране', $rec->id);
         }
     }
-    
-    
+
+
+    /**
+     * Преди запис на документ
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+        if(empty($rec->id)){
+            $rec->lastChangeStateOn = dt::now();
+            $rec->lastChangeStateBy = core_Users::getCurrent();
+        }
+    }
+
+
+    /**
+     * След промяна на състоянието в чакащо
+     */
+    public static function on_AfterSavePendingDocument($mvc, &$rec)
+    {
+        $rec->lastChangeStateOn = dt::now();
+        $rec->lastChangeStateBy = core_Users::getCurrent();
+        $mvc->save_($rec, 'lastChangeStateOn,lastChangeStateBy');
+    }
+
+
     /**
      * След намиране на текста за грешка на бутона за 'Приключване'
      */

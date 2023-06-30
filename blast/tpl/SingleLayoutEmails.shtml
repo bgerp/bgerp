@@ -146,7 +146,7 @@
                 <div>Език: [#lg#]</div>
                 <!--ET_END lg-->
                 <!--ET_BEGIN canUnsubscribe-->
-                <div>Възможност за отипсване: [#canUnsubscribe#]</div>
+                <div>Възможност за отписване: [#canUnsubscribe#]</div>
                 <!--ET_END canUnsubscribe-->
                 <div style='clear: both;'></div>
                 <div  style='margin-top: 10px; margin-bottom: 10px;'>

@@ -83,7 +83,16 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $rec = $this->class->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
         $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
-        
+
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            if(isset($rec->bankAccountId)){
+                $ownBankRec = bank_OwnAccounts::fetch("#bankAccountId = {$rec->bankAccountId}", 'state');
+                if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+                    acc_journal_RejectRedirect::expect(false, 'Банкова сметка в договора е закрита/оттеглена|*!');
+                }
+            }
+        }
+
         if ($actions['ship'] || $actions['pay']) {
             
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
@@ -103,7 +112,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 
                 $delPart = $this->getDeliveryPart($rec, $storable);
                 
-                if (Mode::get('saveTransaction') && countR($storable)) {
+                if (acc_Journal::throwErrorsIfFoundWhenTryingToPost() && countR($storable)) {
                     if($redirectError = deals_Helper::getContoRedirectError($storable, 'canStore', null, 'вече не са складируеми и не може да се изписват от склада')){
                         
                         acc_journal_RejectRedirect::expect(false, $redirectError);
@@ -126,7 +135,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         
         // Проверка дали артикулите отговарят на нужните свойства
         $products = arr::extractValuesFromArray($rec->details, 'productId');
-        if (Mode::get('saveTransaction') && countR($products)) {
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost() && countR($products)) {
             if($redirectError = deals_Helper::getContoRedirectError($products, 'canSell', 'generic', 'вече не са продаваеми или са генерични')){
                 
                 acc_journal_RejectRedirect::expect(false, $redirectError);

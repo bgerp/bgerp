@@ -249,8 +249,21 @@ abstract class batch_definitions_Proto extends core_BaseClass
     public function orderBatchesInStore(&$batches, $storeId, $date = null)
     {
     }
-    
-    
+
+
+    /**
+     * Подрежда на партидите при рендиране за показване
+     *
+     * @param array $batches - партиди за показване
+     *                               ['batch_name'] => $tpl
+     * @return void
+     */
+    public function orderBatchesForDisplay(&$batches)
+    {
+
+    }
+
+
     /**
      * Разпределя количество към наличните партиди в даден склад към дадена дата
      *

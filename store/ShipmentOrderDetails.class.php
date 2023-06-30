@@ -30,7 +30,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      *
      * @var string
      */
-    public $singleTitle = 'Продукт';
+    public $singleTitle = 'Артикул';
     
     
     /**
@@ -50,7 +50,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      *
      * var string|array
      */
-    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,store_plg_RequestDetail,
+    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering,store_plg_RequestDetail, plg_SaveAndNew, doc_plg_HidePrices,
                         plg_AlignDecimals2,deals_plg_ImportDealDetailProduct, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
                         ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,acc_plg_ExpenseAllocation,cat_plg_CreateProductFromDocument,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
@@ -241,7 +241,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
             deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state, $deliveryDate, $masterRec->threadId);
             
-            if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice) && $masterRec->isReverse == 'no') {
+            if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice) && $masterRec->isReverse == 'no') {
                 $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
                 $foundPrimeCost = null;
                 if (sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $foundPrimeCost)) {
@@ -251,8 +251,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                         $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
                         $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                     }
-                    
-                    $row->packPrice = ht::createHint($row->packPrice, $warning, 'warning', false);
+                    if(!Mode::isReadOnly()){
+                        $row->packPrice = "<span class='priceBellowPrimeCost'>{$row->packPrice}</span>";
+                        $row->packPrice = ht::createHint($row->packPrice, $warning, 'img/16/red-warning.png', false)->getContent();
+                    }
                 } elseif(in_array($masterRec->state, array('pending', 'draft'))) {
 
                     $listId = null;

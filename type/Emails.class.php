@@ -122,10 +122,23 @@ class type_Emails extends type_Varchar
         $value = trim($value);
         
         $value = type_Email::replaceEscaped($value);
-        
+
         if (empty($value)) {
             
             return;
+        }
+
+        if (!$this->params['showOriginal']) {
+            if (strlen($value)) {
+                //Вземаме всички имейли
+                $emailsArr = self::toArray($value, self::ALL);
+
+                foreach ($emailsArr as &$email) {
+                    $email = email_AddressesInfo::getEmail($email);
+                }
+
+                $value = self::fromArray($emailsArr);
+            }
         }
         
         return $value;
@@ -193,6 +206,28 @@ class type_Emails extends type_Varchar
         }
         
         return implode(', ', $links);
+    }
+
+
+    /**
+     * Добавя атрибут за тип = email, ако изгледа е мобилен
+     */
+    public function renderInput_($name, $value = '', &$attr = array())
+    {
+        if (!$this->params['showOriginal']) {
+            if (strlen($value)) {
+                //Вземаме всички имейли
+                $emailsArr = self::toArray($value, self::ALL);
+
+                foreach ($emailsArr as &$email) {
+                    $email = email_AddressesInfo::getEmail($email);
+                }
+
+                $value = self::fromArray($emailsArr);
+            }
+        }
+
+        return parent::renderInput_($name, $value, $attr);
     }
     
     
