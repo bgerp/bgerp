@@ -107,7 +107,6 @@ class hr_FormCv extends core_Master
      * @var string|array
      */
     public $canNew = 'every_one';
-    public $canAdd = 'hrMaster';
     
     
     /**
@@ -147,8 +146,10 @@ class hr_FormCv extends core_Master
         
         $period = '';
         $months = '';
-        
-        for ($i = 1989;$i <= 2017;$i++) {
+
+        $endYear = date('Y', strtotime(dt::today()));
+
+        for ($i = 1989; $i <= $endYear; $i++) {
             $period .= $i.'|';
         }
         
@@ -172,9 +173,9 @@ class hr_FormCv extends core_Master
     {
         $this->requireRightFor('new');
         
-        // 		expect($id = Request::get('id'));
-        // 		expect($rec = $this->fetch($id));
-        // 		$this->requireRightFor('new', $rec);
+//         		expect($id = Request::get('id'));
+//         		expect($rec = $this->fetch($id));
+//         		$this->requireRightFor('new', $rec);
         
         $form = $this->getForm();
         foreach (array('folderId', 'threadId', 'originId', 'id') as $fld) {
