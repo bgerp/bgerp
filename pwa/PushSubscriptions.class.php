@@ -27,7 +27,7 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'PWA Push абонанаменти';
+    public $title = 'PWA Push абонаменти';
 
 
     /**
@@ -81,7 +81,7 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Дефолтни стойности на приоритетите
      */
-    protected $defaultValues = array('criticalWorking' => '5 мин', 'urgentWorking' => '20 мин', 'docWorking' => '1 час', 'allWorking' => '1 час');
+    protected $defaultValues = array('criticalWorking' => '5 мин', 'urgentWorking' => '20 мин', 'shareWorking' => '20 мин', 'docWorking' => '1 час', 'allWorking' => '1 час');
 
 
     /**
@@ -115,6 +115,10 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('docWorking', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->Работно време');
         $this->FLD('docNonWorking', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->Неработно време');
         $this->FLD('docNight', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->През нощта');
+
+        $this->FLD('shareWorking', $this->enumOptVal, 'caption=Известяване за споделяне->Работно време');
+        $this->FLD('shareNonWorking', $this->enumOptVal, 'caption=Известяване за споделяне->Неработно време');
+        $this->FLD('shareNight', $this->enumOptVal, 'caption=Известяване за споделяне->През нощта');
 
         $this->FLD('allWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Работно време');
         $this->FLD('allNonWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Неработно време');
@@ -272,6 +276,7 @@ class pwa_PushSubscriptions extends core_Manager
         if (Request::get('haveSubscription')) {
             $rec = $this->fetch(array("#brid = '[#1#]'", $brid));
             if ($rec) {
+                expect($rec->userId == core_Users::getCurrent(), $rec->userId, core_Users::getCurrent(), $rec);
                 $statusObj = new stdClass();
                 $statusObj->func = 'redirect';
                 $statusObj->arg = array('url' => toUrl(array($this, 'edit', $rec->id, 'ret_url' => true)));
@@ -516,6 +521,7 @@ class pwa_PushSubscriptions extends core_Manager
             $daysFieldArr['critical'] = 'critical' . $dayTime;
             $daysFieldArr['urgent'] = 'urgent' . $dayTime;
             $daysFieldArr['doc'] = 'doc' . $dayTime;
+            $daysFieldArr['share'] = 'share' . $dayTime;
             $daysFieldArr['all'] = 'all' . $dayTime;
 
             foreach ($nArr as $priority => $nArr2) {
@@ -547,6 +553,11 @@ class pwa_PushSubscriptions extends core_Manager
                                     }
                                 }
                                 if (!$correctDoc) {
+
+                                    continue;
+                                }
+                            } elseif ($fType == 'share') {
+                                if (strpos($msgLower, '|сподели|') === false) {
 
                                     continue;
                                 }
@@ -698,6 +709,23 @@ class pwa_PushSubscriptions extends core_Manager
         }
 
         return $res;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if (($action == 'edit') || ($action == 'delete')) {
+            if ($rec) {
+                if ($rec->userId != $userId) {
+                    if (!haveRole('admin')) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
     }
 
 

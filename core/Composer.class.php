@@ -58,8 +58,9 @@ class core_Composer extends core_Mvc
      */
     public static function getAutoloadPath()
     {
-        
-        return EF_VENDOR_PATH . '/vendor/autoload.php';
+        $vPath = rtrim(EF_VENDOR_PATH, '/');
+
+        return $vPath . '/vendor/autoload.php';
     }
 
 
@@ -80,6 +81,8 @@ class core_Composer extends core_Mvc
             return false;
         }
 
+        $vPath = rtrim(EF_VENDOR_PATH, '/');
+
         if (!$path) {
             $path = core_Cache::get('COMPOSER', 'PATH');
         }
@@ -94,26 +97,26 @@ class core_Composer extends core_Mvc
 
         if (!$path || !file_exists($path)) {
             
-            if (!is_dir(EF_VENDOR_PATH)) {
-                if (!@mkdir(EF_VENDOR_PATH)) {
+            if (!is_dir($vPath)) {
+                if (!@mkdir($vPath)) {
                     self::$error = "Грешка: няма права за създаване на: " . EF_VENDOR_PATH;
                     
                     return false;
                 }
             }
-            $composerCmd = EF_VENDOR_PATH . '/composer.phar';
+            $composerCmd = $vPath . '/composer.phar';
                         
             if (!file_exists($composerCmd)) {
                 
                 $sig = trim(file_get_contents('https://composer.github.io/installer.sig'));
                 
-                $setupPath = EF_VENDOR_PATH . '/composer-setup.php';
+                $setupPath = $vPath . '/composer-setup.php';
                 
                 file_put_contents($setupPath, file_get_contents('https://getcomposer.org/installer'));
                 
                 if ($sig == hash_file('sha384', $setupPath)) {
-                    $cmd =  '"' . $phpCmd . '" ' . $setupPath . ' --quiet --install-dir=' . EF_VENDOR_PATH;
-                    putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
+                    $cmd =  '"' . $phpCmd . '" ' . $setupPath . ' --quiet --install-dir=' . $vPath;
+                    putenv('COMPOSER_HOME=' . $vPath . '/.composer');
                     exec($cmd, $output, $returnvar);
                     if ($returnvar != 0) {
                         self::$error = "Грешка (${cmd}):" . implode('; ', $output);
@@ -144,9 +147,9 @@ class core_Composer extends core_Mvc
         
         if($path) {
             // Изпълняваме командата
-            $dir = '--working-dir=' . EF_VENDOR_PATH;
+            $dir = '--working-dir=' . $vPath;
             
-            putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
+            putenv('COMPOSER_HOME=' . $vPath . '/.composer');
 
             $cmd = "{$phpCmd} {$path} {$dir} {$command} 2>&1";
  
@@ -266,7 +269,9 @@ class core_Composer extends core_Mvc
      */
     public static function installBower($pack, $version = null)
     {
-        $bowerphp = EF_VENDOR_PATH . '/beelab/bowerphp/bin/bowerphp';
+        $vPath = rtrim(EF_VENDOR_PATH, '/');
+
+        $bowerphp = $vPath . '/beelab/bowerphp/bin/bowerphp';
         if (!is_dir($bowerphp)) {
             $res = self::install('beelab/bowerphp');
             if (strlen($res)) {
@@ -285,9 +290,10 @@ class core_Composer extends core_Mvc
             $pack = "{$pack}#{$version}";
         }
         
-        $wd = '--working-dir=' . EF_VENDOR_PATH;
+        $wd = '--working-dir=' . $vPath;
+        $composerHome = 'COMPOSER_HOME=' . $vPath . '/.composer';
         $cmd = "{$composerHome} \"{$phpCmd}\" \"${bowerphp}\" install {$pack} {$wd}";
-        putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
+        putenv('COMPOSER_HOME=' . $vPath . '/.composer');
         exec($cmd, $lines, $result);
         
         if ($result != 0) {

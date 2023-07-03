@@ -615,9 +615,10 @@ class doc_Containers extends core_Manager
                 $retUrl = array($document->className, 'single', $document->that);
                 $retUrl = $retUrl + self::extractDocParamsFromUrl();
                 Mode::push('ret_url', $retUrl);
-                
+
                 if ($row->document) {
                     Debug::log("+++ Get from Cache {$rec->id}");
+                    bgerp_LastSeenDocumentByUser::queueToLog($rec->id);
                 } else {
                     Mode::push('saveObjectsToCid', $rec->id);
                     $data = $document->prepareDocument();

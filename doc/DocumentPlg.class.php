@@ -3125,6 +3125,8 @@ class doc_DocumentPlg extends core_Plugin
                 $tpl->removeBlocks();
             }
         }
+
+        bgerp_LastSeenDocumentByUser::queueToLog($data->rec->containerId);
     }
     
     
