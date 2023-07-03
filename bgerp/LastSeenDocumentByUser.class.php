@@ -81,14 +81,17 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass $row
+     * @param stdClass $rec
+     * @param array $fields
+     * @return void
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
         $row->threadId = doc_Threads::recToVerbal(doc_Threads::fetch($rec->threadId))->title;
         $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+
         $state = doc_Containers::fetchField($rec->containerId, 'state');
         $row->ROW_ATTR['class'] = "state-{$state}";
     }
@@ -101,7 +104,7 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->setFieldTypeParams('docClass', 'allowEmpty');
@@ -160,19 +163,26 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    protected static function on_AfterSessionClose($mvc)
     {
         if(countR($mvc->queue)){
+            $containerIds = arr::extractValuesFromArray($mvc->queue, 'containerId');
 
             // Извличане на старите записи
             $query = $mvc->getQuery();
-            $query->in('containerId', arr::extractValuesFromArray($mvc->queue, 'containerId'));
+            $query->in('containerId', $containerIds);
             $eRecs = $query->fetchAll();
 
+            $save = $cRecs = array();
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->in('id', $containerIds);
+            while($cRec1 = $cQuery->fetch()){
+                $cRecs[$cRec1->id] = $cRec1;
+            }
+
             // Подготовка на новите записи
-            $save = array();
             foreach ($mvc->queue as $qRec){
-                $cRec = doc_Containers::fetch($qRec->containerId);
+                $cRec = $cRecs[$qRec->containerId];
                 $obj = (object)array('docClass' => $cRec->docClass, 'docId' => $cRec->docId, 'threadId' => $cRec->threadId, 'folderId' => $cRec->folderId, 'containerId' => $cRec->id);
                 $obj->lastOn = $qRec->date;
                 $obj->userId = $qRec->userId;
@@ -231,7 +241,13 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
         return $res;
     }
 
-    function act_Test()
+
+    /**
+     * Дебъг метод за изчистване на таблицата
+     *
+     * @todo да се премахне в последствие
+     */
+    function act_Truncate()
     {
         requireRole('debug');
         $this->truncate();
