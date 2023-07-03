@@ -229,6 +229,10 @@ class pwa_Setup extends core_ProtoSetup
                         reportException($e);
                     }
 
+                    if (empty($keysArr)) {
+                        $html .= "<li class='red'>Не може да се добавят 'VAPID' ключове за {$dName}</li>";
+                    }
+
                     foreach ($notDArr as $nRec) {
                         if (!empty($keysArr)) {
                             $html .= "<li style='green'>Добавени са VAPID ключове към домейн {$nRec->domain}</li>";
