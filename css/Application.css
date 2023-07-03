@@ -5616,6 +5616,12 @@ div.location.public {
   -ms-border-radius: 3px;
   border-radius: 3px; }
 
+.eshop-product-image {
+  max-height: 120px;
+  height: auto;
+  width: auto;
+  max-width: 120px; }
+
 .narrow .inqRow {
   margin-top: 10px; }
 

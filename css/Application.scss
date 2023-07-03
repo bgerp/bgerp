@@ -6404,6 +6404,15 @@ div.location.public {
 	background-color:#e6e6e6;
     @include border-radius(3px);
 }
+
+
+.eshop-product-image {
+	max-height: 120px;
+	height: auto;
+	width: auto;
+	max-width: 120px;
+}
+
 .narrow .inqRow {
 	margin-top: 10px;
 }
