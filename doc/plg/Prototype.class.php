@@ -93,6 +93,8 @@ class doc_plg_Prototype extends core_Plugin
 
         // Ако има прототипи
         $prototypes = $mvc->getPrototypes($form->rec);
+        $prototypes = $mvc->expandedAvailablePrototypes($prototypes, $form->rec);
+
         if (!empty($prototypes)) {
             $form->setField($mvc->protoFieldName, 'input');
             $form->setOptions($mvc->protoFieldName, array('' => '') + $prototypes);
@@ -175,6 +177,9 @@ class doc_plg_Prototype extends core_Plugin
                 $res = doc_Prototypes::getPrototypes($mvc, null, $rec->folderId);
             }
         }
+
+
+
     }
 
 
@@ -264,6 +269,30 @@ class doc_plg_Prototype extends core_Plugin
     {
         if(empty($res)){
             $res = $mvc->getTitleById($id);
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране за разширяване на опциите за избор на документи като шаблон
+     */
+    public static function on_AfterExpandedAvailablePrototypes($mvc, &$res, $prototypes, $rec)
+    {
+        if(!$res){
+            $driverId = null;
+            if ($mvc instanceof embed_Manager) {
+                if (isset($rec->{$mvc->driverClassField})) {
+                    $driverId = $rec->{$mvc->driverClassField};
+                }
+            }
+            $lastSeenByUser = bgerp_LastSeenDocumentByUser::getLastSeenByUser($mvc, $driverId, null,10);
+            $lastSeenByUser = array_diff_key($lastSeenByUser, $prototypes);
+
+            if(countR($lastSeenByUser)){
+                $options = array('t' => (object) array('group' => true, 'title' => tr('Шаблонни документи'))) + $prototypes;
+                $options += array('s' => (object) array('group' => true, 'title' => tr('Последно разглеждани'))) + $lastSeenByUser;
+                $res = $options;
+            }
         }
     }
 }
