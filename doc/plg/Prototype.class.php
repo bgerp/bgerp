@@ -283,12 +283,17 @@ class doc_plg_Prototype extends core_Plugin
                     $driverId = $rec->{$mvc->driverClassField};
                 }
             }
-            $lastSeenByUser = bgerp_LastSeenDocumentByUser::getLastSeenByUser($mvc, $driverId, null,10);
+
+            $lastVisitedLimit = doc_Setup::get('SHOW_LAST_VISITED_AS_PROTOTYPES');
+            if(empty($lastVisitedLimit)) return;
+
+            $lastSeenByUser = bgerp_LastSeenDocumentByUser::getLastSeenByUser($mvc, $driverId, null,$lastVisitedLimit);
+            $prototypes = is_array($prototypes) ? $prototypes : array();
             $lastSeenByUser = array_diff_key($lastSeenByUser, $prototypes);
 
             if(countR($lastSeenByUser)){
                 $options = array('t' => (object) array('group' => true, 'title' => tr('Шаблонни документи'))) + $prototypes;
-                $options += array('s' => (object) array('group' => true, 'title' => tr('Последно разглеждани'))) + $lastSeenByUser;
+                $options += array('l' => (object) array('group' => true, 'title' => tr('Последно видяни'))) + $lastSeenByUser;
                 $res = $options;
             }
         }
