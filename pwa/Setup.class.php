@@ -224,7 +224,7 @@ class pwa_Setup extends core_ProtoSetup
                 } else {
                     $keysArr = array();
                     try {
-                        $keysArr = VAPID::createVapidKeys();
+                        $keysArr = @VAPID::createVapidKeys();
                     } catch (core_exception_Expect $e) {
                         reportException($e);
                     } catch (Throwable $t) {
