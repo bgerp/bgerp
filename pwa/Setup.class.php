@@ -199,6 +199,10 @@ class pwa_Setup extends core_ProtoSetup
             // 1 -> PHP 5.6
             $html .= core_Composer::install('minishlink/web-push', $cVersion);
 
+            if (!core_Composer::isInUse()) {
+                $html .= "<li class='red'>Проблем при зареждането на composer</li>";
+            }
+
             $dQuery = cms_Domains::getQuery();
             $existKeysDomainsArr = $notExistKeysDomainsArr =  array();
             while ($dRec = $dQuery->fetch()) {
@@ -227,6 +231,10 @@ class pwa_Setup extends core_ProtoSetup
                         reportException($t);
                     } catch (Error $e) {
                         reportException($e);
+                    }
+
+                    if (empty($keysArr)) {
+                        $html .= "<li class='red'>Не може да се добавят 'VAPID' ключове за {$dName}</li>";
                     }
 
                     foreach ($notDArr as $nRec) {
