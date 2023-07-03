@@ -37,11 +37,12 @@ class core_Cls
      * - главна буква преди собственото име на класа
      *
      * @param mixed $class
+     * @param bool $silent
      * @param bool  $save
      *
      * @return string
      */
-    public static function getClassName($className)
+    public static function getClassName($className, $silent = false)
     {
         if (is_object($className)) {
             if (isset($className->className)) {
@@ -99,8 +100,12 @@ class core_Cls
                 if ($last + 1 < strlen($className)) {
                     $className[$last + 1] = strtoupper($className[$last + 1]);
                 } else {
-                    // Некоректно име на клас
-                    error('@Некоректно име на клас', $className);
+                    if (!$silent) {
+                        // Некоректно име на клас
+                        error('@Некоректно име на клас', $className);
+                    }
+
+                    return false;
                 }
             }
             
@@ -125,7 +130,7 @@ class core_Cls
      */
     public static function load($className, $silent = false, $suffix = '.class.php')
     {
-        $fullClassName = cls::getClassName($className);
+        $fullClassName = cls::getClassName($className, $silent);
         
         if ($fullClassName === false) {
             if (!$silent) {
