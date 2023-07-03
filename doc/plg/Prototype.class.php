@@ -93,6 +93,7 @@ class doc_plg_Prototype extends core_Plugin
 
         // Ако има прототипи
         $prototypes = $mvc->getPrototypes($form->rec);
+        $prototypes = is_array($prototypes) ? $prototypes : array();
         $prototypes = $mvc->expandedAvailablePrototypes($prototypes, $form->rec);
 
         if (!empty($prototypes)) {
@@ -177,9 +178,6 @@ class doc_plg_Prototype extends core_Plugin
                 $res = doc_Prototypes::getPrototypes($mvc, null, $rec->folderId);
             }
         }
-
-
-
     }
 
 
