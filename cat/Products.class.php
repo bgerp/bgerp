@@ -2035,7 +2035,7 @@ class cat_Products extends embed_Manager
             $primeCost = (isset($primeCostDefault)) ? $primeCostDefault : $primeCostDriver;
         } else {
             // Ако е нестандартен се търси първо от драйвера, после от себестойност
-            $primeCost = (is_object($primeCostDriver) && !empty($primeCostDriver->price)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+            $primeCost = ((is_object($primeCostDriver) && !empty($primeCostDriver->price)) || is_numeric($primeCostDriver)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
 
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
