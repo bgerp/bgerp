@@ -213,18 +213,17 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
      */
     public static function getLastSeenByUser($class, $driverId = null, $userId = null, $limit = null, $verbal = true)
     {
+        $res = array();
         $Class = cls::get($class);
         $userId = $userId ?? core_Users::getCurrent();
-        $query = static::getQuery();
+        if(empty($userId)) return $res;
 
         // Последните $limit виждания на посочения вид документ от подадения потребител
+        $query = static::getQuery();
         $query->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
         $query->where("#docClass = {$Class->getClassId()} AND #userId = '{$userId}'");
         $query->notIn("state", array('rejected', 'template'));
         $query->orderBy('lastOn', 'DESC');
-        if(isset($limit)){
-            $query->limit($limit);
-        }
 
         // Ако има драйвер, ограничават се последните виждания на документи от посочения драйвер
         if(isset($driverId) && isset($Class->driverClassField)){
@@ -232,24 +231,17 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
             $query->where("#{$Class->driverClassField} = {$driverId}");
         }
 
-        $res = array();
+        $count = 0;
         while($rec = $query->fetch()){
-            $title = ($verbal) ? $Class->getTitleById($rec->docId, false) : $rec->docId;
-            $res[$rec->docId] = $title;
+            if($Class->haveRightFor('single', $rec->docId, $userId)){
+                $title = ($verbal) ? $Class->getTitleById($rec->docId, false) : $rec->docId;
+                $res[$rec->docId] = $title;
+                $count++;
+            }
+
+            if(isset($limit) && $count >= $limit) break;
         }
 
         return $res;
-    }
-
-
-    /**
-     * Дебъг метод за изчистване на таблицата
-     *
-     * @todo да се премахне в последствие
-     */
-    function act_Truncate()
-    {
-        requireRole('debug');
-        $this->truncate();
     }
 }
