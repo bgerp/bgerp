@@ -930,9 +930,11 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->FLD('productDriverClassId', 'class(interface=cat_ProductDriverIntf, allowEmpty, select=title)', 'caption=Вид');
+        $data->listFilter->setOptions('productDriverClassId', cat_Products::getAvailableDriverOptions());
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
         $data->listFilter->FLD('primeCostType', 'enum(all=Със себестойност,positive=Положителна себестойност,negative=Отрицателна себестойност,zero=Нулева себестойност,empty=Без себестойност)', 'caption=Вид себестойност, silent');
-        $data->listFilter->showFields = 'documentId,productId,primeCostType';
+        $data->listFilter->showFields = 'documentId,productId,productDriverClassId,primeCostType';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->setDefault('primeCostType', 'all');
@@ -943,6 +945,11 @@ class sales_PrimeCostByDocument extends core_Manager
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)){
                 $data->query->where("#productId={$rec->productId}");
+            }
+
+            if (!empty($rec->productDriverClassId)){
+                $data->query->EXT('productDriverClassId', 'cat_Products', "externalName=innerClass,externalKey=productId");
+                $data->query->where("#productDriverClassId = {$rec->productDriverClassId}");
             }
 
             if ($rec->primeCostType != 'all') {
