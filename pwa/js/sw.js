@@ -70,6 +70,11 @@ self.addEventListener('push', function (event) {
         opt.body = bodyData.text;
         if (bodyData.icon) {
             opt.icon = bodyData.icon;
+            opt.badge = bodyData.icon;
+        }
+
+        if (bodyData.badge) {
+            opt.badge = bodyData.icon;
         }
 
         if (bodyData.image) {
