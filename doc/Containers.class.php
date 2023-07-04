@@ -2189,7 +2189,7 @@ class doc_Containers extends core_Manager
                         
                         $resArr['updateVisibleForPartners']++;
                     } else {
-                        self::update($rec->id);
+                        self::update($rec->id, true, true);
                         $resArr['updateContainers']++;
                         self::logNotice('Обновяване на контейнера', $rec->id);
                     }
@@ -2294,7 +2294,7 @@ class doc_Containers extends core_Manager
                                 if ($isDel) {
                                     $resArr['del_cnt']++;
                                 } else {
-                                    self::update($rec->id);
+                                    self::update($rec->id, true, true);
                                     $resArr['updateContainers']++;
                                 }
                             }
@@ -2335,7 +2335,7 @@ class doc_Containers extends core_Manager
                     if (self::save($rec, 'state')) {
                         $resArr['state']++;
                         self::logNotice("Променено състояние на документа от {$oldState} на {$rec->state}", $rec->id);
-                        self::update($rec->id);
+                        self::update($rec->id, true, true);
                     }
                 } catch (core_exception_Expect $e) {
                     continue;
