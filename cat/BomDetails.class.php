@@ -803,7 +803,7 @@ class cat_BomDetails extends doc_Detail
                 if(cat_BomDetails::count("#parentId = {$rec->id} AND #bomId = {$rec->bomId}")){
                     $bomRec = cat_Boms::fetch($rec->bomId);
                     if(in_array($bomRec->state, array('active', 'closed'))){
-                        $extraBtnTpl->replace(" <a href=\"javascript:toggleDisplayBomStepDetails('{$position}', 'bomExpandStageDetails{$rec->id}');\"  style=\"background-image:url(" . sbf('img/16/minus-black.png', "'") . ');" data-id="' .$rec->id. 'inf" class=" plus-icon more-btn bomExpandStageDetails' . $rec->id . '"> </a>', 'BTN');
+                        $extraBtnTpl->replace(" <a href=\"javascript:toggleDisplayBomStepDetails('{$position}', 'bomExpandStageDetails{$rec->id}');\"  style=\"background-image:url(" . sbf('img/16/minus-black.png', "'") . ');" data-id="' .$rec->id. 'inf" class=" plus-icon more-btn show-btn bomExpandStageDetails' . $rec->id . '"> </a>', 'BTN');
                     }
                 }
             }
