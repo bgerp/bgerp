@@ -1208,6 +1208,29 @@ function toggleDisplay(id) {
     elem.toggleClass('show-btn');
 }
 
+function toggleDisplayBomStepDetails(id, toggleBtnClass) {
+    var elements = $("tr").filter(function() {
+        var position = $(this).data("position");
+        if(position !== undefined && position != id){
+            var position = $.trim(position);
+
+            return position.startsWith(id);
+        }
+
+
+        return false;
+    });
+
+    $.each(elements, function( key, value ) {
+        var elem = $(value);
+        elem.toggle();
+    });
+
+    var elem = $("." + toggleBtnClass);
+    elem.toggleClass('show-btn');
+}
+
+
 function toggleDisplayOnload(id) {
     var elem = $("#" + id).parent().children('.more-btn');
     $("#" + id).toggle();

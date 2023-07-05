@@ -779,7 +779,11 @@ class cat_BomDetails extends doc_Detail
         } else {
             $row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
         }
-        
+
+        // Генерираме кода според позицията на артикула и етапите
+        $codePath = $mvc->getProductPath($rec, true);
+        $position = implode('.', $codePath);
+
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $extraBtnTpl = new core_ET("<!--ET_BEGIN BTN--><span style='float:right'>[#BTN#]</span><!--ET_END BTN-->");
             
@@ -794,15 +798,23 @@ class cat_BomDetails extends doc_Detail
                 $link = ht::createLink(tr('|*[- |рецепта|*]'), array($mvc, 'shrink', $rec->id, 'ret_url' => true), false, 'title=Свиване на етап');
                 $extraBtnTpl->append($link, 'BTN');
             }
-            
+
+            if($rec->type == 'stage'){
+                if(cat_BomDetails::count("#parentId = {$rec->id} AND #bomId = {$rec->bomId}")){
+                    $bomRec = cat_Boms::fetch($rec->bomId);
+                    if(in_array($bomRec->state, array('active', 'closed'))){
+                        $extraBtnTpl->replace(" <a href=\"javascript:toggleDisplayBomStepDetails('{$position}', 'bomExpandStageDetails{$rec->id}');\"  style=\"background-image:url(" . sbf('img/16/minus-black.png', "'") . ');" data-id="' .$rec->id. 'inf" class=" plus-icon more-btn bomExpandStageDetails' . $rec->id . '"> </a>', 'BTN');
+                    }
+                }
+            }
+
             $row->resourceId .= $extraBtnTpl;
         }
 
-        // Генерираме кода според позицията на артикула и етапите
-        $codePath = $mvc->getProductPath($rec, true);
-        $position = implode('.', $codePath);
+
         $position = cls::get('type_Varchar')->toVerbal($position);
         $row->position = $position;
+        $row->ROW_ATTR['data-position'] = $position;
 
         $descriptionArr = array();
         if ($rec->type == 'stage') {
