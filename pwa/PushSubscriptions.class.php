@@ -97,8 +97,8 @@ class pwa_PushSubscriptions extends core_Manager
     {
         $this->FLD('userId', 'user', 'caption=Потребител, input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър, input=none');
-        $this->FLD('publicKey', 'varchar', 'caption=Ключ, input=none'); //88
-        $this->FLD('authToken', 'varchar', 'caption=Токен, input=none'); //24
+        $this->FLD('publicKey', 'varchar(128)', 'caption=Ключ, input=none'); //88
+        $this->FLD('authToken', 'varchar(128)', 'caption=Токен, input=none'); //24
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн, input=none');
         $this->FLD('contentEncoding', 'varchar', 'caption=Енкодинг, input=none');
         $this->FLD('endpoint', 'Url', 'caption=Точка, input=none');
@@ -124,7 +124,7 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('allNonWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Неработно време');
         $this->FLD('allNight', $this->enumOptVal, 'caption=Известяване за всякакви новости->През нощта');
 
-        $this->setDbUnique('publicKey, authToken');
+//        $this->setDbUnique('publicKey, authToken');
         $this->setDbUnique('brid');
     }
 
