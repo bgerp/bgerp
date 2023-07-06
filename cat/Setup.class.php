@@ -212,6 +212,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
+        'migrate::fixNewLinesInFormulas2706',
     );
     
     
@@ -417,5 +418,32 @@ class cat_Setup extends core_ProtoSetup
         }
 
         return $res;
+    }
+
+
+    /**
+     * Миграция на паразитните нови редове във формулите
+     */
+    function fixNewLinesInFormulas2706()
+    {
+        $Params = cls::get('cat_products_Params');
+        $classId = cond_type_Formula::getClassId();
+        $query = $Params->getQuery();
+        $query->EXT('driverClass', 'cat_Params', 'externalName=driverClass,externalKey=paramId');
+        $query->where("#driverClass={$classId}");
+        $query->show('paramId,paramValue');
+
+        $toSave = array();
+        while($rec = $query->fetch()){
+            $paramValueParsed = preg_replace('/(\n\r)+|(\r\n)+/', "$1$2", $rec->paramValue);
+            if($paramValueParsed != $rec->paramValue){
+                $rec->paramValue = $paramValueParsed;
+                $toSave[] = $rec;
+            }
+        }
+
+        if(countR($toSave)){
+            $Params->saveArray($toSave, 'id,paramValue');
+        }
     }
 }
