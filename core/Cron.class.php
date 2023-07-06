@@ -134,7 +134,7 @@ class core_Cron extends core_Manager
         
         $this->setDbUnique('systemId,offset,delay');
         
-        $this->dbEngine = 'InnoDB';
+        // $this->dbEngine = 'InnoDB';
     }
     
     
