@@ -783,6 +783,9 @@ class cat_BomDetails extends doc_Detail
         // Генерираме кода според позицията на артикула и етапите
         $codePath = $mvc->getProductPath($rec, true);
         $position = implode('.', $codePath);
+        $position = cls::get('type_Varchar')->toVerbal($position);
+        $row->position = $position;
+        $row->ROW_ATTR['data-position'] = $position;
 
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $extraBtnTpl = new core_ET("<!--ET_BEGIN BTN--><span style='float:right'>[#BTN#]</span><!--ET_END BTN-->");
@@ -803,18 +806,15 @@ class cat_BomDetails extends doc_Detail
                 if(cat_BomDetails::count("#parentId = {$rec->id} AND #bomId = {$rec->bomId}")){
                     $bomRec = cat_Boms::fetch($rec->bomId);
                     if(in_array($bomRec->state, array('active', 'closed'))){
-                        $extraBtnTpl->replace(" <a href=\"javascript:toggleDisplayBomStepDetails('{$position}', 'bomExpandStageDetails{$rec->id}');\"  style=\"background-image:url(" . sbf('img/16/minus-black.png', "'") . ');" data-id="' .$rec->id. 'inf" class=" plus-icon more-btn show-btn bomExpandStageDetails' . $rec->id . '" title="Показване/Скриване на детайли"> </a>', 'BTN');
+                        $extraBtnTpl2 = new core_ET("<!--ET_BEGIN BTN--><span style='float:right'>[#BTN#]</span><!--ET_END BTN-->");
+                        $extraBtnTpl2->replace(" <a href=\"javascript:toggleDisplayBomStepDetails('{$position}', 'bomExpandStageDetails{$rec->id}');\"  style=\"background-image:url(" . sbf('img/16/minus-black.png', "'") . ');" data-id="' .$rec->id. 'inf" class=" plus-icon more-btn show-btn bomExpandStageDetails' . $rec->id . '" title="Показване/Скриване на детайли"> </a>', 'BTN');
+                        $row->position .= $extraBtnTpl2->getContent();
                     }
                 }
             }
 
             $row->resourceId .= $extraBtnTpl;
         }
-
-
-        $position = cls::get('type_Varchar')->toVerbal($position);
-        $row->position = $position;
-        $row->ROW_ATTR['data-position'] = $position;
 
         $descriptionArr = array();
         if ($rec->type == 'stage') {
