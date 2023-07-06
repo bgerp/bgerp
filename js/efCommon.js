@@ -1240,10 +1240,12 @@ function toggleDisplayOnload(id) {
 // Отваряне на запомнените редове от рецептата
 function openBoomRows(){
    var openBoomRows = sessionStorage.getItem("boomDetailsOpenRows");
-    rowsArray = openBoomRows.split(',');
-    rowsArray.forEach((item) => {
-        toggleDisplayOnload(item);
-    });
+    if(openBoomRows) {
+        rowsArray = openBoomRows.split(',');
+        rowsArray.forEach((item) => {
+            toggleDisplayOnload(item);
+        });
+    }
 }
 
 // Запазване на отворените редове от рецептата
