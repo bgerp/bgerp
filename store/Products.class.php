@@ -543,11 +543,9 @@ class store_Products extends core_Detail
     {
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
-        
-        if (!countR($data->rows)) {
-            
-            return;
-        }
+        $data->listTableMvc->setField('lastUpdated', 'tdClass=small');
+
+        if (!countR($data->rows)) return;
 
         $today = dt::today();
         foreach ($data->rows as $id => &$row) {
