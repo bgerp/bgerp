@@ -97,7 +97,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial=Произв. №,productId,taskId,quantity=К-во,netWeight=Нето кг,weight=Бруто кг,employees,fixedAsset=Обор.,date=Дата,info=@';
+    public $listFields = 'taskId,type=Прогрес,serial=Произв. №,productId,taskId,quantity=К-во,netWeight=Нето кг,weight=Бруто кг,employees,fixedAsset=Обор.,date=Дата,info=@';
 
 
     /**
@@ -1110,6 +1110,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(empty($masterCenterRec->useTareFromParamId) && empty($masterCenterRec->useTareFromPackagings)){
                 unset($data->listFields['netWeight']);
             }
+        } else {
+            arr::placeInAssocArray($data->listFields, array('jobId' => 'Задание'), 'taskId');
         }
 
         $rows = &$data->rows;
@@ -1137,6 +1139,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             $masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : planning_Tasks::fetch($rec->taskId);
             $centerRec = is_object($masterCenterRec) ? $masterCenterRec : planning_Centers::fetch("#folderId = {$masterRec->folderId}");
 
+            if(!isset($data->masterMvc)) {
+                $row->jobId = doc_Containers::getDocument($masterRec->originId)->getLink(0);
+            }
 
             $eFields = planning_Tasks::getExpectedDeviations($masterRec);
             $deviationNotice = $eFields['notice'];
