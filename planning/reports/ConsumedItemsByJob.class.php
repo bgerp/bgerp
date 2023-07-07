@@ -128,6 +128,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+
         if ($form->isSubmitted()) {
 
 
@@ -146,6 +147,14 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        if (!$rec->to){
+
+            $rec->to = dt::today();
+            Request::push(array('to' => $rec->to));
+            $form->input('to');
+
+        }
 
         if ($rec->option == 'yes') {
             $form->setField('products', 'input');
