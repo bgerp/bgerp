@@ -148,12 +148,11 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        if (!$rec->to){
-
+        //Корекция на бъг в периода
+        if ($rec->from == '2020-01-01' && !$rec->to){
             $rec->to = dt::today();
             Request::push(array('to' => $rec->to));
             $form->input('to');
-
         }
 
         if ($rec->option == 'yes') {
