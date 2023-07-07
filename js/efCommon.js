@@ -1208,26 +1208,37 @@ function toggleDisplay(id) {
     elem.toggleClass('show-btn');
 }
 
-function toggleDisplayBomStepDetails(id, toggleBtnClass) {
-    var elements = $("tr").filter(function() {
-        var position = $(this).data("position");
-        if(position !== undefined && position != id){
-            var position = $.trim(position);
+function toggleDisplayBomStepDetails() {
+    $('.cat_BomDetails .listTable').on('click', '.newIconStyle', function (e) {
+        // Взема всички TR с по-голяма дълбочина
+        var findChildren = function (tr) {
+            var depth = tr.data('depth');
+            return tr.nextUntil($('tr').filter(function () {
+                return $(this).data('depth') <= depth;
+            }));
+        };
+        var el = $(this);
+        var tr = el.closest('tr'); //Get <tr> parent of toggle button
+        var children = findChildren(tr);
 
-            return position.startsWith(id);
+        //Маха всички свити поднива от масива, за да не се покажат
+        var subnodes = children.filter('.expand');
+        subnodes.each(function () {
+            var subnode = $(this);
+            var subnodeChildren = findChildren(subnode);
+            children = children.not(subnodeChildren);
+        });
+
+        //Сменя класа на TR и сквива децата
+        if (tr.hasClass('collapse')) {
+            tr.removeClass('collapse').addClass('expand');
+            children.hide();
+        } else {
+            tr.removeClass('expand').addClass('collapse');
+            children.show();
         }
-
-
-        return false;
+        return children;
     });
-
-    $.each(elements, function( key, value ) {
-        var elem = $(value);
-        elem.toggle();
-    });
-
-    var elem = $("." + toggleBtnClass);
-    elem.toggleClass('show-btn');
 }
 
 
