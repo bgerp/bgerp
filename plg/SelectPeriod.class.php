@@ -328,7 +328,7 @@ class plg_SelectPeriod extends core_Plugin
                 $oldestAvailableDate = self::getOldestAvailableDate();
 
                 $from = !empty($oldestAvailableDate) ? $oldestAvailableDate : '';
-                $to = '';
+                $to = self::getNewestAvailableDate();
 
                 break;
             default:
@@ -357,6 +357,25 @@ class plg_SelectPeriod extends core_Plugin
         }
 
         return null;
+    }
+
+
+    /**
+     * Коя е най-новата възжможна дата за избор
+     *
+     * @return date|string
+     */
+    public static function getNewestAvailableDate()
+    {
+        $res = '';
+
+        $res = Mode::get('periodDefaultNewestDate');
+
+        if (empty($res)) {
+            $res = '';
+        }
+
+        return $res;
     }
 
 

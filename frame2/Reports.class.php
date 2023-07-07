@@ -254,6 +254,8 @@ class frame2_Reports extends embed_Manager
     public static function on_AfterDescription(core_Master &$mvc)
     {
         $mvc->setField('priority', 'caption=Обновяване и известяване->Приоритет,after=sharedUsers');
+
+        Mode::set('periodDefaultNewestDate', dt::today());
     }
     
     

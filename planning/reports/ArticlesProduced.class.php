@@ -126,13 +126,6 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        //Корекция на бъг в периода
-        if ($rec->from == '2020-01-01' && !$rec->to){
-            $rec->to = dt::today();
-            Request::push(array('to' => $rec->to));
-            $form->input('to');
-        }
-
         $form->setDefault('groupBy', 'no');
         $form->setDefault('orderBy', 'code');
         $form->setDefault('totalConsumed', null);
