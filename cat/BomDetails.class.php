@@ -786,6 +786,7 @@ class cat_BomDetails extends doc_Detail
         $position = cls::get('type_Varchar')->toVerbal($position);
         $row->position = $position;
         $row->ROW_ATTR['data-position'] = $position;
+        $row->ROW_ATTR['data-depth'] = countR($codePath) - 1;
 
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $extraBtnTpl = new core_ET("<!--ET_BEGIN BTN--><span style='float:right'>[#BTN#]</span><!--ET_END BTN-->");
