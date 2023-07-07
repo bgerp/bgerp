@@ -128,6 +128,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+
         if ($form->isSubmitted()) {
 
 
@@ -146,6 +147,13 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        //Корекция на бъг в периода
+        if ($rec->from == '2020-01-01' && !$rec->to){
+            $rec->to = dt::today();
+            Request::push(array('to' => $rec->to));
+            $form->input('to');
+        }
 
         if ($rec->option == 'yes') {
             $form->setField('products', 'input');
@@ -315,18 +323,20 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             while ($pRec = $pQuery->fetch()) {
 
+                //
                 if ($master == 'planning_DirectProductionNote' && !$pRec->storeId) {
 
                     continue;
                 }
 
-                $consumedQuantity = $returnedQuantity = $pRec->quantity = 0;
+                $consumedQuantity = $returnedQuantity = $pRec->quantity;
 
                 if ($master == 'planning_ReturnNotes') {
                     $consumedQuantity = 0;
                 } else {
                     $returnedQuantity = 0;
                 }
+
                 $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
 
                 $name = cat_Products::fetch($pRec->productId)->name;
