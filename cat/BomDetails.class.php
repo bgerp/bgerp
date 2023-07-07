@@ -139,6 +139,12 @@ class cat_BomDetails extends doc_Detail
 
 
     /**
+     * Шаблон за реда в листовия изглед
+     */
+    public $tableRowTpl = "[#ADD_ROWS#][#ROW#]";
+
+
+    /**
      * Описание на модела
      */
     public function description()
