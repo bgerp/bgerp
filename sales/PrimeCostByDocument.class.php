@@ -931,18 +931,32 @@ class sales_PrimeCostByDocument extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
-        $data->listFilter->showFields = 'documentId,productId';
+        $data->listFilter->FLD('primeCostType', 'enum(all=Със себестойност,positive=Положителна себестойност,negative=Отрицателна себестойност,zero=Нулева себестойност,empty=Без себестойност)', 'caption=Вид себестойност, silent');
+        $data->listFilter->showFields = 'documentId,productId,primeCostType';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->setDefault('primeCostType', 'all');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
         $data->query->orderBy('valior', 'DESC');
-        
+
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)){
                 $data->query->where("#productId={$rec->productId}");
             }
-            
+
+            if ($rec->primeCostType != 'all') {
+                if($rec->primeCostType == 'positive'){
+                    $data->query->where("#primeCost > 0");
+                } elseif($rec->primeCostType == 'negative') {
+                    $data->query->where("#primeCost < 0");
+                } elseif($rec->primeCostType == 'empty') {
+                    $data->query->where("#primeCost IS NULL");
+                } elseif($rec->primeCostType == 'zero') {
+                    $data->query->where("#primeCost = 0");
+                }
+            }
+
             if (!empty($rec->documentId)) {
                 
                 // Търсене и на последващите документи

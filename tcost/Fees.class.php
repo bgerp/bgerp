@@ -173,7 +173,12 @@ class tcost_Fees extends core_Detail
     {
         // Общото тегло не трябва да е по-малко от еденичното
         $totalWeight = max($totalWeight, $singleWeight);
-        expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
+
+        if(!(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0)){
+            wp($totalWeight, $singleWeight);
+
+            return cond_TransportCalc::WEIGHT_FEE_OTHER_ERROR;
+        }
         
         // Ако не се намери зона се връща 0
         if (is_null($zone)) {
