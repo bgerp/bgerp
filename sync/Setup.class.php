@@ -100,6 +100,8 @@ class sync_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'sync_Map',
+        'sync_Stores',
+        'sync_StoreStocks',
         'migrate::companyGroups1920',
     );
     
