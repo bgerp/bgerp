@@ -496,7 +496,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Всички записи
         $indicatorRecs = $iQuery->fetchAll();
-        core_App::setTimeLimit(countR($indicatorRecs) * 0.8);
+        core_App::setTimeLimit(countR($indicatorRecs) * 0.9, false, 120);
 
         // Ако няма делта се пропуска
         foreach ($indicatorRecs as $k => $r2) {
