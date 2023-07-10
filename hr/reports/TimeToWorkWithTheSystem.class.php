@@ -146,14 +146,29 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $workingTime = $lastWorkTime = $lastWorkHash = array();
 
         $logDatQuery = log_Data::getQuery();
 
-       // $logDatQuery->where("#ipId != 724");
+        $logDatQuery->where("#userId > 0");
 
-        $logDatQuery->in('ipId', keylist::toArray($rec->inIp));
+        $logDatQuery->orderBy('time', 'ASC');
 
-bp($logDatQuery->fetchAll(),$rec);
+        $ipType = null;
+
+        $iPInArr = keylist::toArray($rec->inIp);
+
+        while ($lRec = $logDatQuery->fetch()){
+
+            $ipType = (in_array($lRec->ipId,$iPInArr)) ? 'office':'home';
+            $minute = (integer)($lRec->time / 60);
+            $workingTime[$lRec->userId][$ipType] += $lRec->lifeTime;
+            $lastWorkTime[$lRec->userId][$ipType] = $minute;
+            $hash = md5($lRec->type . $lRec->actionCrc . $lRec->classCrc . $lRec->objectId);
+            $lastWorkHash[$lRec->userId][$ipType] = $hash;
+
+        }
+
 
 
         return $recs;
