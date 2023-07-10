@@ -119,7 +119,7 @@ class sync_StoreStocks extends sync_Helper
             }
 
             if(!empty($filter->productId)){
-                data->query->where("#productId = {$filter->productId}");
+                $data->query->where("#productId = {$filter->productId}");
             }
         }
 
