@@ -1209,7 +1209,15 @@ function toggleDisplay(id) {
 }
 
 function toggleDisplayBomStepDetails() {
-    $('.cat_BomDetails .listTable').on('click', '.newIconStyle', function (e) {
+    $('.cat_BomDetails .listTable th').on('click', '.newIconStyle.toggleAllRows', function (e) {
+        if($(this).hasClass('openAllRows')){
+            $(this).closest('.listTable').find('.expand .newIconStyle').click();
+        } else {
+            $(this).closest('.listTable').find('.collapse .newIconStyle').click();
+        }
+        $(this).toggleClass('openAllRows closeAllRows');
+    });
+    $('.cat_BomDetails .listTable td').on('click', '.newIconStyle', function (e) {
         // Взема всички TR с по-голяма дълбочина
         var findChildren = function (tr) {
             var depth = tr.data('depth');
