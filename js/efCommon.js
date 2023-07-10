@@ -1237,6 +1237,13 @@ function toggleDisplayBomStepDetails() {
             tr.removeClass('expand').addClass('collapse');
             children.show();
         }
+
+        var openSubRows ='';
+        $('.cat_BomDetails .expand .newIconStyle').each(function(){
+            var currentSubRow = $(this).closest('tr').data('position');
+            openSubRows =  currentSubRow + "," + openSubRows;
+        });
+        sessionStorage.setItem("boomSubRows", openSubRows);
         return children;
     });
 }
@@ -1251,10 +1258,20 @@ function toggleDisplayOnload(id) {
 // Отваряне на запомнените редове от рецептата
 function openBoomRows(){
    var openBoomRows = sessionStorage.getItem("boomDetailsOpenRows");
+   var openSubRows = sessionStorage.getItem("boomSubRows");
     if(openBoomRows) {
-        rowsArray = openBoomRows.split(',');
+        var rowsArray = openBoomRows.split(',');
         rowsArray.forEach((item) => {
             toggleDisplayOnload(item);
+        });
+    }
+    if(openSubRows) {
+        var subrowsArray = openSubRows.split(',');
+        subrowsArray.forEach((item) => {
+            if(item !== "")   {
+                var domElement = $("table").find("tr[data-position='" + item + "'] .newIconStyle");
+                $(domElement).click();
+            }
         });
     }
 }

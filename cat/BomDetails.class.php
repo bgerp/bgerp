@@ -792,7 +792,7 @@ class cat_BomDetails extends doc_Detail
         $position = cls::get('type_Varchar')->toVerbal($position);
         $row->position = $position;
         $row->ROW_ATTR['class'] = 'collapse';
-        $row->ROW_ATTR['data-position'] = $position;
+        $row->ROW_ATTR['data-position'] = "bom{$rec->bomId}|" . $position;
         $row->ROW_ATTR['data-depth'] = countR($codePath) - 1;
 
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
@@ -815,7 +815,7 @@ class cat_BomDetails extends doc_Detail
                     $bomRec = cat_Boms::fetch($rec->bomId);
                     if(in_array($bomRec->state, array('active', 'closed'))){
                         $extraBtnTpl2 = new core_ET("<!--ET_BEGIN BTN-->[#BTN#]<!--ET_END BTN-->");
-                        $extraBtnTpl2->replace(' <a class=" newIconStyle bomExpandStageDetails' . $rec->id . '" title="Показване/Скриване на детайли"> </a>', 'BTN');
+                        $extraBtnTpl2->replace(' <span  class=" newIconStyle bomExpandStageDetails' . $rec->id . '" title="Показване/Скриване на детайли"> </span>', 'BTN');
                         $row->position .= $extraBtnTpl2->getContent();
                     }
                 }

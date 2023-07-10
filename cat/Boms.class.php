@@ -1684,8 +1684,9 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        jquery_Jquery::run($tpl,"openBoomRows();", TRUE);
+
         jquery_Jquery::run($tpl,"toggleDisplayBomStepDetails();", TRUE);
+        jquery_Jquery::run($tpl,"openBoomRows();", TRUE);
     }
     
     /**
