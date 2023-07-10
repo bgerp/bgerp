@@ -117,6 +117,10 @@ class sync_StoreStocks extends sync_Helper
                 $data->query->where("#syncedStoreId = {$filter->syncedStoreId}");
                 unset($data->listFields['syncedStoreId']);
             }
+
+            if(!empty($filter->productId)){
+                data->query->where("#productId = {$filter->productId}");
+            }
         }
 
         $data->listFilter->toolbar->addSbBtn('Филтриране', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -200,7 +204,7 @@ class sync_StoreStocks extends sync_Helper
                 if($arr['measureSysId'] != $ourProducts[$remoteCode]['measureSysId']){
 
                     // Ако са различни прави се опит за конверсия, ако не може значи не е този артикул
-                    $ratio = cat_UoM::convertValue(1, $measureData[$ourProducts[$remoteCode]['measureSysId']], $measureData[$arr['measureSysId']]);
+                    $ratio = cat_UoM::convertValue(1, $measureData[$arr['measureSysId']], $measureData[$ourProducts[$remoteCode]['measureSysId']]);
                     if($ratio === false) continue;
 
                     foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin') as $fld){
