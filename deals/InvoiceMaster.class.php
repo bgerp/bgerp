@@ -99,7 +99,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'date,number=Фактура №,contragentName=Контрагент,contragentVatNo=ДДС №,uicNo=ЕИК,dealValue=Сума общо,dealValueWithoutDiscount=Без ДДС,vatAmount=ДДС,currencyId=Валута,accountId=Банкова сметка,state';
+    public $exportableCsvFields = 'date,number=Фактура №,contragentName=Контрагент,contragentVatNo=ДДС №,uicNo=ЕИК,dealValue=Сума общо,dealValueWithoutDiscount=Без ДДС,vatAmount=ДДС,currencyId=Валута,accountId=Банкова сметка,paymentType,state';
 
 
     /**
