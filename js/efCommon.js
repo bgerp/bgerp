@@ -1250,9 +1250,11 @@ function toggleDisplayBomStepDetails() {
 
 
 function toggleDisplayOnload(id) {
-    var elem = $("#" + id).parent().children('.more-btn');
-    $("#" + id).toggle();
-    elem.toggleClass('show-btn');
+    if(id) {
+        var elem = $("#" + id).parent().children('.more-btn');
+        $("#" + id).toggle();
+        elem.toggleClass('show-btn');
+    }
 }
 
 // Отваряне на запомнените редове от рецептата
