@@ -98,6 +98,7 @@ class sync_Stores extends sync_Helper
 
         // Кои са наличните системи за избор
         $systemOptions = remote_Authorizations::getSystemOptions();
+
         $form->setOptions('authorizationId', array('' => '') + $systemOptions);
         if(isset($rec->id)){
             $form->setDefault('authorizationId', static::getUserAuthorizationIdByUrl($rec->url));
