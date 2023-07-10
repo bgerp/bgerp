@@ -231,6 +231,12 @@ class store_Transfers extends core_Master
 
 
     /**
+     * Възможност за експортиране на детайлите в csv експорта от лист изгледа
+     */
+    public $allowDetailCsvExportFromList = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

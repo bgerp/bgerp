@@ -71,9 +71,10 @@ class bgerp_plg_CsvExport extends core_BaseClass
         }
 
         $mvc->invoke('afterGetCsvFieldSetForExport', array(&$fieldset));
+        setIfNot($mvc->allowDetailCsvExportFromList, false);
 
         if($mvc instanceof core_Master){
-            if(isset($mvc->mainDetail)){
+            if(isset($mvc->mainDetail) && $mvc->allowDetailCsvExportFromList){
                 $MainDetail = cls::get($mvc->mainDetail);
 
                 // Ако детайла има поле за избор на артикули
@@ -105,6 +106,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
     {
         $sets = $selected = array();
         $fields = $this->getCsvFieldSet($this->mvc)->selectFields();
+
         foreach ($fields as $name => $fld) {
             $sets[] = "{$name}={$fld->caption}";
             if(!isset($this->detailFields) || !array_key_exists($name, $this->detailFields)){
