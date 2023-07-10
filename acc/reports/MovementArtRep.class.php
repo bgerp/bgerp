@@ -70,7 +70,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         if ($form->isSubmitted()) {
             
-            // Проверка имали избрани вложени групи
+            // Проверка има ли избрани вложени групи
             if (cat_Groups::checkForNestedGroups($rec->group)) {
                 $form->setError('group', 'Избрани са вложени групи');
             }
@@ -168,7 +168,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $from = $rec->from;
         $to = $rec->to;
 
-        acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,61103,701,706,799');
+        acc_JournalDetails::filterQuery($jQuery, $from, $to, '321');
+        //acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,61103,701,706,799');
         $jRecs = $jQuery->fetchAll();
         
         
