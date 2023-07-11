@@ -68,7 +68,13 @@ class sync_Stores extends sync_Helper
     /**
      * Полета, които се виждат
      */
-    public $listFields = ' url, remoteId, remoteName, createdBy=Добавено->От, createdOn=Добавено->На, state';
+    public $listFields = ' url, remoteId, remoteName, syncTime, createdBy=Добавено->От, createdOn=Добавено->На, state';
+
+
+    /**
+     * Дефолтно време за синхронизиране
+     */
+    const DEFAULT_SYNC_TIME = 5 * 60;
 
 
     /**
@@ -80,6 +86,7 @@ class sync_Stores extends sync_Helper
         $this->FLD('remoteId', 'int', 'caption=Номер, mandatory,input=none,tdClass=small-field');
         $this->FLD('remoteName', 'varchar', 'caption=Външно име,input=none');
         $this->FLD('url', 'url', 'caption=Услуга,input=hidden');
+        $this->FLD('syncTime', 'time', 'caption=Синхронизиране на,input=hidden');
 
         $this->setDbUnique('remoteId,url');
     }
@@ -116,6 +123,8 @@ class sync_Stores extends sync_Helper
             if(countR($remoteOptions)){
                 $rec->_remoteOptions = $remoteOptions;
                 $form->setField('remoteId', 'input');
+                $form->setField('syncTime', 'input');
+                $form->setDefault('syncTime', static::DEFAULT_SYNC_TIME);
                 $form->setOptions('remoteId', array('' => '') + $remoteOptions);
             } else {
                 $form->setError('authorizationId', 'Няма дефинирани складове във външната система');
