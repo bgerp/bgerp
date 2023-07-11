@@ -74,7 +74,7 @@ self.addEventListener('push', function (event) {
         }
 
         if (bodyData.badge) {
-            opt.badge = bodyData.icon;
+            opt.badge = bodyData.badge;
         }
 
         if (bodyData.image) {
