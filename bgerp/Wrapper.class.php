@@ -29,7 +29,8 @@ class bgerp_Wrapper extends plg_ProtoWrapper
         
         // $this->TAB('bgerp_Portal', 'Портал', 'admin');
         $this->TAB('bgerp_Notifications', 'Известия', 'admin');
-        $this->TAB('bgerp_Recently', 'Последни', 'admin');
+        $this->TAB('bgerp_Recently', 'Последни->Посетени', 'admin');
+        $this->TAB('bgerp_LastSeenDocumentByUser', 'Последни->Посетени документи', 'admin');
         $this->TAB('bgerp_Bookmark', 'Отметки', 'user');
         $this->TAB('bgerp_Filters', 'Филтри', 'admin');
         $this->TAB('bgerp_LastTouch', 'Дебъг->Докосвания', 'debug');

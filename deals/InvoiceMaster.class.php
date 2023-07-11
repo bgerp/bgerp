@@ -99,7 +99,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'date,number=Фактура №,contragentName=Контрагент,contragentVatNo=ДДС №,uicNo=ЕИК,dealValue=Сума общо,dealValueWithoutDiscount=Без ДДС,vatAmount=ДДС,currencyId=Валута,accountId=Банкова сметка,state';
+    public $exportableCsvFields = 'date,number=Фактура №,contragentName=Контрагент,contragentVatNo=ДДС №,uicNo=ЕИК,dealValue=Сума общо,dealValueWithoutDiscount=Без ДДС,vatAmount=ДДС,currencyId=Валута,accountId=Банкова сметка,paymentType,state';
 
 
     /**
@@ -207,7 +207,7 @@ abstract class deals_InvoiceMaster extends core_Master
         arr::placeInAssocArray($summaryFields, array('dealValueWithoutDiscount' => (object)array('name' => 'dealValueWithoutDiscount', 'summary' => 'amount', 'caption' => 'Дан. основа')), 'vatAmount');
         arr::placeInAssocArray($summaryFields, array('totalValue' => (object)array('name' => 'totalValue', 'summary' => 'amount', 'caption' => 'Общо')), null, 'vatAmount');
 
-        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount;
+        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount - $rec->vatAmount;
         $rec->totalValue = $rec->dealValue - $rec->discountAmount + $rec->vatAmount;
     }
 
@@ -1792,14 +1792,14 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $fields = $mvc->selectFields();
         $fields['-list'] = true;
+
         foreach ($recs as &$rec) {
+            $rate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
             $rec->number = $mvc->getVerbal($rec, 'number');
             $rec->dealValue = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
-            $rec->dealValue = (!empty($rec->rate)) ? $rec->dealValue / $rec->rate : $rec->dealValue;
-            $rec->valueNoVat = $rec->dealValue - $rec->discountAmount;
-            $rec->valueNoVat = (!empty($rec->rate)) ? $rec->valueNoVat / $rec->rate : $rec->valueNoVat;
-            $rec->vatAmount = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
-            $rec->dealValueWithoutDiscount = (!empty($rec->rate)) ? ($rec->dealValue - $rec->discountAmount) / $rec->rate : ($rec->dealValue - $rec->discountAmount);
+            $rec->dealValue = !empty($rate) ? $rec->dealValue / $rate : $rec->dealValue;
+            $rec->vatAmount = !empty($rate) ? $rec->vatAmount / $rate : $rec->vatAmount;
+            $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->vatAmount;
         }
     }
     

@@ -1,5 +1,7 @@
 <?php
 
+defIfNot('SASS_USE_COMPOSER', 'no');
+
 
 use ScssPhp\ScssPhp\Compiler;
 
@@ -31,7 +33,7 @@ class sass_Converter
         $isParsed = false;
         $baseName = basename($file);
         
-        if (core_Composer::isInUse()) {
+        if (SASS_USE_COMPOSER == 'yes' && core_Composer::isInUse()) {
             $dTimeName = 'sassConvert: ' . $baseName;
             core_Debug::startTimer($dTimeName);
             

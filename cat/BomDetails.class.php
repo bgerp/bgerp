@@ -139,6 +139,12 @@ class cat_BomDetails extends doc_Detail
 
 
     /**
+     * Шаблон за реда в листовия изглед
+     */
+    public $tableRowTpl = "[#ADD_ROWS#][#ROW#]";
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -190,6 +196,7 @@ class cat_BomDetails extends doc_Detail
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
         if(cat_BomDetails::count("#bomId = {$data->masterId} AND #type = 'stage'")){
             $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
+            $data->listFields['position'] .= "|* <span  class='newIconStyle openAllRows toggleAllRows' title='Показване/Скриване на всички детайли'> </span>";
         }
         $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
         $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
@@ -779,7 +786,16 @@ class cat_BomDetails extends doc_Detail
         } else {
             $row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
         }
-        
+
+        // Генерираме кода според позицията на артикула и етапите
+        $codePath = $mvc->getProductPath($rec, true);
+        $position = implode('.', $codePath);
+        $position = cls::get('type_Varchar')->toVerbal($position);
+        $row->position = $position;
+        $row->ROW_ATTR['class'] .= ' collapse';
+        $row->ROW_ATTR['data-position'] = "bom{$rec->bomId}-" . $position;
+        $row->ROW_ATTR['data-depth'] = countR($codePath) - 1;
+
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $extraBtnTpl = new core_ET("<!--ET_BEGIN BTN--><span style='float:right'>[#BTN#]</span><!--ET_END BTN-->");
             
@@ -794,15 +810,20 @@ class cat_BomDetails extends doc_Detail
                 $link = ht::createLink(tr('|*[- |рецепта|*]'), array($mvc, 'shrink', $rec->id, 'ret_url' => true), false, 'title=Свиване на етап');
                 $extraBtnTpl->append($link, 'BTN');
             }
-            
+
+            if($rec->type == 'stage'){
+                if(cat_BomDetails::count("#parentId = {$rec->id} AND #bomId = {$rec->bomId}")){
+                    $bomRec = cat_Boms::fetch($rec->bomId);
+                    if(in_array($bomRec->state, array('active', 'closed'))){
+                        $extraBtnTpl2 = new core_ET("<!--ET_BEGIN BTN-->[#BTN#]<!--ET_END BTN-->");
+                        $extraBtnTpl2->replace(' <span  class=" newIconStyle bomExpandStageDetails' . $rec->id . '" title="Показване/Скриване на детайли"> </span>', 'BTN');
+                        $row->position .= $extraBtnTpl2->getContent();
+                    }
+                }
+            }
+
             $row->resourceId .= $extraBtnTpl;
         }
-
-        // Генерираме кода според позицията на артикула и етапите
-        $codePath = $mvc->getProductPath($rec, true);
-        $position = implode('.', $codePath);
-        $position = cls::get('type_Varchar')->toVerbal($position);
-        $row->position = $position;
 
         $descriptionArr = array();
         if ($rec->type == 'stage') {

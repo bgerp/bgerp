@@ -18,6 +18,11 @@ defIfNot('HR_EC_MAX', '10000');
  */
 defIfNot('HR_EMAIL_TO_PERSON', '');
 
+/**
+ * Ip-та
+ */
+defIfNot('HR_COMPANIES_IP', '');
+
 
 /**
  * class hr_Setup
@@ -73,7 +78,8 @@ class hr_Setup extends core_ProtoSetup
         'HR_EC_MIN' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
         'HR_EC_MAX' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
         'HR_EMAIL_TO_PERSON' => array('key(mvc=crm_Persons,select=name, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Изпращане на имейл към->Лице'),
-    );
+        'HR_COMPANIES_IP' => array('varchar', 'caption=Ip-та на фирмата'),
+        );
     
     
     /**
@@ -151,7 +157,8 @@ class hr_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'hr_reports_LeaveDaysRep, hr_reports_IndicatorsRep, hr_reports_AbsencesPerEmployee';
+    public $defClasses = 'hr_reports_LeaveDaysRep, hr_reports_IndicatorsRep, hr_reports_AbsencesPerEmployee,
+                          hr_reports_TimeToWorkWithTheSystem';
     
     
     /**

@@ -186,7 +186,7 @@ class pwa_Setup extends core_ProtoSetup
             $cVersion = 8;
         }
 
-        if ($cVersion < 6) {
+        if ($cVersion <= 6) {
             $html .= '<li class="red">Препоръвчва се да се използва PHP 7.3 или по-нова версия.</li>';
         }
 
@@ -198,6 +198,10 @@ class pwa_Setup extends core_ProtoSetup
             // 2 -> PHP 7.0
             // 1 -> PHP 5.6
             $html .= core_Composer::install('minishlink/web-push', $cVersion);
+
+            if (!core_Composer::isInUse()) {
+                $html .= "<li class='red'>Проблем при зареждането на composer</li>";
+            }
 
             $dQuery = cms_Domains::getQuery();
             $existKeysDomainsArr = $notExistKeysDomainsArr =  array();
@@ -220,13 +224,17 @@ class pwa_Setup extends core_ProtoSetup
                 } else {
                     $keysArr = array();
                     try {
-                        $keysArr = VAPID::createVapidKeys();
+                        $keysArr = @VAPID::createVapidKeys();
                     } catch (core_exception_Expect $e) {
                         reportException($e);
                     } catch (Throwable $t) {
                         reportException($t);
                     } catch (Error $e) {
                         reportException($e);
+                    }
+
+                    if (empty($keysArr)) {
+                        $html .= "<li class='red'>Не може да се добавят 'VAPID' ключове за {$dName}</li>";
                     }
 
                     foreach ($notDArr as $nRec) {

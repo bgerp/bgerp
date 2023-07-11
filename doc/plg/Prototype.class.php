@@ -93,6 +93,9 @@ class doc_plg_Prototype extends core_Plugin
 
         // Ако има прототипи
         $prototypes = $mvc->getPrototypes($form->rec);
+        $prototypes = is_array($prototypes) ? $prototypes : array();
+        $prototypes = $mvc->expandedAvailablePrototypes($prototypes, $form->rec);
+
         if (!empty($prototypes)) {
             $form->setField($mvc->protoFieldName, 'input');
             $form->setOptions($mvc->protoFieldName, array('' => '') + $prototypes);
@@ -264,6 +267,40 @@ class doc_plg_Prototype extends core_Plugin
     {
         if(empty($res)){
             $res = $mvc->getTitleById($id);
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране за разширяване на опциите за избор на документи като шаблон
+     */
+    public static function on_AfterExpandedAvailablePrototypes($mvc, &$res, $prototypes, $rec)
+    {
+        if(!$res){
+            $driverId = null;
+            if ($mvc instanceof embed_Manager) {
+                if (isset($rec->{$mvc->driverClassField})) {
+                    $driverId = $rec->{$mvc->driverClassField};
+                }
+            }
+
+            $lastVisitedLimit = doc_Setup::get('SHOW_LAST_VISITED_AS_PROTOTYPES');
+            if(empty($lastVisitedLimit)) return;
+
+            $lastSeenByUser = bgerp_LastSeenDocumentByUser::getLastSeenByUser($mvc, $driverId, null, $lastVisitedLimit);
+            if(isset($rec->{$mvc->protoFieldName})){
+                if(!array_key_exists($rec->{$mvc->protoFieldName}, $lastSeenByUser)){
+                    $lastSeenByUser[$rec->{$mvc->protoFieldName}] = $mvc->getTitleById($rec->{$mvc->protoFieldName}, false);
+                }
+            }
+            $prototypes = is_array($prototypes) ? $prototypes : array();
+            $lastSeenByUser = array_diff_key($lastSeenByUser, $prototypes);
+
+            if(countR($lastSeenByUser)){
+                $options = array('t' => (object) array('group' => true, 'title' => tr('Шаблонни документи'))) + $prototypes;
+                $options += array('l' => (object) array('group' => true, 'title' => tr('Последно видяни'))) + $lastSeenByUser;
+                $res = $options;
+            }
         }
     }
 }

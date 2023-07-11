@@ -1,4 +1,8 @@
 <?php
+
+
+defIfNot('EF_VENDOR_PATH', EF_ROOT_PATH . '/composer');
+
 /**
  * Клас 'core_Composer' - Управление на външни пакети чрез Composer
  *
