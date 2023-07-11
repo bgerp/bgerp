@@ -83,7 +83,7 @@ class status_Retrieving extends core_Manager
         
         $this->setDbUnique('messageId, hitTime, sid, userId');
         
-        $this->dbEngine = 'InnoDB';
+        // $this->dbEngine = 'InnoDB';
     }
     
     

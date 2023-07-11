@@ -615,9 +615,10 @@ class doc_Containers extends core_Manager
                 $retUrl = array($document->className, 'single', $document->that);
                 $retUrl = $retUrl + self::extractDocParamsFromUrl();
                 Mode::push('ret_url', $retUrl);
-                
+
                 if ($row->document) {
                     Debug::log("+++ Get from Cache {$rec->id}");
+                    bgerp_LastSeenDocumentByUser::queueToLog($rec->id);
                 } else {
                     Mode::push('saveObjectsToCid', $rec->id);
                     $data = $document->prepareDocument();
@@ -2188,7 +2189,7 @@ class doc_Containers extends core_Manager
                         
                         $resArr['updateVisibleForPartners']++;
                     } else {
-                        self::update($rec->id);
+                        self::update($rec->id, true, true);
                         $resArr['updateContainers']++;
                         self::logNotice('Обновяване на контейнера', $rec->id);
                     }
@@ -2293,7 +2294,7 @@ class doc_Containers extends core_Manager
                                 if ($isDel) {
                                     $resArr['del_cnt']++;
                                 } else {
-                                    self::update($rec->id);
+                                    self::update($rec->id, true, true);
                                     $resArr['updateContainers']++;
                                 }
                             }
@@ -2334,7 +2335,7 @@ class doc_Containers extends core_Manager
                     if (self::save($rec, 'state')) {
                         $resArr['state']++;
                         self::logNotice("Променено състояние на документа от {$oldState} на {$rec->state}", $rec->id);
-                        self::update($rec->id);
+                        self::update($rec->id, true, true);
                     }
                 } catch (core_exception_Expect $e) {
                     continue;

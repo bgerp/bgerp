@@ -2035,7 +2035,7 @@ class cat_Products extends embed_Manager
             $primeCost = (isset($primeCostDefault)) ? $primeCostDefault : $primeCostDriver;
         } else {
             // Ако е нестандартен се търси първо от драйвера, после от себестойност
-            $primeCost = (is_object($primeCostDriver) && !empty($primeCostDriver->price)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+            $primeCost = ((is_object($primeCostDriver) && !empty($primeCostDriver->price)) || is_numeric($primeCostDriver)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
 
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
@@ -4511,6 +4511,7 @@ class cat_Products extends embed_Manager
         // Има ли стойност параметъра "режийни разходи"
         $hint = null;
         $overheadCost = cat_Products::getParams($productId, 'expenses');
+        $overheadCost = ($overheadCost === false) ? null : $overheadCost;
 
         // Ако няма:Най-големия процент режийни разходи от групите на артикула
         if(empty($overheadCost)){
@@ -4519,7 +4520,6 @@ class cat_Products extends embed_Manager
                 $overheadCost = $overheadCostArr['value'];
                 $hint = tr('от група|*: ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
             }
-
         } else {
             $hint = tr('от Артикула<br>(параметър "Режийни разходи")');
         }

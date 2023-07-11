@@ -466,4 +466,30 @@ class store_Stores extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Връщане на наличните складове, при поискване
+     * от оторизирана отдалечена система
+     *
+     * @param int|stdClass $authId - ид на аутентикация
+     * @param array|null $arg      - параметри
+     * @return array $storeData    - масив с достъпните складове
+     *              ['id']   - ид на склада
+     *              ['name'] - име на склада
+     * @throws core_exception_Expect
+     */
+    function remote_getStoresData($authId, $arg = null)
+    {
+        expect(remote_Authorizations::fetch($authId));
+
+        $storeData = array();
+        $query = static::getQuery();
+        $query->where("#state = 'active'");
+        while($rec = $query->fetch()){
+            $storeData[] = array('id' => $rec->id, 'name' => $rec->name);
+        }
+
+        return $storeData;
+    }
 }

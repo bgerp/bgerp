@@ -2352,7 +2352,7 @@ abstract class deals_Helper
 
                 // От записаната цена се маха тази на скрития транспорт, за да се сравни правилно с очакваната
                 $msgSuffix = '';
-                if(is_object($transportFeeRec)){
+                if(is_object($transportFeeRec) && $transportFeeRec->fee > 0){
                     $var->price += $transportFeeRec->fee / $quantity;
                     $var->price = round($foundPrice->price, 6);
                     $msgSuffix .= ", |вкл. транспорт|*";

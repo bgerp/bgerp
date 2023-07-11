@@ -31,8 +31,12 @@ class store_Wrapper extends plg_ProtoWrapper
         $this->TAB('store_Transfers', 'Документи->Междускладови трансфери', 'store,ceo');
         $this->TAB('store_ConsignmentProtocols', 'Документи->Отговорно пазене', 'store,ceo');
         $this->TAB('store_InventoryNotes', 'Документи->Инвентаризация', 'store,ceo');
+        if(core_Packs::isInstalled('sync')){
+            $this->TAB('sync_Stores', 'Външни складове->Външен склад', 'ceo,admin');
+            $this->TAB('sync_StoreStocks', 'Външни складове->Външна наличност', 'admin,ceo,storeWorker');
+        }
         $this->TAB('store_StockPlanning', 'Дебъг->Хоризонти', 'debug');
-        
+
         $this->title = 'Склад';
     }
 }
