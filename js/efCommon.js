@@ -1267,6 +1267,7 @@ function toggleDisplayOnload(id) {
 
 // Отваряне на запомнените редове от рецептата
 function openBoomRows(){
+
    var openBoomRows = sessionStorage.getItem("boomDetailsOpenRows");
    var openSubRows = sessionStorage.getItem("boomSubRows");
     if(openBoomRows) {
@@ -1284,6 +1285,12 @@ function openBoomRows(){
             }
         });
     }
+
+    $('.cat_BomDetails .listTable').each(function () {
+        if ($(this).find(".collapse .newIconStyle").length == $(this).find("td .newIconStyle:visible").length) {
+            $(this).find('.toggleAllRows').toggleClass('openAllRows closeAllRows');
+        }
+    });
 }
 
 // Запазване на отворените редове от рецептата
