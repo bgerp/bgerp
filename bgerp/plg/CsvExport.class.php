@@ -66,7 +66,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
                     $fieldset->fields[$name]->caption = $caption;
                 }
             } else {
-                $fieldset->FLD($name, 'double', "caption={$caption}");
+                $fieldset->FLD($name, 'varchar', "caption={$caption}");
             }
         }
 
