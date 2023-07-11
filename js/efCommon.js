@@ -1290,6 +1290,9 @@ function openBoomRows(){
         if ($(this).find(".collapse .newIconStyle").length == $(this).find("td .newIconStyle:visible").length) {
             $(this).find('.toggleAllRows').toggleClass('openAllRows closeAllRows');
         }
+        if($(this).find('td.materialCol .more-btn.show-btn').length ==  $(this).find('td.materialCol .more-btn').not('show-btn').length && $(this).find('th .plus-icon.more-btn').not('show-btn').length == 1) {
+            $(this).find('th .plus-icon.more-btn').addClass('show-btn');
+        }
     });
 }
 
