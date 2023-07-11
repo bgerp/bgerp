@@ -150,7 +150,42 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $logDatQuery = log_Data::getQuery();
 
+        // Филтрираме по време
+        if ($rec->from || $rec->to) {
+            $dateRange = array();
+
+            if ($rec->from) {
+                $dateRange[0] = $rec->from;
+            }
+
+            if ($rec->to) {
+                $dateRange[1] = $rec->to;
+            }
+
+            if (countR($dateRange) == 2) {
+                sort($dateRange);
+            }
+
+            if ($dateRange[0]) {
+                if (!strpos($dateRange[0], ' ')) {
+                    $dateRange[0] .= ' 00:00:00';
+                }
+                $dateRange[0] = dt::mysql2timestamp($dateRange[0]);
+                $logDatQuery->where(array("#time >= '[#1#]'", $dateRange[0]));
+            }
+
+            if ($dateRange[1]) {
+                if (!strpos($dateRange[1], ' ')) {
+                    $dateRange[1] .= ' 23:59:59';
+                }
+                $dateRange[1] = dt::mysql2timestamp($dateRange[1]);
+                $logDatQuery->where(array("#time <= '[#1#]'", $dateRange[1]));
+            }
+        }
+
         $logDatQuery->where("#userId > 0");
+
+        $logDatQuery->in('userId',keylist::toArray($rec->users));
 
         $logDatQuery->orderBy('time', 'ASC');
 
@@ -160,8 +195,11 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         while ($lRec = $logDatQuery->fetch()){
 
+           // bp($lRec, cls::get('type_Time')->toVerbal($lRec->lifeTime));
+
             $ipType = (in_array($lRec->ipId,$iPInArr)) ? 'office':'home';
             $minute = (integer)($lRec->time / 60);
+
             $workingTime[$lRec->userId][$ipType] += $lRec->lifeTime;
             $lastWorkTime[$lRec->userId][$ipType] = $minute;
             $hash = md5($lRec->type . $lRec->actionCrc . $lRec->classCrc . $lRec->objectId);
@@ -169,7 +207,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         }
 
-
+//bp($workingTime,$lastWorkTime,$lastWorkHash);
 
         return $recs;
     }
