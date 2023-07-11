@@ -287,7 +287,12 @@ class doc_plg_Prototype extends core_Plugin
             $lastVisitedLimit = doc_Setup::get('SHOW_LAST_VISITED_AS_PROTOTYPES');
             if(empty($lastVisitedLimit)) return;
 
-            $lastSeenByUser = bgerp_LastSeenDocumentByUser::getLastSeenByUser($mvc, $driverId, null,$lastVisitedLimit);
+            $lastSeenByUser = bgerp_LastSeenDocumentByUser::getLastSeenByUser($mvc, $driverId, null, $lastVisitedLimit);
+            if(isset($rec->{$mvc->protoFieldName})){
+                if(!array_key_exists($rec->{$mvc->protoFieldName}, $lastSeenByUser)){
+                    $lastSeenByUser[$rec->{$mvc->protoFieldName}] = $mvc->getTitleById($rec->{$mvc->protoFieldName}, false);
+                }
+            }
             $prototypes = is_array($prototypes) ? $prototypes : array();
             $lastSeenByUser = array_diff_key($lastSeenByUser, $prototypes);
 
