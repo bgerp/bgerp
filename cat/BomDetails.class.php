@@ -792,7 +792,7 @@ class cat_BomDetails extends doc_Detail
         $position = implode('.', $codePath);
         $position = cls::get('type_Varchar')->toVerbal($position);
         $row->position = $position;
-        $row->ROW_ATTR['class'] = 'collapse';
+        $row->ROW_ATTR['class'] .= ' collapse';
         $row->ROW_ATTR['data-position'] = "bom{$rec->bomId}-" . $position;
         $row->ROW_ATTR['data-depth'] = countR($codePath) - 1;
 
