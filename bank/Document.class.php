@@ -682,18 +682,6 @@ abstract class bank_Document extends deals_PaymentDocument
 
 
     /**
-     * След взимане на полетата за експорт в csv
-     *
-     * @see bgerp_plg_CsvExport
-     */
-    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
-    {
-        $fieldset->FNC('title', 'varchar', 'caption=Документ,after=valior');
-        $fieldset->FNC('invoices', 'varchar', 'caption=Фактури,after=rate');
-    }
-
-
-    /**
      * Преди експортиране като CSV
      */
     protected static function on_BeforeExportCsv($mvc, &$recs)
