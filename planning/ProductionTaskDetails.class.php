@@ -1177,7 +1177,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $convertAgain = true;
                     $expectedSingleNetWeight = null;
                     if(isset($centerRec->paramExpectedNetWeight)){
-                        $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $rec->productId);
+                        $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $masterRec->productId);
 
                         // Ако параметъра е формула, се прави опит за изчислението ѝ
                         if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
