@@ -7,7 +7,7 @@
     <!--ET_BEGIN header-->
         <div class='header [#STATE_CLASS#] no-print'>
             <div class='docBgIcon' style='[#iconStyle#]'>
-                <div class='document-title-group'>|Списък за масово разпращане|* <b>[#ident#]</b><!--ET_BEGIN state--> ([#state#])<!--ET_END state--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
+                <div class='document-title-group'>|Списък за масово разпращане|* <b onmouseup='selectInnerText(this);'>[#ident#]</b><!--ET_BEGIN state--> ([#state#])<!--ET_END state--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
                 </div>
                 <!--ET_BEGIN DocumentSettingsLeft-->
                     <div class='document-settings-left'>

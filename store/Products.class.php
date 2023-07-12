@@ -1004,7 +1004,7 @@ class store_Products extends core_Detail
             foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'dateMin') as $fld){
                 $arr[$fld] = $rec->{$fld};
             }
-            $res[$rec->code] = $arr;
+            $res[] = $arr;
         }
 
         return $res;

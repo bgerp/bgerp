@@ -3528,7 +3528,6 @@ class planning_Tasks extends core_Master
                     $this->logWrite("Операцията е поставена от клипборда", $tRec->id);
                     $movedArr[] = "#" . $this->getHandle($tRec->id);
                     unset($queuedTasks[$key]);
-
                     Mode::setPermanent('selectTaskQueue', $queuedTasks);
                 }
 
