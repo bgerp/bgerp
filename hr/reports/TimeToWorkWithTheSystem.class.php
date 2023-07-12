@@ -82,7 +82,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $fieldset->FLD('inIp', 'keylist()', 'caption=Вътрешни Ip-та,single=none,after=to');
 
         //Максимално време за изчакване
-        $fieldset->FLD('maxTimeWaiting', 'time(suggestions=|5 мин|10 мин|15 мин|20 мин)', 'caption=Мак. изчакване, after=inIp,mandatory,single=none,removeAndRefreshForm');
+        $fieldset->FLD('maxTimeWaiting', 'time(suggestions=|5 мин|10 мин|15 мин|20 мин)', 'caption=Мак. изчакване, after=inIp,mandatory,removeAndRefreshForm');
 
         //Потребители
         $fieldset->FLD('users', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребители,single=none,mandatory,after=maxTimeWaiting');
@@ -215,10 +215,10 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
             //аковремето на престой е по-малко от заложения минумум за престой и $ipType = 'home'
             //приемаме, че това е кратковременно включване от телефона и връщаме $ipType = 'office'
-            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType = 'home') && ($oldIpType == 'office')){
+            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home') && ($oldIpType == 'office')){
                 $ipType = 'office';
             }
-
+if ($ipType == 'home')continue;
             //Ако $hash === $lastWorkHash[$lRec->userId][$ipType] приемаме че,
             // потрбителя прави рефреш на ресурса и не включваме  записа
             if($hash === $lastWorkHash[$lRec->userId][$ipType]){
@@ -340,7 +340,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN jobses--><div>|Избрани задания|*: [#jobses#]</div><!--ET_END jobses-->
-                                        <!--ET_BEGIN groups--><div>|Групи продукти|*: [#groups#]</div><!--ET_END groups-->
+                                        <!--ET_BEGIN groups--><div>|Избрани потребители|*: [#groups#]</div><!--ET_END groups-->
                                         <!--ET_BEGIN products--><div>|Артикули|*: [#products#]</div><!--ET_END products-->
                                         <!--ET_BEGIN pricesType--><div>|Стойност|*: [#pricesType#]</div><!--ET_END pricesType-->
                                     </div>
@@ -375,53 +375,6 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
         }
 
-        $marker = 0;
-        if ($data->rec->option == 'yes') {
-            if (isset($data->rec->products)) {
-                foreach (type_Keylist::toArray($data->rec->products) as $product) {
-                    $marker++;
-
-                    $productVerb .= (cat_Products::getTitleById($product));
-
-                    if ((countR((type_Keylist::toArray($data->rec->products))) - $marker) != 0) {
-                        $productVerb .= ', ';
-                    }
-                }
-
-                $fieldTpl->append('<b>' . $productVerb . '</b>', 'products');
-            } else {
-                $fieldTpl->append('<b>' . 'Всички' . '</b>', 'products');
-            }
-        }
-
-        $marker = 0;
-        if ($data->rec->option == 'no') {
-            if (isset($data->rec->jobses)) {
-                foreach (type_Keylist::toArray($data->rec->jobses) as $job) {
-                    $marker++;
-
-                    $jRec = planning_Jobs::fetch($job);
-
-                    $jContainer = $jRec->containerId;
-
-                    $Job = doc_Containers::getDocument($jContainer);
-
-                    $handle = $Job->getHandle();
-
-                    $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
-
-                    $jobVerb .= ht::createLink("#{$handle}", $singleUrl);
-
-                    if ((countR((type_Keylist::toArray($data->rec->jobses))) - $marker) != 0) {
-                        $jobVerb .= ', ';
-                    }
-                }
-
-                $fieldTpl->append('<b>' . $jobVerb . '</b>', 'jobses');
-            } else {
-                $fieldTpl->append('<b>' . 'Всички' . '</b>', 'jobses');
-            }
-        }
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
