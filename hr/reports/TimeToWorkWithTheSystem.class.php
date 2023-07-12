@@ -196,8 +196,11 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         while ($lRec = $logDatQuery->fetch()){
 
             $oldIpType = $ipType;
+
             $minutesToAdd = 0;
+
             $ipType = (in_array($lRec->ipId,$iPInArr)) ? 'office':'home';
+
             $hash = md5($lRec->type . $lRec->actionCrc . $lRec->classCrc . $lRec->objectId);
             $minute = (integer)($lRec->time / 60);
 
@@ -211,11 +214,13 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
                 $workingTime[$lRec->userId][$ipType] = 0;
                 continue;
             }
+            $minutesToAdd = $minute - $lastWorkTime[$lRec->userId][$ipType];
 
+            if($minutesToAdd <= 0)continue;
 
             //аковремето на престой е по-малко от заложения минумум за престой и $ipType = 'home'
             //приемаме, че това е кратковременно включване от телефона и връщаме $ipType = 'office'
-            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home')){
+            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home') && ($oldIpType == 'office')){
                 $ipType = 'office';
             }
 
@@ -228,7 +233,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             }
             $lastWorkHash[$lRec->userId][$ipType] = $hash;
 
-            $minutesToAdd = $minute - $lastWorkTime[$lRec->userId][$ipType];
+
             expect($minutesToAdd >= 0,'Некоректен запис, или подредба на масива');
 
             if($minutesToAdd > $rec->maxTimeWaiting/60){
@@ -268,7 +273,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
 
-            $fld->FLD('userId', 'varchar', 'caption=Потребител,smartCenter');
+            $fld->FLD('userId', 'varchar', 'caption=Потребител');
             $fld->FLD('office', 'int', 'caption=Офис[min],smartCenter');
             //$fld->FLD('home', 'int', 'caption=Отдалечено[min],smartCenter');
 
@@ -296,7 +301,13 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
-        $row->userId = crm_Profiles::createLink($dRec->userId);
+
+        $personId = crm_Profiles::fetch("#userId =$dRec->userId")->personId;
+
+        $row->userId = crm_Persons::fetch($personId)->name;
+
+        $row->userId .= ' ['.crm_Profiles::createLink($dRec->userId).']';
+
         $row->office = ($dRec->office);
        // $row->home = ($dRec->home);
 
