@@ -2128,6 +2128,16 @@ function selectInnerText(text) {
         selection.removeAllRanges();
         selection.addRange(range);
     }
+
+    if (range && navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(range);
+
+        var cursor = document.body.style.cursor;
+        document.body.style.cursor = 'wait';
+        setTimeout(function() {
+            document.body.style.cursor = cursor;
+        }, 500);
+    }
 }
 
 /**
