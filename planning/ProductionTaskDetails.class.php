@@ -655,7 +655,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         if(!isset($taskWeightSubtractValue)){
             $taskWeightSubtractValue = cat_Products::getParams($jobProductId, $paramId);
+            $taskWeightSubtractValue = ($taskWeightSubtractValue === false) ? null : $taskWeightSubtractValue;
         }
+
         if(!isset($taskWeightSubtractValue)){
             $taskWeightSubtractValue = cat_Products::getParams($taskProductId, $paramId);
         }
