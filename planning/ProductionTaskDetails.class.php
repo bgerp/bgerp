@@ -1171,37 +1171,34 @@ class planning_ProductionTaskDetails extends doc_Detail
                 // Има ли нето тегло
                 if(isset($rec->netWeight) && $rec->state != 'rejected'){
 
-                    // Колко е очакваното нето тегло
-                    $expectedSingleNetWeight = cat_Products::convertToUom($rec->productId, 'kg');
-
                     // Ако няма и има избран параметър за ед. тегло
                     $convertAgain = true;
-                    if(empty($expectedSingleNetWeight)){
+                    $expectedSingleNetWeight = null;
+                    if(isset($centerRec->paramExpectedNetWeight)){
+                        $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $rec->productId);
 
-                        if(isset($centerRec->paramExpectedNetWeight)){
-                            $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $rec->productId);
-
-                            // Ако параметъра е формула, се прави опит за изчислението ѝ
-                            if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
-
-                                Mode::push('text', 'plain');
-                                $expectedSingleNetWeight = cat_Params::toVerbal($centerRec->paramExpectedNetWeight, planning_Tasks::getClassId(), $rec->taskId, $expectedSingleNetWeight);
-                                Mode::pop('text');
-                                if ($expectedSingleNetWeight === cat_BomDetails::CALC_ERROR) {
-                                    $expectedSingleNetWeight = null;
-                                }
-                            }
-
-                            if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
-
-                                $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
-                                $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
-                                if($rec->type == 'production'){
-                                    $expectedSingleNetWeight = $expectedSingleNetWeight / $masterRec->quantityInPack;
-                                }
+                        // Ако параметъра е формула, се прави опит за изчислението ѝ
+                        if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
+                            Mode::push('text', 'plain');
+                            $expectedSingleNetWeight = cat_Params::toVerbal($centerRec->paramExpectedNetWeight, planning_Tasks::getClassId(), $rec->taskId, $expectedSingleNetWeight);
+                            Mode::pop('text');
+                            if ($expectedSingleNetWeight === cat_BomDetails::CALC_ERROR) {
+                                $expectedSingleNetWeight = null;
                             }
                         }
-                    } else {
+
+                        if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
+                            $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
+                            $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
+                            if($rec->type == 'production'){
+                                $expectedSingleNetWeight = $expectedSingleNetWeight / $masterRec->quantityInPack;
+                            }
+                        }
+                    }
+
+                    $defaultExpectedSingleWeight = cat_Products::convertToUom($rec->productId, 'kg');
+                    if(empty($expectedSingleNetWeight)){
+                        $expectedSingleNetWeight = $defaultExpectedSingleWeight;
                         if($rec->type == 'production'){
                             $expectedSingleNetWeight = $expectedSingleNetWeight * $masterRec->quantityInPack;
                             $convertAgain = false;
