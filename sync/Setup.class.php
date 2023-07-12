@@ -80,8 +80,23 @@ class sync_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Синхронизиране на данните между две bgERP системи';
-    
-    
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'SyncRemoteStocks',
+            'description' => 'Синхронизиране на отдалечените складови наличности',
+            'controller' => 'sync_StoreStocks',
+            'action' => 'SyncRemoteStocks',
+            'period' => 1,
+            'timeLimit' => 60
+        ),
+    );
+
+
     /**
      * Описание на конфигурационните константи
      */
