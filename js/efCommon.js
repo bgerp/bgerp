@@ -1251,7 +1251,7 @@ function toggleDisplayBomStepDetails() {
             var currentSubRow = $(this).closest('tr').data('position');
             openSubRows =  currentSubRow + "," + openSubRows;
         });
-        sessionStorage.setItem("boomSubRows", openSubRows);
+        localStorage.setItem("boomSubRows", openSubRows);
         return children;
     });
 }
@@ -1268,8 +1268,8 @@ function toggleDisplayOnload(id) {
 // Отваряне на запомнените редове от рецептата
 function openBoomRows(){
 
-   var openBoomRows = sessionStorage.getItem("boomDetailsOpenRows");
-   var openSubRows = sessionStorage.getItem("boomSubRows");
+   var openBoomRows = localStorage.getItem("boomDetailsOpenRows");
+   var openSubRows = localStorage.getItem("boomSubRows");
     if(openBoomRows) {
         var rowsArray = openBoomRows.split(',');
         rowsArray.forEach((item) => {
@@ -1303,7 +1303,7 @@ function saveToggleState(){
         var currentId = $(this).data('id');
         openRows = openRows + currentId + ",";
     });
-    sessionStorage.setItem("boomDetailsOpenRows", openRows);
+    localStorage.setItem("boomDetailsOpenRows", openRows);
 }
 
 function clickAllClasses(id,clickClasses) {

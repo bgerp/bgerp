@@ -1097,6 +1097,9 @@ a.more-btn {
 	width: 14px;
 	display: inline-block;
 	background-image: url(../img/16/small-minus.png);
+	&:hover {
+		cursor: pointer;
+	}
 }
 .expand .newIconStyle, .newIconStyle.openAllRows {
 	background-image: url(../img/16/small-plus.png) !important;

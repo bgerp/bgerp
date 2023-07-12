@@ -129,7 +129,7 @@ class rack_Racks extends core_Master
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,silent,input=hidden');
-        $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,tdClass=leftCol');
+        $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,tdClass=leftCol wrapText');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('firstRowTo', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Първи ред до,notNull,value=A');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
