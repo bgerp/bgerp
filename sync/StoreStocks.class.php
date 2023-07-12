@@ -139,11 +139,25 @@ class sync_StoreStocks extends sync_Helper
     }
 
 
+    /**
+     * Крон метод за синхронизиране на складовите наличности
+     */
     public function cron_SyncRemoteStocks()
     {
+        // Има ли зададени складове за синхронизиране
         $sQuery = sync_Stores::getQuery();
         $sQuery->where("#state = 'active'");
         $remoteStores = $sQuery->fetchAll();
+        if(!countR($remoteStores)) return;
+
+        // Настъпило ли е времето да се синхронизират
+        $cMinute = dt::mysql2verbal(null, 'i');
+        foreach ($remoteStores as $k => $storeRec){
+            $i = $cMinute + $storeRec->id;
+            if($i % $storeRec->syncTime != 0){
+                unset($remoteStores[$k]);
+            }
+        }
         if(!countR($remoteStores)) return;
 
         // Извличане на стандартните ни складируеми артикули
@@ -164,7 +178,7 @@ class sync_StoreStocks extends sync_Helper
             $measureData[$mRec->sysId] = $mRec->id;
         }
 
-        $now = dt::now();
+        // Групиране по урл-та
         $save = $storeByUrl = array();
         foreach ($remoteStores as $rStore){
             if(!array_key_exists($rStore->url, $storeByUrl)){
@@ -175,6 +189,7 @@ class sync_StoreStocks extends sync_Helper
             $storeByUrl[$rStore->url]['remoteMap'][$rStore->remoteId] = $rStore->id;
         }
 
+        $now = dt::now();
         foreach ($storeByUrl as $url => $remoteArr){
             $createdBy = key($remoteArr['users']);
 
@@ -195,16 +210,15 @@ class sync_StoreStocks extends sync_Helper
             $stockData = remote_BgerpDriver::sendQuestion($authRec, 'store_Products', 'getStocks', array('stores' => $remoteArr['remoteIds']));
             if(!(is_array($stockData) && countR($stockData))) continue;
 
-            foreach ($stockData as $remoteCode => $arr){
-
+            foreach ($stockData as $arr){
                 // Ако в тази система няма артикул с този, код то няма да се извлича
-                if(!array_key_exists($remoteCode, $ourProducts)) continue;
+                if(!array_key_exists($arr['code'], $ourProducts)) continue;
 
                 // Ако има се проверява дали мерките са различни
-                if($arr['measureSysId'] != $ourProducts[$remoteCode]['measureSysId']){
+                if($arr['measureSysId'] != $ourProducts[$arr['code']]['measureSysId']){
 
                     // Ако са различни прави се опит за конверсия, ако не може значи не е този артикул
-                    $ratio = cat_UoM::convertValue(1, $measureData[$arr['measureSysId']], $measureData[$ourProducts[$remoteCode]['measureSysId']]);
+                    $ratio = cat_UoM::convertValue(1, $measureData[$arr['measureSysId']], $measureData[$ourProducts[$arr['code']]['measureSysId']]);
                     if($ratio === false) continue;
 
                     foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin') as $fld){
@@ -215,7 +229,7 @@ class sync_StoreStocks extends sync_Helper
                 }
 
                 // Добавяне на мапнатия запис
-                $obj = (object)array('remoteCode' => $remoteCode, 'productId' => $ourProducts[$remoteCode]['id'], 'syncedStoreId' => $remoteArr['remoteMap'][$arr['storeId']], 'lastSynced' => $now);
+                $obj = (object)array('remoteCode' => $arr['code'], 'productId' => $ourProducts[$arr['code']]['id'], 'syncedStoreId' => $remoteArr['remoteMap'][$arr['storeId']], 'lastSynced' => $now);
                 foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'dateMin') as $fld){
                     $obj->{$fld} = $arr[$fld];
                 }
@@ -242,6 +256,11 @@ class sync_StoreStocks extends sync_Helper
         if (countR($arrRes['delete'])) {
             $delete = implode(',', $arrRes['delete']);
             $this->delete("#id IN ({$delete})");
+        }
+
+        foreach ($remoteStores as $remoteRec){
+            $remoteRec->lastSynced = $now;
+            sync_Stores::save($remoteRec, 'lastSynced');
         }
     }
 

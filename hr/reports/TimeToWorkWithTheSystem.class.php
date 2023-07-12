@@ -82,7 +82,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $fieldset->FLD('inIp', 'keylist()', 'caption=Вътрешни Ip-та,single=none,after=to');
 
         //Максимално време за изчакване
-        $fieldset->FLD('maxTimeWaiting', 'time(suggestions=|5 мин|10 мин|15 мин|20 мин)', 'caption=Мак. изчакване, after=inIp,mandatory,single=none,removeAndRefreshForm');
+        $fieldset->FLD('maxTimeWaiting', 'time(suggestions=|5 мин|10 мин|15 мин|20 мин)', 'caption=Макс. изчакване, after=inIp,mandatory,removeAndRefreshForm');
 
         //Потребители
         $fieldset->FLD('users', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребители,single=none,mandatory,after=maxTimeWaiting');
@@ -131,7 +131,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         }
 
         $form->setSuggestions('inIp', $suggestions);
-
+        $form->setDefault('inIp', $suggestions);
     }
 
 
@@ -187,7 +187,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $logDatQuery->in('userId',keylist::toArray($rec->users));
 
         $logDatQuery->orderBy('time', 'ASC');
-//bp($logDatQuery->fetchAll());
+
         $ipType = $oldIpType = null;
 
         $iPInArr = keylist::toArray($rec->inIp);
@@ -196,8 +196,11 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         while ($lRec = $logDatQuery->fetch()){
 
             $oldIpType = $ipType;
+
             $minutesToAdd = 0;
+
             $ipType = (in_array($lRec->ipId,$iPInArr)) ? 'office':'home';
+
             $hash = md5($lRec->type . $lRec->actionCrc . $lRec->classCrc . $lRec->objectId);
             $minute = (integer)($lRec->time / 60);
 
@@ -211,13 +214,17 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
                 $workingTime[$lRec->userId][$ipType] = 0;
                 continue;
             }
+            $minutesToAdd = $minute - $lastWorkTime[$lRec->userId][$ipType];
 
+            if($minutesToAdd <= 0)continue;
 
             //аковремето на престой е по-малко от заложения минумум за престой и $ipType = 'home'
             //приемаме, че това е кратковременно включване от телефона и връщаме $ipType = 'office'
-            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType = 'home') && ($oldIpType == 'office')){
+            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home') && ($oldIpType == 'office')){
                 $ipType = 'office';
             }
+
+            if ($ipType == 'home')continue;
 
             //Ако $hash === $lastWorkHash[$lRec->userId][$ipType] приемаме че,
             // потрбителя прави рефреш на ресурса и не включваме  записа
@@ -226,7 +233,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             }
             $lastWorkHash[$lRec->userId][$ipType] = $hash;
 
-            $minutesToAdd = $minute - $lastWorkTime[$lRec->userId][$ipType];
+
             expect($minutesToAdd >= 0,'Некоректен запис, или подредба на масива');
 
             if($minutesToAdd > $rec->maxTimeWaiting/60){
@@ -266,9 +273,9 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
 
-            $fld->FLD('userId', 'varchar', 'caption=Потребител,smartCenter');
+            $fld->FLD('userId', 'varchar', 'caption=Потребител');
             $fld->FLD('office', 'int', 'caption=Офис[min],smartCenter');
-            $fld->FLD('home', 'int', 'caption=Отдалечено[min],smartCenter');
+            //$fld->FLD('home', 'int', 'caption=Отдалечено[min],smartCenter');
 
         } else {
 
@@ -294,9 +301,15 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
-        $row->userId = crm_Profiles::createLink($dRec->userId);
+
+        $personId = crm_Profiles::fetch("#userId =$dRec->userId")->personId;
+
+        $row->userId = crm_Persons::fetch($personId)->name;
+
+        $row->userId .= ' ['.crm_Profiles::createLink($dRec->userId).']';
+
         $row->office = ($dRec->office);
-        $row->home = ($dRec->home);
+       // $row->home = ($dRec->home);
 
 
         return $row;
@@ -339,10 +352,8 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
-                                        <!--ET_BEGIN jobses--><div>|Избрани задания|*: [#jobses#]</div><!--ET_END jobses-->
-                                        <!--ET_BEGIN groups--><div>|Групи продукти|*: [#groups#]</div><!--ET_END groups-->
-                                        <!--ET_BEGIN products--><div>|Артикули|*: [#products#]</div><!--ET_END products-->
-                                        <!--ET_BEGIN pricesType--><div>|Стойност|*: [#pricesType#]</div><!--ET_END pricesType-->
+                                        <!--ET_BEGIN users--><div>|Избрани потребители|*: [#users#]</div><!--ET_END users-->
+                                        <!--ET_BEGIN maxTimeWaiting--><div>|Макс. изчакване|*: [#maxTimeWaiting#]</div><!--ET_END maxTimeWaiting-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -359,69 +370,22 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         }
 
         $marker = 0;
-        if (isset($data->rec->groups)) {
-            foreach (type_Keylist::toArray($data->rec->groups) as $group) {
+        if (isset($data->rec->users)) {
+            foreach (type_Keylist::toArray($data->rec->users) as $user) {
                 $marker++;
 
-                $groupVerb .= (cat_Groups::getTitleById($group));
+                $userVerb .= crm_Profiles::createLink($user);
 
                 if ((countR((type_Keylist::toArray($data->rec->groups))) - $marker) != 0) {
-                    $groupVerb .= ', ';
+                    $userVerb .= ', ';
                 }
             }
 
-            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
+            //$fieldTpl->append('<b>' . $userVerb . '</b>', 'users');
         } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
+           // $fieldTpl->append('<b>' . 'Всички' . '</b>', 'users');
         }
 
-        $marker = 0;
-        if ($data->rec->option == 'yes') {
-            if (isset($data->rec->products)) {
-                foreach (type_Keylist::toArray($data->rec->products) as $product) {
-                    $marker++;
-
-                    $productVerb .= (cat_Products::getTitleById($product));
-
-                    if ((countR((type_Keylist::toArray($data->rec->products))) - $marker) != 0) {
-                        $productVerb .= ', ';
-                    }
-                }
-
-                $fieldTpl->append('<b>' . $productVerb . '</b>', 'products');
-            } else {
-                $fieldTpl->append('<b>' . 'Всички' . '</b>', 'products');
-            }
-        }
-
-        $marker = 0;
-        if ($data->rec->option == 'no') {
-            if (isset($data->rec->jobses)) {
-                foreach (type_Keylist::toArray($data->rec->jobses) as $job) {
-                    $marker++;
-
-                    $jRec = planning_Jobs::fetch($job);
-
-                    $jContainer = $jRec->containerId;
-
-                    $Job = doc_Containers::getDocument($jContainer);
-
-                    $handle = $Job->getHandle();
-
-                    $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
-
-                    $jobVerb .= ht::createLink("#{$handle}", $singleUrl);
-
-                    if ((countR((type_Keylist::toArray($data->rec->jobses))) - $marker) != 0) {
-                        $jobVerb .= ', ';
-                    }
-                }
-
-                $fieldTpl->append('<b>' . $jobVerb . '</b>', 'jobses');
-            } else {
-                $fieldTpl->append('<b>' . 'Всички' . '</b>', 'jobses');
-            }
-        }
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
