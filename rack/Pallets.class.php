@@ -1210,8 +1210,8 @@ class rack_Pallets extends core_Manager
     {
         $fieldset->setFieldType('batch', 'varchar');
         $fieldset->setFieldType('productId', 'key(mvc=cat_Products,select=name)');
-        $fieldset->FNC('code', 'varchar', 'caption=Код,after=position');
-        $fieldset->FNC('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,after=batch');
+        $fieldset->setField('code', 'caption=Код,after=position');
+        $fieldset->setField('measureId', 'caption=Код,after=position');
     }
 
 
