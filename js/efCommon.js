@@ -2133,7 +2133,7 @@ function selectInnerText(text) {
         navigator.clipboard.writeText(range);
 
         var cursor = document.body.style.cursor;
-        document.body.style.cursor = 'wait';
+        document.body.style.cursor = 'copy';
         setTimeout(function() {
             document.body.style.cursor = cursor;
         }, 500);
