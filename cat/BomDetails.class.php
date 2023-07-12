@@ -196,8 +196,14 @@ class cat_BomDetails extends doc_Detail
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
         if(cat_BomDetails::count("#bomId = {$data->masterId} AND #type = 'stage'")){
             $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
-            $data->listFields['position'] .= "|* <span  class='newIconStyle openAllRows toggleAllRows' title='Показване/Скриване на всички детайли'> </span>";
         }
+
+        if(cat_BomDetails::count("#bomId = {$data->masterId} AND #parentId IS NOT NULL")) {
+            if(!in_array($data->masterData->rec->state, array('draft', 'rejected'))){
+                $data->listFields['position'] .= "|* <span  class='newIconStyle openAllRows toggleAllRows' title='Показване/Скриване на всички подетапи'> </span>";
+            }
+        }
+
         $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
         $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
         $data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
