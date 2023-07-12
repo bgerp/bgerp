@@ -6,7 +6,7 @@
 
     <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#HEADER_STATE#])</div>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b onmouseup='selectInnerText(this);'>[#ident#]</b> ([#HEADER_STATE#])</div>
     </div>
     <!--ET_END header-->
 
