@@ -560,7 +560,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
 
         $recs = $tempArr;
-
+        $unicartTotal = 0;
         foreach ($recs as $v) {
             $v->groupValues = $groupValues[$v->groupList];
             $v->groupDeltas = $groupDeltas[$v->groupList];
@@ -570,6 +570,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $v->salesArr = countR($salesArr[$v->folderId]);
             $v->salesArrPrevious = countR($salesArrPrev[$v->folderId]);
             $v->salesArrLast = countR($salesArrLast[$v->folderId]);
+
+            $unicartTotal +=$v->unicart;
+            $salesArrTotal +=$v->salesArr;
+
         }
 
 
@@ -582,6 +586,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $totalArr['total'] = (object)array(
             'totalValue' => $totalSalleValue,
             'totalDelta' => $totalDelta,
+            'totalUnicart' => $unicartTotal,
+            'totalSalesArr' => $salesArrTotal,
+
             'totalValuePrevious' => $totalValuePrevious,
             'totalValueLastYear' => $totalValueLastYear,
             'totalDeltaPrevious' => $totalDeltaPrevious,
@@ -681,6 +688,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             if (!is_null($rec->seeDelta)) {
                 $fld->FLD('delta', 'double(decimals=2)', "caption={$name1}->Делта");
             }
+
+
             if ($rec->compare != 'no') {
                 $fld->FLD('sellValueCompare', 'double(decimals=2)', "caption={$name2}->Продажби");
                 if (!is_null($rec->seeDelta)) {
@@ -689,6 +698,17 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $fld->FLD('changeSales', 'double(decimals=2)', 'caption=Промяна->Продажби');
                 if (!is_null($rec->seeDelta)) {
                     $fld->FLD('changeDeltas', 'double(decimals=2)', 'caption=Промяна->Делти');
+                }
+
+
+            } else {
+
+                if (strpos($rec->see, 'articles') !== false) {
+                    $fld->FLD('articles', 'int', 'smartCenter,caption=Артикули');
+                }
+
+                if (strpos($rec->see, 'sales') !== false) {
+                    $fld->FLD('sales', 'int', 'smartCenter,caption=Сделки');
                 }
             }
         }
@@ -757,6 +777,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
             $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta) . '</b>';
             $row->delta = ht::styleNumber($row->delta, $dRec->totalDelta);
+
+            $row->articles = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalUnicart) . '</b>';
+            $row->articles = ht::styleNumber($row->articles, $dRec->totalUnicart);
+
+            $row->sales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSalesArr) . '</b>';
+            $row->sales = ht::styleNumber($row->sales, $dRec->totalSalesArr);
 
             $row->groupList = '';
 
@@ -1081,14 +1107,21 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $res->changeDeltas = ($delta - $dRec->deltaLastYear);
             }
         }
+        $res->articles = core_Type::getByName('int')->toVerbal($dRec->unicart);
+
+        $res->sales = core_Type::getByName('int')->toVerbal($dRec->salesArr);
+
         if ($res->totalValue) {
             $res->contragentId = 'ОБЩО:';
 
             $saleValue = $dRec->totalValue;
             $delta = $dRec->totalDelta;
 
-            $res->saleValue = ($saleValue);
-            $res->delta = ($delta);
+            $res->saleValue =$saleValue;
+            $res->delta = $delta;
+
+            $res->articles = $dRec->totalUnicart;
+            $res->sales = $dRec->totalSalesArr;
 
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                 $res->sellValueCompare = ($dRec->totalValuePrevious);
