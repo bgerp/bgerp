@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Затваряне, оттегляне или изтриване
+ * @title     Правила при получаване на имейли » Затваряне, оттегляне или изтриване
  */
 class email_drivers_CheckEmails extends core_BaseClass
 {
