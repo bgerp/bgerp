@@ -348,6 +348,7 @@ class plg_TreeObject extends core_Plugin
         if (isset($fields['-list'])) {
             $row->ROW_ATTR['data-parentid'] .= $rec->{$mvc->parentFieldName};
             $row->ROW_ATTR['data-id'] .= $rec->id;
+            $row->ROW_ATTR['data-manager'] = $mvc->className;
             $row->ROW_ATTR['class'] .= ' treeLevel' . $rec->_level;
             
             // Ако може да се добавя поделемент, показваме бутон за добавяне
