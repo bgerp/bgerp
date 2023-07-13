@@ -3225,17 +3225,102 @@ class email_Incomings extends core_Master
 
         if (email_ServiceRules::haveRightFor('add')) {
 
-            $url = array('email_ServiceRules', 'add', 'email' => $data->rec->fromEml, 'subject' => $data->rec->subject, 'ret_url' => true);
+            $url = array('email_ServiceRules', 'add', 'docId' => $data->rec->containerId, 'email' => $data->rec->fromEml, 'subject' => $data->rec->subject, 'ret_url' => true);
 
             $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=2, order=19');
         }
 
-        if (email_AddressesInfo::haveRightFor('add')) {
-            $url = array('email_AddressesInfo', 'addEmail', 'docId' => $data->rec->id, 'ret_url' => true);
-            $data->toolbar->addBtn('Отписване', $url, 'ef_icon=img/16/email_open_image.png, title=Възможност за отписване на имйела от циркулярният списък, row=2, order=19.9');
+        if (email_AddressesInfo::haveRightFor('powerUser')) {
+            if ($uLink = $mvc->getUnsubscribeLink($data->rec)) {
+                $uLink = urldecode($uLink);
+                $data->toolbar->addBtn('Отписване', $uLink, 'target=_blank, ef_icon=img/16/email_open_image.png, title=Отписване от получаване на циркулярни имейли, row=2, order=19.9');
+            }
         }
     }
-    
+
+
+    /**
+     * Връща линк за отписване
+     *
+     * @param stdClass $rec
+     *
+     * @return string|null
+     */
+    protected function getUnsubscribeLink($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        $res = null;
+
+        if (!$rec) {
+
+            return $res;
+        }
+
+        $cacheType = 'doc_UnsubscribeLink';
+        $cacheHandle = $rec->id;
+
+        $res = core_Cache::get($cacheType, $cacheHandle);
+
+        if ($res !== false) {
+
+            return $res;
+        }
+
+        if ($rec->headers['list-unsubscribe']) {
+            $uData = $rec->headers['list-unsubscribe'][0];
+            if (preg_match(type_Richtext::URL_PATTERN, $uData, $matches)) {
+
+                $res = $matches[0];
+            }
+        }
+
+        if (!$res) {
+            $content = '';
+            if ($rec->htmlFile) {
+                $htmlFRec = fileman::fetch($rec->htmlFile);
+                $content = fileman_Files::getContent($htmlFRec->fileHnd);
+            }
+
+            if (!$content && $rec->emlFile) {
+                // Инстанция на класа
+                $mime = cls::get('email_Mime');
+
+                $fRec = fileman::fetch($rec->emlFile);
+
+                // Вземаме съдържанието на eml файла
+                $source = fileman::getContent($fRec->fileHnd);
+
+                $mime->parseAll($source);
+
+                $content = $mime->getJustTextPart();
+            }
+
+            if ($content) {
+                $content = mb_strtolower($content);
+                $content = str::utf2ascii($content);
+                $content = preg_replace('/\s+/u', ' ', $content);
+
+                // Стрингове за отписване
+                $unsStr = 'Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
+                $unsStr = mb_strtolower($unsStr);
+                $unsStr = str::utf2ascii($unsStr);
+                $unsStr = preg_replace('/\s+/u', ' ', $unsStr);
+
+                if (preg_match("/<a[^>]*>([^>]*({$unsStr})+[^>]*)<\/a>/iu", $content, $matches)) {
+                    if (preg_match(type_Richtext::URL_PATTERN, $uData, $lMatches)) {
+
+                        $res = $lMatches[0];
+                    }
+                }
+            }
+        }
+
+        core_Cache::set($cacheType, $cacheHandle, $res, 1000);
+
+        return $res;
+    }
+
     
     /**
      * Връща EML файл при генериране на възможности разширения за прикачване
