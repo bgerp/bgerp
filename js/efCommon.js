@@ -4302,6 +4302,24 @@ function render_getContextMenuFromAjax() {
 
 
 /**
+ * Функция, която извиква подготвянето на параметрите в рецепта по ajax
+ * Може да се комбинира с efae
+ */
+function render_openBoomRows() {
+    openBoomRows();
+}
+
+
+/**
+ * Функция, която извиква подготвянето на поднивата в репецти по ajax
+ * Може да се комбинира с efae
+ */
+function render_toggleDisplayBomStepDetails() {
+    toggleDisplayBomStepDetails();
+}
+
+
+/**
 * Функция, която извиква подготвянето на smartCenter
 * Може да се комбинира с efae
 */

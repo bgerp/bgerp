@@ -318,6 +318,39 @@ abstract class store_DocumentMaster extends core_Master
                 $shippedProducts = $aggregatedDealInfo->get('shippedProducts');
                 $copyBatches = true;
                 if (countR($shippedProducts)) {
+
+                    // Извличане на експедираните партиди от документи в нишката
+                    if(in_array($rec->importProducts, array('notshipped', 'notshippedstorable'))){
+                        $byNowShippedBatches = array();
+                        if(core_Packs::isInstalled('batch')){
+                            $mWhere = "";
+                            $cQuery = doc_Containers::getQuery();
+                            $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
+                            $cQuery->show('docClass,docId');
+                            while($cRec = $cQuery->fetch()){
+                                $mWhere .= (!empty($mWhere) ? " OR " : '') . "(#docType = {$cRec->docClass} AND #docId = {$cRec->docId})";
+                            }
+                            $bQuery = batch_Movements::getQuery();
+                            $bQuery->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
+                            $bQuery->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
+                            $bQuery->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
+                            $bQuery->where("#storeId ={$rec->storeId}");
+                            $bQuery->where($mWhere);
+                            $bQuery->show('productId,quantity,batch');
+                            while($bRec = $bQuery->fetch()){
+                                $byNowShippedBatches[$bRec->productId][$bRec->batch] = $bRec->quantity;
+                            }
+                        }
+
+                        foreach ($shippedProducts as $k1 => &$shipped){
+                            // Ако има експедирани партиди досега и се искат неекспедираните приспадат се
+                            if(isset($byNowShippedBatches[$shipped->productId])){
+                                $shipped->batches = $byNowShippedBatches[$shipped->productId];
+                            }
+                        }
+                    }
+
+
                     $normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
                 } else {
                     $agreedProducts = $aggregatedDealInfo->get('dealProducts');
@@ -378,31 +411,6 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             if (countR($agreedProducts)) {
-
-                // Извличане на експедираните партиди от документи в нишката
-                $byNowShippedBatches = array();
-                if(core_Packs::isInstalled('batch')){
-                    if(in_array($rec->importProducts, array('notshipped', 'notshippedstorable'))){
-                        $mWhere = "";
-                        $cQuery = doc_Containers::getQuery();
-                        $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
-                        $cQuery->show('docClass,docId');
-                        while($cRec = $cQuery->fetch()){
-                            $mWhere .= (!empty($mWhere) ? " OR " : '') . "(#docType = {$cRec->docClass} AND #docId = {$cRec->docId})";
-                        }
-                        $bQuery = batch_Movements::getQuery();
-                        $bQuery->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
-                        $bQuery->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
-                        $bQuery->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
-                        $bQuery->where("#storeId ={$rec->storeId}");
-                        $bQuery->where($mWhere);
-                        $bQuery->show('productId,quantity,batch');
-                        while($bRec = $bQuery->fetch()){
-                            $byNowShippedBatches[$bRec->productId][$bRec->batch] = $bRec->quantity;
-                        }
-                    }
-                }
-
                 foreach ($agreedProducts as $index => $product) {
                     
                     // Игнориране на услуги или складируемите ако е избрано друго
@@ -417,19 +425,6 @@ abstract class store_DocumentMaster extends core_Master
                     if (isset($normalizedProducts[$index])) {
                         $toShip = $normalizedProducts[$index]->quantity;
                         $batches = $normalizedProducts[$index]->batches;
-
-                        if(in_array($rec->importProducts, array('notshipped', 'notshippedstorable'))){
-                            foreach ($batches as $b1 => &$q1){
-
-                                // Ако има експедирани партиди досега и се искат неекспедираните приспадат се
-                                if(isset($byNowShippedBatches[$product->productId][$b1])){
-                                    $q1 -= $byNowShippedBatches[$product->productId][$b1];
-                                    if($q1 <= 0){
-                                        unset($batches[$b1]);
-                                    }
-                                }
-                            }
-                        }
                     } else {
                         $toShip = $product->quantity;
                         $batches = $product->batches;
@@ -439,10 +434,8 @@ abstract class store_DocumentMaster extends core_Master
                     $discount = ($product->discount) ? $product->discount : $normalizedProducts[$index]->discount;
 
                     // Пропускат се експедираните продукти
-                    if ($toShip <= 0) {
-                        continue;
-                    }
-                    
+                    if ($toShip <= 0) continue;
+
                     $shipProduct = new stdClass();
                     $shipProduct->{$mvc->{$Detail}->masterKey} = $rec->id;
                     $shipProduct->productId = $product->productId;
