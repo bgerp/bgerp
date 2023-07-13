@@ -26,6 +26,12 @@ defIfNot('ESHOP_NOT_IN_STOCK_TEXT', 'Няма наличност');
 
 
 /**
+ * Текст в магазина ако артикулът е наличен във външен склад
+ */
+defIfNot('ESHOP_REMOTE_IN_STOCK_TEXT', 'Наличен при партньор');
+
+
+/**
  * Дефолтен шаблон за онлайн продажби на български
  */
 defIfNot('ESHOP_SALE_DEFAULT_TPL_BG', '');
@@ -223,6 +229,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_SHOW_NAVIGATION' => array('enum(yes=С навигация,no=Без навигация)', 'caption=Показване на навигация на групите->Избор'),
         'ESHOP_CART_EXTERNAL_NAME' => array('varchar', 'caption=Стрингове във външната част->Кошница'),
         'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
+        'ESHOP_REMOTE_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Във външен склад'),
         'ESHOP_SALE_DEFAULT_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
         'ESHOP_SALE_DEFAULT_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
         'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
