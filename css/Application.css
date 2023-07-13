@@ -3625,6 +3625,8 @@ span.sharing-history-title {
   top: -2px; }
   .option-not-in-stock.waitingDelivery {
     background-color: rgba(41, 86, 222, 0.8) !important; }
+  .option-not-in-stock.inStockInRemoteStore {
+    background-color: #72478c !important; }
   .option-not-in-stock.saleSoon {
     background-color: rgba(241, 223, 11, 0.9) !important;
     color: black !important; }
