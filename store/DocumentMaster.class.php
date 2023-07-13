@@ -378,6 +378,31 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             if (countR($agreedProducts)) {
+
+                // Извличане на експедираните партиди от документи в нишката
+                $byNowShippedBatches = array();
+                if(core_Packs::isInstalled('batch')){
+                    if(in_array($rec->importProducts, array('notshipped', 'notshippedstorable'))){
+                        $mWhere = "";
+                        $cQuery = doc_Containers::getQuery();
+                        $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
+                        $cQuery->show('docClass,docId');
+                        while($cRec = $cQuery->fetch()){
+                            $mWhere .= (!empty($mWhere) ? " OR " : '') . "(#docType = {$cRec->docClass} AND #docId = {$cRec->docId})";
+                        }
+                        $bQuery = batch_Movements::getQuery();
+                        $bQuery->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
+                        $bQuery->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
+                        $bQuery->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
+                        $bQuery->where("#storeId ={$rec->storeId}");
+                        $bQuery->where($mWhere);
+                        $bQuery->show('productId,quantity,batch');
+                        while($bRec = $bQuery->fetch()){
+                            $byNowShippedBatches[$bRec->productId][$bRec->batch] = $bRec->quantity;
+                        }
+                    }
+                }
+
                 foreach ($agreedProducts as $index => $product) {
                     
                     // Игнориране на услуги или складируемите ако е избрано друго
@@ -392,6 +417,19 @@ abstract class store_DocumentMaster extends core_Master
                     if (isset($normalizedProducts[$index])) {
                         $toShip = $normalizedProducts[$index]->quantity;
                         $batches = $normalizedProducts[$index]->batches;
+
+                        if(in_array($rec->importProducts, array('notshipped', 'notshippedstorable'))){
+                            foreach ($batches as $b1 => &$q1){
+
+                                // Ако има експедирани партиди досега и се искат неекспедираните приспадат се
+                                if(isset($byNowShippedBatches[$product->productId][$b1])){
+                                    $q1 -= $byNowShippedBatches[$product->productId][$b1];
+                                    if($q1 <= 0){
+                                        unset($batches[$b1]);
+                                    }
+                                }
+                            }
+                        }
                     } else {
                         $toShip = $product->quantity;
                         $batches = $product->batches;
@@ -399,7 +437,7 @@ abstract class store_DocumentMaster extends core_Master
                     
                     $price = (isset($product->price)) ? $product->price : $normalizedProducts[$index]->price;
                     $discount = ($product->discount) ? $product->discount : $normalizedProducts[$index]->discount;
-                    
+
                     // Пропускат се експедираните продукти
                     if ($toShip <= 0) {
                         continue;
