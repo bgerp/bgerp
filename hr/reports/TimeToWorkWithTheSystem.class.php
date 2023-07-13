@@ -82,10 +82,10 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $fieldset->FLD('inIp', 'keylist()', 'caption=Вътрешни Ip-та,single=none,after=to');
 
         //Максимално време за изчакване
-        $fieldset->FLD('maxTimeWaiting', 'time(suggestions=|5 мин|10 мин|15 мин|20 мин)', 'caption=Макс. изчакване, after=inIp,mandatory,removeAndRefreshForm');
+        $fieldset->FLD('maxTimeWaiting', 'time(suggestions=|5 мин|10 мин|15 мин|20 мин)', 'caption=Макс. изчакване, after=inIp,mandatory,single=none');
 
         //Потребители
-        $fieldset->FLD('users', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребители,single=none,mandatory,after=maxTimeWaiting');
+         $fieldset->FLD('users', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребител/Екип,single=none');
 
     }
 
@@ -202,25 +202,16 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             $ipType = (in_array($lRec->ipId,$iPInArr)) ? 'office':'home';
 
             $hash = md5($lRec->type . $lRec->actionCrc . $lRec->classCrc . $lRec->objectId);
+
             $minute = (integer)($lRec->time / 60);
 
-            //Зареждаме данните от първия запис като начални
-            if(is_null($workingTime[$lRec->userId][$ipType]) &&
-                is_null($lastWorkTime[$lRec->userId][$ipType]) &&
-                    is_null($lastWorkHash[$lRec->userId][$ipType])){
-
-                $lastWorkTime[$lRec->userId][$ipType] = $minute;
-                $lastWorkHash[$lRec->userId][$ipType] = $hash;
-                $workingTime[$lRec->userId][$ipType] = 0;
-                continue;
-            }
             $minutesToAdd = $minute - $lastWorkTime[$lRec->userId][$ipType];
 
             if($minutesToAdd <= 0)continue;
 
             //аковремето на престой е по-малко от заложения минумум за престой и $ipType = 'home'
             //приемаме, че това е кратковременно включване от телефона и връщаме $ipType = 'office'
-            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home') && ($oldIpType == 'office')){
+            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home')){
                 $ipType = 'office';
             }
 
@@ -342,10 +333,8 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $Date = cls::get('type_Date');
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        $Enum = cls::get('type_Enum', array('options' => array('selfPrice' => 'политика"Себестойност"', 'catalog' => 'политика"Каталог"', 'accPrice' => 'Счетоводна')));
-        $currency = 'лв.';
+        $Time = cls::get('type_Time');
+        $Users = cls::get('type_Users'); $Enum = cls::get('type_Enum', array('options' => array('selfPrice' => 'политика"Себестойност"', 'catalog' => 'политика"Каталог"', 'accPrice' => 'Счетоводна')));
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -365,25 +354,15 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
 
-        if (isset($data->rec->pricesType)) {
-            $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->pricesType) . '</b>', 'pricesType');
+        if (isset($data->rec->maxTimeWaiting)) {
+            $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->maxTimeWaiting) . '</b>', 'maxTimeWaiting');
         }
 
-        $marker = 0;
         if (isset($data->rec->users)) {
-            foreach (type_Keylist::toArray($data->rec->users) as $user) {
-                $marker++;
 
-                $userVerb .= crm_Profiles::createLink($user);
-
-                if ((countR((type_Keylist::toArray($data->rec->groups))) - $marker) != 0) {
-                    $userVerb .= ', ';
-                }
-            }
-
-            //$fieldTpl->append('<b>' . $userVerb . '</b>', 'users');
+            $fieldTpl->append('<b>' . $Users->toVerbal($data->rec->users) . '</b>', 'users');
         } else {
-           // $fieldTpl->append('<b>' . 'Всички' . '</b>', 'users');
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'users');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
