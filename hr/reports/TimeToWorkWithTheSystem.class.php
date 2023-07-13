@@ -121,17 +121,28 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $form->setDefault('maxTimeWaiting', '10 мин');
 
-        $arr = explode(',',core_Packs::getConfig('hr')->HR_COMPANIES_IP);
+        $arr = array();
+        $config = core_Packs::getConfig('hr');
+        $arr = explode(',',$config->HR_COMPANIES_IP);
 
         $q = log_Ips::getQuery();
         $q -> in('ip',$arr);
 
+        $suggestions[] = 'не са посочени';
         while ($ipRec = $q->fetch()){
+            unset($suggestions[0]);
             $suggestions[$ipRec->id] = $ipRec->ip;
         }
 
         $form->setSuggestions('inIp', $suggestions);
-        $form->setDefault('inIp', $suggestions);
+
+        if($suggestions[0] == 'не са посочени'){
+            $form->setReadonly('inIp');
+
+        }else{
+            $form->setDefault('inIp', $suggestions);
+        }
+
     }
 
 
