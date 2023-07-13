@@ -4256,6 +4256,10 @@ fieldset.sharing-history {
 		background-color: rgba(41, 86, 222, 0.8) !important;
 	}
 
+	&.inStockInRemoteStore {
+		background-color: rgba(114, 71, 140, 1) !important;
+	}
+
 	&.saleSoon {
 		background-color: rgba(241, 223, 11, 0.9) !important;
 		color:black !important;
