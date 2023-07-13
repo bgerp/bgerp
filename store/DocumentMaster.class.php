@@ -284,16 +284,6 @@ abstract class store_DocumentMaster extends core_Master
     }
 
 
-    function act_Test()
-    {
-        $rec = static::fetch(466);
-        $rec->importProducts = 'notshipped';
-
-        store_ReceiptDetails::delete("#receiptId = {$rec->id}");
-        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId}");
-        static::on_AfterCreate($this, $rec);
-    }
-
     /**
      * След създаване на запис в модела
      */
