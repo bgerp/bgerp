@@ -338,7 +338,7 @@ abstract class store_DocumentMaster extends core_Master
                             $bQuery->where($mWhere);
                             $bQuery->show('productId,quantity,batch');
                             while($bRec = $bQuery->fetch()){
-                                $byNowShippedBatches[$bRec->productId][$bRec->batch] = $bRec->quantity;
+                                $byNowShippedBatches[$bRec->productId][$bRec->batch] += $bRec->quantity;
                             }
                         }
 
