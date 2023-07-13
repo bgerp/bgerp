@@ -284,6 +284,16 @@ abstract class store_DocumentMaster extends core_Master
     }
 
 
+    function act_Test()
+    {
+        $rec = static::fetch(466);
+        $rec->importProducts = 'notshipped';
+
+        store_ReceiptDetails::delete("#receiptId = {$rec->id}");
+        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId}");
+        static::on_AfterCreate($this, $rec);
+    }
+
     /**
      * След създаване на запис в модела
      */
@@ -338,7 +348,7 @@ abstract class store_DocumentMaster extends core_Master
                             $bQuery->where($mWhere);
                             $bQuery->show('productId,quantity,batch');
                             while($bRec = $bQuery->fetch()){
-                                $byNowShippedBatches[$bRec->productId][$bRec->batch] = $bRec->quantity;
+                                $byNowShippedBatches[$bRec->productId][$bRec->batch] += $bRec->quantity;
                             }
                         }
 
