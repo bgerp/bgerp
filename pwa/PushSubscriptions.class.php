@@ -124,7 +124,8 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('allNonWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Неработно време');
         $this->FLD('allNight', $this->enumOptVal, 'caption=Известяване за всякакви новости->През нощта');
 
-//        $this->setDbUnique('publicKey, authToken');
+        $this->FLD('forceNotify', 'enum(no=Не, yes=Да)', 'caption=Неотворените известия да продължат да се обновяват при промяна->Избор');
+
         $this->setDbUnique('brid');
     }
 
@@ -143,14 +144,30 @@ class pwa_PushSubscriptions extends core_Manager
      * @param null|integer $domainId - id на домейн
      * @param bool $sound - звук
      * @param null|bool $vibration - вибрация
+     * @param array $otherParamsArr - масив с други параметри
+     * ['ttl'] - време на живот на известието
+     * ['badge'] - иконка подобна на favicon.ico, която се показва в приложението
      *
      * @return array
      */
-    public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $brid = null, $domainId = null, $sound = true, $vibration = null)
+    public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $brid = null, $domainId = null, $sound = true, $vibration = null, $otherParamsArr = array())
     {
+        setIfNot($otherParamsArr['ttl'], 3600);
+
         if ($icon !== false) {
-            $icon = '/favicon.png';
+            if (core_Webroot::isExists('favicon.png')) {
+                $icon = '/favicon.png';
+            } else if (core_Webroot::isExists('favicon.ico')) {
+                $icon = '/favicon.ico';
+            }
         }
+
+        if ($otherParamsArr['badge'] !== false) {
+            if (core_Webroot::isExists('badge.png')) {
+                $otherParamsArr['badge'] = '/badge.png';
+            }
+        }
+
         $resArr = array();
 
         if (!core_Composer::isInUse()) {
@@ -237,6 +254,10 @@ class pwa_PushSubscriptions extends core_Manager
             $data->sound = $sound;
             $data->vibration = $vibration;
             $data->tag = $tag;
+            if ($otherParamsArr['badge']) {
+                $data->badge = $otherParamsArr['badge'];
+            }
+
             if (isset($url)) {
                 if (is_array($url)) {
                     setIfNot($url['fpn'], true); // From PUSH Notification
@@ -244,7 +265,7 @@ class pwa_PushSubscriptions extends core_Manager
                 $data->url = toUrl($url);
             }
 
-            $statusObj = $webPush->sendOneNotification($subscription, json_encode($data));
+            $statusObj = $webPush->sendOneNotification($subscription, json_encode($data), array('TTL' => $otherParamsArr['ttl']));
             $reason = $statusObj->getReason();
 
             $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
@@ -526,13 +547,24 @@ class pwa_PushSubscriptions extends core_Manager
 
             foreach ($nArr as $priority => $nArr2) {
                 foreach ($nArr2 as $msgObj) {
+                    $pMsgHash = md5($msgObj->msg . '|' . $msgObj->url . '|' . $msgObj->priority . '|' . $msgObj->customUrl);
                     foreach ((array)$uArr[$userId] as $brid => $uRec) {
                         // Проверяваме дали преди това има изпратено известие
                         $showUrlHash = md5($msgObj->url . '|' . $userId . '|' . $brid);
-                        if (core_Permanent::get('pwa_' . $showUrlHash)) {
+                        if ($prevMsgHash = core_Permanent::get('pwa_' . $showUrlHash)) {
+                            // Ако има промяна в съобщението и настройката за принудително изпращане на известия е включена, подновяваме известието
+                            $continue = true;
+                            if ($uRec->forceNotify == 'yes') {
+                                if ($prevMsgHash != $pMsgHash) {
+                                    $continue = false;
+                                }
+                            }
+
+                            if ($continue) {
 //                            self::logDebug("Прескочено изпращане на PUSH известие поради дублиране на URL - '{$msgObj->url}'", $uRec->id, 7);
 
-                            continue;
+                                continue;
+                            }
                         }
 
                         $mustSend = false;
@@ -638,8 +670,10 @@ class pwa_PushSubscriptions extends core_Manager
 
                         $urlArr = array($this, 'openUrl', 'url' => toUrl($url, 'local'), 'hash' => $showUrlHash);
 
+                        $tag = 'ntf' . $msgObj->id;
+
                         // Изпращаме известието и записваме в лога съответното действие
-                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $urlArr, null, null, null, $brid);
+                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $urlArr, $tag, null, null, $brid, null, true, null, $oParamsArr);
 
                         $lifetime = 24 * 60;
                         foreach ($isSendArr as $iVal) {
@@ -653,7 +687,7 @@ class pwa_PushSubscriptions extends core_Manager
 //                            self::logDebug("{$resStatusMsg} изпращане на известие - '{$msgTitle}': '{$msg}'", $uRec->id, 7);
                         }
 
-                        core_Permanent::set('pwa_' . $showUrlHash, 1, $lifetime);
+                        core_Permanent::set('pwa_' . $showUrlHash, $pMsgHash, $lifetime);
                     }
                 }
             }
