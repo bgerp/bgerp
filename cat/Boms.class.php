@@ -1687,6 +1687,10 @@ class cat_Boms extends core_Master
 
         jquery_Jquery::run($tpl,"toggleDisplayBomStepDetails();", TRUE);
         jquery_Jquery::run($tpl,"openBoomRows();", TRUE);
+
+
+        jquery_Jquery::runAfterAjax($tpl, 'toggleDisplayBomStepDetails');
+        jquery_Jquery::runAfterAjax($tpl, 'openBoomRows');
     }
     
     /**
