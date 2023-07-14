@@ -232,40 +232,50 @@ class help_Log extends core_Master
 
         }
 
-        $ipQuery = log_Ips::getQuery();
+        if (!$ipId = log_Ips::fetchField(array("#ip = '[#1#]'", $arr[0]), 'id')) {
+            $rec = new stdClass();
+            $rec->ip = $arr[0];
+            $rec->country2 = 'BG';
+            $rec->createdOn = dt::now();
+            $rec->host = null;
+            $rec->users = null;
 
-        $ipId = log_Ips::fetchField(array("#ip = '[#1#]'", $arr[0]), 'id');
-        // $ipId = 83;
+            cls::get('log_Ips')->save_($rec);
+            $ipId = log_Ips::fetchField(array("#ip = '[#1#]'", $arr[0]), 'id');
+        };
 
-        $actDay = '2023-04-16 12:00:00';
+        $actDay = '2023-04-18 12:00:00';
 
         $time = dt::mysql2timestamp($actDay);
 
-        $minAdd = 12;
+        $minAdd = 6;
 
-        $time += $minAdd * 60;
+        $counter = 4;
+        for ($i = 1; $i <= $counter; $i++) {
 
-        $objectId = dt::mysql2timestamp();
+            $objectId = dt::mysql2timestamp()+$i;
 
-        $userId = null;
+            $userId = null;
 
-        $bridId = log_Browsers::getBridId();
+            $bridId = log_Browsers::getBridId();
 
-        $rec = new stdClass();
-        $rec->ipId = $ipId;
-        $rec->brId = $bridId;
-        $rec->userId = isset($userId) ? $userId : core_Users::getCurrent();
-        $rec->actionCrc = log_Actions::getActionCrc('message');
-        $rec->classCrc = log_Classes::getClassCrc('className');
-        $rec->objectId = $objectId;
-        $rec->time = $time;
-        $rec->type = 'type';
-        $rec->lifeTime = 180 * 86400;
+            $rec = new stdClass();
+            $rec->ipId = $ipId;
+            $rec->brId = $bridId;
+            $rec->userId = isset($userId) ? $userId : core_Users::getCurrent();
+            $rec->actionCrc = log_Actions::getActionCrc('message');
+            $rec->classCrc = log_Classes::getClassCrc('className');
+            $rec->objectId = $objectId;
+            $rec->time = $time;
+            $rec->type = 'type';
+            $rec->lifeTime = 180 * 86400;
 
-        $LogData = cls::get('log_Data');
-        $LogData->save_($rec);
+            $time += $minAdd * 60 * $i;
 
-        return " Дата на отчета : $actDay,  Добавени минути:$minAdd  ";
+            $LogData = cls::get('log_Data');
+            $LogData->save_($rec);
+        }
+        return " Дата на отчета : $actDay,  Добавени минути:$minAdd, $counter пъти ";
 
     }
 

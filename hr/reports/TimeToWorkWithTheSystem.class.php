@@ -231,7 +231,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             //Ако $hash === $lastWorkHash[$lRec->userId][$ipType] приемаме че,
             // потрбителя прави рефреш на ресурса и не включваме  записа
             if($hash === $lastWorkHash[$lRec->userId][$ipType]){
-                //continue;
+                continue;
             }
             $lastWorkHash[$lRec->userId][$ipType] = $hash;
 
