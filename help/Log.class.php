@@ -204,4 +204,45 @@ class help_Log extends core_Master
         }
         shutdown();
     }
+
+    public function act_LogDataAdd()
+    {
+        $time = dt::mysql2timestamp();
+        //$time = 1689328506;
+
+        $objectId = dt::mysql2timestamp();
+
+        $userId = null;
+
+        $ipId = 765;
+
+        $bridId = log_Browsers::getBridId();
+
+        $rec = new stdClass();
+        $rec->ipId = $ipId;
+        $rec->brId = $bridId;
+        $rec->userId = isset($userId) ? $userId : core_Users::getCurrent();
+        $rec->actionCrc = log_Actions::getActionCrc('message');
+        $rec->classCrc = log_Classes::getClassCrc('className');
+        $rec->objectId = $objectId;
+        $rec->time = $time;
+        $rec->type = 'type';
+        $rec->lifeTime = 180 * 86400;
+
+        // bp($rec);
+
+        $LogData = cls::get('log_Data');
+        $LogData -> save_($rec);
+
+//        $q = log_Data::getQuery();
+//        $q->orderBy('time', 'desc');
+//        $q->where("#ipId = $ipId");
+//
+//        $dateRange = dt::mysql2timestamp(dt::today().'00.00.00');
+//
+//        $q->where(array("#time >= '[#1#]'", $dateRange));
+//        bp($q->fetchAll());
+
+    }
+
 }
