@@ -767,11 +767,12 @@ div.productImage {
 .productPreviewHolder {
 	float: right;
 }
-.taskSpecInfo .productPreviewHolder {
-	img {
-		max-height: 100px !important;
-		max-width: 120px;
+.taskSpecInfo  {
+	.productPreviewHolder img ,.productImage img {
+		max-height: 75px !important;
+		max-width: 100px !important;
 	}
+
 }
 .narrow .productPreviewHolder {
 	clear: both;
