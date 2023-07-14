@@ -229,6 +229,12 @@ class cat_Boms extends core_Master
 
 
     /**
+     * Дали да се показват последно видяните документи при избора на шаблонен
+     */
+    public $showInPrototypesLastVisited = true;
+
+
+    /**
      * Описание на модела
      */
     public function description()
