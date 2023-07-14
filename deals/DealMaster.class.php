@@ -463,7 +463,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         // Избрания ДДС режим съответства ли на дефолтния
-        $defVat = $mvc->getDefaultChargeVat($rec);
+        $defVat = deals_Helper::getDefaultChargeVat($rec->folderId, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
             $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
             if(!$isCurrencyReadOnly){

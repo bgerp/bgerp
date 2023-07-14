@@ -241,7 +241,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             // Избрания ДДС режим съответства ли на дефолтния
-            $defVat = $mvc->getDefaultChargeVat($rec);
+            $defVat = deals_Helper::getDefaultChargeVat($rec->folderId, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
             if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
                 $form->setWarning('chargeVat', $vatWarning);
             }
