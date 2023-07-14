@@ -767,7 +767,12 @@ div.productImage {
 .productPreviewHolder {
 	float: right;
 }
-
+.taskSpecInfo .productPreviewHolder {
+	img {
+		max-height: 100px !important;
+		max-width: 120px;
+	}
+}
 .narrow .productPreviewHolder {
 	clear: both;
 	float: none;
@@ -8245,7 +8250,7 @@ body.narrow {
         min-width: 250px;
     }
     .toggleBtn {
-        margin-right: 6px;
+        margin-right: 3px;
         cursor: pointer;
         margin-left: -19px;
     }

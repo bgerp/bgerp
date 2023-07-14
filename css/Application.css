@@ -673,6 +673,10 @@ div.productImage {
 .productPreviewHolder {
   float: right; }
 
+  .taskSpecInfo .productPreviewHolder img {
+    max-height: 100px !important;
+    max-width: 120px; }
+
 .narrow .productPreviewHolder {
   clear: both;
   float: none;
@@ -7253,7 +7257,7 @@ only screen and (max-width: 320px) {
   .treeView .leafName {
     min-width: 250px; }
   .treeView .toggleBtn {
-    margin-right: 6px;
+    margin-right: 3px;
     cursor: pointer;
     margin-left: -19px; }
   .treeView .treeLevel0 .toggleBtn {
