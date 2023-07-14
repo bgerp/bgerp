@@ -67,21 +67,21 @@ class sales_tpl_InvoiceWithTotalQuantity extends doc_TplScript
 
 
     /**
-     * Модифицира шаблона на детайла
+     * След рендиране на лист таблицата
      *
      * @param core_Mvc $detail
      * @param core_ET  $tpl
      * @param stdClass $data
      */
-    public function modifyDetailTpl(core_Mvc $detail, &$tpl, &$data)
+    public function afterRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
         if(is_object($data->totalQuantityData)){
-            $columns = countR($data->listFields);
-            $tpl1 = new core_ET(tr("|*<div class='totalQuantityInvoiceRow'><span class='totalQuantityInvoiceCaption'>|Общо|*:</span><span  class='totalQuantityInvoiceValue'>[#totalQuantity#] [#baseMeasureId#]</span></div>"));
+            $columns = countR($data->listFields) - 4;
+            $tpl1 = new core_ET(tr("|*<tr><td colspan='[#colspan#]'>|Общо|*:</td><td>[#baseMeasureId#]</td><td>[#totalQuantity#] </td><td></td><td></td></tr>"));
             $tpl1->replace($columns, 'colspan');
             $tpl1->replace($data->totalQuantityData->baseMeasureId, 'baseMeasureId');
             $tpl1->replace($data->totalQuantityData->totalQuantity, 'totalQuantity');
-            $tpl->append($tpl1, 'ListTable');
+            $tpl->append($tpl1, 'ROW_AFTER');
         }
     }
 }
