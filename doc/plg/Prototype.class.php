@@ -277,6 +277,11 @@ class doc_plg_Prototype extends core_Plugin
     public static function on_AfterExpandedAvailablePrototypes($mvc, &$res, $prototypes, $rec)
     {
         if(!$res){
+            if(!$mvc->showInPrototypesLastVisited) {
+                $res = $prototypes;
+                return;
+            }
+
             $driverId = null;
             if ($mvc instanceof embed_Manager) {
                 if (isset($rec->{$mvc->driverClassField})) {
@@ -286,6 +291,7 @@ class doc_plg_Prototype extends core_Plugin
 
             $lastVisitedLimit = doc_Setup::get('SHOW_LAST_VISITED_AS_PROTOTYPES');
             if(empty($lastVisitedLimit)) return;
+
 
             $lastSeenByUser = bgerp_LastSeenDocumentByUser::getLastSeenByUser($mvc, $driverId, null, $lastVisitedLimit);
             if(isset($rec->{$mvc->protoFieldName})){
