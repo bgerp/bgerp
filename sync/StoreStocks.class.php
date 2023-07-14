@@ -238,6 +238,10 @@ class sync_StoreStocks extends sync_Helper
                 foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'dateMin') as $fld){
                     $obj->{$fld} = $arr[$fld];
                 }
+                if(empty($obj->productId)){
+                   wp($obj, $arr);
+                   continue;
+                }
                 $save[] = $obj;
             }
         }
