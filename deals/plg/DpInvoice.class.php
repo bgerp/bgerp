@@ -541,11 +541,9 @@ class deals_plg_DpInvoice extends core_Plugin
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
             
-            $colspan = countR($fields) - 2;
-            $colspan1 = isset($fields['reff']) ? 2 : 1;
+            $colspan = countR($fields) - 1;
             $colspan = isset($fields['reff']) ? $colspan - 1 : $colspan;
-            
-            $lastRow = new ET("<tr><td colspan={$colspan1}></td><td colspan='{$colspan}'>" . tr('Приспадане на авансово плащане') . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}'>" . tr('Приспадане на авансово плащане') . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         }
 
         if(!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec)){
