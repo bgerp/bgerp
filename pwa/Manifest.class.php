@@ -66,7 +66,7 @@ class pwa_Manifest extends core_Mvc
                 'url' => '/barcode_Search',
                 'icons' => array(
                     (object) array(
-                        'url' => sbf('pwa/icons/barcode-scan.png', ''),
+                        'src' => sbf('pwa/icons/barcode-scan.png', ''),
                         'sizes' => '512x512',
                     ),
                  ),
