@@ -566,7 +566,7 @@ class doc_DocumentPlg extends core_Plugin
                     if (isset($data->pager->pageVar)) {
                         unset($curUrl[$data->pager->pageVar]);
                     }
-                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, 'id=binBtn,class=btn-bin fright,order=50,row=2', "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
+                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, 'id=binBtn,class=btn-bin fright,order=50', "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
                 }
             }
         }
@@ -3125,6 +3125,8 @@ class doc_DocumentPlg extends core_Plugin
                 $tpl->removeBlocks();
             }
         }
+
+        bgerp_LastSeenDocumentByUser::queueToLog($data->rec->containerId);
     }
     
     

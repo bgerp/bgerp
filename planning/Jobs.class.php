@@ -708,7 +708,7 @@ class planning_Jobs extends core_Master
         }
 
         if (haveRole('debug')) {
-            $data->toolbar->addBtn('Преподреди', array($mvc, 'manualreorder', $rec->id), 'ef_icon = img/16/bug.png,title=Преподреждане на операциите в заданието');
+            $data->toolbar->addBtn('Преподреди', array($mvc, 'manualreorder', $rec->id), 'ef_icon = img/16/bug.png,title=Преподреждане на операциите в заданието,row=2');
         }
     }
     

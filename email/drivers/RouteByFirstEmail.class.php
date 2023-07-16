@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Рутиране по първи външен имейл
+ * @title     Правила при получаване на имейли » Рутиране по първи външен имейл
  */
 class email_drivers_RouteByFirstEmail extends core_BaseClass
 {

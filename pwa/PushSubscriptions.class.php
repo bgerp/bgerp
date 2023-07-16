@@ -27,7 +27,7 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'PWA Push абонанаменти';
+    public $title = 'PWA Push абонаменти';
 
 
     /**
@@ -81,7 +81,13 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Дефолтни стойности на приоритетите
      */
-    protected $defaultValues = array('criticalWorking' => '5 мин', 'urgentWorking' => '20 мин', 'docWorking' => '1 час', 'allWorking' => '1 час');
+    protected $defaultValues = array('criticalWorking' => '5 мин', 'urgentWorking' => '20 мин', 'shareWorking' => '20 мин', 'docWorking' => '1 час', 'allWorking' => '1 час');
+
+
+    /**
+     * Заглавие на единичния обект
+     */
+    public $singleTitle = 'PUSH абонамент';
 
 
     /**
@@ -91,8 +97,8 @@ class pwa_PushSubscriptions extends core_Manager
     {
         $this->FLD('userId', 'user', 'caption=Потребител, input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър, input=none');
-        $this->FLD('publicKey', 'varchar', 'caption=Ключ, input=none'); //88
-        $this->FLD('authToken', 'varchar', 'caption=Токен, input=none'); //24
+        $this->FLD('publicKey', 'varchar(128)', 'caption=Ключ, input=none'); //88
+        $this->FLD('authToken', 'varchar(128)', 'caption=Токен, input=none'); //24
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн, input=none');
         $this->FLD('contentEncoding', 'varchar', 'caption=Енкодинг, input=none');
         $this->FLD('endpoint', 'Url', 'caption=Точка, input=none');
@@ -110,11 +116,16 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('docNonWorking', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->Неработно време');
         $this->FLD('docNight', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->През нощта');
 
+        $this->FLD('shareWorking', $this->enumOptVal, 'caption=Известяване за споделяне->Работно време');
+        $this->FLD('shareNonWorking', $this->enumOptVal, 'caption=Известяване за споделяне->Неработно време');
+        $this->FLD('shareNight', $this->enumOptVal, 'caption=Известяване за споделяне->През нощта');
+
         $this->FLD('allWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Работно време');
         $this->FLD('allNonWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Неработно време');
         $this->FLD('allNight', $this->enumOptVal, 'caption=Известяване за всякакви новости->През нощта');
 
-        $this->setDbUnique('publicKey, authToken');
+        $this->FLD('forceNotify', 'enum(no=Не, yes=Да)', 'caption=Неотворените известия да продължат да се обновяват при промяна->Избор');
+
         $this->setDbUnique('brid');
     }
 
@@ -127,20 +138,36 @@ class pwa_PushSubscriptions extends core_Manager
      * @param string $text - текст на съобщението
      * @param null|array $url - линк за отваряне
      * @param null|bool $tag - таг - ако е зададено, известията ще се презаписват за същия таг
-     * @param null|string $icon - икона
+     * @param null|string|false $icon - икона
      * @param null| string $image - изображение
      * @param null|string $brid - id на браузъра
      * @param null|integer $domainId - id на домейн
      * @param bool $sound - звук
      * @param null|bool $vibration - вибрация
+     * @param array $otherParamsArr - масив с други параметри
+     * ['ttl'] - време на живот на известието
+     * ['badge'] - иконка подобна на favicon.ico, която се показва в приложението
      *
      * @return array
      */
-    public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $brid = null, $domainId = null, $sound = true, $vibration = null)
+    public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $brid = null, $domainId = null, $sound = true, $vibration = null, $otherParamsArr = array())
     {
+        setIfNot($otherParamsArr['ttl'], 3600);
+
         if ($icon !== false) {
-            $icon = '/favicon.png';
+            if (core_Webroot::isExists('favicon.png')) {
+                $icon = '/favicon.png';
+            } else if (core_Webroot::isExists('favicon.ico')) {
+                $icon = '/favicon.ico';
+            }
         }
+
+        if ($otherParamsArr['badge'] !== false) {
+            if (core_Webroot::isExists('badge.png')) {
+                $otherParamsArr['badge'] = '/badge.png';
+            }
+        }
+
         $resArr = array();
 
         if (!core_Composer::isInUse()) {
@@ -163,6 +190,31 @@ class pwa_PushSubscriptions extends core_Manager
             $query->where(array("#domainId = '[#1#]'", $domainId));
         }
 
+        $mailTo = trim(pwa_Setup::get('MAILTO'));
+        if (empty($mailTo)) {
+            $cAcc = email_Accounts::getCorporateAcc();
+            if ($cAcc) {
+                $mailTo = $cAcc->email;
+            } else {
+                $common = email_Accounts::getCommonAndCorporate();
+                if (!empty($common)) {
+                    $mailTo = reset($common);
+                }
+            }
+
+            $mailTo = trim($mailTo);
+        }
+
+        if (empty($mailTo)) {
+            $cDomain = cms_Domains::getCurrent('domain', false);
+            $mailTo = 'team@' . $cDomain;
+            $mailTo = trim($mailTo);
+        }
+
+        if (empty($mailTo)) {
+            $mailTo = 'localhost@localhost';
+        }
+
         while ($rec = $query->fetch()) {
             if (isset($rec->domainId)) {
                 $dRec = cms_Domains::fetch($rec->domainId);
@@ -174,14 +226,11 @@ class pwa_PushSubscriptions extends core_Manager
             try {
                 $auth = array(
                     'VAPID' => array(
-                        'subject' => 'bgERP',
+                        'subject' => "mailto:{$mailTo}",
                         'publicKey' => $dRec->publicKey,
-                        'privateKey' => $dRec->privateKey,
+                        'privateKey' => $dRec->privateKey
                     ),
                 );
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-                continue;
             } catch (Throwable $t) {
                 reportException($t);
                 continue;
@@ -205,6 +254,10 @@ class pwa_PushSubscriptions extends core_Manager
             $data->sound = $sound;
             $data->vibration = $vibration;
             $data->tag = $tag;
+            if ($otherParamsArr['badge']) {
+                $data->badge = $otherParamsArr['badge'];
+            }
+
             if (isset($url)) {
                 if (is_array($url)) {
                     setIfNot($url['fpn'], true); // From PUSH Notification
@@ -212,15 +265,17 @@ class pwa_PushSubscriptions extends core_Manager
                 $data->url = toUrl($url);
             }
 
-            $statusObj = $webPush->sendOneNotification($subscription, json_encode($data));
+            $statusObj = $webPush->sendOneNotification($subscription, json_encode($data), array('TTL' => $otherParamsArr['ttl']));
+            $reason = $statusObj->getReason();
 
-            $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId);
+            $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
 
             $resArr[$rec->id] =  $statusData;
 
             if (!$statusData->isSuccess) {
-                $reason = $statusObj->getReason();
-                self::logDebug("Грешка при изпращане на PUSH известие до браузър с id {$rec->brid} на потребители с id {$rec->userId}: {$reason}");
+                self::logDebug("Грешка при изпращане на PUSH известие - '{$reason}'", $rec->id, 7);
+            } else {
+                self::logDebug("Успешно изпратено PUSH известие - '{$data->text}'", $rec->id, 3);
             }
         }
 
@@ -242,6 +297,7 @@ class pwa_PushSubscriptions extends core_Manager
         if (Request::get('haveSubscription')) {
             $rec = $this->fetch(array("#brid = '[#1#]'", $brid));
             if ($rec) {
+                expect($rec->userId == core_Users::getCurrent(), $rec->userId, core_Users::getCurrent(), $rec);
                 $statusObj = new stdClass();
                 $statusObj->func = 'redirect';
                 $statusObj->arg = array('url' => toUrl(array($this, 'edit', $rec->id, 'ret_url' => true)));
@@ -486,17 +542,29 @@ class pwa_PushSubscriptions extends core_Manager
             $daysFieldArr['critical'] = 'critical' . $dayTime;
             $daysFieldArr['urgent'] = 'urgent' . $dayTime;
             $daysFieldArr['doc'] = 'doc' . $dayTime;
+            $daysFieldArr['share'] = 'share' . $dayTime;
             $daysFieldArr['all'] = 'all' . $dayTime;
 
             foreach ($nArr as $priority => $nArr2) {
                 foreach ($nArr2 as $msgObj) {
+                    $pMsgHash = md5($msgObj->msg . '|' . $msgObj->url . '|' . $msgObj->priority . '|' . $msgObj->customUrl);
                     foreach ((array)$uArr[$userId] as $brid => $uRec) {
-
                         // Проверяваме дали преди това има изпратено известие
                         $showUrlHash = md5($msgObj->url . '|' . $userId . '|' . $brid);
-                        if (core_Permanent::get($showUrlHash)) {
+                        if ($prevMsgHash = core_Permanent::get('pwa_' . $showUrlHash)) {
+                            // Ако има промяна в съобщението и настройката за принудително изпращане на известия е включена, подновяваме известието
+                            $continue = true;
+                            if ($uRec->forceNotify == 'yes') {
+                                if ($prevMsgHash != $pMsgHash) {
+                                    $continue = false;
+                                }
+                            }
 
-                            continue;
+                            if ($continue) {
+//                            self::logDebug("Прескочено изпращане на PUSH известие поради дублиране на URL - '{$msgObj->url}'", $uRec->id, 7);
+
+                                continue;
+                            }
                         }
 
                         $mustSend = false;
@@ -517,6 +585,11 @@ class pwa_PushSubscriptions extends core_Manager
                                     }
                                 }
                                 if (!$correctDoc) {
+
+                                    continue;
+                                }
+                            } elseif ($fType == 'share') {
+                                if (strpos($msgLower, '|сподели|') === false) {
 
                                     continue;
                                 }
@@ -595,23 +668,51 @@ class pwa_PushSubscriptions extends core_Manager
 
                         $url = bgerp_Notifications::getUrl($msgObj);
 
-                        // Изпращаме известието и записваме в лога съответното действие
-                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $url, null, null, null, $brid);
+                        $urlArr = array($this, 'openUrl', 'url' => toUrl($url, 'local'), 'hash' => $showUrlHash);
 
+                        $tag = 'ntf' . $msgObj->id;
+
+                        // Изпращаме известието и записваме в лога съответното действие
+                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $urlArr, $tag, null, null, $brid, null, true, null, $oParamsArr);
+
+                        $lifetime = 24 * 60;
                         foreach ($isSendArr as $iVal) {
                             $resStatusMsg = 'Неуспешно';
+                            $lifetime = 2 * 60; // 2 часа за повторно изпращане, ако има грешка
                             if ($iVal->isSuccess) {
                                 $resStatusMsg = 'Успешно';
+                                $lifetime = 24 * 60; // 24 часа за повторно изпращане, ако няма грешка
                             }
 
-                            self::logDebug($resStatusMsg . ' изпращане на известие до userId=' . $iVal->userId . ' с brid=' . $iVal->brid . ': ' . $msg);
+//                            self::logDebug("{$resStatusMsg} изпращане на известие - '{$msgTitle}': '{$msg}'", $uRec->id, 7);
                         }
 
-                        core_Permanent::set($showUrlHash, 1, 48 * 60);
+                        core_Permanent::set('pwa_' . $showUrlHash, $pMsgHash, $lifetime);
                     }
                 }
             }
         }
+    }
+
+
+    /**
+     * След отваряне на линка, премахва хеша от списъка с отворени линкове и редиректва към зададения линк
+     */
+    function act_OpenUrl()
+    {
+        $this->requireRightFor('subscribe');
+
+        $url = Request::get('url');
+        $hash = Request::get('hash');
+
+        expect($hash, 'Не е зададен хеш на линка');
+        expect($url, 'Не е зададен линк');
+
+        core_Permanent::remove('pwa_' . $hash);
+
+        $urlArr = parseLocalUrl($url);
+
+        return new Redirect($urlArr);
     }
 
 
@@ -646,12 +747,34 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if (($action == 'edit') || ($action == 'delete')) {
+            if ($rec) {
+                if ($rec->userId != $userId) {
+                    if (!haveRole('admin')) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
      * Пращане на тестово известие и показване на дебъг информация
      */
     function act_Test()
     {
         requireRole('admin');
 
-        bp($this->sendAlert(core_Users::getCurrent(), "Тестово известие", "Тестово известие \nТестово известие \nТестово известие \nТестово известие: " . rand(1, 1111), array('Portal', 'Show'), 'Test'));
+        $userId = Request::get('userId');
+        if (!isset($userId) || ($userId <= 0)) {
+            $userId = core_Users::getCurrent();
+        }
+
+        bp($this->sendAlert($userId, "Тестово известие", "Тестово известие: " . rand(1, 1111), array('Portal', 'Show'), 'Test'));
     }
 }

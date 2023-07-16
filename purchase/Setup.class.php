@@ -139,7 +139,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_PurchasesData',
         'purchase_Quotations',
         'purchase_QuotationDetails',
-        'migrate::recontoDeals2520',
+        'migrate::recontoDeals2520v2',
     );
     
     
@@ -236,8 +236,9 @@ class purchase_Setup extends core_ProtoSetup
     /**
      * Рекалкулиране на валутните сделки
      */
-    public function recontoDeals2520()
+    public function recontoDeals2520v2()
     {
-        cls::get('sales_Sales')->recalcDocumentsWithDealCurrencyRate();
+        if(core_Packs::isMigrationDone('purchase', 'recalcCurrencyPurchases1115')) return;
+        cls::get('purchase_Purchases')->recalcDocumentsWithDealCurrencyRate();
     }
 }

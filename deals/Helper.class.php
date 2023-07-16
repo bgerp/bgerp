@@ -1278,9 +1278,13 @@ abstract class deals_Helper
         while ($dRec = $dQuery->fetch()) {
             
             // Опит за намиране на условията
-            $conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
+            try{
+                $conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
+            } catch(core_exception_Expect $e){
+                $conditions = array();
+            }
+
             $allProducts[$dRec->productId] = $dRec->productId;
-            
             if (is_array($conditions)) {
                 foreach ($conditions as $t) {
                     
@@ -2029,16 +2033,23 @@ abstract class deals_Helper
      * Дефолтния режим на ДДС за папката
      *
      * @param int $folderId
+     * @param string|null $chargeVatConditionSysId
      * @param int|null $ownCompanyId
      * @return string
      */
-    public static function getDefaultChargeVat($folderId, $ownCompanyId = null)
+    public static function getDefaultChargeVat($folderId, $chargeVatConditionSysId = null, $ownCompanyId = null)
     {
         if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return 'no';
 
         // Ако не може да се намери се търси от папката
         $coverId = doc_Folders::fetchCoverId($folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+
+        if(isset($chargeVatConditionSysId)){
+            $clientValue = cond_Parameters::getParameter($Class, $coverId, $chargeVatConditionSysId);
+            if(!empty($clientValue)) return $clientValue;
+        }
+
         if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
             return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
         }
@@ -2057,12 +2068,10 @@ abstract class deals_Helper
      */
     public static function getVatWarning($defaultVat, $selectedVatType)
     {
-        if(!haveRole('debug')){
-            if ($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))) {
-                return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
-            } elseif ($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))) {
-                return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
-            }
+        if ($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))) {
+            return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
+        } elseif ($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))) {
+            return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
         }
     }
     
@@ -2348,7 +2357,7 @@ abstract class deals_Helper
 
                 // От записаната цена се маха тази на скрития транспорт, за да се сравни правилно с очакваната
                 $msgSuffix = '';
-                if(is_object($transportFeeRec)){
+                if(is_object($transportFeeRec) && $transportFeeRec->fee > 0){
                     $var->price += $transportFeeRec->fee / $quantity;
                     $var->price = round($foundPrice->price, 6);
                     $msgSuffix .= ", |вкл. транспорт|*";

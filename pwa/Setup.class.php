@@ -8,6 +8,12 @@ defIfNot('PWA_DOMAINS', '');
 
 
 /**
+ * Имейл адрес, който ще се ипозлва за mailto в PWA
+ */
+defIfNot('PWA_MAILTO', '');
+
+
+/**
  * Клас 'pwa_Setup' -  bgERP progressive web application
  *
  *
@@ -63,6 +69,7 @@ class pwa_Setup extends core_ProtoSetup
             'controller' => 'pwa_PushSubscriptions',
             'action' => 'PushAlertForNotifications',
             'period' => 1,
+            'delay' => 15,
             'timeLimit' => 50
         )
     );
@@ -163,23 +170,27 @@ class pwa_Setup extends core_ProtoSetup
             }
         }
 
-        if (core_Composer::isInUse()) {
-            $cVersion = 7;
-            $pVersion = phpversion();
-            if ((version_compare($pVersion, '7.3') < 0)) {
-                $cVersion = 6;
-            }
-            if ((version_compare($pVersion, '7.2') < 0)) {
-                $cVersion = 5;
-            }
-            if ((version_compare($pVersion, '7.1') < 0)) {
-                $cVersion = 2;
-            }
+        $cVersion = 7;
+        $pVersion = phpversion();
+        if ((version_compare($pVersion, '7.3') < 0)) {
+            $cVersion = 6;
+        }
+        if ((version_compare($pVersion, '7.2') < 0)) {
+            $cVersion = 5;
+        }
+        if ((version_compare($pVersion, '7.1') < 0)) {
+            $cVersion = 2;
+        }
 
-            if ((version_compare($pVersion, '8') >= 0)) {
-                $cVersion = 8;
-            }
+        if ((version_compare($pVersion, '8') >= 0)) {
+            $cVersion = 8;
+        }
 
+        if ($cVersion <= 6) {
+            $html .= '<li class="red">Препоръвчва се да се използва PHP 7.3 или по-нова версия.</li>';
+        }
+
+        try {
             // 8 -> за PHP > PHP 8.0
             // 7 -> за PHP > PHP 7.3 7.4
             // 6 -> PHP 7.2
@@ -187,6 +198,10 @@ class pwa_Setup extends core_ProtoSetup
             // 2 -> PHP 7.0
             // 1 -> PHP 5.6
             $html .= core_Composer::install('minishlink/web-push', $cVersion);
+
+            if (!core_Composer::isInUse()) {
+                $html .= "<li class='red'>Проблем при зареждането на composer</li>";
+            }
 
             $dQuery = cms_Domains::getQuery();
             $existKeysDomainsArr = $notExistKeysDomainsArr =  array();
@@ -209,13 +224,17 @@ class pwa_Setup extends core_ProtoSetup
                 } else {
                     $keysArr = array();
                     try {
-                        $keysArr = VAPID::createVapidKeys();
+                        $keysArr = @VAPID::createVapidKeys();
                     } catch (core_exception_Expect $e) {
                         reportException($e);
                     } catch (Throwable $t) {
                         reportException($t);
                     } catch (Error $e) {
                         reportException($e);
+                    }
+
+                    if (empty($keysArr)) {
+                        $html .= "<li class='red'>Не може да се добавят 'VAPID' ключове за {$dName}</li>";
                     }
 
                     foreach ($notDArr as $nRec) {
@@ -230,7 +249,11 @@ class pwa_Setup extends core_ProtoSetup
                     sleep(1);
                 }
             }
-        } else {
+        } catch (core_exception_Expect $e) {
+            $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
+        } catch (Throwable $t) {
+            $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
+        } catch (Error $e) {
             $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
         }
 

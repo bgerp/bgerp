@@ -128,6 +128,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+
         if ($form->isSubmitted()) {
 
 
@@ -315,6 +316,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             while ($pRec = $pQuery->fetch()) {
 
+                //
                 if ($master == 'planning_DirectProductionNote' && !$pRec->storeId) {
 
                     continue;
@@ -327,6 +329,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 } else {
                     $returnedQuantity = 0;
                 }
+
                 $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
 
                 $name = cat_Products::fetch($pRec->productId)->name;
@@ -552,7 +555,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 $row->jobId = '';
                 $row->jobId .= 'Без задание ';
-               // $row->jobId .= $dRec->opCls::getLinkToSingle($dRec->opId);
+                $row->jobId .= $dRec->opCls::getLinkToSingle($dRec->opId);
             }
         }
 

@@ -233,6 +233,7 @@ class bgerp_Setup extends core_ProtoSetup
             'bgerp_LastTouch',
             'bgerp_F',
             'bgerp_Filters',
+            'bgerp_LastSeenDocumentByUser',
         );
         
         $instances = array();

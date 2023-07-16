@@ -73,7 +73,7 @@ class core_Html
             // Ако нямаме елемент, т.е. елемента е празен, връщаме само тялото
             $element = $body;
         }
-        
+
         return new core_ET('[#1#]', $element);
     }
     
@@ -85,7 +85,7 @@ class core_Html
     {
         //$content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $attrContent);
         $content = htmlspecialchars($attrContent, ENT_QUOTES, null);
-        $content = str_replace(array("\n"), array('&#10;'), $content);
+        $content = str_replace(array("\r\n", "\n\r", "\n"), array('&#13;&#10;', '&#10;&#13;', '&#10;'), $content);
         
         return $content;
     }

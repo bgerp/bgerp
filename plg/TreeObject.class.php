@@ -348,6 +348,7 @@ class plg_TreeObject extends core_Plugin
         if (isset($fields['-list'])) {
             $row->ROW_ATTR['data-parentid'] .= $rec->{$mvc->parentFieldName};
             $row->ROW_ATTR['data-id'] .= $rec->id;
+            $row->ROW_ATTR['data-manager'] = $mvc->className;
             $row->ROW_ATTR['class'] .= ' treeLevel' . $rec->_level;
             
             // Ако може да се добавя поделемент, показваме бутон за добавяне
@@ -408,10 +409,10 @@ class plg_TreeObject extends core_Plugin
             
             // Ако обекта има деца, добавяме бутоните за скриване/показване
             if ($rec->_childrenCount > 0) {
-                $plusIcon = sbf('img/16/toggle1.png', '');
-                $minusIcon = sbf('img/16/toggle2.png', '');
-                $plus = "<img class='toggleBtn plus' src='{$plusIcon}' alt='' width='13' height='13' title='" . tr('Показване на наследниците') . "'/>";
-                $minus = "<img class='toggleBtn minus' src='{$minusIcon}' alt='' width='13' height='13' title='" . tr('Скриване на наследниците') . "'/>";
+                $plusIcon = sbf('img/16/small-plus.png', '');
+                $minusIcon = sbf('img/16/small-minus.png', '');
+                $plus = "<img class='toggleBtn plus' src='{$plusIcon}' alt='' width='16' height='16' title='" . tr('Показване на наследниците') . "'/>";
+                $minus = "<img class='toggleBtn minus' src='{$minusIcon}' alt='' width='16' height='16' title='" . tr('Скриване на наследниците') . "'/>";
                 
                 $row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
             }

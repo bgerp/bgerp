@@ -80,8 +80,23 @@ class sync_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Синхронизиране на данните между две bgERP системи';
-    
-    
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'SyncRemoteStocks',
+            'description' => 'Синхронизиране на отдалечените складови наличности',
+            'controller' => 'sync_StoreStocks',
+            'action' => 'SyncRemoteStocks',
+            'period' => 1,
+            'timeLimit' => 60
+        ),
+    );
+
+
     /**
      * Описание на конфигурационните константи
      */
@@ -100,6 +115,8 @@ class sync_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'sync_Map',
+        'sync_Stores',
+        'sync_StoreStocks',
         'migrate::companyGroups1920',
     );
     
@@ -133,7 +150,12 @@ class sync_Setup extends core_ProtoSetup
         
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('importedProductFiles', 'Файлове от импортирани артикули', null, '1GB', 'user', 'user');
-        
+
+        if(core_Packs::isInstalled('eshop')){
+            $eSettings = cls::get('eshop_Settings');
+            $eSettings->setupMvc();
+        }
+
         return $html;
     }
     

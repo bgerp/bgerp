@@ -619,7 +619,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $toolbar = cls::get('core_Toolbar');
 
-        if (haveRole('blast')) {
+        if (blast_Emails::haveRightFor('add')) {
 
             //Изключените контрагенти от имейла
             if (isset($data->rec->excludedFromEmail)) {

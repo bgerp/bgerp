@@ -767,7 +767,13 @@ div.productImage {
 .productPreviewHolder {
 	float: right;
 }
+.taskSpecInfo  {
+	.productPreviewHolder img ,.productImage img {
+		max-height: 75px !important;
+		max-width: 100px !important;
+	}
 
+}
 .narrow .productPreviewHolder {
 	clear: both;
 	float: none;
@@ -2399,6 +2405,11 @@ width:1%;
 
 .small-field{
 width:1%;
+}
+
+.logisticCol {
+	text-align: right;
+	max-width: 400px !important;
 }
 
 .medium-field{
@@ -4249,6 +4260,10 @@ fieldset.sharing-history {
 	top: -2px;
 	&.waitingDelivery {
 		background-color: rgba(41, 86, 222, 0.8) !important;
+	}
+
+	&.inStockInRemoteStore {
+		background-color: rgba(114, 71, 140, 1) !important;
 	}
 
 	&.saleSoon {
@@ -6399,6 +6414,15 @@ div.location.public {
 	background-color:#e6e6e6;
     @include border-radius(3px);
 }
+
+
+.eshop-product-image {
+	max-height: 120px;
+	height: auto;
+	width: auto;
+	max-width: 120px;
+}
+
 .narrow .inqRow {
 	margin-top: 10px;
 }
@@ -8227,7 +8251,7 @@ body.narrow {
         min-width: 250px;
     }
     .toggleBtn {
-        margin-right: 6px;
+        margin-right: 3px;
         cursor: pointer;
         margin-left: -19px;
     }

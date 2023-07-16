@@ -214,6 +214,8 @@ function eshopActions() {
 		} else {
 			var imgtodrag = $('.product-image').eq(0);
 		}
+		var imgWidth = imgtodrag ? parseInt($(imgtodrag).css('width')) : 150;
+		var imgHeight = imgtodrag ? parseInt($(imgtodrag).css('height')) : 150;
 		if (imgtodrag) {
 			var imgclone = imgtodrag.clone()
 				.offset({
@@ -223,16 +225,16 @@ function eshopActions() {
 				.css({
 					'opacity': '0.5',
 					'position': 'absolute',
-					'height': '150px',
-					'width': '150px',
+					'height': imgHeight,
+					'width': imgWidth,
 					'z-index': '100'
 				})
 				.appendTo($('body'))
 				.animate({
 					'top': cart.offset().top,
 					'left': cart.offset().left,
-					'width': 75,
-					'height': 75
+					'width': imgWidth/2,
+					'height': imgHeight/2,
 				}, 1000, 'easeInOutExpo');
 
 			imgclone.animate({

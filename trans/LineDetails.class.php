@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Лог. информация,documentHtml=@,address=@,notes=@,classId=Клас';
+    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логист. информация,documentHtml=@,address=@,notes=@,classId=Клас';
     
     
     /**
@@ -313,18 +313,18 @@ class trans_LineDetails extends doc_Detail
             // Подготовка на логистичната информация за документа
             $logisticArr = array();
             if(!empty($transportInfo['transportUnits'])){
-                $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits'], false, '');
+                $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits'], false, ', ');
                 $logisticArr[] = $transUnits;
             } elseif(isset($transportInfo['volume'])){
-                $logisticArr[] = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
+                $logisticArr[] = "<i>" . core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']) . "<i>";
             }
 
             if(isset($transportInfo['weight'])){
-                $logisticArr[] = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
+                $logisticArr[] = "<i>" . core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']) . "<i>";
             } else {
                 $logisticArr[] = "<span class='quiet'>N/A</span>";
             }
-            $row->logistic = implode(', ', $logisticArr);
+            $row->logistic = implode('; ', $logisticArr);
         } else {
             if(!empty($transportInfo['contragentName'])){
                 $row->address = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
@@ -368,6 +368,7 @@ class trans_LineDetails extends doc_Detail
                 $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), array('ef_icon' => 'img/16/lorry_go.png', 'title' => 'Промяна на транспортната информация'));
             }
         }
+
 
         if(!empty($transportInfo['features'])){
             $featuresString = '';
@@ -467,7 +468,7 @@ class trans_LineDetails extends doc_Detail
         unset($data->listFields['renderDocumentInline']);
 
         $data->listTableMvc->setField('containerId', 'tdClass=documentCol');
-        $data->listTableMvc->FNC('logistic', 'varchar', 'tdClass=small-field logisticCol rightCol');
+        $data->listTableMvc->FNC('logistic', 'varchar', 'tdClass=logisticCol');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');

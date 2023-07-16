@@ -673,6 +673,11 @@ div.productImage {
 .productPreviewHolder {
   float: right; }
 
+  .taskSpecInfo .productPreviewHolder img,
+  .taskSpecInfo .productImage img {
+    max-height: 75px !important;
+    max-width: 100px !important; }
+
 .narrow .productPreviewHolder {
   clear: both;
   float: none;
@@ -2073,6 +2078,10 @@ td.rowtools-column {
 
 .small-field {
   width: 1%; }
+
+.logisticCol {
+  text-align: right;
+  max-width: 400px !important; }
 
 .medium-field {
   width: 200px; }
@@ -3621,6 +3630,8 @@ span.sharing-history-title {
   top: -2px; }
   .option-not-in-stock.waitingDelivery {
     background-color: rgba(41, 86, 222, 0.8) !important; }
+  .option-not-in-stock.inStockInRemoteStore {
+    background-color: #72478c !important; }
   .option-not-in-stock.saleSoon {
     background-color: rgba(241, 223, 11, 0.9) !important;
     color: black !important; }
@@ -5612,6 +5623,12 @@ div.location.public {
   -ms-border-radius: 3px;
   border-radius: 3px; }
 
+.eshop-product-image {
+  max-height: 120px;
+  height: auto;
+  width: auto;
+  max-width: 120px; }
+
 .narrow .inqRow {
   margin-top: 10px; }
 
@@ -7241,7 +7258,7 @@ only screen and (max-width: 320px) {
   .treeView .leafName {
     min-width: 250px; }
   .treeView .toggleBtn {
-    margin-right: 6px;
+    margin-right: 3px;
     cursor: pointer;
     margin-left: -19px; }
   .treeView .treeLevel0 .toggleBtn {

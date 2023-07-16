@@ -124,7 +124,7 @@ class log_Data extends core_Manager
         $this->setDbIndex('actionCrc');
         $this->setDbIndex('objectId,classCrc');
         
-        $this->dbEngine = 'InnoDB';
+        // $this->dbEngine = 'InnoDB';
     }
     
     
