@@ -277,6 +277,7 @@ class doc_plg_Prototype extends core_Plugin
     public static function on_AfterExpandedAvailablePrototypes($mvc, &$res, $prototypes, $rec)
     {
         if(!$res){
+            // Ако е казано, че не трябва да се показват последно видяните - да не се добавят
             if(!$mvc->showInPrototypesLastVisited) {
                 $res = $prototypes;
                 return;
@@ -303,7 +304,10 @@ class doc_plg_Prototype extends core_Plugin
             $lastSeenByUser = array_diff_key($lastSeenByUser, $prototypes);
 
             if(countR($lastSeenByUser)){
-                $options = array('t' => (object) array('group' => true, 'title' => tr('Шаблонни документи'))) + $prototypes;
+                $options = array();
+                if(countR($prototypes)){
+                    $options = array('t' => (object) array('group' => true, 'title' => tr('Шаблонни документи'))) + $prototypes;
+                }
                 $options += array('l' => (object) array('group' => true, 'title' => tr('Последно видяни'))) + $lastSeenByUser;
                 $res = $options;
             }
