@@ -489,7 +489,7 @@ abstract class deals_DealBase extends core_Master
                     $CloseDoc->conto($clId);
                 }
 
-                $this->invoke('AfterActivation', array($rec));
+                $this->invoke('AfterActivation', array($dealRec));
                 
                 // Записваме, че потребителя е разглеждал този списък
                 $this->logWrite('Приключване на сделка с друга сделка', $id);
