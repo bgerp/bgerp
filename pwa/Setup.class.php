@@ -187,7 +187,7 @@ class pwa_Setup extends core_ProtoSetup
         }
 
         if ($cVersion <= 6) {
-            $html .= '<li class="red">Препоръвчва се да се използва PHP 7.3 или по-нова версия.</li>';
+            $html .= '<li class="red">Препоръчва се да се използва PHP 7.3 или по-нова версия.</li>';
         }
 
         try {
