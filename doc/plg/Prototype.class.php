@@ -211,8 +211,9 @@ class doc_plg_Prototype extends core_Plugin
             
             // След създаване на документ с избран прототип, клонират се детайлите му
             $Details = $mvc->getDetailsToClone($rec);
-
+            Mode::push('cloneDetailsFromPrototype', true);
             plg_Clone::cloneDetails($Details, $rec->{$mvc->protoFieldName}, $rec->id);
+            Mode::pop('cloneDetailsFromPrototype');
         }
         
         // Ако документа може да се добави като шаблон след създаването
@@ -277,6 +278,12 @@ class doc_plg_Prototype extends core_Plugin
     public static function on_AfterExpandedAvailablePrototypes($mvc, &$res, $prototypes, $rec)
     {
         if(!$res){
+            // Ако е казано, че не трябва да се показват последно видяните - да не се добавят
+            if(!$mvc->showInPrototypesLastVisited) {
+                $res = $prototypes;
+                return;
+            }
+
             $driverId = null;
             if ($mvc instanceof embed_Manager) {
                 if (isset($rec->{$mvc->driverClassField})) {
@@ -286,6 +293,7 @@ class doc_plg_Prototype extends core_Plugin
 
             $lastVisitedLimit = doc_Setup::get('SHOW_LAST_VISITED_AS_PROTOTYPES');
             if(empty($lastVisitedLimit)) return;
+
 
             $lastSeenByUser = bgerp_LastSeenDocumentByUser::getLastSeenByUser($mvc, $driverId, null, $lastVisitedLimit);
             if(isset($rec->{$mvc->protoFieldName})){
@@ -297,7 +305,10 @@ class doc_plg_Prototype extends core_Plugin
             $lastSeenByUser = array_diff_key($lastSeenByUser, $prototypes);
 
             if(countR($lastSeenByUser)){
-                $options = array('t' => (object) array('group' => true, 'title' => tr('Шаблонни документи'))) + $prototypes;
+                $options = array();
+                if(countR($prototypes)){
+                    $options = array('t' => (object) array('group' => true, 'title' => tr('Шаблонни документи'))) + $prototypes;
+                }
                 $options += array('l' => (object) array('group' => true, 'title' => tr('Последно видяни'))) + $lastSeenByUser;
                 $res = $options;
             }

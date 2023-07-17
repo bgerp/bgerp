@@ -124,8 +124,19 @@ class doc_plg_TplManagerDetail extends core_Plugin
             $Script->beforeRenderListTable($mvc, $tpl, $data);
         }
     }
-    
-    
+
+
+    /**
+     * Преди рендиране на детайла
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template, $data->masterData->rec->createdOn)) {
+            $Script->afterRenderListTable($mvc, $tpl, $data);
+        }
+    }
+
+
     /**
      * След рендиране на детайла
      */

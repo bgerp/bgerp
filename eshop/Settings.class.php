@@ -248,7 +248,7 @@ class eshop_Settings extends core_Master
         }
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Получаване от,optionsFunc=crm_Locations::getOwnLocations');
         $this->FLD('notInStockText', 'varchar(24)', 'caption=Информация при недостатъчно количество->Текст');
-        $this->FLD('remoteInStockText', 'varchar(24)', 'caption=Информация при наличност във външен склад->Текст');
+        $this->FLD('remoteInStockText', 'varchar(24)', 'caption=Информация при наличност във външен склад->Текст,placeholder=Няма');
         $this->FLD('saleEndedText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Изтекли');
         $this->FLD('salePendingText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Предстоящи');
 
@@ -477,8 +477,8 @@ class eshop_Settings extends core_Master
             if(countR($syncedStores)){
                 $form->setField('remoteStores', 'input');
                 $form->setSuggestions('remoteStores', $syncedStores);
-                $remoteInStockPlaceholder = eshop_Setup::get('REMOTE_IN_STOCK_TEXT');
-                $form->setField('remoteInStockText', "placeholder={$remoteInStockPlaceholder}");
+                $remoteInStockSuggestions = arr::make(eshop_Setup::get('REMOTE_IN_STOCK_TEXT'), true);
+                $form->setSuggestions('remoteInStockText', array('' => '') + $remoteInStockSuggestions);
             }
         }
 

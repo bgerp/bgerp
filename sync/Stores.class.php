@@ -84,10 +84,10 @@ class sync_Stores extends sync_Helper
     {
         $this->FNC('authorizationId', 'varchar', 'caption=Система,class=w100,silent,removeAndRefreshForm=remoteId|remoteName|url,input');
         $this->FLD('remoteId', 'int', 'caption=Номер, mandatory,input=none,tdClass=small-field');
-        $this->FLD('syncTime', 'int(min=0)', 'caption=Синхронизиране->Интерал, mandatory,input=hidden,unit=мин.');
+        $this->FLD('syncTime', 'int(min=0)', 'caption=Синхронизиране->Интервал, mandatory,input=hidden,unit=мин.');
         $this->FLD('remoteName', 'varchar', 'caption=Външно име,input=none');
         $this->FLD('url', 'url', 'caption=Услуга,input=hidden');
-        $this->FLD('lastSynced', 'datetime', 'caption=Синхронизиране->Време,input=none');
+        $this->FLD('lastSynced', 'datetime(format=smartTime)', 'caption=Синхронизиране->Време,input=none');
         $this->setDbUnique('remoteId,url');
     }
 

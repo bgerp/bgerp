@@ -169,7 +169,6 @@ function showTooltip() {
     });
 };
 
-
 /**
  * действие на дървовидната структура
  */
@@ -188,7 +187,49 @@ function treeViewAction() {
             $(this).closest('tr').removeClass('closedChildren');
             openChildren(id);
         }
+        var element = '';
+        var className = $(this).closest('.listBlock').attr('class');
+        $('.treeView .listTable .toggleBtn.minus:visible').each(function(){
+            var currentTreeRow = $(this).closest('tr').data('id');
+            if(element != '') {
+                element = element + "," + currentTreeRow;
+            } else {
+                element =  currentTreeRow;
+            }
+        });
+
+        var opt = JSON.parse(localStorage.getItem("openTreeRows"));
+        if (!opt) {
+            opt = {};
+        }
+        opt[className] = element;
+        localStorage.setItem("openTreeRows", JSON.stringify(opt));
     });
+
+    var loggedTreeOpenRows = JSON.parse(localStorage.getItem("openTreeRows"));
+    if(loggedTreeOpenRows) {
+        for(const item in loggedTreeOpenRows) {
+            var className = item.replaceAll(' ', '.');
+            if($("." + className).length){
+                var forOpen = loggedTreeOpenRows[item];
+                if (forOpen) {
+                    var rowsArray = [];
+                    if(typeof forOpen == "string") {
+                        rowsArray = forOpen.split(',');
+                    } else {
+                        rowsArray.push(forOpen);
+                    }
+
+                    rowsArray.forEach((dataId) => {
+                        var domElement = $("table").find("tr[data-id='" + dataId + "'] .plus");
+                        if($(domElement).length) {
+                            $(domElement).click();
+                        }
+                    });
+                }
+            }
+        };
+    }
 }
 
 /**
