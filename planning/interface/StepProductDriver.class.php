@@ -235,7 +235,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         if ($data->rec->photo) {
             $size = array(280, 150);
             $Fancybox = cls::get('fancybox_Fancybox');
-            $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
+            $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(1200, 1200));
         }
 
         $tpl->placeObject($data->row);

@@ -133,16 +133,19 @@ class sync_StoreStocks extends sync_Helper
     function act_sync()
     {
         requireRole('admin');
-        $this->cron_SyncRemoteStocks();
+        $this->sync(true);
 
         followRetUrl(null, 'Наличностите са синхронизирани успешно');
     }
 
 
     /**
-     * Крон метод за синхронизиране на складовите наличности
+     * Синхронизиране на наличностите
+     *
+     * @param bool $force - дали да се форсират или не
+     * @return void
      */
-    public function cron_SyncRemoteStocks()
+    private function sync($force = false)
     {
         // Има ли зададени складове за синхронизиране
         $sQuery = sync_Stores::getQuery();
@@ -151,14 +154,16 @@ class sync_StoreStocks extends sync_Helper
         if(!countR($remoteStores)) return;
 
         // Настъпило ли е времето да се синхронизират
-        $cMinute = dt::mysql2verbal(null, 'i');
-        foreach ($remoteStores as $k => $storeRec){
-            $i = $cMinute + $storeRec->id;
-            if($i % $storeRec->syncTime != 0){
-                unset($remoteStores[$k]);
+        if(!$force){
+            $cMinute = dt::mysql2verbal(null, 'i');
+            foreach ($remoteStores as $k => $storeRec){
+                $i = $cMinute + $storeRec->id;
+                if($i % $storeRec->syncTime != 0){
+                    unset($remoteStores[$k]);
+                }
             }
+            if(!countR($remoteStores)) return;
         }
-        if(!countR($remoteStores)) return;
 
         // Извличане на стандартните ни складируеми артикули
         $ourProducts = array();
@@ -233,12 +238,17 @@ class sync_StoreStocks extends sync_Helper
                 foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'dateMin') as $fld){
                     $obj->{$fld} = $arr[$fld];
                 }
+                if(empty($obj->productId)){
+                   wp($obj, $arr);
+                   continue;
+                }
                 $save[] = $obj;
             }
         }
 
         // Синхронизиране на старите с новите записи
         $query = self::getQuery();
+        $query->in('syncedStoreId', array_keys($remoteStores));
         $exRecs = $query->fetchAll();
         $arrRes = arr::syncArrays($save, $exRecs, 'syncedStoreId,productId', 'quantity,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
 
@@ -262,6 +272,15 @@ class sync_StoreStocks extends sync_Helper
             $remoteRec->lastSynced = $now;
             sync_Stores::save($remoteRec, 'lastSynced');
         }
+    }
+
+
+    /**
+     * Крон метод за синхронизиране на складовите наличности
+     */
+    public function cron_SyncRemoteStocks()
+    {
+        $this->sync();
     }
 
 

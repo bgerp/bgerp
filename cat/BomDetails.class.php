@@ -1373,7 +1373,7 @@ class cat_BomDetails extends doc_Detail
     public function cloneDetails($fromBomId, $toBomId)
     {
         $fromBomRec = cat_Boms::fetchRec($fromBomId);
-        if($fromBomRec->state == 'template'){
+        if($fromBomRec->state == 'template' || Mode::is('cloneDetailsFromPrototype')){
             $this->cloneDetailsFromBomId($fromBomId, $toBomId);
         } else {
             cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, null);

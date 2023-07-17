@@ -229,6 +229,12 @@ class cat_Boms extends core_Master
 
 
     /**
+     * Дали да се показват последно видяните документи при избора на шаблонен
+     */
+    public $showInPrototypesLastVisited = true;
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -1310,9 +1316,8 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                
                 // Ако няма такава, търсим по последната работна рецепта, ако има
-                if ($prodBom = cat_Products::getLastActiveBom($productId)) {
+                if ($prodBom = cat_Products::getLastActiveBom($productId, 'production,instant,sales')) {
                     $price = static::getBomPrice($prodBom, $quantity, 0, 0, $date, $priceListId);
                 }
             }

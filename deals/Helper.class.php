@@ -2033,16 +2033,23 @@ abstract class deals_Helper
      * Дефолтния режим на ДДС за папката
      *
      * @param int $folderId
+     * @param string|null $chargeVatConditionSysId
      * @param int|null $ownCompanyId
      * @return string
      */
-    public static function getDefaultChargeVat($folderId, $ownCompanyId = null)
+    public static function getDefaultChargeVat($folderId, $chargeVatConditionSysId = null, $ownCompanyId = null)
     {
         if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return 'no';
 
         // Ако не може да се намери се търси от папката
         $coverId = doc_Folders::fetchCoverId($folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+
+        if(isset($chargeVatConditionSysId)){
+            $clientValue = cond_Parameters::getParameter($Class, $coverId, $chargeVatConditionSysId);
+            if(!empty($clientValue)) return $clientValue;
+        }
+
         if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
             return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
         }
