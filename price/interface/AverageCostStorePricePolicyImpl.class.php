@@ -161,7 +161,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         }
 
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
-        $skipDocArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
+        $skipDocArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId(), store_ConsignmentProtocols::getClassId());
         $lastBalance = acc_Balances::getLastBalance();
         
         // Дали да се използва кешираната дата
