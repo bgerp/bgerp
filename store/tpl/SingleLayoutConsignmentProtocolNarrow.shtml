@@ -45,6 +45,9 @@
                 <tr>
                     <td>
                        <b>[#MyCompany#]</b>
+                        <!--ET_BEGIN protocolType-->
+                        <div class='stamp fright'>[#protocolType#]</div>
+                        <!--ET_END protocolType-->
                         <div class='address-block'>
                             [#MyAddress#]
                         </div>

@@ -245,11 +245,14 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 
         // Ако ориджина на мастъра е ПОП да не може да се добавят нови артикули
         if (in_array($action, array('delete', 'add', 'createproduct', 'import')) && isset($rec)) {
-            $masterOriginId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'originId');
-            if(isset($masterOriginId)){
-                $Origin = doc_Containers::getDocument($masterOriginId);
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'folderId,originId,contragentClassId,contragentId');
+            if(isset($masterRec->originId)){
+                $Origin = doc_Containers::getDocument($masterRec->originId);
                 if($Origin->isInstanceOf('store_ConsignmentProtocols')){
-                    $requiredRoles = 'no_one';
+                    $originRec = $Origin->fetch('contragentClassId,contragentId');
+                    if(!($originRec->contragentClassId == $masterRec->contragentClassId && $originRec->contragentId == $masterRec->contragentId)){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }

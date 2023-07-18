@@ -189,6 +189,7 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf,select=title)', 'input=hidden,caption=Контрагент->Вид,mandatory,silent,removeAndRefreshForm=contragentId|locationId');
         $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol,caption=Контрагент->Име,mandatory,silent,removeAndRefreshForm=locationId');
         $this->FLD('valior', 'date', 'caption=Вальор');
+        $this->FLD('protocolType', 'enum(protocol=Протокол,return=Връщане,reclamation=Рекламация)', 'input=hidden,silent,notNull,value=protocol');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
         $this->FLD('deliveryTime', 'datetime(requireTime)','caption=Товарене');
@@ -235,13 +236,29 @@ class store_ConsignmentProtocols extends core_Master
                     $originRec = $Origin->fetch('state,productType');
                     if($originRec->state != 'active'){
                         $requiredRoles = 'no_one';
-                    } elseif($originRec->productType == 'other'){
-                        if(!store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$originRec->id}")){
+                    }
+
+                    if($rec->protocolType == 'reclamation'){
+                        if($originRec->productType == 'ours'){
+                            $requiredRoles = 'no_one';
+                        } elseif($originRec->protocolType == 'reclamation'){
+                            $requiredRoles = 'no_one';
+                        } elseif(!store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$originRec->id}")){
                             $requiredRoles = 'no_one';
                         }
-                    } else {
-                        if(!store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}")){
+                    }
+
+                    if($rec->protocolType == 'return'){
+                        if($originRec->protocolType == 'return'){
                             $requiredRoles = 'no_one';
+                        } elseif($originRec->productType == 'other'){
+                            if(!store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$originRec->id}") && !store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}")){
+                                $requiredRoles = 'no_one';
+                            }
+                        } else {
+                            if(!store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}") && !store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}")){
+                                $requiredRoles = 'no_one';
+                            }
                         }
                     }
                 }
@@ -264,6 +281,12 @@ class store_ConsignmentProtocols extends core_Master
         $row = (object) ((array) $row + (array) $headerInfo);
         
         if (isset($fields['-single'])) {
+            if($rec->protocolType == 'protocol'){
+                unset($row->protocolType);
+            } else {
+                $row->protocolType = mb_strtoupper(tr($row->protocolType));
+            }
+
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
             $row->username = core_Users::getVerbal($rec->createdBy, 'names');
 
@@ -424,17 +447,20 @@ class store_ConsignmentProtocols extends core_Master
 
         // Ако се създава на базата на друг ПОП да се вземат данните от него
         if(is_object($originRec)){
-            if($originRec->productType == 'other'){
+            $defaultProductType = $originRec->productType;
+            $infoCaption = ($rec->protocolType == 'reclamation') ? 'Изпращане към доставчик на получени от клиент артикули (по рекламация)' : 'Връщане на артикули от отговорно пазене';
+            $form->info = "<div class='richtext-info-no-image'>" . tr($infoCaption) . "</div>";
+            if($rec->protocolType == 'reclamation'){
+                $defaultProductType = 'ours';
                 $ContragentMvc = cls::get($rec->contragentClassId);
                 $form->setField('contragentClassId', 'input');
                 $form->setField('contragentId', 'input');
                 $form->setFieldType('contragentId', "key2(mvc={$ContragentMvc->className},select=name,allowEmpty)");
             }
-
             $form->setReadOnly('currencyId', $originRec->currencyId);
             $form->setReadOnly('responsible');
             $form->setDefault('storeId', $originRec->storeId);
-            $form->setReadOnly('productType', 'ours');
+            $form->setReadOnly('productType', $defaultProductType);
         }
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
 
@@ -849,8 +875,12 @@ class store_ConsignmentProtocols extends core_Master
     {
         $rec = $data->rec;
 
-        if($mvc->haveRightFor('add', (object)array('originId' => $rec->containerId))){
-            $data->toolbar->addBtn('Връщане', array($mvc, 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/arrow_undo.png,title=Връщане на получените артикули за отговорно пазене");
+        if($mvc->haveRightFor('add', (object)array('originId' => $rec->containerId, 'protocolType' => 'reclamation'))){
+            $data->toolbar->addBtn('Рекламация', array($mvc, 'add', 'originId' => $rec->containerId, 'protocolType' => 'reclamation', 'ret_url' => true), "ef_icon=img/16/arrow_undo.png,title=Изпращане към доставчик на получени от клиент артикули (по рекламация),row=2");
+        }
+
+        if($mvc->haveRightFor('add', (object)array('originId' => $rec->containerId, 'protocolType' => 'return'))){
+            $data->toolbar->addBtn('Връщане', array($mvc, 'add', 'originId' => $rec->containerId, 'protocolType' => 'return', 'ret_url' => true), "ef_icon=img/16/arrow_undo.png,title=Връщане на артикули от отговорно пазене");
         }
     }
 
