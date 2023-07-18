@@ -82,8 +82,12 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         
         $rec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
         $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
-        
         $data->form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
+
+        if(isset($rec->clonedFromDetailClass) && isset($rec->clonedFromDetailId)){
+            $clonedRec = cls::get($rec->clonedFromDetailClass)->fetch($rec->clonedFromDetailId);
+            $data->form->setFieldTypeParams('packQuantity', "Max={$clonedRec->packQuantity}");
+        }
     }
     
     
@@ -96,7 +100,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
         $rec = &$form->rec;
-        
+
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $currencyRate = $rec->currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
         
@@ -156,7 +160,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                 }
                 $form->setError('packPrice', "{$errorMsg}|*!");
             }
-            
+
             // Проверка на цената
             $quantity = $rec->packQuantity * $rec->quantityInPack;
             $msg = null;
@@ -230,9 +234,21 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'createproduct') && isset($rec)) {
+        // Не могат да се добавят детайли, ако мастъра не е чернова
+        if (in_array($action, array('edit', 'delete', 'add', 'createproduct')) && isset($rec)) {
             if (!($mvc instanceof store_DocumentPackagingDetail)) {
                 if ($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft') {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        // Ако ориджина на мастъра е ПОП да не може да се добавят нови артикули
+        if (in_array($action, array('delete', 'add', 'createproduct', 'import')) && isset($rec)) {
+            $masterOriginId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'originId');
+            if(isset($masterOriginId)){
+                $Origin = doc_Containers::getDocument($masterOriginId);
+                if($Origin->isInstanceOf('store_ConsignmentProtocols')){
                     $requiredRoles = 'no_one';
                 }
             }

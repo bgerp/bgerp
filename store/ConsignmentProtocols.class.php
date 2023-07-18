@@ -186,9 +186,9 @@ class store_ConsignmentProtocols extends core_Master
      */
     public function description()
     {
+        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf,select=title)', 'input=hidden,caption=Контрагент->Вид,mandatory,silent,removeAndRefreshForm=contragentId|locationId');
+        $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol,caption=Контрагент->Име,mandatory,silent,removeAndRefreshForm=locationId');
         $this->FLD('valior', 'date', 'caption=Вальор');
-        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
-        $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
         $this->FLD('deliveryTime', 'datetime(requireTime)','caption=Товарене');
@@ -214,14 +214,36 @@ class store_ConsignmentProtocols extends core_Master
         }
         
         // Ако партньор създава, но няма дефолтен скалд в папката да не му се появява бутона
-        if($action == 'add' && isset($rec) && (core_Packs::isInstalled('colab') && haveRole('partner', $userId))){
-            if(isset($rec->folderId)){
-                $cId = doc_Folders::fetchCoverId($rec->folderId);
-                $Class = doc_Folders::fetchCoverClassId($rec->folderId);
-                
-                $defaultColabStore = cond_Parameters::getParameter($Class, $cId, 'defaultStoreSale');
-                if(empty($defaultColabStore)){
+        if($action == 'add' && isset($rec)){
+            if(core_Packs::isInstalled('colab') && haveRole('partner', $userId)){
+                if(isset($rec->folderId)){
+                    $cId = doc_Folders::fetchCoverId($rec->folderId);
+                    $Class = doc_Folders::fetchCoverClassId($rec->folderId);
+
+                    $defaultColabStore = cond_Parameters::getParameter($Class, $cId, 'defaultStoreSale');
+                    if(empty($defaultColabStore)){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+
+            if(isset($rec->originId)){
+                $Origin = doc_Containers::getDocument($rec->originId);
+                if(!$Origin->isInstanceOf('store_ConsignmentProtocols')){
                     $requiredRoles = 'no_one';
+                } else {
+                    $originRec = $Origin->fetch('state,productType');
+                    if($originRec->state != 'active'){
+                        $requiredRoles = 'no_one';
+                    } elseif($originRec->productType == 'other'){
+                        if(!store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$originRec->id}")){
+                            $requiredRoles = 'no_one';
+                        }
+                    } else {
+                        if(!store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}")){
+                            $requiredRoles = 'no_one';
+                        }
+                    }
                 }
             }
         }
@@ -373,7 +395,9 @@ class store_ConsignmentProtocols extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
+        $originRec = isset($rec->originId) ? doc_Containers::getDocument($rec->originId)->fetch() : null;
+
         // При нов протокол, потребителя ще бъде принуден да избере типа на предаваните/получаваните артикули
         if(empty($rec->id)){
             $form->setOptions('productType', array('' => '', 'ours' => 'Наши артикули', 'other' => 'Чужди артикули'));
@@ -381,11 +405,11 @@ class store_ConsignmentProtocols extends core_Master
         }
         
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
-        $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-        $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-        $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
-        $form->setOptions('locationId', array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId));
-        
+        if($form->cmd != 'refresh'){
+            $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+            $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+        }
+
         if (isset($rec->id)) {
             if (store_ConsignmentProtocolDetailsSend::fetchField("#protocolId = {$rec->id}")) {
                 $form->setReadOnly('currencyId');
@@ -396,6 +420,28 @@ class store_ConsignmentProtocols extends core_Master
         if(core_Packs::isInstalled('colab') && haveRole('partner')){
             $form->setField('currencyId', 'input=hidden');
             $form->setField('storeId', 'input=none');
+        }
+
+        // Ако се създава на базата на друг ПОП да се вземат данните от него
+        if(is_object($originRec)){
+            if($originRec->productType == 'other'){
+                $ContragentMvc = cls::get($rec->contragentClassId);
+                $form->setField('contragentClassId', 'input');
+                $form->setField('contragentId', 'input');
+                $form->setFieldType('contragentId', "key2(mvc={$ContragentMvc->className},select=name,allowEmpty)");
+            }
+
+            $form->setReadOnly('currencyId', $originRec->currencyId);
+            $form->setReadOnly('responsible');
+            $form->setDefault('storeId', $originRec->storeId);
+            $form->setReadOnly('productType', 'ours');
+        }
+        $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
+
+        if(isset($rec->contragentClassId) && isset($rec->contragentId)){
+            $form->setOptions('locationId', array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId));
+        } else {
+            $form->setReadOnly('locationId');
         }
     }
     
@@ -790,5 +836,51 @@ class store_ConsignmentProtocols extends core_Master
         }
 
         return false;
+    }
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+
+        if($mvc->haveRightFor('add', (object)array('originId' => $rec->containerId))){
+            $data->toolbar->addBtn('Връщане', array($mvc, 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/arrow_undo.png,title=Връщане на получените артикули за отговорно пазене");
+        }
+    }
+
+
+    /**
+     * След създаване на запис в модела
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        if(isset($rec->originId)){
+            $Origin = doc_Containers::getDocument($rec->originId);
+            if(!$Origin->isInstanceOf('store_ConsignmentProtocols')) return;
+
+            // Копиране на артикилите
+            $originProductType = $Origin->fetchField('productType');
+            if($originProductType == 'other'){
+                $cloneQuery = store_ConsignmentProtocolDetailsReceived::getQuery();
+                $DetailMvc = cls::get('store_ConsignmentProtocolDetailsSend');
+            } else {
+                $cloneQuery = store_ConsignmentProtocolDetailsSend::getQuery();
+                $DetailMvc = cls::get('store_ConsignmentProtocolDetailsReceived');
+            }
+            $cloneQuery->where("#protocolId = {$Origin->that}");
+            while($dRec = $cloneQuery->fetch()){
+                $dRec->clonedFromDetailClass = $cloneQuery->mvc->getClassId();
+                $dRec->clonedFromDetailId = $dRec->id;
+                unset($dRec->id, $dRec->createdOn, $dRec->createdBy);
+                $dRec->protocolId = $rec->id;
+                $DetailMvc->save($dRec);
+            }
+        }
     }
 }
