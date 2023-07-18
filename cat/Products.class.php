@@ -429,7 +429,7 @@ class cat_Products extends embed_Manager
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
         // Всички позволени мерки
         $measureOptions = cat_UoM::getUomOptions();
         $form->setField($mvc->driverClassField, 'remember,removeAndRefreshForm=proto|measureId|meta|groups');
@@ -455,7 +455,7 @@ class cat_Products extends embed_Manager
                     $defMetas = $cover->getDefaultMeta();
                 }
             }
-            
+
             if (countR($defMetas)) {
                 // Задаваме дефолтните свойства
                 $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
@@ -470,14 +470,21 @@ class cat_Products extends embed_Manager
                     $form->setField('code', 'mandatory');
                 }
 
+                // При клониране се използва кода на клонирания артикул
+                if($data->action == 'clone'){
+                    if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
+                        $lastCode = $clonedCode;
+                    }
+                }
+
                 if ($cover->isInstanceOf('cat_Categories')) {
-                    if(empty($cover->fetchField('prefix'))){
+                    if(empty($cover->fetchField('prefix')) && empty($clonedCode)){
                         $lastCode = Mode::get('cat_LastProductCode');
                     }
 
                     // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
                     $CategoryRec = $cover->rec();
-                    if(empty($rec->code)){
+                    if(empty($lastCode)){
                         if ($code = $cover->getDefaultProductCode()) {
                             $form->setDefault('code', $code);
                         }
@@ -497,13 +504,6 @@ class cat_Products extends embed_Manager
                         }
                         $measureOptions = array_intersect_key($measureOptions, $categoryMeasures);
                     }
-                }
-            }
-
-            // При клониране се използва кода на клонирания артикул
-            if($data->action == 'clone'){
-                if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
-                    $lastCode = $clonedCode;
                 }
             }
 
