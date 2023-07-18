@@ -162,7 +162,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
                 //Договора за продажба
                 $FirstDoc = doc_Threads::getFirstDocument($thread);
-                $fDocRec = $FirstDoc->fetch();                       // Rec-a на договора
+                if($FirstDoc && isset($FirstDoc) && is_object($FirstDoc)){
+                    $fDocRec = $FirstDoc->fetch();                       // Rec-a на договора
+                }else continue;
+
 
                 // масив от фактури в тази нишка към избраната дата
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
