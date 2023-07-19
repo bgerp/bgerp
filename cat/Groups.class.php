@@ -154,8 +154,8 @@ class cat_Groups extends core_Master
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими,generic=Генерични)', 'caption=Свойства->Списък,columns=2,input=none');
-
+        						canManifacture=Производими,generic=Генерични)', 'caption=Настройки->Свойства,columns=2,input=none');
+        $this->FLD('notes', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
         $this->setDbUnique('sysId');
         $this->setDbIndex('parentId');
     }
