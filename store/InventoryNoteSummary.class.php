@@ -129,7 +129,7 @@ class store_InventoryNoteSummary extends doc_Detail
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
         $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
         $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');

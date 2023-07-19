@@ -237,7 +237,6 @@ class cat_Groups extends core_Master
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->view = 'horizontal';
-        //$data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         // Показваме само това поле. Иначе и другите полета
