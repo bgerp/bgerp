@@ -456,20 +456,24 @@ class rack_Movements extends rack_MovementAbstract
             if($rec->fromIncomingDocument == 'yes'){
 
                 // Показване колко има заскладено от документа досега
-                $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch, $rec->containerId);
-                $createdByNowQuantity = isset($createdByNowQuantity) ? $createdByNowQuantity : 0;
-                $createdByNowQuantity = $createdByNowQuantity / $rec->quantityInPack;
-                $packName = cat_UoM::getSmartName($rec->packagingId);
-                $quantityStr = str::getPlural($createdByNowQuantity, $packName);
-                if(rack_Movements::haveRightFor('list')){
-                    $quantityStr = ht::createLinkRef($quantityStr, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($rec->containerId)->getHandle()));
-                }
-                $form->info = tr("Създадени движения от документа за сега|*: <b>{$quantityStr}</b>");
+                $documents = keylist::toArray($rec->documents);
+                if(countR($documents) == 1 || isset($rec->containerId)){
+                    $fromDocumentId = isset($rec->containerId) ? $rec->containerId : key($documents);
+                    $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch, $fromDocumentId);
+                    $createdByNowQuantity = isset($createdByNowQuantity) ? $createdByNowQuantity : 0;
+                    $createdByNowQuantity = $createdByNowQuantity / $rec->quantityInPack;
+                    $packName = cat_UoM::getSmartName($rec->packagingId);
+                    $quantityStr = str::getPlural($createdByNowQuantity, $packName);
+                    if(rack_Movements::haveRightFor('list')){
+                        $quantityStr = ht::createLinkRef($quantityStr, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($fromDocumentId)->getHandle()));
+                    }
+                    $form->info = tr("Създадени движения от документа за сега|*: <b>{$quantityStr}</b>");
 
-                // Приспадане на създаденото досега от документа
-                $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;
-                $availableQuantity -= $createdByNowQuantity;
-                $availableQuantity = round($availableQuantity, $round);
+                    // Приспадане на създаденото досега от документа
+                    $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;
+                    $availableQuantity -= $createdByNowQuantity;
+                    $availableQuantity = round($availableQuantity, $round);
+                }
             } else {
                 $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
                 $availableQuantity = Mode::get($counterKey);
