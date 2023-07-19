@@ -428,10 +428,6 @@ class store_ConsignmentProtocols extends core_Master
         }
 
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
-        if($form->cmd != 'refresh'){
-            $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-            $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-        }
 
         if (isset($rec->id)) {
             if (store_ConsignmentProtocolDetailsSend::fetchField("#protocolId = {$rec->id}")) {
@@ -452,17 +448,23 @@ class store_ConsignmentProtocols extends core_Master
             $form->info = "<div class='richtext-info-no-image'>" . tr($infoCaption) . "</div>";
             if($rec->protocolType == 'reclamation'){
                 $defaultProductType = 'ours';
-                $ContragentMvc = cls::get($rec->contragentClassId);
+                $ContragentMvc = cls::get($originRec->contragentClassId);
                 $form->setField('contragentClassId', 'input');
                 $form->setField('contragentId', 'input');
                 $form->setFieldType('contragentId', "key2(mvc={$ContragentMvc->className},select=name,allowEmpty)");
             }
+            $form->setDefault('contragentClassId', $originRec->contragentClassId);
+            $form->setDefault('contragentId', $originRec->contragentId);
             $form->setReadOnly('currencyId', $originRec->currencyId);
             $form->setReadOnly('responsible');
             $form->setDefault('storeId', $originRec->storeId);
             $form->setReadOnly('productType', $defaultProductType);
         }
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
+        if($form->cmd != 'refresh'){
+            $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
+            $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
+        }
 
         if(isset($rec->contragentClassId) && isset($rec->contragentId)){
             $form->setOptions('locationId', array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId));
