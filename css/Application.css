@@ -4899,6 +4899,10 @@ div.no-cover {
       padding: 0;
       margin: 0;
       list-style-type: none; }
+  div.no-cover .detail-info ul {
+    padding-left: 20px; }
+    div.no-cover .detail-info ul li {
+      list-style-type: disc; }
   div.no-cover div.locImage {
     padding-bottom: 0; }
   div.no-cover .gray-title {
