@@ -86,7 +86,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 
         if(isset($rec->clonedFromDetailClass) && isset($rec->clonedFromDetailId)){
             $clonedRec = cls::get($rec->clonedFromDetailClass)->fetch($rec->clonedFromDetailId);
-            $data->form->setFieldTypeParams('packQuantity', "Max={$clonedRec->packQuantity}");
+            $data->form->setFieldTypeParams('packQuantity', "max={$clonedRec->packQuantity}");
         }
     }
     
