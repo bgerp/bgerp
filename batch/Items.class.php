@@ -670,7 +670,7 @@ class batch_Items extends core_Master
         if (!$def) return $res;
         
         $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except);
-        $res = $found[$productId];
+        $res = is_array($found[$productId]) ? $found[$productId] : array();
 
         // Добавяне и на партидите от активни документи в черновата на журнала
         $bQuery = batch_BatchesInDocuments::getQuery();
@@ -681,7 +681,9 @@ class batch_Items extends core_Master
         }
         $bQuery->where("#state = 'active'");
         $bQuery->groupBy('batch');
-        $bQuery->notIn('batch', array_keys($res));
+        if(countR($res)){
+            $bQuery->notIn('batch', array_keys($res));
+        }
         $bQuery->where("#date <= '{$date}'");
         $bQuery->show('batch');
 
