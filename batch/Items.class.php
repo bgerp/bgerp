@@ -583,8 +583,72 @@ class batch_Items extends core_Master
         // Връщаме шаблона
         return $tpl;
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я за изчличане на наличностите към дадена дата по артикули
+     *
+     * @param int|null      $productId - ид на артикул
+     * @param int|null      $storeId   - ид на склад
+     * @param datetime|NULL $date      - към дата, ако е празно текущата
+     * @param int|NULL      $limit     - лимит на резултатите
+     * @param array         $except    - кой документ да се игнорира
+     *
+     * @return array $res - масив с партидите и к-та
+     *               ['productId']['batch'] => ['quantity']
+     */
+    public static function getProductsWithMovement($storeId = null, $productId = null, $date = null, $limit = null, $except = array())
+    {
+        // Намират се всички движения в посочения интервал за дадения артикул в подадения склад
+        $query = batch_Movements::getQuery();
+        $query->EXT('state', 'batch_Items', 'externalName=state,externalKey=itemId');
+        $query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
+        $query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
+        $query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
+        $query->where("#state != 'closed'");
+        $query->show('batch,quantity,operation,date,docType,docId,productId');
+        if(isset($productId)){
+            $query->where("#productId = {$productId}");
+        }
+
+        if(isset($storeId)){
+            $query->where("#storeId = {$storeId}");
+        }
+        $query->where("#date <= '{$date}'");
+
+        if (countR($except) == 2) {
+            $docType = cls::get($except[0])->getClassId();
+            $docId = $except[1];
+        }
+        $query->orderBy('id', 'ASC');
+
+        // Ако е указан лимит
+        if (isset($limit)) {
+            $query->limit($limit);
+        }
+
+        // Сумиране на к-то към датата
+        $res = array();
+        while ($rec = $query->fetch()) {
+            if (countR($except) == 2) {
+                if ($rec->docType == $docType && $rec->docId == $docId) {
+                    continue;
+                }
+            }
+
+            if (!array_key_exists($rec->batch, $res)) {
+                $res[$rec->productId][$rec->batch] = 0;
+            }
+
+            $sign = ($rec->operation == 'in') ? 1 : -1;
+            $res[$rec->productId][$rec->batch] += $sign * $rec->quantity;
+        }
+
+        return $res;
+    }
+
+
+
     /**
      * Изчислява количествата на партидите на артикул към дадена дата и склад
      *
@@ -605,48 +669,9 @@ class batch_Items extends core_Master
         $def = batch_Defs::getBatchDef($productId);
         if (!$def) return $res;
         
-        // Намират се всички движения в посочения интервал за дадения артикул в подадения склад
-        $query = batch_Movements::getQuery();
-        $query->EXT('state', 'batch_Items', 'externalName=state,externalKey=itemId');
-        $query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
-        $query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
-        $query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
-        $query->where("#state != 'closed'");
-        $query->show('batch,quantity,operation,date,docType,docId');
-        $query->where("#productId = {$productId}");
-        if(isset($storeId)){
-            $query->where("#storeId = {$storeId}");
-        }
-        $query->where("#date <= '{$date}'");
+        $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except);
+        $res = $found[$productId];
 
-        if (countR($except) == 2) {
-            $docType = cls::get($except[0])->getClassId();
-            $docId = $except[1];
-        }
-        
-        $query->orderBy('id', 'ASC');
-        
-        // Ако е указан лимит
-        if (isset($limit)) {
-            $query->limit($limit);
-        }
-        
-        // Сумиране на к-то към датата
-        while ($rec = $query->fetch()) {
-            if (countR($except) == 2) {
-                if ($rec->docType == $docType && $rec->docId == $docId) {
-                    continue;
-                }
-            }
-            
-            if (!array_key_exists($rec->batch, $res)) {
-                $res[$rec->batch] = 0;
-            }
-            
-            $sign = ($rec->operation == 'in') ? 1 : -1;
-            $res[$rec->batch] += $sign * $rec->quantity;
-        }
-        
         // Добавяне и на партидите от активни документи в черновата на журнала
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
@@ -660,7 +685,6 @@ class batch_Items extends core_Master
         $bQuery->where("#date <= '{$date}'");
         $bQuery->show('batch');
 
-       // bp($bQuery);
         while ($bRec = $bQuery->fetch()) {
             if (!array_key_exists($bRec->batch, $res) && $onlyActiveBatches === false) {
                 $res[$bRec->batch] = 0;
