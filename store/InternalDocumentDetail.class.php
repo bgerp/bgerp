@@ -346,6 +346,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     {
         if($type == 'other') return 'canStore';
 
-        return ($direction == 'send') ? 'canSell,canStore' : 'canBuy,canStore';
+        return ($direction == 'send') ? 'canStore' : 'canStore';
     }
 }
