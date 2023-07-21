@@ -149,6 +149,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $salQuery = sales_Sales::getQuery();
 
+        $salQuery->where("#state = 'active'");
+
         $salQuery->where("#closedOn IS NULL OR #closedOn > '$checkDate'");
 
         //нишки на активни договори
