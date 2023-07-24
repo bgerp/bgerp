@@ -882,6 +882,9 @@ class purchase_Purchases extends deals_DealMaster
                 if($productCheck['metasError']){
                     $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
                     $form->setError('action', $warning1);
+                } elseif ($productCheck['notActive']) {
+                    $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
+                    $form->setError('action', $error1);
                 }
             }
         }
