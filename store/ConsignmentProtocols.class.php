@@ -442,13 +442,15 @@ class store_ConsignmentProtocols extends core_Master
         }
 
         // Ако се създава на базата на друг ПОП да се вземат данните от него
+        $Cover = doc_Folders::getCover($rec->folderId);
         if(is_object($originRec)){
             $defaultProductType = $originRec->productType;
             $infoCaption = ($rec->protocolType == 'reclamation') ? 'Изпращане към доставчик на получени от клиент артикули (по рекламация)' : 'Връщане на артикули от отговорно пазене';
             $form->info = "<div class='richtext-info-no-image'>" . tr($infoCaption) . "</div>";
             if($rec->protocolType == 'reclamation'){
                 $defaultProductType = 'ours';
-                $ContragentMvc = cls::get($rec->contragentClassId);
+                $contragentClassId = $rec->contragentClassId ?? $Cover->getClassId();
+                $ContragentMvc = cls::get($contragentClassId);
                 $form->setField('contragentClassId', 'input');
                 $form->setField('contragentId', 'input');
                 $form->setFieldType('contragentId', "key2(mvc={$ContragentMvc->className},select=name,allowEmpty)");
@@ -462,8 +464,8 @@ class store_ConsignmentProtocols extends core_Master
         }
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         if($form->cmd != 'refresh'){
-            $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
-            $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
+            $form->setDefault('contragentClassId', $Cover->getClassId());
+            $form->setDefault('contragentId', $Cover->that);
         }
 
         if(isset($rec->contragentClassId) && isset($rec->contragentId)){
