@@ -3233,7 +3233,7 @@ class email_Incomings extends core_Master
         if (email_AddressesInfo::haveRightFor('powerUser')) {
             if ($uLink = $mvc->getUnsubscribeLink($data->rec)) {
                 $uLink = urldecode($uLink);
-                $data->toolbar->addBtn('Отписване', $uLink, 'target=_blank, ef_icon=img/16/email_open_image.png, title=Отписване от получаване на циркулярни имейли, row=2, order=19.9');
+                $data->toolbar->addBtn('Отписване', $uLink, 'target=_blank, ef_icon=img/16/email_open_image.png, title=Отписване от получаване на циркулярни имейли, order=29.9');
             }
         }
     }
