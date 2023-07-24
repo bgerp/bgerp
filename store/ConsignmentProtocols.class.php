@@ -448,7 +448,7 @@ class store_ConsignmentProtocols extends core_Master
             $form->info = "<div class='richtext-info-no-image'>" . tr($infoCaption) . "</div>";
             if($rec->protocolType == 'reclamation'){
                 $defaultProductType = 'ours';
-                $ContragentMvc = cls::get($originRec->contragentClassId);
+                $ContragentMvc = cls::get($rec->contragentClassId);
                 $form->setField('contragentClassId', 'input');
                 $form->setField('contragentId', 'input');
                 $form->setFieldType('contragentId', "key2(mvc={$ContragentMvc->className},select=name,allowEmpty)");
