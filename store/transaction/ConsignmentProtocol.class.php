@@ -169,14 +169,13 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             $receivedProductsArr = arr::extractValuesFromArray($receivedArr, 'productId');
 
             $haveMetaToSend = cls::get('store_ConsignmentProtocolDetailsSend')->getExpectedProductMetaProperties($rec->productType, 'send');
-            $sendErrorMsg = ($rec->productType == 'ours') ? 'трябва да са складируеми и продаваеми и да не са генерични' : 'трябва да са складируеми и да не са генерични';
-            if($redirectError = deals_Helper::getContoRedirectError($sendProductsArr, $haveMetaToSend, 'generic', $sendErrorMsg)){
+            $errorMsg = 'трябва да са складируеми и да не са генерични';
+            if($redirectError = deals_Helper::getContoRedirectError($sendProductsArr, $haveMetaToSend, 'generic', $errorMsg)){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
 
             $haveMetaToReceive = cls::get('store_ConsignmentProtocolDetailsReceived')->getExpectedProductMetaProperties($rec->productType, 'receive');
-            $receiveErrorMsg = ($rec->productType == 'ours') ? 'трябва да са складируеми и купуваеми и да не са генерични' : 'трябва да са складируеми и да не са генерични';
-            if($redirectError = deals_Helper::getContoRedirectError($receivedProductsArr, $haveMetaToReceive, 'generic', $receiveErrorMsg)){
+            if($redirectError = deals_Helper::getContoRedirectError($receivedProductsArr, $haveMetaToReceive, 'generic', $errorMsg)){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }

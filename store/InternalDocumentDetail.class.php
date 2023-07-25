@@ -344,8 +344,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public function getExpectedProductMetaProperties($type, $direction)
     {
-        if($type == 'other') return 'canStore';
-
-        return ($direction == 'send') ? 'canStore' : 'canStore';
+        return 'canStore';
     }
 }

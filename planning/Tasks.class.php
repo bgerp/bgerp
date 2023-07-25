@@ -3553,7 +3553,7 @@ class planning_Tasks extends core_Master
 
             if(countR($errorTaskMoves)){
                 $implodedErrorMoved = implode(', ', $errorTaskMoves);
-                core_Statuses::newStatus("Имаше проблем при местенето на следните операции|*: {$implodedErrorMoved}", 'error', null, 180);
+                core_Statuses::newStatus("Имаше проблем при преместването на следните операции|*: {$implodedErrorMoved}", 'error', null, 180);
             }
         }
 
