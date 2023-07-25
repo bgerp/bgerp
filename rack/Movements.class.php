@@ -1035,15 +1035,17 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         $quantityOnPallet = rack_Pallets::getDefaultQuantity($transaction->productId, $transaction->storeId, $transaction->from);
-        
+
         $fromPallet = $fromQuantity = $toQuantity = null;
         if (!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR) {
-            $fromPallet = rack_Pallets::getByPosition($transaction->from, $transaction->storeId, $transaction->productId);
-            if (empty($fromPallet)) {
-                $res->errors = 'Палетът вече не е активен';
-                $res->errorFields[] = 'palletId';
-                
-                return $res;
+            if($transaction->quantity > 0){
+                $fromPallet = rack_Pallets::getByPosition($transaction->from, $transaction->storeId, $transaction->productId);
+                if (empty($fromPallet)) {
+                    $res->errors = 'Палетът вече не е активен';
+                    $res->errorFields[] = 'palletId';
+
+                    return $res;
+                }
             }
             
             $fromQuantity = $fromPallet->quantity;
