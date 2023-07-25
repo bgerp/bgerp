@@ -124,18 +124,19 @@ class barcode_Search extends core_Manager
             $tableTpl->append('</table></div>');
         }
 
-        $tpl->appendOnce('<script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>', 'HEAD');
+        $tpl->appendOnce('<script type="text/javascript" src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>', 'HEAD');
         $tpl->push('barcode/js/scan.js', 'JS');
-        $a = '<div id="scanTools" style="display:none">
+        $a = ' <style> .cameraSource.active {background-color: #bbb;}</style>
+
+        <div id="scanTools" style="display:none">
                 <div class="scanTools" style="display: none">
                     <a class="button" id="startButton">Start</a>
                     <a class="button" id="resetButton">Reset</a>
                 </div>
-                <div id="sourceSelectPanel" style="display:none">
-                    <select id="sourceSelect"></select>
+                <div id="sourceSelectPanel" style="display:none; margin-bottom: 20px;">
                 </div>
                 <div id="camera" style="display: none">
-                    <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
+                    <video id="video" style="border: 1px solid gray; width: 100%; height:100%; max-width: 600px; max-height: 600px;"></video>
                 </div>
              </div>';
         $tpl->append($a);
