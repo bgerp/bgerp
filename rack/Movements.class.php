@@ -1076,12 +1076,12 @@ class rack_Movements extends rack_MovementAbstract
                     $res->errorFields[] = 'positionTo,productId';
                 }
             }
-            
+
             // Ако има нова позиция и тя е заета от различен продукт - грешка
             if (isset($toProductId) && $toProductId != $transaction->productId) {
                 $storeId = $transaction->storeId;
-
                 $samePosPallets = rack_Pallets::canHaveMultipleOnOnePosition($storeId);
+
                 if(!$samePosPallets) {
                     $res->errors = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
                     $res->errorFields[] = 'positionTo,productId';
