@@ -276,19 +276,10 @@ class deals_QuotationDetails extends doc_Detail
                 }
             }
 
-            if (strtolower(Request::get('Act')) != 'createproduct') {
-                if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")) {
-                    if ($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id) {
-                        $form->setError('productId', 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален!');
-                        return;
-                    }
-                }
-            }
-
             if (!$form->gotErrors()) {
                 $idToCheck = ($form->cmd == 'save_new_row') ? null : $rec->id;
 
-                if($rec->_createProductForm != true && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $idToCheck, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                if(!$rec->_createProductForm && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $idToCheck, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
                     $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
                 }
 
