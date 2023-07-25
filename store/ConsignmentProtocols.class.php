@@ -6,7 +6,6 @@
  *
  * Мениджър на протоколи за отговорно пазене
  *
- *
  * @category  bgerp
  * @package   store
  *
@@ -187,7 +186,7 @@ class store_ConsignmentProtocols extends core_Master
     public function description()
     {
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf,select=title)', 'input=hidden,caption=Контрагент->Вид,mandatory,silent,removeAndRefreshForm=contragentId|locationId');
-        $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol,caption=Контрагент->Име,mandatory,silent,removeAndRefreshForm=locationId');
+        $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol,caption=Контрагент->Име,silent,removeAndRefreshForm=locationId');
         $this->FLD('valior', 'date', 'caption=Вальор');
         $this->FLD('protocolType', 'enum(protocol=Протокол,return=Връщане,reclamation=Рекламация)', 'input=hidden,silent,notNull,value=protocol');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
@@ -202,6 +201,10 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
         $this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
         $this->FLD('responsible', 'varchar', 'caption=Допълнително->Получил');
+
+        $this->setDbIndex('contragentClassId,contragentId');
+        $this->setDbIndex('protocolType');
+        $this->setDbIndex('lineId');
     }
     
     
@@ -485,10 +488,15 @@ class store_ConsignmentProtocols extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if($form->isSubmitted()){
+            $rec = &$form->rec;
 
             // Задаване на дефолтния склад, ако потребителя е партньор
             if(core_Packs::isInstalled('colab') && haveRole('partner')){
-                $form->rec->storeId = cond_Parameters::getParameter($form->rec->contragentClassId, $form->rec->contragentId, 'defaultStoreSale');
+                $rec->storeId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'defaultStoreSale');
+            }
+
+            if(empty($rec->contragentId)){
+                $form->setError('contragentId', 'Не е посочен контрагент');
             }
         }
     }
@@ -564,7 +572,6 @@ class store_ConsignmentProtocols extends core_Master
         $tplArr = array();
         $tplArr[] = array('name' => 'Протокол за отговорно пазене', 'content' => 'store/tpl/SingleLayoutConsignmentProtocol.shtml',
             'narrowContent' => 'store/tpl/SingleLayoutConsignmentProtocolNarrow.shtml', 'lang' => 'bg');
-        
 
         $res = doc_TplManager::addOnce($this, $tplArr);
         
@@ -606,7 +613,6 @@ class store_ConsignmentProtocols extends core_Master
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
-     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -620,7 +626,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Информацията на документа, за показване в транспортната линия
      *
-     * @param mixed $id
+     * @param mixed $rec
      * @param int $lineId
      *
      * @return array
@@ -895,15 +901,18 @@ class store_ConsignmentProtocols extends core_Master
     protected static function on_AfterCreate($mvc, $rec)
     {
         if(isset($rec->originId)){
+
+            // Ако се създава на база на друг ПОП
             $Origin = doc_Containers::getDocument($rec->originId);
             if(!$Origin->isInstanceOf('store_ConsignmentProtocols')) return;
 
-            // Копиране на артикилите
+            // Ако оригинала е за чужди - получените ще се прехвърлят в изпратени
             $originProductType = $Origin->fetchField('productType');
             if($originProductType == 'other'){
                 $cloneQuery = store_ConsignmentProtocolDetailsReceived::getQuery();
                 $DetailMvc = cls::get('store_ConsignmentProtocolDetailsSend');
             } else {
+                // Ако оригинала е за наши - изпратените ще се прехвърлят в получени
                 $cloneQuery = store_ConsignmentProtocolDetailsSend::getQuery();
                 $DetailMvc = cls::get('store_ConsignmentProtocolDetailsReceived');
             }
