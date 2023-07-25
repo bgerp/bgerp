@@ -3405,7 +3405,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $assetId = Request::get('assetId', 'int');
-        if(isset($assetId)){
+        if(isset($assetId) && !Request::get('Rejected')){
             if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $assetId))){
                 $data->toolbar->addBtn('Преизчисляване', array('planning_AssetResources', 'recalcTimes', $assetId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
             }
