@@ -2850,6 +2850,9 @@ class planning_Tasks extends core_Master
             $groupParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
             $plannedParams += keylist::toArray($groupParams);
             unset($data->listFields['assetId']);
+
+            $fieldsToFilterIfEmpty[] = 'selectBtn';
+            arr::placeInAssocArray($data->listFields, array('selectBtn' => "|*&nbsp;"), 'expectedTimeStart');
         }
 
         // Ако има избран център - тези параметри от тях
@@ -2951,9 +2954,6 @@ class planning_Tasks extends core_Master
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
 
-        $fieldsToFilterIfEmpty[] = 'selectBtn';
-        arr::placeInAssocArray($data->listFields, array('selectBtn' => "|*&nbsp;"), 'expectedTimeStart');
-        
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
@@ -3235,13 +3235,13 @@ class planning_Tasks extends core_Master
     {
         // Включване на драг и дроп ако има избрано оборудване
         $tpl->push('planning/js/TaskCommon.js', 'JS');
-        jquery_Jquery::run($tpl, 'enableCopy2Clipboard();');
-        jquery_Jquery::run($tpl, 'selectAllSession();');
-        jquery_Jquery::runAfterAjax($tpl, 'enableCopy2Clipboard');
-        jquery_Jquery::runAfterAjax($tpl, 'selectAllSession');
         jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
 
         if(isset($data->listFilter->rec->assetId)){
+            jquery_Jquery::run($tpl, 'enableCopy2Clipboard();');
+            jquery_Jquery::run($tpl, 'selectAllSession();');
+            jquery_Jquery::runAfterAjax($tpl, 'enableCopy2Clipboard');
+            jquery_Jquery::runAfterAjax($tpl, 'selectAllSession');
             if (!Request::get('ajax_mode')) {
                 jqueryui_Ui::enable($tpl);
                 $tpl->push('planning/js/Tasks.js', 'JS');
