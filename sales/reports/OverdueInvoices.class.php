@@ -151,7 +151,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $salQuery = sales_Sales::getQuery();
 
-        $salQuery->where("#state = 'active'");
+        $salQuery->in('state', array('rejected', 'draft'), true);
 
         $salQuery->where("#closedOn IS NULL OR #closedOn > '$checkDate'");
 
@@ -161,7 +161,17 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $salesTotalOverDue = $salesTotalPayout = 0;
         $invoiceCurrentSummArr = array();
 
+
+
+
         if (is_array($threadsActivSalesArr)) {
+
+            // Синхронизира таймлимита с броя записи //
+            $maxTimeLimit = countR($threadsActivSalesArr) * 30;
+            $maxTimeLimit = max(array($maxTimeLimit, 300));
+            core_App::setTimeLimit($maxTimeLimit);
+
+
             foreach ($threadsActivSalesArr as $thread) {
 
                 //Договора за продажба
