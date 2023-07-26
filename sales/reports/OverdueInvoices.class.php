@@ -167,7 +167,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         if (is_array($threadsActivSalesArr)) {
 
             // Синхронизира таймлимита с броя записи //
-            $maxTimeLimit = countR($threadsActivSalesArr) * 30;
+            $maxTimeLimit = countR($threadsActivSalesArr) * 5;
             $maxTimeLimit = max(array($maxTimeLimit, 300));
             core_App::setTimeLimit($maxTimeLimit);
 
