@@ -783,18 +783,20 @@ class planning_Tasks extends core_Master
             }
         } else {
             // Ако има предишна операция, ще може да се поставя след нея
-            if (!$mvc->getPrevOrNextTask($rec)) {
-                if ($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'before')) && !isset($fields['-detail'])) {
-                    core_RowToolbar::createIfNotExists($row->_rowTools);
-                    $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'before', 'ret_url' => true), 'local');
-                    $row->_rowTools->addLink("Постави преди", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на избраните операции преди|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=pasteFromClipboard");
+            if(Request::get('assetId', 'int')){
+                if (!$mvc->getPrevOrNextTask($rec)) {
+                    if ($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'before')) && !isset($fields['-detail'])) {
+                        core_RowToolbar::createIfNotExists($row->_rowTools);
+                        $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'before', 'ret_url' => true), 'local');
+                        $row->_rowTools->addLink("Постави преди", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на избраните операции преди|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=pasteFromClipboard");
+                    }
                 }
-            }
 
-            if ($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'after')) && !isset($fields['-detail'])) {
-                core_RowToolbar::createIfNotExists($row->_rowTools);
-                $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'after', 'ret_url' => true), 'local');
-                $row->_rowTools->addLink("Постави след", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на избраните операции след|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=pasteFromClipboard");
+                if ($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'after')) && !isset($fields['-detail'])) {
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'after', 'ret_url' => true), 'local');
+                    $row->_rowTools->addLink("Постави след", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на избраните операции след|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=pasteFromClipboard");
+                }
             }
         }
 
