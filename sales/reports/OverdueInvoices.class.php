@@ -134,6 +134,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        core_App::setTimeLimit(100);
+
         if (!$rec->checkDate) {
             $checkDate = dt::now();
         } else {
