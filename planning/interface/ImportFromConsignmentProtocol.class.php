@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     импорт от ПОП (чужди) в сделката
+ * @title     Импорт от ПОП (чужди) в сделката
  */
 class planning_interface_ImportFromConsignmentProtocol extends planning_interface_ConsumptionNoteImportProto
 {
@@ -36,6 +36,9 @@ class planning_interface_ImportFromConsignmentProtocol extends planning_interfac
         $rec->detailsDef = array();
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
+        if($firstDocument->isInstanceOf('planning_Tasks')){
+            $firstDocument = doc_Containers::getDocument($firstDocument->fetchField('originId'));
+        }
         $jobRec = $firstDocument->fetch();
 
         $form->FLD("forQuantity", 'int', "input,caption=За количество,silent");
@@ -131,7 +134,7 @@ class planning_interface_ImportFromConsignmentProtocol extends planning_interfac
             if(empty($masterRec->storeId)) return false;
 
             $firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
-            if(!$firstDocument->isInstanceOf('planning_Jobs')) return false;
+            if(!$firstDocument->isInstanceOf('planning_Jobs') && !$firstDocument->isInstanceOf('planning_Tasks')) return false;
             $receivedProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($masterRec->threadId, false);
 
             return countR($receivedProducts) > 0;

@@ -138,11 +138,16 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     {
         $res = array();
         $saleId = null;
+
+        // Прави се опит за намиране на продажбата от първия документ в нишката
         $firstDocument = doc_Threads::getFirstDocument($threadId);
         if($firstDocument->isInstanceOf('sales_Sales')) {
             $saleId = $firstDocument->that;
         } elseif($firstDocument->isInstanceOf('planning_Jobs')){
             $saleId = $firstDocument->fetchField('saleId');
+        } elseif($firstDocument->isInstanceOf('planning_Tasks')){
+            $jobContainerId = $firstDocument->fetchField('originId');
+            $saleId = planning_Jobs::fetchField("#containerId={$jobContainerId}", 'saleId');
         }
         if(!$saleId) return $res;
 
