@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Импорт от предишни операции
  */
-class planning_interface_ImportFromPreviousTasks extends planning_interface_ImportDriver
+class planning_interface_ImportFromPreviousTasks extends planning_interface_ConsumptionNoteImportProto
 {
     /**
      * Заглавие
@@ -27,7 +27,6 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
      *
      * @param core_Manager  $mvc
      * @param core_FieldSet $form
-     *
      * @return void
      */
     public function addImportFields($mvc, core_FieldSet $form)
@@ -186,33 +185,6 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
 
 
     /**
-     * Помощна ф-я за добавяне на партидности към резултатите от предходните ПО
-     *
-     * @param core_Query $bQuery
-     * @param array $producedProducts
-     * @param bool $zeroQuantity
-     * @return void
-     */
-    private static function addBatchDataToArray($bQuery, &$producedProducts, $zeroQuantity = false)
-    {
-        while($bRec = $bQuery->fetch()){
-            if($batchDef = batch_Defs::getBatchDef($bRec->productId)){
-                $bArr = array_keys($batchDef->makeArray($bRec->batch));
-                foreach ($bArr as $b){
-                    $bKey = md5($b);
-                    if(!array_key_exists($bKey, $producedProducts[$bRec->productId]['batches'])){
-                        $producedProducts[$bRec->productId]['batches'][$bKey] = array("batch" => $b, 'quantity' => 0);
-                    }
-                    if(!$zeroQuantity){
-                        $producedProducts[$bRec->productId]['batches'][$bKey]['quantity'] += $bRec->quantity;
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
      * Кои са нишките от предходната операция
      *
      * @param $firstDocRec
@@ -233,96 +205,6 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Impo
         $threads = arr::extractValuesFromArray($prevTasks, 'threadId');
 
         return $threads;
-    }
-
-
-    /**
-     * Връща записите, подходящи за импорт в детайла
-     *
-     * @param array $recs
-     *                    o productId        - ид на артикула
-     *                    o quantity         - к-во в основна мярка
-     *                    o quantityInPack   - к-во в опаковка
-     *                    o packagingId      - ид на опаковка
-     *                    o batch            - дефолтна партида, ако може
-     *                    o notes            - забележки
-     *                    o $this->masterKey - ид на мастър ключа
-     * @return void
-     */
-    private function getImportRecs(core_Manager $mvc, $rec)
-    {
-        $recs = array();
-        if (!is_array($rec->_details)) return $recs;
-
-        foreach ($rec->_details as $key => $data) {
-
-            // Ако има въведено количество групира се по к-во и партиди
-            if (!empty($rec->{$key})) {
-                $k = "{$data['productId']}|{$data['packagingId']}";
-                if(!array_key_exists($k, $recs)){
-                    $importRec = (object)array('productId' => $data['productId'],
-                                               'packagingId' => $data['packagingId'],
-                                               'quantityInPack' => $data['quantityInPack'],
-                                               'noteId' => $rec->{$mvc->masterKey},
-                                               'batches' => array(),
-                                               'quantity' => 0);
-                    $recs[$k] = $importRec;
-                }
-                $recs[$k]->quantity += $rec->{$key};
-                if(!empty($data['batch'])){
-                    $recs[$k]->batches[$data['batch']] = $rec->{$key};
-                }
-            }
-        }
-
-        return $recs;
-    }
-
-
-    /**
-     * Импортиране на детайла (@see import2_DriverIntf)
-     *
-     * @param object $rec
-     *
-     * @return void
-     */
-    public function doImport(core_Manager $mvc, $rec)
-    {
-        if (!is_array($rec->importRecs)) return;
-
-        foreach ($rec->importRecs as $rec) {
-            $fields = array();
-            $exRec = null;
-            if (!$mvc->isUnique($rec, $fields, $exRec)) {
-                core_Statuses::newStatus('Записът не е импортиран, защото има дублиране');
-                continue;
-            }
-
-            $rec->_clonedWithBatches = true;
-            $rec->autoAllocate = false;
-
-            $mvc->save($rec);
-            if(countR($rec->batches)){
-                batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $rec->batches);
-            }
-        }
-    }
-
-
-    /**
-     * Проверява събмитнатата форма
-     *
-     * @param core_Manager  $mvc
-     * @param core_FieldSet $form
-     *
-     * @return void
-     */
-    public function checkImportForm($mvc, core_FieldSet $form)
-    {
-        $rec = &$form->rec;
-        if ($form->isSubmitted()) {
-            $rec->importRecs = $this->getImportRecs($mvc, $rec);
-        }
     }
 
 
