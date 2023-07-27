@@ -128,6 +128,8 @@ class planning_interface_ImportFromConsignmentProtocol extends planning_interfac
         if (!($mvc instanceof planning_ConsumptionNoteDetails)) return false;
         if(isset($masterId)) {
             $masterRec = $mvc->Master->fetch($masterId);
+            if(empty($masterRec->storeId)) return false;
+
             $firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
             if(!$firstDocument->isInstanceOf('planning_Jobs')) return false;
             $receivedProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($masterRec->threadId, false);
