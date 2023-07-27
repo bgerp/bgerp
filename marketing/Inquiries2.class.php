@@ -128,7 +128,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId, personNames, title, company, email, place';
+    public $searchFields = 'folderId, personNames, title, company, email, place, inqDescription';
     
     
     /**

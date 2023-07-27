@@ -144,7 +144,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId,locationId,company,person,tel,pCode,place,address,note';
+    public $searchFields = 'folderId,locationId,company,person,tel,pCode,place,address,note,addressInfo';
 
 
     /**

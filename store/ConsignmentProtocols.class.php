@@ -137,7 +137,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior,folderId,note';
+    public $searchFields = 'valior,folderId,note,responsible';
 
 
     /**
