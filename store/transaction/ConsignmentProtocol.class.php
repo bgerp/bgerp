@@ -88,11 +88,23 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         $receivedAll = $receivedQuery->fetchAll();
 
         $sendArr = $receivedArr = array();
-        array_walk($sendAll, function($a) use (&$sendArr) {$sendArr[$a->productId] = $a;});
-        array_walk($receivedAll, function($a) use (&$receivedArr) {$receivedArr[$a->productId] = $a;});
+
 
         // Ако е за "Наши артикули"
         if($rec->productType == 'ours'){
+            array_walk($sendAll, function($a) use (&$sendArr) {
+                if(!array_key_exists($a->productId, $sendArr)){
+                    $sendArr[$a->productId] = (object)array('productId' => $a->productId, 'quantity' => 0);
+                }
+                $sendArr[$a->productId]->quantity += $a->quantity;
+            });
+
+            array_walk($receivedAll, function($a) use (&$receivedArr) {
+                if(!array_key_exists($a->productId, $receivedArr)){
+                    $receivedArr[$a->productId] = (object)array('productId' => $a->productId, 'quantity' => 0);
+                }
+                $receivedArr[$a->productId]->quantity += $a->quantity;
+            });
 
             // Има ли артикули, които се предават и връщат със същия документ
             $intersectedArr = array_keys(array_intersect_key($sendArr, $receivedArr));
@@ -101,33 +113,33 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             foreach ($intersectedArr as $intersectedProductId){
                 $clone = clone $sendArr[$intersectedProductId];
                 $clone->quantity = $sendArr[$intersectedProductId]->quantity -= $receivedArr[$intersectedProductId]->quantity;
-                $clone->packQuantity = $clone->quantity /= $clone->quantityInPack;
                 unset($sendArr[$intersectedProductId], $receivedArr[$intersectedProductId]);
 
                 if($clone->quantity < 0){
                     $clone->quantity = abs($clone->quantity);
-                    $clone->packQuantity = abs($clone->packQuantity);
                     $receivedArr[$intersectedProductId] = $clone;
                 } else {
                     $sendArr[$intersectedProductId] = $clone;
                 }
             }
+        } else {
+            $sendArr = $sendAll;
+            $receivedArr = $receivedAll;
         }
 
         foreach ($sendArr as $sendRec) {
             $productsArr[$sendRec->productId] = $sendRec->productId;
-            $quantity = $sendRec->quantityInPack * $sendRec->packQuantity;
             $debitAccId = ($rec->productType == 'ours') ? '3231' : '3232';
 
             $entry = array(
                 'debit' => array($debitAccId,
                     array($rec->contragentClassId, $rec->contragentId),
                     array('cat_Products', $sendRec->productId),
-                    'quantity' => $quantity),
+                    'quantity' => $sendRec->quantity),
                 'credit' => array('321',
                     array('store_Stores', $rec->storeId),
                     array('cat_Products', $sendRec->productId),
-                    'quantity' => $quantity),
+                    'quantity' => $sendRec->quantity),
             );
 
             if($debitAccId == '3232'){
@@ -137,22 +149,21 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
 
             $entries[] = $entry;
         }
-        
+
         // Намираме всички върнати артикули
         foreach ($receivedArr as $recRec) {
             $productsArr[$recRec->productId] = $recRec->productId;
-            $quantity = $recRec->quantityInPack * $recRec->packQuantity;
             $creditAccId = ($rec->productType == 'ours') ? '3231' : '3232';
 
             $entry = array(
                 'debit' => array('321',
                     array('store_Stores', $rec->storeId),
                     array('cat_Products', $recRec->productId),
-                    'quantity' => $quantity),
+                    'quantity' => $recRec->quantity),
                 'credit' => array($creditAccId,
                     array($rec->contragentClassId, $rec->contragentId),
                     array('cat_Products', $recRec->productId),
-                    'quantity' => $quantity),
+                    'quantity' => $recRec->quantity),
             
             );
 
