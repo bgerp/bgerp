@@ -926,4 +926,53 @@ class store_ConsignmentProtocols extends core_Master
             }
         }
     }
+
+
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = static::fetchRec($id);
+
+        // Ако протокола е за чужди артикули в нишка на продажба
+        if($rec->productType != 'other') return;
+        $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+        if(!$firstDocument->isInstanceOf('sales_Sales')) return;
+
+        // и има получени чужди такива
+        $dQuery = store_ConsignmentProtocolDetailsReceived::getQuery();
+        $dQuery->where("#protocolId = {$rec->id}");
+        $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+        if(empty($productIds)) return;
+
+        // Извличане на нишките на заданията към продажбата и на нишките на ПО-та към тях
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->where("#saleId = {$firstDocument->that} AND #state NOT IN ('draft', 'rejected')");
+        $jQuery->show('threadId');
+        $jobAll = $jQuery->fetchAll();
+        if(!countR($jobAll)) return;
+
+        $threadIds = arr::extractValuesFromArray($jQuery->fetchAll(), 'threadId');
+        $containerIds = arr::extractValuesFromArray($jQuery->fetchAll(), 'containerId');
+        if(!countR($threadIds)) return;
+
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->in("originId", $containerIds);
+        $tQuery->show('threadId');
+        $threadIds += arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
+
+        // Гледа се дали получените артикули са вложени в ПП в горенамерените нишки
+        $pQuery = planning_DirectProductNoteDetails::getQuery();
+        $pQuery->EXT('threadId', 'planning_DirectProductionNote', 'externalName=threadId,externalKey=noteId');
+        $pQuery->in('threadId', $threadIds);
+        $pQuery->in('productId', $productIds);
+
+        // Ако има се сетва грешка
+        if($pQuery->count()){
+            core_Statuses::newStatus('Не може да се оттегли, защото някои от получените чужди артикули са използвани за влагане в производството по задания към продажбата|*!', 'error');
+
+            return false;
+        }
+    }
 }
