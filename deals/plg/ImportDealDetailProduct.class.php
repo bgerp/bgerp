@@ -240,7 +240,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $masterRec = $mvc->Master->fetch($masterId);
                 if($mvc instanceof planning_DirectProductNoteDetails){
                     $metaArr = array('canConvert' => 'canConvert');
-                } elseif($mvc instanceof store_ConsignmentProtocols){
+                } elseif($mvc instanceof store_InternalDocumentDetail){
                     $metaArr = array('canStore' => 'canStore');
                 } else {
                     if(isset($masterRec->originId)){
@@ -256,8 +256,13 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             }
 
-            $metaString = implode(',', $metaArr);
-            $productRec = cat_Products::fetch($pRec->productId, "state,isPublic,folderId,{$metaString}");
+            if(countR($metaArr)){
+                $metaString = implode(',', $metaArr);
+                $fields = "state,isPublic,folderId,{$metaString}";
+            } else {
+                $fields = "state,isPublic,folderId";
+            }
+            $productRec = cat_Products::fetch($pRec->productId, $fields);
             if ($productRec->state != 'active') {
                 $err[$i][] = $obj->code . ' - |Артикулът не е активен|*!';
                 continue;
