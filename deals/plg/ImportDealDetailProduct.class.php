@@ -240,6 +240,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $masterRec = $mvc->Master->fetch($masterId);
                 if($mvc instanceof planning_DirectProductNoteDetails){
                     $metaArr = array('canConvert' => 'canConvert');
+                } elseif($mvc instanceof store_ConsignmentProtocols){
+                    $metaArr = array('canStore' => 'canStore');
                 } else {
                     if(isset($masterRec->originId)){
                         $Document = doc_Containers::getDocument($masterRec->originId);
