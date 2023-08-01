@@ -211,7 +211,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         foreach ($rows as $i => &$row) {
 
             // Подготвяме данните за реда
-            $obj = (object) array('code' => $row[$fields['code']],
+            $obj = (object) array('code' => "{$row["{$fields['pack']}"]}",
                 'quantity' => $row[$fields['quantity']],
                 'pack' => ($row[$fields['pack']]) ? $row[$fields['pack']] : null,
                 'price' => $row[$fields['price']] ? $row[$fields['price']] : null,
@@ -258,11 +258,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
             if(countR($metaArr)){
                 $metaString = implode(',', $metaArr);
-                $fields = "state,isPublic,folderId,{$metaString}";
+                $fieldSelect = "state,isPublic,folderId,{$metaString}";
             } else {
-                $fields = "state,isPublic,folderId";
+                $fieldSelect = "state,isPublic,folderId";
             }
-            $productRec = cat_Products::fetch($pRec->productId, $fields);
+            $productRec = cat_Products::fetch($pRec->productId, $fieldSelect);
             if ($productRec->state != 'active') {
                 $err[$i][] = $obj->code . ' - |Артикулът не е активен|*!';
                 continue;
