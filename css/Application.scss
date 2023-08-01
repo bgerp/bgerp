@@ -2346,16 +2346,20 @@ border-radius: 3px;
 }
 
 .stamp{
-color: #b00;
-border: 1px dotted #b00;
-display: inline-block;
-font-size: 1em;
-position: relative;
-z-index: 100;
-top: 50px;
-transform: rotate(16deg);
-padding: 1px 2px 0px 2px !important;
-border-radius: 3px;
+	color: #b00;
+	border: 1px dotted #b00;
+	display: inline-block;
+	font-size: 1em;
+	position: relative;
+	z-index: 100;
+	top: 50px;
+	transform: rotate(16deg);
+	padding: 1px 2px 0px 2px !important;
+	border-radius: 3px;
+	&.consignmentProtocol {
+		color: #444;
+		border: 1px dotted #333;
+	}
 }
 .approved {
 padding: 10px 10px 5px !important
