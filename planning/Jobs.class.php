@@ -351,6 +351,7 @@ class planning_Jobs extends core_Master
             $form->setReadOnly('productId');
         }
 
+        $defaultProductId = $defaultProductPack = $defaultQuantity = null;
         if (isset($rec->saleId)) {
 
             // Ако заданието е към продажба, може да се избират само измежду артикулите в нея
@@ -358,13 +359,27 @@ class planning_Jobs extends core_Master
             $form->setFieldType('productId', 'key(mvc=cat_Products)');
 
             // Дефолтния артикул е първия без задание към продажбата
-            $defaultProductId = null;
+            $packsInDeal = array();
+            $sQuery = sales_SalesDetails::getQuery();
+            $sQuery->where("#saleId = {$rec->saleId}");
+            $sQuery->in('productId', array_keys($products));
+            $sQuery->show('productId,packagingId,packQuantity');
+            while($sRec = $sQuery->fetch()){
+                $packsInDeal[$sRec->productId][$sRec->packagingId] = $sRec->packQuantity;
+            }
+
             foreach ($products as $pId => $pName){
-                if(!static::fetchField("#productId = {$pId} AND #saleId = {$rec->saleId} AND #state != 'rejected'")){
-                    $defaultProductId = $pId;
-                    break;
+                foreach ($packsInDeal[$pId] as $packId => $packQuantity){
+                    $exRec = static::fetchField("#productId = {$pId} AND #saleId = {$rec->saleId} AND #packagingId = {$packId} AND #state != 'rejected'");
+                    if(!$exRec){
+                        $defaultProductId = $pId;
+                        $defaultProductPack = $packId;
+                        $defaultQuantity = $packQuantity;
+                        break;
+                    }
                 }
             }
+
             $form->setDefault('productId', $defaultProductId);
             $form->rec->_allowedProductsCnt = countR($products);
             if($form->rec->_allowedProductsCnt == 1){
@@ -408,9 +423,8 @@ class planning_Jobs extends core_Master
                 $form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId, $deliveryDate));
 
                 $saleRec = sales_Sales::fetch($rec->saleId);
-                $dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
-                $form->setDefault('packagingId', $dRec->packagingId);
-                $form->setDefault('packQuantity', $dRec->packQuantity);
+                $form->setDefault('packagingId', $defaultProductPack);
+                $form->setDefault('packQuantity', $defaultQuantity);
 
                 // Ако има данни от продажба, попълваме ги
                 $form->setDefault('storeId', $saleRec->shipmentStoreId);
