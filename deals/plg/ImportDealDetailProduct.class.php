@@ -211,13 +211,13 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         foreach ($rows as $i => &$row) {
 
             // Подготвяме данните за реда
-            $obj = (object) array('code' => "{$row["{$fields['pack']}"]}",
+            $obj = (object) array('code' => "{$row["{$fields['code']}"]}",
                 'quantity' => $row[$fields['quantity']],
                 'pack' => ($row[$fields['pack']]) ? $row[$fields['pack']] : null,
                 'price' => $row[$fields['price']] ? $row[$fields['price']] : null,
                 'batch' => ($row[$fields['batch']]) ? $row[$fields['batch']] : null,
             );
-            
+
             // Подсигуряваме се, че подадените данни са във вътрешен вид
             $obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
             $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
@@ -263,6 +263,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $fieldSelect = "state,isPublic,folderId";
             }
             $productRec = cat_Products::fetch($pRec->productId, $fieldSelect);
+
             if ($productRec->state != 'active') {
                 $err[$i][] = $obj->code . ' - |Артикулът не е активен|*!';
                 continue;
