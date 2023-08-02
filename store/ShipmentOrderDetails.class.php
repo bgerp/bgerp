@@ -243,13 +243,17 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             
             if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice) && $masterRec->isReverse == 'no') {
                 $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
-                $foundPrimeCost = null;
-                if (sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $foundPrimeCost)) {
+
+                $comparedWithPrimeCostObj = sales_PrimeCostByDocument::comparePriceWithPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $mvc, $rec->id);
+                if($comparedWithPrimeCostObj->bellowPrimeCost){
                     $warning = 'Цената е под себестойността';
-                    if(isset($foundPrimeCost)){
-                        $foundPrimeCost /= $masterRec->currencyRate;
-                        $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
+                    if(isset($comparedWithPrimeCostObj->primeCost)){
+                        $comparedWithPrimeCostObj->primeCost /= $masterRec->currencyRate;
+                        $primeCostVerbal = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($comparedWithPrimeCostObj->primeCost * $rec->quantityInPack);
                         $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
+                        if($comparedWithPrimeCostObj->isCache){
+                            $warning .= " (|Кеш|*)";
+                        }
                     }
                     if(!Mode::isReadOnly()){
                         $row->packPrice = "<span class='priceBellowPrimeCost'>{$row->packPrice}</span>";
