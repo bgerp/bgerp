@@ -385,13 +385,19 @@ class doc_DocumentPlg extends core_Plugin
         $retUrl = array($mvc, 'single', $data->rec->id);
         
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
+            $rejArr = array($mvc, 'reject', $data->rec->id);
+            // При оттегляне да редиректва към сингъла на папката, ако има права за там
+            if ($data->rec->folderId && doc_Folders::haveRightFor('single', $data->rec->folderId)) {
+                if ($data->rec->threadId) {
+                    if (doc_Threads::getFirstContainerId($data->rec->threadId) == $data->rec->containerId) {
+                        $rejArr['ret_url'] = array('doc_Folders', 'single', $data->rec->folderId);
+                    }
+                }
+            }
+
             $data->toolbar->addBtn(
                 'Оттегляне',
-                array(
-                    $mvc,
-                    'reject',
-                    $data->rec->id
-                ),
+                $rejArr,
                 "id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr('Оттегляне на документа'),
                 'ef_icon = img/16/reject.png'
             );
@@ -1635,11 +1641,11 @@ class doc_DocumentPlg extends core_Plugin
      * @param int          $recId
      * @param int          $docId
      */
-    public static function on_AfeterCheckDocExist($mvc, &$res, $recId, $docId)
+    public static function on_AfterCheckDocExist($mvc, &$res, $recId, $docId)
     {
-        $rec = $mvc->fetch($rec->id);
+        $rec = $mvc->fetchRec($recId);
         
-        if ($rec->containerId = $docId) {
+        if ($rec->containerId == $docId) {
             $res = true;
         }
     }

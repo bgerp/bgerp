@@ -1164,10 +1164,24 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param double $quantity
      * @param int $containerId
      * @param datetime $valior
-     * @return double $primeCost
+     * @param datetime $Mvc
+     * @param datetime $recId
+     * @return bool
      */
-    public static function isPriceBellowPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior, &$primeCost = null)
+    public static function comparePriceWithPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior, $Mvc, $recId)
     {
+        $threadId = doc_Containers::fetchField($containerId, 'threadId');
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $firstDocState = $firstDoc->fetchField('state');
+
+        // Ако първия документ в нишката е затворен
+        if($firstDocState == 'closed'){
+
+            // Кешира се моментната стойност дали цената е под сб-ст
+            $resObj = core_Permanent::get("bCost|{$threadId}|{$Mvc->getClassId()}|{$recId}");
+            if(is_object($resObj)) return $resObj;
+        }
+
         $calcLiveSoDelta = sales_Setup::get('LIVE_CALC_SO_DELTAS');
         if($calcLiveSoDelta != 'yes') {
             $primeCost = self::getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId);
@@ -1176,8 +1190,14 @@ class sales_PrimeCostByDocument extends core_Manager
         if(empty($primeCost)){
             $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $valior);
         }
-        
-        return (round($price, 4) < round($primeCost, 4));
+
+        $resObj = (object)array('bellowPrimeCost' => (round($price, 4) < round($primeCost, 4)), 'primeCost' => $primeCost);
+        if($firstDocState == 'closed') {
+            $resObj->isCache = true;
+            core_Permanent::set("bCost|{$threadId}|{$Mvc->getClassId()}|{$recId}", $resObj, core_Permanent::FOREVER_VALUE);
+        }
+
+        return $resObj;
     }
     
     

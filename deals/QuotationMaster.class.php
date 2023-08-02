@@ -836,13 +836,6 @@ abstract class deals_QuotationMaster extends core_Master
             sales_TransportValues::prepareFee($newRec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'deliveryData' => 'deliveryData'));
         }
 
-        // Проверки на записите
-        if ($sameProduct = $Detail->fetch("#{$Detail->masterKey} = {$newRec->quotationId} AND #productId = {$newRec->productId}")) {
-            if ($newRec->optional == 'no' && $sameProduct->optional == 'yes') {
-                expect(false, 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален');
-            }
-        }
-
         if ($Detail->fetch("#{$Detail->masterKey} = {$newRec->quotationId} AND #productId = {$newRec->productId}  AND #quantity='{$newRec->quantity}'")) {
             expect(false, 'Избрания продукт вече фигурира с това количество');
         }

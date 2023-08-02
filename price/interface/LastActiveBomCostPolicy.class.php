@@ -119,43 +119,50 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
      */
     public function cron_updateCachedBoms()
     {
-        $updateProductIds = $updateCategoryFolderIds = array();
+        $updateProductIds = $updateCategoryFolderIds = $updateGroupIds = array();
         
-        // Кои категории и артикули имат правила за обновяване по последна рецепта
+        // Кои категории/артикули/артикули групи имат правила за обновяване по последна рецепта
         $classId = $this->getClassId();
         $uQuery = price_Updates::getQuery();
         $uQuery->where("#sourceClass1 = {$classId} OR #sourceClass2 = {$classId} OR #sourceClass3 = {$classId}");
-        
+
         while($uRec = $uQuery->fetch()){
             if($uRec->type == 'product'){
                 $updateProductIds[$uRec->objectId] = $uRec->objectId;
+            } elseif($uRec->type == 'group'){
+                $updateGroupIds[$uRec->objectId] = $uRec->objectId;
             } else {
                 $folderId = cat_Categories::fetchField($uRec->objectId, 'folderId');
                 $updateCategoryFolderIds[$folderId] = $folderId;
             }
         }
-        
-        if(!countR($updateProductIds) && !countR($updateCategoryFolderIds)){
-            
-            return;
-        }
+
+        // Ако няма нито едно правило за обновяване - нищо не се прави
+        if(!countR($updateProductIds) && !countR($updateCategoryFolderIds) && !countR($updateGroupIds)) return;
         
         // И имат активна рецепта
         $bQuery = cat_Boms::getQuery();
         $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $bQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $bQuery->EXT('pFolderId', 'cat_Products', 'externalName=folderId,externalKey=productId');
         $bQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes'");
-        
+        $bQuery->show('productId');
+
+        // Рецептите към артикулите с конкретни правила
         if(countR($updateProductIds)){
             $bQuery->in('productId', $updateProductIds);
         }
-        
+
+        // Рецептите, чиито артикули са в категория с правило
         if(countR($updateCategoryFolderIds)){
             $bQuery->in('pFolderId', $updateCategoryFolderIds, false, true);
         }
-        
-        $bQuery->show('productId');
+
+        // Рецептите, чиито артикулни групи са в категория с правило
+        if(countR($updateGroupIds)){
+            $bQuery->likeKeylist('groups', $updateGroupIds, true);
+        }
         
         $affectedProducts = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
         $count = countR($affectedProducts);

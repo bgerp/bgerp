@@ -131,7 +131,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'input') ? 'материал' : 'отнесен разход');
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : null);
-        $form->setFieldType('packQuantity', 'double(Min=0)');
+        if(empty($rec->id)){
+            $form->setFieldType('packQuantity', 'double(Min=0)');
+        }
 
         $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
         $productOptions = $expenseItemIdOptions = array();
@@ -258,11 +260,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)
     {
-        if (!countR($data->recs)) {
-            
-            return;
-        }
-        
+        if (!countR($data->recs)) return;
+
+        // Кои са получените чужди артикули
+        $consignmentProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($data->masterData->rec->threadId, false);
+
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
             $row->ROW_ATTR['class'] = ($rec->type == 'pop') ? 'row-removed' : 'row-added';
@@ -274,10 +276,21 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             if ($rec->type == 'pop') {
                 $row->packQuantity .= " {$row->packagingId}";
             }
+<<<<<<< HEAD
             
+=======
+
+            if(array_key_exists($rec->productId, $consignmentProducts)){
+                if(!Mode::isReadOnly()){
+                    $row->productId = ht::createHint($row->productId, 'Чужд артикул, получен от ПОП', 'noicon', false);
+                }
+            }
+
+>>>>>>> refs/remotes/origin/test
             if(!empty($rec->expenseItemId)){
                 $itemLink = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-                $row->productId .= "<br><small><span class='quiet'>" . tr('Раз. обект') . "</span>: {$itemLink}</small>";
+                $row->productId .= new core_ET($row->productId);
+                $row->productId->append("<br><small><span class='quiet'>" . tr('Раз. обект') . "</span>: {$itemLink}</small>");
             }
         }
     }
@@ -516,6 +529,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                         }
                     }
                 }
+            }
+        }
+
+        if($action == 'delete' && isset($rec)){
+            if(!empty($rec->quantityFromBom) || !empty($rec->quantityExpected)){
+                $requiredRoles = 'no_one';
             }
         }
     }

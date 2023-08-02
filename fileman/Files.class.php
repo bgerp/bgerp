@@ -1615,14 +1615,21 @@ class fileman_Files extends core_Master
     public static function generateUrl_($fh, $isAbsolute)
     {
         $rec = static::fetchByFh($fh);
-        
+
+        $url = null;
+
         if (static::haveRightFor('single', $rec) && !Mode::is('forceDownload')) {
             
             //Генерираме връзката
             $url = toUrl(array('fileman_Files', 'single', $fh), $isAbsolute);
         } else {
-            //Генерираме връзката за сваляне
-            $url = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => true), $isAbsolute);
+            if ($fh) {
+                $fRec = self::fetchByFh($fh);
+                if ($fRec && !fileman_Files::isDanger($fRec, 0.00001)) {
+                    //Генерираме връзката за сваляне
+                    $url = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => true), $isAbsolute);
+                }
+            }
         }
         
         return $url;
@@ -2178,6 +2185,13 @@ class fileman_Files extends core_Master
     {
         if ($action == 'editfile' && !haveRole('powerUser')) {
             if ($rec->createdBy != $userId) {
+                $roles = 'no_one';
+            }
+        }
+
+        if ($action == 'single' && $rec) {
+            if ($mvc->isDanger($rec, 0.00001) && !haveRole('debug')) {
+
                 $roles = 'no_one';
             }
         }

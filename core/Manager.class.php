@@ -885,7 +885,7 @@ class core_Manager extends core_Mvc
     {
         setIfNot($data->listTableMvc, $this);
         setIfNot($data->listTableHideHeaders, $this->listTableHideHeaders);
-        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders));
+        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => $data->listTableId));
         
         if ($data->action == 'list') {
             $table->tableClass = 'listTable listAction';

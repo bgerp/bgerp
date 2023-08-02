@@ -99,7 +99,7 @@ class ztm_Registers extends core_Master
      */
     public function loadSetupData()
     {
-        if (BGERP_GIT_BRANCH == 'dev') {
+        if (ztm_Setup::get('FORCE_REGISTRY_SYNC')) {
             $csv = @file_get_contents('https://raw.githubusercontent.com/bgerp/ztm/master/registers.csv');
 
             if (trim($csv)) {

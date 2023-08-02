@@ -151,7 +151,7 @@ class dec_Declarations extends core_Master
         $this->FLD('explanation', 'varchar', 'caption=Представлявана от->Допълнително, recently, remember');
         
         // продукти, идват от фактурата
-        $this->FLD('productId', 'set', 'caption=Продукти->Продукти, maxColumns=2');
+        $this->FLD('productId', 'set', 'caption=Артикули->Артикули, maxColumns=2');
         
         $this->FLD('inv', 'int', 'caption=Фактура, input=none');
         
