@@ -33,7 +33,7 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified';
 
 
     /**
@@ -124,7 +124,7 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('allNonWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Неработно време');
         $this->FLD('allNight', $this->enumOptVal, 'caption=Известяване за всякакви новости->През нощта');
 
-        $this->FLD('groupNotify', 'enum(no=Не, yes=Да)', 'caption=Групиране на известията->Избор');
+        $this->FLD('groupNotify', 'enum(yes=Да, no=Не)', 'caption=Групиране на известията->Избор');
         $this->FLD('forceNotify', 'enum(no=Не, yes=Да (Само при промяна на събощението), yesAll=Да (Винаги при обновяване))', 'caption=Неотворените известия да продължат да се обновяват при промяна->Избор');
 
         $this->setDbUnique('brid');
@@ -459,8 +459,26 @@ class pwa_PushSubscriptions extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('modifiedOn', 'DESC');
         $data->query->orderBy('id', 'DESC');
+
+        $data->listFilter->FNC('users', "users(rolesForAll=admin,rolesForTeams=admin, showClosedGroups)", 'caption=Потребители, autoFilter');
+
+        // Да се показва полето за търсене
+        $data->listFilter->showFields = 'users';
+
+        $data->listFilter->view = 'horizontal';
+
+        //Добавяме бутон "Филтрирай"
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $data->listFilter->setDefault('users', core_Users::getCurrent());
+
+        $data->listFilter->input();
+
+        if ($data->listFilter->rec->users) {
+            $data->query->in('userId', $data->listFilter->rec->users);
+        }
     }
 
 
