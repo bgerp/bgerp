@@ -60,4 +60,31 @@ abstract class planning_interface_ImportDriver extends import2_AbstractDriver
             $mvc->save($rec);
         }
     }
+
+
+    /**
+     * Помощна ф-я за добавяне на партидности към резултатите от предходните ПО
+     *
+     * @param core_Query $bQuery
+     * @param array $producedProducts
+     * @param bool $zeroQuantity
+     * @return void
+     */
+    protected static function addBatchDataToArray($bQuery, &$producedProducts, $zeroQuantity = false)
+    {
+        while($bRec = $bQuery->fetch()){
+            if($batchDef = batch_Defs::getBatchDef($bRec->productId)){
+                $bArr = array_keys($batchDef->makeArray($bRec->batch));
+                foreach ($bArr as $b){
+                    $bKey = md5($b);
+                    if(!array_key_exists($bKey, $producedProducts[$bRec->productId]['batches'])){
+                        $producedProducts[$bRec->productId]['batches'][$bKey] = array("batch" => $b, 'quantity' => 0);
+                    }
+                    if(!$zeroQuantity){
+                        $producedProducts[$bRec->productId]['batches'][$bKey]['quantity'] += $bRec->quantity;
+                    }
+                }
+            }
+        }
+    }
 }

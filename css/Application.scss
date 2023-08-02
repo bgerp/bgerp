@@ -769,10 +769,9 @@ div.productImage {
 }
 .taskSpecInfo  {
 	.productPreviewHolder img ,.productImage img {
-		max-height: 75px !important;
-		max-width: 100px !important;
+		max-height: 50px !important;
+		max-width: 60px !important;
 	}
-
 }
 .narrow .productPreviewHolder {
 	clear: both;
@@ -2347,16 +2346,20 @@ border-radius: 3px;
 }
 
 .stamp{
-color: #b00;
-border: 1px dotted #b00;
-display: inline-block;
-font-size: 1em;
-position: relative;
-z-index: 100;
-top: 50px;
-transform: rotate(16deg);
-padding: 1px 2px 0px 2px !important;
-border-radius: 3px;
+	color: #b00;
+	border: 1px dotted #b00;
+	display: inline-block;
+	font-size: 1em;
+	position: relative;
+	z-index: 100;
+	top: 50px;
+	transform: rotate(16deg);
+	padding: 1px 2px 0px 2px !important;
+	border-radius: 3px;
+	&.consignmentProtocol {
+		color: #444;
+		border: 1px dotted #333;
+	}
 }
 .approved {
 padding: 10px 10px 5px !important
@@ -3015,9 +3018,6 @@ div.attachments {
 	.embedded {
 		position: relative;
 		padding-bottom: 56.25%;
-		padding-top: 30px;
-		height: 0;
-		overflow: hidden;
 		embed, object, iframe, > a > img {
 			position: absolute;
 			top: 0;
@@ -5630,6 +5630,12 @@ div.no-cover {
 			padding: 0;
 			margin: 0;
 			list-style-type: none;
+		}
+	}
+	.detail-info ul {
+		padding-left: 20px;
+		li {
+			list-style-type: disc;
 		}
 	}
 	div.locImage{

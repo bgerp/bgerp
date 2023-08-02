@@ -581,17 +581,20 @@ abstract class deals_Helper
     public static function getUsedDocs(core_Mvc $mvc, $id, $productFld = 'productId')
     {
         $res = array();
-        
+
+        if(!isset($mvc->mainDetail)) return $res;
+
         $Detail = cls::get($mvc->mainDetail);
         $dQuery = $Detail->getQuery();
-        $dQuery->EXT('state', $mvc->className, "externalKey={$Detail->masterKey}");
         $dQuery->where("#{$Detail->masterKey} = '{$id}'");
-        $dQuery->groupBy($productFld);
-        while ($dRec = $dQuery->fetch()) {
-            $cid = cat_Products::fetchField($dRec->{$productFld}, 'containerId');
-            $res[$cid] = $cid;
+        $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), $productFld);
+        if(countR($productIds)){
+            $pQuery = cat_Products::getQuery();
+            $pQuery->in('id', $productIds);
+            $pQuery->show('containerId');
+            $res = arr::extractValuesFromArray($pQuery->fetchAll(), 'containerId');
         }
-        
+
         return $res;
     }
     

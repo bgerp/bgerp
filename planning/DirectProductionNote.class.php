@@ -714,7 +714,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $requiredRoles = $mvc->getRequiredRoles('conto', $rec, $userId);
             if ($requiredRoles != 'no_one') {
                 if (isset($rec)) {
-                    if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id}", 'id')) {
+
+                    // Ако няма материали и отпадъци или всички материали са чужди от ПОП - ще може да се контира бездетайлно
+                    $dQuery = planning_DirectProductNoteDetails::getQuery();
+                    $dQuery->where("#noteId = {$rec->id} AND #type = 'input'");
+                    $dQuery->show('productId');
+                    $dProductIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+                    $consignedProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($rec->threadId, false);
+                    $diff = array_diff_key($dProductIds, $consignedProducts);
+                    if (countR($diff) || (!countR($dProductIds) && planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop'"))) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -1143,7 +1151,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = static::fetchRec($rec);
 
         if (isset($rec->id)) {
-            $input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'", 'id');
+            $jobRec = static::getJobRec($rec->id);
+            $where = "#noteId = {$rec->id} AND #type = 'input'";
+            $consignedProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($jobRec->threadId, false);
+            if(countR($consignedProducts)){
+                $consignedProductsStr = implode(',', $consignedProducts);
+                $where .= " AND #productId NOT IN ({$consignedProductsStr})";
+            }
+
+            $input = planning_DirectProductNoteDetails::fetchField($where, 'id');
             $pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
             if ($pop && !$input) {
 

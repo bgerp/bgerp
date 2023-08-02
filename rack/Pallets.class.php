@@ -488,6 +488,12 @@ class rack_Pallets extends core_Manager
             $saveAgain = true;
             $updateFields['state'] = 'state';
             $updateFields['closedOn'] = 'closedOn';
+        } elseif($rec->state == 'closed'){
+            $rec->state = 'active';
+            $rec->closedOn = null;
+            $saveAgain = true;
+            $updateFields['state'] = 'state';
+            $updateFields['closedOn'] = 'closedOn';
         }
         
         // Ако няма етикет се задава
@@ -617,12 +623,21 @@ class rack_Pallets extends core_Manager
     public static function increment($productId, $storeId, $position, $quantity, $batch)
     {
         // Ако няма палет се създава нов
-        $rec = self::fetch(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+        $rQuery = static::getQuery();
+        $rQuery->where(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId}", $position));
+        $rQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+        $rQuery->orderBy('order');
+        $rec = $rQuery->fetch();
+
         if(!$rec) {
             $samePosPallets = static::canHaveMultipleOnOnePosition($storeId);
 
             if(!$samePosPallets) {
-                $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+                $rQuery2 = static::getQuery();
+                $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+                $rQuery2->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+                $rQuery2->orderBy('order');
+                $rec = $rQuery2->fetch();
             }
         }            
       

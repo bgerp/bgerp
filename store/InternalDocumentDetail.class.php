@@ -40,7 +40,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     protected function setFields($mvc)
     {
-        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,silent,caption=Продукт,notNull,mandatory,removeAndRefreshForm=packPrice|packagingId,tdClass=productCell leftCol wrap');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,silent,caption=Артикул,notNull,mandatory,removeAndRefreshForm=packPrice|packagingId,tdClass=productCell leftCol wrap');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory,tdClass=small-field nowrap,smartCenter,input=hidden');
         $mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
@@ -86,7 +86,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 
         if(isset($rec->clonedFromDetailClass) && isset($rec->clonedFromDetailId)){
             $clonedRec = cls::get($rec->clonedFromDetailClass)->fetch($rec->clonedFromDetailId);
-            $data->form->setFieldTypeParams('packQuantity', "Max={$clonedRec->packQuantity}");
+            $data->form->setFieldTypeParams('packQuantity', "max={$clonedRec->packQuantity}");
         }
     }
     
@@ -344,8 +344,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public function getExpectedProductMetaProperties($type, $direction)
     {
-        if($type == 'other') return 'canStore';
-
-        return ($direction == 'send') ? 'canSell,canStore' : 'canBuy,canStore';
+        return 'canStore';
     }
 }

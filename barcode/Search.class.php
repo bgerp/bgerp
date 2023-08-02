@@ -46,6 +46,7 @@ class barcode_Search extends core_Manager
      * Действие по подразбиране
      */
     public function act_Default() {
+        $useHtml5Camera = TRUE;
         $this->requireRightFor('list');
         
         $form = cls::get('core_Form');
@@ -65,8 +66,10 @@ class barcode_Search extends core_Manager
         $form->view = 'horizontal';
         
         $form->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод');
+
+        if (!$useHtml5Camera) {
+            $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод');
+        }
         
         $form->formAttr['id'] = 'barcodeForm';
         
@@ -87,7 +90,7 @@ class barcode_Search extends core_Manager
             
             $intfArr = core_Classes::getOptionsByInterface('barcode_SearchIntf');
             
-            $tableTpl = new ET("<div class='barcodeSearchHolder'><table class='listTable barcodeSearch'>");
+            $tableTpl = new ET("<div class='barcodeSearchHolder' style='margin-top: 20px;'><table class='listTable barcodeSearch'>");
             $resArr = array ();
             
             foreach ($intfArr as $intfClsId => $intfCls) {
@@ -124,22 +127,35 @@ class barcode_Search extends core_Manager
             $tableTpl->append('</table></div>');
         }
 
-        $tpl->appendOnce('<script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>', 'HEAD');
-        $tpl->push('barcode/js/scan.js', 'JS');
-        $a = '<div id="scanTools" style="display:none">
+        if($useHtml5Camera) {
+            $tpl->push('barcode/js/html5.js', 'JS');
+            $tpl->push('barcode/js/html5-qrcode.min.js', 'JS');
+
+            $a = "<div style= 'max-width: 500px; width: 100%' id='reader'></div>";
+            jquery_Jquery::run($tpl, "barcodeActions();");
+
+        } else {
+            $tpl->appendOnce('<script type="text/javascript" src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>', 'HEAD');
+            $tpl->push('barcode/js/scan.js', 'JS');
+
+
+            $a = ' <style> .cameraSource.active {background-color: #bbb;}</style>
+
+            <div id="scanTools" style="display:none">
                 <div class="scanTools" style="display: none">
                     <a class="button" id="startButton">Start</a>
                     <a class="button" id="resetButton">Reset</a>
                 </div>
-                <div id="sourceSelectPanel" style="display:none">
-                    <select id="sourceSelect"></select>
+                <div id="sourceSelectPanel" style="display:none; margin-bottom: 20px;">
                 </div>
                 <div id="camera" style="display: none">
-                    <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
+                    <video id="video" style="border: 1px solid gray; width: 100%; height:100%; max-width: 600px; max-height: 600px;"></video>
                 </div>
              </div>';
+        }
+
         $tpl->append($a);
-        
+
         if ($haveRes === false) {
             $tpl->append(tr('Няма открити съвпадания в базата'));
         } else {

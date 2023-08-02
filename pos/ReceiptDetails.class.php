@@ -108,7 +108,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('receiptId', 'key(mvc=pos_Receipts)', 'caption=Бележка, input=hidden, silent');
         $this->FLD('action', 'varchar(32)', 'caption=Действие,width=7em;top:1px;position:relative');
         $this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em,input=none');
-        $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
+        $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Артикул,input=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FLD('quantity', 'double(smartRound)', 'caption=К-во,placeholder=К-во,width=4em');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');

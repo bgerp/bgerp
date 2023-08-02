@@ -258,10 +258,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)
     {
-        if (!countR($data->recs)) {
-            
-            return;
-        }
+        if (!countR($data->recs)) return;
+
+        // Кои са получените чужди артикули
+        $consignmentProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($data->masterData->rec->threadId, false);
 
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
@@ -275,9 +275,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $row->packQuantity .= " {$row->packagingId}";
             }
 
+            if(array_key_exists($rec->productId, $consignmentProducts)){
+                if(!Mode::isReadOnly()){
+                    $row->productId = ht::createHint($row->productId, 'Чужд артикул, получен от ПОП', 'noicon', false);
+                }
+            }
+
             if(!empty($rec->expenseItemId)){
                 $itemLink = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-                $row->productId .= "<br><small><span class='quiet'>" . tr('Раз. обект') . "</span>: {$itemLink}</small>";
+                $row->productId .= new core_ET($row->productId);
+                $row->productId->append("<br><small><span class='quiet'>" . tr('Раз. обект') . "</span>: {$itemLink}</small>");
             }
         }
     }
