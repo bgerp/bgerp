@@ -943,7 +943,7 @@ class type_Richtext extends type_Blob
         }
         
         // Добавяме кода в блок
-        $code1 = "<span class='oneLineCode no-spell-check'>{$code}</span>";
+        $code1 = "<span onmouseup='selectInnerText(this);' class='oneLineCode no-spell-check'>{$code}</span>";
         
         // Доабавяме в масива
         $this->_htmlBoard[$place] = $code1;

@@ -450,6 +450,7 @@ abstract class deals_ClosedDeals extends core_Master
                 $firstRec->state = 'active';
                 $firstRec->closeWith = null;
                 $DocClass->save($firstRec, 'modifiedOn,modifiedBy,state,closeWith');
+                core_Permanent::remove("bCost|{$firstRec->threadId}|", true);
             }
         }
         
