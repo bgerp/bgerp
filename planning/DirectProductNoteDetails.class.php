@@ -276,9 +276,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             if ($rec->type == 'pop') {
                 $row->packQuantity .= " {$row->packagingId}";
             }
-<<<<<<< HEAD
-            
-=======
 
             if(array_key_exists($rec->productId, $consignmentProducts)){
                 if(!Mode::isReadOnly()){
@@ -286,7 +283,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 }
             }
 
->>>>>>> refs/remotes/origin/test
             if(!empty($rec->expenseItemId)){
                 $itemLink = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
                 $row->productId .= new core_ET($row->productId);
