@@ -433,16 +433,14 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
         // Ако има режийни разходи, разпределяме ги
         if (isset($expenses)) {
-            $costAmount = $costAmount * $expenses;
+            $costAmount = $selfAmount * $expenses;
             $costAmount = round($costAmount, 2);
                 
             // Ако себестойността е неположителна, режийните са винаги 0
             if ($costAmount <= 0) {
                 $costAmount = 0;
             }
-                
-                $array['quantity'] = 0;
-                
+            $array['quantity'] = 0;
             $costArray = array(
                 'amount' => $costAmount,
                 'debit' => $array,
