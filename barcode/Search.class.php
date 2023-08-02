@@ -67,7 +67,7 @@ class barcode_Search extends core_Manager
         
         $form->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        if ($useHtml5Camera) {
+        if (!$useHtml5Camera) {
             $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод');
         }
         
