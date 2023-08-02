@@ -124,7 +124,7 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('allNonWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Неработно време');
         $this->FLD('allNight', $this->enumOptVal, 'caption=Известяване за всякакви новости->През нощта');
 
-        $this->FLD('groupNotify', 'enum(yes=Да, no=Не)', 'caption=Групиране на известията->Избор');
+        $this->FLD('groupNotify', 'enum(no=Не,yes=Да)', 'caption=Групиране на известията->Избор');
         $this->FLD('forceNotify', 'enum(no=Не, yes=Да (Само при промяна на събощението), yesAll=Да (Винаги при обновяване))', 'caption=Неотворените известия да продължат да се обновяват при промяна->Избор');
 
         $this->setDbUnique('brid');
