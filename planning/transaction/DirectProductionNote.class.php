@@ -244,6 +244,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         }
 
         if (!is_array($details)) return $entries;
+        $details = array_filter($details, function($a) {return !empty($a->quantity);});
 
         $saleRec = null;
         $productsOnConsignment = array();
