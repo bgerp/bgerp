@@ -131,7 +131,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'input') ? 'материал' : 'отнесен разход');
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : null);
-        $form->setFieldType('packQuantity', 'double(Min=0)');
+        if(empty($rec->quantityFromBom) && empty($rec->quantityExpected)){
+            $form->setFieldType('packQuantity', 'double(Min=0)');
+        }
 
         $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
         $productOptions = $expenseItemIdOptions = array();
@@ -523,6 +525,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                         }
                     }
                 }
+            }
+        }
+
+        if($action == 'delete' && isset($rec)){
+            if(!empty($rec->quantityFromBom) || !empty($rec->quantityExpected)){
+                $requiredRoles = 'no_one';
             }
         }
     }
