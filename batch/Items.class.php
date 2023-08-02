@@ -616,6 +616,7 @@ class batch_Items extends core_Master
         }
         $query->where("#date <= '{$date}'");
 
+        $docType = $docId = null;
         if (countR($except) == 2) {
             $docType = cls::get($except[0])->getClassId();
             $docId = $except[1];
@@ -635,8 +636,10 @@ class batch_Items extends core_Master
                     continue;
                 }
             }
-
-            if (!array_key_exists($rec->batch, $res)) {
+            if (!array_key_exists($rec->productId, $res)){
+                $res[$rec->productId] = array();
+            }
+            if (!array_key_exists($rec->batch, $res[$rec->productId])) {
                 $res[$rec->productId][$rec->batch] = 0;
             }
 
