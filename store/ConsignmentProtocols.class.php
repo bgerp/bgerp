@@ -975,4 +975,38 @@ class store_ConsignmentProtocols extends core_Master
             return false;
         }
     }
+
+
+    /**
+     * Връща масив от използваните нестандартни артикули в СР-то
+     *
+     * @param int $id - ид на СР
+     *
+     * @return array $res - масив с използваните документи
+     *               ['class'] - инстанция на документа
+     *               ['id'] - ид на документа
+     */
+    public function getUsedDocs_($id)
+    {
+        $res = $productIds = array();
+
+        $rec = $this->fetchRec($id);
+        foreach (array('store_ConsignmentProtocolDetailsSend', 'store_ConsignmentProtocolDetailsReceived') as $detail){
+            $dQuery = cls::get($detail)->getQuery();
+            $dQuery->where("#protocolId = {$rec->id}");
+            $dQuery->show('productId');
+            while($dRec = $dQuery->fetch()){
+                $productIds[$dRec->productId] = $dRec->productId;
+            }
+        }
+
+        if(countR($productIds)){
+            $pQuery = cat_Products::getQuery();
+            $pQuery->in('id', $productIds);
+            $pQuery->show('containerId');
+            $res = arr::extractValuesFromArray($pQuery->fetchAll(), 'containerId');
+        }
+
+        return $res;
+    }
 }
