@@ -624,7 +624,7 @@ class cms_Domains extends core_Embedder
         // Инвалидираме сесийния кеш
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, null);
         
-        if(is_array($rec->toRemove) && countR($rec->toRemove)) {
+        if (is_array($rec->toRemove) && countR($rec->toRemove)) {
             foreach($rec->toRemove as $filename) {
                 core_Webroot::remove($filename, $id);
             }
@@ -649,7 +649,8 @@ class cms_Domains extends core_Embedder
             
             $rec->toRemove[$rec->sitemap] = $rec->sitemap;
         }
-        
+
+        $fiContentToRemove = null;
         
         core_Webroot::register($fiContent, '', 'robots.txt', $id);
         $rec->toRemove['robots.txt'] = 'robots.txt';
@@ -668,41 +669,52 @@ class cms_Domains extends core_Embedder
                         $fiContent = fileman_Files::getContent($fh);
                         core_Webroot::register($fiContent, '', strtolower($e->path), $id);
                         $rec->toRemove[$e->path] = $e->path;
+                        if ($e->path == 'favicon.ico') {
+                            $fiContentToRemove = $e->path;
+                        }
                     }
                 }
             }
         }
         
-        $fiContent = null;
-        
+        $fiContent = $iconContent = null;
+
         // favicon.ico
-        if($rec->favicon) {
+        if ($rec->favicon) {
             $iconContent = $fiContent = fileman_Files::getContent($rec->favicon);
-            core_Webroot::register($fiContent, '', 'favicon.png', $id);
-        
+            $fName = fileman::fetchByFh($rec->favicon, 'name');
+            $fExt = fileman::getExt($fName);
+            if ($fExt && $fExt != 'ico' && $fExt != 'png') {
+                core_Webroot::register($fiContent, '', 'favicon.' . $fExt, $id);
+            }
+//            core_Webroot::register($fiContent, '', 'favicon.png', $id);
+//            core_Webroot::register($iconContent, '', 'favicon.ico', $id);
+
         } elseif(!in_array('favicon.ico', $rec->toRemove)) {
             $iconContent = getFileContent('img/favicon.png');
             $fiContent = getFileContent('img/favicon.ico');
         }
-        
-        if(core_Webroot::isExists('android-chrome-512x512.png', $id)) {
+
+        if (core_Webroot::isExists('android-chrome-512x512.png', $id)) {
             $iconContent = core_Webroot::getContents('android-chrome-512x512.png', $id);
         }
         
-        if($iconContent) {
+        if ($iconContent) {
             core_Webroot::register($iconContent, '', 'favicon.png', $id);
         }
-        
-        if($fiContent) {
+
+        if ($fiContent) {
             core_Webroot::register($fiContent, '', 'favicon.ico', $id);
-            $rec->toRemove[$e->path] = $e->path;
+            if (isset($fiContentToRemove)) {
+                $rec->toRemove[$fiContentToRemove] = $fiContentToRemove;
+            }
         }
         
-        if(countR($rec->toRemove)) {
+        if (countR($rec->toRemove)) {
             $mvc->save_($rec, 'toRemove');
         }
         
-        if($rec->domain != 'localhost') {
+        if ($rec->domain != 'localhost') {
             Mode::pop('BGERP_CURRENT_DOMAIN');
         }
     }
