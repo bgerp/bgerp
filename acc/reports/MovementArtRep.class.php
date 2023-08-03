@@ -558,13 +558,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     if(!empty($prodInfo->packagings)){
                         foreach ($prodInfo->packagings as $measure){
                             if($measure->isSecondMeasure == 'yes'){
-                                $singleProductWeight = $measure->quantity;
+                                $singleProductWeight = 1/$measure->quantity;
                             }
                         }
                     }
 
                 }
-
                 if ($singleProductWeight) {
                     $res[$key]->baseQuantity = $val->baseQuantity * $singleProductWeight;
                     $res[$key]->delivered = $val->delivered * $singleProductWeight;
