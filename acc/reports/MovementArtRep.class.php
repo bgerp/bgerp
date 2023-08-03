@@ -552,19 +552,17 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $singleProductWeight = cat_Products::getParams($val->productId, 'weightKg');
                 }
 
+                //Ако няма въведени параметри за единично тегло взема втората мярка, ако е кг.
                 if (!$singleProductWeight) {
                     $prodInfo = cat_Products::getProductInfo($val->productId);
                     if(!empty($prodInfo->packagings)){
                         foreach ($prodInfo->packagings as $measure){
                             if($measure->isSecondMeasure == 'yes'){
-                               $secondMeasureId = $measure->packagingId;
+                                $singleProductWeight = $measure->quantity;
                             }
                         }
                     }
 
-                    if ($secondMeasureId && $secondMeasureId == $kgMeasureId) {
-                        $singleProductWeight = 1;
-                    }
                 }
 
                 if ($singleProductWeight) {
