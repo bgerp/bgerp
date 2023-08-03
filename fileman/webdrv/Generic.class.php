@@ -1481,7 +1481,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // HTML частта, ако не е включен JS
             $htmlPart = "<div class='webdrvTabBody'>
-            				<div class='legend'>" . tr('HTML изглед') . "</div><div class='webdrvFieldset'>
+            				<div class='webdrvFieldset'>
                 				<iframe src='{$htmlUrl}' SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
                 			</div>
             			</div>";
@@ -1490,7 +1490,7 @@ class fileman_webdrv_Generic extends core_Manager
             // HTML частта, ако е включен JS
             $htmlTpl = new ET("
             					<div class='webdrvTabBody'>
-                    				<div class='legend'>" . tr('HTML изглед') . "</div><div class='webdrvFieldset'>
+                    				<div class='webdrvFieldset'>
                     					<iframe id=[#SANITIZEID#] SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
                     					[#SANITIZEJS#]
                 					</div>
