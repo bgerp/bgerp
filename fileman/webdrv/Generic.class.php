@@ -287,9 +287,11 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
-            
+
+            $style = Mode::is('screenMode', 'wide') ? "display: table-cell; vertical-align: middle;" : "";
+
             // Създаваме шаблон за preview на изображението
-            $preview = new ET("<div id='imgBg' style='background-image:url(" . $bgImg . "); padding: 8px 0 0px; height: 598px; display: table;width: 100%;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
+            $preview = new ET("<div id='imgBg' style='background-image:url(" . $bgImg . "); padding: 8px 0 0px; height: 598px; display: table;width: 100%;'><div  style='margin: 0 auto;" . $style . "'>[#THUMB_IMAGE#]</div></div>");
             
             $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
             
