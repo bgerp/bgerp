@@ -2239,11 +2239,8 @@ class fileman_Files extends core_Master
         if (!$isAbsolute && fileman_Files::isDanger($rec)) {
             $dangerFileClass .= ' dangerFile';
         }
-        
+
         $fileNavArr = Mode::get('fileNavArr');
-        
-        $prevUrl = $fileNavArr[$rec->fileHnd]['prev'];
-        $nextUrl = $fileNavArr[$rec->fileHnd]['next'];
         
         // Показваме селект с всички файлове
         if (!$dangerFileClass && $fileNavArr[$rec->fileHnd]['allFilesArr'] && countR($fileNavArr[$rec->fileHnd]['allFilesArr']) > 1) {
@@ -2276,14 +2273,7 @@ class fileman_Files extends core_Master
             $row->fileName .= $mvc->getVerbal($rec, 'name') . '</span>';
         }
         
-        if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
-            $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
-        }
-        
-        if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
-            $row->fileName .= ht::createLink('', $nextUrl, false, 'ef_icon=img/16/next.png,style=margin-left:6px;');
-        }
-        
+
         // Показваме и източника на файла
         if ($fileNavArr[$rec->fileHnd]['src']) {
             if ($fileNavArr[$rec->fileHnd]['srcDirName']) {

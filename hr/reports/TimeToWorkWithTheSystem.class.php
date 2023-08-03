@@ -240,7 +240,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
             expect($minutesToAdd >= 0,'Некоректен запис, или подредба на масива');
 
-            if($minutesToAdd > $rec->maxTimeWaiting/60){
+            if($minutesToAdd > $rec->maxTimeWaiting / 60){
                 $minutesToAdd = 1;
             }
 
@@ -282,7 +282,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             $fld->FLD('userId', 'varchar', 'caption=Потребител');
             $fld->FLD('office', 'time', 'caption=Офис,smartCenter');
             $fld->FLD('home', 'time', 'caption=Отдалечено,smartCenter');
-            $fld->FLD('summ', 'time(noSmart)', 'caption=Сумарно,smartCenter');
+            $fld->FLD('summ', 'time', 'caption=Сумарно,smartCenter');
 
         } else {
 
@@ -307,7 +307,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         $Int = cls::get('type_Int');
         $Time = cls::get('type_Time');
-        $Time->params['noSmart'] = 'hours';
+        $Time->params['noSmart'] = true;
         $Time->params['uom'] = 'hours';
         $Date = cls::get('type_Date');
 
