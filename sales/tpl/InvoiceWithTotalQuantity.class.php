@@ -77,7 +77,7 @@ class sales_tpl_InvoiceWithTotalQuantity extends doc_TplScript
     {
         if(is_object($data->totalQuantityData)){
             $subtract = (isset($data->listFields['discount'])) ? 5 : 4;
-            $columns = countR($data->listFields) - $diff;
+            $columns = countR($data->listFields) - $subtract;
             $tpl1 = new core_ET(tr("|*<tr><td colspan='[#colspan#]' class='rightCol'>|Общо|*:</td><td class='centered'>[#baseMeasureId#]</td><td class='centered'>[#totalQuantity#]</td><td></td><td></td></tr>"));
             $tpl1->replace($columns, 'colspan');
             $tpl1->replace($data->totalQuantityData->baseMeasureId, 'baseMeasureId');
