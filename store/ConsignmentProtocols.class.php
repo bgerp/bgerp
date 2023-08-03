@@ -353,62 +353,75 @@ class store_ConsignmentProtocols extends core_Master
         $tpl->replace($details, 'SNAPSHOT');
         $tpl->replace($snapshot->date, 'SNAPSHOT_DATE');
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я връщаща текущите наличности по сметките за ОП, към клиента
+     *
+     * @param stdClass $rec
+     * @param datetime $date
+     * @return array $recs
+     */
+    private function getBlQuantitiesByNow($rec, $date)
+    {
+        $recs = array();
+        $accId = ($rec->productType == 'ours') ? '3231' : '3232';
+        $contragentItem = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId);
+        if(empty($contragentItem)) return $recs;
+
+        // За да покажем моментното състояние на сметката на контрагента, взимаме баланса до края на текущия ден
+        $to = dt::addDays(1, $date);
+        $Balance = new acc_ActiveShortBalance(array(
+            'from' => $to,
+            'to' => $to,
+            'accs' => $accId,
+            'item1' => $contragentItem->id,
+            'strict' => true,
+            'keepUnique' => true,
+            'cacheBalance' => false));
+
+        // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
+        $Balance = $Balance->getBalanceBefore($accId);
+        $accId = acc_Accounts::getRecBySystemId($accId)->id;
+
+        // Подготвяме записите за показване
+        $count = 1;
+        foreach ($Balance as $b) {
+            if ($b['accountId'] != $accId) continue;
+            if ($b['blQuantity'] == 0) continue;
+
+            $recs[] = (object)array('count' => $count,
+                                    'productId' => acc_Items::fetchField($b['ent2Id'], 'objectId'),
+                                    'blQuantity' => $b['blQuantity'],);
+        }
+
+        return $recs;
+
+    }
+
+
     /**
      * Подготвя снапшот на моментното представяне на базата
      */
     private function prepareSnapshot($rec, $date)
     {
         $rows = array();
-        $accId = ($rec->productType == 'ours') ? '3231' : '3232';
 
-        // Кое е перото на контрагента ?
-        $contragentItem = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId);
-        
-        // Ако контрагента не е перо, не показваме нищо
-        if ($contragentItem) {
-            
-            // За да покажем моментното състояние на сметката на контрагента, взимаме баланса до края на текущия ден
-            $to = dt::addDays(1, $date);
-            $Balance = new acc_ActiveShortBalance(array('from' => $to,
-                'to' => $to,
-                'accs' => $accId,
-                'item1' => $contragentItem->id,
-                'strict' => true,
-                'keepUnique' => true,
-                'cacheBalance' => false));
+        $dRecs = $this->getBlQuantitiesByNow($rec, $date);
+        $Double = cls::get('type_Double');
+        $Double->params['smartRound'] = true;
+        $Int = cls::get('type_Int');
 
-            // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
-            $Balance = $Balance->getBalanceBefore($accId);
-            
-            $Double = cls::get('type_Double');
-            $Double->params['smartRound'] = true;
-            $Int = cls::get('type_Int');
-            
-            $accId = acc_Accounts::getRecBySystemId($accId)->id;
-            $count = 1;
-
-            // Подготвяме записите за показване
-            foreach ($Balance as $b) {
-                if ($b['accountId'] != $accId) {
-                    continue;
-                }
-                if ($b['blQuantity'] == 0) {
-                    continue;
-                }
-                
-                $row = new stdClass;
-                $row->count = $Int->toVerbal($count);
-                $row->productId = acc_Items::getVerbal($b['ent2Id'], 'titleLink');
-                $row->blQuantity = $Double->toVerbal($b['blQuantity']);
-                $row->blQuantity = ht::styleIfNegative($row->blQuantity, $b['baseQuantity']);
-                
-                $count++;
-                $rows[] = $row;
-            }
+        foreach ($dRecs as $dRec) {
+            $row = new stdClass;
+            $row->count = $Int->toVerbal($dRec->count);
+            $productItemRec = acc_Items::fetchItem('cat_Products', $dRec->productId);
+            $row->productId = acc_Items::getVerbal($productItemRec->id, 'titleLink');
+            $row->blQuantity = $Double->toVerbal($dRec->blQuantity);
+            $row->blQuantity = ht::styleIfNegative($row->blQuantity, $dRec->blQuantity);
+            $rows[] = $row;
         }
-        
+
         // Връщаме подготвените записи, и датата към която са подготвени
         return (object) array('rows' => $rows, 'date' => cls::get('type_DateTime')->toVerbal($date));
     }
@@ -908,16 +921,56 @@ class store_ConsignmentProtocols extends core_Master
 
             // Ако оригинала е за чужди - получените ще се прехвърлят в изпратени
             $originProductType = $Origin->fetchField('productType');
+            $expectedQuantities = array();
             if($originProductType == 'other'){
                 $cloneQuery = store_ConsignmentProtocolDetailsReceived::getQuery();
+                $cloneQuery->where("#protocolId = {$Origin->that}");
+                $cloneQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+
+                // Ще се групират детайлите от оригинала по опаковки
+                $dRecs = $cloneQuery->fetchAll();
+                $byPacks = $byProductId = array();
+                array_walk($dRecs, function($a) use (&$byPacks, &$byProductId) {
+                    $byPacks[$a->productId][$a->quantityInPack] = $a->packagingId;
+                    $byProductId[$a->productId] += $a->quantity;
+                });
+
+
+                // Колко са салдата по сметката за ОП
                 $DetailMvc = cls::get('store_ConsignmentProtocolDetailsSend');
+                $blByNow = $mvc->getBlQuantitiesByNow($rec, dt::now());
+                array_walk($blByNow, function($a) use (&$expectedQuantities) {
+                    if($a->blQuantity <= 0) {$expectedQuantities[$a->productId] = abs($a->blQuantity);}
+                });
+
+                $dRecsNew = array();
+                foreach ($dRecs as $dRec1){
+                    // Групират се оригиналните детайли
+                    if(array_key_exists($dRec1->productId, $dRecsNew)) continue;
+                    $byPacks[$dRec1->productId][$dRec1->measureId] = 1;
+                    krsort($byPacks[$dRec1->productId]);
+                    $quantity = min($byProductId[$dRec1->productId], $expectedQuantities[$dRec1->productId]);
+
+                    // Ще се избере най-голямата опаковка в която може да се побере цяло количеството и ще се прехвърли
+                    foreach ($byPacks[$dRec1->productId] as $qInPack => $packId){
+                        if($quantity % $qInPack == 0){
+                            $clone = clone $dRec1;
+                            $clone->quantity = $quantity;
+                            $clone->packQuantity = $quantity / $clone->quantityInPack;
+                            $dRecsNew[$clone->productId] = $clone;
+                        }
+                    }
+                }
+                $dRecs = $dRecsNew;
             } else {
                 // Ако оригинала е за наши - изпратените ще се прехвърлят в получени
                 $cloneQuery = store_ConsignmentProtocolDetailsSend::getQuery();
+                $cloneQuery->where("#protocolId = {$Origin->that}");
+                $dRecs = $cloneQuery->fetchAll();
                 $DetailMvc = cls::get('store_ConsignmentProtocolDetailsReceived');
             }
-            $cloneQuery->where("#protocolId = {$Origin->that}");
-            while($dRec = $cloneQuery->fetch()){
+
+            foreach($dRecs as $dRec){
                 $dRec->clonedFromDetailClass = $cloneQuery->mvc->getClassId();
                 $dRec->clonedFromDetailId = $dRec->id;
                 unset($dRec->id, $dRec->createdOn, $dRec->createdBy);
