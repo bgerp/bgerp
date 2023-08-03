@@ -44,7 +44,25 @@ class fileman_webdrv_Generic extends core_Manager
      */
     protected $canView = 'every_one';
     
-    
+    public static function getArrows($fRec){
+        $fileNavArr = Mode::get('fileNavArr');
+
+        $prevUrl = $fileNavArr[$fRec->fileHnd]['prev'];
+        $nextUrl = $fileNavArr[$fRec->fileHnd]['next'];
+
+        $resArr = array();
+
+        if ($prevUrl) {
+            $resArr['prevLink'] = ht::createLink('', $prevUrl, false, 'ef_icon=img/prev.png,class=prevLink');
+        }
+
+        if ($nextUrl) {
+            $resArr['nextLink'] = ht::createLink('', $nextUrl, false, 'ef_icon=img/next.png,class=nextLink');
+        }
+
+        return $resArr;
+    }
+
     /**
      * Връща всички табове, които ги има за съответния файл
      *
@@ -56,15 +74,15 @@ class fileman_webdrv_Generic extends core_Manager
     {
         // Масив с всички табове
         $tabsArr = array();
-        
+
         // URL за показване на информация за файла
         $infoUrl = toUrl(array('fileman_webdrv_Generic', 'Info', $fRec->fileHnd));
-        
+
         // Таб за информация
         $tabsArr['info'] = (object)
             array(
                 'title' => 'Информация',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Мета информация') . "</div><div class='webdrvFieldset'>
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>
 					<iframe src='{$infoUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 1,
             );
@@ -1463,7 +1481,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // HTML частта, ако не е включен JS
             $htmlPart = "<div class='webdrvTabBody'>
-            				<div class='legend'>" . tr('HTML изглед') . "</div><div class='webdrvFieldset'>
+            				<div class='webdrvFieldset'>
                 				<iframe src='{$htmlUrl}' SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
                 			</div>
             			</div>";
@@ -1472,7 +1490,7 @@ class fileman_webdrv_Generic extends core_Manager
             // HTML частта, ако е включен JS
             $htmlTpl = new ET("
             					<div class='webdrvTabBody'>
-                    				<div class='legend'>" . tr('HTML изглед') . "</div><div class='webdrvFieldset'>
+                    				<div class='webdrvFieldset'>
                     					<iframe id=[#SANITIZEID#] SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
                     					[#SANITIZEJS#]
                 					</div>

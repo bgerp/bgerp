@@ -1,5 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-<table class="listTable">
+<table class="listTable operationTable">
     <tr>
         <th style="width:60%" class="cell custom-header-bg">
             |Параметри на операцията|*

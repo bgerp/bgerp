@@ -2239,51 +2239,16 @@ class fileman_Files extends core_Master
         if (!$isAbsolute && fileman_Files::isDanger($rec)) {
             $dangerFileClass .= ' dangerFile';
         }
-        
+
         $fileNavArr = Mode::get('fileNavArr');
-        
-        $prevUrl = $fileNavArr[$rec->fileHnd]['prev'];
-        $nextUrl = $fileNavArr[$rec->fileHnd]['next'];
-        
-        // Показваме селект с всички файлове
-        if (!$dangerFileClass && $fileNavArr[$rec->fileHnd]['allFilesArr'] && countR($fileNavArr[$rec->fileHnd]['allFilesArr']) > 1) {
-            $form = cls::get('core_Form');
-            $form->fnc('selectFile', 'enum()', 'input=input');
-            
-            $form->addAttr('selectFile', array('onchange' => 'document.location = this.options[this.selectedIndex].value;'));
-            
-            $form->view = 'horizontal';
-            
-            $form->layout = "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
-            
-            foreach ($fileNavArr[$rec->fileHnd]['allFilesArr'] as $fUrl => $fName) {
-                if ($fileNavArr[$rec->fileHnd]['current'] == $fUrl) {
-                    $fName = type_Varchar::escape($data->rec->name);
-                }
-                $eArr[$fUrl] = str::limitLen($fName, 32);
-            }
-            
-            $form->setOptions('selectFile', $eArr);
-            $form->setDefault('selectFile', $fileNavArr[$rec->fileHnd]['current']);
-            
-            $row->fileName = $form->renderHtml();
-        } else {
-            // Вербалното име на файла
-            $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">';
-            if ($dangerFileClass) {
-                $row->fileName .= tr('Файл с вирус|*: ');
-            }
-            $row->fileName .= $mvc->getVerbal($rec, 'name') . '</span>';
+
+        // Вербалното име на файла
+        $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">';
+        if ($dangerFileClass) {
+            $row->fileName .= tr('Файл с вирус|*: ');
         }
-        
-        if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
-            $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
-        }
-        
-        if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
-            $row->fileName .= ht::createLink('', $nextUrl, false, 'ef_icon=img/16/next.png,style=margin-left:6px;');
-        }
-        
+        $row->fileName .= $mvc->getVerbal($rec, 'name') . '</span>';
+
         // Показваме и източника на файла
         if ($fileNavArr[$rec->fileHnd]['src']) {
             if ($fileNavArr[$rec->fileHnd]['srcDirName']) {

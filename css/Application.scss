@@ -3899,7 +3899,58 @@ fieldset.sharing-history {
 .centerContent .filemanSingle {
 	padding: 20px 0;
 }
+#fileDetail {
+	.webdrvFieldset {
+		position: relative;
+	}
 
+	&:hover .prevLink, &:hover .nextLink{
+		opacity: 0.6;
+	}
+	div.alphabet div.tab-page {
+		padding-top: 0 !important;
+	}
+	.row-holder {
+		position: relative;
+		top: 12px;
+		padding-left: 10px;
+	}
+}
+
+.linkWithIcon.nextLink, .linkWithIcon.prevLink {
+	padding-left: 0 !important;
+	position: absolute;
+	height: 50px;
+	width: 50px;
+	top: 50%;
+	background-size: 48px;
+	opacity: 0.3;
+	-webkit-transition: opacity 1s ease-in-out;
+	-moz-transition: opacity 1s ease-in-out;
+	transition: opacity 1s ease-in-out;
+}
+
+.narrow .nextLink{
+ 	right: 10px;
+}
+.narrow .prevLink {
+	left: 5px;
+
+}
+
+.narrow .nextLink, .narrow .prevLink {
+	background-size: 36px;
+	opacity: 0.6;
+}
+.narrow #fileDetail .row-holder {
+	top: 17px;
+}
+.prevLink {
+	left: 20px;
+}
+.nextLink {
+	right: 20px;
+}
 .filemanSingle {
 	.webdrvTabBody, .webdrvFieldset {
 		width: 100% !important;
@@ -8456,6 +8507,10 @@ body.narrow {
 
 .selectTaskOptions tr.createAllTasksForJob {
 	font-style:italic;
+}
+
+.operationTable .paramVal {
+	word-break: break-word;
 }
 
 .confidential-field {
