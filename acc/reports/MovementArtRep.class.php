@@ -407,6 +407,10 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $fld->FLD('sold', 'double(smartRound,decimals=2)', 'caption=Количество->Продадено');
         $fld->FLD('blQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Крайно');
 
+        if(haveRole('debug') && $rec->uomKg == 'weight'){
+            $fld->FLD('singleWeight', 'double(smartRound,decimals=2)', 'caption=Ед.тегло');
+        }
+
         return $fld;
     }
 
@@ -446,7 +450,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
             }
         }
-
+        $row->singleWeight = $Double->toVerbal($dRec->singleWeight);
         return $row;
     }
 
@@ -538,12 +542,29 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
                 //Взема единичното тегло на целия продукт
                 $singleProductWeight = null;
+                $prodRec = cat_Products::fetch($val->productId);
+
                 $singleProductWeight = cat_Products::getParams($val->productId, 'weight');
 
                 if ($singleProductWeight) {
                     $singleProductWeight = $singleProductWeight / 1000;
                 } else {
                     $singleProductWeight = cat_Products::getParams($val->productId, 'weightKg');
+                }
+
+                if (!$singleProductWeight) {
+                    $prodInfo = cat_Products::getProductInfo($val->productId);
+                    if(!empty($prodInfo->packagings)){
+                        foreach ($prodInfo->packagings as $measure){
+                            if($measure->isSecondMeasure == 'yes'){
+                               $secondMeasureId = $measure->packagingId;
+                            }
+                        }
+                    }
+
+                    if ($secondMeasureId && $secondMeasureId == $kgMeasureId) {
+                        $singleProductWeight = 1;
+                    }
                 }
 
                 if ($singleProductWeight) {
@@ -554,14 +575,17 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $res[$key]->sold = $val->sold * $singleProductWeight;
                     $res[$key]->blQuantity = $val->blQuantity * $singleProductWeight;
                     $res[$key]->measureId = $kgMeasureId;
+                    $res[$key]->singleWeight = $singleProductWeight;
+
                 } else {
-                    $res[$key]->baseQuantity = 'n.a.';
-                    $res[$key]->delivered = 'n.a.';
-                    $res[$key]->converted = 'n.a.';
-                    $res[$key]->produced = 'n.a.';
-                    $res[$key]->sold = 'n.a.';
-                    $res[$key]->blQuantity = 'n.a.';
+                    $res[$key]->baseQuantity = 0;
+                    $res[$key]->delivered = 0;
+                    $res[$key]->converted = 0;
+                    $res[$key]->produced = 0;
+                    $res[$key]->sold = 0;
+                    $res[$key]->blQuantity = 0;
                     $res[$key]->measureId = $kgMeasureId;
+                    $res[$key]->singleWeight = $singleProductWeight;
                 }
             }
         }
