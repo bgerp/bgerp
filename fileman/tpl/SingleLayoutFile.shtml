@@ -11,7 +11,7 @@
 		<!--ET_END versions-->
 		
 	<!--ET_BEGIN fileDetail-->          
-		    <div id="fileDetail">[#fileDetail#]</div>
+		    <div id="fileDetail">[#fileDetail#][#prevLink#][#nextLink#]</div>
 	<!--ET_END fileDetail-->
 	
 </div>
