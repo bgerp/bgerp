@@ -408,7 +408,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $fld->FLD('blQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Крайно');
 
         if(haveRole('debug') && $rec->uomKg == 'weight'){
-            $fld->FLD('singleWeight', 'double(smartRound,decimals=2)', 'caption=Ед.тегло');
+            $fld->FLD('singleWeight', 'double(decimals=3)', 'caption=Ед.тегло');
         }
 
         return $fld;
@@ -450,7 +450,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
             }
         }
-        $row->singleWeight = $Double->toVerbal($dRec->singleWeight);
+        $row->singleWeight =$dRec->singleWeight;
         return $row;
     }
 
