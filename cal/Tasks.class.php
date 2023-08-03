@@ -21,8 +21,32 @@ class cal_Tasks extends embed_Manager
      */
     public $driverInterface = 'cal_TaskTypeIntf';
 
+
+    /**
+     * @var bool
+     *
+     * @see plg_SelectPeriod
+     */
+    public $filterFutureOptions = true;
+
+
+    /**
+     * @var string
+     */
     public $withoutResStr = 'without resources';
-    
+
+
+    /**
+     * В кои състояния документите ще могат да се приключват
+     *
+     * @var array
+     *
+     * @see planning_plg_StateManager
+     */
+    public $statesCanClose = array('draft', 'active', 'waiting', 'wakeup', 'stopped');
+
+
+
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
@@ -73,7 +97,7 @@ class cal_Tasks extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
     
     
     /**
@@ -1277,8 +1301,8 @@ class cal_Tasks extends embed_Manager
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('from', 'date', 'caption=От,input=none');
-        $data->listFilter->FNC('to', 'date', 'caption=До,input=none');
+        $data->listFilter->FNC('from', 'date', 'caption=От');
+        $data->listFilter->FNC('to', 'date', 'caption=До');
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent,autoFilter');
@@ -1318,23 +1342,25 @@ class cal_Tasks extends embed_Manager
         }
         
         // филтъра по дата е -1/+1 месец от днещната дата
-        $data->listFilter->setDefault('from', date('Y-m-01', strtotime('-1 months', dt::mysql2timestamp(dt::now()))));
-        $data->listFilter->setDefault('to', date('Y-m-t', strtotime('+1 months', dt::mysql2timestamp(dt::now()))));
-        
+        $data->listFilter->setDefault('from', date('Y-m-d', strtotime('-1 week', dt::mysql2timestamp(dt::now()))));
+        $data->listFilter->setDefault('to', date('Y-m-d', strtotime('+1 week', dt::mysql2timestamp(dt::now()))));
+        $data->listFilter->setDefault('selectPeriod', 'one_week_next_before');
+
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         if ($data->action === 'list') {
-            $data->listFilter->showFields .= 'search,selectedUsers,order, stateTask, ' . $mvc->driverClassField;
+            $data->listFilter->showFields .= ' ,search, from, to, selectedUsers, order, stateTask, ' . $mvc->driverClassField;
         } else {
-            $data->listFilter->showFields .= 'selectedUsers';
+            $data->listFilter->showFields = 'selectedUsers';
         }
         $data->listFilter->input('selectedUsers, Chart, View, stateTask, order, ' . $mvc->driverClassField, 'silent');
-        
+
         // размяна на датите във филтъра
         $dateRange = array();
-        
+        $useDateRange = true;
+
         if ($data->listFilter->rec->from) {
             $dateRange[0] = $data->listFilter->rec->from;
         }
@@ -1367,7 +1393,7 @@ class cal_Tasks extends embed_Manager
             
             // ако ще подреждаме по "начало" или "край" на задачата ще показваме и филтъра за дата
             if ($data->listFilter->rec->order == 'onStart' || $data->listFilter->rec->order == 'onEnd') {
-                $data->listFilter->showFields = 'search,selectedUsers,order, from, to,stateTask';
+                $data->listFilter->showFields .= 'search, from, to, selectedUsers, order, stateTask';
                 $data->listFilter->input('from, to', 'silent');
             }
             
@@ -1387,6 +1413,7 @@ class cal_Tasks extends embed_Manager
             if ($data->listFilter->rec->order == 'onStart') {
                 $data->query->where("(#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeStart >= '{$dateRange[0]}')");
                 $data->query->orderBy('#timeStart=ASC,#state=DESC');
+                $useDateRange = false;
             }
             
             if ($data->listFilter->rec->order == 'noStartEnd') {
@@ -1399,6 +1426,7 @@ class cal_Tasks extends embed_Manager
 	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
 	        		              ");
                 $data->query->orderBy('#state=DESC,#timeEnd=ASC');
+                $useDateRange = false;
             }
             
             if ($data->listFilter->rec->order == 'onStart') {
@@ -1428,6 +1456,10 @@ class cal_Tasks extends embed_Manager
 	        		              OR
 	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
 	        		              ");
+            } else {
+                if ($useDateRange && !empty($dateRange)) {
+                    $data->query->where(array("#expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $dateRange[1], $dateRange[0]));
+                }
             }
             
             // Да може да се филтрира по вида на документа
@@ -3666,6 +3698,20 @@ class cal_Tasks extends embed_Manager
                     cal_TaskConditions::save($condRec);
                 }
             }
+        }
+    }
+
+
+    /**
+     *
+     * @param $mvc
+     * @param $data
+     * @return void
+     */
+    public static function on_BeforePrepareSingleToolbar($mvc, $res, $data)
+    {
+        if (($data->rec->expectationTimeEnd && $data->rec->expectationTimeEnd > dt::now()) || ($data->rec->state == 'draft')) {
+            $data->rec->__closeButtonRow = 2;
         }
     }
 }
