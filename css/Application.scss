@@ -8509,6 +8509,10 @@ body.narrow {
 	font-style:italic;
 }
 
+.operationTable .paramVal {
+	word-break: break-word;
+}
+
 .confidential-field {
 	font-size:0.7em;
 	font-weight:normal;
