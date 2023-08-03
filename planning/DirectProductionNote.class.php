@@ -419,6 +419,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
         }
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
+
+        // Попълване на склада за влагане
+        $jobRec = static::getJobRec($rec);
+        $jobInputStores = keylist::toArray($jobRec->inputStores);
+        if(countR($jobInputStores) == 1){
+            $threadId = $rec->threadId ?? doc_Containers::fetchField($rec->originId, 'threadId');
+            if(!planning_ConsumptionNotes::existActivatedInThread($threadId)){
+                $form->setDefault('inputStoreId', key($jobInputStores));
+            }
+        }
+
         if(isset($rec->inputStoreId)){
             $form->setDefault('inputServicesFrom', 'all');
         } else {
@@ -440,6 +451,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = &$form->rec;
 
         if ($form->isSubmitted()) {
+
+            if($form->getField('inputStoreId')->input != 'none'){
+                if(empty($rec->inputStoreId)){
+                    if(!planning_ConsumptionNotes::existActivatedInThread($rec->threadId)){
+                        $form->setWarning('inputStoreId', 'В Заданието(и операциите към него) няма контиран Протокол за влагане, а е избрано влагане на материалите от "Незавършено производство"! Ако няма предварително (общо) влагане - изберете склад за изписване на материалите!');
+                    }
+                }
+            }
 
             // Проверка на к-то
             $warning = null;
