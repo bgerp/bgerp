@@ -47,7 +47,13 @@ class email_Inboxes extends core_Master
      * Кой има право да променя?
      */
     public $canEdit = 'admin, email, manager, powerUser';
-    
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'admin';
+
     
     /**
      * Кой има право да добавя?
@@ -59,8 +65,12 @@ class email_Inboxes extends core_Master
      * Кои документи да се добавят като бързи бутони в папката на корицата
      */
     public $defaultDefaultDocuments = 'email_Outgoings';
-    
-    
+
+
+    /***
+     *
+     * @var string
+     */
     public $canSingle = 'powerUser';
     
     
