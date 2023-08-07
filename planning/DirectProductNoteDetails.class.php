@@ -162,6 +162,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (isset($rec->productId)) {
             $prodRec = cat_Products::fetch($rec->productId, 'canStore');
             if ($prodRec->canStore == 'yes') {
+                $form->rec->_isStorable = true;
                 $form->setField('storeId', 'input');
                 if (empty($rec->id) && isset($data->masterRec->inputStoreId)) {
                     $form->setDefault('storeId', $data->masterRec->inputStoreId);
@@ -218,16 +219,22 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         
         if (isset($rec->productId)) {
+            $noteRec = planning_DirectProductionNote::fetch($rec->noteId, 'productId,packagingId,threadId');
             if($rec->type == 'pop'){
 
                 // Ако отпадъка ще е произведения артикул, само мярката в която е произведен ще е позволена
-                $noteRec = planning_DirectProductionNote::fetch($rec->noteId, 'productId,packagingId');
                 if($rec->productId == $noteRec->productId){
                     $form->rec->_onlyAllowedPackId = $noteRec->packagingId;
                 }
             }
 
             if ($form->isSubmitted()) {
+                if($rec->_isStorable && empty($rec->storeId)){
+                    if(!planning_ConsumptionNotes::existActivatedInThread($noteRec->threadId, $rec->productId)){
+                        $form->setWarning('storeId', "В Заданието(и операциите към него) няма контиран Протокол за влагане с посочения артикул, а е избрано влагане от Незавършено производство! Ако няма предварително (общо) влагане - изберете склад за изписване на материала!");
+                    }
+                }
+
                 // Проверка на к-то
                 $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {

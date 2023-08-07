@@ -116,7 +116,7 @@ class rack_Pallets extends core_Manager
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell,silent');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,silent');
-        $this->FLD('batch', 'text', 'smartCenter,caption=Партида');
+        $this->FLD('batch', 'text', 'caption=Партида');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none,notNull,value=active');
@@ -625,6 +625,9 @@ class rack_Pallets extends core_Manager
         // Ако няма палет се създава нов
         $rQuery = static::getQuery();
         $rQuery->where(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId}", $position));
+        if(core_Packs::isInstalled('batch')){
+            $rQuery->where(array("#batch = '[#1#]'", $batch));
+        }
         $rQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
         $rQuery->orderBy('order');
         $rec = $rQuery->fetch();

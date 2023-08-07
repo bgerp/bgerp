@@ -245,6 +245,8 @@ class store_Setup extends core_ProtoSetup
     public static function canDoShippingWhenStockIsNegative($userId = null)
     {
         $allowedRoles = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT_ROLES');
+        if(Mode::is('closedDealCall')) return true;
+
         if(empty($allowedRoles)) return false;
 
         return haveRole($allowedRoles, $userId);

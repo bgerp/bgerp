@@ -3349,9 +3349,10 @@ span.sharing-history-title {
 .linkWithIcon.prevLink {
   padding-left: 0 !important;
   position: absolute;
-  height: 50px;
-  width: 50px;
+  height: 48px;
+  width: 48px;
   top: 50%;
+  margin-top: -24px;
   background-size: 48px;
   opacity: 0.3;
   -webkit-transition: opacity 1s ease-in-out;
@@ -3359,7 +3360,7 @@ span.sharing-history-title {
   transition: opacity 1s ease-in-out; }
 
 .narrow .nextLink {
-  right: 10px; }
+  right: 15px; }
 
 .narrow .prevLink {
   left: 5px; }
@@ -3367,6 +3368,7 @@ span.sharing-history-title {
 .narrow .nextLink,
 .narrow .prevLink {
   background-size: 36px;
+  margin-top: -18px;
   opacity: 0.6; }
 
 .narrow #fileDetail .row-holder {
@@ -7479,6 +7481,9 @@ only screen and (max-width: 320px) {
 
 .selectTaskOptions tr.createAllTasksForJob {
   font-style: italic; }
+
+.operationTable .paramVal {
+  word-break: break-word; }
 
 .confidential-field {
   font-size: 0.7em;
