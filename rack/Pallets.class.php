@@ -626,7 +626,7 @@ class rack_Pallets extends core_Manager
         $rQuery = static::getQuery();
         $rQuery->where(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId}", $position));
         if(core_Packs::isInstalled('batch')){
-            $rQuery->where("#batch = '{$batch}'");
+            $rQuery->where(array("#batch = '[#1#]'", $batch));
         }
         $rQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
         $rQuery->orderBy('order');
