@@ -947,7 +947,6 @@ class store_ConsignmentProtocols extends core_Master
                 foreach ($dRecs as $dRec1){
                     // Групират се оригиналните детайли
                     if(array_key_exists($dRec1->productId, $dRecsNew)) continue;
-                    $byPacks[$dRec1->productId][$dRec1->measureId] = 1;
                     krsort($byPacks[$dRec1->productId]);
                     $quantity = min($byProductId[$dRec1->productId], $expectedQuantities[$dRec1->productId]);
 
