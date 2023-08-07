@@ -212,14 +212,7 @@ class deals_QuotationDetails extends doc_Detail
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
-
-            // Ако артикула не е складируем, скриваме полето за мярка
-            if (!isset($productInfo->meta['canStore'])) {
-                $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
-            } else {
-                $form->setField('packagingId', 'input');
-            }
+            $form->setField('packagingId', 'input');
         }
 
         if ($form->isSubmitted()) {

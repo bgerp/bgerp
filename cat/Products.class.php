@@ -2090,42 +2090,40 @@ class cat_Products extends embed_Manager
 
         // Определяме основната мярка
         $baseId = $productRec->measureId;
-        if ($productRec->canStore == 'yes') {
-            $packQuery = cat_products_Packagings::getQuery();
-            $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-            $packQuery->where("#productId = {$productRec->id}");
-            $packQuery->show('packagingId,isBase');
-            if ($onlyMeasures === true) {
-                $packQuery->where("#type = 'uom'");
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        if($productRec->canStore != 'yes' || $onlyMeasures){
+            $packQuery->where("#type = 'uom'");
+        }
+        $packQuery->where("#productId = {$productRec->id}");
+        $packQuery->show('packagingId,isBase');
+
+        // Ако са само за производство остават само вторите мерки и производните на основната
+        if($secondMeasureId !== false){
+            expect(is_numeric($secondMeasureId) || is_null($secondMeasureId), $secondMeasureId);
+
+            $allowedMeasures = cat_UoM::getSameTypeMeasures($baseId);
+            if($secondMeasureId = $secondMeasureId ?? static::getSecondMeasureId($productId)){
+                $allowedMeasures += cat_Uom::getSameTypeMeasures($secondMeasureId);
             }
-
-            // Ако са само за производство остават само вторите мерки и производните на основната
-            if($secondMeasureId !== false){
-                expect(is_numeric($secondMeasureId) || is_null($secondMeasureId), $secondMeasureId);
-
-                $allowedMeasures = cat_UoM::getSameTypeMeasures($baseId);
-                if($secondMeasureId = isset($secondMeasureId) ? $secondMeasureId : static::getSecondMeasureId($productId)){
-                    $allowedMeasures += cat_Uom::getSameTypeMeasures($secondMeasureId);
-                }
-                unset($allowedMeasures['']);
-                if(countR($allowedMeasures)){
-                    $allowedMeasuresString = implode(',', array_keys($allowedMeasures));
-                    $packQuery->where("#type != 'uom' OR #packagingId IN ({$allowedMeasuresString})");
-                } else {
-                    $packQuery->where("1=2");
-                }
+            unset($allowedMeasures['']);
+            if(countR($allowedMeasures)){
+                $allowedMeasuresString = implode(',', array_keys($allowedMeasures));
+                $packQuery->where("#type != 'uom' OR #packagingId IN ({$allowedMeasuresString})");
+            } else {
+                $packQuery->where("1=2");
             }
+        }
 
-            $packQuery->where("#state != 'closed'");
-            if($exPackId){
-                $packQuery->orWhere("#packagingId = '{$exPackId}'");
-            }
+        $packQuery->where("#state != 'closed'");
+        if($exPackId){
+            $packQuery->orWhere("#packagingId = '{$exPackId}'");
+        }
 
-            while ($packRec = $packQuery->fetch()) {
-                $options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId, false);
-                if ($packRec->isBase == 'yes') {
-                    $baseId = $packRec->packagingId;
-                }
+        while ($packRec = $packQuery->fetch()) {
+            $options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId, false);
+            if ($packRec->isBase == 'yes') {
+                $baseId = $packRec->packagingId;
             }
         }
         

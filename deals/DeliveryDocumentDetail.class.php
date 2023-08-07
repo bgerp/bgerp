@@ -86,32 +86,26 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
-            
+            $form->setField('packagingId', 'input');
+
+            // Показване на допълнителна мярка
+            if (isset($rec->packagingId)) {
+                $pType = cat_UoM::fetchField($rec->packagingId, 'type');
+                $derivitiveMeasures = cat_UoM::getSameTypeMeasures($productInfo->productRec->measureId);
+                if ($pType == 'uom' && !array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                    $form->setField('baseQuantity', 'input');
+                    $measureShort = cat_UoM::getShortName($productInfo->productRec->measureId);
+                    $form->setField('baseQuantity', "unit={$measureShort}");
+                } else {
+                    $form->setField('baseQuantity', 'input=none');
+                }
+            }
+
             $LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
             if (isset($mvc->{$LastPolicy})) {
                 $policyInfoLast = $mvc->{$LastPolicy}->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
                 if ($policyInfoLast->price != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
-                }
-            }
-            
-            if (!isset($productInfo->meta['canStore'])) {
-                $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
-            } else {
-                $form->setField('packagingId', 'input');
-                
-                // Показване на допълнителна мярка
-                if (isset($rec->packagingId)) {
-                    $pType = cat_UoM::fetchField($rec->packagingId, 'type');
-                    $derivitiveMeasures = cat_UoM::getSameTypeMeasures($productInfo->productRec->measureId);
-                    if ($pType == 'uom' && !array_key_exists($rec->packagingId, $derivitiveMeasures)){
-                        $form->setField('baseQuantity', 'input');
-                        $measureShort = cat_UoM::getShortName($productInfo->productRec->measureId);
-                        $form->setField('baseQuantity', "unit={$measureShort}");
-                    } else {
-                        $form->setField('baseQuantity', 'input=none');
-                    }
                 }
             }
         }
