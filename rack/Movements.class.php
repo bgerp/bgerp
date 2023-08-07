@@ -1444,6 +1444,10 @@ class rack_Movements extends rack_MovementAbstract
                 $row->_rowTools->addLink('Корекция', $correctUrl, 'ef_icon=img/16/red-back.png,title=Създаване на обратно движение');
             }
         }
+
+        if(isset($rec->palletId) && empty($rec->batch)){
+            $rec->batch = rack_Pallets::fetchField($rec->palletId, 'batch');
+        }
     }
 
 
