@@ -140,7 +140,9 @@ abstract class deals_ClosedDeals extends core_Master
 
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
+                Mode::push('closedDealCall', true);
                 $entries = $transactionSource->getTransaction($doc->docId)->entries;
+                Mode::pop('closedDealCall');
                 $copyEntries = $entries;
 
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
