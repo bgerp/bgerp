@@ -357,7 +357,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $costAmount = $index = 0;
             foreach ($details as $dRec1) {
                 $canStore = cat_Products::fetchField($dRec1->productId, 'canStore');
-                    
+                $primeCost = null;
                 if ($dRec1->type == 'input' || $dRec1->type == 'allocated') {
                     // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
                     if ($canStore == 'yes') {
@@ -377,7 +377,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     $primeCost *= $dRec1->quantity;
                     $sign = -1;
                 }
-                    
+
                 if (!$primeCost) {
                     $primeCost = 0;
                 }
@@ -387,6 +387,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $quantityD = ($index == 0) ? $quantity : 0;
                     
                 // Ако е материал го изписваме към произведения продукт
+                $entry = array();
                 if ($dRec1->type != 'pop') {
                     $reason = ($index == 0) ? 'Засклаждане на произведен артикул' : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
                     $array['quantity'] = $quantityD;

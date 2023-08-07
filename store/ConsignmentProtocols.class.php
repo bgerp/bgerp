@@ -954,9 +954,12 @@ class store_ConsignmentProtocols extends core_Master
                     foreach ($byPacks[$dRec1->productId] as $qInPack => $packId){
                         if($quantity % $qInPack == 0){
                             $clone = clone $dRec1;
+                            $clone->packagingId = $packId;
+                            $clone->quantityInPack = $qInPack;
                             $clone->quantity = $quantity;
                             $clone->packQuantity = $quantity / $clone->quantityInPack;
                             $dRecsNew[$clone->productId] = $clone;
+                            break;
                         }
                     }
                 }
