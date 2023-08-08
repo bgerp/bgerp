@@ -637,7 +637,10 @@ class rack_Pallets extends core_Manager
 
             if(!$samePosPallets) {
                 $rQuery2 = static::getQuery();
-                $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+                $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId}", $position));
+                if(core_Packs::isInstalled('batch')){
+                    $rQuery2->where(array("#batch = '[#1#]'", $batch));
+                }
                 $rQuery2->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
                 $rQuery2->orderBy('order');
                 $rec = $rQuery2->fetch();
