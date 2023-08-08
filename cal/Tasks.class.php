@@ -1536,10 +1536,9 @@ class cal_Tasks extends embed_Manager
             $tabs->TAB('List', 'Таблица', $currUrl);
             
             $queryClone = clone $data->listSummary->query;
-            
-            $queryClone->where('#timeStart IS NOT NULL');
-            
-            if ($queryClone->fetch()) {
+            $queryClone->limit(1);
+
+            if ($queryClone->count()) {
                 
                 // ще може ли да определим типа на Ганта
                 $ganttType = self::getGanttTimeType($data);
