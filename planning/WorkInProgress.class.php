@@ -172,7 +172,7 @@ class planning_WorkInProgress extends core_Manager
         // Подготвяме формата
         $data->title = "Незавършено производство към|*: <b style='color:green;'>" . dt::mysql2verbal(dt::now(), 'd.m.Y H:i') . "</b>";
         arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
-        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=store_Products)", 'caption=Филтри,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=planning_WorkInProgress)", 'caption=Филтри,input,silent,remember,autoFilter');
         $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
 

@@ -1029,9 +1029,11 @@ class cat_Products extends embed_Manager
      *
      * @param array|string $filtersArr
      * @param core_Query $query
+     * @param string $productIdFld
+     * @param string $stateFld
      * @return void
      */
-    public static function applyAdditionalListFilters($filtersArr, &$query)
+    public static function applyAdditionalListFilters($filtersArr, &$query, $productIdFld = 'id', $stateFld = 'state')
     {
         $filtersArr = is_array($filtersArr) ? $filtersArr : bgerp_type_CustomFilter::toArray($filtersArr);
         if(!countR($filtersArr)) return;
@@ -1048,7 +1050,7 @@ class cat_Products extends embed_Manager
             $eProductArr = eshop_Products::getProductsInEshop();
             if(countR($eProductArr)){
                 $eProductArrStr = implode(',',  $eProductArr);
-                $wherePartOne .= (!empty($wherePartOne) ? ' OR ' : '') . "#id IN ({$eProductArrStr})";
+                $wherePartOne .= (!empty($wherePartOne) ? ' OR ' : '') . "#{$productIdFld} IN ({$eProductArrStr})";
             }
         }
         if(!empty($wherePartOne)){
@@ -1076,14 +1078,14 @@ class cat_Products extends embed_Manager
 
             if(isset($filtersArr['withBatches']) && !isset($filtersArr['withoutBatches'])){
                 if(!empty($productsWithBatchesStr)){
-                    $wherePartThree .= " AND #id IN ({$productsWithBatchesStr})";
+                    $wherePartThree .= " AND #{$productIdFld} IN ({$productsWithBatchesStr})";
                 } else {
                     $wherePartThree .= " AND 1=2";
                 }
             }
             if(isset($filtersArr['withoutBatches']) && !isset($filtersArr['withBatches'])){
                 if(!empty($productsWithBatchesStr)){
-                    $wherePartThree .= " AND #id NOT IN ({$productsWithBatchesStr})";
+                    $wherePartThree .= " AND #{$productIdFld} NOT IN ({$productsWithBatchesStr})";
                 }
             }
             $whereArr[] = $wherePartThree;
@@ -1094,7 +1096,7 @@ class cat_Products extends embed_Manager
             $productWithVat = cat_products_VatGroups::getByVatPercent(0);
             if(countR($productWithVat)){
                 $productWithVatStr = implode(',', $productWithVat);
-                $wherePartFour = "#id IN ({$productWithVatStr})";
+                $wherePartFour = "#{$productIdFld} IN ({$productWithVatStr})";
             } else {
                 $wherePartFour = "1=2";
             }
@@ -1104,7 +1106,7 @@ class cat_Products extends embed_Manager
             $productWithVat = cat_products_VatGroups::getByVatPercent(0.09);
             if(countR($productWithVat)){
                 $productWithVatStr = implode(',', $productWithVat);
-                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#id IN ({$productWithVatStr})";
+                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#{$productIdFld} IN ({$productWithVatStr})";
             } else{
                 $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
             }
@@ -1114,7 +1116,7 @@ class cat_Products extends embed_Manager
             $productWithWith0And9Vat = cat_products_VatGroups::getByVatPercent(0) + cat_products_VatGroups::getByVatPercent(0.09);
             if(countR($productWithWith0And9Vat)){
                 $productWithVatStr = implode(',', $productWithWith0And9Vat);
-                $wherePartFour = "#id NOT IN ({$productWithVatStr})";
+                $wherePartFour = "#{$productIdFld} NOT IN ({$productWithVatStr})";
             } else {
                 $wherePartFour = "1=2";
             }
@@ -1157,6 +1159,17 @@ class cat_Products extends embed_Manager
         }
         if(!empty($wherePartSix)){
             $whereArr[] = $wherePartSix;
+        }
+
+        $wherePartSeven = '';
+        if(isset($filtersArr['activeProducts'])) {
+            $wherePartSeven = "#{$stateFld} = 'active'";
+        }
+        if(isset($filtersArr['closedProducts'])) {
+            $wherePartSeven .= (!empty($wherePartSeven) ? ' OR ' : '') . "#{$stateFld} = 'closed'";
+        }
+        if(!empty($wherePartSeven)){
+            $whereArr[] = $wherePartSeven;
         }
 
         foreach ($whereArr as $where){
