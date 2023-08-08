@@ -44,14 +44,22 @@ class doc_plg_TransferDoc extends core_Plugin
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         if (empty($rec->id)) {
-            $person = crm_Profiles::fetchField("#personId = {$rec->personId}", 'userId');
-            $alternatePerson = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-            
             if ($mvc->getField('sharedUsers', false)) {
+                $person = crm_Profiles::fetchField("#personId = {$rec->personId}", 'userId');
+                if ($person) {
+                    $rec->sharedUsers = keylist::addKey($rec->sharedUsers, $person);
+                }
+                if ($rec->alternatePersons) {
+                    foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
+                        $alternatePersonId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
+                        if ($alternatePersonId) {
+                            $rec->sharedUsers = keylist::addKey($rec->sharedUsers, $alternatePersonId);
+                        }
+                    }
+                }
+
                 $cu = core_Users::getCurrent();
                 $rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cu);
-                $rec->sharedUsers = keylist::addKey($rec->sharedUsers, $person);
-                $rec->sharedUsers = keylist::addKey($rec->sharedUsers, $alternatePerson);
             }
         }
     }

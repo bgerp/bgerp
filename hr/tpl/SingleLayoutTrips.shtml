@@ -55,23 +55,23 @@
     <table class="inlineRichTable listTable">
     	<tr>
     		<!--ET_BEGIN answerGSM-->
-    		<td>|отговарям на мобилен телефон|*</td>
+    		<td>|Отговарям на мобилен телефон|*</td>
             <td class="centered">[#answerGSM#]</td>
             <!--ET_END answerGSM-->
         </tr>
         
         <tr>
         	<!--ET_BEGIN answerSystem-->
-        	<td>|имам достъп до системата|*</td>
+        	<td>|Имам достъп до системата|*</td>
             <td class="centered">[#answerSystem#]</td>
             <!--ET_END answerSystem-->
         </tr>
             
         <tr>
-           <!--ET_BEGIN alternatePerson-->
-            <td>|ме замества|*</td>
-            <td class="centered">[#alternatePerson#]</td>
-            <!--ET_END alternatePerson-->
+           <!--ET_BEGIN alternatePersons-->
+            <td>|Ме замества|*</td>
+            <td class="centered">[#alternatePersons#]</td>
+            <!--ET_END alternatePersons-->
         </tr>
     </table>
     <!--ET_END access-->

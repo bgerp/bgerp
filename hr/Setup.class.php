@@ -104,6 +104,7 @@ class hr_Setup extends core_ProtoSetup
         'hr_ScheduleDetails',
         'hr_Schedules',
         'hr_IndicatorFormulas',
+        'migrate::changeAlternatePersonField',
     );
     
     
@@ -173,5 +174,24 @@ class hr_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('humanResources', 'Прикачени файлове в човешки ресурси', null, '1GB', 'user', 'powerUser');
         
         return $html;
+    }
+
+
+    /**
+     * Миграция за преминаване от alternatePerson към alternatePersons
+     */
+    public static function changeAlternatePersonField()
+    {
+        $clsArr = array('hr_Leaves', 'hr_Sickdays', 'hr_Trips');
+        foreach ($clsArr as $clsName) {
+            $cls = cls::get($clsName);
+            $cQuery = $cls->getQuery();
+            $cQuery->where("#alternatePersons != ''");
+            $cQuery->where("#alternatePersons IS NOT NULL");
+            while ($cRec = $cQuery->fetch()) {
+                $cRec->alternatePersons = type_Keylist::addKey(array(), $cRec->alternatePersons);
+                $cls->save_($cRec, 'alternatePersons');
+            }
+        }
     }
 }

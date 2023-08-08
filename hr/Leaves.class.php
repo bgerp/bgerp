@@ -215,8 +215,8 @@ class hr_Leaves extends core_Master
         $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
-        $this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
-        
+        $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместници, oldFieldName=alternatePerson');
+
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
@@ -312,7 +312,7 @@ class hr_Leaves extends core_Master
         
         if (countR($employees)) {
             $form->setOptions('personId', $employees);
-            $form->setOptions('alternatePerson', $employees);
+            $form->setSuggestions('alternatePersons', $employees);
         } else {
             redirect(array('crm_Persons', 'list'), false, '|Липсва избор за служители|*');
         }
@@ -503,9 +503,13 @@ class hr_Leaves extends core_Master
         $rec = $mvc->fetchRec($rec);
         $subscribedArr = keylist::toArray($rec->sharedUsers);
         
-        if (isset($rec->alternatePerson)) {
-            $alternatePersonId = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-            $subscribedArr[$alternatePersonId] = $alternatePersonId;
+        if (isset($rec->alternatePersons)) {
+            foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
+                $alternatePersonId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
+                if ($alternatePersonId) {
+                    $subscribedArr[$alternatePersonId] = $alternatePersonId;
+                }
+            }
         }
         
         if (countR($subscribedArr)) {
@@ -734,6 +738,42 @@ class hr_Leaves extends core_Master
         
         $myCompany = crm_Companies::fetchOurCompany();
         $row->myCompany = $myCompany->name;
+
+        $row->alternatePersons = static::purifyeAlternatePersons($rec);
+    }
+
+
+    /**
+     * Помощна функция за показване на заместващите лица
+     *
+     * @param $rec
+     * @return string
+     */
+    public static function purifyeAlternatePersons($rec)
+    {
+        $res = '';
+        if (isset($rec->alternatePersons)) {
+            $aPersonsArr = array();
+            foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
+                // Ако имаме права да видим визитката
+                if (crm_Persons::haveRightFor('single', $aPerson) && ($name = crm_Persons::fetchField(array("#id = '[#1#]'", $aPerson), 'name'))) {
+                    $aPersonsArr[] = ht::createLink($name, array('crm_Persons', 'single', 'id' => $aPerson), null, 'ef_icon = img/16/vcard.png');
+                } else {
+                    $pRow = crm_Persons::recToVerbal($aPerson, 'name');
+                    if ($pRow) {
+                        $aPersonsArr[] = $pRow->name;
+                    } else {
+                        $aPersonsArr[] = $aPerson;
+                    }
+                }
+            }
+
+            if (!empty($aPersonsArr)) {
+                $res = implode(', ', $aPersonsArr);
+            }
+        }
+
+        return $res;
     }
     
     
@@ -864,9 +904,13 @@ class hr_Leaves extends core_Master
         
         $subscribedArr = keylist::toArray($rec->sharedUsers);
         
-        if (isset($rec->alternatePerson)) {
-            $alternatePersonId = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-            $subscribedArr[$alternatePersonId] = $alternatePersonId;
+        if (isset($rec->alternatePersons)) {
+            foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
+                $alternatePersonId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
+                if ($alternatePersonId) {
+                    $subscribedArr[$alternatePersonId] = $alternatePersonId;
+                }
+            }
         }
         
         if (countR($subscribedArr)) {
@@ -881,7 +925,7 @@ class hr_Leaves extends core_Master
                 }
             }
         }
-        
+
         // Редиректваме
         return new Redirect($link, '|Успешно отказахте молба за отпуска');
     }
