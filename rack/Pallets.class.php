@@ -643,7 +643,6 @@ class rack_Pallets extends core_Manager
                 $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId}", $position));
                 if(core_Packs::isInstalled('batch')){
                     $rQuery2->XPR('batchCalc', 'varchar', "COALESCE(#batch, '')");
-                    $rQuery2->XPR('batchCalc', 'varchar', "COALESCE(#batch, '')");
                     $rQuery2->where(array("#batchCalc = '[#1#]'", $batch));
                 }
 
