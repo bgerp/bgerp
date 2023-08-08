@@ -1458,7 +1458,12 @@ class cal_Tasks extends embed_Manager
 	        		              ");
             } else {
                 if ($useDateRange && !empty($dateRange)) {
-                    $data->query->where(array("#expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $dateRange[1], $dateRange[0]));
+                    if (isset($dateRange[1])) {
+                        $data->query->where(array("#expectationTimeStart <= '[#1#]'", $dateRange[1]));
+                    }
+                    if (isset($dateRange[0])) {
+                        $data->query->where(array("#expectationTimeStart >= '[#1#]'", $dateRange[0]));
+                    }
                 }
             }
             
