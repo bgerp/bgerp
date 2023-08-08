@@ -699,7 +699,9 @@ class rack_Pallets extends core_Manager
         $rec->rackId = $rRec->id;
         
         self::save($rec);
-        
+        if($rec->quantity < 0) {
+            wp($rec, $productId, $storeId, $quantity, $position, $batch, $label);
+        }
         return $rec;
     }
     
