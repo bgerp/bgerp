@@ -181,7 +181,7 @@ class hr_Trips extends core_Master
         $this->FLD('purpose', 'richtext(rows=5, bucket=Notes)', 'caption=Цел');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
-        $this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty)', 'caption=По време на отсъствието->Заместник');
+        $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник, oldFieldName=alternatePerson');
         $this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни,input=none, changable');
         $this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни,input=none, changable');
         $this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни,input=none, changable');
@@ -258,7 +258,7 @@ class hr_Trips extends core_Master
         
         if (countR($employees)) {
             $form->setOptions('personId', $employees);
-            $form->setOptions('alternatePerson', $employees);
+            $form->setSuggestions('alternatePersons', $employees);
         } else {
             redirect(array('crm_Persons', 'list'), false, '|Липсва избор за служители|*');
         }
@@ -303,14 +303,8 @@ class hr_Trips extends core_Master
             $row->amountHouse = $Double->toVerbal($rec->amountHouse);
             $row->amountHouse .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
         }
-        
-        if (isset($rec->alternatePerson)) {
-            // Ако имаме права да видим визитката
-            if (crm_Persons::haveRightFor('single', $rec->alternatePerson)) {
-                $name = crm_Persons::fetchField("#id = '{$rec->alternatePerson}'", 'name');
-                $row->alternatePerson = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->alternatePerson), null, 'ef_icon = img/16/vcard.png');
-            }
-        }
+
+        $row->alternatePersons = hr_Sickdays::purifyeAlternatePersons($rec);
     }
     
     

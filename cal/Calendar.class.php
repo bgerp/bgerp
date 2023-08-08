@@ -952,19 +952,30 @@ class cal_Calendar extends core_Master
     /**
      * Връща дали дадения служител ще отсъства на уречената дата
      */
-    public static function isAbsent($date, $userId)
+    public static function isAbsent($date, $userId, $typeArr = array('leaves', 'sick') , &$rec = null)
     {
         // Системните и анонимните потребители не отсъстват
         if ($userId <= 0) {
             
             return false;
         }
+
+        if (!isset($date)) {
+            $date = dt::now(false);
+        }
         
-        list($date, $time) = explode(' ', $date);
+        list($date) = explode(' ', $date);
+
         $fromTime = $date . ' 00:00:00';
         $toTime   = $date   . ' 23:59:59';
-        
-        $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND (#type = 'leaves' OR #type = 'sick')");
+
+        $typeStr = '';
+        foreach ($typeArr as $type) {
+            $typeStr .= $typeStr ? " OR " : '';
+            $typeStr .= "#type = '{$type}'";
+        }
+
+        $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND ({$typeStr})");
         
         if ($rec) {
             
