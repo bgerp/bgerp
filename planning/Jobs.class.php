@@ -369,6 +369,8 @@ class planning_Jobs extends core_Master
             }
 
             foreach ($products as $pId => $pName){
+                if(isset($rec->productId) && $rec->productId != $pId) continue;
+
                 foreach ($packsInDeal[$pId] as $packId => $packQuantity){
                     $exRec = static::fetchField("#productId = {$pId} AND #saleId = {$rec->saleId} AND #packagingId = {$packId} AND #state != 'rejected'");
                     if(!$exRec){
