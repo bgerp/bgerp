@@ -104,8 +104,14 @@ class rack_Pallets extends core_Manager
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'position,batch,productId,comment';
-    
-    
+
+
+    /**
+     * Кои полета да се фечват
+     */
+    public $fetchFieldsBeforeDelete = 'storeId,productId';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -1272,6 +1278,18 @@ class rack_Pallets extends core_Manager
             }
 
             arr::sortObjects($recs, 'position', 'ASC', 'natural');
+        }
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // При изтриване да се рекалкулира к-то по палети
+        foreach ($query->getDeletedRecs() as $rec) {
+            rack_Pallets::recalc($rec->productId, $rec->storeId);
         }
     }
 }
