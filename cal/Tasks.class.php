@@ -3240,7 +3240,7 @@ class cal_Tasks extends embed_Manager
             $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
             $sTxt = ' ' . $pRec->code . ' ' . $pRec->name;
         } else {
-            $sTxt = ' ' . $mvc->withoutResStrwithoutResStr;
+            $sTxt = ' ' . $mvc->withoutResStr;
         }
 
         if (trim($sTxt)) {
