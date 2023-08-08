@@ -623,11 +623,17 @@ class rack_Pallets extends core_Manager
     public static function increment($productId, $storeId, $position, $quantity, $batch)
     {
         // Ако няма палет се създава нов
+        $batchDef = core_Packs::isInstalled('batch') ? batch_Defs::getBatchDef($productId) : null;
         $rQuery = static::getQuery();
         $rQuery->where(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId}", $position));
         if(core_Packs::isInstalled('batch')){
-            $rQuery->where(array("#batch = '[#1#]'", $batch));
+            if($batchDef){
+                $rQuery->where(array("#batch = '[#1#]'", $batch));
+            } else {
+                $rQuery->where("#batch IS NULL");
+            }
         }
+
         $rQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
         $rQuery->orderBy('order');
         $rec = $rQuery->fetch();
@@ -639,18 +645,29 @@ class rack_Pallets extends core_Manager
                 $rQuery2 = static::getQuery();
                 $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId}", $position));
                 if(core_Packs::isInstalled('batch')){
-                    $rQuery2->where(array("#batch = '[#1#]'", $batch));
+                    if(isset($batchDef)){
+                        $rQuery2->where(array("#batch = '[#1#]'", $batch));
+                    } else {
+                        $rQuery2->where("#batch IS NULL");
+                    }
                 }
+
                 $rQuery2->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
                 $rQuery2->orderBy('order');
                 $rec = $rQuery2->fetch();
+
+                $str = is_object($rec) ? "FOUND2 ($rec->id)" : "NOT FOUND";
+                static::logDebug("{$str} : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
             }
-        }            
+        } else {
+            static::logDebug("FOUND1 ($rec->id) : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
+        }
       
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position, $batch);
+            static::logDebug("NEW ($rec->id) : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
         } else {
-            
+
             // Ако има променя му се количеството
             expect($rec->productId == $productId, 'Артикулът е различен');
             expect($rec->storeId == $storeId, 'Склада е различен');
