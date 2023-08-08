@@ -1411,7 +1411,12 @@ class cal_Tasks extends embed_Manager
             }
             
             if ($data->listFilter->rec->order == 'onStart') {
-                $data->query->where("(#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeStart >= '{$dateRange[0]}')");
+                if (isset($dateRange[1])) {
+                    $data->query->where(array("(#timeStart IS NOT NULL AND #timeStart <= '[#1#]')", $dateRange[1]));
+                }
+                if (isset($dateRange[0])) {
+                    $data->query->where(array("(#timeStart IS NOT NULL AND #timeStart >= '[#1#]')", $dateRange[0]));
+                }
                 $data->query->orderBy('#timeStart=ASC,#state=DESC');
                 $useDateRange = false;
             }
@@ -1421,10 +1426,25 @@ class cal_Tasks extends embed_Manager
             }
             
             if ($data->listFilter->rec->order == 'onEnd') {
-                $data->query->where("(#timeEnd IS NOT NULL AND #timeEnd <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
-	        		              ");
+
+                $qStr = '(#timeEnd IS NOT NULL';
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND #timeEnd <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND #timeEnd >= '{$dateRange[0]}'";
+                }
+                $qStr .= ') OR (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL';
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}'";
+                }
+                $qStr .= ')';
+
+                $data->query->where($qStr);
+
                 $data->query->orderBy('#state=DESC,#timeEnd=ASC');
                 $useDateRange = false;
             }
@@ -1450,12 +1470,31 @@ class cal_Tasks extends embed_Manager
             }
             
             if ($chart == 'Gantt') {
-                $data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
-	        		              ");
+                $qStr = '(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL';
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND #timeStart <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND #timeEnd >= '{$dateRange[0]}'";
+                }
+                $qStr .= ') OR (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL';
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND #timeStart <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}'";
+                }
+                $qStr .= ') OR (#timeStart IS NOT NULL';
+
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND #timeStart <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND #timeStart >= '{$dateRange[0]}'";
+                }
+                $qStr .= ')';
+
+                $data->query->where($qStr);
             } else {
                 if ($useDateRange && !empty($dateRange)) {
                     if (isset($dateRange[1])) {
