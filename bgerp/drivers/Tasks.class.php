@@ -223,10 +223,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
                 $formTpl->removePlaces();
                 $data->tpl->append($formTpl, 'ListFilter');
             }
-            
+
+            Mode::push('hideToolbar', true);
             $data->tpl->append(cal_Tasks::renderListTable($data->data), 'PortalTable');
             $data->tpl->append(cal_Tasks::renderListPager($data->data), 'PortalPagerBottom');
-            
+            Mode::pop('hideToolbar');
+
             $switchTitle = '';
             
             // Задачи
