@@ -177,6 +177,8 @@ class ajur_Setup extends core_ProtoSetup
     {
         $html = parent::install();
 
+
+
         return $html;
     }
 }
