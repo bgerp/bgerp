@@ -47,6 +47,11 @@
     [#PAGE_FOOTER#]
     <!--ET_END FOOTER_CENTER_NARROW-->
     [#BEFORE_FOOTER#]
+    <!--ET_BEGIN FOOTER_CENTER_NARROW-->
+    <div class="additionalFooter" style="background-color: red !important;">
+        <div class='footer-links'>[#FOOTER_CENTER_NARROW#]</div>
+    </div>
+    <!--ET_END FOOTER_CENTER_NARROW-->
     <!--ET_BEGIN AFTER_FOOTER-->
     <div id="cmsBottom">
         <!--ET_BEGIN BEFORE_FOOTER_NARROW-->
@@ -65,10 +70,6 @@
         <!--ET_BEGIN AFTER_FOOTER_NARROW-->
         [#AFTER_FOOTER_NARROW#]
         <!--ET_END AFTER_FOOTER_NARROW-->
-    </div>
-    <!--ET_BEGIN FOOTER_CENTER_NARROW-->
-    <div class="additionalFooter">
-        <div class='footer-links'>[#FOOTER_CENTER_NARROW#]</div>
     </div>
 
     [#AFTER_FOOTER#]
