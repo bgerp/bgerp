@@ -207,7 +207,7 @@ abstract class deals_InvoiceMaster extends core_Master
         arr::placeInAssocArray($summaryFields, array('dealValueWithoutDiscount' => (object)array('name' => 'dealValueWithoutDiscount', 'summary' => 'amount', 'caption' => 'Дан. основа')), 'vatAmount');
         arr::placeInAssocArray($summaryFields, array('totalValue' => (object)array('name' => 'totalValue', 'summary' => 'amount', 'caption' => 'Общо')), null, 'vatAmount');
 
-        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount - $rec->vatAmount;
+        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount;
         $rec->totalValue = $rec->dealValue - $rec->discountAmount + $rec->vatAmount;
     }
 
