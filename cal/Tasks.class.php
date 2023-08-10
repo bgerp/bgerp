@@ -3036,7 +3036,12 @@ class cal_Tasks extends embed_Manager
 
         $folder = str::limitLen($cover->getTitleById(), 16);
         $taskTitle = $mvc->getVerbal($rec, 'title');
-        $title = "{$abbr}{$rec->id}/{$folder}/{$taskTitle}";
+
+        if(Mode::is('documentPortalShortName')){
+            $title = "{$abbr}{$rec->id}/{$taskTitle}";
+        } else {
+            $title = "{$abbr}{$rec->id}/{$folder}/{$taskTitle}";
+        }
 
         return $title;
     }
