@@ -2213,6 +2213,10 @@ pre.document {
     white-space: nowrap; }
   .antetka .linkWithIcon {
     margin-bottom: 0; }
+  .antetka .document-handler {
+    padding: 0 2px 0 0; }
+    .antetka .document-handler .linkWithIcon {
+      height: auto !important; }
 
 .antetkaCell {
   max-width: 400px; }

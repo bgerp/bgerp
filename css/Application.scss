@@ -2553,20 +2553,25 @@ margin: 2px 0 0 0;
 }
 
 .antetka {
-margin-bottom: 5px;
-padding: 5px;
-border: solid 1px $gray3;
-background: transparent;
-filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8);
-zoom: 1;
-background: rgba(200, 200, 200, 0.3);
-span.timeSpan {
-    white-space: nowrap;
-}
-.linkWithIcon {
-    margin-bottom: 0;
-}
-
+	margin-bottom: 5px;
+	padding: 5px;
+	border: solid 1px $gray3;
+	background: transparent;
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8);
+	zoom: 1;
+	background: rgba(200, 200, 200, 0.3);
+	span.timeSpan {
+		white-space: nowrap;
+	}
+	.linkWithIcon {
+		margin-bottom: 0;
+	}
+	.document-handler {
+		padding: 0 2px 0 0;
+		.linkWithIcon {
+			height: auto!important;
+		}
+	}
 }
 
 .antetkaCell {
