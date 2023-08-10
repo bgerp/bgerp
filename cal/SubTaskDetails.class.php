@@ -31,7 +31,7 @@ class cal_SubTaskDetails extends core_Manager
             $depth = countR($taskRec->_path) - 1;
             $indent = ($depth > 0) ? $depth * 15 : 0;
 
-            $row->title = ht::createElement("div", array('style' => "margin-left:{$indent}px;display:inline-block", 'class' => "subTaskLevel{$taskRec->_level}", ''), $row->title);
+            $row->title = ht::createElement("div", array('style' => "margin-left:{$indent}px;", ''), $row->title);
             $data->recs[$taskRec->id] = $taskRec;
             $data->rows[$taskRec->id] = $row;
         }
