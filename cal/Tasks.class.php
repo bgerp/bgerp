@@ -1844,9 +1844,9 @@ class cal_Tasks extends embed_Manager
         $rec = $this->fetch($id);
 
         $row = new stdClass();
-        
-        //Заглавие
-        $row->title = $this->getVerbal($rec, 'title');
+
+        $title = $this->getRecTitle($rec);
+        $row->title = core_Type::getByName('varchar')->toVerbal($title);
         
         $row->subTitle = '';
         
@@ -1927,7 +1927,7 @@ class cal_Tasks extends embed_Manager
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $rec->title;
+        $row->recTitle = $title;
         
         $Driver = $this->getDriver($id);
         if ($Driver) {
@@ -3027,12 +3027,18 @@ class cal_Tasks extends embed_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $me = cls::get(get_called_class());
-        $dRow = $me->getDocumentRow($rec->id);
-        
-        $handle = $me->getHandle($rec->id);
-        
-        return "{$handle} - {$dRow->title}";
+        $mvc = cls::get(get_called_class());
+        $rec = static::fetchRec($rec);
+
+        $abbr = $mvc->abbr;
+        $abbr[0] = strtoupper($abbr[0]);
+        $cover = doc_Folders::getCover($rec->folderId);
+
+        $folder = str::limitLen($cover->getTitleById(), 16);
+        $taskTitle = $mvc->getVerbal($rec, 'title');
+        $title = "{$abbr}{$rec->id}/{$folder}/{$taskTitle}";
+
+        return $title;
     }
     
     
