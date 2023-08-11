@@ -90,14 +90,16 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 
             // Показване на допълнителна мярка
             if (isset($rec->packagingId)) {
-                $pType = cat_UoM::fetchField($rec->packagingId, 'type');
-                $derivitiveMeasures = cat_UoM::getSameTypeMeasures($productInfo->productRec->measureId);
-                if ($pType == 'uom' && !array_key_exists($rec->packagingId, $derivitiveMeasures)){
-                    $form->setField('baseQuantity', 'input');
-                    $measureShort = cat_UoM::getShortName($productInfo->productRec->measureId);
-                    $form->setField('baseQuantity', "unit={$measureShort}");
-                } else {
-                    $form->setField('baseQuantity', 'input=none');
+                if($mvc->getField('baseQuantity', false)){
+                    $pType = cat_UoM::fetchField($rec->packagingId, 'type');
+                    $derivitiveMeasures = cat_UoM::getSameTypeMeasures($productInfo->productRec->measureId);
+                    if ($pType == 'uom' && !array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                        $form->setField('baseQuantity', 'input');
+                        $measureShort = cat_UoM::getShortName($productInfo->productRec->measureId);
+                        $form->setField('baseQuantity', "unit={$measureShort}");
+                    } else {
+                        $form->setField('baseQuantity', 'input=none');
+                    }
                 }
             }
 
