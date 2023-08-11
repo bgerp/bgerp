@@ -507,10 +507,10 @@ class deals_QuotationDetails extends doc_Detail
         $query->limit(1);
 
         $cloneQuery = clone $query;
-        $query->where("#productId = {$productId} AND #quantity = {$quantity}");
+        $query->where("#productId = {$productId} AND #quantity = '{$quantity}'");
         $query->orderBy('date=DESC,quotationId=DESC,quantity=ASC');
 
-        $cloneQuery->where("#productId = {$productId} AND #quantity < {$quantity}");
+        $cloneQuery->where("#productId = {$productId} AND #quantity < '{$quantity}'");
         $cloneQuery->orderBy('date,quotationId,quantity', 'DESC');
 
         $rec1 = $query->fetch();
