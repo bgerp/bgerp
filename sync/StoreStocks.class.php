@@ -68,7 +68,7 @@ class sync_StoreStocks extends sync_Helper
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'id,remoteCode=Код,productId=Артикул,syncedStoreId,measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,dateMin,lastSynced=Синхронизиране';
+    public $listFields = 'syncedStoreId,remoteCode=Код,productId=Артикул,measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,dateMin,lastSynced=Синхронизиране';
 
 
     /**
