@@ -242,8 +242,7 @@ class acc_CostObjectDetail extends core_Manager
         foreach ($data->costItemData->rows as $classId => $rows){
             $Class = cls::get($classId);
             $classTitle = cls::getTitle($Class);
-            $count = core_Type::getByName('int')->toVerbal(countR($rows));
-            $tpl->append("<tr class='costObjectCoverClassRow'><td colspan='4' class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #666; color: #fff>{$classTitle} ({$count})</td></tr>", 'ROWS');
+            $tpl->append("<tr class='costObjectCoverClassRow'><td colspan='4'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #666; color: #fff'>{$classTitle}</td></tr>", 'ROWS');
 
             foreach ($rows as $row){
                 $row->ROW_CLASS = 'state-active';
