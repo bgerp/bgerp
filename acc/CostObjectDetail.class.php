@@ -176,9 +176,12 @@ class acc_CostObjectDetail extends core_Manager
         acc_BalanceDetails::filterQuery($bQuery, $lastBalanceRec->id, '60201', null, $arr);
         $bQuery->show('ent1Id,blAmount,debitAmount,creditAmount');
         while ($bRec = $bQuery->fetch()) {
-            $res[$bRec->ent1Id] = (object)array('debitAmount' => $bRec->debitAmount,
-                                                'creditAmount' => $bRec->creditAmount,
-                                                'blAmount' => $bRec->blAmount);
+            if(!array_key_exists($bRec->ent1Id, $res)){
+                $res[$bRec->ent1Id] = (object)array('debitAmount' => 0, 'creditAmount' => 0, 'blAmount' => 0);
+            }
+            $res[$bRec->ent1Id]->debitAmount += $bRec->debitAmount;
+            $res[$bRec->ent1Id]->creditAmount += $bRec->creditAmount;
+            $res[$bRec->ent1Id]->blAmount += $bRec->blAmount;
         }
 
         return $res;
