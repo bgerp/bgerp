@@ -193,12 +193,17 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             
             // Вземаме съдържанието
             $contentStr = self::getArchiveContent($fRec, $path);
-            
+
+            // Подготвяме стрелките
+            $resArray = self::getArrows($fRec);
+            $prevLink = $resArray['prevLink'];
+            $nextLink = $resArray['nextLink'];
+
             // Таб за съдържанието
             $tabsArr['content'] = (object)
                 array(
                     'title' => 'Съдържание',
-                    'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$contentStr}</div></div>",
+                    'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$contentStr}</div></div>",
                     'order' => 7,
                 );
         } catch (fileman_Exception $e) {

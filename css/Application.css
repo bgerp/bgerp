@@ -3364,7 +3364,8 @@ span.sharing-history-title {
   opacity: 0.3;
   -webkit-transition: opacity 1s ease-in-out;
   -moz-transition: opacity 1s ease-in-out;
-  transition: opacity 1s ease-in-out; }
+  transition: opacity 1s ease-in-out;
+  z-index: 100; }
 
 .narrow .nextLink {
   right: 15px; }

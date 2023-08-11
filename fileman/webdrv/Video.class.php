@@ -52,12 +52,17 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
         
         // Шаблона за видеото
         $videoTpl = mejs_Adapter::createVideo($fRec->fileHnd, array('width' => $width, 'height' => $height));
-        
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Таб за съдържанието
         $tabsArr['video'] = (object)
             array(
                 'title' => 'Видео',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$videoTpl}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$videoTpl}</div></div>",
                 'order' => 2,
                 'tpl' => $videoTpl,
             );
