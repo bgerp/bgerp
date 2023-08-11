@@ -1853,7 +1853,13 @@ class cal_Tasks extends embed_Manager
         $row->title = core_Type::getByName('varchar')->toVerbal($title);
         
         $row->subTitle = '';
-        
+
+        if ($rec->assetResourceId) {
+//            $row->subTitle = $this->getVerbal($rec, 'assetResourceId');
+//            $row->subTitle = planning_AssetResources::getHyperlink($rec->assetResourceId, false);
+            $row->subTitle = planning_AssetResources::getTitleById($rec->assetResourceId);
+        }
+
         if ($rec->progress) {
             $Driver = $this->getDriver($rec->id);
             
@@ -1868,7 +1874,9 @@ class cal_Tasks extends embed_Manager
             Mode::pop('text');
             
             $pValStr = $progressArr[$pVal];
-            
+
+            $row->subTitle .= $row->subTitle ? ' - ' : '';
+
             if ($pValStr && ($pValStr != $pVal)) {
                 $row->subTitle .= $pValStr;
             } else {
