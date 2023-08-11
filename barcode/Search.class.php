@@ -131,7 +131,7 @@ class barcode_Search extends core_Manager
             $tpl->push('barcode/js/html5.js', 'JS');
             $tpl->push('barcode/js/html5-qrcode.min.js', 'JS');
 
-            $a = "<div style= 'max-width: 500px; width: 100%' id='reader'></div>";
+            $a = "<style> .cameraSource {min-width: 70px;} .cameraSource.active {background-color: #bbb;}</style> <div style= 'max-width: 500px; width: 100%' id='reader'></div><div style='margin: 20px 0 10px;' id='camera-buttons'></div>";
             jquery_Jquery::run($tpl, "barcodeActions();");
 
         } else {
