@@ -68,7 +68,7 @@ class sync_StoreStocks extends sync_Helper
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'remoteCode=Код,productId=Артикул,syncedStoreId,measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,dateMin,lastSynced=Синхронизиране';
+    public $listFields = 'id,remoteCode=Код,productId=Артикул,syncedStoreId,measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,dateMin,lastSynced=Синхронизиране';
 
 
     /**
@@ -216,6 +216,7 @@ class sync_StoreStocks extends sync_Helper
             if(!(is_array($stockData) && countR($stockData))) continue;
 
             foreach ($stockData as $arr){
+
                 // Ако в тази система няма артикул с този, код то няма да се извлича
                 if(!array_key_exists($arr['code'], $ourProducts)) continue;
 
@@ -247,9 +248,12 @@ class sync_StoreStocks extends sync_Helper
         }
 
         // Синхронизиране на старите с новите записи
-        $query = self::getQuery();
-        $query->in('syncedStoreId', array_keys($remoteStores));
-        $exRecs = $query->fetchAll();
+        $exRecs = array();
+        if(countR($remoteStores)){
+            $query = self::getQuery();
+            $query->in('syncedStoreId', array_keys($remoteStores));
+            $exRecs = $query->fetchAll();
+        }
         $arrRes = arr::syncArrays($save, $exRecs, 'syncedStoreId,productId', 'quantity,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
 
         // Добавяне на новите записи
@@ -259,7 +263,7 @@ class sync_StoreStocks extends sync_Helper
 
         // Обновяване на новите записи
         if(countR($arrRes['update'])){
-            $this->saveArray($arrRes['update'], 'id,quantity,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin,lastSynced');
+            $this->saveArray($arrRes['update'], 'id,syncedStoreId,productId,quantity,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin,lastSynced');
         }
 
         // Изтриване на тези, които вече не се срещат
@@ -295,12 +299,22 @@ class sync_StoreStocks extends sync_Helper
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
 
-            $pRec = cat_Products::fetch($rec->productId, 'measureId,state');
-            $row->productId = cat_Products::getVerbal($rec->productId, 'name');
-            $icon = cls::get('cat_Products')->getIcon($rec->productId);
-            $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
-            $row->measureId = cat_UoM::getTitleById($pRec->measureId);
-            $row->syncedStoreId = sync_Stores::getDisplayTitle($rec->syncedStoreId, true);
+            if($rec->productId){
+                $pRec = cat_Products::fetch($rec->productId, 'measureId,state');
+                $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+                $icon = cls::get('cat_Products')->getIcon($rec->productId);
+                $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
+                $row->measureId = cat_UoM::getTitleById($pRec->measureId);
+            } else {
+                $row->productId = "<span class='red'>проблем при показването</span>";
+            }
+
+            if($rec->syncedStoreId){
+                $row->syncedStoreId = sync_Stores::getDisplayTitle($rec->syncedStoreId, true);
+            } else {
+                $row->syncedStoreId = "<span class='red'>проблем при показването</span>";
+            }
+
 
             $rec->freeQuantity = $rec->quantity - $rec->reservedQuantity + $rec->expectedQuantity;
             $row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);

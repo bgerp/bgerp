@@ -985,7 +985,7 @@ class store_Products extends core_Detail
         $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $query->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
-        $query->where("#isPublic = 'yes'");
+        $query->where("#isPublic = 'yes' AND (#code IS NOT NULL OR #code != '')");
         $query->in('storeId', $args['stores']);
         $recs = $query->fetchAll();
         if(!countR($recs)) return $res;
