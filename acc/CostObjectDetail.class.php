@@ -35,9 +35,9 @@ class acc_CostObjectDetail extends core_Manager
 
         // Извличане на текущите крайни салда
         $data->costItemAmounts = static::getBlAmounts($data->costItemData->ids);
-        $taskClassId = cal_Tasks::getClassId();
 
         // Ако има РО - задачи
+        $taskClassId = cal_Tasks::getClassId();
         if(isset($data->costItemData->recs[$taskClassId])){
             $result = array();
             arr::sortObjects($data->costItemData->recs[$taskClassId], 'id', 'ASC');
@@ -78,14 +78,16 @@ class acc_CostObjectDetail extends core_Manager
         $data->costItemRows = array();
 
         // Извличане на датата на най-ранно използване на перата
-        $itemEarliestUsedOn = array();
+        $itemArr = array();
         $iQuery = acc_Items::getQuery();
         $iQuery->in('id', $data->costItemData->ids);
+        $iQuery->show('earliestUsedOn,state');
         while($iRec = $iQuery->fetch()){
-            $itemEarliestUsedOn[$iRec->id] = $iRec->earliestUsedOn;
+            $itemArr[$iRec->id] = $iRec;
         }
 
         // За всеки разходен обект, групиран по класа му
+        $taskClassId = cal_Tasks::getClassId();
         foreach ($data->costItemData->recs as $classId => $itemData){
             $data->costItemData->rows[$classId] = array();
             foreach ($itemData as $tRec){
@@ -131,12 +133,29 @@ class acc_CostObjectDetail extends core_Manager
 
                 // Линк към хронологията
                 if (acc_BalanceDetails::haveRightFor('history')) {
-                    if(isset($itemEarliestUsedOn[$tRec->itemId])){
-                        $histUrl = array('acc_BalanceHistory', 'History', 'ent1Id' => $tRec->itemId,'fromDate' => $itemEarliestUsedOn[$tRec->itemId], 'toDate' => $to, 'accNum' => 60201);
+                    if(isset($itemArr[$tRec->itemId]->earliestUsedOn)){
+                        $histUrl = array('acc_BalanceHistory', 'History', 'ent1Id' => $tRec->itemId,'fromDate' => $itemArr[$tRec->itemId]->earliestUsedOn, 'toDate' => $to, 'accNum' => 60201);
                         $row->history = ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
                     }
                 }
 
+                // Ако е задача, ще се показва състоянието и прогреса ѝ
+                $infoTpl = new core_ET("");
+                if($classId == $taskClassId){
+                    $documentRec = cls::get($classId)->fetch($tRec->id, 'state,progress');
+                    $row->progress = cal_Tasks::getVerbal($documentRec, 'progress');
+                    $infoTpl->append("<span style='color:blue'>{$row->progress}</span> ");
+                } else {
+                    $documentRec = cls::get($classId)->fetch($tRec->id, 'state');
+                }
+
+                $docStateVerbal = cal_Tasks::getVerbal($documentRec, 'state');
+                $infoTpl->append("<span class= 'state-{$documentRec->state} document-handler'>{$docStateVerbal}</span>");
+
+                if($itemArr[$tRec->itemId]->state == 'closed'){
+                    $infoTpl = ht::createHint($infoTpl, 'Перото е затворено', 'img/16/warning-gray.png', false);
+                }
+                $row->info = $infoTpl;
                 $data->costItemData->rows[$classId][$tRec->id] = $row;
             }
         }
@@ -213,7 +232,7 @@ class acc_CostObjectDetail extends core_Manager
 
         $total = arr::sumValuesArray($data->costItemAmounts, 'blAmount');
         $Double = core_Type::getByName('double(decimals=2)');
-        $totalVerbal = $Double->toVerbal($total);
+        $totalVerbal = ($total) ? $Double->toVerbal($total) : "<span class='quiet'>n/a</span>";
 
         $tplTable = static::renderCostObjectTable($data);
         $tplTable->append($totalVerbal, 'totalAmount');
@@ -242,11 +261,13 @@ class acc_CostObjectDetail extends core_Manager
         foreach ($data->costItemData->rows as $classId => $rows){
             $Class = cls::get($classId);
             $classTitle = cls::getTitle($Class);
-            $tpl->append("<tr class='costObjectCoverClassRow'><td colspan='4'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #666; color: #fff'>{$classTitle}</td></tr>", 'ROWS');
+            $count = countR($rows);
+            $countVerbal = core_Type::getByName('int')->toVerbal($count);
+            $tpl->append("<tr class='costObjectCoverClassRow'><td colspan='6'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #666; color: #fff'>{$classTitle} ({$countVerbal})</td></tr>", 'ROWS');
 
             foreach ($rows as $row){
                 $row->ROW_CLASS = 'state-active';
-                $row->indent = ($row->level) ? $row->level * 25 : 5;
+                $row->indent = ($row->level) ? $row->level * 20 : 0;
                 $blockTpl = clone $tpl->getBlock('BLOCK');
                 $blockTpl->placeObject($row);
                 $blockTpl->removeBlocksAndPlaces();
