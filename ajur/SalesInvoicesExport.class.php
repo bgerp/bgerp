@@ -151,7 +151,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
         while ($sRec = $sQuery->fetch()) {
 
-            bp($sRec);
+
 
             //Масив с фактури от продажбите
             $id = $sRec->id;
@@ -223,6 +223,9 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                 $vatAlocation = self::getVATallocation($sRec);
 
             }
+
+            // Дали е авансова фактура
+            $isDpInvoice = ($rec->dpOperation == 'accrued') ? 1 : 0;
 
 //bp($sRec);
             $dealType = self::getDealType($sRec);
@@ -300,8 +303,8 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                     64 => '',                           // ВОД на стоки, участващи във VIES декларацията
                     65 => '',                           // ДО на доставки като посредник в тристранна операция, участващи във VIES декларацията
                     66 => '',                           // Услуги в рамките на ЕС, участващи във VIES декларацията
-                    67 => '',  // ТОДО             // * Вид на стоката / услугата
-                    68 => '',  //                  // * Дали фактурата е за аванс
+                    67 => '',  // ТОДО                  // * Вид на стоката / услугата
+                    68 => $isDpInvoice,                 // * Дали фактурата е за аванс
 
 
                 );
@@ -492,7 +495,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
             $row->type = $dRec->invoice->type;
             $row->dealType = $dRec->invoice->dealType;
-            $row->number = $dRec->invoice->number;
+            $row->number = $dRec->number;
             $row->date = $Date->toVerbal($dRec->invoice->date);
             $row->state = $dRec->invoice->state;
             $row->contragentName = $dRec->invoice->contragentName;
