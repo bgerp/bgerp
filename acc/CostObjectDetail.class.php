@@ -222,6 +222,9 @@ class acc_CostObjectDetail extends core_Manager
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         $tpl->append($baseCurrencyCode, 'currencyCode');
 
+        $totalCount = countR($data->costItemData->ids);
+        $tpl->append($totalCount, 'totalCount');
+
         return $tpl;
     }
 
@@ -239,7 +242,8 @@ class acc_CostObjectDetail extends core_Manager
         foreach ($data->costItemData->rows as $classId => $rows){
             $Class = cls::get($classId);
             $classTitle = cls::getTitle($Class);
-            $tpl->append("<tr class='costObjectCoverClassRow'><td colspan='4' style='text-indent:20px;background-color:aqua;padding:2px;'>{$classTitle}</td></tr>", 'ROWS');
+            $count = core_Type::getByName('int')->toVerbal(countR($rows));
+            $tpl->append("<tr class='costObjectCoverClassRow'><td colspan='4' style='text-indent:20px;background-color:aqua;padding:2px;'>{$classTitle} ({$count})</td></tr>", 'ROWS');
 
             foreach ($rows as $row){
                 $row->ROW_CLASS = 'state-active';

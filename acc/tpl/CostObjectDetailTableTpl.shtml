@@ -7,7 +7,7 @@
         </tr>
     </tdhead>
     <tr style='background-color:#eee;' class='costObjectCoverTotalRow'>
-        <td colspan='3' class="level0" style="padding:5px;font-weight:bold;">|Общо|*</td>
+        <td colspan='3' class="level0" style="padding:5px;font-weight:bold;">|Общо|* ([#totalCount#])</td>
         <td style="text-align:right;padding:5px;font-weight:bold">[#totalAmount#]</td>
     </tr>
     [#ROWS#]
