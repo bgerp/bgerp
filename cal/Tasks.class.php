@@ -1128,9 +1128,12 @@ class cal_Tasks extends embed_Manager
     {
         $rec = $mvc->fetchRec($rec);
         if(!isset($rec->parentId)) return;
+
+        // При активиране ако не е РО, но може да бъде РО и бащата ѝ е РО - то и тя ще се запише, като РО
         if(acc_Items::isItemInList($mvc, $rec->id, 'costObjects')) return;
         $costClasses = acc_Setup::get('COST_OBJECT_DOCUMENTS');
         if (!keylist::isIn($mvc->getClassId(), $costClasses)) return;
+        if(!acc_Items::isItemInList($mvc, $rec->parentId, 'costObjects')) return;
 
         // Заопашаване на задачата да стане РО при шътдаун
         $mvc->expenseItemToForce[$rec->id] = $rec;
@@ -1149,6 +1152,7 @@ class cal_Tasks extends embed_Manager
                 acc_Items::force($mvc->getClassId(), $taskRec->id, $listId);
                 $exRec = (object) array('containerId' => $taskRec->containerId);
                 doc_ExpensesSummary::save($exRec);
+                $mvc->logInAct('Документа става автоматично разходно перо', $taskRec);
             }
         }
     }
