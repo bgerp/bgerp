@@ -289,11 +289,11 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                     50 => 1,     //ВЪПРОС          // * Дали трябва да има запис в дневника по ДДС
                     51 => 0,                       // Звено по ДДС
                     52 => $vatAlocation->taxBase20Vat,         // ДО на сделки с ДДС 20% бкл. дист. на територията на страната
-                    53 => $vatAlocation->tax20,         // Начислен ДДС за доставки по колона 52( 20%)
+                    53 => $vatAlocation->vatTax20,         // Начислен ДДС за доставки по колона 52( 20%)
                     54 => $vatAlocation->taxBase9Vat,          // ДО на сделки с ДДС 9% бкл. дист. на територията на страната
-                    55 => $vatAlocation->tax9,          // Начислен ДДС за доставки по колона 54( 9%)
+                    55 => $vatAlocation->vatTax9,          // Начислен ДДС за доставки по колона 54( 9%)
                     56 => $vatAlocation->taxBase0Vat,          // ДО на сделки с ДДС 0% бкл. дист. на територията на страната
-                    57 => $vatAlocation->tax0,          // Начислен ДДС за доставки по колона 56( 0%)
+                    57 => $vatAlocation->vatTax0,          // Начислен ДДС за доставки по колона 56( 0%)
                     58 => '',                           // ДО на доставки по чл.140, 146 и чл.173, ал.1 и 4 от ЗДДС
                     59 => '',                           // ДО на доставка на услуги по чл.21, ал 3 и чл.24-24 от ЗДДС с място на изпълнение друга държава
                     60 => '',                           // ДО на доставка на услуги по чл.69, ал 2 от ЗДДС (вкл. ДО за дост. от дист. продажби в друга държава)
@@ -438,6 +438,76 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
+
+
+        $fld->FLD('number', 'varchar', 'caption=Документ №,tdClass=centered');//1
+        $fld->FLD('type', 'varchar', 'caption=Тип на документа');//2
+        $fld->FLD('date', 'date', 'caption=Дата');//3
+        $fld->FLD('vatDate', 'date', 'caption=Дата дан.събитие');//4
+        $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');//5
+        $fld->FLD('rate', 'double', 'caption=Курс на валутата');//6
+        $fld->FLD('invoiceType', 'varchar', 'caption=Тип на документа');//7
+        $fld->FLD('exportInv', 'varchar', 'caption=Фактура Експорт');//8
+        $fld->FLD('contragentCode', 'varchar', 'caption=Шифър на контрагента');//9
+        $fld->FLD('contragentName', 'varchar', 'caption=Име на контрагента');//10
+        $fld->FLD('contragentAddress', 'varchar', 'caption=Адрес на контрагента');//11
+        $fld->FLD('contragentVatNo', 'varchar', 'caption=ИН по ДДС на контрагента');//12
+        $fld->FLD('bulstatNo', 'varchar', 'caption=ЕИК на контрагента');//13
+        $fld->FLD('deliveryType', 'varchar', 'caption=Вид доставка');//14
+        $fld->FLD('vatNotReason', 'varchar', 'caption=Осн. за ненач. ДДС');//15
+        $fld->FLD('vatNoOutCountry', 'varchar', 'caption=ИН по ДДС в друга държава');//16
+        $fld->FLD('vatRateOutCountry', 'varchar', 'caption=Ставка по ДДС в друга държава');//17
+        $fld->FLD('contragentMOL', 'varchar', 'caption=МОЛ на контрагента');//18
+        $fld->FLD('distributorCode', 'varchar', 'caption=Шифър на дистрибутор');//19
+        $fld->FLD('distributorName', 'varchar', 'caption=Име на дистрибутор');//20
+        $fld->FLD('distributorAddress', 'varchar', 'caption=Адрес на дистрибутор');//21
+        $fld->FLD('distributorVatNo', 'varchar', 'caption=ДДС № на дистрибутор');//22
+        $fld->FLD('distributorBulstatNo', 'varchar', 'caption=ЕИК на дистрибутор');//23
+        $fld->FLD('place', 'varchar', 'caption=Място на издаване');//24
+        $fld->FLD('originDocNumber', 'varchar', 'caption=Към фактура No');//25
+        $fld->FLD('originDocDate', 'date', 'caption=От дата фактура');//26
+        $fld->FLD('dcReason', 'varchar', 'caption=Причина за ДИ, КИ');//27
+        $fld->FLD('paymentType', 'int', 'caption=Начин на плащане');//28
+        $fld->FLD('dueDate', 'date', 'caption=Дата на падеж');//29
+        $fld->FLD('dateOfReceipt', 'date', 'caption=Дата получаване стока');//30
+        $fld->FLD('dateOfRegistration', 'date', 'caption=Дата на регистрация');//31
+        $fld->FLD('retailInv', 'int', 'caption=Фактура към ТВ');//32
+        $fld->FLD('retailSupplierCode', 'varchar', 'caption=Код на доставчика ТВ');//33
+        $fld->FLD('retailOrderNo', 'varchar', 'caption=Поръчка номер ТВ');//34
+        $fld->FLD('retailInStockNo', 'varchar', 'caption=Входящ стоков номер ТВ');//35
+        $fld->FLD('createdBy', 'varchar', 'caption=Съставил');//36
+        $fld->FLD('dealValueCurrecy', 'double', 'caption=Общо сума без ДДС Валута');//37
+        $fld->FLD('dealValueWithoutDiscountCurrecy', 'double', 'caption=Общо Дан. Основа Валута');//38
+        $fld->FLD('vatAmountCurrecy', 'double', 'caption=Общо ДДС Валута ');//39
+        $fld->FLD('totalValueCurrecy', 'double', 'caption=Общо сума за плащане Валута ');//40
+        $fld->FLD('exciseTaxCurrecy', 'double', 'caption=Общо акциз Валута');//41
+        $fld->FLD('productTaxCurrecy', 'double', 'caption=Общо екотакса Валута');//42
+        $fld->FLD('dealValue', 'double', 'caption=Общо сума без ДДС в лева ');//43
+        $fld->FLD('dealValueWithoutDiscount', 'double', 'caption=Общо Дан. Основа в лева ');//44
+        $fld->FLD('vatAmount', 'double', 'caption=Общо ДДС в лева ');//45
+        $fld->FLD('totalValue', 'double', 'caption=Общо сума за плащане в лева ');//46
+        $fld->FLD('exciseTax', 'double', 'caption=Общо акциз в лева ');//47
+        $fld->FLD('productTax', 'double', 'caption=Общо екотакса в лева ');//48
+        $fld->FLD('storeConnection', 'int', 'caption=Връзка със склад ');//49
+        $fld->FLD('saveInVat', 'int', 'caption=Дали трябва да има запис в дневника по ДДС ');//50
+        $fld->FLD('zvenoVat', 'int', 'caption=Звено по ДДС ');//51
+        $fld->FLD('taxBase20Vat', 'double', 'caption=ДО на сделки с ДДС 20% ');//52
+        $fld->FLD('vatTax20', 'double', 'caption=Начислен ДДС за доставки 20% ');//53
+        $fld->FLD('taxBase9Vat', 'double', 'caption=ДО на сделки с ДДС 9% ');//54
+        $fld->FLD('vatTax9', 'double', 'caption=Начислен ДДС за доставки 9% ');//55
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         $fld->FLD('type', 'varchar', 'caption=Тип на документа');
         $fld->FLD('dealType', 'varchar', 'caption=Тип на сделката');
@@ -757,9 +827,9 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
 
             }
-            $vatAllocation = (object)array('taxBase20Vat' => $taxBase20Vat, 'tax20' => $tax20,
-                'taxBase9Vat' => $taxBase9Vat, 'tax9' => $tax9,
-                'taxBase0Vat' => $taxBase0Vat, 'tax0' => $tax0
+            $vatAllocation = (object)array('taxBase20Vat' => $taxBase20Vat, 'vatTax20' => $tax20,
+                'taxBase9Vat' => $taxBase9Vat, 'vatTax9' => $tax9,
+                'taxBase0Vat' => $taxBase0Vat, 'vatTax0' => $tax0
             );
 
         return $vatAllocation;
