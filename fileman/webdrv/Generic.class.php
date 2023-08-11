@@ -78,12 +78,17 @@ class fileman_webdrv_Generic extends core_Manager
         // URL за показване на информация за файла
         $infoUrl = toUrl(array('fileman_webdrv_Generic', 'Info', $fRec->fileHnd));
 
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+        
         // Таб за информация
         $tabsArr['info'] = (object)
             array(
                 'title' => 'Информация',
-                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>
-					<iframe src='{$infoUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}
+					<iframe src='{$infoUrl}'  ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 1,
             );
         
@@ -1477,7 +1482,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         setIfNot($htmlUrl, $fPath);
         setIfNot($fPath, $htmlUrl);
-        
+
         // Ако JS не е включен
         if (Mode::is('javascript', 'no')) {
             

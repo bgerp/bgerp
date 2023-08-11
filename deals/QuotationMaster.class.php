@@ -353,15 +353,19 @@ abstract class deals_QuotationMaster extends core_Master
         $abbr[0] = strtoupper($abbr[0]);
 
         $date = dt::mysql2verbal($rec->date, 'd.m.year');
-        $crm = cls::get($rec->contragentClassId);
-        $cRec = $crm->getContragentData($rec->contragentId);
-        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
+        $titleArr = array("{$abbr}{$rec->id}", $date);
+        if(!Mode::is('documentPortalShortName')) {
+            $crm = cls::get($rec->contragentClassId);
+            $cRec = $crm->getContragentData($rec->contragentId);
+            $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
 
-        if ($escaped) {
-            $contragent = type_Varchar::escape($contragent);
+            if ($escaped) {
+                $contragent = type_Varchar::escape($contragent);
+            }
+            $titleArr[] = $contragent;
         }
 
-        return "{$abbr}{$rec->id}/{$date}/{$contragent}";
+        return implode('/', $titleArr);
     }
 
 

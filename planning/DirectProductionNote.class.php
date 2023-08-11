@@ -291,7 +291,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $form->setDefault('packagingId', $defaultPack);
             if ($productRec->canStore == 'no') {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
 
                 // Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
                 if ($productRec->canConvert == 'no' && $productRec->fixedAsset == 'no') {

@@ -369,6 +369,8 @@ class planning_Jobs extends core_Master
             }
 
             foreach ($products as $pId => $pName){
+                if(isset($rec->productId) && $rec->productId != $pId) continue;
+
                 foreach ($packsInDeal[$pId] as $packId => $packQuantity){
                     $exRec = static::fetchField("#productId = {$pId} AND #saleId = {$rec->saleId} AND #packagingId = {$packId} AND #state != 'rejected'");
                     if(!$exRec){
@@ -402,17 +404,7 @@ class planning_Jobs extends core_Master
 
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId, false, $rec->secondMeasureId);
             $form->setOptions('packagingId', $packs);
-
-            // Ако артикула не е складируем, скриваме полето за мярка
-            $productRec = cat_Products::fetch($rec->productId, 'canStore,isPublic,innerClass');
-
-            if ($productRec->canStore == 'no') {
-                $form->setDefault('packagingId', key($packs));
-                $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
-            } else {
-                $form->setField('packagingId', 'input');
-            }
+            $form->setField('packagingId', 'input');
 
             if ($tolerance = cat_Products::getParams($rec->productId, 'tolerance')) {
                 $form->setDefault('tolerance', $tolerance);

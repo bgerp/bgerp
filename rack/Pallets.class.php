@@ -104,8 +104,14 @@ class rack_Pallets extends core_Manager
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'position,batch,productId,comment';
-    
-    
+
+
+    /**
+     * Кои полета да се фечват
+     */
+    public $fetchFieldsBeforeDelete = 'storeId,productId';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -623,11 +629,14 @@ class rack_Pallets extends core_Manager
     public static function increment($productId, $storeId, $position, $quantity, $batch)
     {
         // Ако няма палет се създава нов
+        $batchDef = core_Packs::isInstalled('batch') ? batch_Defs::getBatchDef($productId) : null;
         $rQuery = static::getQuery();
         $rQuery->where(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId}", $position));
         if(core_Packs::isInstalled('batch')){
-            $rQuery->where(array("#batch = '[#1#]'", $batch));
+            $rQuery->XPR('batchCalc', 'varchar', "COALESCE(#batch, '')");
+            $rQuery->where(array("#batchCalc = '[#1#]'", $batch));
         }
+
         $rQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
         $rQuery->orderBy('order');
         $rec = $rQuery->fetch();
@@ -637,17 +646,28 @@ class rack_Pallets extends core_Manager
 
             if(!$samePosPallets) {
                 $rQuery2 = static::getQuery();
-                $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+                $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId}", $position));
+                if(core_Packs::isInstalled('batch')){
+                    $rQuery2->XPR('batchCalc', 'varchar', "COALESCE(#batch, '')");
+                    $rQuery2->where(array("#batchCalc = '[#1#]'", $batch));
+                }
+
                 $rQuery2->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
                 $rQuery2->orderBy('order');
                 $rec = $rQuery2->fetch();
+
+                $str = is_object($rec) ? "FOUND2 ($rec->id)" : "NOT FOUND";
+                static::logDebug("{$str} : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
             }
-        }            
+        } else {
+            static::logDebug("FOUND1 ($rec->id) : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
+        }
       
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position, $batch);
+            static::logDebug("NEW ($rec->id) : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
         } else {
-            
+
             // Ако има променя му се количеството
             expect($rec->productId == $productId, 'Артикулът е различен');
             expect($rec->storeId == $storeId, 'Склада е различен');
@@ -685,7 +705,9 @@ class rack_Pallets extends core_Manager
         $rec->rackId = $rRec->id;
         
         self::save($rec);
-        
+        if($rec->quantity < 0) {
+            wp($rec, $productId, $storeId, $quantity, $position, $batch, $label);
+        }
         return $rec;
     }
     
@@ -1256,6 +1278,18 @@ class rack_Pallets extends core_Manager
             }
 
             arr::sortObjects($recs, 'position', 'ASC', 'natural');
+        }
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // При изтриване да се рекалкулира к-то по палети
+        foreach ($query->getDeletedRecs() as $rec) {
+            rack_Pallets::recalc($rec->productId, $rec->storeId);
         }
     }
 }

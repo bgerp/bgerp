@@ -709,6 +709,16 @@ class cms_Domains extends core_Embedder
                 $rec->toRemove[$fiContentToRemove] = $fiContentToRemove;
             }
         }
+
+        if ($iconContent || $fiContent) {
+            if (defined('EF_INDEX_PATH')) {
+                // Иконата
+                $dest = rtrim(EF_INDEX_PATH, '/') . '/favicon.ico';
+                if (file_exists($dest)) {
+                    @unlink($dest);
+                }
+            }
+        }
         
         if (countR($rec->toRemove)) {
             $mvc->save_($rec, 'toRemove');

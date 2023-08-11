@@ -541,14 +541,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
-            
-            // Ако артикула не е складируем, скриваме полето за мярка
-            if (!isset($productInfo->meta['canStore'])) {
-                $measureShort = cat_UoM::getShortName($form->rec->packagingId);
-                $form->setField('quantity', "unit={$measureShort}");
-            } else {
-                $form->setField('packagingId', 'input');
-            }
+            $form->setField('packagingId', 'input');
             
             if (isset($mvc->LastPricePolicy)) {
                 $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
@@ -562,11 +555,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
-            $productInfo = cat_Products::getProductInfo($rec->productId);
             if (!isset($rec->quantity) && $masterRec->type != 'dc_note') {
-                $form->setDefault('quantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+                $defaultQuantity = $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
+                $form->setDefault('quantity', $defaultQuantity);
                 if (empty($rec->quantity)) {
                     $form->setError('quantity', 'Не е въведено количество');
+                    return;
                 }
             }
             

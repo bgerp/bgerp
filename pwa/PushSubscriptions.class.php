@@ -27,7 +27,7 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'PWA Push абонаменти';
+    public $title = 'Абонаменти за известяване';
 
 
     /**
@@ -81,7 +81,13 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Дефолтни стойности на приоритетите
      */
-    protected $defaultValues = array('criticalWorking' => '5 мин', 'urgentWorking' => '20 мин', 'shareWorking' => '20 мин', 'docWorking' => '1 час', 'allWorking' => '1 час');
+    protected $defaultValues = array('criticalWorking' => '5 мин', 'criticalNonWorking' => '5 мин', 'criticalNight' => '5 мин',
+                                     'urgentWorking' => '20 мин', 'urgentNonWorking' => '20 мин',
+                                     'docWorking' => '20 мин',
+                                     'shareWorking' => '20 мин',
+                                     'allWorking' => '1 час',
+                                     'groupNotify' => 'yes',
+                                     'forceNotify' => 'no');
 
 
     /**
@@ -125,7 +131,7 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('allNight', $this->enumOptVal, 'caption=Известяване за всякакви новости->През нощта');
 
         $this->FLD('groupNotify', 'enum(no=Не,yes=Да)', 'caption=Групиране на известията->Избор');
-        $this->FLD('forceNotify', 'enum(no=Не, yes=Да (Само при промяна на събощението), yesAll=Да (Винаги при обновяване))', 'caption=Неотворените известия да продължат да се обновяват при промяна->Избор');
+        $this->FLD('forceNotify', 'enum(no=Не, yes=Да (Само при промяна на съобщението), yesAll=Да (Винаги при обновяване))', 'caption=Неотворените известия да продължат да се обновяват при промяна->Избор');
 
         $this->setDbUnique('brid');
     }
@@ -356,7 +362,7 @@ class pwa_PushSubscriptions extends core_Manager
                 $msg = 'Добавен е Push абонамент за получване на известия в "' . core_Setup::get('EF_APP_TITLE', true) . '"';
 
                 $isSendArr = $this->sendAlert($rec->userId, tr($msgTitle),tr($msg),
-                            array('pwa_PushSubscriptions', 'edit', $rec->id, 'ret_url' => true), null, null, null, $rec->brid);
+                            array('pwa_PushSubscriptions', 'edit', $rec->id, 'ret_url' => array('Portal', 'Show')), null, null, null, $rec->brid);
 
                 foreach ($isSendArr as $iVal) {
                     if (!$iVal->isSuccess) {
@@ -368,7 +374,16 @@ class pwa_PushSubscriptions extends core_Manager
 
                 $statusObj = new stdClass();
                 $statusObj->func = 'redirect';
-                $statusObj->arg = array('url' => toUrl(array($this, 'edit', $rec->id, 'ret_url' => true)));
+                $redirectUrl = Request::get('redirectUrl');
+                if (!$redirectUrl || $redirectUrl == 'none') {
+                    $redirectUrl = array($this, 'edit', $rec->id, 'ret_url' => true);
+                } else {
+                    $redirectUrl = parseLocalUrl($redirectUrl);
+                }
+
+                $redirectUrl = toUrl($redirectUrl);
+
+                $statusObj->arg = array('url' => $redirectUrl);
 
                 return array($statusObj);
             }

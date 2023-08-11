@@ -41,12 +41,6 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
-     * var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
-     */
-    public $oldClassName = 'email_Unsorted';
-    
-    
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'name, description, contragentFolderId';
@@ -230,8 +224,14 @@ class doc_UnsortedFolders extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'folderId,createdOn,createdBy';
-    
-    
+
+
+    /**
+     * Какви детайли има този мастер
+     */
+    public $details = 'acc_CostObjectDetail';
+
+
     /**
      * Описание на полетата на модела
      */

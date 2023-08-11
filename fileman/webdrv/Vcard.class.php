@@ -52,12 +52,17 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
         
         // Преобразуваме файла в код
         $contentStr = $richText->toHtml("[code]{$contentStr}[/code]");
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
         
         // Таб за преглед
         $tabsArr['preview'] = (object)
             array(
                 'title' => 'Преглед',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$previewStr}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$previewStr}</div></div>",
                 'order' => 2,
             );
         
@@ -65,7 +70,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
         $tabsArr['content'] = (object)
             array(
                 'title' => 'Съдържание',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$contentStr}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$contentStr}</div></div>",
                 'order' => 7,
             );
         

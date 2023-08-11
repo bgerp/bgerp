@@ -90,6 +90,9 @@ class pwa_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('bgERP PWA Profile', 'pwa_ProfilePlg', 'crm_Profiles', 'private');
         $html .= $Plugins->installPlugin('bgERP PWA Domains', 'pwa_DomainsPlg', 'cms_Domains', 'private');
 
+        $html .= $Plugins->installPlugin('PWA Абониране', 'pwa_SubscribePlg', 'bgerp_Index', 'private');
+        $html .= $Plugins->installPlugin('PWA Абониране в портала', 'pwa_SubscribePlg', 'bgerp_Portal', 'private');
+
         $Domains = cls::get('cms_Domains');
         $Domains->setupMvc();
 

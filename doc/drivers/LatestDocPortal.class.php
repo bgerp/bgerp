@@ -267,7 +267,9 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     
                     try {
                         $doc = doc_Containers::getDocument($lRec->id);
+                        Mode::push('documentPortalShortName', true);
                         $dRow = $doc->getDocumentRow();
+                        Mode::pop('documentPortalShortName');
 
                         $title = $dRow->recTitle ? $dRow->recTitle: $dRow->title;
                         $title = trim($title);

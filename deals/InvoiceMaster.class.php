@@ -207,7 +207,7 @@ abstract class deals_InvoiceMaster extends core_Master
         arr::placeInAssocArray($summaryFields, array('dealValueWithoutDiscount' => (object)array('name' => 'dealValueWithoutDiscount', 'summary' => 'amount', 'caption' => 'Дан. основа')), 'vatAmount');
         arr::placeInAssocArray($summaryFields, array('totalValue' => (object)array('name' => 'totalValue', 'summary' => 'amount', 'caption' => 'Общо')), null, 'vatAmount');
 
-        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount - $rec->vatAmount;
+        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount;
         $rec->totalValue = $rec->dealValue - $rec->discountAmount + $rec->vatAmount;
     }
 
@@ -1954,5 +1954,16 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        $fieldset->setFieldType('dealValueWithoutDiscount', 'double');
     }
 }

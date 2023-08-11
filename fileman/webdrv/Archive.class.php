@@ -53,12 +53,17 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 $contentStr .= ' - ' . ht::createLink(tr('добавете парола'), $archiveAddPassUrl, false, 'ef_icon=img/16/archive.png');
             }
         }
-        
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Таб за съдържанието
         $tabsArr['content'] = (object)
             array(
                 'title' => 'Съдържание',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$contentStr}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$contentStr}</div></div>",
                 'order' => 7,
                 'tpl' => $contentStr,
             );
