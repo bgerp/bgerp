@@ -96,6 +96,12 @@ class cat_products_SharedInFolders extends core_Manager
 
 
     /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id,productId';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -377,6 +383,29 @@ class cat_products_SharedInFolders extends core_Manager
 
             // Артикула се показва ако: е нестандартен и е в същата папка или ако е стандартен и не е споделен към никоя папка
             $query->where("(#isPublic = 'no' AND #folderId = {$folderId}) OR {$publicWhere}");
+        }
+    }
+
+
+    /**
+     * Изпълнява се след запис на перо
+     * Предизвиква обновяване на обобщената информация за перата
+     */
+    protected static function on_AfterSave($mvc, $id, $rec)
+    {
+        $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
+        $msg = ($isPublic == 'yes') ? "Ограничаване на достъпа до определени папки" : "Разширяване на достъпа до определени папки";
+        cat_Products::logWrite($msg, $rec->productId);
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            cat_Products::logWrite("Премахване на споделяне в конкретна папка", $rec->productId);
         }
     }
 }
