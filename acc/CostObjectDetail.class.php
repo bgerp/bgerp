@@ -269,7 +269,7 @@ class acc_CostObjectDetail extends core_Manager
             $tpl->append("<tr class='costObjectCoverClassRow'><td colspan='6'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #666; color: #fff'>{$classTitle} ({$countVerbal})</td></tr>", 'ROWS');
 
             foreach ($rows as $row){
-                $row->ROW_CLASS = 'state-active';
+                $row->ROW_CLASS = (empty($row->blAmount)) ? 'state-waiting' : 'state-active';
                 $row->indent = ($row->level) ? $row->level * 20 : 0;
                 $blockTpl = clone $tpl->getBlock('BLOCK');
                 $blockTpl->placeObject($row);
