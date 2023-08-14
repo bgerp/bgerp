@@ -5745,6 +5745,9 @@ function calcFilemanSize(){
         $("#imgIframe").on('load', function() {
             $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
         });
+    } else {
+        $('.webdrvFieldset').css('height', height - 5);
+        $('.webdrvFieldset').css('overflow-y', 'auto');
     }
     if ( $('.webdrvFieldset').width() < width) {
         $('.webdrvFieldset').css('width', width);

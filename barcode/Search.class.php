@@ -69,12 +69,14 @@ class barcode_Search extends core_Manager
 
         if (!$useHtml5Camera) {
             $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод');
+        } else {
+            $form->toolbar->addFnBtn('Сканирай', "openCamera();", 'id=scanBtn', "ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод");
         }
         
         $form->formAttr['id'] = 'barcodeForm';
         
         $tpl = $form->renderHtml();
-        
+
         $haveRes = null;
         
         if ($form->rec->search) {
@@ -131,7 +133,13 @@ class barcode_Search extends core_Manager
             $tpl->push('barcode/js/html5.js', 'JS');
             $tpl->push('barcode/js/html5-qrcode.min.js', 'JS');
 
-            $a = "<style> .cameraSource {min-width: 70px;} .cameraSource.active {background-color: #bbb;}</style> <div style= 'max-width: 500px; width: 100%' id='reader'></div><div style='margin: 20px 0 10px;' id='camera-buttons'></div>";
+            $h =  $form->rec->search ? ' class="hidden" ' : '';
+
+            $a = "<style> .cameraSource {min-width: 70px;} .cameraSource.active {background-color: #bbb;}</style> 
+            <div id='cameraHolder' {$h}>
+                <div style='margin: 0 0 10px;' id='camera-buttons'></div>
+                <div style= 'max-width: 500px; width: 100%' id='reader'></div>
+            </div>";
             jquery_Jquery::run($tpl, "barcodeActions();");
 
         } else {
