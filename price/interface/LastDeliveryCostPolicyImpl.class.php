@@ -2,7 +2,7 @@
 
 
 /**
- * Имплементация на изчисляване на мениджърски себестойности "Последна доставка(+ разходи)"
+ * Имплементация на изчисляване на мениджърски себестойности "Последна доставка (+разходи)"
  *
  * @category  bgerp
  * @package   price
@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  * @see price_CostPolicyIntf
- * @title Мениджърска себестойност "Последна доставка(+ разходи)"
+ * @title Мениджърска себестойност "Последна доставка (+разходи)"
  *
  */
 class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCostPolicy
@@ -34,7 +34,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
      */
     public function getName($verbal = false)
     {
-        $res = ($verbal) ? tr('Последна доставка(+ разходи)') : 'lastDelivery';
+        $res = ($verbal) ? tr('Последна доставка (+разходи)') : 'lastDelivery';
         
         return $res;
     }
