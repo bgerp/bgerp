@@ -2419,6 +2419,7 @@ class planning_Tasks extends core_Master
         $str = trim($str);
 
         $taskDetailQuery = planning_ProductionTaskDetails::getQuery();
+        $str = str_pad($str, 13, '0', STR_PAD_LEFT);
         $taskDetailQuery->where(array("#serial = '[#1#]'", $str));
 
         while ($dRec = $taskDetailQuery->fetch()) {
