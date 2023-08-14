@@ -97,6 +97,9 @@ class frame2_CsvExport extends core_Mvc
                 case 4:
                     $params['newLineDelimiter'] = "\n\r";
                     break;
+                case 5:
+                    $params['newLineDelimiter'] = ";";
+                    break;
                 default:
                     $params['newLineDelimiter'] = "\n";
                     break;
@@ -137,7 +140,7 @@ class frame2_CsvExport extends core_Mvc
                 $csv = core_String::utf2ascii($csv);
             }
             $csv = iconv('utf-8', $params['encoding'] . '//TRANSLIT', $csv);
-
+            
             // Записване във файловата система
             $extension = $params['extension'];
             $fileName = $Frame->getHandle($objId) . '-' . str::removeWhiteSpace(str::utf2ascii($frameRec->title), '_');
@@ -202,7 +205,7 @@ class frame2_CsvExport extends core_Mvc
         $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=|{$title}|* - |настройки|*->Формат за дата и час,autohide=any");
         $form->FNC('delimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Разделител,autohide=any");
         $form->FNC('enclosure', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Ограждане,autohide");
-        $form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),cp1251=Windows Cyrillic|* (CP1251),cp1252=Windiws ANSI|* (CP1252))', "caption=|{$title}|* - |разширени настройки|*->Кодиране,input,autohide=any");
+        $form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),cp1251=Windows Cyrillic|* (CP1251))', "caption=|{$title}|* - |разширени настройки|*->Кодиране,input,autohide=any");
         $form->FNC('extension', 'enum(csv=.csv,txt=.txt)', "input,caption=|{$title}|* - |разширени настройки|*->Файлово разширение,autohide=any");
         $form->FNC('newLineDelimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |разширени настройки|*->Нов ред,autohide=any");
         
@@ -214,7 +217,7 @@ class frame2_CsvExport extends core_Mvc
         setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         $form->setDefault('datetimeFormat', $datetimeFormat);
         
-        $form->setOptions('newLineDelimiter', array('1' => '\n', '2' => '\r\n', '3' => '\r', '4' => '\n\r'));
+        $form->setOptions('newLineDelimiter', array('1' => '\n', '2' => '\r\n', '3' => '\r', '4' => '\n\r', '5' => ';'));
         $form->setOptions('delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
         $form->setOptions('enclosure', array('"' => '"', '\'' => '\''));
         $form->setOptions('decPoint', array('.' => '.', ',' => ','));
