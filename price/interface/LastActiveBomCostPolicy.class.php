@@ -80,15 +80,12 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
                 $t = ($bomRec->quantityForPrice) ? $bomRec->quantityForPrice : $bomRec->quantity;
 
                 if (!isset(self::$calcCache[$bomRec->id])) {
-                    echo "<li> {$this->getClassId()} CACHE {$bomRec->id}";
                     try{
                         self::$calcCache[$bomRec->id] = cat_Boms::getBomPrice($bomRec, $t, 0, 0, $now, price_ListRules::PRICE_LIST_COST);
                     } catch(core_exception_Expect $e){
                         reportException($e);
                         continue;
                     }
-                } else {
-                    echo "<li> {$this->getClassId()} GET {$bomRec->id}";
                 }
                 
                 $primeCost = self::$calcCache[$bomRec->id];
