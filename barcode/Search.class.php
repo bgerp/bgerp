@@ -75,19 +75,48 @@ class barcode_Search extends core_Manager
         
         $form->formAttr['id'] = 'barcodeForm';
         
-        $tpl = $form->renderHtml();
-
         $haveRes = null;
         
         if ($form->rec->search) {
             // Ако е сканиран баркод към линк към системата
             if (core_Url::isValidUrl2($form->rec->search)) {
-                if (strpos($form->rec->search, '://' . $_SERVER['HTTP_HOST']) || strpos($form->rec->search, $_SERVER['HTTP_HOST'] === 0)) {
-                    
-                    return new Redirect($form->rec->search);
+                $cDomain = cms_Domains::getCurrent('domain', false);
+                $dOpt = cms_Domains::getDomainOptions(true);
+                foreach ($dOpt as $dName) {
+                    if (strtolower($dName) == 'localhost') {
+
+                        continue;
+                    }
+
+                    if (strpos($form->rec->search, '://' . $dName) || strpos($form->rec->search, $dName === 0)) {
+                        if ($cDomain && ($cDomain != $dName)) {
+                            $form->rec->search = preg_replace('/' . preg_quote($dName, '/') . '/', $cDomain, $form->rec->search, 1);
+                        }
+
+                        return new Redirect($form->rec->search);
+                    }
                 }
             }
-            
+
+            $isValidEan = cls::get('gs1_TypeEan')->isValid($form->rec->search);
+            if (empty($isValidEan)) {
+                $pRec = cat_Products::getByCode($form->rec->search);
+                if ($pRec && $pRec->productId) {
+
+                    if (cat_Products::haveRightFor('single', $pRec->productId)) {
+
+                        return new Redirect(array('cat_Products', 'single', $pRec->productId));
+                    }
+                } else {
+                    // Добавяме бутона
+                    $form->toolbar->addBtn('Google',
+                        '//google.com/search?q=' . $form->rec->search,
+                        "id='btn-google', ef_icon=gdocs/img/google.png",
+                        array('target' => '_blank', 'order' => '30', 'title' => 'Търсене в Google')
+                    );
+                }
+            }
+
             $haveRes = false;
             
             $intfArr = core_Classes::getOptionsByInterface('barcode_SearchIntf');
@@ -129,6 +158,8 @@ class barcode_Search extends core_Manager
             $tableTpl->append('</table></div>');
         }
 
+        $tpl = $form->renderHtml();
+
         if($useHtml5Camera) {
             $tpl->push('barcode/js/html5.js', 'JS');
             $tpl->push('barcode/js/html5-qrcode.min.js', 'JS');
@@ -165,7 +196,7 @@ class barcode_Search extends core_Manager
         $tpl->append($a);
 
         if ($haveRes === false) {
-            $tpl->append(tr('Няма открити съвпадания в базата'));
+            $tpl->append(tr('Няма открити съвпадения в базата'));
         } else {
             $tpl->append($tableTpl);
         }
