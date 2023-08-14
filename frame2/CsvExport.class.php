@@ -133,8 +133,11 @@ class frame2_CsvExport extends core_Mvc
             
             // Подсигуряване че енкодига е UTF8
             $csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
+            if ($params['encoding'] == 'cp1252') {
+                $csv = core_String::utf2ascii($csv);
+            }
             $csv = iconv('utf-8', $params['encoding'] . '//TRANSLIT', $csv);
-            
+
             // Записване във файловата система
             $extension = $params['extension'];
             $fileName = $Frame->getHandle($objId) . '-' . str::removeWhiteSpace(str::utf2ascii($frameRec->title), '_');
@@ -199,7 +202,7 @@ class frame2_CsvExport extends core_Mvc
         $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=|{$title}|* - |настройки|*->Формат за дата и час,autohide=any");
         $form->FNC('delimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Разделител,autohide=any");
         $form->FNC('enclosure', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Ограждане,autohide");
-        $form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),cp1251=Windows Cyrillic|* (CP1251))', "caption=|{$title}|* - |разширени настройки|*->Кодиране,input,autohide=any");
+        $form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),cp1251=Windows Cyrillic|* (CP1251),cp1252=Windiws ANSI|* (CP1252))', "caption=|{$title}|* - |разширени настройки|*->Кодиране,input,autohide=any");
         $form->FNC('extension', 'enum(csv=.csv,txt=.txt)', "input,caption=|{$title}|* - |разширени настройки|*->Файлово разширение,autohide=any");
         $form->FNC('newLineDelimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |разширени настройки|*->Нов ред,autohide=any");
         
