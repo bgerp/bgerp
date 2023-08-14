@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class price_Updates extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name=Правило,type=За,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Сб-ст,appliedOn,updateMode=Обновяване';
+    public $listFields = 'type=За,name=Наименование,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Сб-ст,appliedOn,updateMode=Обновяване';
     
     /**
      * Кой може да го промени?
@@ -81,7 +81,7 @@ class price_Updates extends core_Manager
     public function description()
     {
         $this->FLD('objectId', 'int', 'caption=Обект,silent,mandatory');
-        $this->FLD('type', 'enum(category=Категория,product=Артикул,group=Група)', 'caption=Обект вид,input=hidden,silent,mandatory');
+        $this->FLD('type', 'enum(category=Категория,product=Артикул,group=Група)', 'caption=Вид,input=hidden,silent,mandatory');
         
         $this->FLD('sourceClass1', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 1, mandatory');
         $this->FLD('sourceClass2', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 2');
@@ -886,5 +886,31 @@ class price_Updates extends core_Manager
         $msg = ($action == 'add') ? 'Създаване' : (($action == 'delete') ? 'Изтриване' : 'Редактиране');
         $className = ($rec->type == 'category') ? 'cat_Categories' : (($rec->type == 'product') ? 'cat_Products' : 'cat_Groups');
         $className::logWrite("{$msg} на правило за себестойност", $rec->objectId);
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник');
+        $data->listFilter->setFieldType('type', "enum(,category=Категория,product=Артикул,group=Група)");
+        $data->listFilter->setField('type', 'input');
+        $data->listFilter->setOptions('classId', price_Updates::getCostPoliciesOptions());
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'type,classId';
+        $data->listFilter->input();
+
+        if ($filterRec = $data->listFilter->rec) {
+            if (isset($filterRec->classId)) {
+                $data->query->where("#sourceClass1 = {$filterRec->classId} OR #sourceClass2 = {$filterRec->classId} OR #sourceClass3 = {$filterRec->classId}");
+            }
+            if (!empty($filterRec->type)) {
+                $data->query->where("#type = '{$filterRec->type}'");
+            }
+        }
+
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }
