@@ -2112,7 +2112,7 @@ class cal_Calendar extends core_Master
         $attr['value'] = $today;
         $attr['style'] .= 'color:#00F;';
         $options[$today] = (object) array('title' => $thisMonth, 'attr' => $attr);
-        
+
         // правим масив с 3 месеца назад от текущия месец,
         // които е подготовка за нашия select
         // за value има линк към съответния месец
@@ -2137,15 +2137,14 @@ class cal_Calendar extends core_Master
             $options[$prev] = $prevM;
             
             if($prevM == $thisMonth) {
-                $attr['value'] = $prevM;
+                $attr['value'] = $prev;
                 $attr['style'] .= 'color:#00F;';
                 $options[$prev] = (object) array('title' => $prevM, 'attr' => $attr);
-                
+
                 unset($options[$today]);
             }
-        
         }
-        
+
         // добавяме текущия месец къммасива
         // за него не ни е нужен линк
         $curLink = getCurrentUrl();
@@ -2153,9 +2152,9 @@ class cal_Calendar extends core_Master
         $curLink['cal_month'] = $monthToday;
         $curLink['cal_year'] = $yearToday;
         $curLink = toUrl($curLink) . "#calendarPortal";
-        
+
         $options[$currentMonth] = $currentM;
-        
+
         if($currentMonth == $thisMonth) {
             $attr['value'] = $currentM;
             $attr['style'] .= 'color:#00F;';
@@ -2164,7 +2163,7 @@ class cal_Calendar extends core_Master
             
             unset($options[$today]);
         }
-        
+
         // правим масив с 9 месеца напред от текущия месец,
         // които е подготовка за нашия select
         // за value има линк към съответния месец
@@ -2192,15 +2191,14 @@ class cal_Calendar extends core_Master
             $options[$next] = $nextM;
             
             if($nextM == $thisMonth) {
-                $attr['value'] = $nextM;
+                $attr['value'] = $next;
                 $attr['style'] .= 'color:#00F;';
                 $options[$next] = (object) array('title' => $nextM, 'attr' => $attr);
                 
                 unset($options[$today]);
             }
-        
         }
-        
+
         return (object) array('opt' => $options, 'currentM' =>$currentMonth,
                               'prevtLink'=>$prevtLink, 'nextLink'=>$nextLink,
                               'nextMonth'=>$nextMonth,'prevMonth' =>$prevMonth);
