@@ -149,13 +149,19 @@ class planning_WorkInProgress extends core_Manager
             return;
         }
 
+        // Добавят се и се обновяват новите
         $self = cls::get(get_called_class());
         $self->saveArray($res['insert']);
         $self->saveArray($res['update'], 'id,quantity,lastUpdated');
+
+        // Изтриват се тези дето ги няма
         if(countR($res['delete'])){
             $deleteStr = implode(',', $res['delete']);
             static::delete("#id IN ($deleteStr)");
         }
+
+        // Изтриват се и нулевите количества
+        static::delete("#quantity = 0");
 
         core_Locks::release(self::SYNC_LOCK_KEY);
     }
