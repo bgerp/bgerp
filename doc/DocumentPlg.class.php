@@ -269,7 +269,9 @@ class doc_DocumentPlg extends core_Plugin
         $result = null;
         
         if ($rec = $mvc->fetch($id)) {
+            Mode::push('documentGetItemRec', true);
             $row = $mvc->getDocumentRow($rec->id);
+            Mode::pop('documentGetItemRec');
             $num = '#' . $mvc->getHandle($rec->id);
             
             $result = (object) array(

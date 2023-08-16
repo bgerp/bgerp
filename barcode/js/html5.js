@@ -1,10 +1,5 @@
 var isScannerRunning = false;
 function barcodeActions() {
-    // При мобилен да са на един ред инпута и бутона
-    if ($('body').hasClass('narrow')) {
-        $('.formFields').attr("style", "display:inline-block; margin-bottom: 0");
-        $('.formToolbar').attr("style", "display:inline-block; position: relative; top: -2px");
-    }
 
     const cameraButtonsContainer = document.getElementById("camera-buttons");
     var cameraId = getCookie('selectedCamera');
@@ -49,6 +44,10 @@ function barcodeActions() {
     }).catch(err => {
         console.error("Error while getting cameras:", err);
     });
+}
+function openCamera() {
+    document.getElementById('barcodeSearch').value = "";
+    document.getElementById('filter').click();
 }
 
 // Сменяне на активната камера

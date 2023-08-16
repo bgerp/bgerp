@@ -389,8 +389,6 @@ class eshop_Carts extends core_Master
                 
                 $msg = $addText->getContent();
                 $success = true;
-                
-                vislog_History::add("Добавяне на артикул «{$productName}» в количка");
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 $msg = '|Артикулът не е добавен|*!';

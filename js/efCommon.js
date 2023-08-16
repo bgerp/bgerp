@@ -5745,10 +5745,33 @@ function calcFilemanSize(){
         $("#imgIframe").on('load', function() {
             $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
         });
+    } else {
+        $('.webdrvFieldset').css('height', height - 5);
+        $('.webdrvFieldset').css('overflow-y', 'auto');
     }
     if ( $('.webdrvFieldset').width() < width) {
         $('.webdrvFieldset').css('width', width);
     }
+
+    var timer;
+    $('.webdrvFieldset').mouseenter(function() {
+        $('.webdrvFieldset a.linkWithIcon').css("opacity", "0.6");
+        clearTimeout(timer);
+    });
+
+    $('.webdrvFieldset').mousemove(function() {
+        $('.webdrvFieldset a.linkWithIcon').css("opacity", "0.6");
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+            $('.webdrvFieldset a.linkWithIcon').css("opacity", 0);
+        }, 2000);
+    });
+    $('.webdrvFieldset').mouseleave(function() {
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+            $('.webdrvFieldset a.linkWithIcon').css("opacity", 0);
+        }, 1000);
+    });
 }
 
 

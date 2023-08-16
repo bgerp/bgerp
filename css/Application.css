@@ -3361,14 +3361,14 @@ span.sharing-history-title {
   top: 50%;
   margin-top: -24px;
   background-size: 48px;
-  opacity: 0.3;
+  opacity: 0;
   -webkit-transition: opacity 1s ease-in-out;
   -moz-transition: opacity 1s ease-in-out;
   transition: opacity 1s ease-in-out;
   z-index: 100; }
 
 .narrow .nextLink {
-  right: 15px; }
+  right: 5px; }
 
 .narrow .prevLink {
   left: 5px; }
@@ -3376,8 +3376,11 @@ span.sharing-history-title {
 .narrow .nextLink,
 .narrow .prevLink {
   background-size: 36px;
+  background-position: center;
   margin-top: -18px;
-  opacity: 0.6; }
+  opacity: 0.6;
+  width: 38px;
+  height: 38px; }
 
 .narrow #fileDetail .row-holder {
   top: 17px; }
@@ -4564,7 +4567,8 @@ table .eshop-btn {
 .webdrvIframe {
   width: 100%;
   border: solid 0 rgba(0, 0, 0, 0);
-  min-height: 612px; }
+  min-height: 612px;
+  pointer-events: none; }
 
 .wide .webdrvIframe,
 .wide .webdrvFieldset {
@@ -4581,8 +4585,7 @@ table .eshop-btn {
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset; }
+  border-radius: 5px; }
   .wide .webdrvFieldset > div {
     overflow: auto; }
   .wide .webdrvFieldset > .dtree {
@@ -4634,11 +4637,14 @@ table .eshop-btn {
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset; }
+  border-radius: 5px; }
 
 .filesContainer .top-table {
   margin-bottom: 15px; }
+
+  .filesContainer div.tab-control.alphabet div.tab-row .tab.selected {
+    background: white !important;
+    padding-bottom: 6px !important; }
 
 .webdrv-preview {
   margin-top: 5px; }
