@@ -194,7 +194,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         if(!empty($storeItemId)){
             $otherWhere[] = "`{$me->dbTableName}`.{$storeColName} = {$storeItemId}";
         }
-        $otherWhere = implode('AND ', $otherWhere);
+        $otherWhere = implode(' AND ', $otherWhere);
         if(!empty($otherWhere)){
             $otherWhere = " AND {$otherWhere}";
         }
