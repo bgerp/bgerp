@@ -180,12 +180,13 @@ class acc_ProductPricePerPeriods extends core_Manager
     public function act_Filter()
     {
         requireRole('debug');
+        $this->currentTab = 'Дебъг->Артикулни цени КЪМ дата';
         $toDate = Request::get('toDate', 'date');
         $productItemId = Request::get('productItemId', 'int');
         $storeItemId = Request::get('storeItemId', 'int');
 
-        $toDate = empty($toDate) ? dt::today() : $toDate;
         $row = array();
+        $toDate = empty($toDate) ? dt::today() : $toDate;
         $recs = static::getPricesToDate($toDate, $productItemId, $storeItemId);
         $countRecs = countR($recs);
         core_App::setTimeLimit($countRecs * 0.3, false, 300);
@@ -221,9 +222,15 @@ class acc_ProductPricePerPeriods extends core_Manager
         if(!empty($otherWhere)){
             $otherWhere = " AND {$otherWhere}";
         }
-        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} )ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 10000) as temp GROUP BY temp.storeItemId, temp.productItemId";
 
+        core_Debug::log("START GROUP_ALL");
+        core_Debug::startTimer('GROUP_ALL');
+        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} )ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 10000) as temp GROUP BY temp.storeItemId, temp.productItemId";
         $dbTableRes = $me->db->query($query1);
+        core_Debug::stopTimer('GROUP_ALL');
+
+        core_Debug::log("END GROUP_ALL " . round(core_Debug::$timers["GROUP_ALL"]->workingTime, 2));
+
         $res = array();
         while($arr = $me->db->fetchArray($dbTableRes)){
             $res[] = (object)$arr;
