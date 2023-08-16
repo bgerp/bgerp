@@ -2113,8 +2113,8 @@ class planning_Jobs extends core_Master
      */
     public static function closeActiveJobs($tolerance, $productIds = null, $saleIds = null, $noNewDocumentsIn = null, $logMsg = 'Автоматично приключване')
     {
-        $thresholdDate = ($noNewDocumentsIn) ? dt::addSecs(-1 * $noNewDocumentsIn, dt::now()) : null;
         $me = cls::get(get_called_class());
+        $thresholdDate = ($noNewDocumentsIn) ? dt::addSecs(-1 * $noNewDocumentsIn, dt::now()) : null;
         $query = static::getQuery();
         $query->where("#state IN ('active', 'wakeup')");
         $query->XPR('completed', 'percent', 'round(#quantityProduced / #quantity, 2)');
@@ -2136,13 +2136,35 @@ class planning_Jobs extends core_Master
         while($rec = $query->fetch()){
 
             // Ако има документ на заявка в нишката, няма да се приключва заданието
-            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) continue;
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->where("#threadId = {$rec->threadId} AND #state IN ('pending', 'draft')");
+            $draftAndPendingRecs = $cQuery->fetchAll();
+            foreach($draftAndPendingRecs as $cRec){
+                $notificationUrl = array('doc_Containers', 'list', "threadId" => $rec->threadId);
+                bgerp_Notifications::add("|*#{$me->getHandle($rec->id)} |не може да бъде автоматично приключено, защото има документи на заявка/чернова", $notificationUrl, $cRec->createdBy);
+            }
+
+            if(countR($draftAndPendingRecs)) continue;
+
+            // Ако има неприключени ПО към заданието, да не се приключва и да се бие нотификация
+            $tQuery = planning_Tasks::getQuery();
+            $tQuery->where("#originId = {$rec->containerId} AND #state != 'rejected'");
+            $notRejectedTasks = $tQuery->fetchAll();
+            foreach($notRejectedTasks as $taskRec){
+                $notificationUrl = array('doc_Containers', 'list', "threadId" => $taskRec->threadId);
+                $taskHandle = cal_Tasks::getHandle($taskRec->id);
+                bgerp_Notifications::add("|*#{$me->getHandle($rec->id)} |не може да бъде автоматично приключено, защото|* {$taskHandle} |не е приключена|*", $notificationUrl, $taskRec->createdBy);
+            }
+            if(countR($notRejectedTasks)) continue;
 
             // Ако е указано да няма нови документи в нишката в последните X време да се пропуска
             if(isset($thresholdDate)){
                 $lastCreatedOn = doc_Threads::getLastCreatedOnInThread($rec->threadId, 'acc_TransactionSourceIntf');
                 if($lastCreatedOn >= $thresholdDate) continue;
             }
+
+            // Ако е събудено в посочения интервал да не се приключва
+            if($rec->state == 'wakeup' && $rec->lastChangeStateOn >= $thresholdDate) continue;
 
             $isSystemUser = core_Users::isSystemUser();
             if(!$isSystemUser){
