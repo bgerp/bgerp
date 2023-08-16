@@ -182,6 +182,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         requireRole('debug');
         $this->currentTab = 'Дебъг->Артикулни цени КЪМ дата';
         $toDate = Request::get('toDate', 'date');
+        $test = Request::get('test', 'int');
         $productItemId = Request::get('productItemId', 'int');
         $storeItemId = Request::get('storeItemId', 'int');
 
@@ -194,7 +195,12 @@ class acc_ProductPricePerPeriods extends core_Manager
         core_Debug::log("START RENDER_ROWS");
         core_Debug::startTimer('RENDER_ROWS');
         foreach ($recs as $rec){
-            $row[] = $this->recToVerbal($rec);
+            if($test){
+                $row[] = $this->recToVerbal($rec);
+            } else {
+                $row[] = $rec;
+            }
+
         }
         core_Debug::stopTimer('RENDER_ROWS');
         core_Debug::log("END RENDER_ROWS " . round(core_Debug::$timers["RENDER_ROWS"]->workingTime, 6));
