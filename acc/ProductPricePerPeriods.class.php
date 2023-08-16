@@ -88,7 +88,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         core_App::setTimeLimit(300);
         $storeAccSysId = acc_Accounts::getRecBySystemId(321)->id;
         $bQuery = acc_Balances::getQuery();
-        $bQuery->orderBy('id', 'DESC');
+        $bQuery->orderBy('id', 'ASC');
 
         $prevArr = array();
         while($bRec = $bQuery->fetch()){
@@ -97,13 +97,13 @@ class acc_ProductPricePerPeriods extends core_Manager
             $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
 
             $dQuery->where("#balanceId = {$bRec->id} AND #accountId = {$storeAccSysId} AND #periodId IS NOT NULL AND #ent1Id IS NOT NULL");
-            $dQuery->XPR('price', 'double', 'ROUND(#blAmount / #blQuantity, 5)', 'column=none');
+            $dQuery->XPR('price', 'double', 'ROUND(#blAmount / NULLIF(#blQuantity, 0), 5)', 'column=none');
 
             $allRecs = $dQuery->fetchAll();
             $count = countR($allRecs);
             core_App::setTimeLimit($count * 0.4, false, 200);
 
-            $saveArr  = array();
+            $saveArr  = $currentArr = array();
             foreach ($allRecs as $dRec){
                 if(is_null($dRec->price)){
                     $dRec->price = 0;
@@ -111,13 +111,20 @@ class acc_ProductPricePerPeriods extends core_Manager
                     $dRec->price = core_Math::roundNumber($dRec->price);
                 }
                 $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
+                if($dRec->price < 0)  continue;
 
-                $saveArr[] = (object)array('date' => $dRec->toDate,
-                                           'storeItemId' => $dRec->ent1Id,
-                                           'productItemId' => $dRec->ent2Id,
-                                           'price' => $dRec->price);
+                if(array_key_exists("{$dRec->ent1Id}|{$dRec->ent2Id}", $prevArr)){
+                    if(round($dRec->price, 5) == round($prevArr["{$dRec->ent1Id}|{$dRec->ent2Id}"], 5)){
 
-
+                        continue;
+                    }
+                }
+                $rec = (object)array('date' => $dRec->toDate,
+                                     'storeItemId' => $dRec->ent1Id,
+                                     'productItemId' => $dRec->ent2Id,
+                                     'price' => $dRec->price);
+                $saveArr[] = $rec;
+                $prevArr["{$dRec->ent1Id}|{$dRec->ent2Id}"] = $dRec->price;
             }
 
             if(countR($saveArr)){
