@@ -192,6 +192,8 @@ class acc_ProductPricePerPeriods extends core_Manager
         $countRecs = countR($recs);
         core_App::setTimeLimit($countRecs * 0.3, false, 300);
 
+        return new core_ET("LOVE {$countRecs}");
+
         core_Debug::log("START RENDER_ROWS");
         core_Debug::startTimer('RENDER_ROWS');
         foreach ($recs as $rec){
