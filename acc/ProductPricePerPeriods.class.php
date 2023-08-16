@@ -70,8 +70,13 @@ class acc_ProductPricePerPeriods extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->storeItemId = acc_Items::getVerbal($rec->storeItemId, 'titleLink');
-        $row->productItemId = acc_Items::getVerbal($rec->productItemId, 'titleLink');
+        $productItemRec = acc_Items::fetch($rec->productItemId);
+        $storeItemRec = acc_Items::fetch($rec->storeItemId);
+        $row->storeItemId = cls::get($storeItemRec->classId)->getHyperlink($storeItemRec->objectId, true);
+        $row->productItemId = cls::get($productItemRec->classId)->getHyperlink($productItemRec->objectId, true);
+        $row->price = ht::styleIfNegative($row->price, $rec->price);
+        $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 321, 'ent1Id' => $rec->storeItemId, 'ent2Id' => $rec->productItemId);
+        $row->date = ht::createLink($row->date, $url, false, 'ef_icon=img/16/clock_history.png');
     }
 
 
@@ -83,25 +88,43 @@ class acc_ProductPricePerPeriods extends core_Manager
         core_App::setTimeLimit(300);
         $storeAccSysId = acc_Accounts::getRecBySystemId(321)->id;
         $bQuery = acc_Balances::getQuery();
-        $bQuery->orderBy('id', 'DESC');
+        $bQuery->orderBy('id', 'ASC');
 
         $prevArr = array();
         while($bRec = $bQuery->fetch()){
             $dQuery = acc_BalanceDetails::getQuery();
             $dQuery->EXT('toDate', 'acc_Balances', 'externalName=toDate,externalKey=balanceId');
-            $dQuery->where("#balanceId = {$bRec->id} AND #accountId = {$storeAccSysId} AND #ent1Id IS NOT NULL");
-            $dQuery->XPR('price', 'double', 'ROUND(#blAmount / #blQuantity, 5)', 'column=none');
-            $dQuery->show('toDate,ent1Id,ent2Id,price');
+            $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
+
+            $dQuery->where("#balanceId = {$bRec->id} AND #accountId = {$storeAccSysId} AND #periodId IS NOT NULL AND #ent1Id IS NOT NULL");
+            $dQuery->XPR('price', 'double', 'ROUND(#blAmount / NULLIF(#blQuantity, 0), 5)', 'column=none');
+
             $allRecs = $dQuery->fetchAll();
             $count = countR($allRecs);
             core_App::setTimeLimit($count * 0.4, false, 200);
 
-            $saveArr  = array();
+            $saveArr  = $currentArr = array();
             foreach ($allRecs as $dRec){
-                $saveArr[] = (object)array('date' => $dRec->toDate,
-                    'storeItemId' => $dRec->ent1Id,
-                    'productItemId' => $dRec->ent2Id,
-                    'price' => $dRec->price);
+                if(is_null($dRec->price)){
+                    $dRec->price = 0;
+                } else {
+                    $dRec->price = core_Math::roundNumber($dRec->price);
+                }
+                $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
+                if($dRec->price < 0)  continue;
+
+                if(array_key_exists("{$dRec->ent1Id}|{$dRec->ent2Id}", $prevArr)){
+                    if(round($dRec->price, 5) == round($prevArr["{$dRec->ent1Id}|{$dRec->ent2Id}"], 5)){
+
+                        continue;
+                    }
+                }
+                $rec = (object)array('date' => $dRec->toDate,
+                                     'storeItemId' => $dRec->ent1Id,
+                                     'productItemId' => $dRec->ent2Id,
+                                     'price' => $dRec->price);
+                $saveArr[] = $rec;
+                $prevArr["{$dRec->ent1Id}|{$dRec->ent2Id}"] = $dRec->price;
             }
 
             if(countR($saveArr)){
@@ -157,12 +180,13 @@ class acc_ProductPricePerPeriods extends core_Manager
     public function act_Filter()
     {
         requireRole('debug');
+        $this->currentTab = 'Дебъг->Артикулни цени КЪМ дата';
         $toDate = Request::get('toDate', 'date');
         $productItemId = Request::get('productItemId', 'int');
         $storeItemId = Request::get('storeItemId', 'int');
 
-        $toDate = empty($toDate) ? dt::today() : $toDate;
         $row = array();
+        $toDate = empty($toDate) ? dt::today() : $toDate;
         $recs = static::getPricesToDate($toDate, $productItemId, $storeItemId);
         $countRecs = countR($recs);
         core_App::setTimeLimit($countRecs * 0.3, false, 300);
@@ -194,13 +218,19 @@ class acc_ProductPricePerPeriods extends core_Manager
         if(!empty($storeItemId)){
             $otherWhere[] = "`{$me->dbTableName}`.{$storeColName} = {$storeItemId}";
         }
-        $otherWhere = implode('AND ', $otherWhere);
+        $otherWhere = implode(' AND ', $otherWhere);
         if(!empty($otherWhere)){
             $otherWhere = " AND {$otherWhere}";
         }
-        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} )ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 10000) as temp GROUP BY temp.storeItemId, temp.productItemId";
 
+        core_Debug::log("START GROUP_ALL");
+        core_Debug::startTimer('GROUP_ALL');
+        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} )ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 1000000) as temp GROUP BY temp.storeItemId, temp.productItemId";
         $dbTableRes = $me->db->query($query1);
+        core_Debug::stopTimer('GROUP_ALL');
+
+        core_Debug::log("END GROUP_ALL " . round(core_Debug::$timers["GROUP_ALL"]->workingTime, 6));
+
         $res = array();
         while($arr = $me->db->fetchArray($dbTableRes)){
             $res[] = (object)$arr;
