@@ -70,8 +70,13 @@ class acc_ProductPricePerPeriods extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->storeItemId = acc_Items::getVerbal($rec->storeItemId, 'titleLink');
-        $row->productItemId = acc_Items::getVerbal($rec->productItemId, 'titleLink');
+        $productItemRec = acc_Items::fetch($rec->productItemId);
+        $storeItemRec = acc_Items::fetch($rec->storeItemId);
+        $row->storeItemId = cls::get($storeItemRec->classId)->getHyperlink($storeItemRec->objectId, true);
+        $row->productItemId = cls::get($productItemRec->classId)->getHyperlink($productItemRec->objectId, true);
+        $row->price = ht::styleIfNegative($row->price, $rec->price);
+        $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 321, 'ent1Id' => $rec->storeItemId, 'ent2Id' => $rec->productItemId);
+        $row->date = ht::createLink($row->date, $url, false, 'ef_icon=img/16/clock_history.png');
     }
 
 
@@ -89,19 +94,30 @@ class acc_ProductPricePerPeriods extends core_Manager
         while($bRec = $bQuery->fetch()){
             $dQuery = acc_BalanceDetails::getQuery();
             $dQuery->EXT('toDate', 'acc_Balances', 'externalName=toDate,externalKey=balanceId');
-            $dQuery->where("#balanceId = {$bRec->id} AND #accountId = {$storeAccSysId} AND #ent1Id IS NOT NULL");
+            $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
+
+            $dQuery->where("#balanceId = {$bRec->id} AND #accountId = {$storeAccSysId} AND #periodId IS NOT NULL AND #ent1Id IS NOT NULL");
             $dQuery->XPR('price', 'double', 'ROUND(#blAmount / #blQuantity, 5)', 'column=none');
-            $dQuery->show('toDate,ent1Id,ent2Id,price');
+
             $allRecs = $dQuery->fetchAll();
             $count = countR($allRecs);
             core_App::setTimeLimit($count * 0.4, false, 200);
 
             $saveArr  = array();
             foreach ($allRecs as $dRec){
+                if(is_null($dRec->price)){
+                    $dRec->price = 0;
+                } else {
+                    $dRec->price = core_Math::roundNumber($dRec->price);
+                }
+                $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
+
                 $saveArr[] = (object)array('date' => $dRec->toDate,
-                    'storeItemId' => $dRec->ent1Id,
-                    'productItemId' => $dRec->ent2Id,
-                    'price' => $dRec->price);
+                                           'storeItemId' => $dRec->ent1Id,
+                                           'productItemId' => $dRec->ent2Id,
+                                           'price' => $dRec->price);
+
+
             }
 
             if(countR($saveArr)){
