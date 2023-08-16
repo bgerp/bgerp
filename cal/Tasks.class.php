@@ -636,7 +636,7 @@ class cal_Tasks extends embed_Manager
 
         if ($mvc->haveRightFor('add', (object)array('parentId' => $rec->id))) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
-            $url = array($mvc, 'add', 'parentId' => $rec->id, 'folderId' => $rec->folderId);
+            $url = array($mvc, 'add', 'parentId' => $rec->id, 'folderId' => $rec->folderId, 'ret_url' => true);
             $parentTitle = $mvc->getRecTitle($rec, false);
             $row->_rowTools->addLink(tr('Подзадача||Subtask'), $url, array('ef_icon' => 'img/16/add-sub.png', 'title' => "Добавяне на нова подзадача на|* '{$parentTitle}'"));
         }
@@ -925,7 +925,7 @@ class cal_Tasks extends embed_Manager
         }
 
         if ($mvc->haveRightFor('add', (object)array('parentId' => $data->rec->id))) {
-            $url = array($mvc, 'add', 'parentId' => $data->rec->id, 'folderId' => $data->rec->folderId);
+            $url = array($mvc, 'add', 'parentId' => $data->rec->id, 'folderId' => $data->rec->folderId, 'ret_url' => true);
             $parentTitle = $mvc->getRecTitle($data->rec, false);
             $data->toolbar->addBtn('Подзадача||Subtask', $url, "ef_icon=img/16/add-sub.png,title=Добавяне на нова подзадача на|* '{$parentTitle}'");
         }
