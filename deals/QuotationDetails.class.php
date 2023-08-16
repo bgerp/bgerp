@@ -749,7 +749,7 @@ class deals_QuotationDetails extends doc_Detail
             }
         }
 
-        if (!haveRole('seePrice,ceo')) {
+        if (!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec)) {
             $data->noTotal = true;
         }
 

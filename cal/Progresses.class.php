@@ -513,13 +513,6 @@ class cal_Progresses extends core_Mvc
     {
         $masterRec = $data->masterData->rec;
 
-        if(!Mode::is('printing')){
-            if(cal_Tasks::count("#parentId = {$masterRec->id}")){
-                $data->TabCaption = 'Прогрес';
-                $data->Tab = 'top';
-            }
-        }
-
         $data->rows = array();
         $cQuery = doc_Comments::getQuery();
         $cQuery->where(array("#originId = '[#1#]'", $masterRec->containerId));
@@ -549,6 +542,15 @@ class cal_Progresses extends core_Mvc
             $message = str::limitLen($message, 150);
             $data->rows[$cRec->id] = array('ROW_ATTR' => $rowAttr, 'links' => doc_Comments::getLinkToSingle($cRec->id, 'id'), 'progress' => $cRow->progress, 'workingTime' => $cRow->workingTime, 'createdOn' => $cRow->createdOn, 'createdBy' => $cRow->createdBy, 'message' => $message);
         }
+
+        if(!Mode::is('printing')){
+            if(cal_Tasks::count("#parentId = {$masterRec->id}")){
+                if(countR($data->rows)){
+                    $data->TabCaption = 'Прогрес';
+                    $data->Tab = 'top';
+                }
+            }
+        }
     }
 
 
@@ -558,6 +560,7 @@ class cal_Progresses extends core_Mvc
     public function renderDetail_($data)
     {
         $table = cls::get('core_TableView');
+        if(!countR($data->rows)) return;
 
         $showFieldArr = array('links', 'createdOn', 'createdBy', 'message', 'progress', 'workingTime');
         $tTpl = $table->get($data->rows, $showFieldArr);
