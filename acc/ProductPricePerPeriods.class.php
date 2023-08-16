@@ -191,9 +191,14 @@ class acc_ProductPricePerPeriods extends core_Manager
         $countRecs = countR($recs);
         core_App::setTimeLimit($countRecs * 0.3, false, 300);
 
+        core_Debug::log("START RENDER_ROWS");
+        core_Debug::startTimer('RENDER_ROWS');
         foreach ($recs as $rec){
             $row[] = $this->recToVerbal($rec);
         }
+        core_Debug::stopTimer('RENDER_ROWS');
+        core_Debug::log("END RENDER_ROWS " . round(core_Debug::$timers["RENDER_ROWS"]->workingTime, 6));
+
         $table = cls::get('core_TableView', array('mvc' => $this));
         $fields = arr::make('date=Дата,storeItemId=Склад,productItemId=Артикул,price=Цена');
         $contentTpl = $table->get($row, $fields);
@@ -228,7 +233,6 @@ class acc_ProductPricePerPeriods extends core_Manager
         $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} )ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 1000000) as temp GROUP BY temp.storeItemId, temp.productItemId";
         $dbTableRes = $me->db->query($query1);
         core_Debug::stopTimer('GROUP_ALL');
-
         core_Debug::log("END GROUP_ALL " . round(core_Debug::$timers["GROUP_ALL"]->workingTime, 6));
 
         $res = array();
