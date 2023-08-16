@@ -1955,4 +1955,15 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        $fieldset->setFieldType('dealValueWithoutDiscount', 'double');
+    }
 }

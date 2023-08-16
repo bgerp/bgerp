@@ -493,8 +493,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         if ($fTasks->recs) {
             $fTpl = new ET('[#table#][#pager#]');
+            Mode::push('hideToolbar', true);
             $fTpl->replace($Tasks->renderListTable($fTasks), 'table');
             $fTpl->replace($Tasks->renderListPager($fTasks), 'pager');
+            Mode::pop('hideToolbar');
             $resArr['future'] = $fTpl;
         }
 

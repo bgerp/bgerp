@@ -952,19 +952,30 @@ class cal_Calendar extends core_Master
     /**
      * Връща дали дадения служител ще отсъства на уречената дата
      */
-    public static function isAbsent($date, $userId)
+    public static function isAbsent($date, $userId, $typeArr = array('leaves', 'sick') , &$rec = null)
     {
         // Системните и анонимните потребители не отсъстват
         if ($userId <= 0) {
             
             return false;
         }
+
+        if (!isset($date)) {
+            $date = dt::now(false);
+        }
         
-        list($date, $time) = explode(' ', $date);
+        list($date) = explode(' ', $date);
+
         $fromTime = $date . ' 00:00:00';
         $toTime   = $date   . ' 23:59:59';
-        
-        $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND (#type = 'leaves' OR #type = 'sick')");
+
+        $typeStr = '';
+        foreach ($typeArr as $type) {
+            $typeStr .= $typeStr ? " OR " : '';
+            $typeStr .= "#type = '{$type}'";
+        }
+
+        $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND ({$typeStr})");
         
         if ($rec) {
             
@@ -2101,7 +2112,7 @@ class cal_Calendar extends core_Master
         $attr['value'] = $today;
         $attr['style'] .= 'color:#00F;';
         $options[$today] = (object) array('title' => $thisMonth, 'attr' => $attr);
-        
+
         // правим масив с 3 месеца назад от текущия месец,
         // които е подготовка за нашия select
         // за value има линк към съответния месец
@@ -2126,15 +2137,14 @@ class cal_Calendar extends core_Master
             $options[$prev] = $prevM;
             
             if($prevM == $thisMonth) {
-                $attr['value'] = $prevM;
+                $attr['value'] = $prev;
                 $attr['style'] .= 'color:#00F;';
                 $options[$prev] = (object) array('title' => $prevM, 'attr' => $attr);
-                
+
                 unset($options[$today]);
             }
-        
         }
-        
+
         // добавяме текущия месец къммасива
         // за него не ни е нужен линк
         $curLink = getCurrentUrl();
@@ -2142,9 +2152,9 @@ class cal_Calendar extends core_Master
         $curLink['cal_month'] = $monthToday;
         $curLink['cal_year'] = $yearToday;
         $curLink = toUrl($curLink) . "#calendarPortal";
-        
+
         $options[$currentMonth] = $currentM;
-        
+
         if($currentMonth == $thisMonth) {
             $attr['value'] = $currentM;
             $attr['style'] .= 'color:#00F;';
@@ -2153,7 +2163,7 @@ class cal_Calendar extends core_Master
             
             unset($options[$today]);
         }
-        
+
         // правим масив с 9 месеца напред от текущия месец,
         // които е подготовка за нашия select
         // за value има линк към съответния месец
@@ -2181,15 +2191,14 @@ class cal_Calendar extends core_Master
             $options[$next] = $nextM;
             
             if($nextM == $thisMonth) {
-                $attr['value'] = $nextM;
+                $attr['value'] = $next;
                 $attr['style'] .= 'color:#00F;';
                 $options[$next] = (object) array('title' => $nextM, 'attr' => $attr);
                 
                 unset($options[$today]);
             }
-        
         }
-        
+
         return (object) array('opt' => $options, 'currentM' =>$currentMonth,
                               'prevtLink'=>$prevtLink, 'nextLink'=>$nextLink,
                               'nextMonth'=>$nextMonth,'prevMonth' =>$prevMonth);

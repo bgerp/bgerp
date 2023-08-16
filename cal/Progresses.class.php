@@ -504,4 +504,75 @@ class cal_Progresses extends core_Mvc
         
         return $result;
     }
+
+
+    /**
+     * Подготовка на Детайлите
+     */
+    public function prepareDetail_($data)
+    {
+        $masterRec = $data->masterData->rec;
+
+        if(!Mode::is('printing')){
+            if(cal_Tasks::count("#parentId = {$masterRec->id}")){
+                $data->TabCaption = 'Прогрес';
+                $data->Tab = 'top';
+            }
+        }
+
+        $data->rows = array();
+        $cQuery = doc_Comments::getQuery();
+        $cQuery->where(array("#originId = '[#1#]'", $masterRec->containerId));
+        $cQuery->where(array("#driverClass = '[#1#]'", cal_Progresses::getClassId()));
+        $cQuery->where("#state != 'draft'");
+        $cQuery->where('#activatedOn IS NOT NULL');
+        $cQuery->orderBy('activatedOn', 'ASC');
+        $isPartner = haveRole('partner');
+
+        while ($cRec = $cQuery->fetch()) {
+
+            // Партньорите да не виждат всичките прогреси - само видимите документи
+            if ($isPartner) {
+                if (!doc_Comments::haveRightFor('single', $cRec)) continue;
+            }
+
+            $rowAttr = array();
+
+            if ($cRec->state == 'rejected') {
+                $rowAttr['class'] = 'state-' . $cRec->state;
+            }
+
+            $cRow = doc_Comments::recToVerbal($cRec);
+
+            $message = $cRow->body;
+            $message = strip_tags($message);
+            $message = str::limitLen($message, 150);
+            $data->rows[$cRec->id] = array('ROW_ATTR' => $rowAttr, 'links' => doc_Comments::getLinkToSingle($cRec->id, 'id'), 'progress' => $cRow->progress, 'workingTime' => $cRow->workingTime, 'createdOn' => $cRow->createdOn, 'createdBy' => $cRow->createdBy, 'message' => $message);
+        }
+    }
+
+
+    /**
+     * Рендиране на детайл
+     */
+    public function renderDetail_($data)
+    {
+        $table = cls::get('core_TableView');
+
+        $showFieldArr = array('links', 'createdOn', 'createdBy', 'message', 'progress', 'workingTime');
+        $tTpl = $table->get($data->rows, $showFieldArr);
+
+        $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
+                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">' . tr('Прогрес') . '</div>
+                            <div class="listRows" style="margin-top:10px">
+                            [#TABLE#]
+                            </div>
+	                   </div>
+	                ');
+        $tTpl->removeBlocksAndPlaces();
+        $tpl->replace($tTpl, 'TABLE');
+        $tpl->removeBlocksAndPlaces();
+
+        return $tpl;
+    }
 }

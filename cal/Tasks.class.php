@@ -96,14 +96,14 @@ class cal_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
+    public $loadList = 'plg_RowTools2, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_SaveAndNew, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
     
     
     /**
      * Какви детайли има този мастер
      */
-    public $details = 'cal_TaskConditions';
+    public $details = 'cal_TaskConditions,cal_Progresses,cal_SubTaskDetails';
     
     
     /**
@@ -237,7 +237,9 @@ class cal_Tasks extends embed_Manager
      */
     public $newBtnGroup = '1.3|Общи';
     
-    
+
+    protected $expenseItemToForce = array();
+
     /**
      * Изгледи
      */
@@ -303,7 +305,7 @@ class cal_Tasks extends embed_Manager
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
-
+        $this->FLD('parentId', 'key2(mvc=cal_Tasks,select=title,allowEmpty)', 'caption=Подзадача на,width=100%,changable,silent,remember');
         $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, refreshForm, silent, after=typeId, changable');
 
         $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
@@ -404,35 +406,39 @@ class cal_Tasks extends embed_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $data->form->setField($mvc->driverClassField, 'input=hidden');
-        
+        $form = &$data->form;
+        $rec = $form->rec;
+
+        $form->setField($mvc->driverClassField, 'input=hidden');
+        if(Request::get('parentId', 'int') || isset($rec->parentId)){
+            $form->setReadOnly('parentId');
+        } else {
+            $form->setField('parentId', 'input=none');
+        }
+
         Request::setProtected(array('srcId', 'srcClass'));
-        
-        $data->form->FNC('SrcId', 'int', 'input=hidden, silent');
-        $data->form->FNC('SrcClass', 'varchar', 'input=hidden, silent');
+        $form->FNC('SrcId', 'int', 'input=hidden, silent');
+        $form->FNC('SrcClass', 'varchar', 'input=hidden, silent');
         
         if ($srcId = Request::get('srcId', 'int')) {
             if ($srcClass = Request::get('srcClass')) {
-                $data->form->setDefault('SrcId', $srcId);
-                $data->form->setDefault('SrcClass', $srcClass);
+                $form->setDefault('SrcId', $srcId);
+                $form->setDefault('SrcClass', $srcClass);
             }
         }
-        
-        $cu = core_Users::getCurrent();
-        $data->form->setDefault('priority', 'normal');
+
+        $form->setDefault('priority', 'normal');
         
         if ($defUsers = Request::get('DefUsers')) {
             if (type_Keylist::isKeylist($defUsers) && $mvc->fields['assign']->type->toVerbal($defUsers)) {
-                $data->form->setDefault('assign', $defUsers);
+                $form->setDefault('assign', $defUsers);
             }
         }
         
         if (Mode::is('screenMode', 'narrow')) {
-            $data->form->fields['priority']->maxRadio = 2;
+            $form->fields['priority']->maxRadio = 2;
         }
-        
-        $rec = $data->form->rec;
-        
+
         if ($rec->allDay == 'yes') {
             list($rec->timeStart, ) = explode(' ', $rec->timeStart);
         }
@@ -467,19 +473,19 @@ class cal_Tasks extends embed_Manager
             $data->form->setField('assetResourceId', 'input=none');
         }
 
-        if (($data->form->cmd == 'refresh') || (!$data->form->cmd && $data->form->rec->assetResourceId)) {
+        if (($form->cmd == 'refresh') || (!$form->cmd && $rec->assetResourceId)) {
             // При избор на компонент, да са избрани споделените потребители, които са отговорници
-            if ($data->form->rec->assetResourceId) {
-                $assetId = planning_AssetResources::fetchField($data->form->rec->assetResourceId, 'id');
+            if ($rec->assetResourceId) {
+                $assetId = planning_AssetResources::fetchField($rec->assetResourceId, 'id');
 
+                $maintainers = '';
                 if ($assetId) {
                     $maintainers = planning_AssetResourceFolders::fetchField(array("#classId = '[#1#]' AND #objectId = '[#2#]' AND #folderId = '[#3#]'", planning_AssetResources::getClassId(), $assetId, $rec->folderId), 'users');
                 }
-
                 $maintainers = keylist::removeKey($maintainers, core_Users::getCurrent());
 
                 if ($maintainers) {
-                    $data->form->setDefault('sharedUsers', $maintainers);
+                    $form->setDefault('sharedUsers', $maintainers);
                 }
             }
         }
@@ -557,7 +563,7 @@ class cal_Tasks extends embed_Manager
     {
         $grey = new color_Object('#bbb');
         $blue = new color_Object('#2244cc');
-        
+
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
         $row->progressBar = "<span style='white-space: nowrap; display: inline-block;'><span style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </span><span style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></span></span>";
@@ -620,6 +626,19 @@ class cal_Tasks extends embed_Manager
 
         if ($rec->assetResourceId) {
             $row->assetResourceId = planning_AssetResources::getHyperlink($rec->assetResourceId, true);
+        }
+
+        if(isset($rec->parentId)){
+            $parentState = cal_Tasks::fetchField($rec->parentId, 'state');
+            $row->parentId = $mvc->getHyperlink($rec->parentId, true);
+            $row->parentId = ht::createElement("div", array('class' => "state-{$parentState} document-handler"), $row->parentId);
+        }
+
+        if ($mvc->haveRightFor('add', (object)array('parentId' => $rec->id))) {
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $url = array($mvc, 'add', 'parentId' => $rec->id, 'folderId' => $rec->folderId);
+            $parentTitle = $mvc->getRecTitle($rec, false);
+            $row->_rowTools->addLink(tr('Подзадача||Subtask'), $url, array('ef_icon' => 'img/16/add-sub.png', 'title' => "Добавяне на нова подзадача на|* '{$parentTitle}'"));
         }
     }
     
@@ -841,54 +860,23 @@ class cal_Tasks extends embed_Manager
             if ($link !== false) {
                 $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
             }
-        }
-    }
-    
-    
-    /**
-     * След подготовка на сингъла
-     */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
-    {
-        $pArr = array();
 
-        if ($pClsId = cal_Progresses::getClassId() && $data->rec->containerId) {
-            $cQuery = doc_Comments::getQuery();
-            $cQuery->where(array("#originId = '[#1#]'", $data->rec->containerId));
-            $cQuery->where(array("#driverClass = '[#1#]'", cal_Progresses::getClassId()));
-            $cQuery->where("#state != 'draft'");
-            $cQuery->where('#activatedOn IS NOT NULL');
-            
-            $cQuery->orderBy('activatedOn', 'ASC');
-            
-            $isPartner = haveRole('partner');
-            
-            while ($cRec = $cQuery->fetch()) {
-                
-                // Партньорите да не виждат всичките прогреси - само видимите документи
-                if ($isPartner) {
-                    if (!doc_Comments::haveRightFor('single', $cRec)) {
-                        continue;
+            if(isset($rec->id)){
+                if(isset($rec->parentId)){
+                    // Добавяме и всички негови бащи
+                    $parents = array();
+                    $parent = $rec->parentId;
+                    while ($parent && ($pRec = $mvc->fetch("#id = {$parent}", "id,parentId"))) {
+                        $parents[$pRec->id] = $pRec->id;
+                        $parent = $pRec->parentId;
+                    }
+
+                    if(array_key_exists($rec->id, $parents)){
+                        $form->setError('parent', 'Избраната задача е подзадача на текущата|*!');
                     }
                 }
-                
-                $rowAttr = array();
-                
-                if ($cRec->state == 'rejected') {
-                    $rowAttr['class'] = 'state-' . $cRec->state;
-                }
-                
-                $cRow = doc_Comments::recToVerbal($cRec);
-                
-                $message = $cRow->body;
-                $message = strip_tags($message);
-                $message = str::limitLen($message, 150);
-                
-                $pArr[] = array('ROW_ATTR' => $rowAttr, 'links' => doc_Comments::getLinkToSingle($cRec->id, 'id'), 'progress' => $cRow->progress, 'workingTime' => $cRow->workingTime, 'createdOn' => $cRow->createdOn, 'createdBy' => $cRow->createdBy, 'message' => $message);
             }
         }
-        
-        $data->Progresses = $pArr;
     }
     
     
@@ -901,26 +889,6 @@ class cal_Tasks extends embed_Manager
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if ($data->Progresses) {
-            $table = cls::get('core_TableView');
-            
-            $showFieldArr = array('links', 'createdOn', 'createdBy', 'message', 'progress', 'workingTime');
-                        
-            $tTpl = $table->get($data->Progresses, $showFieldArr);
-            
-            $tplx = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
-                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">' . tr('Прогрес') . '</div>
-                            <div class="listRows">
-                            [#TABLE#]
-                            </div>
-	                   </div>
-	                ');
-            $tplx->replace($tTpl, 'TABLE');
-            
-            
-            $tpl->append($tplx, 'DETAILS');
-        }
-        
         bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Tasks');
         bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
     }
@@ -955,7 +923,13 @@ class cal_Tasks extends embed_Manager
         if ($mvc->canAddProgress($data->rec)) {
             $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => true), 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '"), ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата, row=1');
         }
-        
+
+        if ($mvc->haveRightFor('add', (object)array('parentId' => $data->rec->id))) {
+            $url = array($mvc, 'add', 'parentId' => $data->rec->id, 'folderId' => $data->rec->folderId);
+            $parentTitle = $mvc->getRecTitle($data->rec, false);
+            $data->toolbar->addBtn('Подзадача||Subtask', $url, "ef_icon=img/16/add-sub.png,title=Добавяне на нова подзадача на|* '{$parentTitle}'");
+        }
+
         if (cal_TaskConditions::haveRightFor('add', (object) array('baseId' => $data->rec->id))) {
             $data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
@@ -1145,8 +1119,45 @@ class cal_Tasks extends embed_Manager
             planning_AssetResources::save($nRec, 'lastUsedOn');
         }
     }
-    
-    
+
+
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    protected static function on_AfterActivation($mvc, &$rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        if(!isset($rec->parentId)) return;
+
+        // При активиране ако не е РО, но може да бъде РО и бащата ѝ е РО - то и тя ще се запише, като РО
+        if(acc_Items::isItemInList($mvc, $rec->id, 'costObjects')) return;
+        $costClasses = acc_Setup::get('COST_OBJECT_DOCUMENTS');
+        if (!keylist::isIn($mvc->getClassId(), $costClasses)) return;
+        if(!acc_Items::isItemInList($mvc, $rec->parentId, 'costObjects')) return;
+
+        // Заопашаване на задачата да стане РО при шътдаун
+        $mvc->expenseItemToForce[$rec->id] = $rec;
+    }
+
+
+    /**
+     * При шътдаун на скрипта преизчислява наследените роли и ролите на потребителите
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Преподреждане на операциите в рамките на бутнатите задания
+        if (countR($mvc->expenseItemToForce)) {
+            foreach ($mvc->expenseItemToForce as $taskRec) {
+                $listId = acc_Lists::fetchBySystemId('costObjects')->id;
+                acc_Items::force($mvc->getClassId(), $taskRec->id, $listId);
+                $exRec = (object) array('containerId' => $taskRec->containerId);
+                doc_ExpensesSummary::save($exRec);
+                $mvc->logInAct('Документа става автоматично разходно перо', $taskRec);
+            }
+        }
+    }
+
+
     /**
      * След изтриване на запис
      */
@@ -1212,6 +1223,13 @@ class cal_Tasks extends embed_Manager
                 if (!$canActivate || ($now < $canActivate)) {
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+
+        if ($action == 'add' && isset($rec->parentId)) {
+            $parentState = $mvc->fetchField($rec->parentId, 'state');
+            if(in_array($parentState, array('draft', 'rejected', 'closed'))){
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -1411,7 +1429,12 @@ class cal_Tasks extends embed_Manager
             }
             
             if ($data->listFilter->rec->order == 'onStart') {
-                $data->query->where("(#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeStart >= '{$dateRange[0]}')");
+                if (isset($dateRange[1])) {
+                    $data->query->where(array("(#timeStart IS NOT NULL AND #timeStart <= '[#1#]')", $dateRange[1]));
+                }
+                if (isset($dateRange[0])) {
+                    $data->query->where(array("(#timeStart IS NOT NULL AND #timeStart >= '[#1#]')", $dateRange[0]));
+                }
                 $data->query->orderBy('#timeStart=ASC,#state=DESC');
                 $useDateRange = false;
             }
@@ -1421,10 +1444,25 @@ class cal_Tasks extends embed_Manager
             }
             
             if ($data->listFilter->rec->order == 'onEnd') {
-                $data->query->where("(#timeEnd IS NOT NULL AND #timeEnd <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
-	        		              ");
+
+                $qStr = '(#timeEnd IS NOT NULL';
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND #timeEnd <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND #timeEnd >= '{$dateRange[0]}'";
+                }
+                $qStr .= ') OR (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL';
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}'";
+                }
+                $qStr .= ')';
+
+                $data->query->where($qStr);
+
                 $data->query->orderBy('#state=DESC,#timeEnd=ASC');
                 $useDateRange = false;
             }
@@ -1450,15 +1488,39 @@ class cal_Tasks extends embed_Manager
             }
             
             if ($chart == 'Gantt') {
-                $data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
-	        		              ");
+                $qStr = '(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL';
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND #timeStart <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND #timeEnd >= '{$dateRange[0]}'";
+                }
+                $qStr .= ') OR (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL';
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND #timeStart <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}'";
+                }
+                $qStr .= ') OR (#timeStart IS NOT NULL';
+
+                if (isset($dateRange[1])) {
+                    $qStr .= " AND #timeStart <= '{$dateRange[1]}'";
+                }
+                if (isset($dateRange[0])) {
+                    $qStr .= " AND #timeStart >= '{$dateRange[0]}'";
+                }
+                $qStr .= ')';
+
+                $data->query->where($qStr);
             } else {
                 if ($useDateRange && !empty($dateRange)) {
-                    $data->query->where(array("#expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $dateRange[1], $dateRange[0]));
+                    if (isset($dateRange[1])) {
+                        $data->query->where(array("#expectationTimeStart <= '[#1#]'", $dateRange[1]));
+                    }
+                    if (isset($dateRange[0])) {
+                        $data->query->where(array("#expectationTimeStart >= '[#1#]'", $dateRange[0]));
+                    }
                 }
             }
             
@@ -1492,10 +1554,9 @@ class cal_Tasks extends embed_Manager
             $tabs->TAB('List', 'Таблица', $currUrl);
             
             $queryClone = clone $data->listSummary->query;
-            
-            $queryClone->where('#timeStart IS NOT NULL');
-            
-            if ($queryClone->fetch()) {
+            $queryClone->limit(1);
+
+            if ($queryClone->count()) {
                 
                 // ще може ли да определим типа на Ганта
                 $ganttType = self::getGanttTimeType($data);
@@ -1787,12 +1848,18 @@ class cal_Tasks extends embed_Manager
         $rec = $this->fetch($id);
 
         $row = new stdClass();
-        
-        //Заглавие
-        $row->title = $this->getVerbal($rec, 'title');
+
+        $title = $this->getRecTitle($rec);
+        $row->title = core_Type::getByName('varchar')->toVerbal($title);
         
         $row->subTitle = '';
-        
+
+        if ($rec->assetResourceId) {
+//            $row->subTitle = $this->getVerbal($rec, 'assetResourceId');
+//            $row->subTitle = planning_AssetResources::getHyperlink($rec->assetResourceId, false);
+            $row->subTitle = planning_AssetResources::getTitleById($rec->assetResourceId);
+        }
+
         if ($rec->progress) {
             $Driver = $this->getDriver($rec->id);
             
@@ -1807,7 +1874,9 @@ class cal_Tasks extends embed_Manager
             Mode::pop('text');
             
             $pValStr = $progressArr[$pVal];
-            
+
+            $row->subTitle .= $row->subTitle ? ' - ' : '';
+
             if ($pValStr && ($pValStr != $pVal)) {
                 $row->subTitle .= $pValStr;
             } else {
@@ -1870,7 +1939,7 @@ class cal_Tasks extends embed_Manager
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $rec->title;
+        $row->recTitle = $title;
         
         $Driver = $this->getDriver($id);
         if ($Driver) {
@@ -2970,12 +3039,23 @@ class cal_Tasks extends embed_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $me = cls::get(get_called_class());
-        $dRow = $me->getDocumentRow($rec->id);
-        
-        $handle = $me->getHandle($rec->id);
-        
-        return "{$handle} - {$dRow->title}";
+        $mvc = cls::get(get_called_class());
+        $rec = static::fetchRec($rec);
+
+        $titleArr = array();
+        if(!Mode::is('documentGetItemRec')){
+            $abbr = $mvc->abbr;
+            $abbr[0] = strtoupper($abbr[0]);
+            $titleArr[] = "{$abbr}{$rec->id}";
+        }
+        if(!Mode::is('documentPortalShortName')){
+            $cover = doc_Folders::getCover($rec->folderId);
+            $folder = str::limitLen($cover->getTitleById(), 16);
+            $titleArr[] = $folder;
+        }
+        $titleArr[] = $mvc->getVerbal($rec, 'title');
+
+        return implode('/', $titleArr);
     }
     
     
@@ -3240,7 +3320,7 @@ class cal_Tasks extends embed_Manager
             $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
             $sTxt = ' ' . $pRec->code . ' ' . $pRec->name;
         } else {
-            $sTxt = ' ' . $mvc->withoutResStrwithoutResStr;
+            $sTxt = ' ' . $mvc->withoutResStr;
         }
 
         if (trim($sTxt)) {
@@ -3324,6 +3404,10 @@ class cal_Tasks extends embed_Manager
             } else {
                 $resArr['assign'] = array('name' => tr('Възложено'), 'val' => tr('на') . ' [#assign#]');
             }
+        }
+
+        if (isset($rec->parentId)) {
+            $resArr['parentId'] = array('name' => tr('Подзадача на'), 'val' => '[#parentId#]');
         }
     }
     
@@ -3712,6 +3796,95 @@ class cal_Tasks extends embed_Manager
     {
         if (($data->rec->expectationTimeEnd && $data->rec->expectationTimeEnd > dt::now()) || ($data->rec->state == 'draft')) {
             $data->rec->__closeButtonRow = 2;
+        }
+    }
+
+
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $query = self::getQuery();
+        $query->orderBy('modifiedOn', 'DESC');
+        $viewAccess =  ($params['restrictViewAccess'] != 'yes');
+
+        $me = cls::get(get_called_class());
+        $me->restrictQueryOnlyFolderForDocuments($query, $viewAccess);
+        if ($includeHiddens) {
+            $query->where("#state != 'rejected'");
+        } else {
+            $query->in("state", array('active', 'pending', 'stopped', 'wakeup'));
+        }
+
+        if ($params['where']) {
+            $query->where($params['where']);
+        }
+
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            $query->where("#id IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $query->where("#id = ${onlyIds}");
+        }
+
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #title, ' ', #id))");
+        if ($q) {
+            if ($q[0] == '"') {
+                $strict = true;
+            }
+
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = mb_strtolower($q);
+            if ($strict) {
+                $qArr = array(str_replace(' ', '.*', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        $res = array();
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $me->getRecTitle($rec, false);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Извличане на задачите с техните подзадачи
+     *
+     * @param array $arr
+     * @param int $taskId
+     * @param array $path
+     * @return void
+     */
+    public static function expandChildrenArr(&$arr, $taskId, &$path = array())
+    {
+        $subQuery = cal_Tasks::getQuery();
+        $subQuery->where("#parentId = {$taskId}");
+        $path[$taskId] = $taskId;
+
+        while($subRec = $subQuery->fetch()){
+            $subRec->_path = $path;
+            $arr[$subRec->id] = $subRec;
+            $currentLevel = $path;
+            static::expandChildrenArr($arr, $subRec->id, $currentLevel);
         }
     }
 }

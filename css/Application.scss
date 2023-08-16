@@ -462,6 +462,11 @@ div.folder-cover {
 	}
 
 }
+
+.costObjectCoverTotalRow th {
+	padding:5px 3px;
+}
+
 .document .detail-info .store_Products  .listTable {
 	max-width: 100% !important;
 	width: 100%;
@@ -2553,20 +2558,25 @@ margin: 2px 0 0 0;
 }
 
 .antetka {
-margin-bottom: 5px;
-padding: 5px;
-border: solid 1px $gray3;
-background: transparent;
-filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8);
-zoom: 1;
-background: rgba(200, 200, 200, 0.3);
-span.timeSpan {
-    white-space: nowrap;
-}
-.linkWithIcon {
-    margin-bottom: 0;
-}
-
+	margin-bottom: 5px;
+	padding: 5px;
+	border: solid 1px $gray3;
+	background: transparent;
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8);
+	zoom: 1;
+	background: rgba(200, 200, 200, 0.3);
+	span.timeSpan {
+		white-space: nowrap;
+	}
+	.linkWithIcon {
+		margin-bottom: 0;
+	}
+	.document-handler {
+		padding: 0 2px 0 0;
+		.linkWithIcon {
+			height: auto!important;
+		}
+	}
 }
 
 .antetkaCell {
@@ -3925,14 +3935,15 @@ fieldset.sharing-history {
 	top: 50%;
 	margin-top: -24px;
 	background-size: 48px;
-	opacity: 0.3;
+	opacity: 0;
 	-webkit-transition: opacity 1s ease-in-out;
 	-moz-transition: opacity 1s ease-in-out;
 	transition: opacity 1s ease-in-out;
+	z-index: 100;
 }
 
 .narrow .nextLink{
- 	right: 15px;
+ 	right: 5px;
 }
 .narrow .prevLink {
 	left: 5px;
@@ -3940,8 +3951,11 @@ fieldset.sharing-history {
 
 .narrow .nextLink, .narrow .prevLink {
 	background-size: 36px;
+	background-position: center;
 	margin-top: -18px;
 	opacity: 0.6;
+	width: 38px;
+	height: 38px;
 }
 .narrow #fileDetail .row-holder {
 	top: 17px;
@@ -5247,6 +5261,8 @@ table .eshop-btn {
 	width: 100%;
 	border: solid 0 transparent;
 	min-height: 612px;
+	pointer-events: none;
+
 }
 
 .wide .webdrvIframe, .wide .webdrvFieldset {
@@ -5263,7 +5279,6 @@ table .eshop-btn {
 	border: 1px solid #ccc;
 	padding: 15px 10px 10px;
 	@include border-radius(5px);
-	box-shadow: 0 0 5px rgba(0,0,0,0.2) inset;
 	> div {
 		overflow: auto;
 	}
@@ -5324,13 +5339,17 @@ table .eshop-btn {
 	overflow-x: auto;
 	border: 1px solid #ccc;
 	@include border-radius(5px);
-	box-shadow: 0 0 5px rgba(0,0,0,0.2) inset;
 }
 
 .filesContainer .top-table {
 	margin-bottom: 15px;
 }
-
+.filesContainer {
+	div.tab-control.alphabet div.tab-row .tab.selected {
+		background: #fff !important;
+		padding-bottom: 6px !important;
+	}
+ }
 .webdrv-preview {
 	margin-top: 5px;
 	&:first-child {

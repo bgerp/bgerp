@@ -43,12 +43,17 @@ class fileman_webdrv_Ics extends fileman_webdrv_Code
         
         // Вземаме съдържанието
         $events = static::getEvents($fRec);
-        
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Таб за съдържанието
         $tabsArr['events'] = (object)
             array(
                 'title' => 'Събития',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$events}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$events}</div></div>",
                 'order' => 3,
                 'tpl' => $events,
             );

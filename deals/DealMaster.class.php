@@ -406,31 +406,34 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $abbr = $mvc->abbr;
         $abbr[0] = strtoupper($abbr[0]);
-        
-        if (isset($rec->contragentClassId, $rec->contragentId)) {
-            $crm = cls::get($rec->contragentClassId);
-            $cRec = $crm->getContragentData($rec->contragentId);
-            
-            $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
-        } else {
-            $contragent = tr('Проблем при показването');
+
+        $titleArr = array();
+        $titleArr[] = "{$abbr}{$rec->id}";
+        if(!Mode::is('documentPortalShortName')) {
+            if (isset($rec->contragentClassId, $rec->contragentId)) {
+                $crm = cls::get($rec->contragentClassId);
+                $cRec = $crm->getContragentData($rec->contragentId);
+                $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
+            } else {
+                $contragent = tr('Проблем при показването');
+            }
+
+            if ($escaped) {
+                $contragent = type_Varchar::escape($contragent);
+            }
+            $titleArr[] = $contragent;
         }
-        
-        if ($escaped) {
-            $contragent = type_Varchar::escape($contragent);
-        }
-        
-        $title = "{$abbr}{$rec->id}/{$contragent}";
 
         // Показване и на артикула с най-голяма стойност в продажбата
         if (!empty($rec->reff)) {
-            $title .= "/{$rec->reff}";
+            $titleArr[] = $rec->reff;
         } elseif (isset($rec->productIdWithBiggestAmount)) {
             $length = sales_Setup::get('PROD_NAME_LENGTH');
             $pName = mb_substr(type_Varchar::escape($rec->productIdWithBiggestAmount), 0, $length);
-            $title .= "/{$pName}";
+            $titleArr[] = $pName;
         }
-        
+        $title = implode('/', $titleArr);
+
         return $title;
     }
     

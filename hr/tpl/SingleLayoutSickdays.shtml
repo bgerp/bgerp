@@ -54,18 +54,18 @@
         <br><p><b>|По време на отсъствието ще|*:</b></p>
         <table class="inlineRichTable listTable">
         	<tr>
-        		<td>|отговарям на мобилен телефон|*</td>
+        		<td>|Отговарям на мобилен телефон|*</td>
                 <td class="centered">[#answerGSM#]</td>
             </tr>
             
             <tr>
-            	<td>|имам достъп до системата|*</td>
+            	<td>|Имам достъп до системата|*</td>
                 <td class="centered">[#answerSystem#]</td>
             </tr>
             
             <tr>
-            	<td>|ме замества|*</td>
-            	<td class="centered">[#alternatePerson#]</td>
+            	<td>|Ме замества|*</td>
+            	<td class="centered">[#alternatePersons#]</td>
             </tr>
         </table>
         <!--ET_END access-->

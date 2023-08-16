@@ -75,6 +75,7 @@ class pwa_Manifest extends core_Mvc
         $json = array(
             'short_name' => $appTitle,
             'name' => $appTitle . ' - ' . $text,
+            'description' => $appTitle . ' - ' . $text,
             'display' => 'standalone',
             'background_color' => '#fff',
             'theme_color' => '#ddd',

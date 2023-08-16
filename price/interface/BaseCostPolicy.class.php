@@ -102,6 +102,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
      * Изчислява себестойностите на засегнатите артикули
      *
      * @param array $affectedTargetedProducts
+     * @param array $params - параметри
      *
      * @return array
      *         ['classId']       - клас ид на политиката
@@ -112,7 +113,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
-    abstract public function getCosts($affectedTargetedProducts);
+    abstract public function getCosts($affectedTargetedProducts, $params = array());
     
     
     /**

@@ -732,8 +732,6 @@ class colab_FolderToPartners extends core_Manager
         if (!$fromEmail) {
             requireRole('powerUser');
             expect(doc_Folders::haveRightToObject($contragentRec));
-        } else {
-            vislog_History::add("Форма за регистрация на партньор в «{$contragentName}»");
         }
 
         $form = $Users->getForm();
@@ -907,10 +905,8 @@ class colab_FolderToPartners extends core_Manager
             // Подсигуряваме се че винаги папката ще е споделена
             colab_FolderToPartners::force($folderId, $uId);
             $Class->logWrite("Споделяне на папка към партньор след покана за регистрация", $objectId);
-
             $Class->logInAct('Регистрация на нов партньор', $objectId);
-            vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$contragentName}»");
-            
+
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
 

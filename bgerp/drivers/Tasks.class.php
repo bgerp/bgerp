@@ -162,7 +162,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
                 foreach ($resData->data->recs as $id => &$rec) {
                     $row = &$resData->data->rows[$id];
                     
-                    $title = str::limitLen(type_Varchar::escape($rec->title), cal_Tasks::maxLenTitle, 20, ' ... ', true);
+                    $title = str::limitLen(cal_Tasks::getRecTitle($rec, false), cal_Tasks::maxLenTitle, 20, ' ... ', true);
                     
                     $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
                     
@@ -223,10 +223,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
                 $formTpl->removePlaces();
                 $data->tpl->append($formTpl, 'ListFilter');
             }
-            
+
+            Mode::push('hideToolbar', true);
             $data->tpl->append(cal_Tasks::renderListTable($data->data), 'PortalTable');
             $data->tpl->append(cal_Tasks::renderListPager($data->data), 'PortalPagerBottom');
-            
+            Mode::pop('hideToolbar');
+
             $switchTitle = '';
             
             // Задачи

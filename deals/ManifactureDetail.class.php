@@ -140,17 +140,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
                 $form->setOptions('packagingId', $packs);
                 $form->setDefault('packagingId', key($packs));
+                $form->setField('packagingId', 'input');
             } else {
                 $form->rec->packagingId = $measureId;
-            }
-            
-            // Ако артикула не е складируем, скриваме полето за мярка
-            $productInfo = cat_Products::getProductInfo($rec->productId);
-            if (!isset($productInfo->meta['canStore'])) {
-                $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
-            } elseif($form->_replaceProduct !== true) {
-                $form->setField('packagingId', 'input');
             }
         }
         

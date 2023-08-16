@@ -270,6 +270,62 @@ class bgerp_Notifications extends core_Manager
         
         // Инвалидиране на кеша
         bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Notifications');
+
+        if (!Mode::is('stopNotifyAlternateUsers')) {
+            // Ако потребителят е в отпуск, болничен или комадировка
+            // Заместниците също да получават известията му
+            // Ако имат достъп до тях
+            $msgL = mb_strtolower($msg);
+            if ((strpos($msgL, '|добави|') !== false) || (strpos($msgL, '|хареса') !== false) ||
+                (strpos($msgL, '|промени|') !== false) || (strpos($msgL, '|сподели') !== false) ||
+                (strpos($msgL, '|отворени теми в|') !== false)) {
+
+                $calRec = new stdClass();
+                if (cal_Calendar::isAbsent(null, $userId, array('leaves', 'sick', 'working-travel'), $calRec)) {
+                    if ($calRec && $calRec->url) {
+                        $alternateUsersArr = array();
+                        $calUrlArr = parseLocalUrl($calRec->url, false);
+                        if ($calUrlArr['id'] && strtolower($calUrlArr['Act']) == 'single') {
+                            if (cls::load($calUrlArr['Ctr'], true)) {
+                                $cRec = cls::get($calUrlArr['Ctr'])->fetch($calUrlArr['id']);
+                                if ($cRec && $cRec->alternatePersons) {
+                                    foreach (type_Keylist::toArray($cRec->alternatePersons) as $aPersonId) {
+                                        $alternateUserId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPersonId), 'userId');
+                                        if ($alternateUserId && !cal_Calendar::isAbsent(null, $alternateUserId, array('leaves', 'sick', 'working-travel'))) {
+                                            // Ако има права към споделянто, ще получи известие
+                                            $lUrlArr = self::getUrl($rec);
+                                            $lAct = strtolower($lUrlArr['Act']);
+                                            $lCtr = $lUrlArr['Ctr'];
+
+                                            if ($lCtr == 'doc_Threads' && $lUrlArr['folderId'] && $lAct == 'list') {
+                                                $haveRight = doc_Folders::haveRightFor('single', $lUrlArr['folderId'], $alternateUserId);
+                                            } else {
+                                                $haveRight = $lCtr::haveRightFor($lAct, $lUrlArr['id'], $alternateUserId);
+                                            }
+
+                                            if ($haveRight) {
+                                                $alternateUsersArr[$alternateUserId] = $alternateUserId;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        unset($alternateUsersArr[$userId]);
+                        if (!empty($alternateUsersArr)) {
+                            Mode::set('stopNotifyAlternateUsers', true);
+                            foreach ($alternateUsersArr as $alternateUserId) {
+                                $nick = core_Users::fetchField($userId, 'nick');
+                                self::add($nick . ': ' .$msg, $urlArr, $alternateUserId, $priority, $customUrl, $addOnce);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Mode::set('stopNotifyAlternateUsers', false);
     }
     
     

@@ -43,12 +43,17 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         
         // Вземаме съдържанието
         $view = static::getView($fRec);
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
         
         // Таб за съдържанието
         $tabsArr['view'] = (object)
         array(
             'title' => 'Изглед',
-            'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$view}</div></div>",
+            'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$view}</div></div>",
             'order' => 6,
             'tpl' => $view,
         );

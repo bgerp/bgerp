@@ -97,6 +97,9 @@ class frame2_CsvExport extends core_Mvc
                 case 4:
                     $params['newLineDelimiter'] = "\n\r";
                     break;
+                case 5:
+                    $params['newLineDelimiter'] = ";";
+                    break;
                 default:
                     $params['newLineDelimiter'] = "\n";
                     break;
@@ -133,6 +136,9 @@ class frame2_CsvExport extends core_Mvc
             
             // Подсигуряване че енкодига е UTF8
             $csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
+            if ($params['encoding'] == 'cp1252') {
+                $csv = core_String::utf2ascii($csv);
+            }
             $csv = iconv('utf-8', $params['encoding'] . '//TRANSLIT', $csv);
             
             // Записване във файловата система
@@ -211,7 +217,7 @@ class frame2_CsvExport extends core_Mvc
         setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         $form->setDefault('datetimeFormat', $datetimeFormat);
         
-        $form->setOptions('newLineDelimiter', array('1' => '\n', '2' => '\r\n', '3' => '\r', '4' => '\n\r'));
+        $form->setOptions('newLineDelimiter', array('1' => '\n', '2' => '\r\n', '3' => '\r', '4' => '\n\r', '5' => ';'));
         $form->setOptions('delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
         $form->setOptions('enclosure', array('"' => '"', '\'' => '\''));
         $form->setOptions('decPoint', array('.' => '.', ',' => ','));
