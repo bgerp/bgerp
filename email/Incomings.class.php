@@ -3319,8 +3319,7 @@ class email_Incomings extends core_Master
                 $unsStr = preg_replace('/\s+/u', ' ', $unsStr);
 
                 if (preg_match("/<a[^>]*>([^>]*({$unsStr})+[^>]*)<\/a>/iu", $content, $matches)) {
-                    if (preg_match(type_Richtext::URL_PATTERN, $uData, $lMatches)) {
-
+                    if (preg_match(type_Richtext::URL_PATTERN, $matches[0], $lMatches)) {
                         $res = $lMatches[0];
                     }
                 }
