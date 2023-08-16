@@ -93,8 +93,15 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
 
                     // Добавяне и на режийните разходи ако се искат
                     if(isset($params['addExpenses'])){
-                        if(isset($bomRec->expenses)){
-                            $primeCost *= 1 + $bomRec->expenses;
+                        $expenses = $bomRec->expenses;
+                        if(!isset($expenses)){
+                            if($defaultOverheadCostArr = cat_Products::getDefaultOverheadCost($productId)){
+                                $expenses = $defaultOverheadCostArr['overheadCost'];
+                            }
+                        }
+
+                        if(isset($expenses)){
+                            $primeCost *= 1 + $expenses;
                             $primeCost = core_Math::roundNumber($primeCost);
                         }
                     }
