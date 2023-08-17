@@ -176,7 +176,7 @@ class bgerp_Setup extends core_ProtoSetup
         
         'BGERP_BLOCK_NORMAL' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Нормални, customizeBy=powerUser'),
 
-        'BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS' => array('enum(all=Всички,share=Само споделените,open=Само "Отворени теми",shareOpen=Споделени и "Отворени теми",noOpen=Без "Отворени теми",stop=Спиране)', 'caption=Известията|*&#44; |които да полуачват заместниците->Избор, customizeBy=powerUser'),
+        'BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS' => array('enum(all=Всички,share=Само споделените,open=Само "Отворени теми",shareOpen=Споделени и "Отворени теми",noOpen=Без "Отворени теми",stop=Спиране)', 'caption=Известията|*&#44; |които да получават заместниците->Избор, customizeBy=powerUser'),
     );
     
     
