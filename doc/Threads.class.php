@@ -2910,16 +2910,20 @@ class doc_Threads extends core_Manager
             // Вземаме id' то на записа
             $cid = doc_Containers::fetchField("#threadId = '{$rec->id}'");
         }
-        
-        $document = doc_Containers::getDocument($cid);
-        $docRow = $document->getDocumentRow();
-        
-        if ($verbal) {
-            $title = $docRow->title;
-        } else {
-            $title = $docRow->recTitle;
+
+        try {
+            $document = doc_Containers::getDocument($cid);
+            $docRow = $document->getDocumentRow();
+
+            if ($verbal) {
+                $title = $docRow->title;
+            } else {
+                $title = $docRow->recTitle;
+            }
+        } catch (core_exception_Expect $e) {
+            $title = '';
         }
-        
+
         return $title;
     }
     

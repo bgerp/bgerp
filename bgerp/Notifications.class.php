@@ -270,7 +270,6 @@ class bgerp_Notifications extends core_Manager
         
         // Инвалидиране на кеша
         bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Notifications');
-
         if (!Mode::is('stopNotifyAlternateUsers')) {
             // Ако потребителят е в отпуск, болничен или комадировка
             // Заместниците също да получават известията му
@@ -292,6 +291,67 @@ class bgerp_Notifications extends core_Manager
                                     foreach (type_Keylist::toArray($cRec->alternatePersons) as $aPersonId) {
                                         $alternateUserId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPersonId), 'userId');
                                         if ($alternateUserId && !cal_Calendar::isAbsent(null, $alternateUserId, array('leaves', 'sick', 'working-travel'))) {
+                                            if (core_Users::getCurrent() == $alternateUserId) {
+
+                                                continue;
+                                            }
+
+                                            if ($userId == $alternateUserId) {
+
+                                                continue;
+                                            }
+
+                                            if ($alternateUserId < 1) {
+
+                                                continue;
+                                            }
+
+                                            // Гледаме настройкит на потребителя, които е задал за известяване
+                                            $alternateNotifyType = bgerp_Setup::get('ALTERNATE_PEOPLE_NOTIFICATIONS', false, $alternateUserId);
+                                            $canSendToUser = true;
+                                            switch ($alternateNotifyType) {
+                                                case 'all':
+                                                    $canSendToUser = true;
+                                                break;
+
+                                                case 'stop':
+                                                    $canSendToUser = false;
+                                                break;
+
+                                                case 'share':
+                                                    if (strpos($msgL, '|сподели') === false) {
+                                                        $canSendToUser = false;
+                                                    }
+                                                break;
+
+                                                case 'open':
+                                                    if (strpos($msgL, '|отворени теми в|') === false) {
+                                                        $canSendToUser = false;
+                                                    }
+                                                break;
+
+                                                case 'shareOpen':
+                                                    if ((strpos($msgL, '|сподели') === false) && (strpos($msgL, '|отворени теми в|') === false)) {
+                                                        $canSendToUser = false;
+                                                    }
+                                                break;
+
+                                                case 'noOpen':
+                                                    if (strpos($msgL, '|отворени теми в|') !== false) {
+                                                        $canSendToUser = false;
+                                                    }
+                                                break;
+
+                                                default:
+                                                    expect(false, $alternateNotifyType);
+                                                break;
+                                            }
+
+                                            if (!$canSendToUser) {
+
+                                                continue;
+                                            }
+
                                             // Ако има права към споделянто, ще получи известие
                                             $lUrlArr = self::getUrl($rec);
                                             $lAct = strtolower($lUrlArr['Act']);
