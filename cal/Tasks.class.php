@@ -3043,16 +3043,19 @@ class cal_Tasks extends embed_Manager
         $rec = static::fetchRec($rec);
 
         $titleArr = array();
-        if(!Mode::is('documentGetItemRec')){
-            $abbr = $mvc->abbr;
-            $abbr[0] = strtoupper($abbr[0]);
-            $titleArr[] = "{$abbr}{$rec->id}";
+        if(!Mode::is('onlyTitleInGetRecTitle')) {
+            if(!Mode::is('documentGetItemRec')){
+                $abbr = $mvc->abbr;
+                $abbr[0] = strtoupper($abbr[0]);
+                $titleArr[] = "{$abbr}{$rec->id}";
+            }
+            if(!Mode::is('documentPortalShortName')){
+                $cover = doc_Folders::getCover($rec->folderId);
+                $folder = str::limitLen($cover->getTitleById(), 16);
+                $titleArr[] = $folder;
+            }
         }
-        if(!Mode::is('documentPortalShortName')){
-            $cover = doc_Folders::getCover($rec->folderId);
-            $folder = str::limitLen($cover->getTitleById(), 16);
-            $titleArr[] = $folder;
-        }
+
         $titleArr[] = $mvc->getVerbal($rec, 'title');
 
         return implode('/', $titleArr);
