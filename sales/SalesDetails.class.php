@@ -383,4 +383,13 @@ class sales_SalesDetails extends deals_DealDetail
             }
         }
     }
+
+
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    protected static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        $data->showCodeColumn = sales_Setup::get('SHOW_CODE_IN_SEPARATE_COLUMN') == 'yes';
+    }
 }

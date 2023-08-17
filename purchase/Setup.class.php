@@ -86,6 +86,12 @@ defIfNot('PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
 
 
 /**
+ * Показване на кода на артикула в покупките в отделна колонка
+ */
+defIfNot('PURCHASE_SHOW_CODE_IN_SEPARATE_COLUMN', 'no');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *

@@ -97,7 +97,7 @@ class cat_plg_ShowCodes extends core_Plugin
         }
         
         if ($data->showReffCode === true) {
-            $before = ($mvc->showCodeColumn === true) ? 'code' : 'productId';
+            $before = ($data->showCodeColumn === true) ? 'code' : 'productId';
             arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш №'), $before);
             $data->listTableMvc->FNC('reff', 'varchar', 'tdClass=small-field morePadding nowrap');
         }
