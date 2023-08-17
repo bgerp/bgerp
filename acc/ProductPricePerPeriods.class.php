@@ -80,6 +80,9 @@ class acc_ProductPricePerPeriods extends core_Manager
     }
 
 
+    /**
+     * Тестов екшън за първоначално наливане на данните
+     */
     public function act_Test()
     {
         self::requireRightFor('debug');
@@ -177,6 +180,9 @@ class acc_ProductPricePerPeriods extends core_Manager
     }
 
 
+    /**
+     * Тестов екшън за дебъг
+     */
     public function act_Filter()
     {
         requireRole('debug');
@@ -192,30 +198,38 @@ class acc_ProductPricePerPeriods extends core_Manager
         $countRecs = countR($recs);
         core_App::setTimeLimit($countRecs * 0.3, false, 300);
 
-        return new core_ET("LOVE {$countRecs}");
+        $pager = cls::get('core_Pager', array('itemsPerPage' => 50));
+        $Pager = $pager;
+        $Pager->itemsCount = countR($recs);
 
+        $rows = array();
         core_Debug::log("START RENDER_ROWS");
         core_Debug::startTimer('RENDER_ROWS');
         foreach ($recs as $rec){
-            if($test){
-                $row[] = $this->recToVerbal($rec);
-            } else {
-                $row[] = $rec;
-            }
-
+            if (!$Pager->isOnPage()) continue;
+            $rows[$rec->id] = $this->recToVerbal($rec);
         }
         core_Debug::stopTimer('RENDER_ROWS');
         core_Debug::log("END RENDER_ROWS " . round(core_Debug::$timers["RENDER_ROWS"]->workingTime, 6));
 
         $table = cls::get('core_TableView', array('mvc' => $this));
         $fields = arr::make('date=Дата,storeItemId=Склад,productItemId=Артикул,price=Цена');
-        $contentTpl = $table->get($row, $fields);
+        $contentTpl = $table->get($rows, $fields);
         $toDate = dt::mysql2verbal($toDate, 'd.m.Y');
         $contentTpl->prepend(tr("|*<h2>|Към дата|* <span class='green'>{$toDate}</span></h2>"));
+        $contentTpl->append($Pager->getHtml());
 
         return $this->renderWrapping($contentTpl);
     }
 
+
+    /**
+     * Връща последните цени на артикулите към дата
+     * @param date $toDate
+     * @param int $productItemId
+     * @param int $storeItemId
+     * @return array $res
+     */
     public static function getPricesToDate($toDate, $productItemId = null, $storeItemId = null)
     {
         $dateColName = str::phpToMysqlName('date');
