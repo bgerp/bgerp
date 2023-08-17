@@ -384,6 +384,12 @@ abstract class deals_InvoiceMaster extends core_Master
                 $data->toolbar->addBtn('Известие||D/C note', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'dc_note', 'ret_url' => true), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно или кредитно известие към документа,rows=2');
             }
         }
+
+        if ($rec->type == 'dc_none'){
+            if(acc_ValueCorrections::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+                $data->toolbar->addBtn('Корекция на стойност', array('acc_ValueCorrections', 'add', 'threadId' => $rec->threadId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Корекция на стойност към сделката');
+            }
+        }
     }
     
     
