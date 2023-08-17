@@ -385,7 +385,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        if ($rec->type == 'dc_none'){
+        if ($rec->type == 'dc_note'){
             if(acc_ValueCorrections::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
                 $data->toolbar->addBtn('Корекция на стойност', array('acc_ValueCorrections', 'add', 'threadId' => $rec->threadId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Корекция на стойност към сделката');
             }
