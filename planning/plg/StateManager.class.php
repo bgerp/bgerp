@@ -434,9 +434,10 @@ class planning_plg_StateManager extends core_Plugin
             }
             
             $caption = str::mbUcfirst($caption);
-            
+            Mode::push('getNotificationRecTitle', true);
             $name = $mvc->getRecTitle($rec);
-            
+            Mode::pop('getNotificationRecTitle');
+
             $removeOldNotify = false;
             if ($mvc->removeOldNotifyStatesArr) {
                 $mvc->removeOldNotifyStatesArr = arr::make($mvc->removeOldNotifyStatesArr, true);

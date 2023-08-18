@@ -1271,7 +1271,9 @@ class doc_Containers extends core_Manager
         if (!$threadTitleArr[$rec->threadId]) {
             
             // Определяме заглавието и добавяме в масива
+            Mode::push('getNotificationRecTitle', true);
             $threadTitleArr[$rec->threadId] = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, false), doc_Threads::maxLenTitle);
+            Mode::pop('getNotificationRecTitle');
         }
         
         // Обхождаме масива с всички потребители, които ще имат съответната нотификация

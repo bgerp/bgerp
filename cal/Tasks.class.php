@@ -1849,9 +1849,30 @@ class cal_Tasks extends embed_Manager
 
         $row = new stdClass();
 
-        $title = $this->getRecTitle($rec);
-        $row->title = core_Type::getByName('varchar')->toVerbal($title);
-        
+        $verbalTitle = $this->getVerbal($rec, 'title');
+
+        if(Mode::is('getNotificationRecTitle')){
+            $handle = $this->getHandle($rec->id);
+            $row->title = "{$handle} - {$verbalTitle}";
+        } else {
+            $titleArr = array();
+            if(!Mode::is('onlyTitleInGetRecTitle')) {
+                if(!Mode::is('documentGetItemRec')){
+                    $abbr = $this->abbr;
+                    $abbr[0] = strtoupper($abbr[0]);
+                    $titleArr[] = "{$abbr}{$rec->id}";
+                }
+                if(!Mode::is('documentPortalShortName')){
+                    $cover = doc_Folders::getCover($rec->folderId);
+                    $folder = str::limitLen($cover->getTitleById(), 16);
+                    $titleArr[] = $folder;
+                }
+            }
+
+            $titleArr[] = $verbalTitle;
+            $row->title = implode('/', $titleArr);
+        }
+
         $row->subTitle = '';
 
         if ($rec->assetResourceId) {
@@ -1939,13 +1960,13 @@ class cal_Tasks extends embed_Manager
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $title;
+        $row->recTitle = $row->title;
         
         $Driver = $this->getDriver($id);
         if ($Driver) {
             $Driver->prepareDocumentRow($rec, $row);
         }
-        
+
         return $row;
     }
     
@@ -3039,26 +3060,10 @@ class cal_Tasks extends embed_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $mvc = cls::get(get_called_class());
-        $rec = static::fetchRec($rec);
+        $me = cls::get(get_called_class());
+        $dRow = $me->getDocumentRow($rec->id);
 
-        $titleArr = array();
-        if(!Mode::is('onlyTitleInGetRecTitle')) {
-            if(!Mode::is('documentGetItemRec')){
-                $abbr = $mvc->abbr;
-                $abbr[0] = strtoupper($abbr[0]);
-                $titleArr[] = "{$abbr}{$rec->id}";
-            }
-            if(!Mode::is('documentPortalShortName')){
-                $cover = doc_Folders::getCover($rec->folderId);
-                $folder = str::limitLen($cover->getTitleById(), 16);
-                $titleArr[] = $folder;
-            }
-        }
-
-        $titleArr[] = $mvc->getVerbal($rec, 'title');
-
-        return implode('/', $titleArr);
+        return $dRow->title;
     }
     
     
