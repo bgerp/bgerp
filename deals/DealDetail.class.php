@@ -754,6 +754,8 @@ abstract class deals_DealDetail extends doc_Detail
 
             $title = cat_Products::getTitleById($lRec->productId);
             $title = str_replace(',', ' ', $title);
+            $title = str_replace('=', ' ', $title);
+
             if($lRec->reff != $lRec->code){
                 $title = "[{$lRec->reff}] {$title}";
             }
