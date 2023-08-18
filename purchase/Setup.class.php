@@ -86,6 +86,12 @@ defIfNot('PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
 
 
 /**
+ * Показване на кода на артикула в покупките в отделна колонка
+ */
+defIfNot('PURCHASE_SHOW_CODE_IN_SEPARATE_COLUMN', 'no');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -177,6 +183,7 @@ class purchase_Setup extends core_ProtoSetup
         'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за липсваща фактура за направено плащане->Време'),
         'PURCHASE_SHOW_REFF_IN_PURCHASE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
         'PURCHASE_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен закупчик в покупката->Избор'),
+        'PURCHASE_SHOW_CODE_IN_SEPARATE_COLUMN' => array('enum(no=Не,yes=Да)', 'caption=Показване на кода на артикула в покупката в отделна колонка->Избор'),
         );
     
     

@@ -80,8 +80,8 @@ class eshop_CartDetails extends core_Detail
      * Кой може да изтрива?
      */
     public $canDelete = 'eshop,ceo';
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -443,8 +443,10 @@ class eshop_CartDetails extends core_Detail
         $deleteCart = false;
         
         if (isset($id)) {
+            $Carts = cls::get('eshop_Carts');
             $this->delete($id);
-            cls::get('eshop_Carts')->updateMaster($cartId);
+            $Carts->updateMaster($cartId);
+            plg_Search::forceUpdateKeywords($Carts, $cartId);
             vislog_History::add("Изтриване на артикул от количка");
             $msg = '|Артикулът е премахнат|*!';
             $dCount = $this->count("#cartId = {$cartId}");

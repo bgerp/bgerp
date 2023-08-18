@@ -92,5 +92,11 @@ function render_selectTaskInSession()
 
 function render_setInStorage(data)
 {
-    localStorage.setItem("selectTasks", data.ids);
+    var stringArr = [];
+    var sendIdArr = JSON.parse(data.ids);
+    $.each(sendIdArr, function( index, value ) {
+        stringArr.push(value.toString());
+    });
+
+    localStorage.setItem("selectTasks", JSON.stringify(stringArr));
 }

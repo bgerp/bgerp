@@ -385,14 +385,16 @@ class doc_DocumentPlg extends core_Plugin
     public function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         $retUrl = array($mvc, 'single', $data->rec->id);
-        
+
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
             $rejArr = array($mvc, 'reject', $data->rec->id);
-            // При оттегляне да редиректва към сингъла на папката, ако има права за там
-            if ($data->rec->folderId && doc_Folders::haveRightFor('single', $data->rec->folderId)) {
-                if ($data->rec->threadId) {
-                    if (doc_Threads::getFirstContainerId($data->rec->threadId) == $data->rec->containerId) {
-                        $rejArr['ret_url'] = array('doc_Folders', 'single', $data->rec->folderId);
+            if (doc_Setup::get('OPEN_FOLDER_AFTER_REJECT') == 'yes') {
+                // При оттегляне да редиректва към сингъла на папката, ако има права за там
+                if ($data->rec->folderId && doc_Folders::haveRightFor('single', $data->rec->folderId)) {
+                    if ($data->rec->threadId) {
+                        if (doc_Threads::getFirstContainerId($data->rec->threadId) == $data->rec->containerId) {
+                            $rejArr['ret_url'] = array('doc_Folders', 'single', $data->rec->folderId);
+                        }
                     }
                 }
             }
