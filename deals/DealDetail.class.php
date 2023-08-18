@@ -540,13 +540,14 @@ abstract class deals_DealDetail extends doc_Detail
         $form->info = tr('|Списък за листване|*:') . cat_Listings::getLink($listId, 0);
         
         $listed = cat_Listings::getAll($listId, $saleRec->shipmentStoreId, 50, true);
+        if(!countR($listed)) followRetUrl(null, "В избрания списък няма активни артикули|*: " . cat_Listings::getLink($listId, 0, array('ef_icon' => false)), 'warning');
+
         $form->info .= tr('|* ( |Показване на първите|* <b>50</b> |артикула|* )');
 
         // И всички редове от продажбата
         $query = $this->getQuery();
         $query->where("#{$this->masterKey} = {$saleId}");
         $recs = $query->fetchAll();
-        expect(countR($listed));
 
         foreach ($listed as &$list) {
             $list->code = cat_Products::getVerbal($list->productId, 'code');
