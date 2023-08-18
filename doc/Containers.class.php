@@ -505,7 +505,9 @@ class doc_Containers extends core_Manager
         try {
             // Заглавие на треда
             $document = $mvc->getDocument($data->threadRec->firstContainerId);
+            Mode::push('documentPortalShortName', true);
             $docRow = $document->getDocumentRow();
+            Mode::pop('documentPortalShortName');
             $docTitle = str::limitLenAndHyphen($docRow->title, 70);
             $title->replace($docTitle, 'threadTitle');
             

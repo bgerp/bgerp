@@ -258,6 +258,12 @@ defIfNot('SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE', 'yes');
 
 
 /**
+ * Показване на кода на артикула в продажбите в отделна колонка
+ */
+defIfNot('SALES_SHOW_CODE_IN_SEPARATE_COLUMN', 'no');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -434,6 +440,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
         'SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS' => array('enum(no=Без фактуриране,yes=Фактуриране)', 'caption=Аванси от чуждестранни клиенти->Избор'),
         'SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE' => array('enum(no=Да не се избира,yes=Автоматичен избор)', 'caption=Автоматичен избор на наша сметка в продажбите ако е само една достъпна->Избор'),
+        'SALES_SHOW_CODE_IN_SEPARATE_COLUMN' => array('enum(no=Не,yes=Да)', 'caption=Показване на кода на артикула в продажбите в отделна колонка->Избор'),
     );
     
     

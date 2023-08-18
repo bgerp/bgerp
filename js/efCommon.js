@@ -5757,15 +5757,22 @@ function calcFilemanSize(){
     $('.webdrvFieldset').mouseenter(function() {
         $('.webdrvFieldset a.linkWithIcon').css("opacity", "0.6");
         clearTimeout(timer);
-    });
-
-    $('.webdrvFieldset').mousemove(function() {
-        $('.webdrvFieldset a.linkWithIcon').css("opacity", "0.6");
-        clearTimeout(timer);
         timer = setTimeout(function() {
             $('.webdrvFieldset a.linkWithIcon').css("opacity", 0);
-        }, 2000);
+        }, 5000);
     });
+
+    $('a.linkWithIcon').mouseover(function() {
+        $('.webdrvFieldset a.linkWithIcon').css("opacity", "0.6");
+        clearTimeout(timer);
+    });
+
+    $('a.linkWithIcon').mouseleave(function() {
+        timer = setTimeout(function() {
+            $('.webdrvFieldset a.linkWithIcon').css("opacity", 0);
+        }, 5000);
+    });
+
     $('.webdrvFieldset').mouseleave(function() {
         clearTimeout(timer);
         timer = setTimeout(function() {
