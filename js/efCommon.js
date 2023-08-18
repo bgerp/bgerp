@@ -5730,7 +5730,7 @@ function setFilemanPreviewSize()
  * Изчисляване на размерите на привюто на файловете
  */
 function calcFilemanSize(){
-    if (!$('.wide .webdrvFieldset').length) return;
+    if (!$('.webdrvFieldset').length) return;
 
     var currentHeight = $('.webdrvFieldset').height();
     var sidemenuWidth = $('.sidemenu-open').length  ? $('.sidemenu-open').length * ($('.sidemenu-open').width() + 10) : 0;
