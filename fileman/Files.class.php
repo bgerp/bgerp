@@ -2755,47 +2755,55 @@ class fileman_Files extends core_Master
             return ;
         }
 
-        $showSummary = Request::get('showSummary');
+        if (!haveRole('admin') || !haveRole('ceo')) {
+
+            return ;
+        }
+
+        $fileLen = $sqlSize = 0;
 
         $Files = cls::get('fileman_FileSize');
         $Int = cls::get('type_Int');
 
-        if (($showSummary == 'all') || ($showSummary == 'files')) {
-            // Брой записи
-            $fileCnt = $data->listSummary->query->count();
+        $fData = fileman_Data::getQuery();
 
-            // Размер на всички файлове
-            $data->listSummary->query->XPR('sumLen', 'int', 'SUM(#fileLen)');
-            $rec = $data->listSummary->query->fetch();
-            $fileLen = $rec->sumLen;
+        $fData->show('id, fileLen, sumLen');
+        $fileCnt = $fData->count();
 
-            if (!isset($data->listSummary->statVerb)) {
-                $data->listSummary->statVerb = array();
-            }
+        // Размер на всички файлове
+        $fData->XPR('sumLen', 'int', 'SUM(#fileLen)');
+        $rec = $fData->fetch();
+        $fileLen = $rec->sumLen;
 
-            // Размер на всички файлове
-            if ($fileLen) {
-                $data->listSummary->statVerb['fileSize'] = $Files->toVerbal($fileLen);
-            }
-
-            // Броя на файловете
-            if ($fileCnt) {
-                $data->listSummary->statVerb['fileCnt'] = $Int->toVerbal($fileCnt);
-            }
+        if (!isset($data->listSummary->statVerb)) {
+            $data->listSummary->statVerb = array();
         }
-        if (($showSummary == 'all') || ($showSummary == 'db')) {
-            // Статистика за БД
-            if (haveRole('ceo, admin, debug')) {
-                $db = cls::get('core_Db');
 
-                $sqlInfo = $db->getDBInfo();
+        // Размер на всички файлове
+        if ($fileLen) {
+            $data->listSummary->statVerb['fileSize'] = $Files->toVerbal($fileLen);
+        }
 
-                if ($sqlInfo) {
-                    $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['SIZE']);
-                    $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['ROWS']);
-                    $data->listSummary->statVerb['tablesCnt'] = $Int->toVerbal($sqlInfo['TABLES']);
-                }
-            }
+        // Броя на файловете
+        if ($fileCnt) {
+            $data->listSummary->statVerb['fileCnt'] = $Int->toVerbal($fileCnt);
+        }
+
+        // Статистика за БД
+        $db = cls::get('core_Db');
+
+        $sqlInfo = $db->getDBInfo();
+
+        if ($sqlInfo) {
+            $sqlSize = $sqlInfo['SIZE'];
+            $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['SIZE']);
+            $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['ROWS']);
+            $data->listSummary->statVerb['tablesCnt'] = $Int->toVerbal($sqlInfo['TABLES']);
+        }
+
+        if ($fileLen && $sqlSize) {
+            $sumLen = $fileLen + $sqlSize;
+            $data->listSummary->statVerb['sumSize'] = $Files->toVerbal($sumLen);
         }
     }
     
