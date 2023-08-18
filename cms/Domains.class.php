@@ -809,6 +809,15 @@ class cms_Domains extends core_Embedder
      */
     public static function getDomainOptions($uniqDomains = false, $cu = null)
     {
+        $cacheKey = 'getDomainOptions|' . $uniqDomains . '|' . $cu;
+        $cacheType = get_called_class();
+
+        $optArr = core_Cache::get($cacheType, $cacheKey);
+        if ($optArr !== false) {
+
+            return $optArr;
+        }
+
         $options = $domains = array();
         $query = self::getQuery();
         while ($rec = $query->fetch()) {
@@ -828,7 +837,9 @@ class cms_Domains extends core_Embedder
                 $options[$rec->id] = $rec->domain . " ({$rec->lang})";
             }
         }
-        
+
+        core_Cache::set($cacheType, $cacheKey, $options, 1440, array('cms_Domains'));
+
         return $options;
     }
     

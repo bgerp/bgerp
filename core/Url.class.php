@@ -978,7 +978,7 @@ class core_Url
     /**
      * Дали посоченото URL е локално?
      */
-    public static function isLocal(&$url1, &$rest = null)
+    public static function isLocal(&$url1, &$rest = null, $dArr = array())
     {
         $url = $url1;
         
@@ -989,22 +989,26 @@ class core_Url
             $httpBoot .= '/' . ($app ? $app : EF_APP_NAME);
         }
         
-        $httpBootS = $httpBoot;
-        
         $starts = array('https://', 'http://', '//', 'www.');
-        
         $httpBoot = str::removeFromBegin($httpBoot, $starts);
-        
+        $dArr[$httpBoot] = $httpBoot;
         $url = str::removeFromBegin($url, $starts);
-        
-        if (stripos($url, $httpBoot) === 0) {
-            $result = true;
-            $rest = substr($url, strlen($httpBoot));
-            $url1 = $httpBootS . $rest;
-        } else {
-            $result = false;
+
+        $b = substr($url1, 0, -1*strlen($url));
+
+        $result = false;
+
+        foreach ($dArr as $ht) {
+            if (stripos($url, $ht) === 0) {
+                list($h) = explode('/', $url, 2);
+                $result = true;
+                $rest = substr($url, strlen($h));
+                $url1 = $b . $h . $rest;
+
+                break;
+            }
         }
-        
+
         return $result;
     }
     
