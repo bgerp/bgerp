@@ -878,8 +878,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $quantityProduced = $originRec->quantityProduced;
         $quantityToProduce = $rec->quantity + $quantityProduced;
 
+
         // Извличаме информацията за ресурсите в рецептата за двете количества
-        $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, dt::now());
+        $bomInfo1 = array();
+        if($quantityProduced){
+            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, dt::now());
+        }
         $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, dt::now());
 
         // За всеки ресурс
