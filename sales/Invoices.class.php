@@ -87,7 +87,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,invoicer';
+    public $canEdit = 'ceo, invoicerSale';
     
     
     /**
@@ -99,25 +99,25 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,invoicer';
+    public $canSingle = 'ceo, invoicerSale';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,invoicer';
-    
-    
+    public $canAdd = 'ceo, invoicerSale';
+
+
     /**
      * Кой има право да експортва?
      */
-    public $canExport = 'ceo,invoicer';
+    public $canExport = 'ceo, invoicerSale';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,invoicer';
+    public $canConto = 'ceo,invoicerSale';
     
     
     /**
@@ -180,7 +180,7 @@ class sales_Invoices extends deals_InvoiceMaster
      *
      * @see change_Plugin
      */
-    public $canChangerec = 'accMaster, ceo, invoicer';
+    public $canChangerec = 'accMaster, ceo, invoicerSale';
     
     
     /**
@@ -641,10 +641,10 @@ class sales_Invoices extends deals_InvoiceMaster
             }
         }
         
-        // Само ceo,sales,invoicer могат да възстановят фактура
+        // Само ceo,sales,invoicerSale могат да възстановят фактура
         if ($action == 'restore' && isset($rec)) {
             if ($rec->brState == 'active') {
-                if (!haveRole('ceo,sales,invoicer', $userId)) {
+                if (!haveRole('ceo,sales,invoicerSale', $userId)) {
                     $res = 'no_one';
                 }
             }
@@ -661,7 +661,7 @@ class sales_Invoices extends deals_InvoiceMaster
                     $valiorMonthPlus1 = dt::mysql2verbal(dt::addMonths(1, $rec->date), 'm.y');
                     
                     if(($valiorMonthPlus1 == $monthNow && $dayForInvoice > $dateNow) || $monthNow == $monthValior) {
-                        if (!haveRole('ceo,sales,invoicer', $userId)) {
+                        if (!haveRole('ceo,sales,invoicerSale', $userId)) {
                             $res = 'no_one';
                         }
                     } else {

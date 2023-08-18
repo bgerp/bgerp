@@ -75,7 +75,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,invoicer';
+    public $canEdit = 'ceo,invoicerPurchase, invoicerFindeal';
     
     
     /**
@@ -93,19 +93,19 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,invoicer';
+    public $canAdd = 'ceo, invoicerPurchase, invoicerFindeal';
     
     
     /**
      * Кой има право да създава от файл?
      */
-    public $canCreatefromfile = 'ceo,invoicer';
+    public $canCreatefromfile = 'ceo,invoicerPurchase, invoicerFindeal';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,invoicer';
+    public $canConto = 'ceo, invoicerPurchase, invoicerFindeal';
     
     
     /**
@@ -169,9 +169,9 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да експортва?
      */
-    public $canExport = 'ceo,invoicer';
-    
-    
+    public $canExport = 'ceo,invoicerPurchase, invoicerFindeal';
+
+
     /**
      * Стратегии за дефолт стойностти
      */
@@ -459,6 +459,20 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             if (!(($firstDoc->isInstanceOf('purchase_Purchases') || $firstDoc->isInstanceOf('findeals_AdvanceDeals')) && $docState == 'active')) {
                 $res = 'no_one';
+            }
+        }
+
+        if(in_array($action, array('add', 'conto', 'edit', 'reject')) && isset($rec)){
+            if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDoc->isInstanceOf('purchase_Purchases')){
+                    if(!haveRole('invoicerPurchase,ceo')){
+                        $res = 'no_one';
+                    }
+                } else {
+                    if(!haveRole('invoicerFindeal,ceo')){
+                        $res = 'no_one';
+                    }
+                }
             }
         }
     }

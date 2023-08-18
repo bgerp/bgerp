@@ -214,7 +214,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой има право да експортва?
      */
-    public $canExport = 'ceo,invoicer';
+    public $canExport = 'ceo,invoicerSale,invoicerPurchase,invoicerFindeal';
     
     
     /**

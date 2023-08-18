@@ -490,9 +490,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         }
                     }
                 } else {
-                    if (!haveRole('invoicer, ceo', $userId)) {
-                        $res = 'no_one';
-                    }
                     
                     // При начисляване на авансово плащане не може да се добавят други продукти
                     if ($masterRec->dpOperation == 'accrued') {

@@ -84,7 +84,7 @@ class bank_IncomeDocuments extends bank_Document
     /**
      * Права за плъгин-а bgerp_plg_Export
      */
-    public $canExport = 'ceo, invoicer';
+    public $canExport = 'ceo, invoicerSale, invoicerPurchase, invoicerFindeal';
 
 
     /**

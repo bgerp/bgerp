@@ -83,8 +83,16 @@ class sales_Proformas extends deals_InvoiceMaster
      * Кой е основния детайл
      */
     public $mainDetail = 'sales_ProformaDetails';
-    
-    
+
+
+    /**
+     * Кой може да променя активирани записи
+     *
+     * @see change_Plugin
+     */
+    public $canChangerec = 'ceo, sales';
+
+
     /**
      * Кой има право да променя?
      */

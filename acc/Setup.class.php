@@ -292,7 +292,20 @@ class acc_Setup extends core_ProtoSetup
             'seePricePurchase'
         ),
         array(
-            'invoicer'
+            'invoicerFindeal',
+            'seePrice'
+        ),
+        array(
+            'invoicerSale',
+            'seePriceSale'
+        ),
+        array(
+            'invoicerPurchase',
+            'seePricePurchase'
+        ),
+        array(
+            'invoicer',
+            'invoicerSale,invoicerPurchase,invoicerFindeal'
         ),
         array(
             'accJournal'
