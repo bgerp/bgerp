@@ -2757,6 +2757,8 @@ class fileman_Files extends core_Master
 
         $showSummary = Request::get('showSummary');
 
+        setIfNot($showSummary, 'db');
+
         $Files = cls::get('fileman_FileSize');
         $Int = cls::get('type_Int');
 
