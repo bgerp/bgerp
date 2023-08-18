@@ -2755,17 +2755,24 @@ class fileman_Files extends core_Master
             return ;
         }
 
+        if (!haveRole('admin')) {
+
+            return ;
+        }
+
+        $fileLen = $sqlSize = 0;
+
         $Files = cls::get('fileman_FileSize');
         $Int = cls::get('type_Int');
 
         $fData = fileman_Data::getQuery();
 
-        $fData->show('id, fileLen');
+        $fData->show('id, fileLen, sumLen');
         $fileCnt = $fData->count();
 
         // Размер на всички файлове
-        $data->listSummary->query->XPR('sumLen', 'int', 'SUM(#fileLen)');
-        $rec = $data->listSummary->query->fetch();
+        $fData->XPR('sumLen', 'int', 'SUM(#fileLen)');
+        $rec = $fData->fetch();
         $fileLen = $rec->sumLen;
 
         if (!isset($data->listSummary->statVerb)) {
@@ -2783,16 +2790,20 @@ class fileman_Files extends core_Master
         }
 
         // Статистика за БД
-        if (haveRole('ceo, admin, debug')) {
-            $db = cls::get('core_Db');
+        $db = cls::get('core_Db');
 
-            $sqlInfo = $db->getDBInfo();
+        $sqlInfo = $db->getDBInfo();
 
-            if ($sqlInfo) {
-                $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['SIZE']);
-                $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['ROWS']);
-                $data->listSummary->statVerb['tablesCnt'] = $Int->toVerbal($sqlInfo['TABLES']);
-            }
+        if ($sqlInfo) {
+            $sqlSize = $sqlInfo['SIZE'];
+            $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['SIZE']);
+            $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['ROWS']);
+            $data->listSummary->statVerb['tablesCnt'] = $Int->toVerbal($sqlInfo['TABLES']);
+        }
+
+        if ($fileLen && $sqlSize) {
+            $sumLen = $fileLen + $sqlSize;
+            $data->listSummary->statVerb['sumSize'] = $Files->toVerbal($sumLen);
         }
     }
     
