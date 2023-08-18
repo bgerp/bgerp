@@ -2755,7 +2755,7 @@ class fileman_Files extends core_Master
             return ;
         }
 
-        if (!haveRole('admin')) {
+        if (!haveRole('admin') || !haveRole('ceo')) {
 
             return ;
         }
