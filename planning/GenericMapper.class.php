@@ -311,11 +311,27 @@ class planning_GenericMapper extends core_Manager
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
         $data->Pager->setPageVar('cat_Products', $data->masterId, 'cat_Boms');
         $data->Pager->itemsCount = countR($data->recs);
+        $shortUom = tr(cat_UoM::getShortName($data->masterData->rec->measureId));
+        $Param = core_Request::get($data->masterData->tabTopParam, 'varchar');
 
+        $now = dt::now();
         foreach ($data->recs as $rec) {
             if (!$data->Pager->isOnPage()) continue;
             $bomRec = cat_Boms::fetch($rec->bomId);
             $data->rows[$rec->id] = cat_Boms::recToVerbal($bomRec);
+
+            // Изчисляване за какво количество е вложено
+            if($Param == 'Boms'){
+                $rInfo = cat_Boms::getResourceInfo($bomRec->id, 1, $now);
+                if(is_array($rInfo['resources'])){
+                    $foundRec = array_filter($rInfo['resources'], function($a) use ($data){return $a->productId == $data->masterId;});
+                    $quantityVerbal = "<span class='red'>???</span>";
+                    if($foundRec[key($foundRec)]->propQuantity){
+                        $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundRec[key($foundRec)]->propQuantity);
+                    }
+                    $data->rows[$rec->id]->quantity = "{$quantityVerbal} {$shortUom}";
+                }
+            }
         }
     }
 
