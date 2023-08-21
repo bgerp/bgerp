@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -84,7 +84,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     {
         $this->FLD('documentClassId', 'class', 'column=none,notNull,silent,input=hidden,mandatory');
         $this->FLD('documentId', 'int', 'column=none,notNull,silent,input=hidden,mandatory');
-        $this->FLD('productType', 'enum(ours=Наш артикул,other=Чужд артикул)', 'silent,caption=Вид,mandatory,notNull,default=ours,removeAndRefreshForm=productId|packagingId|quantity|quantityInPack,smartCenter');
+        $this->FLD('productType', 'enum(ours=Наш артикул,other=Чужд артикул)', 'silent,caption=Вид,mandatory,notNull,default=ours,removeAndRefreshForm=productId|packagingId|quantity|quantityInPack|packPrice,smartCenter');
         parent::setFields($this);
         $this->setField('amount', 'smartCenter');
         $this->FLD('type', 'enum(in=Приемане,out=Предаване)', 'column=none,notNull,silent,mandatory,caption=Действие,after=productId,input=hidden');
