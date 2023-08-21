@@ -7495,8 +7495,11 @@ only screen and (max-width: 320px) {
 .selectTaskOptions tr.createAllTasksForJob {
   font-style: italic; }
 
-.operationTable .paramVal {
+.wide .operationTable .paramVal {
   word-break: break-word; }
+
+.narrow .operationTable .paramVal {
+  white-space: nowrap; }
 
 .confidential-field {
   font-size: 0.7em;

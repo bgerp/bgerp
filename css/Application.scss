@@ -8527,8 +8527,12 @@ body.narrow {
 	font-style:italic;
 }
 
-.operationTable .paramVal {
+.wide .operationTable .paramVal {
 	word-break: break-word;
+}
+
+.narrow .operationTable .paramVal {
+	white-space: nowrap;
 }
 
 .confidential-field {
