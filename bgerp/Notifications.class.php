@@ -105,6 +105,12 @@ class bgerp_Notifications extends core_Manager
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn,lastTime';
+
+
+    /**
+     * Масив със съобщениеята за известяване на заместниците
+     */
+    protected $alternateMessages = array();
     
     
     /**
@@ -242,6 +248,14 @@ class bgerp_Notifications extends core_Manager
                 // Вече имаме тази нотификация
                 return;
             }
+
+            // Известията на заместниците да не презаписват оригиналните
+            if (Mode::is('isNotifyAlternateUsers')) {
+                if (($r->state == 'active') && ($r->hidden == 'no')) {
+
+                    return ;
+                }
+            }
             
             $rec->id = $r->id;
             
@@ -270,7 +284,8 @@ class bgerp_Notifications extends core_Manager
         
         // Инвалидиране на кеша
         bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Notifications');
-        if (!Mode::is('stopNotifyAlternateUsers')) {
+
+        if (!Mode::is('isNotifyAlternateUsers')) {
             // Ако потребителят е в отпуск, болничен или комадировка
             // Заместниците също да получават известията му
             // Ако имат достъп до тях
@@ -374,21 +389,40 @@ class bgerp_Notifications extends core_Manager
 
                         unset($alternateUsersArr[$userId]);
                         if (!empty($alternateUsersArr)) {
-                            Mode::set('stopNotifyAlternateUsers', true);
                             foreach ($alternateUsersArr as $alternateUserId) {
                                 $nick = core_Users::fetchField($userId, 'nick');
-                                self::add($nick . ': ' .$msg, $urlArr, $alternateUserId, $priority, $customUrl, $addOnce);
+                                $me = cls::get(get_called_class());
+                                $me->alternateMessages[] = array('nick' => $nick, 'msg' => $msg, 'urlArr' => $urlArr,
+                                    'alternateUserId' => $alternateUserId, 'priority' => $priority, 'customUrl' => $customUrl, 'addOnce' => $addOnce);
                             }
                         }
                     }
                 }
             }
         }
-
-        Mode::set('stopNotifyAlternateUsers', false);
     }
-    
-    
+
+
+    /**
+     * След изпълнение на скрипта, добавяме известията за заместниците
+     *
+     * @param $mvc
+     *
+     * @return void
+     */
+    public static function on_AfterSessionClose($mvc)
+    {
+        if (!empty($mvc->alternateMessages)) {
+            Mode::set('isNotifyAlternateUsers', true);
+            foreach ($mvc->alternateMessages as $aMessage) {
+                $mvc->add($aMessage['nick'] . ': ' .$aMessage['msg'], $aMessage['urlArr'], $aMessage['alternateUserId'],
+                    $aMessage['priority'], $aMessage['customUrl'], $aMessage['addOnce']);
+            }
+            Mode::set('isNotifyAlternateUsers', false);
+        }
+    }
+
+
     /**
      * Отбелязва съобщение за прочетено
      */
