@@ -2,10 +2,10 @@
 <div class="scrolling-holder">
     <table class="listTable operationTable">
         <tr>
-            <th style="width:60%" class="cell custom-header-bg">
+            <th class="cell custom-header-bg">
                 |Параметри на операцията|*
             </th>
-            <th style="width:40%" class="cell custom-header-bg">
+            <th class="cell custom-header-bg">
                 |Спецификация|*
             </th>
         </tr>
