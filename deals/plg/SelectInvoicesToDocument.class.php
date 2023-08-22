@@ -62,24 +62,48 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
 
 
     /**
+     * Записване в помощния модел, ако обекта е създаден от друг документ
+     * @param stdClass $rec
+     * @return void
+     */
+    private static function saveIfFromContainer($mvc, $rec)
+    {
+        // След създаване синхронизиране на модела
+        $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId);
+        $paymentCurrencyCode = currency_Currencies::getCodeById($mvc->getPaymentData($rec)->currencyId);
+
+        $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
+        $vAmount = round($vAmount, 2);
+
+        $paymentData = $mvc->getPaymentData($rec);
+        $vAmount = min($paymentData->amount, $vAmount);
+
+        $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
+        deals_InvoicesToDocuments::save($dRec);
+    }
+
+
+    /**
      * Изпълнява се след създаване на нов запис
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+        if(!isset($mvc->mainDetail)){
+            if(isset($rec->fromContainerId)){
+                static::saveIfFromContainer($mvc, $rec);
+            }
+        }
+    }
+
+
+    /**
+     * Обновява статистиката за стелажа
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
         if(isset($rec->fromContainerId)){
-
-            // След създаване синхронизиране на модела
-            $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId);
-            $paymentCurrencyCode = currency_Currencies::getCodeById($mvc->getPaymentData($rec)->currencyId);
-
-            $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
-            $vAmount = round($vAmount, 2);
-
-            $paymentData = $mvc->getPaymentData($rec);
-            $vAmount = min($paymentData->amount, $vAmount);
-
-            $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
-            deals_InvoicesToDocuments::save($dRec);
+            $rec = $mvc->fetchRec($id);
+            static::saveIfFromContainer($mvc, $rec);
         }
     }
 
