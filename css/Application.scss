@@ -2688,21 +2688,30 @@ vertical-align: top !important;
 }
 
 .document .paddingCells > tbody > tr > td{
-padding: 5px;
+	padding: 5px;
 }
 
 .doc_drivers_FolderPortal .threadSubTitle {
-display: inline;
+	display: inline;
 }
 
 #invoice-info {
-border-left: 1px solid $gray4;
+	border-left: 1px solid $gray4;
+}
+
+.invoiceNoteWarning {
+	color: #c51818;
+	border: 1px dashed #910404;
+	text-align: justify;
+	padding: 5px;
+	border-radius: 5px;
+	background: #f3e0e0;
 }
 
 .document .lines {
-border-left: 1px solid $gray4;
-border-right: 1px solid $gray4;
-border-bottom: 3px solid #ddd;
+	border-left: 1px solid $gray4;
+	border-right: 1px solid $gray4;
+	border-bottom: 3px solid #ddd;
 }
 
 .signature-table{

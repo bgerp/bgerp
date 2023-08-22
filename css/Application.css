@@ -2315,6 +2315,14 @@ pre.document {
 #invoice-info {
   border-left: 1px solid #bbbbbb; }
 
+.invoiceNoteWarning {
+  color: #c51818;
+  border: 1px dashed #910404;
+  text-align: justify;
+  padding: 5px;
+  border-radius: 5px;
+  background: #f3e0e0; }
+
 .document .lines {
   border-left: 1px solid #bbbbbb;
   border-right: 1px solid #bbbbbb;
