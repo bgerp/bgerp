@@ -669,8 +669,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
                             $changedPriceAndQuantity = true;
                         }
                     } else {
+                        $roundPrice = round($rec->packPrice, 5);
                         $quantityKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|Q{$rec->quantity}";
-                        $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$rec->packPrice}";
+                        $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$roundPrice}";
                         $changedPriceAndQuantity = !array_key_exists($quantityKey, $cache->recs) && !array_key_exists($priceKey, $cache->recs);
                     }
 
