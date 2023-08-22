@@ -1384,7 +1384,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     if(!countR($documents)){
                         $string = "При издаване/въвеждане на Дебитно/Кредитно известие ЗАДЪЛЖИТЕЛНО трябва да се създаде и втори документ: Корекция на стойности (при промяна само на стойността) или ЕН/СР (при промяна на количества)!
                            В полето \"Към фактура\" на създадения документ изберете настоящото Известие, за да премахнете това съобщение!";
-                        $row->additionalInfo .= "<div style='color:red;'>" . tr($string) . "</div>";
+                        $row->additionalInfo .= "<div class='invoiceNoteWarning'>" . tr($string) . "</div>";
                     }
                 }
             }
