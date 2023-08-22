@@ -1624,10 +1624,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $map = ($this instanceof sales_Sales) ? self::$contoMap['sales'] : self::$contoMap['purchase'];
         
         $selected = array();
-        
+
+        $paymentType = isset($rec->paymentMethodId) ? cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type') : null;
+        $deliveryAddress = isset($rec->deliveryTermId) ? cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'address') : null;
+        $isTakenFromPlace = ($paymentType == 'cash' && $deliveryAddress == 'supplier');
+
         // Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
         if ($options['ship'] && $rec->shipmentStoreId) {
-            if ($rec->shipmentStoreId === $curStoreId && $map['service'] != $options['ship']) {
+            if ($isTakenFromPlace || ($rec->shipmentStoreId === $curStoreId && $map['service'] != $options['ship'])) {
                 $selected[] = 'ship';
             }
         } elseif ($options['ship']) {
@@ -1635,8 +1639,8 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Ако има каса и потребителя е логнат в нея, Слагаме отметка
-        if ($options['pay'] && $rec->caseId) {
-            if ($rec->caseId === $curCaseId && $hasSelectedBankAndCase === false) {
+        if ($options['pay'] && isset($rec->caseId)) {
+            if ($isTakenFromPlace || ($rec->caseId === $curCaseId && $hasSelectedBankAndCase === false)) {
                 $selected[] = 'pay';
             }
             
