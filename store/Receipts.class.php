@@ -253,13 +253,28 @@ class store_Receipts extends store_DocumentMaster
 
         $origin = static::getOrigin($form->rec);
         if ($origin->isInstanceOf('purchase_Purchases')) {
-            if (!isset($rec->id)) {
+            if (!isset($rec->id) && empty($rec->fromContainerId)) {
                 $data->form->FNC('importProducts', 'enum(notshipped=Недоставени (Всички),notshippedstorable=Недоставени (Складируеми),notshippedservices=Недоставени (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
             }
         }
     }
-    
-    
+
+
+    function act_Test()
+    {
+        $rec = static::fetch(483);
+        static::on_AfterCreate($this, $rec);
+    }
+
+
+    /**
+     * След създаване на запис в модела
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+
+    }
+
     /**
      * Подготовка на показване като детайл в транспортните линии
      */

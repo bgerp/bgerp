@@ -270,7 +270,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         expect($origin = static::getOrigin($rec), $rec);
 
         if ($origin->isInstanceOf('sales_Sales')) {
-            if (!isset($rec->id)) {
+            if (!isset($rec->id) && empty($rec->fromContainerId)) {
                 $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
             }
 
