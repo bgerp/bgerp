@@ -113,7 +113,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fieldset->FLD('orderType', 'enum(asc=Нарастващо,desc=Намаляващо)', 'caption=Подреждане->Подреждане,after=orderBy,single=none,silent');
 
         $fieldset->FLD('seeAmount', 'set(yes = )', 'caption=Покажи стойности,after=orderType,single=none');
-        $fieldset->FLD('unstackableOn', 'set(yes = )', 'caption=Включи не складируемите,after=orderType,single=none');
+        $fieldset->FLD('unstackableOn', 'set(yes = )', 'caption=Включи нескладируемите,after=orderType,single=none');
 
 
     }
