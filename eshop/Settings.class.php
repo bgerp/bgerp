@@ -243,6 +243,7 @@ class eshop_Settings extends core_Master
         $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
         
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Наличности от');
+        $this->FLD('otherStores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Други складове');
         if(core_Packs::isInstalled('sync')){
             $this->FLD('remoteStores', 'keylist(mvc=sync_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Външни складове', 'input=none');
         }
@@ -618,8 +619,10 @@ class eshop_Settings extends core_Master
             foreach ($fldArr as $fld => $const){
                 $settingRec->{$fld} = (empty($settingRec->{$fld}) || $settingRec->{$fld} == 'auto') ? eshop_Setup::get($const) : $settingRec->{$fld};
             }
+
+            $settingRec->inStockStores = keylist::toArray(keylist::merge(keylist::addKey('', $settingRec->storeId), $settingRec->otherStores));
         }
-        
+
         return $settingRec;
     }
     

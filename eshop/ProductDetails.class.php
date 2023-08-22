@@ -549,8 +549,8 @@ class eshop_ProductDetails extends core_Detail
         }
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if (isset($settings->storeId) && $canStore == 'yes' && !$stopSale) {
-            $quantity = store_Products::getQuantities($rec->productId, $settings->storeId)->free;
+        if (isset($settings->inStockStores) && $canStore == 'yes' && !$stopSale) {
+            $quantity = store_Products::getQuantities($rec->productId, $settings->inStockStores)->free;
             if ($quantity < $rec->quantityInPack) {
                 if(empty($rec->deliveryTime)){
                     $showNotInStock = true;
