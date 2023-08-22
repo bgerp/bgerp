@@ -538,7 +538,7 @@ class pos_Reports extends core_Master
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
             
             foreach ($data as $obj) {
-                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value, $obj->param);
+                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value, $obj->param, $obj->storeId);
                 if(core_Packs::isInstalled('batch')){
                     $indexArr[] = str_replace('|', '>', $obj->batch);
                 }
