@@ -297,7 +297,7 @@ class pos_Reports extends core_Master
         // Табличната информация и пейджъра на плащанията
         $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency}), storeId=Склад,contragentId=Клиент";
         $detail->rows = $detail->receiptDetails;
-       
+        $detail->masterRec = $data->rec;
         $mvc->prepareDetail($detail);
         $data->rec->details = $detail;
         
@@ -345,7 +345,7 @@ class pos_Reports extends core_Master
         $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
         $Pager->itemsCount = countR($detail->rows);
         $Pager->calc();
-        
+
         // Добавяме всеки елемент отговарящ на условието на пейджъра в нов масив
         if ($detail->rows) {
              
@@ -355,7 +355,7 @@ class pos_Reports extends core_Master
                     $value->sortString = mb_strtolower(cat_Products::fetchField($value->value, 'name'));
                 }
             }
-            
+
             usort($detail->rows, array($this, 'sortResults'));
             
             // Обръщаме във вербален вид
@@ -365,7 +365,7 @@ class pos_Reports extends core_Master
             for ($i = 0; $i < $rowsCnt; $i++) {
                 if ($i >= $start && $i <= $end) {
                     $keys = array_keys($detail->rows);
-                    $newRows[] = $this->getVerbalDetail($detail->rows[$keys[$i]]);
+                    $newRows[] = $this->getVerbalDetail($detail->masterRec, $detail->rows[$keys[$i]]);
                 }
             }
             
@@ -406,7 +406,7 @@ class pos_Reports extends core_Master
      *
      * @return stdClass $row-> вербалния вид на записа
      */
-    private function getVerbalDetail($obj)
+    private function getVerbalDetail($rec, $obj)
     {
         $row = new stdClass();
         
@@ -426,8 +426,7 @@ class pos_Reports extends core_Master
             
             $row->value = cat_Products::getHyperlink($obj->value, true);
             $obj->amount *= 1 + $obj->param;
-            
-            
+
             if(core_Packs::isInstalled('batch')){
                 $batchDef = batch_Defs::getBatchDef($obj->value);
                 if(is_object($batchDef)){
@@ -439,6 +438,9 @@ class pos_Reports extends core_Master
                     }
                 }
             }
+
+            deals_Helper::getQuantityHint($row->quantity, $this, $obj->value, $obj->storeId, $obj->quantity, $rec->state, $rec->valior);
+
         } else {
             
             // Ако детайла е плащане
