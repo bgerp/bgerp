@@ -2134,6 +2134,8 @@ class planning_Jobs extends core_Master
 
         $count = 0;
         while($rec = $query->fetch()){
+            // Ако е събудено в посочения интервал да не се приключва
+            if($rec->state == 'wakeup' && $rec->lastChangeStateOn >= $thresholdDate) continue;
 
             // Ако има документ на заявка в нишката, няма да се приключва заданието
             $cQuery = doc_Containers::getQuery();
@@ -2162,9 +2164,6 @@ class planning_Jobs extends core_Master
                 $lastCreatedOn = doc_Threads::getLastCreatedOnInThread($rec->threadId, 'acc_TransactionSourceIntf');
                 if($lastCreatedOn >= $thresholdDate) continue;
             }
-
-            // Ако е събудено в посочения интервал да не се приключва
-            if($rec->state == 'wakeup' && $rec->lastChangeStateOn >= $thresholdDate) continue;
 
             $isSystemUser = core_Users::isSystemUser();
             if(!$isSystemUser){
