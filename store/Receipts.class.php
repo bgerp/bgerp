@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -47,7 +47,7 @@ class store_Receipts extends store_DocumentMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, change_Plugin, deals_plg_SaveValiorOnActivation, store_Wrapper, sales_plg_CalcPriceDelta,store_plg_Request, plg_Sorting,purchase_plg_ExtractPurchasesData,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
-                    plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager,
+                    plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoicesToDocument, acc_plg_DocumentSummary, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     

@@ -127,6 +127,7 @@
                <hr>
                [#note#]
                <!--ET_END note-->
+               <!--ET_BEGIN InvoicesToDocuments--><table>[#InvoicesToDocuments#]</table><!--ET_END InvoicesToDocuments-->
             </td>
             <td class="topCell aright vtop">
                [#/deals/tpl/DocumentPiceInfo.shtml#]

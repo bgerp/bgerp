@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class acc_ValueCorrections extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting,acc_plg_Contable,doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search,doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting,acc_plg_Contable,doc_DocumentPlg, plg_Printing, deals_plg_SelectInvoicesToDocument, acc_plg_DocumentSummary,plg_Search,doc_plg_HidePrices';
     
     
     /**
@@ -345,7 +345,22 @@ class acc_ValueCorrections extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
+        // Ако се създава към известие зареждат се дефолт данните от него
+        if (isset($rec->fromContainerId)) {
+            $fromContainer = doc_Containers::getDocument($rec->fromContainerId);
+            if($fromContainer->isInstanceOf('deals_InvoiceMaster')){
+                $invRec = $fromContainer->fetch();
+                $defaultAmount = abs($invRec->dealValue / (($invRec->displayRate ?? $invRec->rate)));
+                $form->setDefault('amount', round($defaultAmount, 2));
+                if($invRec->dealValue <= 0){
+                    $form->setDefault('action', 'decrease');
+                } else {
+                    $form->setDefault('action', 'increase');
+                }
+            }
+        }
+
         // Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
         expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
         self::addProductsFromOriginToForm($form, $firstDoc, $mvc);
@@ -915,5 +930,25 @@ class acc_ValueCorrections extends core_Master
         }
 
         return null;
+    }
+
+
+    /**
+     * Връща информация за сумите по платежния документ
+     *
+     * @param mixed $id
+     * @return object
+     */
+    public function getPaymentData($id)
+    {
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            $rec = $this->fetchRec($id, '*', false);
+        }
+
+        $amount = round($rec->amount / $rec->rate, 2);
+
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId));
     }
 }

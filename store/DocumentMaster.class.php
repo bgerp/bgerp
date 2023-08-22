@@ -1489,4 +1489,24 @@ abstract class store_DocumentMaster extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Връща информация за сумите по платежния документ
+     *
+     * @param mixed $id
+     * @return object
+     */
+    public function getPaymentData($id)
+    {
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            $rec = $this->fetchRec($id, '*', false);
+        }
+
+        $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
+
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
+    }
 }

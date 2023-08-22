@@ -64,7 +64,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     /**
      * Изпълнява се след създаване на нов запис
      */
-    protected static function on_AfterCreate($mvc, $rec)
+    public static function on_AfterCreate($mvc, $rec)
     {
         if(isset($rec->fromContainerId)){
 
@@ -78,10 +78,8 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
             $paymentData = $mvc->getPaymentData($rec);
             $vAmount = min($paymentData->amount, $vAmount);
 
-            if($vAmount){
-                $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
-                deals_InvoicesToDocuments::save($dRec);
-            }
+            $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
+            deals_InvoicesToDocuments::save($dRec);
         }
     }
 
@@ -169,7 +167,15 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         $threadsArr = deals_Helper::getCombinedThreads($rec->threadId);
 
         $isTransfer = in_array($rec->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
-        $iArr = ($rec->isReverse == 'yes' && !$isTransfer) ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, true);
+        if($mvc instanceof acc_ValueCorrections){
+            if($rec->action == 'decrease'){
+                $iArr = deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true);
+            } else {
+                $iArr = deals_Helper::getInvoicesInThread($threadsArr, null, true, true, false);
+            }
+        } else {
+            $iArr = ($rec->isReverse == 'yes' && !$isTransfer) ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, true);
+        }
 
         foreach ($iArr as $k => $number){
             $iRec = doc_Containers::getDocument($k)->fetch();

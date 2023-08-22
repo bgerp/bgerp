@@ -377,9 +377,9 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        if ($rec->type == 'dc_note'){
+        if ($rec->type == 'dc_note' && $rec->state == 'active'){
             if(acc_ValueCorrections::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-                $data->toolbar->addBtn('Корекция на стойност', array('acc_ValueCorrections', 'add', 'threadId' => $rec->threadId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Корекция на стойност към сделката');
+                $data->toolbar->addBtn('Корекция на стойност', array('acc_ValueCorrections', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Корекция на стойност към сделката');
             }
         }
     }
@@ -1377,7 +1377,18 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
                 $row->paymentType = ht::createHint($row->paymentType, "Автоматично '{$rec->autoPaymentType}'", 'img/16/bug.png');
             }
-            
+
+            if($rec->type == 'dc_note' && $rec->state != 'rejected'){
+                if(!Mode::isReadOnly()){
+                    $documents = deals_InvoicesToDocuments::getDocumentsToInvoices($rec->containerId, 'acc_ValueCorrections,store_Receipts,store_ShipmentOrders');
+                    if(!countR($documents)){
+                        $string = "При издаване/въвеждане на Дебитно/Кредитно известие ЗАДЪЛЖИТЕЛНО трябва да се създаде и втори документ: Корекция на стойности (при промяна само на стойността) или ЕН/СР (при промяна на количества)!
+                           В полето \"Към фактура\" на създадения документ изберете настоящото Известие, за да премахнете това съобщение!";
+                        $row->additionalInfo .= "<div style='color:red;'>" . tr($string) . "</div>";
+                    }
+                }
+            }
+
             core_Lg::pop();
         }
     }
