@@ -268,6 +268,12 @@ class plg_SelectPeriod extends core_Plugin
                 $from = date('Y-m-d', strtotime('monday next week', $now));
                 $to = date('Y-m-d', strtotime('sunday next week', $now));
                 break;
+
+            case 'one_week_next_before':
+                $from = date('Y-m-d', strtotime('-1 week', $now));
+                $to = date('Y-m-d', strtotime('+1 week', $now));
+                break;
+
             // Месец
             case 'cur_month':
                 $from = date('Y-m-d', strtotime('first day of this month'));
@@ -328,7 +334,7 @@ class plg_SelectPeriod extends core_Plugin
                 $oldestAvailableDate = self::getOldestAvailableDate();
 
                 $from = !empty($oldestAvailableDate) ? $oldestAvailableDate : '';
-                $to = '';
+                $to = self::getNewestAvailableDate();
 
                 break;
             default:
@@ -361,6 +367,25 @@ class plg_SelectPeriod extends core_Plugin
 
 
     /**
+     * Коя е най-новата възжможна дата за избор
+     *
+     * @return date|string
+     */
+    public static function getNewestAvailableDate()
+    {
+        $res = '';
+
+        $res = Mode::get('periodDefaultNewestDate');
+
+        if (empty($res)) {
+            $res = '';
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Подготва опциите за избир на период
      */
     public static function getOptions(&$keySel = null, $fromSel = null, $toSel = null, $showFutureOptions = false)
@@ -386,7 +411,7 @@ class plg_SelectPeriod extends core_Plugin
         $opt['yesterday'] = tr('Вчера');
         $opt['dby'] = tr('Завчера');
 
-        if($showFutureOptions){
+        if ($showFutureOptions){
             $opt['tomorrow'] = tr('Утре');
             $opt['dayafter'] = tr('Вдругиден');
         }
@@ -395,6 +420,10 @@ class plg_SelectPeriod extends core_Plugin
         $opt['gr2'] = (object) array('title' => tr('Седмица'), 'group' => true);
         $opt['cur_week'] = tr('Тази седмица');
         $opt['last_week'] = tr('Миналата седмица');
+
+        if($showFutureOptions){
+            $opt['one_week_next_before'] = tr('±1 седмица');
+        }
 
         if($showFutureOptions){
             $opt['next_week'] = tr('Следващата седмица');

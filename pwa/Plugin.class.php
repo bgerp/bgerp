@@ -25,7 +25,7 @@ class pwa_Plugin extends core_Plugin
             $swDate = date('Y-m-d H:i:s', $swDate);
             $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"/pwa.webmanifest\" data-sw-date=\"{$swDate}\">", 'HEAD');
         }
-        $invoker->push('pwa/js/swRegister.js', 'JS');
-        jquery_Jquery::run($invoker, 'syncServiceWorker();');
+        $invoker->push('pwa/js/swRegister.js', 'JS', true);
+        jquery_Jquery::run($invoker, 'syncServiceWorker();', true);
     }
 }

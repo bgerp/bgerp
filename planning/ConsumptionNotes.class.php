@@ -305,4 +305,45 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
             }
         }
     }
+
+
+    /**
+     * Помощна ф-я връщаща има ли активни ПВ в посочената нишка
+     * (ако нишката е обръврзана със задание - всички нишки към него)
+     *
+     * @param int $threadId - ид на нишка
+     * @param int|null $productId - ид на артикул, null ако търсим само бройка
+     * @return bool
+     */
+    public static function existActivatedInThread($threadId, $productId = null)
+    {
+        // Намиране на заданието от нишката
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if($firstDoc->isInstanceOf('planning_Jobs')){
+            $threadArr = planning_Jobs::getJobLinkedThreads($firstDoc->that);
+        } elseif($firstDoc->isInstanceOf('planning_Tasks')){
+            $jobId = planning_Jobs::fetchField("#containerId={$firstDoc->fetchField('originId')}");
+            $threadArr = planning_Jobs::getJobLinkedThreads($jobId);
+        } else {
+            $threadArr = array($threadId => $threadId);
+        }
+
+        // Ако има артикул се търси има ли в нишките влагане на конкретния артикул
+        if(isset($productId)){
+            $cQuery = planning_ConsumptionNoteDetails::getQuery();
+            $cQuery->EXT('state', 'planning_ConsumptionNotes', 'externalName=state,externalKey=noteId');
+            $cQuery->EXT('threadId', 'planning_ConsumptionNotes', 'externalName=threadId,externalKey=noteId');
+            $cQuery->in("threadId", $threadArr);
+            $cQuery->where("#productId = {$productId} AND #state = 'active'");
+
+            return $cQuery->count() > 0;
+        }
+
+        // Ако няма гледа се просто има ли контирани ПВ
+        $cQuery = planning_ConsumptionNotes::getQuery();
+        $cQuery->where("#state = 'active'");
+        $cQuery->in("threadId", $threadArr);
+
+        return $cQuery->count() > 0;
+    }
 }

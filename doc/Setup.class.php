@@ -172,6 +172,18 @@ defIfNot('DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON', 3 * 12 * core_DateTime::SE
 
 
 /**
+ * Показване на последно посетените документи за избор на Шаблони->Брой
+ */
+defIfNot('DOC_SHOW_LAST_VISITED_AS_PROTOTYPES', 10);
+
+
+/**
+ * Отваряне на папката след оттегляне на документ
+ */
+defIfNot('DOC_OPEN_FOLDER_AFTER_REJECT', 'yes');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -254,6 +266,8 @@ class doc_Setup extends core_ProtoSetup
         'DOC_MOVE_LAST_DOCUMENT' => array('enum(yes=Да,no=Не)', 'caption=Възможност за преместване на последния документ в нишката->Избор'),
         'DOC_SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE' => array('enum(no=Не,yes=Да)', 'caption=Разбиване на цитиран текст на параграфи->Избор, customizeBy=user'),
         'DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON' => array('time(unit=years, suggestions=Без ограничение|6 месеца|1 год.|2 год.|3 год.|5 год.)', 'caption=До колко време назад да се показват филтрираните документи при избор на период "Всички" в списъка->Време,customizeBy=officer'),
+        'DOC_SHOW_LAST_VISITED_AS_PROTOTYPES' => array('int(Min=0)', 'caption=Показване на последно посетените документи за избор на Шаблони->Брой, customizeBy=powerUser'),
+        'DOC_OPEN_FOLDER_AFTER_REJECT' => array('enum(yes=Да,no=Не)', 'canView=no_one, caption=Отваряне на папката след оттегляне на документ->Избор, customizeBy=debug'),
     );
 
     // Инсталиране на мениджърите

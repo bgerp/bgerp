@@ -943,7 +943,7 @@ class type_Richtext extends type_Blob
         }
         
         // Добавяме кода в блок
-        $code1 = "<span class='oneLineCode no-spell-check'>{$code}</span>";
+        $code1 = "<span onmouseup='selectInnerText(this);' class='oneLineCode no-spell-check'>{$code}</span>";
         
         // Доабавяме в масива
         $this->_htmlBoard[$place] = $code1;
@@ -1081,7 +1081,7 @@ class type_Richtext extends type_Blob
         
         if ($title[0] != ' ' && !Mode::is('text', 'xhtml')) {
             $bgPlace = $this->getPlace();
-            $thumb = new thumb_Img(array("https://plus.google.com/_/favicon?domain={$domain}", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly()));
+            $thumb = new thumb_Img(array("https://www.google.com/s2/favicons?domain=${domain}&sz=16", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly()));
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
             

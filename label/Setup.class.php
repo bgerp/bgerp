@@ -1,11 +1,7 @@
 <?php
 
 /**
-<<<<<<< HEAD
- * Автоматичнот отпечатване слез "Запис и Нов"
-=======
  * Автоматично отпечатване след "Запис и Нов"
->>>>>>> refs/remotes/origin/test
  */
 defIfNot('LABEL_AUTO_PRINT_AFTER_SAVE_AND_NEW', 'no');
 

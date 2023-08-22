@@ -55,16 +55,32 @@ class pwa_Manifest extends core_Mvc
         $appTitle = core_Setup::get('EF_APP_TITLE', true);
         $appTitle = tr($appTitle);
         $text = tr('интегрирана система за управление');
-
+ 
         $startUrl = '/?isPwa=yes';
-
+    
+        $shortcuts = array(
+            (object) array(
+                'name' => 'Сканиране на баркод',
+                'short_name' => 'Баркод',
+                'description' => 'Сканиране и търсене на информация за баркод',
+                'url' => '/barcode_Search',
+                'icons' => array(
+                    (object) array(
+                        'src' => sbf('pwa/icons/barcode-scan.png', ''),
+                        'sizes' => '512x512',
+                    ),
+                 ),
+            ),
+        );
         $json = array(
             'short_name' => $appTitle,
             'name' => $appTitle . ' - ' . $text,
+            'description' => $appTitle . ' - ' . $text,
             'display' => 'standalone',
             'background_color' => '#fff',
             'theme_color' => '#ddd',
             'start_url' => $startUrl,
+            'shortcuts' => $shortcuts,
             'id' => $startUrl,
             'scope' => '/',
             'icons' => $iconInfoArr,

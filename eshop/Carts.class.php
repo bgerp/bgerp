@@ -32,12 +32,12 @@ class eshop_Carts extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'orderDate,activatedOn,createdOn';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, drdata_plg_Canonize, plg_Rejected, plg_Modified,acc_plg_DocumentSummary,plg_Sorting,plg_Printing';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, drdata_plg_Canonize, plg_Rejected, plg_Modified,acc_plg_DocumentSummary,plg_Sorting,plg_Printing,plg_Search';
     
     
     /**
@@ -174,6 +174,12 @@ class eshop_Carts extends core_Master
 
 
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'domainId,userId,personNames,email,tel,country,locationId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress,instruction,saleFolderId,invoiceNames,invoiceVatNo,invoiceUicNo,invoiceCountry,invoicePCode,invoicePlace,invoiceAddress';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -209,7 +215,7 @@ class eshop_Carts extends core_Master
         
         $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име и фамилия||Name and surname,input=none,mandatory');
-        
+
         $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактуриране->ДДС №||VAT ID,input=hidden,invoiceData');
         $this->FLD('invoiceUicNo', 'varchar(26)', 'caption=Данни за фактуриране->ЕИК №,input=hidden,invoiceData');
         
@@ -244,7 +250,7 @@ class eshop_Carts extends core_Master
         $data->listFilter->setDefault('type', 'all');
         $data->listFilter->setDefault('domain', cms_Domains::getCurrent('id', false));
         
-        $data->listFilter->showFields .= ',domain,type';
+        $data->listFilter->showFields .= ',domain,type,search';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
@@ -334,8 +340,6 @@ class eshop_Carts extends core_Master
                 $quantityByNow = $dQuery->fetch()->sum;
                 $checkQuantity += $quantityByNow / $quantityInPack;
             }
-
-
         }
        
         $actions = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'action');
@@ -364,7 +368,8 @@ class eshop_Carts extends core_Master
                 $this->requireRightFor('addtocart', $cartId);
                 eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack);
                 $this->updateMaster($cartId);
-                
+                plg_Search::forceUpdateKeywords($this, $cartId);
+
                 $exRec = eshop_CartDetails::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
                 
                 $packagingName = cat_UoM::getShortName($packagingId);
@@ -389,8 +394,6 @@ class eshop_Carts extends core_Master
                 
                 $msg = $addText->getContent();
                 $success = true;
-                
-                vislog_History::add("Добавяне на артикул «{$productName}» в количка");
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 $msg = '|Артикулът не е добавен|*!';
@@ -3076,6 +3079,37 @@ class eshop_Carts extends core_Master
             $invoiceFields = array_keys($invoiceFields);
             foreach ($invoiceFields as $name) {
                 $form->setField($name, 'input=none');
+            }
+        }
+    }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
+        }
+
+        if (isset($rec->id)) {
+            $detailsKeywords = '';
+            $dQuery =  eshop_CartDetails::getQuery();
+            $dQuery->where("#cartId = {$rec->id}");
+            while ($dRec = $dQuery->fetch()) {
+
+                // Ключовите думи на артикулите се добавят към тези на мастъра
+                $pRec = cat_Products::fetch($dRec->productId);
+                $productSearchKeywords = cls::get('cat_Products')->getSearchKeywords($pRec);
+                $detailsKeywords .= ' ' . $productSearchKeywords;
+                $detailsKeywords .= ' ' . plg_Search::normalizeText(eshop_CartDetails::getVerbal($dRec, 'eshopProductId'));
+            }
+
+            // Ако има нови ключови думи, добавят се
+            if (!empty($detailsKeywords)) {
+                $res = ' ' . $res . ' ' . $detailsKeywords;
             }
         }
     }

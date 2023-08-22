@@ -95,6 +95,8 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     {
         $this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setFields($this);
+        $this->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
+        $this->FLD('clonedFromDetailClass', "int", 'caption=От кое поле е клонирано,input=none');
         $this->setDbUnique('protocolId,productId,packagingId');
     }
 

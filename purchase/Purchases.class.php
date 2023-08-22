@@ -718,10 +718,9 @@ class purchase_Purchases extends deals_DealMaster
         $conf = core_Packs::getConfig('purchase');
         $olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
         $limit = $conf->PURCHASE_CLOSE_OLDER_NUM;
-        $daysAfterAcc = $conf->PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE;
         $ClosedDeals = cls::get('purchase_ClosedDeals');
         
-        $this->closeOldDeals($olderThan, $daysAfterAcc, $ClosedDeals, $limit);
+        $this->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     
@@ -883,6 +882,9 @@ class purchase_Purchases extends deals_DealMaster
                 if($productCheck['metasError']){
                     $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
                     $form->setError('action', $warning1);
+                } elseif ($productCheck['notActive']) {
+                    $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
+                    $form->setError('action', $error1);
                 }
             }
         }

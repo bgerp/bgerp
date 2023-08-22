@@ -97,7 +97,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial=Произв. №,productId,taskId,quantity=К-во,netWeight=Нето кг,weight=Бруто кг,employees,fixedAsset=Обор.,date=Дата,info=@';
+    public $listFields = 'taskId,type=Прогрес,serial=Произв. №,productId,taskId,quantity=К-во,netWeight=Нето кг,weight=Бруто кг,employees,fixedAsset=Обор.,date=Дата,info=@';
 
 
     /**
@@ -655,7 +655,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         if(!isset($taskWeightSubtractValue)){
             $taskWeightSubtractValue = cat_Products::getParams($jobProductId, $paramId);
+            $taskWeightSubtractValue = ($taskWeightSubtractValue === false) ? null : $taskWeightSubtractValue;
         }
+
         if(!isset($taskWeightSubtractValue)){
             $taskWeightSubtractValue = cat_Products::getParams($taskProductId, $paramId);
         }
@@ -1094,6 +1096,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        $data->listTableId = "taskProgressTable{$data->masterData->rec->id}";
         $data->isMeasureKg = ($data->masterData->rec->measureId == cat_UoM::fetchBySinonim('kg')->id);
         $lastRecId = null;
 
@@ -1110,6 +1113,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(empty($masterCenterRec->useTareFromParamId) && empty($masterCenterRec->useTareFromPackagings)){
                 unset($data->listFields['netWeight']);
             }
+        } else {
+            arr::placeInAssocArray($data->listFields, array('jobId' => 'Задание'), 'taskId');
         }
 
         $rows = &$data->rows;
@@ -1137,6 +1142,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             $masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : planning_Tasks::fetch($rec->taskId);
             $centerRec = is_object($masterCenterRec) ? $masterCenterRec : planning_Centers::fetch("#folderId = {$masterRec->folderId}");
 
+            if(!isset($data->masterMvc)) {
+                $row->jobId = doc_Containers::getDocument($masterRec->originId)->getLink(0);
+            }
 
             $eFields = planning_Tasks::getExpectedDeviations($masterRec);
             $deviationNotice = $eFields['notice'];
@@ -1166,37 +1174,34 @@ class planning_ProductionTaskDetails extends doc_Detail
                 // Има ли нето тегло
                 if(isset($rec->netWeight) && $rec->state != 'rejected'){
 
-                    // Колко е очакваното нето тегло
-                    $expectedSingleNetWeight = cat_Products::convertToUom($rec->productId, 'kg');
-
                     // Ако няма и има избран параметър за ед. тегло
                     $convertAgain = true;
-                    if(empty($expectedSingleNetWeight)){
+                    $expectedSingleNetWeight = null;
+                    if(isset($centerRec->paramExpectedNetWeight)){
+                        $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $masterRec->productId);
 
-                        if(isset($centerRec->paramExpectedNetWeight)){
-                            $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $rec->productId);
-
-                            // Ако параметъра е формула, се прави опит за изчислението ѝ
-                            if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
-
-                                Mode::push('text', 'plain');
-                                $expectedSingleNetWeight = cat_Params::toVerbal($centerRec->paramExpectedNetWeight, planning_Tasks::getClassId(), $rec->taskId, $expectedSingleNetWeight);
-                                Mode::pop('text');
-                                if ($expectedSingleNetWeight === cat_BomDetails::CALC_ERROR) {
-                                    $expectedSingleNetWeight = null;
-                                }
-                            }
-
-                            if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
-
-                                $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
-                                $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
-                                if($rec->type == 'production'){
-                                    $expectedSingleNetWeight = $expectedSingleNetWeight / $masterRec->quantityInPack;
-                                }
+                        // Ако параметъра е формула, се прави опит за изчислението ѝ
+                        if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
+                            Mode::push('text', 'plain');
+                            $expectedSingleNetWeight = cat_Params::toVerbal($centerRec->paramExpectedNetWeight, planning_Tasks::getClassId(), $rec->taskId, $expectedSingleNetWeight);
+                            Mode::pop('text');
+                            if ($expectedSingleNetWeight === cat_BomDetails::CALC_ERROR) {
+                                $expectedSingleNetWeight = null;
                             }
                         }
-                    } else {
+
+                        if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
+                            $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
+                            $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
+                            if($rec->type == 'production'){
+                                $expectedSingleNetWeight = $expectedSingleNetWeight / $masterRec->quantityInPack;
+                            }
+                        }
+                    }
+
+                    $defaultExpectedSingleWeight = cat_Products::convertToUom($rec->productId, 'kg');
+                    if(empty($expectedSingleNetWeight)){
+                        $expectedSingleNetWeight = $defaultExpectedSingleWeight;
                         if($rec->type == 'production'){
                             $expectedSingleNetWeight = $expectedSingleNetWeight * $masterRec->quantityInPack;
                             $convertAgain = false;
@@ -1351,29 +1356,32 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Документът не може да се създава в нова нишка, ако е въз основа на друг
         $data->toolbar->removeBtn('btnAdd');
         if(isset($data->masterMvc)){
+            $masterRec = $data->masterData->rec;
+            $retUrl = array('doc_Containers', 'list', 'threadId' => $masterRec->threadId, '#' => "taskProgressTable{$masterRec->id}");
+
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
                 $btnName = (empty($masterRec->labelPackagingId) || $masterRec->labelPackagingId == $masterRec->measureId) ? 'Прогрес' : "Прогрес|* " . tr(cat_UoM::getTitleById(($masterRec->labelPackagingId)));
-                $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на прогрес по операцията');
+                $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => $retUrl), false, 'ef_icon = img/16/package.png,title=Добавяне на прогрес по операцията');
             }
 
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials'))) {
-                $data->toolbar->addBtn('Влагане: Материали', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+                $data->toolbar->addBtn('Влагане: Материали', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials', 'ret_url' => $retUrl), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
             }
 
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'services'))) {
-                $data->toolbar->addBtn('Влагане: Услуги', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'services', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+                $data->toolbar->addBtn('Влагане: Услуги', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'services', 'ret_url' => $retUrl), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
             }
 
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'actions'))) {
-                $data->toolbar->addBtn('Влагане: Действия', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'actions', 'ret_url' => true), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
+                $data->toolbar->addBtn('Влагане: Действия', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'actions', 'ret_url' => $retUrl), false, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
             }
 
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
-                $data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => true), false, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
+                $data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => $retUrl), false, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
             }
 
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'scrap'))) {
-                $data->toolbar->addBtn('Бракуване', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'scrap', 'ret_url' => true), false, 'ef_icon = img/16/bin_closed.png,title=Бракуване на прогрес по операцията');
+                $data->toolbar->addBtn('Бракуване', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'scrap', 'ret_url' => $retUrl), false, 'ef_icon = img/16/bin_closed.png,title=Бракуване на прогрес по операцията');
             }
         }
     }

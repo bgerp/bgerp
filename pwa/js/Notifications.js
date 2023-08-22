@@ -4,12 +4,16 @@ document.addEventListener('DOMContentLoaded', () => {
         pwaSubsctiptionUrl = 'pwa_PushSubscriptions/Subscribe';
     }
 
+    if (typeof forceSubscibe === 'undefined') {
+        forceSubscibe = 'no';
+    }
+
     // Бутона за абониране и отписване от известия
     const pushButton = document.querySelector('#push-subscription-button');
     const pushButtonUnsubscribe = document.querySelector('#push-subscription-button-unsubscribe');
     if (!pushButton && !pushButtonUnsubscribe) {
 
-        return;
+        // return;
     }
 
     // Проверява състоянието на абониране
@@ -226,7 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
         var endpoint = subscription.endpoint;
         var subscription = subscription;
 
-        getEfae().process({url: pwaSubsctiptionUrl}, {action: action, publicKey: publicKey, authToken: authToken, endpoint: endpoint, contentEncoding: contentEncoding}, false);
+        if (typeof redirectUrl === 'undefined') {
+            redirectUrl = 'none';
+        }
+
+        getEfae().process({url: pwaSubsctiptionUrl}, {action: action, publicKey: publicKey, authToken: authToken, endpoint: endpoint, contentEncoding: contentEncoding, redirectUrl: redirectUrl}, false);
 
         return subscription;
     }
@@ -250,5 +258,14 @@ document.addEventListener('DOMContentLoaded', () => {
             outputArray[i] = rawData.charCodeAt(i);
         }
         return outputArray;
+    }
+
+    // Ако е зададено форсирано абониране, го правим
+    if (forceSubscibe == 'yes') {
+        if (isPushEnabled) {
+            getEfae().process({url: pwaSubsctiptionUrl}, {haveSubscription: 1}, false);
+        } else {
+            push_subscribe();
+        }
     }
 });

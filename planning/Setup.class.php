@@ -284,6 +284,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_GenericMapper',
         'planning_StepConditions',
         'planning_GenericProductPerDocuments',
+        'planning_WorkInProgress',
         'migrate::updateLabelType',
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
@@ -329,7 +330,7 @@ class planning_Setup extends core_ProtoSetup
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
-                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep';
+                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep,planning_interface_ImportFromConsignmentProtocol';
 
 
     /**
@@ -345,6 +346,10 @@ class planning_Setup extends core_ProtoSetup
 
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
+
+        // Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Синхронизиране на незавършеното производство', 'planning_plg_BalanceSync', 'acc_Balances', 'private');
 
         $config = core_Packs::getConfig('planning');
         if (strlen($config->PLANNING_SORT_TASKS_IN_JOB_STRATEGY) === 0) {

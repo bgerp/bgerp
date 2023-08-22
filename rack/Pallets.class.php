@@ -104,8 +104,14 @@ class rack_Pallets extends core_Manager
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'position,batch,productId,comment';
-    
-    
+
+
+    /**
+     * Кои полета да се фечват
+     */
+    public $fetchFieldsBeforeDelete = 'storeId,productId';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -116,7 +122,7 @@ class rack_Pallets extends core_Manager
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell,silent');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,silent');
-        $this->FLD('batch', 'text', 'smartCenter,caption=Партида');
+        $this->FLD('batch', 'text', 'caption=Партида');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none,notNull,value=active');
@@ -488,6 +494,12 @@ class rack_Pallets extends core_Manager
             $saveAgain = true;
             $updateFields['state'] = 'state';
             $updateFields['closedOn'] = 'closedOn';
+        } elseif($rec->state == 'closed'){
+            $rec->state = 'active';
+            $rec->closedOn = null;
+            $saveAgain = true;
+            $updateFields['state'] = 'state';
+            $updateFields['closedOn'] = 'closedOn';
         }
         
         // Ако няма етикет се задава
@@ -617,19 +629,45 @@ class rack_Pallets extends core_Manager
     public static function increment($productId, $storeId, $position, $quantity, $batch)
     {
         // Ако няма палет се създава нов
-        $rec = self::fetch(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+        $batchDef = core_Packs::isInstalled('batch') ? batch_Defs::getBatchDef($productId) : null;
+        $rQuery = static::getQuery();
+        $rQuery->where(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId}", $position));
+        if(core_Packs::isInstalled('batch')){
+            $rQuery->XPR('batchCalc', 'varchar', "COALESCE(#batch, '')");
+            $rQuery->where(array("#batchCalc = '[#1#]'", $batch));
+        }
+
+        $rQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+        $rQuery->orderBy('order');
+        $rec = $rQuery->fetch();
+
         if(!$rec) {
             $samePosPallets = static::canHaveMultipleOnOnePosition($storeId);
 
             if(!$samePosPallets) {
-                $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+                $rQuery2 = static::getQuery();
+                $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId}", $position));
+                if(core_Packs::isInstalled('batch')){
+                    $rQuery2->XPR('batchCalc', 'varchar', "COALESCE(#batch, '')");
+                    $rQuery2->where(array("#batchCalc = '[#1#]'", $batch));
+                }
+
+                $rQuery2->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+                $rQuery2->orderBy('order');
+                $rec = $rQuery2->fetch();
+
+                $str = is_object($rec) ? "FOUND2 ($rec->id)" : "NOT FOUND";
+                static::logDebug("{$str} : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
             }
-        }            
+        } else {
+            static::logDebug("FOUND1 ($rec->id) : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
+        }
       
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position, $batch);
+            static::logDebug("NEW ($rec->id) : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
         } else {
-            
+
             // Ако има променя му се количеството
             expect($rec->productId == $productId, 'Артикулът е различен');
             expect($rec->storeId == $storeId, 'Склада е различен');
@@ -667,7 +705,9 @@ class rack_Pallets extends core_Manager
         $rec->rackId = $rRec->id;
         
         self::save($rec);
-        
+        if($rec->quantity < 0) {
+            wp($rec, $productId, $storeId, $quantity, $position, $batch, $label);
+        }
         return $rec;
     }
     
@@ -1210,8 +1250,8 @@ class rack_Pallets extends core_Manager
     {
         $fieldset->setFieldType('batch', 'varchar');
         $fieldset->setFieldType('productId', 'key(mvc=cat_Products,select=name)');
-        $fieldset->FNC('code', 'varchar', 'caption=Код,after=position');
-        $fieldset->FNC('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,after=batch');
+        $fieldset->setField('code', 'caption=Код,after=position');
+        $fieldset->setField('measureId', 'caption=Код,after=position');
     }
 
 
@@ -1238,6 +1278,18 @@ class rack_Pallets extends core_Manager
             }
 
             arr::sortObjects($recs, 'position', 'ASC', 'natural');
+        }
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // При изтриване да се рекалкулира к-то по палети
+        foreach ($query->getDeletedRecs() as $rec) {
+            rack_Pallets::recalc($rec->productId, $rec->storeId);
         }
     }
 }

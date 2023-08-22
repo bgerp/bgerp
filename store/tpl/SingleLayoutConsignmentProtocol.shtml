@@ -25,7 +25,11 @@
                             <!--ET_END zoneReadiness-->
 
                         </td>
-                        <td class="cell custom-header-bg" style='width:35%;'><b>[#ourCompanyCaption#]</b></td>
+                        <td class="cell custom-header-bg" style='width:35%;'><b>[#ourCompanyCaption#]</b>
+                            <!--ET_BEGIN protocolType-->
+                            <div class=' consignmentProtocol stamp fright'>[#protocolType#]</div>
+                            <!--ET_END protocolType-->
+                        </td>
                     </tr>
                     <tr>
                         <td class="cell">

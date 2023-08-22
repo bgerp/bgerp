@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin, plg_Sorting';
     
     
     /**
@@ -43,7 +43,7 @@ class cat_Boms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ,productId=За артикул,state,createdOn,createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ,productId=За артикул,state,expenses=Реж.,createdOn,createdBy,modifiedOn,modifiedBy';
     
     
     /**
@@ -81,7 +81,7 @@ class cat_Boms extends core_Master
     /**
      * Кои полета да не бъдат презаписвани от шаблона
      */
-    public $fieldsNotToCopyFromTemplate = 'type,productId';
+    public $fieldsNotToCopyFromTemplate = 'type,productId,regeneratedFromId';
 
 
     /**
@@ -220,6 +220,18 @@ class cat_Boms extends core_Master
      * Брояч
      */
     public static $calcPriceCounter = array();
+
+
+    /**
+     * Да се показва ли антетката
+     */
+    public $showLetterHead = true;
+
+
+    /**
+     * Дали да се показват последно видяните документи при избора на шаблонен
+     */
+    public $showInPrototypesLastVisited = true;
 
 
     /**
@@ -743,7 +755,7 @@ class cat_Boms extends core_Master
 
                     $row->primeCost = currency_Currencies::decorate($row->primeCost, $baseCurrencyCode);
                     $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
-                    $row->primeCost .= tr("|*, |при тираж|* {$row->quantityForPrice} {$shortUom}");
+                    $row->primeCost .= tr("|*, <i>|при тираж|* {$row->quantityForPrice} {$shortUom}</i>");
                     if(!empty($row->primeCostWithOverheadCost)){
                         $row->primeCostWithOverheadCost = currency_Currencies::decorate($row->primeCostWithOverheadCost, $baseCurrencyCode);
                     }
@@ -763,8 +775,13 @@ class cat_Boms extends core_Master
                     $row->regeneratedFromId = cat_Boms::getLink($rec->regeneratedFromId, 0);
                 }
 
-                if(isset($rec->clonedFromId)){
+                if(isset($rec->clonedFromId) && empty($rec->prototypeId)){
                     $row->clonedFromId = cat_Boms::getLink($rec->clonedFromId, 0);
+                }
+
+                if(isset($rec->prototypeId)){
+                    $row->prototypeId = cat_Boms::getLink($rec->prototypeId, 0);
+                    unset($row->clonedFromId);
                 }
             }
         }
@@ -1299,9 +1316,8 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                
                 // Ако няма такава, търсим по последната работна рецепта, ако има
-                if ($prodBom = cat_Products::getLastActiveBom($productId)) {
+                if ($prodBom = cat_Products::getLastActiveBom($productId, 'production,instant,sales')) {
                     $price = static::getBomPrice($prodBom, $quantity, 0, 0, $date, $priceListId);
                 }
             }
@@ -1673,7 +1689,13 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+
+        jquery_Jquery::run($tpl,"toggleDisplayBomStepDetails();", TRUE);
         jquery_Jquery::run($tpl,"openBoomRows();", TRUE);
+
+
+        jquery_Jquery::runAfterAjax($tpl, 'toggleDisplayBomStepDetails');
+        jquery_Jquery::runAfterAjax($tpl, 'openBoomRows');
     }
     
     /**
@@ -2077,5 +2099,35 @@ class cat_Boms extends core_Master
                 $this->regenDetailRec($bRec, $newBomRec, $oldBomRec, $cloneIfDetailsAreNewer);
             }
         }
+    }
+
+
+    /**
+     * Добавя допълнителни полетата в антетката
+     *
+     * @param core_Master $mvc
+     * @param NULL|array  $res
+     * @param object      $rec
+     * @param object      $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+
+        $resArr['price'] = array('name' => tr('Себестойност'), 'val' => tr("|*<table class='docHeaderVal'>
+                <tr><td style='font-weight:normal'>|Себестойност|*:</td><td>[#primeCost#]</td></tr>
+                <!--ET_BEGIN primeCostWithOverheadCost--><tr><td style='font-weight:normal'>|С реж. разходи|*:</td><td>[#primeCostWithOverheadCost#]</td></tr><!--ET_END primeCostWithOverheadCost-->
+                <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
+                <tr><td style='font-weight:normal' colspan='2'><b>[#isComplete#]</b></td></tr>
+                </table>"));
+
+        $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<table class='docHeaderVal'>
+                <!--ET_BEGIN showInProduct--><tr><td style='font-weight:normal'>|Показване в артикула|*:</td><td>[#showInProduct#]</td></tr><!--ET_END showInProduct-->
+                <tr><td style='font-weight:normal'>|Модифициранe|*:</td><td>[#modifiedOn#]</b> |от|* [#modifiedBy#]</td></tr>
+                <!--ET_BEGIN lastUpdatedDetailOn--><tr><td style='font-weight:normal'>|Промяна на детайл|*:</td><td>[#lastUpdatedDetailOn#]</td></tr><!--ET_END lastUpdatedDetailOn-->
+                <!--ET_BEGIN prototypeId--><tr><td style='font-weight:normal'>|Базирано на|*:</td><td>[#prototypeId#]</td></tr><!--ET_END prototypeId-->
+                <!--ET_BEGIN clonedFromId--><tr><td style='font-weight:normal'>|Клонирано от|*:</td><td>[#clonedFromId#]</td></tr><!--ET_END clonedFromId-->
+                <!--ET_BEGIN regeneratedFromId--><tr><td style='font-weight:normal'>|Регенерирано от|*:</td><td>[#regeneratedFromId#]</td></tr><!--ET_END regeneratedFromId-->
+                </table>"));
     }
 }

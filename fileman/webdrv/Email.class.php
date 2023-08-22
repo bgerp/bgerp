@@ -73,7 +73,12 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // Вземаме съдържанието на таба за HTML
         $htmlPart = static::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path']);
-        
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Ако няма HTML част
         if ($htmlPart !== false) {
             
@@ -81,7 +86,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $tabsArr['html'] = (object)
                 array(
                     'title' => 'HTML',
-                    'html' => $htmlPart,
+                    'html' => "{$prevLink}{$nextLink}{$htmlPart}",
                     'order' => 3,
                 );
         } else {
@@ -90,7 +95,6 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $tabsArr['__defaultTab']->name = 'text';
         }
         
-        
         // Ако има текстова част
         if (trim($textPart)) {
             
@@ -98,7 +102,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $tabsArr['text'] = (object)
                 array(
                     'title' => 'Текст',
-                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='legend'>" . tr('Текстовата част на имейла') . "</div><div class='webdrvFieldset'>{$textPart}</div></div>",
+                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$textPart}</div></div>",
                     'order' => 4,
                 );
         }
@@ -110,7 +114,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $tabsArr['files'] = (object)
                 array(
                     'title' => 'Файлове',
-                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='legend'>" . tr('Прикачените файлове') . "</div><div class='webdrvFieldset'>{$filesStr}</div></div>",
+                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$filesStr}</div></div>",
                     'order' => 5,
                 );
         }
@@ -119,7 +123,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr['headers'] = (object)
             array(
                 'title' => 'Хедъри',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Хедърите на имейла') . "</div><div class='webdrvFieldset'>{$headersStr}</div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$headersStr}</div></div>",
                 'order' => 8,
             );
         
@@ -127,7 +131,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr['source'] = (object)
             array(
                 'title' => 'Сорс',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Изходен код на имейла') . "</div><div class='webdrvFieldset'>{$sourceShow}</div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$sourceShow}</div></div>",
                 'order' => 9,
             );
 
@@ -149,7 +153,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $tabsArr['emailData'] = (object)
             array(
                 'title' => 'Данни',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Контактните данни в имейла') . "</div><div class='webdrvFieldset'>{$parsedData}</div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$parsedData}</div></div>",
                 'order' => 100,
             );
         }

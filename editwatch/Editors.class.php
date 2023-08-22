@@ -33,7 +33,7 @@ class editwatch_Editors extends core_Manager
         $this->FLD('recId', 'int', 'caption=Запис');
         $this->FLD('lastEdit', 'datetime', 'caption=Последно');
         
-        $this->dbEngine = 'InnoDB';
+        // $this->dbEngine = 'InnoDB';
     }
     
     

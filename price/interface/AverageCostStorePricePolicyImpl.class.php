@@ -38,23 +38,24 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         
         return $res;
     }
-    
-    
+
+
     /**
      * Изчислява себестойностите на засегнатите артикули
      *
-     * @param array $affectedTargetedProducts
+     * @param array $affectedTargetedProducts - засегнати артикули
+     * @param array $params - параметри
      *
      * @return array
-     *              ['classId']       - клас ид на политиката
-     *              ['productId']     - ид на артикул
-     *              ['quantity']      - количество
-     *              ['price']         - ед. цена
-     *              ['valior']        - вальор
-     *              ['sourceClassId'] - ид на класа на източника
-     *              ['sourceId']      - ид на източника
+     *         ['classId']       - клас ид на политиката
+     *         ['productId']     - ид на артикул
+     *         ['quantity']      - количество
+     *         ['price']         - ед. цена
+     *         ['valior']        - вальор
+     *         ['sourceClassId'] - ид на класа на източника
+     *         ['sourceId']      - ид на източника
      */
-    public function getCosts($affectedTargetedProducts)
+    public function getCosts($affectedTargetedProducts, $params = array())
     {
         $res = array();
         
@@ -161,7 +162,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         }
 
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
-        $skipDocArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
+        $skipDocArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId(), store_ConsignmentProtocols::getClassId());
         $lastBalance = acc_Balances::getLastBalance();
         
         // Дали да се използва кешираната дата

@@ -120,11 +120,11 @@ class log_Data extends core_Manager
         $this->setDbIndex('brId');
         $this->setDbIndex('userId');
         $this->setDbIndex('time');
-        $this->setDbIndex('type');
+        //$this->setDbIndex('type');
         $this->setDbIndex('actionCrc');
         $this->setDbIndex('objectId,classCrc');
         
-        $this->dbEngine = 'InnoDB';
+        // $this->dbEngine = 'InnoDB';
     }
     
     
@@ -329,6 +329,7 @@ class log_Data extends core_Manager
         $query = self::getQuery();
         $query->where("#classCrc = {$classCrc}");
         $query->where("#objectId = {$objectId}");
+        $query->useIndex('object_id_class_crc');
         
         if (isset($type)) {
             $query->where(array("#type = '[#1#]'", $type));

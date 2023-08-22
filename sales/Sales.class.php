@@ -949,10 +949,9 @@ class sales_Sales extends deals_DealMaster
         $conf = core_Packs::getConfig('sales');
         $olderThan = $conf->SALE_CLOSE_OLDER_THAN;
         $limit = $conf->SALE_CLOSE_OLDER_NUM;
-        $daysAfterAcc = $conf->SALES_CURRENCY_CLOSE_AFTER_ACC_DATE;
         $ClosedDeals = cls::get('sales_ClosedDeals');
         
-        $this->closeOldDeals($olderThan, $daysAfterAcc, $ClosedDeals, $limit);
+        $this->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     
@@ -1296,30 +1295,51 @@ class sales_Sales extends deals_DealMaster
     /**
      * Връща всички производими артикули от продажбата
      *
-     * @param mixed $id - ид или запис
+     * @param int|stdClass $id - ид или запис
      * @param boolean $onlyActive - дали да са само активните артикули
      *
      * @return array $res - масив с производимите артикули
      */
     public static function getManifacturableProducts($id, $onlyActive = false)
     {
-        $rec = static::fetchRec($id);
-        $res = array();
-        
         // Кои са производимите, активни артикули
+        $res = array();
+        $rec = static::fetchRec($id);
         $saleQuery = sales_SalesDetails::getQuery();
         $saleQuery->where("#saleId = {$rec->id}");
         $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+        $saleQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $saleQuery->where("#canManifacture = 'yes'");
         $saleQuery->orderBy('productId', 'ASC');
+        $saleQuery->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
+        $saleQuery->show('productId,codeExp');
+
         if($onlyActive){
             $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
             $saleQuery->where("#state = 'active'");
         }
-        
-        $saleQuery->show('productId');
-        while ($dRec = $saleQuery->fetch()) {
-            $res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, false);
+
+        // Извличане на кода и рефа, за да са готови за сортиране
+        $productArr = array();
+        $listId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'salesList');
+        while($dRec = $saleQuery->fetch()){
+            $productArr[$dRec->productId] = (object)array('productId' => $dRec->productId, 'code' => $dRec->codeExp);
+            if (isset($listId)) {
+                $productArr[$dRec->productId]->reff = cat_Listings::getReffByProductId($listId, $dRec->productId, $dRec->packagingId);
+            }
+        }
+
+        // Сортиране на артикулите, както сa подредени в продажбата
+        $detailOrderBy = $rec->detailOrderBy;
+        if($detailOrderBy == 'code'){
+            arr::sortObjects($productArr, 'code', 'ASC', 'natural');
+        } elseif($detailOrderBy == 'reff' && isset($listId)){
+            arr::sortObjects($productArr, 'reff', 'ASC', 'natural');
+        }
+
+        $productArr = array_keys($productArr);
+        foreach ($productArr as $productId){
+            $res[$productId] = cat_Products::getTitleById($productId, false);
         }
         
         return $res;

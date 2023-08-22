@@ -304,7 +304,7 @@ class doc_Folders extends core_Master
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,autoFilter');
-        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent,autoFilter');
+        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно", inCharge=Без споделените)', 'caption=Подредба,input,silent,autoFilter');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -321,9 +321,7 @@ class doc_Folders extends core_Master
         
         if (!$data->listFilter->rec->search) {
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-            $uArr = type_Keylist::toArray($data->listFilter->rec->users);
-
-            if ($uArr[$cu] && (countR($uArr) == 1)) {
+            if ($data->listFilter->rec->order != 'inCharge') {
                 $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
             }
             $data->title = 'Папките на |*<span class="green">' .
@@ -334,6 +332,7 @@ class doc_Folders extends core_Master
         }
         
         switch ($data->listFilter->rec->order) {
+            case 'inCharge':
             case 'last':
                 $data->query->orderBy('#last', 'DESC');
                 

@@ -384,6 +384,12 @@ abstract class deals_InvoiceMaster extends core_Master
                 $data->toolbar->addBtn('Известие||D/C note', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'dc_note', 'ret_url' => true), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно или кредитно известие към документа,rows=2');
             }
         }
+
+        if ($rec->type == 'dc_note'){
+            if(acc_ValueCorrections::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+                $data->toolbar->addBtn('Корекция на стойност', array('acc_ValueCorrections', 'add', 'threadId' => $rec->threadId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Корекция на стойност към сделката');
+            }
+        }
     }
     
     
@@ -422,7 +428,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
         
-        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate');
+        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible');
         if ($this instanceof purchase_Invoices) {
             $unsetArr[] = 'journalDate';
         }
@@ -1792,14 +1798,14 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $fields = $mvc->selectFields();
         $fields['-list'] = true;
+
         foreach ($recs as &$rec) {
+            $rate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
             $rec->number = $mvc->getVerbal($rec, 'number');
             $rec->dealValue = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
-            $rec->dealValue = (!empty($rec->rate)) ? $rec->dealValue / $rec->rate : $rec->dealValue;
-            $rec->valueNoVat = $rec->dealValue - $rec->discountAmount;
-            $rec->valueNoVat = (!empty($rec->rate)) ? $rec->valueNoVat / $rec->rate : $rec->valueNoVat;
-            $rec->vatAmount = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
-            $rec->dealValueWithoutDiscount = (!empty($rec->rate)) ? ($rec->dealValue - $rec->discountAmount) / $rec->rate : ($rec->dealValue - $rec->discountAmount);
+            $rec->dealValue = !empty($rate) ? $rec->dealValue / $rate : $rec->dealValue;
+            $rec->vatAmount = !empty($rate) ? $rec->vatAmount / $rate : $rec->vatAmount;
+            $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->vatAmount;
         }
     }
     
@@ -1954,5 +1960,16 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        $fieldset->setFieldType('dealValueWithoutDiscount', 'double');
     }
 }

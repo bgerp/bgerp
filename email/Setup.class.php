@@ -487,7 +487,8 @@ class email_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_CheckEmails';
+    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_CheckEmails, 
+                            email_drivers_RouteOutgoingEmails, email_drivers_BlockBlastEmails';
     
     
     /**

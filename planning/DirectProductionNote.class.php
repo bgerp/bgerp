@@ -291,7 +291,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $form->setDefault('packagingId', $defaultPack);
             if ($productRec->canStore == 'no') {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
 
                 // Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
                 if ($productRec->canConvert == 'no' && $productRec->fixedAsset == 'no') {
@@ -419,6 +418,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
         }
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
+
+        // Попълване на склада за влагане
+        $jobRec = static::getJobRec($rec);
+        $jobInputStores = keylist::toArray($jobRec->inputStores);
+        if(countR($jobInputStores) == 1){
+            $threadId = $rec->threadId ?? doc_Containers::fetchField($rec->originId, 'threadId');
+            if(!planning_ConsumptionNotes::existActivatedInThread($threadId)){
+                $form->setDefault('inputStoreId', key($jobInputStores));
+            }
+        }
+
         if(isset($rec->inputStoreId)){
             $form->setDefault('inputServicesFrom', 'all');
         } else {
@@ -440,6 +450,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = &$form->rec;
 
         if ($form->isSubmitted()) {
+
+            if($form->getField('inputStoreId')->input != 'none'){
+                if(empty($rec->inputStoreId)){
+                    if(!planning_ConsumptionNotes::existActivatedInThread($rec->threadId)){
+                        $form->setWarning('inputStoreId', 'В Заданието(и операциите към него) няма контиран Протокол за влагане, а е избрано влагане на материалите от "Незавършено производство"! Ако няма предварително (общо) влагане - изберете склад за изписване на материалите!');
+                    }
+                }
+            }
 
             // Проверка на к-то
             $warning = null;
@@ -714,7 +732,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $requiredRoles = $mvc->getRequiredRoles('conto', $rec, $userId);
             if ($requiredRoles != 'no_one') {
                 if (isset($rec)) {
-                    if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id}", 'id')) {
+
+                    // Ако няма материали и отпадъци или всички материали са чужди от ПОП - ще може да се контира бездетайлно
+                    $dQuery = planning_DirectProductNoteDetails::getQuery();
+                    $dQuery->where("#noteId = {$rec->id} AND #type = 'input'");
+                    $dQuery->show('productId');
+                    $dProductIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+                    $consignedProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($rec->threadId, false);
+                    $diff = array_diff_key($dProductIds, $consignedProducts);
+                    if (countR($diff) || (!countR($dProductIds) && planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop'"))) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -1143,7 +1169,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = static::fetchRec($rec);
 
         if (isset($rec->id)) {
-            $input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'", 'id');
+            $jobRec = static::getJobRec($rec->id);
+            $where = "#noteId = {$rec->id} AND #type = 'input'";
+            $consignedProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($jobRec->threadId, false);
+            if(countR($consignedProducts)){
+                $consignedProductsStr = implode(',', $consignedProducts);
+                $where .= " AND #productId NOT IN ({$consignedProductsStr})";
+            }
+
+            $input = planning_DirectProductNoteDetails::fetchField($where, 'id');
             $pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
             if ($pop && !$input) {
 

@@ -406,31 +406,34 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $abbr = $mvc->abbr;
         $abbr[0] = strtoupper($abbr[0]);
-        
-        if (isset($rec->contragentClassId, $rec->contragentId)) {
-            $crm = cls::get($rec->contragentClassId);
-            $cRec = $crm->getContragentData($rec->contragentId);
-            
-            $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
-        } else {
-            $contragent = tr('Проблем при показването');
+
+        $titleArr = array();
+        $titleArr[] = "{$abbr}{$rec->id}";
+        if(!Mode::is('documentPortalShortName')) {
+            if (isset($rec->contragentClassId, $rec->contragentId)) {
+                $crm = cls::get($rec->contragentClassId);
+                $cRec = $crm->getContragentData($rec->contragentId);
+                $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
+            } else {
+                $contragent = tr('Проблем при показването');
+            }
+
+            if ($escaped) {
+                $contragent = type_Varchar::escape($contragent);
+            }
+            $titleArr[] = $contragent;
         }
-        
-        if ($escaped) {
-            $contragent = type_Varchar::escape($contragent);
-        }
-        
-        $title = "{$abbr}{$rec->id}/{$contragent}";
 
         // Показване и на артикула с най-голяма стойност в продажбата
         if (!empty($rec->reff)) {
-            $title .= "/{$rec->reff}";
+            $titleArr[] = $rec->reff;
         } elseif (isset($rec->productIdWithBiggestAmount)) {
             $length = sales_Setup::get('PROD_NAME_LENGTH');
             $pName = mb_substr(type_Varchar::escape($rec->productIdWithBiggestAmount), 0, $length);
-            $title .= "/{$pName}";
+            $titleArr[] = $pName;
         }
-        
+        $title = implode('/', $titleArr);
+
         return $title;
     }
     
@@ -463,7 +466,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         // Избрания ДДС режим съответства ли на дефолтния
-        $defVat = $mvc->getDefaultChargeVat($rec);
+        $defVat = deals_Helper::getDefaultChargeVat($rec->folderId, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
             $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
             if(!$isCurrencyReadOnly){
@@ -1693,16 +1696,13 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Приключва остарелите сделки
      */
-    public function closeOldDeals($olderThan, $daysAfterAccDate, $closeDocName, $limit)
+    public function closeOldDeals($olderThan, $closeDocName, $limit)
     {
         $className = get_called_class();
 
         $now = dt::now();
         $today = dt::today();
-        $day = dt::mysql2verbal($now, 'd');
         $oldBefore = dt::addSecs(-1 * $olderThan, $now);
-        $accDay = acc_Setup::get('DATE_FOR_INVOICE_DATE') + $daysAfterAccDate;
-        $firstDayOfMonth = date('Y-m-01') . " 23:59:59";
 
         expect(cls::haveInterface('bgerp_DealAggregatorIntf', $className));
         $query = $className::getQuery();
@@ -1731,7 +1731,8 @@ abstract class deals_DealMaster extends deals_DealBase
         // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс или да е NULL
         $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
         $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
-        
+        $query->where("#threadModifiedOn <= '{$oldBefore}'");
+
         // Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници или не трябва да се фактурират
         $query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
         $query->orWhere("#makeInvoice = 'no'");

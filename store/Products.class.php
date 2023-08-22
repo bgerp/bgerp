@@ -72,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'history,code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,lastUpdated=Промяна на||Changed on';
+    public $listFields = 'history,code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,lastUpdated=<small>Промяна на||Changed on</small>';
     
     
     /**
@@ -255,6 +255,7 @@ class store_Products extends core_Detail
         // Подготвяме в заявката да може да се търси по полета от друга таблица
         $data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
         $data->query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $data->query->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
         $data->query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $data->query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $data->query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -313,7 +314,7 @@ class store_Products extends core_Detail
             }
 
             $filtersArr = bgerp_type_CustomFilter::toArray($data->listFilter->rec->filters);
-            cat_Products::applyAdditionalListFilters($filtersArr, $data->query);
+            cat_Products::applyAdditionalListFilters($filtersArr, $data->query, 'productId', 'pState');
 
             if(!empty($rec->horizon)){
 
@@ -543,11 +544,9 @@ class store_Products extends core_Detail
     {
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
-        
-        if (!countR($data->rows)) {
-            
-            return;
-        }
+        $data->listTableMvc->setField('lastUpdated', 'tdClass=small');
+
+        if (!countR($data->rows)) return;
 
         $today = dt::today();
         foreach ($data->rows as $id => &$row) {
@@ -969,6 +968,44 @@ class store_Products extends core_Detail
         foreach ($storeArr as $storeId){
             $quantity = store_Products::getQuantities($productId, $storeId, $date)->quantity;
             $res[$storeId] = $quantity;
+        }
+
+        return $res;
+    }
+
+
+    function remote_getStocks($authorizationId, $args)
+    {
+        expect(remote_Authorizations::fetchRec($authorizationId));
+        expect(store_Stores::fetchRec($authorizationId));
+
+        // Кои са стандартните артикули в посочените складове
+        $res = $measureSysIds = array();
+        $query = static::getQuery();
+        $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        $query->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+        $query->where("#isPublic = 'yes' AND (#code IS NOT NULL OR #code != '')");
+        $query->in('storeId', $args['stores']);
+        $recs = $query->fetchAll();
+        if(!countR($recs)) return $res;
+
+        // Еднократно извличане на сис ид-та на мерките
+        $measureIds = arr::extractValuesFromArray($recs, 'measureId');
+        $mQuery = cat_UoM::getQuery();
+        $mQuery->in('id', $measureIds);
+        $mQuery->show('id,sysId');
+        while($mRec = $mQuery->fetch()){
+            $measureSysIds[$mRec->id] = $mRec->sysId;
+        }
+
+        // Връщане на нужните ни данни
+        foreach($recs as $rec){
+            $arr = array('code' => $rec->code, 'measureSysId' => $measureSysIds[$rec->measureId], 'storeId' => $rec->storeId);
+            foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'dateMin') as $fld){
+                $arr[$fld] = $rec->{$fld};
+            }
+            $res[] = $arr;
         }
 
         return $res;

@@ -90,6 +90,9 @@ class pwa_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('bgERP PWA Profile', 'pwa_ProfilePlg', 'crm_Profiles', 'private');
         $html .= $Plugins->installPlugin('bgERP PWA Domains', 'pwa_DomainsPlg', 'cms_Domains', 'private');
 
+        $html .= $Plugins->installPlugin('PWA Абониране', 'pwa_SubscribePlg', 'bgerp_Index', 'private');
+        $html .= $Plugins->installPlugin('PWA Абониране в портала', 'pwa_SubscribePlg', 'bgerp_Portal', 'private');
+
         $Domains = cls::get('cms_Domains');
         $Domains->setupMvc();
 
@@ -186,8 +189,8 @@ class pwa_Setup extends core_ProtoSetup
             $cVersion = 8;
         }
 
-        if ($cVersion < 6) {
-            $html .= '<li class="red">Препоръвчва се да се използва PHP 7.3 или по-нова версия.</li>';
+        if ($cVersion <= 6) {
+            $html .= '<li class="red">Препоръчва се да се използва PHP 7.3 или по-нова версия.</li>';
         }
 
         try {

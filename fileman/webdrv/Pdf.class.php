@@ -113,11 +113,16 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         $tabsArr = parent::getTabs($fRec);
         
         if (self::canShowTab($fRec->fileHnd, 'barcodes')) {
+            // Подготвяме стрелките
+            $resArray = self::getArrows($fRec);
+            $prevLink = $resArray['prevLink'];
+            $nextLink = $resArray['nextLink'];
+            
             $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd));
             $tabsArr['barcodes'] = (object)
             array(
                 'title' => 'Баркодове',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Баркодове') . "</div><div class='webdrvFieldset'> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink} <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 6,
             );
         }

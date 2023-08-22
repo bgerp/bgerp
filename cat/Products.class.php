@@ -429,7 +429,7 @@ class cat_Products extends embed_Manager
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
         // Всички позволени мерки
         $measureOptions = cat_UoM::getUomOptions();
         $form->setField($mvc->driverClassField, 'remember,removeAndRefreshForm=proto|measureId|meta|groups');
@@ -455,7 +455,7 @@ class cat_Products extends embed_Manager
                     $defMetas = $cover->getDefaultMeta();
                 }
             }
-            
+
             if (countR($defMetas)) {
                 // Задаваме дефолтните свойства
                 $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
@@ -470,14 +470,21 @@ class cat_Products extends embed_Manager
                     $form->setField('code', 'mandatory');
                 }
 
+                // При клониране се използва кода на клонирания артикул
+                if($data->action == 'clone'){
+                    if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
+                        $lastCode = $clonedCode;
+                    }
+                }
+
                 if ($cover->isInstanceOf('cat_Categories')) {
-                    if(empty($cover->fetchField('prefix'))){
+                    if(empty($cover->fetchField('prefix')) && empty($clonedCode)){
                         $lastCode = Mode::get('cat_LastProductCode');
                     }
 
                     // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
                     $CategoryRec = $cover->rec();
-                    if(empty($rec->code)){
+                    if(empty($lastCode)){
                         if ($code = $cover->getDefaultProductCode()) {
                             $form->setDefault('code', $code);
                         }
@@ -497,13 +504,6 @@ class cat_Products extends embed_Manager
                         }
                         $measureOptions = array_intersect_key($measureOptions, $categoryMeasures);
                     }
-                }
-            }
-
-            // При клониране се използва кода на клонирания артикул
-            if($data->action == 'clone'){
-                if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
-                    $lastCode = $clonedCode;
                 }
             }
 
@@ -1033,9 +1033,11 @@ class cat_Products extends embed_Manager
      *
      * @param array|string $filtersArr
      * @param core_Query $query
+     * @param string $productIdFld
+     * @param string $stateFld
      * @return void
      */
-    public static function applyAdditionalListFilters($filtersArr, &$query)
+    public static function applyAdditionalListFilters($filtersArr, &$query, $productIdFld = 'id', $stateFld = 'state')
     {
         $filtersArr = is_array($filtersArr) ? $filtersArr : bgerp_type_CustomFilter::toArray($filtersArr);
         if(!countR($filtersArr)) return;
@@ -1052,7 +1054,7 @@ class cat_Products extends embed_Manager
             $eProductArr = eshop_Products::getProductsInEshop();
             if(countR($eProductArr)){
                 $eProductArrStr = implode(',',  $eProductArr);
-                $wherePartOne .= (!empty($wherePartOne) ? ' OR ' : '') . "#id IN ({$eProductArrStr})";
+                $wherePartOne .= (!empty($wherePartOne) ? ' OR ' : '') . "#{$productIdFld} IN ({$eProductArrStr})";
             }
         }
         if(!empty($wherePartOne)){
@@ -1080,14 +1082,14 @@ class cat_Products extends embed_Manager
 
             if(isset($filtersArr['withBatches']) && !isset($filtersArr['withoutBatches'])){
                 if(!empty($productsWithBatchesStr)){
-                    $wherePartThree .= " AND #id IN ({$productsWithBatchesStr})";
+                    $wherePartThree .= " AND #{$productIdFld} IN ({$productsWithBatchesStr})";
                 } else {
                     $wherePartThree .= " AND 1=2";
                 }
             }
             if(isset($filtersArr['withoutBatches']) && !isset($filtersArr['withBatches'])){
                 if(!empty($productsWithBatchesStr)){
-                    $wherePartThree .= " AND #id NOT IN ({$productsWithBatchesStr})";
+                    $wherePartThree .= " AND #{$productIdFld} NOT IN ({$productsWithBatchesStr})";
                 }
             }
             $whereArr[] = $wherePartThree;
@@ -1098,7 +1100,7 @@ class cat_Products extends embed_Manager
             $productWithVat = cat_products_VatGroups::getByVatPercent(0);
             if(countR($productWithVat)){
                 $productWithVatStr = implode(',', $productWithVat);
-                $wherePartFour = "#id IN ({$productWithVatStr})";
+                $wherePartFour = "#{$productIdFld} IN ({$productWithVatStr})";
             } else {
                 $wherePartFour = "1=2";
             }
@@ -1108,7 +1110,7 @@ class cat_Products extends embed_Manager
             $productWithVat = cat_products_VatGroups::getByVatPercent(0.09);
             if(countR($productWithVat)){
                 $productWithVatStr = implode(',', $productWithVat);
-                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#id IN ({$productWithVatStr})";
+                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#{$productIdFld} IN ({$productWithVatStr})";
             } else{
                 $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
             }
@@ -1118,7 +1120,7 @@ class cat_Products extends embed_Manager
             $productWithWith0And9Vat = cat_products_VatGroups::getByVatPercent(0) + cat_products_VatGroups::getByVatPercent(0.09);
             if(countR($productWithWith0And9Vat)){
                 $productWithVatStr = implode(',', $productWithWith0And9Vat);
-                $wherePartFour = "#id NOT IN ({$productWithVatStr})";
+                $wherePartFour = "#{$productIdFld} NOT IN ({$productWithVatStr})";
             } else {
                 $wherePartFour = "1=2";
             }
@@ -1161,6 +1163,17 @@ class cat_Products extends embed_Manager
         }
         if(!empty($wherePartSix)){
             $whereArr[] = $wherePartSix;
+        }
+
+        $wherePartSeven = '';
+        if(isset($filtersArr['activeProducts'])) {
+            $wherePartSeven = "#{$stateFld} = 'active'";
+        }
+        if(isset($filtersArr['closedProducts'])) {
+            $wherePartSeven .= (!empty($wherePartSeven) ? ' OR ' : '') . "#{$stateFld} = 'closed'";
+        }
+        if(!empty($wherePartSeven)){
+            $whereArr[] = $wherePartSeven;
         }
 
         foreach ($whereArr as $where){
@@ -2039,7 +2052,7 @@ class cat_Products extends embed_Manager
             $primeCost = (isset($primeCostDefault)) ? $primeCostDefault : $primeCostDriver;
         } else {
             // Ако е нестандартен се търси първо от драйвера, после от себестойност
-            $primeCost = (is_object($primeCostDriver) && !empty($primeCostDriver->price)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+            $primeCost = ((is_object($primeCostDriver) && !empty($primeCostDriver->price)) || is_numeric($primeCostDriver)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
 
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
@@ -2094,42 +2107,40 @@ class cat_Products extends embed_Manager
 
         // Определяме основната мярка
         $baseId = $productRec->measureId;
-        if ($productRec->canStore == 'yes') {
-            $packQuery = cat_products_Packagings::getQuery();
-            $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-            $packQuery->where("#productId = {$productRec->id}");
-            $packQuery->show('packagingId,isBase');
-            if ($onlyMeasures === true) {
-                $packQuery->where("#type = 'uom'");
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        if($productRec->canStore != 'yes' || $onlyMeasures){
+            $packQuery->where("#type = 'uom'");
+        }
+        $packQuery->where("#productId = {$productRec->id}");
+        $packQuery->show('packagingId,isBase');
+
+        // Ако са само за производство остават само вторите мерки и производните на основната
+        if($secondMeasureId !== false){
+            expect(is_numeric($secondMeasureId) || is_null($secondMeasureId), $secondMeasureId);
+
+            $allowedMeasures = cat_UoM::getSameTypeMeasures($baseId);
+            if($secondMeasureId = $secondMeasureId ?? static::getSecondMeasureId($productId)){
+                $allowedMeasures += cat_Uom::getSameTypeMeasures($secondMeasureId);
             }
-
-            // Ако са само за производство остават само вторите мерки и производните на основната
-            if($secondMeasureId !== false){
-                expect(is_numeric($secondMeasureId) || is_null($secondMeasureId), $secondMeasureId);
-
-                $allowedMeasures = cat_UoM::getSameTypeMeasures($baseId);
-                if($secondMeasureId = isset($secondMeasureId) ? $secondMeasureId : static::getSecondMeasureId($productId)){
-                    $allowedMeasures += cat_Uom::getSameTypeMeasures($secondMeasureId);
-                }
-                unset($allowedMeasures['']);
-                if(countR($allowedMeasures)){
-                    $allowedMeasuresString = implode(',', array_keys($allowedMeasures));
-                    $packQuery->where("#type != 'uom' OR #packagingId IN ({$allowedMeasuresString})");
-                } else {
-                    $packQuery->where("1=2");
-                }
+            unset($allowedMeasures['']);
+            if(countR($allowedMeasures)){
+                $allowedMeasuresString = implode(',', array_keys($allowedMeasures));
+                $packQuery->where("#type != 'uom' OR #packagingId IN ({$allowedMeasuresString})");
+            } else {
+                $packQuery->where("1=2");
             }
+        }
 
-            $packQuery->where("#state != 'closed'");
-            if($exPackId){
-                $packQuery->orWhere("#packagingId = '{$exPackId}'");
-            }
+        $packQuery->where("#state != 'closed'");
+        if($exPackId){
+            $packQuery->orWhere("#packagingId = '{$exPackId}'");
+        }
 
-            while ($packRec = $packQuery->fetch()) {
-                $options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId, false);
-                if ($packRec->isBase == 'yes') {
-                    $baseId = $packRec->packagingId;
-                }
+        while ($packRec = $packQuery->fetch()) {
+            $options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId, false);
+            if ($packRec->isBase == 'yes') {
+                $baseId = $packRec->packagingId;
             }
         }
         
@@ -4515,6 +4526,7 @@ class cat_Products extends embed_Manager
         // Има ли стойност параметъра "режийни разходи"
         $hint = null;
         $overheadCost = cat_Products::getParams($productId, 'expenses');
+        $overheadCost = ($overheadCost === false) ? null : $overheadCost;
 
         // Ако няма:Най-големия процент режийни разходи от групите на артикула
         if(empty($overheadCost)){
@@ -4523,7 +4535,6 @@ class cat_Products extends embed_Manager
                 $overheadCost = $overheadCostArr['value'];
                 $hint = tr('от група|*: ') . cls::get('cat_Groups')->getVerbal($overheadCostArr['groupId'], 'name');
             }
-
         } else {
             $hint = tr('от Артикула<br>(параметър "Режийни разходи")');
         }

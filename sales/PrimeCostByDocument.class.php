@@ -496,7 +496,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Всички записи
         $indicatorRecs = $iQuery->fetchAll();
-        core_App::setTimeLimit(countR($indicatorRecs) * 0.8);
+        core_App::setTimeLimit(countR($indicatorRecs) * 0.9, false, 120);
 
         // Ако няма делта се пропуска
         foreach ($indicatorRecs as $k => $r2) {
@@ -930,9 +930,11 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->FLD('productDriverClassId', 'class(interface=cat_ProductDriverIntf, allowEmpty, select=title)', 'caption=Вид');
+        $data->listFilter->setOptions('productDriverClassId', cat_Products::getAvailableDriverOptions());
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
         $data->listFilter->FLD('primeCostType', 'enum(all=Със себестойност,positive=Положителна себестойност,negative=Отрицателна себестойност,zero=Нулева себестойност,empty=Без себестойност)', 'caption=Вид себестойност, silent');
-        $data->listFilter->showFields = 'documentId,productId,primeCostType';
+        $data->listFilter->showFields = 'documentId,productId,productDriverClassId,primeCostType';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->setDefault('primeCostType', 'all');
@@ -943,6 +945,11 @@ class sales_PrimeCostByDocument extends core_Manager
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)){
                 $data->query->where("#productId={$rec->productId}");
+            }
+
+            if (!empty($rec->productDriverClassId)){
+                $data->query->EXT('productDriverClassId', 'cat_Products', "externalName=innerClass,externalKey=productId");
+                $data->query->where("#productDriverClassId = {$rec->productDriverClassId}");
             }
 
             if ($rec->primeCostType != 'all') {
@@ -1157,10 +1164,24 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param double $quantity
      * @param int $containerId
      * @param datetime $valior
-     * @return double $primeCost
+     * @param datetime $Mvc
+     * @param datetime $recId
+     * @return bool
      */
-    public static function isPriceBellowPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior, &$primeCost = null)
+    public static function comparePriceWithPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior, $Mvc, $recId)
     {
+        $threadId = doc_Containers::fetchField($containerId, 'threadId');
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $firstDocState = $firstDoc->fetchField('state');
+
+        // Ако първия документ в нишката е затворен
+        if($firstDocState == 'closed'){
+
+            // Кешира се моментната стойност дали цената е под сб-ст
+            $resObj = core_Permanent::get("bCost|{$threadId}|{$Mvc->getClassId()}|{$recId}");
+            if(is_object($resObj)) return $resObj;
+        }
+
         $calcLiveSoDelta = sales_Setup::get('LIVE_CALC_SO_DELTAS');
         if($calcLiveSoDelta != 'yes') {
             $primeCost = self::getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId);
@@ -1169,8 +1190,14 @@ class sales_PrimeCostByDocument extends core_Manager
         if(empty($primeCost)){
             $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $valior);
         }
-        
-        return (round($price, 4) < round($primeCost, 4));
+
+        $resObj = (object)array('bellowPrimeCost' => (round($price, 4) < round($primeCost, 4)), 'primeCost' => $primeCost);
+        if($firstDocState == 'closed') {
+            $resObj->isCache = true;
+            core_Permanent::set("bCost|{$threadId}|{$Mvc->getClassId()}|{$recId}", $resObj, core_Permanent::FOREVER_VALUE);
+        }
+
+        return $resObj;
     }
     
     

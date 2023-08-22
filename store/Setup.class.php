@@ -106,6 +106,7 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteDetails',
         'store_StockPlanning',
         'migrate::updateShipmentNegativeRoles231311',
+        'migrate::updateNegativeQuantityRole'
     );
     
     
@@ -113,6 +114,7 @@ class store_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
+        array('contoNegativeQuantities'),
         array('storeWorker'),
         array('inventory'),
         array('store', 'storeWorker'),
@@ -136,7 +138,7 @@ class store_Setup extends core_ProtoSetup
         'STORE_TARIFF_NUMBER_LENGTH' => array('int', 'caption=Групиране на тарифните номера по част от него->Първите,unit=цифри'),
         'STORE_PREPARATION_BEFORE_SHIPMENT' => array('time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди експедиция->Време'),
         'STORE_EARLIEST_SHIPMENT_READY_IN' => array('int(min=0)', 'caption=Изчисляване на най-ранната наличност на артикулите в ЕН-та за следващите->Дни'),
-        'STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => array('keylist(mvc=core_Roles,select=role)', 'caption=Изписване на минус->Роли'),
+        'STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => array('keylist(mvc=core_Roles,select=role)', 'caption=Изписване на минус->Да се използва с повишено внимание и на собствен риск! Формираните отрицателни количества ТРЯБВА да бъдат коригирани в рамките на счетоводния период (месец) в който са възникнали! Основни причини: невъведени/грешновъведени доставки/изписване от грешен склад/детайлно изписване от незавършено производство без такова влагане и т.н... Отрицателни наличности в края на периода водят до нереални счетоводни себестойности!->Роли'),
     );
     
     
@@ -225,8 +227,9 @@ class store_Setup extends core_ProtoSetup
             $res .= "<li style='color:green'>Дефолт счетодовни сметки за синхронизация на продуктите<b>" . implode(',', $accArray) . '</b></li>';
         }
 
-        if(core_ProtoSetup::$dbInit == 'first'){
-            core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
+        $repairAccountsDefault = core_Packs::getConfigValue('store', 'STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES');
+        if (strlen($repairAccountsDefault) === 0) {
+            core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('contoNegativeQuantities')));
         }
 
         return $res;
@@ -242,6 +245,8 @@ class store_Setup extends core_ProtoSetup
     public static function canDoShippingWhenStockIsNegative($userId = null)
     {
         $allowedRoles = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT_ROLES');
+        if(Mode::is('closedDealCall')) return true;
+
         if(empty($allowedRoles)) return false;
 
         return haveRole($allowedRoles, $userId);
@@ -320,4 +325,13 @@ class store_Setup extends core_ProtoSetup
         }
     }
 
+
+    /**
+     * Задаване на нова роля за изписване на наличности на минус от склада
+     */
+    function updateNegativeQuantityRole()
+    {
+        core_Roles::addOnce('contoNegativeQuantities');
+        core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('contoNegativeQuantities')));
+    }
 }

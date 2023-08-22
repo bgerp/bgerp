@@ -881,7 +881,7 @@ class acc_Journal extends core_Master
                     $accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
                 }
                 $res = $this->recontoAll($accounts, $rec->from, $rec->to, $types);
-                $this->logWrite('Реконтиране на документи', $rec->id);
+                $this->logDebug("Реконтирани са {$res} документа");
 
                 Mode::setPermanent('recontoJournalLastDateFrom', $rec->from);
                 Mode::setPermanent('recontoJournalLastDateTo', $rec->to);

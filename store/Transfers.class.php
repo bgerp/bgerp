@@ -57,7 +57,7 @@ class store_Transfers extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'fromStore, toStore, folderId, id';
+    public $searchFields = 'fromStore, toStore, folderId, note';
 
 
     /**
@@ -228,6 +228,12 @@ class store_Transfers extends core_Master
      * Кои полета да могат да се експортират в CSV формат
      */
     public $exportableCsvFields = 'id,valior,fromStore,toStore,note';
+
+
+    /**
+     * Възможност за експортиране на детайлите в csv експорта от лист изгледа
+     */
+    public $allowDetailCsvExportFromList = true;
 
 
     /**

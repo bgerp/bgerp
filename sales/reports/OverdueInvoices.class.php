@@ -134,6 +134,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        core_App::setTimeLimit(100);
+
         if (!$rec->checkDate) {
             $checkDate = dt::now();
         } else {
@@ -149,6 +151,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $salQuery = sales_Sales::getQuery();
 
+        $salQuery->in('state', array('rejected', 'draft'), true);
+
         $salQuery->where("#closedOn IS NULL OR #closedOn > '$checkDate'");
 
         //нишки на активни договори
@@ -157,12 +161,25 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $salesTotalOverDue = $salesTotalPayout = 0;
         $invoiceCurrentSummArr = array();
 
+
+
+
         if (is_array($threadsActivSalesArr)) {
+
+            // Синхронизира таймлимита с броя записи //
+            $maxTimeLimit = countR($threadsActivSalesArr) * 5;
+            $maxTimeLimit = max(array($maxTimeLimit, 300));
+            core_App::setTimeLimit($maxTimeLimit);
+
+
             foreach ($threadsActivSalesArr as $thread) {
 
                 //Договора за продажба
                 $FirstDoc = doc_Threads::getFirstDocument($thread);
-                $fDocRec = $FirstDoc->fetch();                       // Rec-a на договора
+                if($FirstDoc && isset($FirstDoc) && is_object($FirstDoc)){
+                    $fDocRec = $FirstDoc->fetch();                       // Rec-a на договора
+                }else continue;
+
 
                 // масив от фактури в тази нишка към избраната дата
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
@@ -619,7 +636,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $toolbar = cls::get('core_Toolbar');
 
-        if (haveRole('blast')) {
+        if (blast_Emails::haveRightFor('add')) {
 
             //Изключените контрагенти от имейла
             if (isset($data->rec->excludedFromEmail)) {

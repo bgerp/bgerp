@@ -1,20 +1,34 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-  <!--ET_BEGIN productDescription-->
-  <div class="groupTitle">
-      <div style='margin: 2px 0;'><b>|Спецификация|* </b>[#toggleBtn#]<div style='[#productDescriptionStyle#] margin-top: 5px;' id='[#tId#]inf'>[#productDescription#]</div></div>
-  </div>
-  <!--ET_END productDescription-->
-  [#PARAMS#]
-  <!--ET_BEGIN ADDITIONAL-->
-      [#ADDITIONAL#]
-      <div>
-      <!--ET_BEGIN ADDITIONAL_VALUE-->
-      [#ADDITIONAL_VALUE#]
-          <div><span class='quiet'>[#field#]</span>: [#value#]</div>
-      <!--ET_END ADDITIONAL_VALUE-->
-     </div>
-      <!--ET_END ADDITIONAL-->
-<!--ET_BEGIN description-->
-<div style="margin-bottom: 10px;"><div style="display:inline-block"><div style="display:inline-block"><b>|Описание|*</b>:</div> [#description#]</div></div>
-<!--ET_END description-->
+<div class="scrolling-holder">
+    <table class="listTable operationTable">
+        <tr>
+            <th class="cell custom-header-bg">
+                |Параметри на операцията|*
+            </th>
+            <th class="cell custom-header-bg">
+                |Спецификация|*
+            </th>
+        </tr>
+       <tr>
+           <td>
+               [#PARAMS#]
+               <!--ET_BEGIN ADDITIONAL-->
+               [#ADDITIONAL#]
+               <div>
+                   <!--ET_BEGIN ADDITIONAL_VALUE-->
+                   [#ADDITIONAL_VALUE#]
+                   <div><span class='quiet'>[#field#]</span>: [#value#]</div>
+                   <!--ET_END ADDITIONAL_VALUE-->
+               </div>
+               <!--ET_END ADDITIONAL-->
+               <!--ET_BEGIN description-->
+               <div style="margin-bottom: 10px;"><div style="display:inline-block"><div style="display:inline-block"><b>|Описание|*</b>:</div> [#description#]</div></div>
+               <!--ET_END description-->
+           </td>
+           <td class="taskSpecInfo">
+               [#productDescription#]
+           </td>
+       </tr>
+    </table>
+</div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -74,6 +74,12 @@ defIfNot('BGERP_BLOCK_NORMAL', 'nonworking|night');
 
 
 /**
+ * Вида известия, които ще получават заместниците
+ */
+defIfNot('BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS', 'all');
+
+
+/**
  * Клавиши за бързо избиране на бутони
  */
 defIfNot(
@@ -169,6 +175,8 @@ class bgerp_Setup extends core_ProtoSetup
         'BGERP_BLOCK_WARNING' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Спешни, customizeBy=powerUser'),
         
         'BGERP_BLOCK_NORMAL' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Нормални, customizeBy=powerUser'),
+
+        'BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS' => array('enum(all=Всички,share=Само споделените,open=Само "Отворени теми",shareOpen=Споделени и "Отворени теми",noOpen=Без "Отворени теми",stop=Спиране)', 'caption=Известията|*&#44; |които да получават заместниците->Избор, customizeBy=powerUser'),
     );
     
     
@@ -233,6 +241,7 @@ class bgerp_Setup extends core_ProtoSetup
             'bgerp_LastTouch',
             'bgerp_F',
             'bgerp_Filters',
+            'bgerp_LastSeenDocumentByUser',
         );
         
         $instances = array();

@@ -4,18 +4,18 @@ function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
         refresh = true;
     }
-    
+
     if (from === undefined) {
     	from = 'from';
     }
-    
+
     if (to === undefined) {
     	to = 'to';
     }
-    
+
     from = "input[name='" + from + "']";
     to = "input[name='" + to + "']";
-    
+
     if(sel.value == 'select') {
         $(from).closest('tr').fadeIn();
         $(to).closest('tr').fadeIn();
@@ -169,7 +169,6 @@ function showTooltip() {
     });
 };
 
-
 /**
  * действие на дървовидната структура
  */
@@ -188,7 +187,49 @@ function treeViewAction() {
             $(this).closest('tr').removeClass('closedChildren');
             openChildren(id);
         }
+        var element = '';
+        var className = $(this).closest('.listBlock').attr('class');
+        $('.treeView .listTable .toggleBtn.minus:visible').each(function(){
+            var currentTreeRow = $(this).closest('tr').data('id');
+            if(element != '') {
+                element = element + "," + currentTreeRow;
+            } else {
+                element =  currentTreeRow;
+            }
+        });
+
+        var opt = JSON.parse(localStorage.getItem("openTreeRows"));
+        if (!opt) {
+            opt = {};
+        }
+        opt[className] = element;
+        localStorage.setItem("openTreeRows", JSON.stringify(opt));
     });
+
+    var loggedTreeOpenRows = JSON.parse(localStorage.getItem("openTreeRows"));
+    if(loggedTreeOpenRows) {
+        for(const item in loggedTreeOpenRows) {
+            var className = item.replaceAll(' ', '.');
+            if($("." + className).length){
+                var forOpen = loggedTreeOpenRows[item];
+                if (forOpen) {
+                    var rowsArray = [];
+                    if(typeof forOpen == "string") {
+                        rowsArray = forOpen.split(',');
+                    } else {
+                        rowsArray.push(forOpen);
+                    }
+
+                    rowsArray.forEach((dataId) => {
+                        var domElement = $("table").find("tr[data-id='" + dataId + "'] .plus");
+                        if($(domElement).length) {
+                            $(domElement).click();
+                        }
+                    });
+                }
+            }
+        };
+    }
 }
 
 /**
@@ -1096,7 +1137,7 @@ function js2php(obj, path, new_path) {
 function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         if($(this).hasClass('nojs')) return;
-        
+
         var el = $(this).parent().find('.modal-toolbar');
         var position = el.attr('data-position');
         var sizeStyle = el.attr('data-sizeStyle');
@@ -1137,7 +1178,7 @@ function prepareContextMenu() {
             'verAdjust': vertAdjust,
             'horAdjust': horAdjust
         });
-        
+
         $('.modal-toolbar .button').on("click", function(){
             $('.more-btn').contextMenu('close');
         });
@@ -1208,18 +1249,91 @@ function toggleDisplay(id) {
     elem.toggleClass('show-btn');
 }
 
+function toggleDisplayBomStepDetails() {
+    $('.cat_BomDetails .listTable th').on('click', '.newIconStyle.toggleAllRows', function (e) {
+        if($(this).hasClass('openAllRows')){
+            $(this).closest('.listTable').find('.expand .newIconStyle').click();
+        } else {
+            $(this).closest('.listTable').find('.collapse .newIconStyle').click();
+        }
+        $(this).toggleClass('openAllRows closeAllRows');
+    });
+    $('.cat_BomDetails .listTable td').on('click', '.newIconStyle', function (e) {
+        // Взема всички TR с по-голяма дълбочина
+        var findChildren = function (tr) {
+            var depth = tr.data('depth');
+            return tr.nextUntil($('tr').filter(function () {
+                return $(this).data('depth') <= depth;
+            }));
+        };
+        var el = $(this);
+        var tr = el.closest('tr'); //Get <tr> parent of toggle button
+        var children = findChildren(tr);
+
+        //Маха всички свити поднива от масива, за да не се покажат
+        var subnodes = children.filter('.expand');
+        subnodes.each(function () {
+            var subnode = $(this);
+            var subnodeChildren = findChildren(subnode);
+            children = children.not(subnodeChildren);
+        });
+
+        //Сменя класа на TR и сквива децата
+        if (tr.hasClass('collapse')) {
+            tr.removeClass('collapse').addClass('expand');
+            children.hide();
+        } else {
+            tr.removeClass('expand').addClass('collapse');
+            children.show();
+        }
+
+        var openSubRows ='';
+        $('.cat_BomDetails .expand .newIconStyle').each(function(){
+            var currentSubRow = $(this).closest('tr').data('position');
+            openSubRows =  currentSubRow + "," + openSubRows;
+        });
+        localStorage.setItem("boomSubRows", openSubRows);
+        return children;
+    });
+}
+
+
 function toggleDisplayOnload(id) {
-    var elem = $("#" + id).parent().children('.more-btn');
-    $("#" + id).toggle();
-    elem.toggleClass('show-btn');
+    if(id) {
+        var elem = $("#" + id).parent().children('.more-btn');
+        $("#" + id).toggle();
+        elem.toggleClass('show-btn');
+    }
 }
 
 // Отваряне на запомнените редове от рецептата
 function openBoomRows(){
-   var openBoomRows = sessionStorage.getItem("boomDetailsOpenRows");
-    rowsArray = openBoomRows.split(',');
-    rowsArray.forEach((item) => {
-        toggleDisplayOnload(item);
+
+   var openBoomRows = localStorage.getItem("boomDetailsOpenRows");
+   var openSubRows = localStorage.getItem("boomSubRows");
+    if(openBoomRows) {
+        var rowsArray = openBoomRows.split(',');
+        rowsArray.forEach((item) => {
+            toggleDisplayOnload(item);
+        });
+    }
+    if(openSubRows) {
+        var subrowsArray = openSubRows.split(',');
+        subrowsArray.forEach((item) => {
+            if(item !== "")   {
+                var domElement = $("table").find("tr[data-position='" + item + "'] .newIconStyle");
+                $(domElement).click();
+            }
+        });
+    }
+
+    $('.cat_BomDetails .listTable').each(function () {
+        if ($(this).find(".collapse .newIconStyle").length == $(this).find("td .newIconStyle:visible").length) {
+            $(this).find('.toggleAllRows').toggleClass('openAllRows closeAllRows');
+        }
+        if($(this).find('td.materialCol .more-btn.show-btn').length ==  $(this).find('td.materialCol .more-btn').not('show-btn').length && $(this).find('th .plus-icon.more-btn').not('show-btn').length == 1) {
+            $(this).find('th .plus-icon.more-btn').addClass('show-btn');
+        }
     });
 }
 
@@ -1230,7 +1344,7 @@ function saveToggleState(){
         var currentId = $(this).data('id');
         openRows = openRows + currentId + ",";
     });
-    sessionStorage.setItem("boomDetailsOpenRows", openRows);
+    localStorage.setItem("boomDetailsOpenRows", openRows);
 }
 
 function clickAllClasses(id,clickClasses) {
@@ -1534,18 +1648,18 @@ function SetWithCheckedButton() {
 
 /**
  * Премахва символите от края на стринга
- * 
+ *
  * @param hash
  */
 function clearHashStr(hash)
 {
-	
+
 	return hash.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]*$/gi, '');
 }
 
 function flashHashDoc(flasher) {
     var h = window.location.hash.substr(1);
-    
+
     if (h) {
     	h = clearHashStr(h);
         if (h && !flasher) {
@@ -1685,7 +1799,7 @@ function rgb2hex(rgb) {
         	if (!rgb) {
         		rgb = [];
     		}
-        	
+
             rgb[1] = rgb[2] = rgb[3] = 255;
         }
 
@@ -1753,28 +1867,28 @@ function isTouchDevice() {
 function setMinHeightExt() {
     var clientHeight = document.documentElement.clientHeight;
 
+    var padding = $('.background-holder').length ? parseInt($('.background-holder').css('padding-top')) : 0;
+    var totalPadding = (padding) ? 2 * padding + 2 : 0;
+
+    var ct = $('#cmsTop').length ? parseInt($('#cmsTop').outerHeight()) : 0;
+    var cb = $('#cmsBottom').length ?parseInt($('#cmsBottom').outerHeight()) : 0;
+    var cm = $('#cmsMenu').length ? parseInt($('#cmsMenu').outerHeight()) : 0;
+    var bf = $('.beforeFooterNewsbar').length ? parseInt($('.beforeFooterNewsbar').outerHeight()) : 0;
+    var af = $('.afterFooterNewsbar').length ? parseInt($('.afterFooterNewsbar').outerHeight()) : 0;
+    var tf = $('.topPageNewsbar').length ? parseInt($('.topPageNewsbar').outerHeight()) : 0;
+    var ft = $('.additionalFooter').length ? parseInt($('.additionalFooter').outerHeight()) : 0;
+
+    var h = (clientHeight - ct - cb - cm - totalPadding -bf - af - tf - ft);
+
     // ако сме със старата външна тема изчисляваме височината на съдържанието
     if ($('#cmsTop').length) {
-        var padding = parseInt($('.background-holder').css('padding-top'));
-        var totalPadding = (padding) ? 2 * padding + 2 : 0;
-
-        var ct = parseInt($('#cmsTop').outerHeight());
-        var cb = parseInt($('#cmsBottom').outerHeight());
-        var cm = parseInt($('#cmsMenu').outerHeight());
-        var bf = $('.beforeFooterNewsbar').length ? parseInt($('.beforeFooterNewsbar').outerHeight()) : 0;
-        var af = $('.afterFooterNewsbar').length ? parseInt($('.afterFooterNewsbar').outerHeight()) : 0;
-        var tf = $('.topPageNewsbar').length ? parseInt($('.topPageNewsbar').outerHeight()) : 0;
-        var ft = $('.additionalFooter').length ? parseInt($('.additionalFooter').outerHeight()) : 0;
-
-
         if ($('body').hasClass('wide')) {
-            var add = 16;
+           h -=16;
         } else {
-            var add = 9;
+            h -=9;
         }
 
         if ($('#maincontent').length) {
-            var h = (clientHeight - ct - cb - cm - add - totalPadding -bf - af - tf - ft);
             if (getWindowWidth() > 600 && $('body').hasClass('narrow')) {
                 h -= 3;
             }
@@ -1791,13 +1905,15 @@ function setMinHeightExt() {
         }
     } else if ($('.narrowCenter .headerImg').length) {
         // в новата тема при мобилен изчисляваме височината на съдържанието
-        if (getWindowWidth() < 1200) {
-            var elHeight = parseInt($('.narrowCenter .headerImg').outerHeight());
-            $('.wide .narrowCenter').height(elHeight);
-            $('.wide .fadein').height(elHeight);
-        } else {
-            $('.wide .narrowCenter').height(220);
-            $('.wide .fadein').height(220);
+
+        var elHeight = parseInt($('.narrowCenter .headerImg').outerHeight());
+        $('.narrowCenter').height(elHeight);
+        $('.fadein').height(elHeight);
+
+        if (h > 60) {
+            $('#maincontent').css('minHeight', h - elHeight - 32);
+            $('#maincontent').css('position', "relative");
+            $('.additionalFooter').css('bottom', 40);
         }
     }
     $(window).smartresize(function () {
@@ -2055,6 +2171,16 @@ function selectInnerText(text) {
         selection.removeAllRanges();
         selection.addRange(range);
     }
+
+    if (range && navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(range);
+
+        var cursor = document.body.style.cursor;
+        document.body.style.cursor = 'copy';
+        setTimeout(function() {
+            document.body.style.cursor = cursor;
+        }, 500);
+    }
 }
 
 /**
@@ -2074,52 +2200,52 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 
         // Ако има подадено id
         if (handle) {
-        	
+
         	// Опитваме по-коректно да определим, към кой документ се отнася избрания текст
         	try {
 	        	if (typeof window.getSelection != "undefined") {
 	        		var sel = window.getSelection();
-	        		
+
 	        		if (sel.rangeCount) {
 		        		var c = 0;
 		        		var parentNode = sel.anchorNode.parentNode;
 		        		while(true) {
 		        			if (c++ > 20) break;
-		        			
+
 		        			// От нивото на ричтекста, намираме div с id на документа
 		        			if ($(parentNode).attr('class') == 'richtext') {
-		        				
+
 		        				var parentNode6 = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
 		        				var handle2 = $(parentNode6).attr('id');
-		        				
+
 		        				if (typeof handle2 == "undefined") {
 		        					var parentNode5 = parentNode.parentNode.parentNode.parentNode.parentNode;
 		        					handle2 = $(parentNode5).attr('id');
 		        				}
-		        				
+
 		        				break;
 		        			}
-		        			
+
 		        			parentNode = parentNode.parentNode;
 		        		}
 	        		}
-	        		
+
 	        		if (typeof handle2 != "undefined") {
         				handle = handle2;
 	        		}
 	        	}
 	        } catch (err) { }
-	        
+
 	        if (typeof handle2 != "undefined") {
 	        	handle = handle2;
 	        }
-	        
+
 	        if ((typeof handle != "undefined") && (handle != "undefined")) {
 	        	// Записваме манипулатора
 	            sessionStorage.selHandle = handle;
 	        }
         }
-        
+
         // Ако няма да записваме само манипулатора
         if (!onlyHandle) {
 
@@ -2205,7 +2331,7 @@ function appendQuote(id, line, useParagraph) {
 
     // Ако вече е нагласен или не е изтекъл
 	if ((!quoteText) && (selTime > now)) {
-		
+
         // Вземаме текста
         text = sessionStorage.getItem('selText');
 
@@ -2290,7 +2416,7 @@ function appendQuote(id, line, useParagraph) {
 
     if (quoteText) {
         var textVal = get$(id).value;
-    	
+
         // Добавяме към данните
         if (textVal && line) {
         	var splited = textVal.split("\n");
@@ -2356,7 +2482,7 @@ function getType (val) {
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function refreshForm(form, removeFields) {
-	
+
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 
@@ -2381,7 +2507,7 @@ function refreshForm(form, removeFields) {
 	} else {
 		var filteredParams = params.filter(function(e){
 				var name = /[^/[]*/.exec(e.name)[0];
-                
+
                 if($.inArray(name, removeFields) == -1) {
 				    return true;
                 } else {
@@ -2399,7 +2525,7 @@ function refreshForm(form, removeFields) {
 	}
 
  	//form.submit(); return;
-	
+
 	$.ajax({
 		type: frm.attr('method'),
 		url: frm.attr('action'),
@@ -2527,7 +2653,7 @@ function replaceFormData(frm, data)
         refreshForm.loadedFiles = [];
     }
     var params = frm.serializeArray();
-    
+
 	// Затваря всики select2 елементи
 	if ($.fn.select2) {
 		var selFind = frm.find('.select2-src');
@@ -2543,17 +2669,17 @@ function replaceFormData(frm, data)
 			});
 		}
 	}
-	
+
 	if (getType(data) == 'array') {
 		var r1 = data[0];
 		if(r1['func'] == 'redirect') {
 			return render_redirect(r1['arg']);
 		}
 	}
-	
+
 	// Разрешаваме кеширането при зареждане по ajax
 	$.ajaxSetup ({cache: true});
-	
+
 	// Зареждаме стиловете
 	$.each(data.css, function(i, css) {
 		if(refreshForm.loadedFiles.indexOf(css) < 0) {
@@ -2565,7 +2691,7 @@ function replaceFormData(frm, data)
 			refreshForm.loadedFiles.push(css);
 		}
 	});
-	
+
 	// Зареждаме JS файловете синхронно
 	loadFiles(data.js, refreshForm.loadedFiles, frm, data.html);
 
@@ -2821,18 +2947,18 @@ function editCopiedTextBeforePaste() {
 			for(var i=0; i< matchedStr.length; i++){
 				// променя всеки от стринговете
 				replacedStr[i] = matchedStr[i].replace(/(\&nbsp\;)/g, '');
-				
+
 				var mRegExp = escapeRegExp(matchedStr[i]);
-				
+
 				var regExp = new RegExp(mRegExp, "g");
-				
+
 				// прави замяната в тези стрингове
 				current = current.replace(regExp ,replacedStr[i]);
 			}
 			if(current.indexOf('<table>') == -1){
 				current = '<table>' + current + "</table>";
 			}
-			
+
 			htmlDiv.innerHTML = current;
 			selection.selectAllChildren(htmlDiv);
 		}
@@ -2846,15 +2972,15 @@ function editCopiedTextBeforePaste() {
 
 /**
  * Ескейпва регулярния израз
- * 
+ *
  * @param str
- * 
+ *
  * @returns
  */
 function escapeRegExp(str) {
-	
+
 	if (!str.trim()) return ;
-	
+
     return str.replace(/[\'\"\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
 
@@ -3451,10 +3577,10 @@ function render_google(){
  */
 function efae() {
     var efaeInst = this;
-    
+
     // Флак за спиране на заявките
     Experta.prototype.preventRequest = 0;
-    
+
     // Добавяме ивенти за ресетване при действие
     getEO().addEvent(document, 'mousemove', function() {
     	efaeInst.resetTimeout()
@@ -3462,11 +3588,11 @@ function efae() {
     getEO().addEvent(document, 'keypress', function() {
         efaeInst.resetTimeout()
     });
-    
+
     getEO().addEvent(window, 'beforeunload', function() {
 		efaeInst.preventRequest = 5;
     });
-    
+
     getEO().addEvent(document, 'beforeunload', function() {
         efaeInst.preventRequest = 5;
     });
@@ -3522,7 +3648,7 @@ function efae() {
 
     // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
     Experta.prototype.isWaitingResponse = false;
-    
+
     // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
     efae.prototype.waitPeriodicAjaxCall = 0;
 }
@@ -3553,11 +3679,11 @@ efae.prototype.run = function() {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
-    	
+
         if (this.waitPeriodicAjaxCall <= 0) {
         	// Вземаме всички URL-та, които трябва да се извикат в този цикъл
             var subscribedObj = this.getSubscribed();
-			
+
             // Стартираме процеса
             this.process(subscribedObj);
         } else {
@@ -3615,7 +3741,7 @@ efae.prototype.getObjectKeysCnt = function(subscribedObj) {
 efae.prototype.process = function(subscribedObj, otherData, async) {
     // Ако няма URL, което трябва да се извика, връщаме
     if (!this.getObjectKeysCnt(subscribedObj)) return;
-    
+
     // Ако са спрени заявките - нищо не правим
     if (this.preventRequest > 0) {
         this.preventRequest--;
@@ -3754,7 +3880,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         	var text = 'Connection error';
     		var errType = 'error';
     		var timeOut = 3000;
-        	
+
         	if (res.status == 404) {
         		text = 'Липсващ ресурс';
         	} else if (res.status == 500) {
@@ -3764,29 +3890,29 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         		text = text.replace(/<\/?[^>]+(>|$)/g, "\n");
         		text = text.trim();
         		text = text.replace(/(?:\r\n|\r|\n)+\s*/g, "<br>");
-        		
+
         		errType = 'warning';
         		timeOut = 1;
         	}
-        	
+
         	var toastErrType = '.toast-type-' + errType;
         	var connectionerrStatus = '.connection-' + errType + '-status';
-        	
+
         	if (res.status == 503) {
-				
+
             	// Ако е имало грешка, премахваме статуса за да покажем новия
             	if (getEfae().AJAXHaveError) {
-					
+
             		if ($(connectionerrStatus).length) {
             			$(connectionerrStatus).remove();
             		}
-					
+
             		if ($(toastErrType).length) {
             			$(toastErrType).remove();
             		}
             	}
         	}
-        	
+
         	getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
 
         	getEfae().AJAXHaveError = true;
@@ -4219,6 +4345,24 @@ function render_getContextMenuFromAjax() {
 
 
 /**
+ * Функция, която извиква подготвянето на параметрите в рецепта по ajax
+ * Може да се комбинира с efae
+ */
+function render_openBoomRows() {
+    openBoomRows();
+}
+
+
+/**
+ * Функция, която извиква подготвянето на поднивата в репецти по ajax
+ * Може да се комбинира с efae
+ */
+function render_toggleDisplayBomStepDetails() {
+    toggleDisplayBomStepDetails();
+}
+
+
+/**
 * Функция, която извиква подготвянето на smartCenter
 * Може да се комбинира с efae
 */
@@ -4524,16 +4668,16 @@ function render_Sound(data){
 function render_forceLoginToSubmit(data)
 {
 	forceLoginToSubmit = data.force;
-	
+
 	if (forceLoginToSubmit) {
 		jQuery("form").bind('submit', function(event, data) {
 			if (forceLoginToSubmit) {
-				
+
 				scrollToElem('editStatus');
-				
+
 		        // Блокиране на събмита, ако няма промени и за определено време
 		        event.preventDefault();
-		        
+
 		        return false;
 			}
 	    });
@@ -4543,7 +4687,7 @@ function render_forceLoginToSubmit(data)
 
 /**
  * Скролване до елемента
- * 
+ *
  * @param docId
  */
 function scrollToElem(docId) {
@@ -5080,11 +5224,11 @@ Experta.prototype.setCoords = function(position) {
  * @param return
  */
 Experta.prototype.escape = function(str) {
-	
+
 	if (!str) return str;
-	
+
 	if (typeof str != 'string') return str;
-	
+
 	str = str.replace(/[&<>]/g, function(tag) {
 		var tagsToReplace = {
 			    '&': '&amp;',
@@ -5111,7 +5255,7 @@ Experta.prototype.log = function(txt) {
         // Показваме съобщението
         console.log(txt);
     }
-}; 
+};
 
 
 /**
@@ -5189,7 +5333,7 @@ Experta.prototype.checkBodyId = function(bodyId) {
  * Записва данните за формата в id на страницата
  */
 Experta.prototype.saveFormData = function(formId, data) {
-	
+
 	var maxItemOnSession = 3;
 
 	bodyId = $('body').attr('id');
@@ -5383,23 +5527,23 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	var height = $(window).height();
 	var browser = getUserAgent();
 	var title = sysDomain + '/' + ctr + '/' + act;
-	
+
 	if (url && (url.length > 495)) {
 		url = url.substring(0, 495);
 		url += '...';
 	}
-	
+
 	addBugReportInput(form, 'title', title);
 	addBugReportInput(form, 'url', url);
-	
+
 	if (user && domain) {
 		addBugReportInput(form, 'email', user + '@' + domain);
 	}
-	
+
 	if (name) {
 		addBugReportInput(form, 'name', name);
 	}
-	
+
 	addBugReportInput(form, 'width', width);
 	addBugReportInput(form, 'height', height);
 	addBugReportInput(form, 'browser', browser);
@@ -5474,11 +5618,11 @@ $.fn.scrollView = function () {
  * @return boolean
  */
 function startUrlFromDataAttr(obj, stopOnClick)
-{    
+{
 	if (this.event) {
         stopBtnDefault(this.event);
 	}
- 
+
 	resObj = new Object();
 	resObj['url'] = obj.getAttribute('data-url');
 
@@ -5487,11 +5631,11 @@ function startUrlFromDataAttr(obj, stopOnClick)
 	}
 
 	getEfae().process(resObj);
-	
+
 	getEfae().waitPeriodicAjaxCall = 0;
-	
+
     render_closeContextMenu();
-	
+
 	return false;
 }
 
@@ -5553,7 +5697,7 @@ function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
 
 /**
  * Вика по AJAX екшън, който добавя документа към последни
- * 
+ *
  * @param fh
  */
 function copyFileToLast(fh)
@@ -5561,9 +5705,9 @@ function copyFileToLast(fh)
 	if (this.event) {
 		stopBtnDefault(this.event);
 	}
-	
+
     getEfae().process({url: '/fileman_Files/CopyToLast/' + fh});
-    
+
     // Затваряме прозореца
     if ($('.iw-mTrigger').contextMenu) {
     	$('.iw-mTrigger').contextMenu('close');
@@ -5601,10 +5745,40 @@ function calcFilemanSize(){
         $("#imgIframe").on('load', function() {
             $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
         });
+    } else {
+        $('.webdrvFieldset').css('height', height - 5);
+        $('.webdrvFieldset').css('overflow-y', 'auto');
     }
     if ( $('.webdrvFieldset').width() < width) {
         $('.webdrvFieldset').css('width', width);
     }
+
+    var timer;
+    $('.webdrvFieldset').mouseenter(function() {
+        $('.webdrvFieldset a.linkWithIcon').css("opacity", "0.6");
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+            $('.webdrvFieldset a.linkWithIcon').css("opacity", 0);
+        }, 5000);
+    });
+
+    $('a.linkWithIcon').mouseover(function() {
+        $('.webdrvFieldset a.linkWithIcon').css("opacity", "0.6");
+        clearTimeout(timer);
+    });
+
+    $('a.linkWithIcon').mouseleave(function() {
+        timer = setTimeout(function() {
+            $('.webdrvFieldset a.linkWithIcon').css("opacity", 0);
+        }, 5000);
+    });
+
+    $('.webdrvFieldset').mouseleave(function() {
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+            $('.webdrvFieldset a.linkWithIcon').css("opacity", 0);
+        }, 1000);
+    });
 }
 
 
@@ -5684,9 +5858,9 @@ JSON.stringify = JSON.stringify || function (obj) {
  */
 $.fn.isInViewport = function() {
 	if (typeof($(this).offset()) == 'undefined') return ;
-	
+
 	var elementTop = $(this).offset().top;
-    
+
     var elementBottom = elementTop + $(this).outerHeight();
 
     var viewportTop = $(window).scrollTop();
@@ -5715,7 +5889,7 @@ function render_clearStatuses(data)
 {
 	var type = data.type;
 	var elementClass = ".toast-type-" + type;
-	
+
 	if ($(elementClass).length) {
 	    $(elementClass).remove();
 	}
@@ -5853,7 +6027,7 @@ JSON.parse = JSON.parse || function (str) {
 function checkVatAndTriger(name) {
 	const vatRegex = new RegExp('^[a-z]{2}[0-9]{6,15}$', 'i');
 	const uicRegex = RegExp('^[0-9]{9,13}$');
-	
+
 	let target = null;
 
 	name.value = name.value.trim();
@@ -5865,7 +6039,7 @@ function checkVatAndTriger(name) {
 			target = document.getElementsByName("uicId")[0];
 		}
 	}
- 
+
 	if(target != null) {
 
 		target.value = name.value;
@@ -5873,9 +6047,9 @@ function checkVatAndTriger(name) {
 		const e = new Event("change");
 		target.dispatchEvent(e);
 	} else {
- 
+
 		if(name.value != '') {
- 
+
 			let vatId = document.getElementsByName("vatId")[0];
 			vatId.setAttribute('onchange', '');
 			let uicId = document.getElementsByName("uicId")[0];

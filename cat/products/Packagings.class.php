@@ -138,7 +138,7 @@ class cat_products_Packagings extends core_Detail
     public function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth|templateId|isSecondMeasure,silent');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка/Мярка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth|templateId|isSecondMeasure,silent');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('isSecondMeasure', 'enum(yes=Да,no=Не)', 'caption=Втора мярка,mandatory,maxRadio=2,input=none');
@@ -395,10 +395,7 @@ class cat_products_Packagings extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles == 'no_one') {
-            
-            return;
-        }
+        if ($requiredRoles == 'no_one') return;
         
         if ($action == 'add' && isset($rec->productId)) {
             if (!countR($mvc::getRemainingOptions($rec->productId))) {
@@ -417,14 +414,6 @@ class cat_products_Packagings extends core_Detail
             }
         }
         
-        // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира опаковките
-        if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one') {
-            $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-            if ($canStore != 'yes') {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
         // Ако опаковката вече е използвана не може да се изтрива
         if ($action == 'delete' && isset($rec)) {
             if (self::isUsed($rec->productId, $rec->packagingId, strtolower(Request::get('Act')) == 'list')) {
@@ -435,6 +424,15 @@ class cat_products_Packagings extends core_Detail
         if ($action == 'edit' && isset($rec)) {
             if ($rec->state == 'closed') {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if ($action == 'changestate' && isset($rec)) {
+            if ($rec->state == 'closed') {
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore != 'yes'){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -467,15 +465,18 @@ class cat_products_Packagings extends core_Detail
     {
         // Извличаме мерките и опаковките
         $uomArr = cat_UoM::getUomOptions();
-        $packArr = cat_UoM::getPackagingOptions();
-        
+        $canStore = cat_Products::fetchField($productId, 'canStore');
+        $packArr = ($canStore == 'yes') ? cat_UoM::getPackagingOptions() : array();
+
         // Отсяваме тези, които вече са избрани за артикула
         $query = self::getQuery();
-        if ($id) {
+        $query->where("#productId = {$productId}");
+        $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        if (isset($id)) {
             $query->where("#id != {$id}");
         }
-        
-        while ($rec = $query->fetch("#productId = ${productId}")) {
+
+        while ($rec = $query->fetch()) {
             unset($uomArr[$rec->packagingId]);
             unset($packArr[$rec->packagingId]);
         }
@@ -641,11 +642,8 @@ class cat_products_Packagings extends core_Detail
      */
     public function preparePackagings($data)
     {
-        $masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : $data->masterMvc->fetch($data->masterId);
-        if ($masterRec->canStore == 'no') {
-            $data->notStorable = true;
-        }
-        
+        $data->_masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : $data->masterMvc->fetch($data->masterId);
+
         $data->recs = $data->rows = array();
         $fields = $this->selectFields();
         $fields['-list'] = true;
@@ -665,7 +663,7 @@ class cat_products_Packagings extends core_Detail
         }
         
         $data->listFields = arr::make($this->listFields, true);
-        $shortMeasure = cat_UoM::getShortName($masterRec->measureId);
+        $shortMeasure = cat_UoM::getShortName($data->_masterRec->measureId);
         $data->listFields['quantity'] .= "|* <span class='small'>( |{$shortMeasure}|* )</span>";
     }
     
@@ -681,18 +679,11 @@ class cat_products_Packagings extends core_Detail
             
             return;
         }
-        $tpl = (isset($data->tpl)) ? $data->tpl : getTplFromFile('cat/tpl/PackigingDetail.shtml');
-        
+        $tpl = (isset($data->tpl)) ? $data->tpl : getTplFromFile('cat/tpl/PackagingDetail.shtml');
+
         if ($data->addUrl && !Mode::isReadOnly()) {
             $addBtn = ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Добавяне на нова опаковка/мярка');
             $tpl->append($addBtn, 'TITLE');
-        }
-        
-        // Ако артикула не е производим, показваме в детайла
-        if ($data->notStorable === true) {
-            $tpl->append(" <small style='color:red'>(" . tr('Артикулът не е складируем') . ')</small>', 'TITLE');
-            $tpl->append('state-rejected', 'TAB_STATE');
-            unset($data->listFields['tools']);
         }
         
         $table = cls::get('core_TableView', array('mvc' => $this));

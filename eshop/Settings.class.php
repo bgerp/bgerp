@@ -243,9 +243,12 @@ class eshop_Settings extends core_Master
         $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
         
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Наличности от');
+        if(core_Packs::isInstalled('sync')){
+            $this->FLD('remoteStores', 'keylist(mvc=sync_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Външни складове', 'input=none');
+        }
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Получаване от,optionsFunc=crm_Locations::getOwnLocations');
         $this->FLD('notInStockText', 'varchar(24)', 'caption=Информация при недостатъчно количество->Текст');
-
+        $this->FLD('remoteInStockText', 'varchar(24)', 'caption=Информация при наличност във външен склад->Текст,placeholder=Няма');
         $this->FLD('saleEndedText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Изтекли');
         $this->FLD('salePendingText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Предстоящи');
 
@@ -407,7 +410,7 @@ class eshop_Settings extends core_Master
         $form->setField('cartName', "placeholder={$namePlaceholder}");
         $notInStockPlaceholder = eshop_Setup::get('NOT_IN_STOCK_TEXT');
         $form->setField('notInStockText', "placeholder={$notInStockPlaceholder}");
-       
+
         // Ако има ред от количка в домейна да не може да се сменя валутата и ддс-то
         if ($rec->classId == cms_Domains::getClassId()) {
             $cartQuery = eshop_CartDetails::getQuery();
@@ -461,14 +464,24 @@ class eshop_Settings extends core_Master
         $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_SALE_PENDING_TEXT_BG : self::DEFAULT_SALE_PENDING_TEXT_EN;
         $form->setField('salePendingText', array('placeholder' => $btnPlaceholder));
 
-        // При нов запис, за имейл да е корпоратичния имейл
+        // При нов запис, за имейл да е корпоративния
         if(empty($rec->id)){
             if($emailRec = email_Accounts::getCorporateAcc()){
                 $defaultInboxId = email_Inboxes::fetchField("#email = '{$emailRec->email}'", 'id');
                 $form->setDefault('inboxId', $defaultInboxId);
             }
         }
-        
+
+        if(core_Packs::isInstalled('sync')){
+            $syncedStores = sync_Stores::getStoreOptions($rec->remoteStores);
+            if(countR($syncedStores)){
+                $form->setField('remoteStores', 'input');
+                $form->setSuggestions('remoteStores', $syncedStores);
+                $remoteInStockSuggestions = arr::make(eshop_Setup::get('REMOTE_IN_STOCK_TEXT'), true);
+                $form->setSuggestions('remoteInStockText', array('' => '') + $remoteInStockSuggestions);
+            }
+        }
+
         $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
         $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
         $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));

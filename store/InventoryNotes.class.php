@@ -586,8 +586,6 @@ class store_InventoryNotes extends core_Master
         $storeItemId = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
         $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => false, 'item1' => $storeItemId, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
-        
-        
         $productPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
         
         // Подготвяме записите в нормален вид
@@ -613,10 +611,36 @@ class store_InventoryNotes extends core_Master
                     $aRec->groups = $groups;
                 }
                 
-                $res[] = $aRec;
+                $res[$productId] = $aRec;
             }
         }
-        
+
+        // Ако ще се показват по партиди
+        if($rec->expandByBatches == 'yes'){
+
+            // Тези от баланса, които има наличности по партиди и не се срещат от баланса ще се добавят с 0-во очаквано
+            $withMovements = batch_Items::getProductsWithMovement($rec->storeId, null, $to);
+            $withMovementsButNotInBalance = array_diff_key($withMovements, $res);
+            foreach($withMovementsButNotInBalance as $pId => $q){
+                if(empty($q)) continue;
+
+                $aRec = (object) array('noteId' => $rec->id,
+                    'productId' => $pId,
+                    'groups' => null,
+                    'modifiedOn' => $now,
+                    'createdBy' => core_Users::SYSTEM_USER,
+                    'blQuantity' => 0);
+                $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
+
+                $groups = cat_Products::fetchField($pId, 'groups');
+                if (!empty($groups)) {
+                    $aRec->groups = $groups;
+                }
+
+                $res[$pId] = $aRec;
+            }
+        }
+
         // Връщаме намерените артикули
         return $res;
     }
@@ -654,7 +678,7 @@ class store_InventoryNotes extends core_Master
                 $productArr[$a->productId] = $a->productId;
             }
         });
-        
+
         // От артикулите от баланса, се махат тези, които нямат избраната група и нямат к-ва.
         // Целта е ако потребителя е въвел артикул, който не е в избраните групи с к-во, неговото очаквано
         // к-во да дойде от баланса
@@ -665,7 +689,7 @@ class store_InventoryNotes extends core_Master
                 }
             }
         }
-        
+
         // Синхронизираме двата масива
         $syncedArr = arr::syncArrays($balanceArr, $currentArr, 'noteId,productId', 'blQuantity,groups,modifiedOn');
         $Summary = cls::get('store_InventoryNoteSummary');
