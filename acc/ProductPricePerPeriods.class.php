@@ -315,14 +315,20 @@ class acc_ProductPricePerPeriods extends core_Manager
         core_Debug::startTimer('INVALIDATE_ALL');
         $me = cls::get(get_called_class());
         $toDate = dt::addMonths(-1, $date, false);
+
+        core_Debug::startTimer('TO_DATE');
         $pricesToDate = static::getPricesToDate($toDate);
         $prevArr = array();
         array_walk($pricesToDate, function($arr, $key) use (&$prevArr) {$prevArr[$key] = $arr->price;});
+        core_Debug::stopTimer('TO_DATE');
 
+        core_Debug::startTimer('EXTRACT_DATE');
         $res = static::extractDataFromBalance($date, null, $prevArr);
         $allRes = array();
         array_walk($res, function($arr) use (&$allRes) {$allRes = array_merge($allRes, $arr);});
+        core_Debug::stopTimer('EXTRACT_DATE');
 
+        core_Debug::startTimer('SAVE_ARR');
         $exQuery = static::getQuery();
         $exQuery->where("#date >= '{$date}'");
         $exRecs = $exQuery->fetchAll();
@@ -341,11 +347,15 @@ class acc_ProductPricePerPeriods extends core_Manager
             $deleteIds = implode(',', $synced['delete']);
             static::delete("#id IN ({$deleteIds})");
         }
+        core_Debug::stopTimer('SAVE_ARR');
 
         core_Debug::stopTimer('INVALIDATE_ALL');
         $wTime = round(core_Debug::$timers["INVALIDATE_ALL"]->workingTime, 6);
+        $tTime = round(core_Debug::$timers["TO_DATE"]->workingTime, 6);
+        $eTime = round(core_Debug::$timers["EXTRACT_DATE"]->workingTime, 6);
+        $sTime = round(core_Debug::$timers["SAVE_ARR"]->workingTime, 6);
 
         $to = static::getCacheMaxDate();
-        static::logDebug("INV: FROM '{$date}' TO '{$to}' -RES (I{$iCount}:U{$uCount}:D{$dCount})-TIME '{$wTime}'");
+        static::logDebug("FROM '{$date}' TO '{$to}'-RES(I{$iCount}:U{$uCount}:D{$dCount})-T'{$wTime}'/TO:{$tTime}/E:{$eTime}/S:{$sTime}");
     }
 }
