@@ -206,6 +206,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_ProductPricePerPeriods',
         'migrate::updatePriceRoles2247',
         'migrate::deleteEmptyRateDifferences1620',
+        'migrate::fillStockPrices',
     );
     
     
@@ -661,5 +662,19 @@ class acc_Setup extends core_ProtoSetup
     public function deleteEmptyRateDifferences1620()
     {
         acc_RatesDifferences::delete("#threadId IS NULL AND #containerId IS NULL");
+    }
+
+
+    /**
+     * Първоначално попълване на модела с последните цени на артикулите
+     */
+    public function fillStockPrices()
+    {
+        $Cache = cls::get('acc_ProductPricePerPeriods');
+        core_App::setTimeLimit(300);
+        $res = acc_ProductPricePerPeriods::extractDataFromBalance(null);
+        foreach ($res as $recs4Balance){
+            $Cache->saveArray($recs4Balance);
+        }
     }
 }

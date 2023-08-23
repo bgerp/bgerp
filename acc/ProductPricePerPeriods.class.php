@@ -101,7 +101,7 @@ class acc_ProductPricePerPeriods extends core_Manager
      * @param array $prevArr
      * @return array $res
      */
-    private static function extractDataFromBalance($fromDate, $toDate = null, $prevArr = array())
+    public static function extractDataFromBalance($fromDate, $toDate = null, $prevArr = array())
     {
         $res = array();
         $storeAccSysId = acc_Accounts::getRecBySystemId(321)->id;
@@ -174,6 +174,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         self::requireRightFor('debug');
         $this->truncate();
 
+        return;
         core_App::setTimeLimit(300);
         $res = static::extractDataFromBalance(null);
         foreach ($res as $recs4Balance){
