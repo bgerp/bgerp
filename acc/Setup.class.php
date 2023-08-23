@@ -118,6 +118,12 @@ defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'yes');
 
 
 /**
+ * Колко баланса назад да не се кешират складовите цени
+ */
+defIfNot('ACC_NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT', 2);
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -197,6 +203,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_FeatureTitles',
         'acc_CostAllocations',
         'acc_RatesDifferences',
+        'acc_ProductPricePerPeriods',
         'migrate::updatePriceRoles2247',
         'migrate::deleteEmptyRateDifferences1620',
     );
@@ -274,6 +281,10 @@ class acc_Setup extends core_ProtoSetup
         'ACC_ALTERNATE_WINDOW' => array(
             'time(suggestions=3 месеца|6 месеца|9 месеца|12 месеца|24 месеца)',
             'caption=Балансите да НЕ се преизчисляват при промяна на документи по-стари от->Срок,placeholder=Винаги'
+        ),
+        'ACC_NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT' => array(
+            'int(min=0)',
+            'caption=Колко баланса назад да не се кешират складовите цени->Последните,placeholder=баланса',
         ),
     );
     
