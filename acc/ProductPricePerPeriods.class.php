@@ -113,8 +113,7 @@ class acc_ProductPricePerPeriods extends core_Manager
 
         // Взимат се балансите до посочената дата в настройките
         if(!isset($toDate)){
-            $balanceBeforeCnt = acc_Setup::get('NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT');
-            $toDate = dt::addMonths(-1 * $balanceBeforeCnt, dt::getLastDayOfMonth(), false);
+            $toDate = static::getCacheMaxDate();
         }
 
         if(isset($toDate)){
@@ -346,6 +345,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         core_Debug::stopTimer('INVALIDATE_ALL');
         $wTime = round(core_Debug::$timers["INVALIDATE_ALL"]->workingTime, 6);
 
-        static::logDebug("INV: FROM '{$date}'-RES (I{$iCount}:U{$uCount}:D{$dCount})-TIME '{$wTime}'");
+        $to = static::getCacheMaxDate();
+        static::logDebug("INV: FROM '{$date}' TO '{$to}' -RES (I{$iCount}:U{$uCount}:D{$dCount})-TIME '{$wTime}'");
     }
 }
