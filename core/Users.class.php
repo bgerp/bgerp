@@ -340,7 +340,8 @@ class core_Users extends core_Manager
             $query = static::getQuery();
             $query->where("#state != 'rejected'");
             $query->where("#state != 'draft'");
-            
+            $query->where("#state != 'closed'");
+
             // Ако са зададени роли
             if ($roles) {
                 $query->likeKeylist('roles', $roles);
