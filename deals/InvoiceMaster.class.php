@@ -1531,8 +1531,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $cache = $vats = $cacheIds = array();
         $Detail = $this->mainDetail;
         $query = $Detail::getQuery();
-        $vatRate = $document->fetchField('vatRate');
-        $docRec = $document->fetch('dpAmount,dpVatGroupId');
+        $docRec = $document->fetch('dpAmount,dpVatGroupId,vatRate,rate');
 
         $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
         $query->orderBy('id', 'ASC');
@@ -1543,15 +1542,14 @@ abstract class deals_InvoiceMaster extends core_Master
             } else {
                 $price = $dRec->packPrice;
             }
-
-            $price = round($price, 5);
+            $price = deals_Helper::roundPrice($price);
             $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
             $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
 
             $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price);
             $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price);
             $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price);
-            if ($vatRate != 'no' && $vatRate != 'exempt') {
+            if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
                 $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
             }
 
@@ -1561,7 +1559,7 @@ abstract class deals_InvoiceMaster extends core_Master
         if (!countR($cache)) {
             if (isset($docRec->dpAmount)) {
                 $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
-                $v = ($vatRate == 'yes' || $vatRate == 'separate') ? $vRate : 0;
+                $v = ($docRec->vatRate == 'yes' || $docRec->vatRate == 'separate') ? $vRate : 0;
                 $vats["{$v}"] = $v;
             }
         }
