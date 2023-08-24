@@ -120,6 +120,7 @@ class acc_ProductPricePerPeriods extends core_Manager
             $bQuery->where("#toDate <= '{$toDate}'");
         }
 
+        $count = 0;
         while ($bRec = $bQuery->fetch()) {
 
             // Извличане данните на конкретния баланс за посочените сметки
@@ -136,13 +137,14 @@ class acc_ProductPricePerPeriods extends core_Manager
 
             $saveArr = array();
 
-            $count = 0;
             core_Debug::startTimer('FETCHED_EACH');
             foreach ($allRecs as $dRec) {
                 if (is_null($dRec->price)) {
                     $dRec->price = 0;
                 } else {
+                    core_Debug::startTimer("ROUND");
                     $dRec->price = core_Math::roundNumber($dRec->price);
+                    core_Debug::stopTimer("ROUND");
                 }
                 $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
                 if ($dRec->price < 0) continue;
@@ -169,9 +171,9 @@ class acc_ProductPricePerPeriods extends core_Manager
 
         $fd = round(core_Debug::$timers["FETCH_BDETAILS"]->workingTime, 6);
         $feTime = round(core_Debug::$timers["FETCHED_EACH"]->workingTime, 6);
+        $rTime = round(core_Debug::$timers["ROUND"]->workingTime, 6);
 
-        $to = static::getCacheMaxDate();
-        static::logDebug("EXTRACT: COUNT{$count} / FETCH_D: {$fd}/ FETCH_E: {$feTime}");
+        static::logDebug("EXTRACT: ROUND{$rTime} / COUNT{$count} / FETCH_D: {$fd}/ FETCH_E: {$feTime}");
 
         return $res;
     }
