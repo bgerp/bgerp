@@ -106,7 +106,9 @@ class acc_ProductPricePerPeriods extends core_Manager
         $res = array();
         $storeAccSysId = acc_Accounts::getRecBySystemId(321)->id;
         $bQuery = acc_Balances::getQuery();
-        $bQuery->orderBy('id', 'ASC');
+        $bQuery->where("#periodId IS NOT NULL");
+        $bQuery->orderBy('toDate', 'ASC');
+        $bQuery->show('toDate,id');
         if(isset($fromDate)){
             $bQuery->where("#toDate >= '{$fromDate}'");
         }
@@ -120,26 +122,33 @@ class acc_ProductPricePerPeriods extends core_Manager
             $bQuery->where("#toDate <= '{$toDate}'");
         }
 
+        $bRecs = $bQuery->fetchAll();
+        $balanceIds = array_keys($bRecs);
+
+        $groupedDetails = array();
+        core_Debug::startTimer('FETCH_BDETAILS');
+        $dQuery = acc_BalanceDetails::getQuery();
+        $dQuery->EXT('toDate', 'acc_Balances', 'externalName=toDate,externalKey=balanceId');
+        $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
+        $dQuery->where("#accountId = {$storeAccSysId} AND #ent1Id IS NOT NULL");
+        $dQuery->in('balanceId', $balanceIds);
+        $dQuery->show('balanceId,blAmount,blQuantity,ent1Id,ent2Id');
+        while($dRec1 = $dQuery->fetch()){
+            $groupedDetails[$bRecs[$dRec1->balanceId]->toDate][] = $dRec1;
+        }
+        ksort($groupedDetails);
+        core_Debug::stopTimer('FETCH_BDETAILS');
+
         $count = 0;
-        while ($bRec = $bQuery->fetch()) {
-
-            // Извличане данните на конкретния баланс за посочените сметки
-            core_Debug::startTimer('FETCH_BDETAILS');
-            $dQuery = acc_BalanceDetails::getQuery();
-            $dQuery->EXT('toDate', 'acc_Balances', 'externalName=toDate,externalKey=balanceId');
-            $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
-            $dQuery->where("#balanceId = {$bRec->id} AND #accountId = {$storeAccSysId} AND #periodId IS NOT NULL AND #ent1Id IS NOT NULL");
-
-            $allRecs = $dQuery->fetchAll();
-            core_Debug::stopTimer('FETCH_BDETAILS');
-            $count = countR($allRecs);
-            core_App::setTimeLimit($count * 0.4, false, 200);
+        foreach ($groupedDetails as $toDate => $details){
 
             $saveArr = array();
+            $countC = countR($details);
+            core_App::setTimeLimit($countC * 0.4, false, 200);
 
             core_Debug::startTimer('FETCHED_EACH');
-            foreach ($allRecs as $dRec) {
-                if(empty($dRec->blQuantity) || is_null($dRec->price)){
+            foreach ($details as $dRec){
+                if(empty($dRec->blQuantity)){
                     $dRec->price = 0;
                 } else {
                     core_Debug::startTimer("ROUND");
@@ -155,18 +164,20 @@ class acc_ProductPricePerPeriods extends core_Manager
                 if (array_key_exists($key, $prevArr)) {
                     if (round($dRec->price, 5) == round($prevArr[$key], 5)) continue;
                 }
-                $rec = (object)array('date' => $dRec->toDate,
+                $rec = (object)array('date' => $toDate,
                                      'storeItemId' => $dRec->ent1Id,
                                      'productItemId' => $dRec->ent2Id,
                                      'price' => $dRec->price);
                 $saveArr[] = $rec;
                 $prevArr[$key] = $dRec->price;
             }
+
             $saveCount = countR($saveArr);
             $count += $saveCount;
             if ($saveCount) {
-                $res[$bRec->toDate] = $saveArr;
+                $res[$toDate] = $saveArr;
             }
+
             core_Debug::stopTimer('FETCHED_EACH');
         }
 
