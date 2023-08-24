@@ -33,7 +33,7 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,date,storeItemId,productItemId,price';
+    public $listFields = 'id,date,storeItemId,productItemId,price,updatedOn';
 
 
     /**
@@ -53,10 +53,11 @@ class acc_ProductPricePerPeriods extends core_Manager
      */
     public function description()
     {
-        $this->FLD('date', 'date', 'caption=Дата,remember');
+        $this->FLD('date', 'date', 'caption=Дата');
         $this->FLD('storeItemId', "acc_type_Item(select=titleNum,allowEmpty)", 'caption=Склад,mandatory,remember');
         $this->FLD('productItemId', "acc_type_Item(select=titleNum,allowEmpty)", 'caption=Артикул');
         $this->FLD('price', 'double', 'caption=Цена');
+        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Промяна');
 
         $this->setDbIndex('date');
         $this->setDbIndex('productItemId');
@@ -140,6 +141,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         core_Debug::stopTimer('FETCH_BDETAILS');
 
         $count = 0;
+        $now = dt::now();
         foreach ($groupedDetails as $toDate => $details){
 
             $saveArr = array();
@@ -167,6 +169,7 @@ class acc_ProductPricePerPeriods extends core_Manager
                 $rec = (object)array('date' => $toDate,
                                      'storeItemId' => $dRec->ent1Id,
                                      'productItemId' => $dRec->ent2Id,
+                                     'updatedOn' => $now,
                                      'price' => $dRec->price);
                 $saveArr[] = $rec;
                 $prevArr[$key] = $dRec->price;
@@ -199,7 +202,6 @@ class acc_ProductPricePerPeriods extends core_Manager
         self::requireRightFor('debug');
         $this->truncate();
 
-        return;
         core_App::setTimeLimit(300);
         $res = static::extractDataFromBalance(null);
         foreach ($res as $recs4Balance){
