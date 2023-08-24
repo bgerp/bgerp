@@ -348,7 +348,9 @@ class acc_ProductPricePerPeriods extends core_Manager
         core_Debug::startTimer('TO_DATE');
         $pricesToDate = static::getPricesToDate($toDate);
         $prevArr = array();
+        core_Debug::startTimer('TO_DATE_PREV_EACH');
         array_walk($pricesToDate, function($arr, $key) use (&$prevArr) {$prevArr[$key] = $arr->price;});
+        core_Debug::stopTimer('TO_DATE_PREV_EACH');
         core_Debug::stopTimer('TO_DATE');
 
         core_Debug::startTimer('EXTRACT_DATE');
@@ -383,9 +385,10 @@ class acc_ProductPricePerPeriods extends core_Manager
         $tTime = round(core_Debug::$timers["TO_DATE"]->workingTime, 6);
         $eTime = round(core_Debug::$timers["EXTRACT_DATE"]->workingTime, 6);
         $sTime = round(core_Debug::$timers["SAVE_ARR"]->workingTime, 6);
+        $tpTime = round(core_Debug::$timers["TO_DATE_PREV_EACH"]->workingTime, 6);
 
         $to = static::getCacheMaxDate();
-        static::logDebug("FROM '{$date}' TO '{$to}'-RES(I{$iCount}:U{$uCount}:D{$dCount})-T'{$wTime}'/TO:{$tTime}/E:{$eTime}/S:{$sTime}");
+        static::logDebug("FROM '{$date}' TO '{$to}'-RES(I{$iCount}:U{$uCount}:D{$dCount})-T'{$wTime}'/TO:{$tTime}/E:{$eTime}/S:{$sTime}/TOPREV:{$tpTime}");
     }
 
 
