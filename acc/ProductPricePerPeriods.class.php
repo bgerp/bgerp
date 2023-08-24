@@ -136,12 +136,13 @@ class acc_ProductPricePerPeriods extends core_Manager
 
             $saveArr = array();
 
+            $count = 0;
             core_Debug::startTimer('FETCHED_EACH');
             foreach ($allRecs as $dRec) {
                 if (is_null($dRec->price)) {
                     $dRec->price = 0;
                 } else {
-                    $dRec->price = round($dRec->price, 5);
+                    $dRec->price = core_Math::roundNumber($dRec->price);
                 }
                 $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
                 if ($dRec->price < 0) continue;
@@ -158,8 +159,9 @@ class acc_ProductPricePerPeriods extends core_Manager
                 $saveArr[] = $rec;
                 $prevArr[$key] = $dRec->price;
             }
-
-            if (countR($saveArr)) {
+            $saveCount = countR($saveArr);
+            $count += $saveCount;
+            if ($saveCount) {
                 $res[$bRec->toDate] = $saveArr;
             }
             core_Debug::stopTimer('FETCHED_EACH');
@@ -169,7 +171,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $feTime = round(core_Debug::$timers["FETCHED_EACH"]->workingTime, 6);
 
         $to = static::getCacheMaxDate();
-        static::logDebug("EXTRACT: FETCH_D: {$fd}/ FETCH_E: {$feTime}");
+        static::logDebug("EXTRACT: COUNT{$count} / FETCH_D: {$fd}/ FETCH_E: {$feTime}");
 
         return $res;
     }
