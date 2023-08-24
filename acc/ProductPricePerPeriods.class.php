@@ -143,7 +143,7 @@ class acc_ProductPricePerPeriods extends core_Manager
                     $dRec->price = 0;
                 } else {
                     core_Debug::startTimer("ROUND");
-                    $dRec->price = core_Math::roundNumber($dRec->price);
+                    $dRec->price = round($dRec->price, 5);
                     core_Debug::stopTimer("ROUND");
                 }
                 $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
