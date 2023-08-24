@@ -129,7 +129,7 @@ class acc_ProductPricePerPeriods extends core_Manager
             $dQuery->EXT('toDate', 'acc_Balances', 'externalName=toDate,externalKey=balanceId');
             $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
             $dQuery->where("#balanceId = {$bRec->id} AND #accountId = {$storeAccSysId} AND #periodId IS NOT NULL AND #ent1Id IS NOT NULL");
-            $dQuery->XPR('price', 'double', 'ROUND(#blAmount / NULLIF(#blQuantity, 0), 5)', 'column=none');
+
             $allRecs = $dQuery->fetchAll();
             core_Debug::stopTimer('FETCH_BDETAILS');
             $count = countR($allRecs);
@@ -139,14 +139,15 @@ class acc_ProductPricePerPeriods extends core_Manager
 
             core_Debug::startTimer('FETCHED_EACH');
             foreach ($allRecs as $dRec) {
-                if (is_null($dRec->price)) {
+                if(empty($dRec->blQuantity) || is_null($dRec->price)){
                     $dRec->price = 0;
                 } else {
                     core_Debug::startTimer("ROUND");
-                    $dRec->price = round($dRec->price, 5);
+                    $dRec->price = round($dRec->blAmount / $dRec->blQuantity, 5);
                     core_Debug::stopTimer("ROUND");
                 }
                 $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
+
                 if ($dRec->price < 0) continue;
 
                 // Ако цената не е променяна няма да се обновява от предходния запис
