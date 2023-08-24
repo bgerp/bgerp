@@ -123,17 +123,20 @@ class acc_ProductPricePerPeriods extends core_Manager
         while ($bRec = $bQuery->fetch()) {
 
             // Извличане данните на конкретния баланс за посочените сметки
+            core_Debug::startTimer('FETCH_BDETAILS');
             $dQuery = acc_BalanceDetails::getQuery();
             $dQuery->EXT('toDate', 'acc_Balances', 'externalName=toDate,externalKey=balanceId');
             $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
             $dQuery->where("#balanceId = {$bRec->id} AND #accountId = {$storeAccSysId} AND #periodId IS NOT NULL AND #ent1Id IS NOT NULL");
             $dQuery->XPR('price', 'double', 'ROUND(#blAmount / NULLIF(#blQuantity, 0), 5)', 'column=none');
-
             $allRecs = $dQuery->fetchAll();
+            core_Debug::stopTimer('FETCH_BDETAILS');
             $count = countR($allRecs);
             core_App::setTimeLimit($count * 0.4, false, 200);
 
             $saveArr = array();
+
+            core_Debug::startTimer('FETCHED_EACH');
             foreach ($allRecs as $dRec) {
                 if (is_null($dRec->price)) {
                     $dRec->price = 0;
@@ -159,7 +162,14 @@ class acc_ProductPricePerPeriods extends core_Manager
             if (countR($saveArr)) {
                 $res[$bRec->toDate] = $saveArr;
             }
+            core_Debug::stopTimer('FETCHED_EACH');
         }
+
+        $fd = round(core_Debug::$timers["FETCH_BDETAILS"]->workingTime, 6);
+        $feTime = round(core_Debug::$timers["FETCHED_EACH"]->workingTime, 6);
+
+        $to = static::getCacheMaxDate();
+        static::logDebug("EXTRACT: FETCH_D: {$fd}/ FETCH_E: {$feTime}");
 
         return $res;
     }
@@ -301,10 +311,13 @@ class acc_ProductPricePerPeriods extends core_Manager
         core_Debug::stopTimer('GROUP_ALL');
         core_Debug::log("END GROUP_ALL " . round(core_Debug::$timers["GROUP_ALL"]->workingTime, 6));
 
+        core_Debug::startTimer('PREV_EACH');
         $res = array();
         while ($arr = $me->db->fetchArray($dbTableRes)) {
             $res["{$arr['storeItemId']}|{$arr['productItemId']}"] = (object)$arr;
         }
+        core_Debug::stopTimer('PREV_EACH');
+        core_Debug::log("FETCHED PREV " . round(core_Debug::$timers["PREV_EACH"]->workingTime, 6));
 
         return $res;
     }
