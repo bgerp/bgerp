@@ -613,7 +613,11 @@ class acc_Balances extends core_Master
     public static function on_AfterRecalcBalances(acc_Balances $mvc, &$data)
     {
         acc_Journal::clearDrafts();
-        acc_ProductPricePerPeriods::logDebug("BALANCES ". min(array_keys($data->recalcedBalances)));
+        if(is_array($data->recalcedBalances)){
+            acc_ProductPricePerPeriods::logDebug("BALANCES ". min(array_keys($data->recalcedBalances)));
+        } else {
+            acc_ProductPricePerPeriods::logDebug("BALANCES NONE");
+        }
 
         return;
 
