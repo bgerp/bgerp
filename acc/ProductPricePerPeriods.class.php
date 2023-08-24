@@ -358,4 +358,13 @@ class acc_ProductPricePerPeriods extends core_Manager
         $to = static::getCacheMaxDate();
         static::logDebug("FROM '{$date}' TO '{$to}'-RES(I{$iCount}:U{$uCount}:D{$dCount})-T'{$wTime}'/TO:{$tTime}/E:{$eTime}/S:{$sTime}");
     }
+
+
+    function act_Invalidate()
+    {
+        $from = Request::get('FROM', 'date');
+        $from = isset($from) ? $from : dt::addMonths(-5, dt::today());
+
+        acc_ProductPricePerPeriods::invalidateAfterDate($from);
+    }
 }

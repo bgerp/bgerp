@@ -481,6 +481,7 @@ class acc_Balances extends core_Master
         }
 
         $data = new stdClass();
+        $data->recalcedBalances = array();
         if ($oldLastBalance = acc_Balances::getLastBalance()) {
             $data->oldLastBalance = clone $oldLastBalance;
         }
@@ -612,7 +613,7 @@ class acc_Balances extends core_Master
     public static function on_AfterRecalcBalances(acc_Balances $mvc, &$data)
     {
         acc_Journal::clearDrafts();
-        static::logDebug("BALANCES ". min(array_keys($data->recalcedBalances)));
+        acc_ProductPricePerPeriods::logDebug("BALANCES ". min(array_keys($data->recalcedBalances)));
 
         return;
 
