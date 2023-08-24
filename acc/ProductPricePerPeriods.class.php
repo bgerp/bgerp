@@ -141,7 +141,7 @@ class acc_ProductPricePerPeriods extends core_Manager
                 if (is_null($dRec->price)) {
                     $dRec->price = 0;
                 } else {
-                    $dRec->price = core_Math::roundNumber($dRec->price);
+                    $dRec->price = round($dRec->price, 5);
                 }
                 $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
                 if ($dRec->price < 0) continue;
