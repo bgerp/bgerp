@@ -1857,12 +1857,9 @@ class cal_Tasks extends embed_Manager
         } else {
             $titleArr = array();
             if(!Mode::is('onlyTitleInGetRecTitle')) {
-                if(!Mode::is('documentGetItemRec')){
-                    $abbr = $this->abbr;
-                    $abbr[0] = strtoupper($abbr[0]);
-                    $titleArr[] = "{$abbr}{$rec->id}";
-                }
-                if(!Mode::is('documentPortalShortName')){
+                $showFolderName = cal_Setup::get('SHOW_TASK_FOLDER_NAME_IN_PORTAL');
+
+                if(!Mode::is('documentPortalShortName') && $showFolderName != 'no'){
                     $cover = doc_Folders::getCover($rec->folderId);
                     $folder = str::limitLen($cover->getTitleById(), 16);
                     $titleArr[] = $folder;
@@ -1876,8 +1873,6 @@ class cal_Tasks extends embed_Manager
         $row->subTitle = '';
 
         if ($rec->assetResourceId) {
-//            $row->subTitle = $this->getVerbal($rec, 'assetResourceId');
-//            $row->subTitle = planning_AssetResources::getHyperlink($rec->assetResourceId, false);
             $row->subTitle = planning_AssetResources::getTitleById($rec->assetResourceId);
         }
 
@@ -1905,11 +1900,14 @@ class cal_Tasks extends embed_Manager
             }
             
             $row->subTitle .= ' (' . self::getLastProgressAuthor($rec) . ')';
-            
-            $row->title .= ' (' . $this->getVerbal($rec, 'progress') . ')';
+            if(!Mode::is('documentGetItemRec')) {
+                $row->title .= ' (' . $this->getVerbal($rec, 'progress') . ')';
+            }
         }
-        
-        $row->title = $this->prepareTitle($row->title, $rec);
+
+        if(!Mode::is('documentGetItemRec')){
+            $row->title = $this->prepareTitle($row->title, $rec);
+        }
         
         $usersArr = type_Keylist::toArray($rec->assign);
         if (!empty($usersArr)) {
