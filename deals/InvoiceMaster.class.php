@@ -1434,7 +1434,8 @@ abstract class deals_InvoiceMaster extends core_Master
         $dueDate = null;
         setIfNot($dueDate, $rec->dueDate, $rec->date);
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
-        $totalInDealRate = ($total / $rec->displayRate) * $rec->rate;
+        $displayRate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+        $totalInDealRate = ($total / $displayRate) * $rec->rate;
         $aggregator->sum('invoicedAmount', $totalInDealRate);
         $aggregator->setIfNot('invoicedValior', $rec->date);
 
