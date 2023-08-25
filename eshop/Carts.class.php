@@ -934,7 +934,11 @@ class eshop_Carts extends core_Master
             core_Users::forceSystemUser();
         }
         $cu = core_Users::getCurrent('id', false);
-        
+
+        $notes = tr("Поръчка") . " #{$rec->id}" . "\n";
+        $notes .= tr('Тел|*: ') . "{$rec->tel}" . "\n";
+        $notes .= tr('Имейл|*: ') . "{$rec->email}";
+
         // Дефолтни данни на продажбата
         $fields = array('valior' => dt::today(),
             'template' => $templateId,
@@ -949,7 +953,7 @@ class eshop_Carts extends core_Master
             'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,
             'deliveryCalcTransport' => 'no',
-            'note' => tr("Поръчка") . " #{$rec->id}",
+            'note' => $notes,
         );
 
         // Коя е ценовата политика
