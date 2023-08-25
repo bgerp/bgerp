@@ -16,7 +16,7 @@ defIfNot('CAL_SHOW_HOLIDAY_TYPE', '');
 /**
  * Показване на името на папката на задачите в портала
  */
-defIfNot('CAL_SHOW_TASK_FOLDER_NAME_IN_PORTAL', 'yes');
+defIfNot('CAL_SHOW_TASK_FOLDER_NAME_IN_PORTAL', 'no');
 
 
 /**
