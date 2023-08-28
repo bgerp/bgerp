@@ -23,6 +23,9 @@ class crm_CommerceDetails extends core_Manager
     {
         if (haveRole('sales,purchase,ceo')) {
             $data->TabCaption = 'Търговия';
+        } else {
+
+            return ;
         }
         
         if ($data->isCurrent === false) {
