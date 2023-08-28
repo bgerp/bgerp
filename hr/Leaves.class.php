@@ -378,7 +378,7 @@ class hr_Leaves extends core_Master
             
             // ако не са изчислени дните за отпуска или са по-малко от 1, даваме грешка
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
-                $form->setError('leaveDays', 'Броят  неприсъствени дни е 0');
+                $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
             }
             
             // правим заявка към базата
@@ -560,9 +560,16 @@ class hr_Leaves extends core_Master
         
         $curDate = $rec->leaveFrom;
 
+        $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+        if (!$personProfile) {
+
+            return ;
+        }
+
         while ($curDate < dt::addDays(1, $rec->leaveTo) ){
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
+
                 $calRec = new stdClass();
                 
                 // Ключ на събитието
@@ -581,9 +588,13 @@ class hr_Leaves extends core_Master
                 
                 // Заглавие за записа в календара
                 $calRec->title = "Отпуск: {$personName}";
-                
-                $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+
                 $personId = array($personProfile->userId => 0);
+
+                if (!$personId) {
+                    break;
+                }
+
                 $user = keylist::fromArray($personId);
                 
                 // В чии календари да влезе?
