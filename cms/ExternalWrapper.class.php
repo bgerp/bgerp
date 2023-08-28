@@ -96,7 +96,7 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
             return;
         }
         
-        // Редниране на обвивката от бащата
+        // Рендиране на обвивката от бащата
         parent::on_AfterRenderWrapping($invoker, $tpl, $blankTpl, $data);
         
         // Обграждаме обвивката със div

@@ -505,7 +505,9 @@ class doc_Containers extends core_Manager
         try {
             // Заглавие на треда
             $document = $mvc->getDocument($data->threadRec->firstContainerId);
+            Mode::push('documentPortalShortName', true);
             $docRow = $document->getDocumentRow();
+            Mode::pop('documentPortalShortName');
             $docTitle = str::limitLenAndHyphen($docRow->title, 70);
             $title->replace($docTitle, 'threadTitle');
             
@@ -1269,7 +1271,9 @@ class doc_Containers extends core_Manager
         if (!$threadTitleArr[$rec->threadId]) {
             
             // Определяме заглавието и добавяме в масива
+            Mode::push('getNotificationRecTitle', true);
             $threadTitleArr[$rec->threadId] = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, false), doc_Threads::maxLenTitle);
+            Mode::pop('getNotificationRecTitle');
         }
         
         // Обхождаме масива с всички потребители, които ще имат съответната нотификация

@@ -365,6 +365,11 @@ class store_InventoryNoteSummary extends doc_Detail
 
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
+            if($data->masterData->rec->state == 'active'){
+                if(empty($rec->quantity)){
+                    $row->ROW_ATTR['class'] = ' state-closed';
+                }
+            }
 
             if($rec->quantityHasAddedValues == 'yes'){
                 if($rec->isBatch){
@@ -469,13 +474,25 @@ class store_InventoryNoteSummary extends doc_Detail
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
         $data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
-        $data->listFilter->showFields = 'search';
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->input();
-        
+        $data->listFilter->showFields = 'search';
+
         // При активен протокол не се показват непроменяните редове
-        if($data->masterData->rec->state == 'active'){
-            $data->query->where('#quantity IS NOT NULL');
+        if($data->masterData->rec->state == 'active') {
+            $tab = Request::get($data->masterData->tabTopParam, 'varchar');
+
+            if ($tab == '' || $tab == get_called_class()) {
+                $data->listFilter->showFields .= ',filterBy';
+                $data->listFilter->FLD('filterBy', 'enum(diff=С промяна,all=Всички)');
+                $data->listFilter->setDefault('filterBy', 'diff');
+            }
+        }
+
+        $data->listFilter->input();
+        if($filter = $data->listFilter->rec){
+            if($filter->filterBy == 'diff'){
+                $data->query->where('#quantity IS NOT NULL');
+            }
         }
     }
     
@@ -840,7 +857,7 @@ class store_InventoryNoteSummary extends doc_Detail
             $data->recs = $cached->recs;
             $data->rows = $cached->rows;
         }
-        
+
         Mode::setPermanent("InventoryNoteLastSavedRow{$data->masterId}", null);
         
         // Връщаме $data

@@ -34,9 +34,9 @@
     <ul class='custom-ul'>
         <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
         <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
-        <!--ET_BEGIN alternatePerson-->
-        <li>|ще ме замества|*: <b>[#alternatePerson#]</b></li>
-        <!--ET_END alternatePerson-->
+        <!--ET_BEGIN alternatePersons-->
+        <li>|ще ме замества|*: <b>[#alternatePersons#]</b></li>
+        <!--ET_END alternatePersons-->
     </ul>
     <br><br>
 [#approved#]

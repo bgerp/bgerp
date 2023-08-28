@@ -43,12 +43,16 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
         
         // Вземаме съдържанието
         $content = static::getContent($fRec);
-        
+
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Таб за съдържанието
         $tabsArr['content'] = (object)
             array(
                 'title' => 'Съдържание',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='legend'>" . tr('Съдържание') . "</div><div class='webdrvFieldset'>{$content}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$content}</div></div>",
                 'order' => 7,
                 'tpl' => $content,
             );

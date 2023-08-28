@@ -39,7 +39,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     /**
      * Полета с възможност за промяна
      */
-    protected $changeableFields = 'periods,indocators,formula';
+    protected $changeableFields = 'periods,indocators,formula,fromDate,toDate';
     
     
     /**
@@ -60,9 +60,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title,allowEmpty)', 'caption=Период->Месец,after=title,removeAndRefreshForm=fromDate|toDate');
         $fieldset->FLD('fromDate', 'date(format=smartTime)', 'caption=Период->От,after=periods,silent,removeAndRefreshForm=periods');
         $fieldset->FLD('toDate', 'date(format=smartTime)', 'caption=Период->До,after=fromDate,silent,removeAndRefreshForm=periods');
-        $fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Индикатори,after=toDate');
-        $fieldset->FLD('personId', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,after=indocators');
-        $fieldset->FLD('formula', 'text(rows=2)', 'caption=Формула,after=indocators,single=none');
+        $fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Настройки->Индикатори,after=toDate');
+        $fieldset->FLD('formula', 'text(rows=2)', 'caption=Настройки->Формула,after=indocators,single=none');
+        $fieldset->FLD('personId', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Потребители,after=formula,single=none');
     }
     
     
@@ -81,17 +81,33 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             $form->setDefault('periods', $periodToday->id);
         }
 
+        $cu = core_Users::getCurrent();
         $form->setSuggestions('formula', hr_IndicatorNames::getFormulaSuggestions());
 
-        $cu = core_Users::getCurrent();
-
         // Само потребителите с по-нисък ранг може да бъдат избрани
-        $allUsers = core_Users::getUsersByRoles('powerUser');
-        $filteredUsers = array($cu => $allUsers[$cu]);
-        foreach ($allUsers as $userId => $userNick){
-            if(core_Users::compareRangs($userId, $cu) < 0){
-                $filteredUsers[$userId] = $userNick;
+        $activeArr = $closedArr = $rejectedArr = array();
+        $allUsers = core_Users::getUsersByRoles('powerUser', null, 'active,closed,rejected');
+        $uQuery = core_Users::getQuery();
+        $uQuery->in('id', array_keys($allUsers));
+        while($uRec = $uQuery->fetch()){
+            if(core_Users::compareRangs($uRec->id, $cu) < 0){
+                if($uRec->state == 'active'){
+                    $activeArr[$uRec->id] = "{$uRec->nick} ($uRec->names)";
+                } elseif($uRec->state == 'closed'){
+                    $closedArr[$uRec->id] = "{$uRec->nick} ($uRec->names)";
+                } elseif($uRec->state == 'rejected'){
+                    $rejectedArr[$uRec->id] = "{$uRec->nick} ($uRec->names)";
+                }
             }
+        }
+
+        // Групиране на намерените потребители по състояние
+        $filteredUsers = array('а' => (object) array('group' => true, 'title' => tr('Активни потребители'))) + $activeArr;
+        if(countR($closedArr)){
+            $filteredUsers += array('c' => (object) array('group' => true, 'title' => tr('Затворени потребители'))) + $closedArr;
+        }
+        if(countR($rejectedArr)){
+            $filteredUsers += array('r' => (object) array('group' => true, 'title' => tr('Заличени потребители'))) + $rejectedArr;
         }
         $form->setSuggestions('personId', $filteredUsers);
     }
@@ -147,8 +163,8 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         }
 
         // Ако има избрани потребители, взимат се те. Ако няма всички потребители
-        $users = (!empty($rec->personId)) ? keylist::toArray($rec->personId) : core_Users::getByRole('powerUser');
-        
+        $users = (!empty($rec->personId)) ? keylist::toArray($rec->personId) : array_keys(core_Users::getUsersByRoles('powerUser', null, 'active,closed,rejected'));
+
         // Извличат се ид-та на визитките на избраните потребители
         $pQuery = crm_Profiles::getQuery();
         $pQuery->in('userId', $users);
@@ -307,7 +323,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Int = cls::get('type_Int');
-        $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $row = new stdClass();
@@ -458,13 +473,13 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        // потребителите
+        // Вербализиране на избраните потребители
         if (isset($rec->personId)) {
             $persons = keylist::toArray($rec->personId);
+            $rec->persons = $persons;
             foreach ($persons as $userId => &$nick) {
                 $nick = crm_Profiles::createLink($userId)->getContent();
             }
-            
             $row->persons = implode(', ', $persons);
         }
         
@@ -485,10 +500,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
-								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Формула|*</b></small></legend>
-							    <!--ET_BEGIN formula--><small>[#formula#]</small></div><!--ET_END formula--></fieldset><!--ET_END BLOCK-->"));
-        
-        foreach (array('indocators', 'formula') as $fld) {
+								<!--ET_BEGIN persons--><fieldset class='detail-info'><legend class='groupTitle'><small><b>|Потребители|*</b></small></legend><div>[#persons#]</div><!--ET_END persons--></fieldset>
+								<!--ET_BEGIN formula--><fieldset class='detail-info'><legend class='groupTitle'><small><b>|Формула|*</b></small></legend><div><small>[#formula#]</small></div><!--ET_END formula--></fieldset><!--ET_END BLOCK-->"));
+
+        foreach (array('indocators', 'formula', 'persons') as $fld) {
             if (!empty($data->rec->{$fld})) {
                 $fieldTpl->append($data->row->{$fld}, $fld);
             }

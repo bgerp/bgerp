@@ -126,7 +126,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
                 
             } elseif (is_null($param)) {
                 
-                // Ако няма стойност искаме и в запиа да няма
+                // Ако няма стойност искаме и в запис да няма
                 $jQuery->where("(#debitItem{$i} IS NULL) OR (#creditItem{$i} IS NULL)");
             }
         }

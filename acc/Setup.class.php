@@ -118,6 +118,12 @@ defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'yes');
 
 
 /**
+ * Колко баланса назад да не се кешират складовите цени
+ */
+defIfNot('ACC_NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT', 2);
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -197,8 +203,10 @@ class acc_Setup extends core_ProtoSetup
         'acc_FeatureTitles',
         'acc_CostAllocations',
         'acc_RatesDifferences',
+        'acc_ProductPricePerPeriods',
         'migrate::updatePriceRoles2247',
         'migrate::deleteEmptyRateDifferences1620',
+        'migrate::fillStockPrices',
     );
     
     
@@ -275,6 +283,10 @@ class acc_Setup extends core_ProtoSetup
             'time(suggestions=3 месеца|6 месеца|9 месеца|12 месеца|24 месеца)',
             'caption=Балансите да НЕ се преизчисляват при промяна на документи по-стари от->Срок,placeholder=Винаги'
         ),
+        'ACC_NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT' => array(
+            'int(min=0)',
+            'caption=Колко баланса назад да не се кешират складовите цени->Последните,placeholder=баланса',
+        ),
     );
     
     
@@ -292,7 +304,20 @@ class acc_Setup extends core_ProtoSetup
             'seePricePurchase'
         ),
         array(
-            'invoicer'
+            'invoicerFindeal',
+            'seePrice'
+        ),
+        array(
+            'invoicerSale',
+            'seePriceSale'
+        ),
+        array(
+            'invoicerPurchase',
+            'seePricePurchase'
+        ),
+        array(
+            'invoicer',
+            'invoicerSale,invoicerPurchase,invoicerFindeal'
         ),
         array(
             'accJournal'
@@ -637,5 +662,19 @@ class acc_Setup extends core_ProtoSetup
     public function deleteEmptyRateDifferences1620()
     {
         acc_RatesDifferences::delete("#threadId IS NULL AND #containerId IS NULL");
+    }
+
+
+    /**
+     * Първоначално попълване на модела с последните цени на артикулите
+     */
+    public function fillStockPrices()
+    {
+        $Cache = cls::get('acc_ProductPricePerPeriods');
+        core_App::setTimeLimit(300);
+        $res = acc_ProductPricePerPeriods::extractDataFromBalance(null);
+        foreach ($res as $recs4Balance){
+            $Cache->saveArray($recs4Balance);
+        }
     }
 }

@@ -58,7 +58,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'storeId,dueDate,packQuantity,notes,tolerance,sharedUsers,allowSecondMeasure';
+    public $changableFields = 'storeId,dueDate,packQuantity,notes,tolerance,inputStores,sharedUsers,allowSecondMeasure';
     
     
     /**
@@ -351,6 +351,7 @@ class planning_Jobs extends core_Master
             $form->setReadOnly('productId');
         }
 
+        $defaultProductId = $defaultProductPack = $defaultQuantity = null;
         if (isset($rec->saleId)) {
 
             // Ако заданието е към продажба, може да се избират само измежду артикулите в нея
@@ -358,13 +359,29 @@ class planning_Jobs extends core_Master
             $form->setFieldType('productId', 'key(mvc=cat_Products)');
 
             // Дефолтния артикул е първия без задание към продажбата
-            $defaultProductId = null;
+            $packsInDeal = array();
+            $sQuery = sales_SalesDetails::getQuery();
+            $sQuery->where("#saleId = {$rec->saleId}");
+            $sQuery->in('productId', array_keys($products));
+            $sQuery->show('productId,packagingId,packQuantity');
+            while($sRec = $sQuery->fetch()){
+                $packsInDeal[$sRec->productId][$sRec->packagingId] = $sRec->packQuantity;
+            }
+
             foreach ($products as $pId => $pName){
-                if(!static::fetchField("#productId = {$pId} AND #saleId = {$rec->saleId} AND #state != 'rejected'")){
-                    $defaultProductId = $pId;
-                    break;
+                if(isset($rec->productId) && $rec->productId != $pId) continue;
+
+                foreach ($packsInDeal[$pId] as $packId => $packQuantity){
+                    $exRec = static::fetchField("#productId = {$pId} AND #saleId = {$rec->saleId} AND #packagingId = {$packId} AND #state != 'rejected'");
+                    if(!$exRec){
+                        $defaultProductId = $pId;
+                        $defaultProductPack = $packId;
+                        $defaultQuantity = $packQuantity;
+                        break;
+                    }
                 }
             }
+
             $form->setDefault('productId', $defaultProductId);
             $form->rec->_allowedProductsCnt = countR($products);
             if($form->rec->_allowedProductsCnt == 1){
@@ -387,17 +404,7 @@ class planning_Jobs extends core_Master
 
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId, false, $rec->secondMeasureId);
             $form->setOptions('packagingId', $packs);
-
-            // Ако артикула не е складируем, скриваме полето за мярка
-            $productRec = cat_Products::fetch($rec->productId, 'canStore,isPublic,innerClass');
-
-            if ($productRec->canStore == 'no') {
-                $form->setDefault('packagingId', key($packs));
-                $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
-            } else {
-                $form->setField('packagingId', 'input');
-            }
+            $form->setField('packagingId', 'input');
 
             if ($tolerance = cat_Products::getParams($rec->productId, 'tolerance')) {
                 $form->setDefault('tolerance', $tolerance);
@@ -408,9 +415,8 @@ class planning_Jobs extends core_Master
                 $form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId, $deliveryDate));
 
                 $saleRec = sales_Sales::fetch($rec->saleId);
-                $dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
-                $form->setDefault('packagingId', $dRec->packagingId);
-                $form->setDefault('packQuantity', $dRec->packQuantity);
+                $form->setDefault('packagingId', $defaultProductPack);
+                $form->setDefault('packQuantity', $defaultQuantity);
 
                 // Ако има данни от продажба, попълваме ги
                 $form->setDefault('storeId', $saleRec->shipmentStoreId);
@@ -2107,8 +2113,8 @@ class planning_Jobs extends core_Master
      */
     public static function closeActiveJobs($tolerance, $productIds = null, $saleIds = null, $noNewDocumentsIn = null, $logMsg = 'Автоматично приключване')
     {
-        $thresholdDate = ($noNewDocumentsIn) ? dt::addSecs(-1 * $noNewDocumentsIn, dt::now()) : null;
         $me = cls::get(get_called_class());
+        $thresholdDate = ($noNewDocumentsIn) ? dt::addSecs(-1 * $noNewDocumentsIn, dt::now()) : null;
         $query = static::getQuery();
         $query->where("#state IN ('active', 'wakeup')");
         $query->XPR('completed', 'percent', 'round(#quantityProduced / #quantity, 2)');
@@ -2128,9 +2134,30 @@ class planning_Jobs extends core_Master
 
         $count = 0;
         while($rec = $query->fetch()){
+            // Ако е събудено в посочения интервал да не се приключва
+            if($rec->state == 'wakeup' && $rec->lastChangeStateOn >= $thresholdDate) continue;
 
             // Ако има документ на заявка в нишката, няма да се приключва заданието
-            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) continue;
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->where("#threadId = {$rec->threadId} AND #state IN ('pending', 'draft')");
+            $draftAndPendingRecs = $cQuery->fetchAll();
+            foreach($draftAndPendingRecs as $cRec){
+                $notificationUrl = array('doc_Containers', 'list', "threadId" => $rec->threadId);
+                bgerp_Notifications::add("|*#{$me->getHandle($rec->id)} |не може да бъде автоматично приключено, защото има документи на заявка/чернова", $notificationUrl, $cRec->createdBy);
+            }
+
+            if(countR($draftAndPendingRecs)) continue;
+
+            // Ако има неприключени ПО към заданието, да не се приключва и да се бие нотификация
+            $tQuery = planning_Tasks::getQuery();
+            $tQuery->where("#originId = {$rec->containerId} AND #state != 'rejected'");
+            $notRejectedTasks = $tQuery->fetchAll();
+            foreach($notRejectedTasks as $taskRec){
+                $notificationUrl = array('doc_Containers', 'list', "threadId" => $taskRec->threadId);
+                $taskHandle = cal_Tasks::getHandle($taskRec->id);
+                bgerp_Notifications::add("|*#{$me->getHandle($rec->id)} |не може да бъде автоматично приключено, защото|* {$taskHandle} |не е приключена|*", $notificationUrl, $taskRec->createdBy);
+            }
+            if(countR($notRejectedTasks)) continue;
 
             // Ако е указано да няма нови документи в нишката в последните X време да се пропуска
             if(isset($thresholdDate)){

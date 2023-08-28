@@ -627,4 +627,30 @@ class deals_InvoicesToDocuments extends core_Manager
             }
         }
     }
+
+
+    /**
+     * Кои са свързаните документи към фактурата
+     *
+     * @param int $invoiceContainerId - ид на контейнера на фактурата
+     * @param mixed $documentClasses - изброени класове
+     * @return array
+     */
+    public static function getDocumentsToInvoices($invoiceContainerId, $documentClasses = array())
+    {
+        $query = static::getQuery();
+        $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=documentContainerId');
+        $query->EXT('state', 'doc_Containers', 'externalName=state,externalKey=documentContainerId');
+        $query->where("#containerId = {$invoiceContainerId} AND #state != 'rejected'");
+        if(isset($documentClasses)){
+            $inClassArr = array();
+            $documentClasses = arr::make($documentClasses, true);
+            foreach ($documentClasses as $classId){
+                $inClassArr[] = cls::get($classId)->getClassId();
+            }
+            $query->in('docClass', $inClassArr);
+        }
+
+        return arr::extractValuesFromArray($query->fetchAll(), 'documentContainerId');
+    }
 }

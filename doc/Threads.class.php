@@ -1055,7 +1055,9 @@ class doc_Threads extends core_Manager
         
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
+            Mode::push('onlyTitleInGetRecTitle', true);
             $docRow = $docProxy->getDocumentRow();
+            Mode::pop('onlyTitleInGetRecTitle');
             $attr = array();
             $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon());
             
@@ -1235,9 +1237,9 @@ class doc_Threads extends core_Manager
         $exp->DEF('#vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');
         
         // Отговорник
-        $exp->DEF('#inCharge', 'user(role=powerUser, rolesForAll=executive)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
+        $exp->DEF('#inCharge', 'user(role=powerUser, rolesForAll=executive, showClosedUsers=no)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
         $exp->DEF('#access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull');
-        $exp->DEF('#shared', 'userList', 'caption=Права->Споделяне,formOrder=10002');
+        $exp->DEF('#shared', 'userList(showClosedUsers=no)', 'caption=Права->Споделяне,formOrder=10002');
         $exp->rule('#shared', "''", '#inCharge > 0');
         
         $exp->ASSUME('#inCharge', 'getCurrentUser()', "#dest == 'newCompany' || #dest == 'newPerson'");
@@ -2908,16 +2910,20 @@ class doc_Threads extends core_Manager
             // Вземаме id' то на записа
             $cid = doc_Containers::fetchField("#threadId = '{$rec->id}'");
         }
-        
-        $document = doc_Containers::getDocument($cid);
-        $docRow = $document->getDocumentRow();
-        
-        if ($verbal) {
-            $title = $docRow->title;
-        } else {
-            $title = $docRow->recTitle;
+
+        try {
+            $document = doc_Containers::getDocument($cid);
+            $docRow = $document->getDocumentRow();
+
+            if ($verbal) {
+                $title = $docRow->title;
+            } else {
+                $title = $docRow->recTitle;
+            }
+        } catch (core_exception_Expect $e) {
+            $title = '';
         }
-        
+
         return $title;
     }
     

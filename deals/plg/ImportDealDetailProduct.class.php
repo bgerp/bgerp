@@ -211,13 +211,13 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         foreach ($rows as $i => &$row) {
 
             // Подготвяме данните за реда
-            $obj = (object) array('code' => $row[$fields['code']],
+            $obj = (object) array('code' => "{$row["{$fields['code']}"]}",
                 'quantity' => $row[$fields['quantity']],
                 'pack' => ($row[$fields['pack']]) ? $row[$fields['pack']] : null,
                 'price' => $row[$fields['price']] ? $row[$fields['price']] : null,
                 'batch' => ($row[$fields['batch']]) ? $row[$fields['batch']] : null,
             );
-            
+
             // Подсигуряваме се, че подадените данни са във вътрешен вид
             $obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
             $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
@@ -240,6 +240,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $masterRec = $mvc->Master->fetch($masterId);
                 if($mvc instanceof planning_DirectProductNoteDetails){
                     $metaArr = array('canConvert' => 'canConvert');
+                } elseif($mvc instanceof store_InternalDocumentDetail){
+                    $metaArr = array('canStore' => 'canStore');
                 } else {
                     if(isset($masterRec->originId)){
                         $Document = doc_Containers::getDocument($masterRec->originId);
@@ -254,8 +256,14 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             }
 
-            $metaString = implode(',', $metaArr);
-            $productRec = cat_Products::fetch($pRec->productId, "state,isPublic,folderId,{$metaString}");
+            if(countR($metaArr)){
+                $metaString = implode(',', $metaArr);
+                $fieldSelect = "state,isPublic,folderId,{$metaString}";
+            } else {
+                $fieldSelect = "state,isPublic,folderId";
+            }
+            $productRec = cat_Products::fetch($pRec->productId, $fieldSelect);
+
             if ($productRec->state != 'active') {
                 $err[$i][] = $obj->code . ' - |Артикулът не е активен|*!';
                 continue;

@@ -581,17 +581,20 @@ abstract class deals_Helper
     public static function getUsedDocs(core_Mvc $mvc, $id, $productFld = 'productId')
     {
         $res = array();
-        
+
+        if(!isset($mvc->mainDetail)) return $res;
+
         $Detail = cls::get($mvc->mainDetail);
         $dQuery = $Detail->getQuery();
-        $dQuery->EXT('state', $mvc->className, "externalKey={$Detail->masterKey}");
         $dQuery->where("#{$Detail->masterKey} = '{$id}'");
-        $dQuery->groupBy($productFld);
-        while ($dRec = $dQuery->fetch()) {
-            $cid = cat_Products::fetchField($dRec->{$productFld}, 'containerId');
-            $res[$cid] = $cid;
+        $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), $productFld);
+        if(countR($productIds)){
+            $pQuery = cat_Products::getQuery();
+            $pQuery->in('id', $productIds);
+            $pQuery->show('containerId');
+            $res = arr::extractValuesFromArray($pQuery->fetchAll(), 'containerId');
         }
-        
+
         return $res;
     }
     
@@ -2700,5 +2703,65 @@ abstract class deals_Helper
         }
 
         return $maxDeliveryTime;
+    }
+
+
+    /**
+     * Помощна ф-я за експорт на csv от лист изгледа на документите
+     *
+     * @param core_Mvc $mvc
+     * @param core_FieldSet $fieldset
+     * @return void
+     */
+    public static function getExportCsvProductFieldset($mvc, &$fieldset)
+    {
+        $fieldset->FLD('code', 'varchar', 'caption=Код,detailField');
+        $fieldset->FLD($mvc->productFld, 'varchar', 'caption=Артикул,detailField');
+        if(core_Packs::isInstalled('batch')){
+            $fieldset->FLD('batch', 'varchar', 'caption=Партида,detailField');
+        }
+        $fieldset->FLD('packagingId', 'varchar', 'caption=Опаковка,detailField');
+        $fieldset->FLD('packQuantity', 'varchar', 'caption=Количество,detailField');
+        if(!($mvc instanceof store_TransfersDetails)){
+            $fieldset->FLD('packPrice', 'varchar', 'caption=Цена,detailField');
+            $fieldset->FLD('discount', 'varchar', 'caption=Отстъпка,detailField');
+            $fieldset->FLD('vatPercent', 'percent', 'caption=ДДС %,detailField');
+            $fieldset->FLD('chargeVat', 'varchar', 'caption=ДДС режим,detailField');
+        }
+    }
+
+
+    /**
+     * Помощна ф-я разпъваща редовете с артикули от документа към данните за експорт в csv
+     *
+     * @param core_Master $mvc
+     * @param stdClass $masterRec
+     * @param array $expandedRecs
+     * @return void
+     */
+    public static function addCsvExportProductRecs4Master($mvc, $masterRec, &$expandedRecs)
+    {
+        // Извличат се данните за артикулите от детайла му
+        $Master = cls::get($mvc->Master);
+        $csvFields = new core_FieldSet();
+        $recs = cls::get('cat_Products')->getRecsForExportInDetails($Master, $masterRec, $csvFields, core_Users::getCurrent());
+        $detailFields = array_combine(array_keys($csvFields->fields), array_keys($csvFields->fields));
+
+        // Ако има артикули в детайла то дублират се мастър данните във всеки ред за всеки артикул
+        if(countR($recs)){
+            foreach ($recs as $dRec){
+                $clone = clone $masterRec;
+                foreach ($detailFields as $key){
+                    $clone->{$key} = $dRec->{$key};
+                }
+                if(isset($clone->packagingId)){
+                    $clone->packagingId = cat_UoM::fetchField($clone->packagingId, 'name');
+                }
+
+                $expandedRecs[] = $clone;
+            }
+        } else {
+            $expandedRecs[] = clone $masterRec;
+        }
     }
 }

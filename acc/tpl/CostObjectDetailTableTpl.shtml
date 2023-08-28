@@ -1,0 +1,23 @@
+<table class="listTable" style="width:100%">
+    <tr class='costObjectCoverTotalRow'>
+        <th colspan="2">|Разходен обект|*</th>
+        <th>|Информация|*</th>
+        <th>|Разход|*, [#currencyCode#]</th>
+        <th>|Общо|*, [#currencyCode#]</th>
+    </tr>
+    <tr class='costObjectCoverTotalRow'>
+        <th colspan='4' class="rightCol" style="padding-right: 6px;">|Общо|*</th>
+        <th class="rightCol">[#totalAmount#]</th>
+    </tr>
+    [#ROWS#]
+    <!--ET_BEGIN BLOCK-->
+    [#BLOCK#]
+    <tr class="[#ROW_CLASS#]">
+        <td >[#history#]</td>
+        <td style= 'padding-left:[#indent#]px;' class="leftCol">[#itemId#]</td>
+        <td class="rightCol"> [#info#]</td>
+        <td class="rightCol">[#blAmount#]</td>
+        <td class="rightCol"><b>[#totalAmount#]</b></td>
+    </tr>
+    <!--ET_END BLOCK-->
+</table>

@@ -619,6 +619,15 @@ class cat_Categories extends core_Master
             if(!isset($metasArr['canManifacture']) && planning_Jobs::fetchField("#productId = {$productId} AND #state IN ('active', 'wakeup', 'stopped')")){
                 $error = "Артикулът се използва в активни/спрени/приключени задания. Трябва да остане производим|*!";
             }
+
+            if(!isset($metasArr['canStore'])){
+                $packQuery = cat_products_Packagings::getQuery();
+                $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                $packQuery->where("#productId = {$productId} AND #type = 'packaging' AND #state = 'active'");
+                if($packQuery->count()){
+                    $error = "Артикулът има добавени продуктови опаковки. Не може да стане услуга, докато не се деактивират опаковките му|*!";
+                }
+            }
         }
 
         return empty($error);

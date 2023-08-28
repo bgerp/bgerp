@@ -881,7 +881,7 @@ abstract class cat_ProductDriver extends core_BaseClass
             foreach ($searchFields as $field){
                 if(!empty($rec->{$field})){
                     $verbalVal = $fieldRows->{$field};
-                    $res .= ' ' . plg_Search::normalizeText($verbalVal);
+                    $res .= ' ' . plg_Search::normalizeText(strip_tags($verbalVal));
                 }
             }
         }

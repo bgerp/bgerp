@@ -73,20 +73,33 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
-        $rec = &$data->form->rec;
+        $form = &$data->form;
+        $rec = &$form->rec;
         $masterRec = $data->masterRec;
         
         if(isset($rec->id)){
-            $data->form->setReadOnly('productId');
+            $form->setReadOnly('productId');
         }
-        
-        $rec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
-        $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
-        $data->form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
+
+        $productType = $rec->productType ?? $masterRec->productType;
+        $form->_needPrice = true;
+        if($productType == 'ours' && (($mvc instanceof store_ConsignmentProtocolDetailsReceived) || $rec->type == 'in')){
+            $form->_needPrice = false;
+        } elseif($productType == 'other' && (($mvc instanceof store_ConsignmentProtocolDetailsSend) || $rec->type == 'out')){
+            $form->_needPrice = false;
+        }
+        core_Statuses::newStatus($form->_needPrice);
+        if(!$form->_needPrice){
+            $form->setField('packPrice', "input=none");
+        } else {
+            $rec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+            $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
+            $form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
+        }
 
         if(isset($rec->clonedFromDetailClass) && isset($rec->clonedFromDetailId)){
             $clonedRec = cls::get($rec->clonedFromDetailClass)->fetch($rec->clonedFromDetailId);
-            $data->form->setFieldTypeParams('packQuantity', "max={$clonedRec->packQuantity}");
+            $form->setFieldTypeParams('packQuantity', "max={$clonedRec->packQuantity}");
         }
     }
     
@@ -129,10 +142,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                 
                 // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
                 $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-                
                 $autoPrice = false;
-                
-                if (!isset($rec->packPrice)) {
+
+                if (!isset($rec->packPrice) && $form->_needPrice) {
                     $autoPrice = true;
                     $Policy = cls::get('price_ListToCustomers');
                     
@@ -152,7 +164,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                 }
             }
             
-            if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct')) {
+            if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct') && $form->_needPrice) {
                 $productType = ($rec->productType) ? $rec->productType : $masterRec->productType;
                 $errorMsg = "Артикулът няма цена в избраната ценова политика. Въведете цена";
                 if($productType == 'other'){
@@ -344,8 +356,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public function getExpectedProductMetaProperties($type, $direction)
     {
-        if($type == 'other') return 'canStore';
-
-        return ($direction == 'send') ? 'canStore' : 'canStore';
+        return 'canStore';
     }
 }

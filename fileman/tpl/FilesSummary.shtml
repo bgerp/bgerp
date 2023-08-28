@@ -44,7 +44,13 @@
 		            <td class='aright'>[#sqlSize#]</td>
 		        </tr>
 	        <!--ET_END sqlSize-->
-	        
         <!--ET_END bdInfo-->
+
+		<!--ET_BEGIN sumSize-->
+			<tr class='border-top'>
+				<td><strong>|Общ размер|*:</strong></td>
+				<td class='aright'>[#sumSize#]</td>
+			</tr>
+		<!--ET_END sumSize-->
     </table>
 </div>

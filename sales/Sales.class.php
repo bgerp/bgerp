@@ -214,7 +214,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой има право да експортва?
      */
-    public $canExport = 'ceo,invoicer';
+    public $canExport = 'ceo,invoicerSale,invoicerPurchase,invoicerFindeal';
     
     
     /**
@@ -305,7 +305,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
-     * @see plg_Clone
+     * @see plg_Clzone
      */
     public $cloneDetails = 'sales_SalesDetails';
     
@@ -332,8 +332,14 @@ class sales_Sales extends deals_DealMaster
      * Кои роли може да променят активна продажбата
      */
     public $canChangerec = 'ceo,salesMaster';
-    
-    
+
+
+    /**
+     * Възможност за експортиране на детайлите в csv експорта от лист изгледа
+     */
+    public $allowDetailCsvExportFromList = true;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -1296,30 +1302,51 @@ class sales_Sales extends deals_DealMaster
     /**
      * Връща всички производими артикули от продажбата
      *
-     * @param mixed $id - ид или запис
+     * @param int|stdClass $id - ид или запис
      * @param boolean $onlyActive - дали да са само активните артикули
      *
      * @return array $res - масив с производимите артикули
      */
     public static function getManifacturableProducts($id, $onlyActive = false)
     {
-        $rec = static::fetchRec($id);
-        $res = array();
-
         // Кои са производимите, активни артикули
+        $res = array();
+        $rec = static::fetchRec($id);
         $saleQuery = sales_SalesDetails::getQuery();
         $saleQuery->where("#saleId = {$rec->id}");
         $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+        $saleQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $saleQuery->where("#canManifacture = 'yes'");
         $saleQuery->orderBy('productId', 'ASC');
+        $saleQuery->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
+        $saleQuery->show('productId,codeExp');
+
         if($onlyActive){
             $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
             $saleQuery->where("#state = 'active'");
         }
 
-        $saleQuery->show('productId');
-        while ($dRec = $saleQuery->fetch()) {
-            $res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, false);
+        // Извличане на кода и рефа, за да са готови за сортиране
+        $productArr = array();
+        $listId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'salesList');
+        while($dRec = $saleQuery->fetch()){
+            $productArr[$dRec->productId] = (object)array('productId' => $dRec->productId, 'code' => $dRec->codeExp);
+            if (isset($listId)) {
+                $productArr[$dRec->productId]->reff = cat_Listings::getReffByProductId($listId, $dRec->productId, $dRec->packagingId);
+            }
+        }
+
+        // Сортиране на артикулите, както сa подредени в продажбата
+        $detailOrderBy = $rec->detailOrderBy;
+        if($detailOrderBy == 'code'){
+            arr::sortObjects($productArr, 'code', 'ASC', 'natural');
+        } elseif($detailOrderBy == 'reff' && isset($listId)){
+            arr::sortObjects($productArr, 'reff', 'ASC', 'natural');
+        }
+
+        $productArr = array_keys($productArr);
+        foreach ($productArr as $productId){
+            $res[$productId] = cat_Products::getTitleById($productId, false);
         }
         
         return $res;
@@ -1961,6 +1988,7 @@ class sales_Sales extends deals_DealMaster
     {
         if (is_array($recs)) {
             foreach ($recs as &$rec) {
+                $id = $rec->id;
                 $rec->id = self::getRecTitle($rec, false);
                 foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced') as $amnt) {
                     if (round($rec->{"amount{$amnt}"}, 2) != 0) {
@@ -1974,6 +2002,12 @@ class sales_Sales extends deals_DealMaster
                 $invoices = deals_Helper::getInvoicesInThread($rec->threadId);
                 if (countR($invoices)) {
                     $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
+                }
+
+                if($cartRec = eshop_Carts::fetch("#saleId = {$id}")){
+                    $rec->tel = $cartRec->tel;
+                    $rec->email = $cartRec->email;
+                    $rec->cartId = $cartRec->id;
                 }
             }
         }
@@ -2212,5 +2246,18 @@ class sales_Sales extends deals_DealMaster
                 }
             }
         }
+    }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        $fieldset->FLD('tel', 'drdata_PhoneType', 'caption=Поръчител->Телефон');
+        $fieldset->FLD('email', 'email', 'caption=Поръчител->Имейл');
+        $fieldset->FLD('cartId', 'int', 'caption=Поръчител->Количка №');
     }
 }

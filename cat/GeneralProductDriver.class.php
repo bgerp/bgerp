@@ -514,7 +514,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             if(is_array($params)){
                 foreach ($params as $paramId => $value){
                     $paramName = cat_Params::getTitleById($paramId, false);
-                    $res .= ' ' . plg_Search::normalizeText($paramName) . ' ' . plg_Search::normalizeText($value);
+                    $res .= ' ' . plg_Search::normalizeText($paramName) . ' ' . plg_Search::normalizeText(strip_tags($value));
                 }
             }
         }

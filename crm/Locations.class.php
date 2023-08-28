@@ -103,7 +103,7 @@ class crm_Locations extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title, countryId, place, address, email, tel';
+    public $searchFields = 'title, countryId, place, address, email, tel, comment, specifics, features';
     
     
     /**

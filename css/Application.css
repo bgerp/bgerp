@@ -391,6 +391,9 @@ div.folder-cover {
     div.folder-cover .portal table.listTable .innerTable td {
       border: none !important; }
 
+.costObjectCoverTotalRow th {
+  padding: 5px 3px; }
+
 .document .detail-info .store_Products  .listTable {
   max-width: 100% !important;
   width: 100%; }
@@ -676,7 +679,7 @@ div.productImage {
   .taskSpecInfo .productPreviewHolder img,
   .taskSpecInfo .productImage img {
     max-height: 75px !important;
-    max-width: 100px !important; }
+    max-width: 90px !important; }
 
 .narrow .productPreviewHolder {
   clear: both;
@@ -2038,6 +2041,9 @@ a.tUnsighted {
   transform: rotate(16deg);
   padding: 1px 2px 0px 2px !important;
   border-radius: 3px; }
+  .stamp.consignmentProtocol {
+    color: #444444;
+    border: 1px dotted #333333; }
 
 .approved {
   padding: 10px 10px 5px !important; }
@@ -2210,6 +2216,10 @@ pre.document {
     white-space: nowrap; }
   .antetka .linkWithIcon {
     margin-bottom: 0; }
+  .antetka .document-handler {
+    padding: 0 2px 0 0; }
+    .antetka .document-handler .linkWithIcon {
+      height: auto !important; }
 
 .antetkaCell {
   max-width: 400px; }
@@ -2304,6 +2314,14 @@ pre.document {
 
 #invoice-info {
   border-left: 1px solid #bbbbbb; }
+
+.invoiceNoteWarning {
+  color: #c51818;
+  border: 1px dashed #910404;
+  text-align: justify;
+  padding: 5px;
+  border-radius: 5px;
+  background: #f3e0e0; }
 
 .document .lines {
   border-left: 1px solid #bbbbbb;
@@ -2577,10 +2595,7 @@ div.attachments {
     height: auto; }
   .embedded-holder .embedded {
     position: relative;
-    padding-bottom: 56.25%;
-    padding-top: 30px;
-    height: 0;
-    overflow: hidden; }
+    padding-bottom: 56.25%; }
     .embedded-holder .embedded embed,
     .embedded-holder .embedded object,
     .embedded-holder .embedded iframe,
@@ -3332,6 +3347,57 @@ span.sharing-history-title {
 
 .centerContent .filemanSingle {
   padding: 20px 0; }
+
+  #fileDetail .webdrvFieldset {
+    position: relative; }
+  #fileDetail:hover .prevLink,
+  #fileDetail:hover .nextLink {
+    opacity: 0.6; }
+  #fileDetail div.alphabet div.tab-page {
+    padding-top: 0 !important; }
+  #fileDetail .row-holder {
+    position: relative;
+    top: 12px;
+    padding-left: 10px; }
+
+.linkWithIcon.nextLink,
+.linkWithIcon.prevLink {
+  padding-left: 0 !important;
+  position: absolute;
+  height: 48px;
+  width: 48px;
+  top: 50%;
+  margin-top: -24px;
+  background-size: 48px;
+  opacity: 0;
+  -webkit-transition: opacity 1s ease-in-out;
+  -moz-transition: opacity 1s ease-in-out;
+  transition: opacity 1s ease-in-out;
+  z-index: 100; }
+
+.narrow .nextLink {
+  right: 5px; }
+
+.narrow .prevLink {
+  left: 5px; }
+
+.narrow .nextLink,
+.narrow .prevLink {
+  background-size: 36px;
+  background-position: center;
+  margin-top: -18px;
+  opacity: 0.6;
+  width: 38px;
+  height: 38px; }
+
+.narrow #fileDetail .row-holder {
+  top: 17px; }
+
+.prevLink {
+  left: 20px; }
+
+.nextLink {
+  right: 20px; }
 
   .filemanSingle .webdrvTabBody,
   .filemanSingle .webdrvFieldset {
@@ -4526,8 +4592,7 @@ table .eshop-btn {
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset; }
+  border-radius: 5px; }
   .wide .webdrvFieldset > div {
     overflow: auto; }
   .wide .webdrvFieldset > .dtree {
@@ -4579,11 +4644,14 @@ table .eshop-btn {
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset; }
+  border-radius: 5px; }
 
 .filesContainer .top-table {
   margin-bottom: 15px; }
+
+  .filesContainer div.tab-control.alphabet div.tab-row .tab.selected {
+    background: white !important;
+    padding-bottom: 6px !important; }
 
 .webdrv-preview {
   margin-top: 5px; }
@@ -7434,6 +7502,12 @@ only screen and (max-width: 320px) {
 
 .selectTaskOptions tr.createAllTasksForJob {
   font-style: italic; }
+
+.wide .operationTable .paramVal {
+  word-break: break-word; }
+
+.narrow .operationTable .paramVal {
+  white-space: nowrap; }
 
 .confidential-field {
   font-size: 0.7em;

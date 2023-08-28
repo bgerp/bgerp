@@ -51,9 +51,10 @@ html {
 #maincontent {
     background-color:white;
     padding-top: 0 !important;
+}
+.wide #maincontent {
     padding-bottom: 38px !important
 }
-
 #cmsNavigation .nav_item a {
     color:#336;
 }
@@ -117,7 +118,9 @@ html {
     position: absolute;
     bottom: 40px;
 }
-
+.additionalFooter {
+    box-sizing: border-box;
+}
  .wide .afterFooterNewsbar {
     position: absolute;
     bottom: -40px;
@@ -218,6 +221,15 @@ header img {
 .soc-following {
     padding: 7px 7px 7px 2px;
 }
+.narrow .additionalFooter {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.narrow #login-form {
+    margin: 0 auto;
+}
 @media handheld, only screen and (max-width: 1200px) {
     .wide  .headerImg{
         width: 100% !important;
@@ -227,9 +239,6 @@ header img {
     }
     .wide .fadein {
         display: block;
-    }
-    .narrow .externalPage #maincontent {
-        min-height: 410px;
     }
     .centerContent, .wide .narrowCenter, .centerFixed {
         width: 100%;

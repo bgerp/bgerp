@@ -144,7 +144,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId,locationId,company,person,tel,pCode,place,address,note';
+    public $searchFields = 'folderId,locationId,company,person,tel,pCode,place,address,note,addressInfo';
 
 
     /**
@@ -270,7 +270,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         expect($origin = static::getOrigin($rec), $rec);
 
         if ($origin->isInstanceOf('sales_Sales')) {
-            if (!isset($rec->id)) {
+            if (!isset($rec->id) && empty($rec->fromContainerId)) {
                 $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
             }
 
@@ -682,26 +682,6 @@ class store_ShipmentOrders extends store_DocumentMaster
 
             return false;
         }
-    }
-
-
-    /**
-     * Връща информация за сумите по платежния документ
-     *
-     * @param mixed $id
-     * @return object
-     */
-    public function getPaymentData($id)
-    {
-        if (is_object($id)) {
-            $rec = $id;
-        } else {
-            $rec = $this->fetchRec($id, '*', false);
-        }
-
-        $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
-
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
     }
 
 

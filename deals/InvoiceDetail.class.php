@@ -490,9 +490,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         }
                     }
                 } else {
-                    if (!haveRole('invoicer, ceo', $userId)) {
-                        $res = 'no_one';
-                    }
                     
                     // При начисляване на авансово плащане не може да се добавят други продукти
                     if ($masterRec->dpOperation == 'accrued') {
@@ -541,14 +538,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
-            
-            // Ако артикула не е складируем, скриваме полето за мярка
-            if (!isset($productInfo->meta['canStore'])) {
-                $measureShort = cat_UoM::getShortName($form->rec->packagingId);
-                $form->setField('quantity', "unit={$measureShort}");
-            } else {
-                $form->setField('packagingId', 'input');
-            }
+            $form->setField('packagingId', 'input');
             
             if (isset($mvc->LastPricePolicy)) {
                 $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
@@ -562,11 +552,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
-            $productInfo = cat_Products::getProductInfo($rec->productId);
             if (!isset($rec->quantity) && $masterRec->type != 'dc_note') {
-                $form->setDefault('quantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+                $defaultQuantity = $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
+                $form->setDefault('quantity', $defaultQuantity);
                 if (empty($rec->quantity)) {
                     $form->setError('quantity', 'Не е въведено количество');
+                    return;
                 }
             }
             
@@ -674,12 +665,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
                     if(isset($rec->clonedFromDetailId)){
                         $changedPriceAndQuantity = false;
-                        if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && round($rec->packPrice, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['price'], 5)){
+                        if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && deals_Helper::roundPrice($rec->packPrice) != deals_Helper::roundPrice($cache->recWithIds[$rec->clonedFromDetailId]['price'])){
                             $changedPriceAndQuantity = true;
                         }
                     } else {
+                        $roundPrice = deals_Helper::roundPrice($rec->packPrice);
                         $quantityKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|Q{$rec->quantity}";
-                        $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$rec->packPrice}";
+                        $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$roundPrice}";
                         $changedPriceAndQuantity = !array_key_exists($quantityKey, $cache->recs) && !array_key_exists($priceKey, $cache->recs);
                     }
 

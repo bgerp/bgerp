@@ -50,12 +50,17 @@ class fileman_webdrv_Audio extends fileman_webdrv_Media
         
         // Шаблона за видеото
         $audioTpl = mejs_Adapter::createAudio($fRec->fileHnd, array('width' => $width));
-        
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Таб за съдържанието
         $tabsArr['audio'] = (object)
             array(
                 'title' => 'Аудио',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='legend'>" . tr('Аудио') . "</div><div class='webdrvFieldset'>{$audioTpl}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$audioTpl}</div></div>",
                 'order' => 2,
                 'tpl' => $audioTpl,
             );

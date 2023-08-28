@@ -18,8 +18,18 @@ class distro_Files extends core_Detail
      * Заглавие на модела
      */
     public $title = 'Разпределена файлова група';
-    
-    
+
+
+
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 100;
+
+
+    /**
+     * @var string
+     */
     public $singleTitle = 'Файл';
     
     
@@ -33,8 +43,11 @@ class distro_Files extends core_Detail
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
-    
-    
+
+
+    /**
+     * @var string
+     */
     public $canEditsysdata = 'no_one';
     
     
@@ -53,7 +66,7 @@ class distro_Files extends core_Detail
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin';
+    public $canList = 'no_one';
     
     
     /**

@@ -353,15 +353,19 @@ abstract class deals_QuotationMaster extends core_Master
         $abbr[0] = strtoupper($abbr[0]);
 
         $date = dt::mysql2verbal($rec->date, 'd.m.year');
-        $crm = cls::get($rec->contragentClassId);
-        $cRec = $crm->getContragentData($rec->contragentId);
-        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
+        $titleArr = array("{$abbr}{$rec->id}", $date);
+        if(!Mode::is('documentPortalShortName')) {
+            $crm = cls::get($rec->contragentClassId);
+            $cRec = $crm->getContragentData($rec->contragentId);
+            $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
 
-        if ($escaped) {
-            $contragent = type_Varchar::escape($contragent);
+            if ($escaped) {
+                $contragent = type_Varchar::escape($contragent);
+            }
+            $titleArr[] = $contragent;
         }
 
-        return "{$abbr}{$rec->id}/{$date}/{$contragent}";
+        return implode('/', $titleArr);
     }
 
 
@@ -834,13 +838,6 @@ abstract class deals_QuotationMaster extends core_Master
             $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
 
             sales_TransportValues::prepareFee($newRec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'deliveryData' => 'deliveryData'));
-        }
-
-        // Проверки на записите
-        if ($sameProduct = $Detail->fetch("#{$Detail->masterKey} = {$newRec->quotationId} AND #productId = {$newRec->productId}")) {
-            if ($newRec->optional == 'no' && $sameProduct->optional == 'yes') {
-                expect(false, 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален');
-            }
         }
 
         if ($Detail->fetch("#{$Detail->masterKey} = {$newRec->quotationId} AND #productId = {$newRec->productId}  AND #quantity='{$newRec->quantity}'")) {

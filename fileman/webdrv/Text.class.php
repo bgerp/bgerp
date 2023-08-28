@@ -60,12 +60,17 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', true, true)) {
             // URL за показване на текстовата част на файловете
             $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd));
-            
+
+            // Подготвяме стрелките
+            $resArray = self::getArrows($fRec);
+            $prevLink = $resArray['prevLink'];
+            $nextLink = $resArray['nextLink'];
+
             // Таб за текстовата част
             $tabsArr['text'] = (object)
             array(
                 'title' => 'Текст',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Текст') . "</div><div class='webdrvFieldset'> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink} {$nextLink} <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 4,
             );
         }

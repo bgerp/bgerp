@@ -732,8 +732,6 @@ class colab_FolderToPartners extends core_Manager
         if (!$fromEmail) {
             requireRole('powerUser');
             expect(doc_Folders::haveRightToObject($contragentRec));
-        } else {
-            vislog_History::add("Форма за регистрация на партньор в «{$contragentName}»");
         }
 
         $form = $Users->getForm();
@@ -883,12 +881,13 @@ class colab_FolderToPartners extends core_Manager
             if ($Class instanceof crm_Companies) {
                 $personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
                 $personRec = crm_Persons::fetch($personId);
-                
+
                 // Свързваме лицето към фирмата
                 $personRec->buzCompanyId = $objectId;
                 $personRec->country = $form->rec->country;
-                $personRec->inCharge = $contragentRec->inCharge;
-                
+                $inChargeState = core_Users::fetchField($contragentRec->inCharge, 'state');
+                $personRec->inCharge = in_array($inChargeState, array('active', 'blocked')) ? $contragentRec->inCharge : doc_FolderPlg::getDefaultInCharge();
+
                 // Имейлът да е бизнес имейла му
                 $buzEmailsArr = type_Emails::toArray($personRec->buzEmail);
                 $buzEmailsArr[] = $personRec->email;
@@ -907,10 +906,8 @@ class colab_FolderToPartners extends core_Manager
             // Подсигуряваме се че винаги папката ще е споделена
             colab_FolderToPartners::force($folderId, $uId);
             $Class->logWrite("Споделяне на папка към партньор след покана за регистрация", $objectId);
-
             $Class->logInAct('Регистрация на нов партньор', $objectId);
-            vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$contragentName}»");
-            
+
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
 

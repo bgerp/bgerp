@@ -25,7 +25,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId, id';
+    public $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId, note, addressInfo';
     
     
     /**
@@ -296,7 +296,39 @@ abstract class store_DocumentMaster extends core_Master
             
             return;
         }
-        
+
+        // Ако е към ориджин на КИ/ДИ да се налеят променените к-ва от него
+        if(isset($rec->fromContainerId) && empty($rec->importProducts)){
+            store_ReceiptDetails::delete("#receiptId = {$rec->id}");
+            $fromDocument = doc_Containers::getDocument($rec->fromContainerId);
+            if($fromDocument->isInstanceOf('deals_InvoiceMaster')){
+                $invRec = $fromDocument->fetch();
+                if($invRec->type == 'dc_note'){
+                    $invDetail = cls::get($fromDocument->mainDetail);
+                    $dQuery = $invDetail->getQuery();
+                    $dQuery->where("#invoiceId = {$invRec->id}");
+                    $details = $dQuery->fetchAll();
+                    $invDetail::modifyDcDetails($details, $invRec, $invDetail);
+                    $withChangedQuantityDetails = array_filter($details, function($a) {return $a->changedQuantity === true;});
+
+                    $Detail = cls::get($mvc->mainDetail);
+                    foreach ($withChangedQuantityDetails as $invDetailRec){
+                        $shipProduct = new stdClass();
+                        $shipProduct->{$Detail->masterKey} = $rec->id;
+                        $shipProduct->productId = $invDetailRec->productId;
+                        $shipProduct->packagingId = $invDetailRec->packagingId;
+                        $shipProduct->quantity = abs($invDetailRec->quantity);
+                        $shipProduct->price = $invDetailRec->price;
+                        $shipProduct->discount = $invDetailRec->discount;
+                        $shipProduct->quantityInPack = $invDetailRec->quantityInPack;
+                        $Detail->save($shipProduct);
+                    }
+
+                    return;
+                }
+            }
+        }
+
         // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
         // използваме го за автоматично попълване на детайлите на документа
         if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
@@ -1488,5 +1520,25 @@ abstract class store_DocumentMaster extends core_Master
         $res = array('recs' => $res, 'detailMvc' => $Detail);
 
         return $res;
+    }
+
+
+    /**
+     * Връща информация за сумите по платежния документ
+     *
+     * @param mixed $id
+     * @return object
+     */
+    public function getPaymentData($id)
+    {
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            $rec = $this->fetchRec($id, '*', false);
+        }
+
+        $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
+
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
     }
 }

@@ -3166,10 +3166,20 @@ class email_Outgoings extends core_Master
     {
         // Ако ще се затваря
         if ($action == 'close' && $rec) {
-            
+            if (!$mvc->haveRightFor('single', $rec, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+
             // Ако не чакащо или събудено състояние, да не може да се затваря
             if (($rec->state != 'waiting') && ($rec->state != 'wakeup') && ($rec->state != 'pending')) {
-                $requiredRoles = 'no_one';
+                if ($rec->state == 'active') {
+                    // Ако е създаден преди месец, да не може да се затваря
+                    if (dt::addMonths(1, $rec->createdOn) > dt::now()) {
+                        $requiredRoles = 'no_one';
+                    }
+                } else {
+                    $requiredRoles = 'no_one';
+                }
             } elseif (!haveRole('admin, ceo')) {
                 
                 // Ако няма роля admin или ceo

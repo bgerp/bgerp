@@ -95,7 +95,7 @@ class email_AddressesInfo extends core_Manager
      */
     protected function description()
     {
-        $this->FLD('email', 'email(showOriginal)', 'caption=Имейл, mandatory, silent');
+        $this->FLD('email', 'email(showOriginal,ci)', 'caption=Имейл, mandatory, silent');
         $this->FLD('redirection', 'email', 'caption=Пренасочване при изпращане->Имейл');
         $this->FLD('state', 'enum(,ok=OK, blocked=Блокирано, error=Грешка)', 'caption=Състояние');
         $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Последно->Проверка, input=none');
@@ -119,7 +119,7 @@ class email_AddressesInfo extends core_Manager
         $email = trim($email);
         $email = mb_strtolower($email);
 
-        $rEmail = self::fetch(array("LOWER(#email) = '[#1#]'", $email));
+        $rEmail = self::fetch(array("#email = '[#1#]'", $email));
 
         return $rEmail;
     }
@@ -174,7 +174,7 @@ class email_AddressesInfo extends core_Manager
             return self::$mapArr[$email];
         }
 
-        $rEmail = self::fetchField(array("LOWER(#email) = '[#1#]'", $email), 'redirection');
+        $rEmail = self::fetchField(array("#email = '[#1#]'", $email), 'redirection');
         if (trim($rEmail)) {
             $oEmail = $rEmail;
         }
@@ -237,7 +237,7 @@ class email_AddressesInfo extends core_Manager
         expect(strlen($email), $email);
 
         $email = mb_strtolower($email);
-        $oRecId = self::fetchField(array("LOWER(#email) = '[#1#]'", $email));
+        $oRecId = self::fetchField(array("#email = '[#1#]'", $email));
 
         if (isset($oRecId)) {
 

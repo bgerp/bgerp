@@ -270,7 +270,7 @@ class uiext_Labels extends core_Manager
         }
         
         if(!empty($input)){
-            $k = "{$masterClass->getClassId()}|{$masterId}|{$classId}|{$hash}";
+            $k = "{$masterClass->getClassId()}_{$masterId}_{$classId}_{$hash}";
             $input = "<span id='charge{$k}'>{$input}</span>";
         }
         

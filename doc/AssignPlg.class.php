@@ -200,8 +200,10 @@ class doc_AssignPlg extends core_Plugin
         $docSingleTitleLower = mb_strtolower($mvc->singleTitle);
         
         // Заглавието на сигнала във НЕвербален вид
+        Mode::push('getNotificationRecTitle', true);
         $title = str::limitLen($mvc->getDocumentRow($iRec->id)->recTitle, 90);
-        
+        Mode::pop('getNotificationRecTitle');
+
         // Съобщението, което ще се показва и URL' то
         $message = "{$nick} |възложи|* {$docSingleTitleLower} \"{$title}\"";
         $url = array('doc_Containers', 'list', 'threadId' => $iRec->threadId);

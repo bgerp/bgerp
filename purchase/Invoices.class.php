@@ -75,7 +75,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,invoicer';
+    public $canEdit = 'ceo,invoicerPurchase, invoicerFindeal';
     
     
     /**
@@ -93,25 +93,25 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,invoicer';
+    public $canAdd = 'ceo, invoicerPurchase, invoicerFindeal';
     
     
     /**
      * Кой има право да създава от файл?
      */
-    public $canCreatefromfile = 'ceo,invoicer';
+    public $canCreatefromfile = 'ceo,invoicerPurchase, invoicerFindeal';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,invoicer';
+    public $canConto = 'ceo, invoicerPurchase, invoicerFindeal';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number, folderId, contragentName';
+    public $searchFields = 'number, folderId, contragentName, dcReason, reason, additionalInfo';
     
     
     /**
@@ -169,9 +169,9 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да експортва?
      */
-    public $canExport = 'ceo,invoicer';
-    
-    
+    public $canExport = 'ceo,invoicerPurchase, invoicerFindeal';
+
+
     /**
      * Стратегии за дефолт стойностти
      */
@@ -461,6 +461,20 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $res = 'no_one';
             }
         }
+
+        if(in_array($action, array('add', 'conto', 'edit', 'reject')) && isset($rec)){
+            if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDoc->isInstanceOf('purchase_Purchases')){
+                    if(!haveRole('invoicerPurchase,ceo')){
+                        $res = 'no_one';
+                    }
+                } else {
+                    if(!haveRole('invoicerFindeal,ceo')){
+                        $res = 'no_one';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -519,6 +533,16 @@ class purchase_Invoices extends deals_InvoiceMaster
             if ($vopId = purchase_Vops::fetchField("#invoiceId = {$rec->id}")) {
                 if (purchase_Vops::haveRightFor('print', $vopId)) {
                     $data->toolbar->addBtn('ВОП', array('purchase_Vops', 'print', $vopId, 'Printing' => 'yes'), 'ef_icon=img/16/print_go.png,title=Разпечатване на нов протокол за вътреобщностно придобиване,target=_blank');
+                }
+            }
+
+            if($rec->type == 'dc_note'){
+                if(!isset($rec->changeAmount)){
+                    if($rec->dealValue <= 0) {
+                        $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/EN.png,title=Създаване на експедиционно нареждане към дебитно известие");
+                    } elseif(store_Receipts::haveRightFor('add', array('threadId' => $rec->threadId))){
+                        $data->toolbar->addBtn('Засклаждане', array('store_Receipts', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/store-receipt.png,title=Създаване на складова разписка към кредитното известие");
+                    }
                 }
             }
         }

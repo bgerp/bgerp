@@ -258,6 +258,12 @@ defIfNot('SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE', 'yes');
 
 
 /**
+ * Показване на кода на артикула в продажбите в отделна колонка
+ */
+defIfNot('SALES_SHOW_CODE_IN_SEPARATE_COLUMN', 'no');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -420,7 +426,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
 
         'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане ("0" за изключване)->Време'),
-        'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicer,optionsFunc=crm_Locations::getOwnLocations'),
+        'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicerSale,optionsFunc=crm_Locations::getOwnLocations'),
         'SALES_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към продажба->Избор'),
         'SALES_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен търговец в продажбите->Избор'),
         'SALES_SHOW_PRICE_IN_PRODUCT_SELECTION' => array('enum(no=Изключено,measureId=Основна мярка,basePack=Избраната за основна мярка/опаковка)', 'caption=Показване на продажната цена при избор на артикул в документи->Избор'),
@@ -434,6 +440,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
         'SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS' => array('enum(no=Без фактуриране,yes=Фактуриране)', 'caption=Аванси от чуждестранни клиенти->Избор'),
         'SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE' => array('enum(no=Да не се избира,yes=Автоматичен избор)', 'caption=Автоматичен избор на наша сметка в продажбите ако е само една достъпна->Избор'),
+        'SALES_SHOW_CODE_IN_SEPARATE_COLUMN' => array('enum(no=Не,yes=Да)', 'caption=Показване на кода на артикула в продажбите в отделна колонка->Избор'),
     );
     
     
@@ -536,7 +543,7 @@ class sales_Setup extends core_ProtoSetup
     public $roles = array(
         array(
             'sales',
-            'invoicer,seePrice,dec,seePriceSale'
+            'invoicerSale,seePrice,dec,seePriceSale'
         ),
         array(
             'salesMaster',

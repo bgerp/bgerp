@@ -182,4 +182,13 @@ class purchase_PurchasesDetails extends deals_DealDetail
             }
         }
     }
+
+
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    protected static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        $data->showCodeColumn = purchase_Setup::get('SHOW_CODE_IN_SEPARATE_COLUMN') == 'yes';
+    }
 }

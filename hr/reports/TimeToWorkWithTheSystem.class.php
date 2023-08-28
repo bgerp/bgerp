@@ -128,9 +128,12 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $q = log_Ips::getQuery();
         $q -> in('ip',$arr);
 
-        $suggestions[] = 'не са посочени';
+        if(empty($q->fetchAll())){
+            $suggestions[0] = 'не са посочени';
+        }
+
         while ($ipRec = $q->fetch()){
-            unset($suggestions[0]);
+
             $suggestions[$ipRec->id] = $ipRec->ip;
         }
 
@@ -138,7 +141,6 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         if($suggestions[0] == 'не са посочени'){
             $form->setReadonly('inIp');
-
         }else{
             $form->setDefault('inIp', $suggestions);
         }
@@ -202,6 +204,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $ipType = $oldIpType = null;
 
         $iPInArr = keylist::toArray($rec->inIp);
+
         $workingTime = $lastWorkTime = $lastWorkHash = array();
 
         while ($lRec = $logDatQuery->fetch()){
@@ -220,13 +223,13 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
             if($minutesToAdd <= 0)continue;
 
-            //аковремето на престой е по-малко от заложения минумум за престой и $ipType = 'home'
+            //ако времето на престой е по-малко от заложения минумум за престой и $ipType = 'home'
             //приемаме, че това е кратковременно включване от телефона и връщаме $ipType = 'office'
-            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home')){
+            if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home') && ($oldIpType == 'office')){
                 $ipType = 'office';
             }
 
-            if ($ipType == 'home')continue;
+            // if ($ipType == 'home')continue;
 
             //Ако $hash === $lastWorkHash[$lRec->userId][$ipType] приемаме че,
             // потрбителя прави рефреш на ресурса и не включваме  записа
@@ -235,14 +238,15 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             }
             $lastWorkHash[$lRec->userId][$ipType] = $hash;
 
-
             expect($minutesToAdd >= 0,'Некоректен запис, или подредба на масива');
 
-            if($minutesToAdd > $rec->maxTimeWaiting/60){
+            if($minutesToAdd > $rec->maxTimeWaiting / 60){
                 $minutesToAdd = 1;
             }
 
             $workingTime[$lRec->userId][$ipType] += $minutesToAdd;
+            $marker++;
+
             $lastWorkTime[$lRec->userId][$ipType] = $minute;
 
         }
@@ -276,8 +280,9 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         if ($export === false) {
 
             $fld->FLD('userId', 'varchar', 'caption=Потребител');
-            $fld->FLD('office', 'int', 'caption=Офис[min],smartCenter');
-            //$fld->FLD('home', 'int', 'caption=Отдалечено[min],smartCenter');
+            $fld->FLD('office', 'time', 'caption=Офис,smartCenter');
+            $fld->FLD('home', 'time', 'caption=Отдалечено,smartCenter');
+            $fld->FLD('summ', 'time', 'caption=Сумарно,smartCenter');
 
         } else {
 
@@ -300,6 +305,10 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+        $Int = cls::get('type_Int');
+        $Time = cls::get('type_Time');
+        $Time->params['noSmart'] = true;
+        $Time->params['uom'] = 'hours';
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
@@ -310,8 +319,9 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $row->userId .= ' ['.crm_Profiles::createLink($dRec->userId).']';
 
-        $row->office = ($dRec->office);
-       // $row->home = ($dRec->home);
+        $row->office = $Time->toVerbal($dRec->office*60);
+        $row->home = $Time->toVerbal($dRec->home*60);
+        $row->summ = $Time->toVerbal(($dRec->home + $dRec->office)*60);
 
 
         return $row;

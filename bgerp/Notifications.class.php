@@ -105,6 +105,12 @@ class bgerp_Notifications extends core_Manager
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn,lastTime';
+
+
+    /**
+     * Масив със съобщениеята за известяване на заместниците
+     */
+    protected $alternateMessages = array();
     
     
     /**
@@ -242,6 +248,14 @@ class bgerp_Notifications extends core_Manager
                 // Вече имаме тази нотификация
                 return;
             }
+
+            // Известията на заместниците да не презаписват оригиналните
+            if (Mode::is('isNotifyAlternateUsers')) {
+                if (($r->state == 'active') && ($r->hidden == 'no')) {
+
+                    return ;
+                }
+            }
             
             $rec->id = $r->id;
             
@@ -270,9 +284,145 @@ class bgerp_Notifications extends core_Manager
         
         // Инвалидиране на кеша
         bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Notifications');
+
+        if (!Mode::is('isNotifyAlternateUsers')) {
+            // Ако потребителят е в отпуск, болничен или комадировка
+            // Заместниците също да получават известията му
+            // Ако имат достъп до тях
+            $msgL = mb_strtolower($msg);
+            if ((strpos($msgL, '|добави|') !== false) || (strpos($msgL, '|хареса') !== false) ||
+                (strpos($msgL, '|промени|') !== false) || (strpos($msgL, '|сподели') !== false) ||
+                (strpos($msgL, '|отворени теми в|') !== false)) {
+
+                $calRec = new stdClass();
+                if (cal_Calendar::isAbsent(null, $userId, array('leaves', 'sick', 'working-travel'), $calRec)) {
+                    if ($calRec && $calRec->url) {
+                        $alternateUsersArr = array();
+                        $calUrlArr = parseLocalUrl($calRec->url, false);
+                        if ($calUrlArr['id'] && strtolower($calUrlArr['Act']) == 'single') {
+                            if (cls::load($calUrlArr['Ctr'], true)) {
+                                $cRec = cls::get($calUrlArr['Ctr'])->fetch($calUrlArr['id']);
+                                if ($cRec && $cRec->alternatePersons) {
+                                    foreach (type_Keylist::toArray($cRec->alternatePersons) as $aPersonId) {
+                                        $alternateUserId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPersonId), 'userId');
+                                        if ($alternateUserId && !cal_Calendar::isAbsent(null, $alternateUserId, array('leaves', 'sick', 'working-travel'))) {
+                                            if (core_Users::getCurrent() == $alternateUserId) {
+
+                                                continue;
+                                            }
+
+                                            if ($userId == $alternateUserId) {
+
+                                                continue;
+                                            }
+
+                                            if ($alternateUserId < 1) {
+
+                                                continue;
+                                            }
+
+                                            // Гледаме настройкит на потребителя, които е задал за известяване
+                                            $alternateNotifyType = bgerp_Setup::get('ALTERNATE_PEOPLE_NOTIFICATIONS', false, $alternateUserId);
+                                            $canSendToUser = true;
+                                            switch ($alternateNotifyType) {
+                                                case 'all':
+                                                    $canSendToUser = true;
+                                                break;
+
+                                                case 'stop':
+                                                    $canSendToUser = false;
+                                                break;
+
+                                                case 'share':
+                                                    if (strpos($msgL, '|сподели') === false) {
+                                                        $canSendToUser = false;
+                                                    }
+                                                break;
+
+                                                case 'open':
+                                                    if (strpos($msgL, '|отворени теми в|') === false) {
+                                                        $canSendToUser = false;
+                                                    }
+                                                break;
+
+                                                case 'shareOpen':
+                                                    if ((strpos($msgL, '|сподели') === false) && (strpos($msgL, '|отворени теми в|') === false)) {
+                                                        $canSendToUser = false;
+                                                    }
+                                                break;
+
+                                                case 'noOpen':
+                                                    if (strpos($msgL, '|отворени теми в|') !== false) {
+                                                        $canSendToUser = false;
+                                                    }
+                                                break;
+
+                                                default:
+                                                    expect(false, $alternateNotifyType);
+                                                break;
+                                            }
+
+                                            if (!$canSendToUser) {
+
+                                                continue;
+                                            }
+
+                                            // Ако има права към споделянто, ще получи известие
+                                            $lUrlArr = self::getUrl($rec);
+                                            $lAct = strtolower($lUrlArr['Act']);
+                                            $lCtr = $lUrlArr['Ctr'];
+
+                                            if ($lCtr == 'doc_Threads' && $lUrlArr['folderId'] && $lAct == 'list') {
+                                                $haveRight = doc_Folders::haveRightFor('single', $lUrlArr['folderId'], $alternateUserId);
+                                            } else {
+                                                $haveRight = $lCtr::haveRightFor($lAct, $lUrlArr['id'], $alternateUserId);
+                                            }
+
+                                            if ($haveRight) {
+                                                $alternateUsersArr[$alternateUserId] = $alternateUserId;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        unset($alternateUsersArr[$userId]);
+                        if (!empty($alternateUsersArr)) {
+                            foreach ($alternateUsersArr as $alternateUserId) {
+                                $nick = core_Users::fetchField($userId, 'nick');
+                                $me = cls::get(get_called_class());
+                                $me->alternateMessages[] = array('nick' => $nick, 'msg' => $msg, 'urlArr' => $urlArr,
+                                    'alternateUserId' => $alternateUserId, 'priority' => $priority, 'customUrl' => $customUrl, 'addOnce' => $addOnce);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    
-    
+
+
+    /**
+     * След изпълнение на скрипта, добавяме известията за заместниците
+     *
+     * @param $mvc
+     *
+     * @return void
+     */
+    public static function on_AfterSessionClose($mvc)
+    {
+        if (!empty($mvc->alternateMessages)) {
+            Mode::set('isNotifyAlternateUsers', true);
+            foreach ($mvc->alternateMessages as $aMessage) {
+                $mvc->add($aMessage['nick'] . ': ' .$aMessage['msg'], $aMessage['urlArr'], $aMessage['alternateUserId'],
+                    $aMessage['priority'], $aMessage['customUrl'], $aMessage['addOnce']);
+            }
+            Mode::set('isNotifyAlternateUsers', false);
+        }
+    }
+
+
     /**
      * Отбелязва съобщение за прочетено
      */
