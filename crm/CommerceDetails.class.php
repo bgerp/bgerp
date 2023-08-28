@@ -61,7 +61,12 @@ class crm_CommerceDetails extends core_Manager
             
             return;
         }
-        
+
+        if (empty($data->Lists) && empty($data->Conditions) && empty($data->Cards)) {
+
+            return;
+        }
+
         // Взимаме шаблона
         $tpl = getTplFromFile('crm/tpl/CommerceDetails.shtml');
         $tpl->replace(tr('Търговия'), 'title');
