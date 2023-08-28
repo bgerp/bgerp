@@ -434,6 +434,12 @@ class hr_Sickdays extends core_Master
         $prefix = "SICK-{$id}-";
         
         $curDate = $rec->startDate;
+
+        $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+        if (!$personProfile || !$personProfile->userId) {
+
+            return ;
+        }
         
         while ($curDate < $rec->toDate) {
             // Подготвяме запис за началната дата
@@ -457,7 +463,6 @@ class hr_Sickdays extends core_Master
                 // Заглавие за записа в календара
                 $calRec->title = "Болничен: {$personName}";
                 
-                $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
                 $personId = array($personProfile->userId => 0);
                 $user = keylist::fromArray($personId);
                 

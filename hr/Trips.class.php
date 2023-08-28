@@ -341,7 +341,13 @@ class hr_Trips extends core_Master
         $prefix = "TRIP-{$id}-";
         
         $curDate = $rec->startDate;
-        
+
+        $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+        if (!$personProfile || !$personProfile->userId) {
+
+            return ;
+        }
+
         while ($curDate < $rec->toDate) {
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
@@ -364,22 +370,19 @@ class hr_Trips extends core_Master
                 // Заглавие за записа в календара
                 $calRec->title = "Командировка: {$personName}";
                 
-                $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
-                if ($personProfile) {
-                    $personId = array($personProfile->userId => 0);
-                    $user = keylist::fromArray($personId);
+                $personId = array($personProfile->userId => 0);
+                $user = keylist::fromArray($personId);
 
-                    // В чии календари да влезе?
-                    $calRec->users = $user;
+                // В чии календари да влезе?
+                $calRec->users = $user;
 
-                    // Статус на задачата
-                    $calRec->state = $rec->state;
+                // Статус на задачата
+                $calRec->state = $rec->state;
 
-                    // Url на задачата
-                    $calRec->url = array('hr_Trips', 'Single', $id);
+                // Url на задачата
+                $calRec->url = array('hr_Trips', 'Single', $id);
 
-                    $events[] = $calRec;
-                }
+                $events[] = $calRec;
             }
             $curDate = dt::addDays(1, $curDate);
         }

@@ -561,7 +561,7 @@ class hr_Leaves extends core_Master
         $curDate = $rec->leaveFrom;
 
         $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
-        if (!$personProfile) {
+        if (!$personProfile || !$personProfile->userId) {
 
             return ;
         }
@@ -590,10 +590,6 @@ class hr_Leaves extends core_Master
                 $calRec->title = "Отпуск: {$personName}";
 
                 $personId = array($personProfile->userId => 0);
-
-                if (!$personId) {
-                    break;
-                }
 
                 $user = keylist::fromArray($personId);
                 
