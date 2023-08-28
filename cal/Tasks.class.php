@@ -97,7 +97,7 @@ class cal_Tasks extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_SaveAndNew, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
     
     
     /**
@@ -3869,17 +3869,6 @@ class cal_Tasks extends embed_Manager
         }
 
         return $res;
-    }
-
-
-    /**
-     * Подготовка на бутоните на формата за добавяне/редактиране
-     */
-    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
-    {
-        if ($data->form->toolbar->buttons['save']) {
-            $data->form->toolbar->buttons['save']->order = min($data->form->toolbar->buttons['save']->order, 9);
-        }
     }
 
 
