@@ -2260,4 +2260,19 @@ class sales_Sales extends deals_DealMaster
         $fieldset->FLD('email', 'email', 'caption=Поръчител->Имейл');
         $fieldset->FLD('cartId', 'int', 'caption=Поръчител->Количка №');
     }
+
+
+    public function act_Test()
+    {
+        requireRole('debug');
+        $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => clone $this));
+        $fields = array_keys($Driver->getCsvFieldSet($this)->selectFields());
+        $fields = implode(',', $fields);
+
+        $filter = (object)array('fields' => $fields, 'showColumnNames' => 'yes', 'delimiter' => ',', 'enclosure' => '"', 'decimalSign' => '.', 'encoding' => 'utf-8');
+        $filter->_recs[4215] = sales_Sales::fetch(4215);
+        $content = $Driver->export($filter);
+        bp($content, $fields);
+
+    }
 }

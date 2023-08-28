@@ -496,7 +496,7 @@ class eshop_ProductDetails extends core_Detail
                 $row->catalogPrice .= '</div>';
             }
         }
-        
+
         // Подготовка на бутона за купуване
         if($showCartBtn && !$stopSale){
             $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => '|Добавяне в||Add to|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn productBtn addToCard', 'rel' => 'nofollow'));
@@ -555,7 +555,8 @@ class eshop_ProductDetails extends core_Detail
                 if(empty($rec->deliveryTime)){
                     $showNotInStock = true;
                     if(!empty($settings->remoteStores)){
-                        if(sync_StoreStocks::haveQuantityInRemoteStores($rec->quantityInPack, $rec->productId, $settings->remoteStores)){
+                        $quantityInRemoteStocks = sync_StoreStocks::getQuantityInRemoteStores($rec->productId, $settings->remoteStores);
+                        if ($quantityInRemoteStocks >= $rec->quantityInPack) {
                             if(!empty($settings->remoteInStockText)){
                                 $remoteInStockTextVerbal = core_Type::getByName('varchar')->toVerbal(tr($settings->remoteInStockText));
                                 $row->saleInfo = "<span class='{$class} option-not-in-stock inStockInRemoteStore'>{$remoteInStockTextVerbal}</span>";
@@ -568,9 +569,9 @@ class eshop_ProductDetails extends core_Detail
                         $notInStock = !empty($settings->notInStockText) ? tr($settings->notInStockText) : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
                         $notInStockVerbal = core_Type::getByName('varchar')->toVerbal($notInStock);
                         $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";
+                        $row->quantity = 1;
+                        unset($row->btn);
                     }
-                    $row->quantity = 1;
-                    unset($row->btn);
                 } else {
                     $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
                 }
