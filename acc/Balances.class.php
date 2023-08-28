@@ -614,19 +614,10 @@ class acc_Balances extends core_Master
     {
         acc_Journal::clearDrafts();
         if(is_array($data->recalcedBalances)){
-            acc_ProductPricePerPeriods::logDebug("BALANCES ". min(array_keys($data->recalcedBalances)));
+            $minDate = countR($data->recalcedBalances) ? min(array_keys($data->recalcedBalances)) : key($data->recalcedBalances);
+            acc_ProductPricePerPeriods::logDebug("BALANCES '{$minDate}'");
         } else {
             acc_ProductPricePerPeriods::logDebug("BALANCES NONE");
-        }
-
-        return;
-
-        if(is_array($data->recalcedBalances)){
-            $minDate = min(array_keys($data->recalcedBalances));
-            $maxDate = acc_ProductPricePerPeriods::getCacheMaxDate();
-            if($minDate > $maxDate) return;
-
-            acc_ProductPricePerPeriods::invalidateAfterDate($minDate);
         }
     }
     
