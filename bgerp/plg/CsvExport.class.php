@@ -144,7 +144,12 @@ class bgerp_plg_CsvExport extends core_BaseClass
     public function export($filter)
     {
         $cu = core_Users::getCurrent();
-        $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
+        if(empty($filter->_recs)){
+            $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
+        } else {
+            $recs = $filter->_recs;
+        }
+
         core_App::setTimeLimit(countR($recs) / 10);
         
         $retUrl = getRetUrl();
@@ -181,11 +186,6 @@ class bgerp_plg_CsvExport extends core_BaseClass
                     if ($field != 'ExternalLink') {
                         $value = $fieldSet->getFieldParam($field, 'caption');
                         $valueArr = explode('->', $value);
-                        if (countR($valueArr) == 1) {
-                            $value = $valueArr[0];
-                        } else {
-                            $value = $valueArr[1];
-                        }
                         foreach ($valueArr as &$v) {
                             $v = transliterate(tr($v));
                         }
