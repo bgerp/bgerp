@@ -163,6 +163,10 @@ class uiext_ObjectLabels extends core_Manager
         } else {
             $this->save($rec);
         }
+
+        if (cls::load($masterClassId, true)) {
+            cls::get($masterClassId)->logWrite('Променен таг', $objectId);
+        }
         
         if (Request::get('ajax_mode')) {
             
