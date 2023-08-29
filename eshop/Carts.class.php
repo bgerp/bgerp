@@ -1061,7 +1061,9 @@ class eshop_Carts extends core_Master
         $threadRec->state = 'opened';
         doc_Threads::save($threadRec, 'state');
         doc_Threads::updateThread($threadRec->id);
-        
+
+        static::autoCreateSaleCsvIfNeeded($saleRec);
+
         return $saleRec;
     }
     
@@ -3115,6 +3117,46 @@ class eshop_Carts extends core_Master
             if (!empty($detailsKeywords)) {
                 $res = ' ' . $res . ' ' . $detailsKeywords;
             }
+        }
+    }
+
+
+    /**
+     * Помощна ф-я експортираща създадена онлайн продажба в посочена директория като csv
+     *
+     * @param int|stdClass $saleRec - ид или запис
+     * @return void
+     */
+    public static function autoCreateSaleCsvIfNeeded($saleRec)
+    {
+        // Ако няма посочена директория - не се прави нищо
+        $eshopCsvDir = eshop_Setup::get('AUTO_EXPORT_SALE_CSV_DIR');
+        if(empty($eshopCsvDir)) return;
+
+        // Ще се експортират всички полета от мастъра и детайла
+        $Sales = cls::get('sales_Sales');
+        $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
+        $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
+        $fields = implode(',', $fields);
+
+        $saleRec = sales_Sales::fetchRec($saleRec);
+        $Sales->updateMaster_($saleRec);
+
+        // Подготовка на експорта
+        $filter = (object)array('fields' => $fields, 'showColumnNames' => 'yes', 'delimiter' => ',', 'enclosure' => '"', 'decimalSign' => '.', 'encoding' => 'utf-8');
+        $filter->_recs[$saleRec->id] = $saleRec;
+        Mode::push('csvAlwaysAddEnclosure', true);
+        $content = $Driver->export($filter);
+        Mode::pop('csvAlwaysAddEnclosure');
+
+        $name = "emagSal{$saleRec->id}";
+        $eshopCsvDir = rtrim($eshopCsvDir, '/');
+        $fileName = "{$eshopCsvDir}/{$name}.csv";
+        $res = @file_put_contents($fileName, $content);
+        if($res){
+            eshop_Carts::logDebug("Експортирано csv: `{$fileName}`");
+        } else {
+            eshop_Carts::logErr("Грешка при създаване: `{$fileName}`");
         }
     }
 }
