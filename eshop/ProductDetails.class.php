@@ -551,29 +551,26 @@ class eshop_ProductDetails extends core_Detail
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if (isset($settings->inStockStores) && $canStore == 'yes' && !$stopSale) {
             $quantity = store_Products::getQuantities($rec->productId, $settings->inStockStores)->free;
-            if ($quantity < $rec->quantityInPack) {
-                if(empty($rec->deliveryTime)){
-                    $showNotInStock = true;
-                    if(!empty($settings->remoteStores)){
-                        $quantityInRemoteStocks = sync_StoreStocks::getQuantityInRemoteStores($rec->productId, $settings->remoteStores);
-                        if ($quantityInRemoteStocks >= $rec->quantityInPack) {
-                            if(!empty($settings->remoteInStockText)){
-                                $remoteInStockTextVerbal = core_Type::getByName('varchar')->toVerbal(tr($settings->remoteInStockText));
-                                $row->saleInfo = "<span class='{$class} option-not-in-stock inStockInRemoteStore'>{$remoteInStockTextVerbal}</span>";
-                            }
-                            $showNotInStock = false;
-                        }
-                    }
+            $quantityInRemote = 0;
+            if(!empty($settings->remoteStores)) {
+                $quantityInRemote = sync_StoreStocks::getQuantityInRemoteStores($rec->productId, $settings->remoteStores);
+            }
+            $totalQuantity = $quantity + $quantityInRemote;
 
-                    if($showNotInStock){
-                        $notInStock = !empty($settings->notInStockText) ? tr($settings->notInStockText) : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
-                        $notInStockVerbal = core_Type::getByName('varchar')->toVerbal($notInStock);
-                        $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";
-                        $row->quantity = 1;
-                        unset($row->btn);
-                    }
-                } else {
+            if ($totalQuantity < $rec->quantityInPack) {
+                if(!empty($rec->deliveryTime)){
                     $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
+                } else {
+                    $notInStock = !empty($settings->notInStockText) ? tr($settings->notInStockText) : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
+                    $notInStockVerbal = core_Type::getByName('varchar')->toVerbal($notInStock);
+                    $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";
+                    $row->quantity = 1;
+                    unset($row->btn);
+                }
+            } elseif($quantity < $rec->quantityInPack && $quantityInRemote >= $rec->quantityInPack) {
+                if(!empty($settings->remoteInStockText)){
+                    $remoteInStockTextVerbal = core_Type::getByName('varchar')->toVerbal(tr($settings->remoteInStockText));
+                    $row->saleInfo = "<span class='{$class} option-not-in-stock inStockInRemoteStore'>{$remoteInStockTextVerbal}</span>";
                 }
             }
         }

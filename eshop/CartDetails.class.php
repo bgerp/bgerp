@@ -335,6 +335,7 @@ class eshop_CartDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $maxQuantity = null;
         if (isset($fields['-list'])) {
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
             $row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, true);
@@ -407,7 +408,6 @@ class eshop_CartDetails extends core_Detail
         
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
         if (isset($settings->inStockStores) && $productRec->canStore == 'yes') {
-            $quantity = store_Products::getQuantities($rec->productId, $settings->inStockStores)->free;
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
             
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
