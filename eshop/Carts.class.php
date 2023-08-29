@@ -3133,30 +3133,35 @@ class eshop_Carts extends core_Master
         $eshopCsvDir = eshop_Setup::get('AUTO_EXPORT_SALE_CSV_DIR');
         if(empty($eshopCsvDir)) return;
 
-        // Ще се експортират всички полета от мастъра и детайла
-        $Sales = cls::get('sales_Sales');
-        $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
-        $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
-        $fields = implode(',', $fields);
+        try{
+            // Ще се експортират всички полета от мастъра и детайла
+            $Sales = cls::get('sales_Sales');
+            $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
+            $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
+            $fields = implode(',', $fields);
 
-        $saleRec = sales_Sales::fetchRec($saleRec);
-        $Sales->updateMaster_($saleRec);
+            $saleRec = sales_Sales::fetchRec($saleRec);
+            $Sales->updateMaster_($saleRec);
 
-        // Подготовка на експорта
-        $filter = (object)array('fields' => $fields, 'showColumnNames' => 'yes', 'delimiter' => ',', 'enclosure' => '"', 'decimalSign' => '.', 'encoding' => 'utf-8');
-        $filter->_recs[$saleRec->id] = $saleRec;
-        Mode::push('csvAlwaysAddEnclosure', true);
-        $content = $Driver->export($filter);
-        Mode::pop('csvAlwaysAddEnclosure');
+            // Подготовка на експорта
+            $filter = (object)array('fields' => $fields, 'showColumnNames' => 'yes', 'delimiter' => ',', 'enclosure' => '"', 'decimalSign' => '.', 'encoding' => 'utf-8');
+            $filter->_recs[$saleRec->id] = $saleRec;
+            Mode::push('csvAlwaysAddEnclosure', true);
+            $content = $Driver->export($filter);
+            Mode::pop('csvAlwaysAddEnclosure');
 
-        $name = "emagSal{$saleRec->id}";
-        $eshopCsvDir = rtrim($eshopCsvDir, '/');
-        $fileName = "{$eshopCsvDir}/{$name}.csv";
-        $res = @file_put_contents($fileName, $content);
-        if($res){
-            eshop_Carts::logDebug("Експортирано csv: `{$fileName}`");
-        } else {
-            eshop_Carts::logErr("Грешка при създаване: `{$fileName}`");
+            $name = "emagSal{$saleRec->id}";
+            $eshopCsvDir = rtrim($eshopCsvDir, '/');
+            $fileName = "{$eshopCsvDir}/{$name}.csv";
+            $res = @file_put_contents($fileName, $content);
+            if($res){
+                eshop_Carts::logDebug("Експортирано csv: `{$fileName}`");
+            } else {
+                eshop_Carts::logErr("Грешка при записване: `{$fileName}`");
+            }
+        } catch (core_exception_Expect $e){
+            reportException($e);
+            eshop_Carts::logErr("Грешка при записване на CSV");
         }
     }
 }
