@@ -72,6 +72,8 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
         $this->setDbIndex('docClass,docId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('lastOn');
+
+        $this->dbEngine = 'MYISAM';
     }
 
 

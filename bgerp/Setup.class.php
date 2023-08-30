@@ -82,7 +82,7 @@ defIfNot('BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS', 'all');
 /**
  * Колко стари записи да се пазят в таблицата за последно видяни документи от потребител
  */
-defIfNot('BGERP_LAST_SEEN_DOC_BY_USER_CACHE_LIFETIME', 2 * dt::SECONDS_IN_MONTH);
+defIfNot('BGERP_LAST_SEEN_DOC_BY_USER_CACHE_LIFETIME', 12 * dt::SECONDS_IN_MONTH);
 
 
 /**
