@@ -3122,10 +3122,6 @@ class eshop_Carts extends core_Master
         }
     }
 
-    function act_Test()
-    {
-        static::autoCreateSaleCsvIfNeeded(4220);
-    }
 
     /**
      * Помощна ф-я експортираща създадена онлайн продажба в посочена директория като csv
