@@ -392,7 +392,7 @@ class hr_Sickdays extends core_Master
         $row->paidByHI = $Double->toVerbal($rec->paidByHI);
         $row->paidByHI .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
 
-        $row->alternatePersons = hr_Leaves::purifyeAlternatePersons($rec);
+        $row->alternatePersons = hr_Leaves::purifyeAlternatePersons($rec->alternatePersons);
     }
 
     

@@ -304,7 +304,7 @@ class hr_Trips extends core_Master
             $row->amountHouse .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
         }
 
-        $row->alternatePersons = hr_Leaves::purifyeAlternatePersons($rec);
+        $row->alternatePersons = hr_Leaves::purifyeAlternatePersons($rec->alternatePersons);
     }
     
     

@@ -746,22 +746,32 @@ class hr_Leaves extends core_Master
         $myCompany = crm_Companies::fetchOurCompany();
         $row->myCompany = $myCompany->name;
 
-        $row->alternatePersons = static::purifyeAlternatePersons($rec);
+        $row->alternatePersons = static::purifyeAlternatePersons($rec->alternatePersons);
     }
 
 
     /**
      * Помощна функция за показване на заместващите лица
      *
-     * @param $rec
+     * @param null|string $alternatePersons
+     * @param boolean $showNick
+     *
      * @return string
      */
-    public static function purifyeAlternatePersons($rec)
+    public static function purifyeAlternatePersons($alternatePersons, $showNick = false)
     {
         $res = '';
-        if (isset($rec->alternatePersons)) {
+        if (isset($alternatePersons)) {
             $aPersonsArr = array();
-            foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
+            foreach (type_Keylist::toArray($alternatePersons) as $aPerson) {
+                if ($showNick) {
+                    $uId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
+                    if ($uId) {
+                        $aPersonsArr[] = crm_Profiles::createLink($uId);
+
+                        continue;
+                    }
+                }
                 // Ако имаме права да видим визитката
                 if (crm_Persons::haveRightFor('single', $aPerson) && ($name = crm_Persons::fetchField(array("#id = '[#1#]'", $aPerson), 'name'))) {
                     $aPersonsArr[] = ht::createLink($name, array('crm_Persons', 'single', 'id' => $aPerson), null, 'ef_icon = img/16/vcard.png');
