@@ -1062,7 +1062,9 @@ class eshop_Carts extends core_Master
         doc_Threads::save($threadRec, 'state');
         doc_Threads::updateThread($threadRec->id);
 
-        static::autoCreateSaleCsvIfNeeded($saleRec);
+        if(defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')){
+            static::autoCreateSaleCsvIfNeeded($saleRec);
+        }
 
         return $saleRec;
     }
@@ -3120,6 +3122,10 @@ class eshop_Carts extends core_Master
         }
     }
 
+    function act_Test()
+    {
+        static::autoCreateSaleCsvIfNeeded(4220);
+    }
 
     /**
      * Помощна ф-я експортираща създадена онлайн продажба в посочена директория като csv
@@ -3130,8 +3136,7 @@ class eshop_Carts extends core_Master
     public static function autoCreateSaleCsvIfNeeded($saleRec)
     {
         // Ако няма посочена директория - не се прави нищо
-        $eshopCsvDir = eshop_Setup::get('AUTO_EXPORT_SALE_CSV_DIR');
-        if(empty($eshopCsvDir)) return;
+        if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
 
         try{
             // Ще се експортират всички полета от мастъра и детайла
@@ -3151,8 +3156,7 @@ class eshop_Carts extends core_Master
             Mode::pop('csvAlwaysAddEnclosure');
 
             $name = "emagSal{$saleRec->id}";
-            $eshopCsvDir = rtrim($eshopCsvDir, '/');
-            $fileName = "{$eshopCsvDir}/{$name}.csv";
+            $fileName = ESHOP_AUTO_EXPORT_SALE_CSV_PATH . "/{$name}.csv";
             $res = @file_put_contents($fileName, $content);
             if($res){
                 eshop_Carts::logDebug("Експортирано csv: `{$fileName}`");
