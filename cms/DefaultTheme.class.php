@@ -43,6 +43,10 @@ class cms_DefaultTheme extends core_ProtoInner
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 3');
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 4');
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 5');
+        $form->FLD('wImg6', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 6');
+        $form->FLD('wImg7', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 7');
+        $form->FLD('wImg8', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 8');
+
         $form->FLD('interframeImage', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Междинна');
 
         $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка за логин и при колаборатор (1000x150px)->Изображение');
@@ -237,7 +241,7 @@ class cms_DefaultTheme extends core_ProtoInner
                 $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => true,'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
             } else {
-                for ($i = 1; $i <= 5; $i++) {
+                for ($i = 1; $i <= 8; $i++) {
                     $imgName = 'wImg' . $i;
                     if ($this->innerForm->{$imgName}) {
                         $imgs[$i] = $this->innerForm->{$imgName};
