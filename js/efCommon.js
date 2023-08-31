@@ -77,7 +77,7 @@ function runOnLoad(functionName) {
 function fadeImages(el, transition, delay){
 	$('.fadein img:gt(0)').hide();
 	setInterval(function(){
-		$('.fadein :first-child').css({position: 'absolute'}).fadeOut(el).next('img').css({position: 'absolute'}).fadeIn(transition).end().appendTo('.fadein');
+		$('.fadein :first-child').css({position: 'absolute'}).fadeOut(transition).next('img').css({position: 'absolute'}).fadeIn(transition).end().appendTo('.fadein');
 		$('.fadein :first-child').css({position: 'relative'});
 	}, delay);
 }
