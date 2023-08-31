@@ -160,8 +160,14 @@ class uiext_ObjectLabels extends core_Manager
         
         if ($delete === true && isset($exRec->id)) {
             self::delete($exRec->id);
+            $tagMsg = 'Изтрит таг';
         } else {
             $this->save($rec);
+            $tagMsg = 'Променен таг';
+        }
+
+        if (cls::load($masterClassId, true)) {
+            cls::get($masterClassId)->logWrite($tagMsg, $objectId);
         }
         
         if (Request::get('ajax_mode')) {

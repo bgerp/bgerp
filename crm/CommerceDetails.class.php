@@ -23,6 +23,9 @@ class crm_CommerceDetails extends core_Manager
     {
         if (haveRole('sales,purchase,ceo')) {
             $data->TabCaption = 'Търговия';
+        } else {
+
+            return ;
         }
         
         if ($data->isCurrent === false) {
@@ -58,7 +61,12 @@ class crm_CommerceDetails extends core_Manager
             
             return;
         }
-        
+
+        if (empty($data->Lists) && empty($data->Conditions) && empty($data->Cards)) {
+
+            return;
+        }
+
         // Взимаме шаблона
         $tpl = getTplFromFile('crm/tpl/CommerceDetails.shtml');
         $tpl->replace(tr('Търговия'), 'title');

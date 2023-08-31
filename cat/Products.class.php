@@ -1172,6 +1172,29 @@ class cat_Products extends embed_Manager
             $whereArr[] = $wherePartSeven;
         }
 
+        if(isset($filtersArr['withBom']) || isset($filtersArr['withoutBom'])){
+            $wherePartEight = "#canManifacture = 'yes'";
+            $bQuery = cat_Boms::getQuery();
+            $bQuery->where("#state IN ('active', 'closed')");
+            $bQuery->show('productId');
+            $productsWithBoms = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
+            $productsWithBomsStr = implode(',', $productsWithBoms);
+
+            if(isset($filtersArr['withBom']) && !isset($filtersArr['withoutBom'])){
+                if(!empty($productsWithBomsStr)){
+                    $wherePartEight .= " AND #{$productIdFld} IN ({$productsWithBomsStr})";
+                } else {
+                    $wherePartEight .= " AND 1=2";
+                }
+            }
+            if(isset($filtersArr['withoutBom']) && !isset($filtersArr['withBom'])){
+                if(!empty($productsWithBomsStr)){
+                    $wherePartEight .= " AND #{$productIdFld} NOT IN ({$productsWithBomsStr})";
+                }
+            }
+            $whereArr[] = $wherePartEight;
+        }
+
         foreach ($whereArr as $where){
             $query->where($where);
         }

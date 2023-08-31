@@ -385,7 +385,7 @@ class acc_ValueCorrections extends core_Master
         
         if ($chargeVat == 'yes' || $chargeVat == 'separate') {
             if ($form->rec->amount) {
-                $averageRate = $mvc->getAverageVatRate($rec->productsData, $rec->amount, $rec->valior, $rec->allocateBy);
+                $averageRate = $mvc->getAverageVatRate($form->allProducts, $rec->amount, $rec->valior, $rec->allocateBy);
                 $form->rec->amount = $form->rec->amount * (1 + $averageRate);
                 $form->rec->amount = round($form->rec->amount, 2);
             }

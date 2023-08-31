@@ -453,7 +453,7 @@ class sales_Sales extends deals_DealMaster
 
                 // ако все още е активна и може да я избира потребителя - попълва се
                 $ownBankSelectedRec = bank_OwnAccounts::fetch("#bankAccountId = {$lastSelectedBankAccountId}");
-                if(!in_array($ownBankSelectedRec->state, array('closed', 'rejected')) && bgerp_plg_FLB::canUse('bank_OwnAccounts', $ownBankSelectedRec, null, 'select')){
+                if(!in_array($ownBankSelectedRec->state, array('closed', 'rejected')) && $ownBankSelectedRec && bgerp_plg_FLB::canUse('bank_OwnAccounts', $ownBankSelectedRec, null, 'select')){
                     $defaultBankAccountId = $lastSelectedBankAccountId;
                 }
             }
