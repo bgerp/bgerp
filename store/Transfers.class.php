@@ -237,12 +237,19 @@ class store_Transfers extends core_Master
 
 
     /**
+     * Да се показват ли винаги полетата за промяна на артикули при създаване
+     * @var bool
+     */
+    public $autoAddDetailsToChange = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('valior', 'date', 'caption=Дата');
-        $this->FLD('fromStore', 'key(mvc=store_Stores,select=name)', 'caption=От склад,mandatory');
+        $this->FLD('fromStore', 'key(mvc=store_Stores,select=name)', 'caption=От склад,mandatory,silent');
         $this->FLD('toStore', 'key(mvc=store_Stores,select=name)', 'caption=До склад,mandatory');
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
@@ -273,10 +280,6 @@ class store_Transfers extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles == 'no_one') {
-            return;
-        }
-
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'toStore')) {
             $requiredRoles = 'no_one';
         }
@@ -285,6 +288,21 @@ class store_Transfers extends core_Master
             $Detail = cls::get($mvc->mainDetail);
             if (!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")) {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        // Ако ще се създава към документ да трябва да се създава само към ПОП за получени чужди артикули
+        if ($action == 'add' && isset($rec->originId)) {
+            $Document = doc_Containers::getDocument($rec->originId);
+            if(!$Document->isInstanceOf('store_ConsignmentProtocols')){
+                $requiredRoles = 'no_one';
+            } else {
+                $docRec = $Document->fetch('state,productType');
+                if($docRec->productType != 'other' || $docRec->state != 'active'){
+                    $requiredRoles = 'no_one';
+                } elseif(!store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$Document->that}")){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -358,8 +376,11 @@ class store_Transfers extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setDefault('fromStore', store_Stores::getCurrent('id', false));
-        $folderCoverId = doc_Folders::fetchCoverId($data->form->rec->folderId);
-        $data->form->setDefault('toStore', $folderCoverId);
+        $Cover = doc_Folders::getCover($data->form->rec->folderId);
+        if($Cover->isInstanceOf('store_Stores')){
+            $data->form->setDefault('toStore', $Cover->that);
+        }
+
         $data->form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
 
         if (!trans_Lines::count("#state = 'active'")) {
@@ -713,6 +734,61 @@ class store_Transfers extends core_Master
         return $comment;
     }
 
+    /**
+     * Преди запис на документ
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass     $rec
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        // Ако заданието е към сделка и е избран департамент, да се рутира към него
+        if (empty($rec->id) && isset($rec->originId)) {
+
+            // Ако МСТ е към ориджин ще се създава винаги в нова нишка
+            $oldThreadId = $rec->threadId;
+            $rec->folderId = store_Stores::forceCoverAndFolder($rec->toStore);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+
+            // Обновяване на информацията за контейнера и старата нишка, че документ се е преместил оттам
+            $cRec = doc_Containers::fetch($rec->containerId);
+            $cRec->threadId = $rec->threadId;
+            doc_Containers::save($cRec, 'threadId, modifiedOn, modifiedBy');
+            doc_Threads::updateThread($oldThreadId);
+        }
+    }
+
+
+    /**
+     * Кои детайли да се клонират с промяна
+     *
+     * @param stdClass $rec
+     * @return array $res
+     *          ['recs'] - записи за промяна
+     *          ['detailMvc] - модел от който са
+     */
+    public function getDetailsToCloneAndChange_($rec)
+    {
+        if (isset($rec->originId) && empty($rec->id)) {
+            $origin = doc_Containers::getDocument($rec->originId);
+            if ($origin->isInstanceOf('store_ConsignmentProtocols')) {
+                $Detail = cls::get('store_ConsignmentProtocolDetailsReceived');
+                $id = $origin->that;
+
+                $recs = array();
+                $dQuery = $Detail->getQuery();
+                $dQuery->where("#{$Detail->masterKey} = {$id}");
+                while($dRec = $dQuery->fetch()){
+                    $dRec->newProductId = $dRec->productId;
+                    $recs[$dRec->id] = $dRec;
+                }
+                $res = array('recs' => $recs, 'detailMvc' => $Detail);
+
+                return $res;
+            }
+        }
+    }
+
 
     /**
      * Връща планираните наличности
@@ -900,9 +976,20 @@ class store_Transfers extends core_Master
      */
     public static function canAddToThread($threadId)
     {
+        if(Request::get('originId', 'int')) return true;
+
         $folderId = doc_Threads::fetchField($threadId, 'folderId');
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
 
         return cls::haveInterface('store_iface_TransferFolderCoverIntf', $folderClass);
+    }
+
+
+    /**
+     * Може ли документа да се добавя като свързан документ към оридижина си
+     */
+    public static function canAddDocumentToOriginAsLink_($rec)
+    {
+        return true;
     }
 }
