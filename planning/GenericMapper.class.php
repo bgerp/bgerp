@@ -320,9 +320,10 @@ class planning_GenericMapper extends core_Manager
             $bomRec = cat_Boms::fetch($rec->bomId);
             $data->rows[$rec->id] = cat_Boms::recToVerbal($bomRec);
 
-            // Изчисляване за какво количество е вложено
-            if($Param == 'Boms'){
+            // Изчисляване за какво количество е вложено, ако се показват рецептите, в които е вложена
+            if($Param == 'Resources'){
                 $rInfo = cat_Boms::getResourceInfo($bomRec->id, 1, $now);
+
                 if(is_array($rInfo['resources'])){
                     $foundRec = array_filter($rInfo['resources'], function($a) use ($data){return $a->productId == $data->masterId;});
                     $quantityVerbal = "<span class='red'>???</span>";
