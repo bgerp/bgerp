@@ -1575,13 +1575,15 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // ако има каса, метода за плащане е COD и текущия потребител може да се логне в касата
-        if ($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && bgerp_plg_FLB::canUse('cash_Cases', $rec->caseId)) {
+
+        $defaultCaseId = $rec->caseId ?? cash_Cases::getCurrent('id', false);
+        if ($rec->amountDeal && isset($defaultCaseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && bgerp_plg_FLB::canUse('cash_Cases', $defaultCaseId)) {
             
-            // Може да се плати с продуктите
-            $caseName = cash_Cases::getTitleById($rec->caseId);
+            // Може да се плати от каса
+            $caseName = cash_Cases::getTitleById($defaultCaseId);
             $options['pay'] = "{$opt['pay']} \"${caseName}\"";
         }
-        
+
         $res = $options;
     }
     
