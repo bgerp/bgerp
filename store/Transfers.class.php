@@ -780,8 +780,14 @@ class store_Transfers extends core_Master
                 $dQuery->where("#{$Detail->masterKey} = {$id}");
                 while($dRec = $dQuery->fetch()){
                     $dRec->newProductId = $dRec->productId;
+
+                    $inStoreQuantity = store_Products::getQuantities($dRec->productId, $rec->storeId)->quantity;
+                    $quantity = min($inStoreQuantity, $dRec->quantity);
+                    $dRec->quantity = $quantity;
+                    $dRec->packQuantity = $dRec->quantity / $dRec->quantityInPack;
                     $recs[$dRec->id] = $dRec;
                 }
+
                 $res = array('recs' => $recs, 'detailMvc' => $Detail);
 
                 return $res;
