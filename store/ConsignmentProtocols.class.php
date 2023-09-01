@@ -474,7 +474,6 @@ class store_ConsignmentProtocols extends core_Master
             $form->setDefault('contragentClassId', $originRec->contragentClassId);
             $form->setDefault('contragentId', $originRec->contragentId);
             $form->setReadOnly('currencyId', $originRec->currencyId);
-            $form->setReadOnly('responsible');
             $form->setDefault('storeId', $originRec->storeId);
             $form->setReadOnly('productType', $defaultProductType);
         }
