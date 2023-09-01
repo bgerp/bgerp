@@ -1662,6 +1662,12 @@ abstract class deals_DealMaster extends deals_DealBase
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;
             $rec->contoActions = $form->rec->action;
             $rec->isContable = ($form->rec->action == 'activate') ? 'activate' : 'yes';
+
+            $actions = type_Set::toArray($form->rec->action);
+            if ($actions['pay'] && empty($rec->caseId)){
+                $rec->caseId = cash_Cases::getCurrent('id', false);
+            }
+
             $this->save($rec);
             
             // Ако се експедира и има склад, форсира се логване
