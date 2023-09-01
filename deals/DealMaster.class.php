@@ -1641,8 +1641,9 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Ако има каса и потребителя е логнат в нея, Слагаме отметка
-        if ($options['pay'] && isset($rec->caseId)) {
-            if ($isTakenFromPlace || ($rec->caseId === $curCaseId && $hasSelectedBankAndCase === false)) {
+        $defaultCaseId = $rec->caseId ?? cash_Cases::getCurrent('id', false);
+        if ($options['pay'] && isset($defaultCaseId)) {
+            if ($isTakenFromPlace) {
                 $selected[] = 'pay';
             }
             
