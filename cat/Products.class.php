@@ -429,6 +429,9 @@ class cat_Products extends embed_Manager
     {
         $form = &$data->form;
         $rec = $form->rec;
+        if($data->action == 'clone'){
+            $rec->_isBeingCloned = true;
+        }
 
         // Всички позволени мерки
         $measureOptions = cat_UoM::getUomOptions();
@@ -656,11 +659,12 @@ class cat_Products extends embed_Manager
             }
             
             $metaError = null;
-            if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $rec->id, $metaError)) {
+            $checkMetaProductId = ($rec->_isBeingCloned) ? null : $rec->id;
+            if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $checkMetaProductId, $metaError)) {
                 $form->setError('meta', $metaError);
             }
 
-            if(isset($rec->id)){
+            if(isset($rec->id) && !$rec->_isBeingCloned){
                 $jobArr = array();
                 $jQuery = planning_Jobs::getQuery();
                 $jQuery->where("#productId = {$rec->id} AND #state IN ('active', 'stopped', 'wakeup')");
