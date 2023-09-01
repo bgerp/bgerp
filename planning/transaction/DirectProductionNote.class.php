@@ -391,7 +391,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 // Ако е материал го изписваме към произведения продукт
                 $entry = array();
                 if ($dRec1->type != 'pop') {
-                    $reason = ($index == 0) ? 'Засклаждане на произведен артикул' : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
+                    $reason = ($index == 0) ? (($prodRec->canStore == 'yes') ? 'Засклаждане на произведен артикул' : 'Произвеждане на услуга') : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
                     $array['quantity'] = $quantityD;
                     $entry['debit'] = $array;
 
@@ -486,8 +486,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             } else {
                 $eItem = acc_Items::fetch($expenseItem);
             }
-                
+
             if ($eItem->classId == sales_Sales::getClassId()) {
+                $array['quantity'] = $quantity;
                 $saleRec = sales_Sales::fetch($eItem->objectId, 'contragentClassId, contragentId');
                 $entry4 = array('debit' => array('703',
                     array($saleRec->contragentClassId, $saleRec->contragentId),
