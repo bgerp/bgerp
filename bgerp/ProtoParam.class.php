@@ -464,4 +464,24 @@ abstract class bgerp_ProtoParam extends embed_Manager
 
         return array_combine(array_keys($arr), array_keys($arr));
     }
+
+
+    /**
+     * При клониране подменя стойността на параметъра с актуалната
+     *
+     * @param mixed $id
+     * @param mixed $domainClass - клас на домейна
+     * @param mixed $domainId - ид на домейна
+     * @return string
+     */
+    public static function getReplacementValueOnClone($id, $domainClass = null, $domainId = null, $value)
+    {
+        if($Driver = static::getDriver($id)){
+            $rec = static::fetchRec($id);
+
+            return $Driver->getReplacementValueOnClone($rec, $domainClass, $domainId, $value);
+        }
+
+        return $value;
+    }
 }

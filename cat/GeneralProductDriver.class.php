@@ -82,7 +82,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                     $defaultParams = array();
                 }
             }
-            
+
             foreach ($defaultParams as $id => $value) {
                 
                 // Всеки дефолтен параметър го добавяме към формата
@@ -107,7 +107,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                     $suffix = cat_Params::getVerbal($paramRec, 'suffix');
                     $form->setField("paramcat{$id}", "unit={$suffix}");
                 }
-                
+
+                if($data->action == 'clone'){
+                    $value = cat_Params::getReplacementValueOnClone($id, $Embedder, $rec->id, $value);
+                }
+
                 // Ако има дефолтна стойност, задаваме и нея
                 if (isset($value)) {
                     $form->setDefault("paramcat{$id}", $value);

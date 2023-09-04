@@ -687,6 +687,7 @@ class cat_products_Params extends doc_Detail
             $pQuery->where("#classId = {$class->getClassId()} AND #productId = {$objectId}");
             while($pRec = $pQuery->fetch()){
                 $params[$pRec->paramId] = $pRec->paramId;
+                $pRec->paramValue = cat_Params::getReplacementValueOnClone($pRec->paramId, $classId, $objectId, $pRec->paramValue);
                 $paramValues[$pRec->paramId] = $pRec->paramValue;
             }
         } else {
@@ -862,9 +863,6 @@ class cat_products_Params extends doc_Detail
     {
         $data->query->orderBy('id', 'DESC');
     }
-
-
-
 }
 
 

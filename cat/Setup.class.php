@@ -212,6 +212,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
+        'cat_ParamFormulaVersions',
         'migrate::fixNewLinesInFormulas2706',
     );
     
