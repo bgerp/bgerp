@@ -236,7 +236,7 @@ class uiext_Labels extends core_Manager
      *
      * @return string - инпута за избор на тагове
      */
-    public static function renderLabel($masterClass, $masterId, $classId, $hash)
+    public static function renderLabel($masterClass, $masterId, $classId, $hash, $onlyInput = false)
     {
         $masterClass = cls::get($masterClass);
         $labels = self::getLabelOptions($classId);
@@ -269,7 +269,7 @@ class uiext_Labels extends core_Manager
             }
         }
         
-        if(!empty($input)){
+        if(!empty($input) && !$onlyInput){
             $k = "{$masterClass->getClassId()}_{$masterId}_{$classId}_{$hash}";
             $input = "<span id='charge{$k}'>{$input}</span>";
         }

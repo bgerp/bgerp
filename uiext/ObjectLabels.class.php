@@ -177,7 +177,7 @@ class uiext_ObjectLabels extends core_Manager
             $resObj->func = 'html';
             
             $k = "{$masterClassId}_{$objectId}_{$classId}_{$hash}";
-            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($masterClassId, $objectId, $classId, $hash), 'replace' => true);
+            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($masterClassId, $objectId, $classId, $hash, true), 'replace' => true);
             $res = array_merge(array($resObj));
             
             return $res;
