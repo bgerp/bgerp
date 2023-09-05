@@ -30,15 +30,9 @@ class cat_ParamFormulaVersions extends core_Manager
 
 
     /**
-     * Кой има право да променя?
+     * Кой има право да пише?
      */
-    public $canEdit = 'cat,ceo';
-
-
-    /**
-     * Кой има право да добавя?
-     */
-    public $canAdd = 'cat,ceo';
+    public $canWrite = 'no_one';
 
 
     /**
@@ -74,37 +68,6 @@ class cat_ParamFormulaVersions extends core_Manager
         $this->setDbIndex('oldFormulaHash');
         $this->setDbIndex('newFormulaHash');
         $this->setDbIndex('paramId');
-    }
-
-
-    /**
-     * Преди показване на форма за добавяне/промяна
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = &$data->form;
-        $rec = &$form->rec;
-
-        $options = array();
-        $formulaClassId = cond_type_Formula::getClassId();
-        $pQuery = cat_Params::getQuery();
-        $pQuery->where("#driverClass = {$formulaClassId}");
-        $pQuery->where("#state != 'closed' OR #id = '{$rec->paramId}'");
-        while($pRec = $pQuery->fetch()){
-            $options[$pRec->id] = $pRec->typeExt;
-        }
-        $form->setOptions('paramId', array('' => '') + $options);
-
-        if(isset($rec->paramId)){
-            $form->setField('oldFormula', 'input');
-            $form->setField('newFormula', 'input');
-            $defaultVal = cat_Params::getDefaultValue($rec->paramId, 'cat_Products', null, $rec->oldFormula);
-            $form->setDefault('oldFormula', $defaultVal);
-
-            $suggestions = cond_type_Formula::getGlobalSuggestions();
-            $form->setSuggestions('oldFormula', $suggestions);
-            $form->setSuggestions('newFormula', $suggestions);
-        }
     }
 
 
@@ -230,6 +193,7 @@ class cat_ParamFormulaVersions extends core_Manager
         $data->recs = $data->rows = array();
         $query = $this->getQuery();
         $query->where("#paramId = {$data->masterId}");
+        $query->orderBy('modifiedOn', 'DESC');
         while($rec = $query->fetch()){
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = static::recToVerbal($rec);
