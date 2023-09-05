@@ -72,25 +72,6 @@ class cat_ParamFormulaVersions extends core_Manager
 
 
     /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $res
-     * @param stdClass     $rec
-     */
-    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-        if(empty($rec->oldFormulaHash)){
-            $rec->oldFormulaHash = md5(str::removeWhiteSpace($rec->oldFormula));
-        }
-
-        if(empty($rec->newFormulaHash)){
-            $rec->newFormulaHash = md5(str::removeWhiteSpace($rec->newFormula));
-        }
-    }
-
-
-    /**
      * След всеки запис
      *
      * @param core_Mvc $mvc
