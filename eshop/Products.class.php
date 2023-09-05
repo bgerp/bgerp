@@ -403,8 +403,11 @@ class eshop_Products extends core_Master
             } else {
                 $nearProducts = array_keys($rec->nearProducts);
                 $linkArr = array();
+
                 array_walk($nearProducts, function ($a) use (&$linkArr) {
-                    $linkArr[] = eshop_Products::getHyperlink($a, true)->getContent();
+                    if(eshop_Products::fetchField($a)){
+                        $linkArr[] = eshop_Products::getHyperlink($a, true)->getContent();
+                    }
                 });
                 $row->nearProducts = implode(', ', $linkArr);
             }
