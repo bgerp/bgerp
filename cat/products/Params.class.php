@@ -213,7 +213,7 @@ class cat_products_Params extends doc_Detail
             
                 $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
                 $form->setDefault('paramValue', $defaultValue);
-                if($pRec->valueType == 'readonly'){
+                if($pRec->valueType == 'readonly' && isset($rec->id)){
                     if(isset($defaultValue)){
                         $form->info = tr("|*<div class='richtext-message richtext-warning'>Параметърът е дефиниран като „Само за четене“|*!<br>|Промяната наложителна ли е|*?<br>Съвет|*: |Опитайте първо да презапишете с автоматично заредената дефолтна стойност|*!</div>");
                     }
