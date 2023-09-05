@@ -256,7 +256,7 @@ class cat_ParamFormulaVersions extends core_Manager
         $listTableMvc->invoke('BeforeRenderListTable', array($tpl, &$data));
 
         $tableTpl = $table->get($data->rows, $data->listFields);
-        $tpl->append(tr('Подзадачи'), 'title');
+        $tpl->append(tr('Стари формули'), 'title');
         $tpl->replace($tableTpl, 'content');
 
         return $tpl;
