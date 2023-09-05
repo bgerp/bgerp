@@ -458,19 +458,6 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
-        // Ако има рецепта връщаме по нея
-        if ($bomRec = $this->getBomForPrice($productId)) {
-            
-            // Рецептата ще се преизчисли за текущия артикул, В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
-            $bomRec->productId = $productId;
-            $price = cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
-            if(!empty($price)){
-                $res = (object)array('price' => $price, 'discount' => null);
-
-                return $res;
-            }
-        }
-        
         return null;
     }
     
