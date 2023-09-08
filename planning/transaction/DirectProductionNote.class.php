@@ -255,48 +255,49 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $productsOnConsignment = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($saleRec->threadId, false);
         }
 
+        $outsourced = array_filter($details, function($a){ return $a->isOutsourced == 'yes';});
+
         // Ако има вложени получени от ПОП артикули ще им се прави отделна контировка
         $consignmentAmount = 0;
-        if(is_object($saleRec) && countR($productsOnConsignment)){
-            foreach ($details as $key => $det1){
+        if(is_object($saleRec) && countR($outsourced)){
+            foreach ($outsourced as $key => $det1){
                 if($det1->type == 'input'){
-                    if(array_key_exists($det1->productId, $productsOnConsignment)){
-                        $creditArr = array('61101', array('cat_Products', $det1->productId), 'quantity' => $det1->quantity);
+                    $creditArr = array('61101', array('cat_Products', $det1->productId), 'quantity' => $det1->quantity);
 
-                        if(!empty($det1->storeId)){
-                            $creditArr = array('61103', array($classId, $documentId), array('cat_Products', $det1->productId), 'quantity' => $det1->quantity);
-                            $entry = array('debit' => array('61103',
-                                array($classId, $documentId),
-                                array('cat_Products', $det1->productId),
-                                'quantity' => $det1->quantity),
-                                'credit' => array('321',
-                                    array('store_Stores', $det1->storeId),
-                                    array('cat_Products', $det1->productId),
-                                    'quantity' => $det1->quantity),
-                                'reason' => 'Влагане на чужди материали - производство на ишлеме');
-
-                            Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
-                            $amountCheck = cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
-                            Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
-                            if(!empty($amountCheck)){
-                                $entry['amount'] = $amountCheck;
-                            }
-
-                            $entries[] = $entry;
-                        }
-
-                        $consignmentAmount += cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
-
-                        $entry = array('debit' => array('3232',
-                            array($saleRec->contragentClassId, $saleRec->contragentId),
+                    if(!empty($det1->storeId)){
+                        $creditArr = array('61103', array($classId, $documentId), array('cat_Products', $det1->productId), 'quantity' => $det1->quantity);
+                        $entry = array('debit' => array('61103',
+                            array($classId, $documentId),
                             array('cat_Products', $det1->productId),
                             'quantity' => $det1->quantity),
-                            'credit' => $creditArr,
-                            'reason' => 'Вложен чужд материал в производството на артикул - производство на ишлеме');
-                        $entries[] = $entry;
+                            'credit' => array('321',
+                                array('store_Stores', $det1->storeId),
+                                array('cat_Products', $det1->productId),
+                                'quantity' => $det1->quantity),
+                            'reason' => 'Влагане на чужди материали - производство на ишлеме');
 
-                        unset($details[$key]);
+                        Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
+                        $amountCheck = cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
+                        Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
+                        if(!empty($amountCheck)){
+                            $entry['amount'] = $amountCheck;
+                        }
+
+                        $entries[] = $entry;
                     }
+
+                    $consignmentAmount += cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
+
+                    $Cover = doc_Folders::getCover(cat_Products::fetchField($det1->productId, 'folderId'));
+                    $entry = array('debit' => array('3232',
+                        array($Cover->getClassId(), $Cover->that),
+                        array('cat_Products', $det1->productId),
+                        'quantity' => $det1->quantity),
+                        'credit' => $creditArr,
+                        'reason' => 'Вложен чужд материал в производството на артикул - производство на ишлеме');
+                    $entries[] = $entry;
+
+                    unset($details[$key]);
                 }
             }
         }
