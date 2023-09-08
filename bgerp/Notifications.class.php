@@ -226,12 +226,6 @@ class bgerp_Notifications extends core_Manager
             return ;
         }
         
-        // Да не се нотифицира контракторът
-        if (core_Users::haveRole('partner', $userId)) {
-            
-            return ;
-        }
-        
         $rec = new stdClass();
         $rec->msg = $msg;
         $rec->url = toUrl($urlArr, 'local', false);
