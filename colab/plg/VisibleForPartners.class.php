@@ -178,23 +178,29 @@ class colab_plg_VisibleForPartners extends core_Plugin
                             $form->rec->visibleForPartners = 'yes';
                         }
                     }
-
-                    if(!$form->gotErrors()){
-                        if(isset($rec->sharedUsers)) {
-                            $sharedUsers = keylist::toArray($rec->sharedUsers);
-                            $partners = core_Users::getByRole('partner');
-                            $withoutSelectedPartners = array_diff_key($sharedUsers, $partners);
-
-                            $rec->sharedUsers = keylist::fromArray($withoutSelectedPartners);
-                            core_Statuses::newStatus('Докунта не е видим за партньори, затова са махнати споделените такива|*!', 'warning');
-                        }
-                    }
                 }
             }
         }
     }
-    
-    
+
+
+    /**
+     * Изпълнява се преди записа
+     * Ако липсва - записваме id-то на връзката към титлата
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if($rec->visibleForPartners == 'no' && isset($rec->sharedUsers)) {
+            $sharedUsers = keylist::toArray($rec->sharedUsers);
+            $partners = core_Users::getByRole('partner');
+            $withoutSelectedPartners = array_diff_key($sharedUsers, $partners);
+
+            $rec->sharedUsers = keylist::fromArray($withoutSelectedPartners);
+            core_Statuses::newStatus('Документът не е видим за партньори, затова са махнати споделените такива|*!', 'warning');
+        }
+    }
+
+
     /**
      * Връща дали документа е видим за партньори
      *
