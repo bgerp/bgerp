@@ -294,10 +294,10 @@ class core_Lg extends core_Manager
             if (haveRole('translate')) {
                 $this->save($rec, null, 'IGNORE');
                 
-                $tLg = substr($lg, 0, 2);
-                if (is_numeric($tLg) || (mb_strlen($rec->translated) > 100) || (i18n_Charset::is7Bit($rec->kstring))) {
-                    wp($rec, 'translate');
-                }
+//                $tLg = substr($lg, 0, 2);
+//                if (is_numeric($tLg) || (mb_strlen($rec->translated) > 100) || (i18n_Charset::is7Bit($rec->kstring))) {
+//                    wp($rec, 'translate');
+//                }
             }
             
             // Записваме в кеш-масива

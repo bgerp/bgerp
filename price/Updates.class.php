@@ -786,10 +786,10 @@ class price_Updates extends core_Manager
         $source = $fromCategoryStr = '';
         if($rec->_fromProduct){
             if($rec->type == 'group'){
-                $fromCategoryStr = 'От група|* " <b>' . cat_Groups::getTitleById($rec->objectId) . '"</b>: ';
+                $fromCategoryStr = 'От група|* "<b>' . cat_Groups::getHyperlink($rec->objectId) . '</b>": ';
                 $uRow->_rowTools = new core_RowToolbar();
             } elseif($rec->type == 'category') {
-                $fromCategoryStr = 'От категория|* " <b>' . cat_Categories::getTitleById($rec->objectId) . '"</b>: ';
+                $fromCategoryStr = 'От категория|* "<b>' . cat_Categories::getHyperlink($rec->objectId) . '</b>": ';
                 $uRow->_rowTools = new core_RowToolbar();
             }
         }

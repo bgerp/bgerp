@@ -1,5 +1,9 @@
+<!--ET_BEGIN SCROLLING_HOLDER-->
+[#SCROLLING_HOLDER#]
 <div class='scrolling-holder'>
 	<fieldset class='top-tab-content'>
+
+	<!--ET_BEGIN CONDITIONS-->
 	<legend class='groupTitle'>[#condTitle#]</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
 		    <div class='groupList clearfix21'>
@@ -7,7 +11,9 @@
 		    </div>
 	    </div>
 	</fieldset>
+	<!--ET_END CONDITIONS-->
 
+	<!--ET_BEGIN LISTS-->
 	<fieldset class='top-tab-content' style='margin-top:10px'>
 	<legend class='groupTitle'>[#priceListTitle#]</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
@@ -16,6 +22,9 @@
 		    </div>
 	    </div>
 	</fieldset>
+	<!--ET_END LISTS-->
+
+	<!--ET_BEGIN CARDS-->
 	<fieldset class='top-tab-content' style='margin-top:10px'>
 	<legend class='groupTitle'>[#cardTitle#] [#addCardBtn#]</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
@@ -24,6 +33,7 @@
 		    </div>
 	    </div>
 	</fieldset>
+	<!--ET_END CARDS-->
 	
 	<!--ET_BEGIN PRODUCT_LISTS-->
 	<fieldset class='top-tab-content' style='margin-top:10px'>
@@ -36,3 +46,4 @@
 	</fieldset>
 	<!--ET_END PRODUCT_LISTS-->
 </div>
+<!--ET_END SCROLLING_HOLDER-->

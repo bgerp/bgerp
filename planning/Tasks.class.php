@@ -2636,6 +2636,7 @@ class planning_Tasks extends core_Master
                         $newParamRec = clone $pRec;
                         unset($newParamRec->id);
                         $newParamRec->productId = $newTask->id;
+                        $newParamRec->paramValue = cat_Params::getReplacementValueOnClone($newParamRec->paramId, 'planning_Tasks', $taskRec->id,$newParamRec->paramValue);
                         cat_products_Params::save($newParamRec);
                     }
                 }

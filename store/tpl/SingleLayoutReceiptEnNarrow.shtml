@@ -135,6 +135,7 @@
                         </td>
                     </tr>
                     <!--ET_END note-->
+                    [#InvoicesToDocuments#]
                 </table>
                 <hr>
                 <!--ET_BEGIN responsible-->

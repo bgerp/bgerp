@@ -345,7 +345,9 @@ class cvc_interface_CourierImpl extends core_Manager
         }
 
         $profile = crm_Profiles::getProfile();
-        $phones = drdata_PhoneType::toArray($profile->tel);
+
+        $tel = !empty($profile->buzTel) ? $profile->buzTel : $profile->tel;
+        $phones = drdata_PhoneType::toArray($tel);
         $phone = $phones[0]->original;
         $form->setDefault('senderName', $profile->name);
         $form->setDefault('senderPhone', $phone);

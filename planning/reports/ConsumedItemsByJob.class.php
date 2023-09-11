@@ -113,6 +113,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fieldset->FLD('orderType', 'enum(asc=Нарастващо,desc=Намаляващо)', 'caption=Подреждане->Подреждане,after=orderBy,single=none,silent');
 
         $fieldset->FLD('seeAmount', 'set(yes = )', 'caption=Покажи стойности,after=orderType,single=none');
+        $fieldset->FLD('unstackableOn', 'set(yes = )', 'caption=Включи нескладируемите,after=orderType,single=none');
 
 
     }
@@ -295,7 +296,12 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
 
             $pQuery->in('state', array('rejected', 'draft'), true);
-            $pQuery->where("#canStore != 'no'");
+
+            //Включване на не складируемите артикули
+            if($rec->unstackableOn != 'yes'){
+                $pQuery->where("#canStore != 'no'");
+            }
+
 
             //Ако има избрани задания или центрове на дейност вадим само от техните нишки
             if (!empty($jobsThreadArr)) {

@@ -130,7 +130,7 @@ class sens2_ProtoDriver extends core_BaseClass
     
     
     /**
-     * Връща списъка с възможните слотове от посочени типове
+     * Връща списъка с възможните слотове от посочените типове
      */
     public function getSlotOpt($type = array(), $onlyAviable = false)
     {

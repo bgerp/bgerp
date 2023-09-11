@@ -1477,6 +1477,22 @@ class cat_Boms extends core_Master
                     $dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
                 } else {
                     $dRec->primeCost = null;
+
+                    if($dRec->type != 'stage'){
+                        $index = "{$dRec->resourceId}|{$dRec->type}";
+                        if (!isset($materials[$index])) {
+                            $materials[$index] = (object) array('productId' => $dRec->resourceId,
+                                'packagingId' => $dRec->packagingId,
+                                'quantityInPack' => $dRec->quantityInPack,
+                                'type' => $dRec->type,
+                                'genericProductId' => planning_GenericProductPerDocuments::getRec('cat_BomDetails', $dRec->id),
+                            );
+                            $materials[$index]->propQuantity = 0;
+                        } else {
+                            $d = &$materials[$index];
+                            $d->propQuantity += 0;
+                        }
+                    }
                 }
 
                 // Ако няма цена връщаме FALSE
@@ -1596,7 +1612,7 @@ class cat_Boms extends core_Master
                 
                 // Опитваме се да намерим себестойността за основното количество
                 $rowCost1 = self::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
-                
+
                 // Ако няма връщаме FALSE
                 if ($rowCost1 === false) {
                     $canCalcPrimeCost = false;

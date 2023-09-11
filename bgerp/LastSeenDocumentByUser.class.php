@@ -72,8 +72,6 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
         $this->setDbIndex('docClass,docId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('lastOn');
-
-        $this->dbEngine = 'memory';
     }
 
 
@@ -243,5 +241,17 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
         }
 
         return $res;
+    }
+
+
+    /**
+     * Изтриване на много стари записи по разписание
+     */
+    public function cron_DeleteOldRecs()
+    {
+        $lifetime = bgerp_Setup::get('LAST_SEEN_DOC_BY_USER_CACHE_LIFETIME');
+        $lastSeenDate =  dt::addSecs(-1 * $lifetime);
+
+        static::delete("#lastOn <= '{$lastSeenDate}'");
     }
 }

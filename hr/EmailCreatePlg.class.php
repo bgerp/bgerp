@@ -30,6 +30,7 @@ class hr_EmailCreatePlg extends core_Plugin
         setIfNot($mvc->interfaces['email_DocumentIntf'], 'email_DocumentIntf');
         setIfNot($mvc->useOriginContragentData, true);
         setIfNot($mvc->getContragentDataFromLastDoc, false);
+        setIfNot($mvc->canSendemail, 'user');
     }
 
 

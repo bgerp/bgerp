@@ -327,4 +327,33 @@ class store_TransfersDetails extends doc_Detail
 
         return store_Transfers::addRow($masterId, $pRec->productId, $pRec->packagingId, $row->quantity, $quantityInPack, $row->batch);
     }
+
+
+    /**
+     * След извличане на експорт на полетата за csv
+     *
+     * @param $mvc
+     * @param $fieldset
+     * @return void
+     */
+    protected static function on_AfterGetCsvExportDetailFieldset($mvc, &$fieldset)
+    {
+        deals_Helper::getExportCsvProductFieldset($mvc, $fieldset);
+    }
+
+
+    /**
+     * Взимане на детайлите за експорт в csv
+     *
+     * @param $mvc
+     * @param $masterRec
+     * @param $expandedRecs
+     * @param $detailFields
+     * @param $fieldset
+     * @return void
+     */
+    protected static function on_AfterGetCsvExportDetailRecs($mvc, $masterRec, &$expandedRecs, &$fieldset)
+    {
+        deals_Helper::addCsvExportProductRecs4Master($mvc, $masterRec, $expandedRecs);
+    }
 }

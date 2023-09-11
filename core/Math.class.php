@@ -34,11 +34,8 @@ class core_Math
         }
         
         if ($significantDigits === null) {
-            
             // Вземаме конфигурацията на пакета ef
-            $conf = core_Packs::getConfig('core');
-            
-            $significantDigits = $conf->EF_ROUND_SIGNIFICANT_DIGITS;
+            $significantDigits = core_Setup::get('EF_ROUND_SIGNIFICANT_DIGITS', true);
         }
         
         $r = 0;

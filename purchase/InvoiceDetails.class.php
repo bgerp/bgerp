@@ -46,18 +46,24 @@ class purchase_InvoiceDetails extends deals_InvoiceDetail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'invoiceId';
-    
-    
+
+
     /**
-     * Кой може да пише?
+     * Кой има право да променя?
      */
-    public $canWrite = 'powerUser';
-    
-    
+    public $canEdit = 'ceo, invoicerPurchase, invoicerFindeal';
+
+
     /**
-     * Кой има право да чете?
+     * Кой има право да добавя?
      */
-    public $canRead = 'invoicer, ceo';
+    public $canAdd = 'ceo, invoicerPurchase, invoicerFindeal';
+
+
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'ceo, invoicerPurchase, invoicerFindeal';
     
     
     /**
@@ -85,5 +91,27 @@ class purchase_InvoiceDetails extends deals_InvoiceDetail
     {
         $this->FLD('invoiceId', 'key(mvc=purchase_Invoices)', 'caption=Фактура, input=hidden, silent');
         parent::setInvoiceDetailFields($this);
+    }
+
+
+    /**
+     * След проверка на ролите
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        if (($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'import') && isset($rec->{$mvc->masterKey})) {
+            $threadId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'threadId');
+            if($firstDoc = doc_Threads::getFirstDocument($threadId)){
+                if($firstDoc->isInstanceOf('purchase_Purchases')){
+                    if(!haveRole('invoicerPurchase,ceo')){
+                        $res = 'no_one';
+                    }
+                } else {
+                    if(!haveRole('invoicerFindeal,ceo')){
+                        $res = 'no_one';
+                    }
+                }
+            }
+        }
     }
 }

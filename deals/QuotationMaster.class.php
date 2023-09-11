@@ -59,7 +59,7 @@ abstract class deals_QuotationMaster extends core_Master
         'validFor' => 'lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
-        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'defMethod',
         'others' => 'lastDocUser|lastDoc',
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'deliveryPlaceId' => 'lastDocUser|lastDoc|',

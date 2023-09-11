@@ -97,7 +97,7 @@ class cal_Tasks extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_SaveAndNew, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
     
     
     /**
@@ -1849,14 +1849,30 @@ class cal_Tasks extends embed_Manager
 
         $row = new stdClass();
 
-        $title = $this->getRecTitle($rec);
-        $row->title = core_Type::getByName('varchar')->toVerbal($title);
-        
+        $verbalTitle = $this->getVerbal($rec, 'title');
+
+        if(Mode::is('getNotificationRecTitle')){
+            $handle = $this->getHandle($rec->id);
+            $row->title = "{$handle} - {$verbalTitle}";
+        } else {
+            $titleArr = array();
+            if(!Mode::is('onlyTitleInGetRecTitle')) {
+                $showFolderName = cal_Setup::get('SHOW_TASK_FOLDER_NAME_IN_PORTAL');
+
+                if(!Mode::is('documentPortalShortName') && $showFolderName != 'no'){
+                    $cover = doc_Folders::getCover($rec->folderId);
+                    $folder = str::limitLen($cover->getTitleById(), 16);
+                    $titleArr[] = $folder;
+                }
+            }
+
+            $titleArr[] = $verbalTitle;
+            $row->title = implode('/', $titleArr);
+        }
+
         $row->subTitle = '';
 
         if ($rec->assetResourceId) {
-//            $row->subTitle = $this->getVerbal($rec, 'assetResourceId');
-//            $row->subTitle = planning_AssetResources::getHyperlink($rec->assetResourceId, false);
             $row->subTitle = planning_AssetResources::getTitleById($rec->assetResourceId);
         }
 
@@ -1884,11 +1900,14 @@ class cal_Tasks extends embed_Manager
             }
             
             $row->subTitle .= ' (' . self::getLastProgressAuthor($rec) . ')';
-            
-            $row->title .= ' (' . $this->getVerbal($rec, 'progress') . ')';
+            if(!Mode::is('documentGetItemRec')) {
+                $row->title .= ' (' . $this->getVerbal($rec, 'progress') . ')';
+            }
         }
-        
-        $row->title = $this->prepareTitle($row->title, $rec);
+
+        if(!Mode::is('documentGetItemRec')){
+            $row->title = $this->prepareTitle($row->title, $rec);
+        }
         
         $usersArr = type_Keylist::toArray($rec->assign);
         if (!empty($usersArr)) {
@@ -1939,13 +1958,13 @@ class cal_Tasks extends embed_Manager
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $title;
+        $row->recTitle = $row->title;
         
         $Driver = $this->getDriver($id);
         if ($Driver) {
             $Driver->prepareDocumentRow($rec, $row);
         }
-        
+
         return $row;
     }
     
@@ -3039,26 +3058,10 @@ class cal_Tasks extends embed_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $mvc = cls::get(get_called_class());
-        $rec = static::fetchRec($rec);
+        $me = cls::get(get_called_class());
+        $dRow = $me->getDocumentRow($rec->id);
 
-        $titleArr = array();
-        if(!Mode::is('onlyTitleInGetRecTitle')) {
-            if(!Mode::is('documentGetItemRec')){
-                $abbr = $mvc->abbr;
-                $abbr[0] = strtoupper($abbr[0]);
-                $titleArr[] = "{$abbr}{$rec->id}";
-            }
-            if(!Mode::is('documentPortalShortName')){
-                $cover = doc_Folders::getCover($rec->folderId);
-                $folder = str::limitLen($cover->getTitleById(), 16);
-                $titleArr[] = $folder;
-            }
-        }
-
-        $titleArr[] = $mvc->getVerbal($rec, 'title');
-
-        return implode('/', $titleArr);
+        return $dRow->title;
     }
     
     

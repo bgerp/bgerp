@@ -56,9 +56,9 @@ class bgerp_plg_CsvExport extends core_BaseClass
     public function getCsvFieldSet($mvc)
     {
         $fieldset = new core_FieldSet();
-        
-        $exportableFields = arr::make($mvc->exportableCsvFields, true);
 
+        // Добавяне на кои полета може да се експортират
+        $exportableFields = arr::make($mvc->exportableCsvFields, true);
         foreach ($exportableFields as $name => $caption) {
             if ($mvc->getField($name, false)) {
                 $fieldset->fields[$name] = $mvc->getField($name, false);
@@ -70,26 +70,11 @@ class bgerp_plg_CsvExport extends core_BaseClass
             }
         }
 
+        // Ако ще се експортират полета и от детайла - те също
         $mvc->invoke('afterGetCsvFieldSetForExport', array(&$fieldset));
-        setIfNot($mvc->allowDetailCsvExportFromList, false);
-
-        if($mvc instanceof core_Master){
-            if(isset($mvc->mainDetail) && $mvc->allowDetailCsvExportFromList){
-                $MainDetail = cls::get($mvc->mainDetail);
-
-                // Ако детайла има поле за избор на артикули
-                if(isset($MainDetail->productFld)){
-                    $fieldset->FLD('code', 'varchar', 'caption=Код');
-                    $fieldset->FLD($MainDetail->productFld, 'varchar', 'caption=Артикул');
-                    $fieldset->FLD('packagingId', 'varchar', 'caption=Опаковка');
-                    $fieldset->FLD('packQuantity', 'varchar', 'caption=Количество');
-                    $detailFields = arr::make("code,{$MainDetail->productFld},packagingId,packQuantity", true);
-                    if(core_Packs::isInstalled('batch')){
-                        $fieldset->FLD('batch', 'varchar', 'caption=Партида');
-                        $detailFields['batch'] = 'batch';
-                    }
-                    $this->detailFields = $detailFields;
-                }
+        if($mvc instanceof core_Master) {
+            if (isset($mvc->mainDetail)) {
+                cls::get($mvc->mainDetail)->invoke('afterGetCsvExportDetailFieldset', array(&$fieldset));
             }
         }
 
@@ -106,10 +91,11 @@ class bgerp_plg_CsvExport extends core_BaseClass
     {
         $sets = $selected = array();
         $fields = $this->getCsvFieldSet($this->mvc)->selectFields();
+        $detailFields = array();
 
         foreach ($fields as $name => $fld) {
             $sets[] = "{$name}={$fld->caption}";
-            if(!isset($this->detailFields) || !array_key_exists($name, $this->detailFields)){
+            if(!$fld->detailField){
                 $selected[$name] = $name;
             }
         }
@@ -158,7 +144,12 @@ class bgerp_plg_CsvExport extends core_BaseClass
     public function export($filter)
     {
         $cu = core_Users::getCurrent();
-        $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
+        if(empty($filter->_recs)){
+            $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
+        } else {
+            $recs = $filter->_recs;
+        }
+
         core_App::setTimeLimit(countR($recs) / 10);
         
         $retUrl = getRetUrl();
@@ -195,11 +186,6 @@ class bgerp_plg_CsvExport extends core_BaseClass
                     if ($field != 'ExternalLink') {
                         $value = $fieldSet->getFieldParam($field, 'caption');
                         $valueArr = explode('->', $value);
-                        if (countR($valueArr) == 1) {
-                            $value = $valueArr[0];
-                        } else {
-                            $value = $valueArr[1];
-                        }
                         foreach ($valueArr as &$v) {
                             $v = transliterate(tr($v));
                         }
@@ -218,34 +204,23 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $params['enclosure'] = $filter->enclosure;
         $params['text'] = 'plain';
 
-        if(countR($this->detailFields) && countR(array_intersect_key($fieldsArr, $this->detailFields))){
-            $finalRecs = array();
-            foreach ($recs as $rec){
+        if($this->mvc instanceof core_Master){
+            $detailFields = array_keys(array_filter($fieldSet->fields, function($f) {return $f->detailField;}));
+            $detailFields = array_combine($detailFields, $detailFields);
+            $hasDetailFieldsInExport = array_intersect_key($fieldsArr, $detailFields);
+            if(countR($hasDetailFieldsInExport)){
 
-                // Извличат се данните за артикулите от детайла му
-                $csvFields = new core_FieldSet();
-                $dRecs = cls::get('cat_Products')->getRecsForExportInDetails($this->mvc, $rec, $csvFields, core_Users::getCurrent());
-                $fieldKeys = array_combine(array_keys($csvFields->fields), array_keys($csvFields->fields));
-
-                // Ако има артикули в детайла то дублират се мастър данните във всеки ред за всеки артикул
-                if(countR($dRecs)){
-                    foreach ($dRecs as $dRec){
-                        $clone = clone $rec;
-                        foreach ($fieldKeys as $key){
-                            $clone->{$key} = $dRec->{$key};
-                        }
-                        if(isset($clone->packagingId)){
-                            $clone->packagingId = cat_UoM::fetchField($clone->packagingId, 'name');
-                        }
-
-                        $finalRecs[] = $clone;
-                    }
-                } else {
-                    $finalRecs[] = $rec;
+                $finalRecs = array();
+                foreach ($recs as $rec) {
+                    $dRecs = array();
+                    Mode::push('csvExportInList', true);
+                    cls::get($this->mvc->mainDetail)->invoke('afterGetCsvExportDetailRecs', array($rec, &$dRecs, &$fieldSet));
+                    Mode::pop('csvExportInList');
+                    $finalRecs = array_merge($finalRecs, $dRecs);
                 }
-            }
 
-            $recs = $finalRecs;
+                $recs = $finalRecs;
+            }
         }
 
         Mode::push('text', 'plain');
