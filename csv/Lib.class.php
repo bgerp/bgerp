@@ -482,8 +482,8 @@ class csv_Lib
     {
         $enclosure = preg_quote($enclosure, '/');
         $delimiter = preg_quote($delimiter, '/');
-        
-        if (preg_match("/\r|\n|{$delimiter}|{$enclosure}/", $val)) {
+
+        if (preg_match("/\r|\n|{$delimiter}|{$enclosure}/", $val) || Mode::is('csvAlwaysAddEnclosure')) {
             $val = $enclosure . str_replace($enclosure, $enclosure . $enclosure, $val) . $enclosure;
         }
         

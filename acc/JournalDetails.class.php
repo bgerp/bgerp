@@ -399,9 +399,7 @@ class acc_JournalDetails extends core_Detail
                 // И то е различно от сумата на реда замества се
                 // Така се подсигуряваме че К-то и сумата на основната валута винаги ще са еднакви
                 if (trim($replaceAmount) != trim($rec->amount)) {
-                    $msg = "Replace amount '{$rec->amount}' with '{$replaceAmount}'";
                     $rec->amount = $replaceAmount;
-                    acc_Journal::logDebug($msg, $rec->journalId);
                 }
             }
         }

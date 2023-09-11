@@ -80,6 +80,12 @@ defIfNot('BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS', 'all');
 
 
 /**
+ * Колко стари записи да се пазят в таблицата за последно видяни документи от потребител
+ */
+defIfNot('BGERP_LAST_SEEN_DOC_BY_USER_CACHE_LIFETIME', 12 * dt::SECONDS_IN_MONTH);
+
+
+/**
  * Клавиши за бързо избиране на бутони
  */
 defIfNot(
@@ -177,6 +183,8 @@ class bgerp_Setup extends core_ProtoSetup
         'BGERP_BLOCK_NORMAL' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Нормални, customizeBy=powerUser'),
 
         'BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS' => array('enum(all=Всички,share=Само споделените,open=Само "Отворени теми",shareOpen=Споделени и "Отворени теми",noOpen=Без "Отворени теми",stop=Спиране)', 'caption=Известията|*&#44; |които да получават заместниците->Избор, customizeBy=powerUser'),
+
+        'BGERP_LAST_SEEN_DOC_BY_USER_CACHE_LIFETIME' => array('time', 'caption=До колко време назад да се пазят записите в последно видяните документи от потребител->По стари от'),
     );
     
     
@@ -204,6 +212,14 @@ class bgerp_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 50,
             'timeLimit' => 600
+        ),
+        array(
+            'systemId' => 'DeleteLastSeenByUserCache',
+            'description' => 'Изтриване на кеша на последно видяните документи от потребител',
+            'controller' => 'bgerp_LastSeenDocumentByUser',
+            'action' => 'DeleteOldRecs',
+            'period' => 1440,
+            'offset' => 100,
         ),
     );
 

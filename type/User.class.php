@@ -30,6 +30,7 @@ class type_User extends type_Key
     {
         setIfNot($params['params']['mvc'], 'core_Users');
         setIfNot($params['params']['select'], 'nick');
+        setIfNot($params['params']['showClosedUsers'], 'yes');
         
         parent::init($params);
         
@@ -88,6 +89,11 @@ class type_User extends type_Key
                     $this->options[$userIdKey]->value = $cu;
                 }
             } else {
+                $closedUsers = '';
+                if ($this->params['showClosedUsers'] == 'yes') {
+                    $closedUsers = "OR #state = 'closed'";
+                }
+
                 $uQuery = core_Users::getQuery();
                 if ($value > 0) {
                     if ($value && (strpos($value, '_') !== false)) {
@@ -98,10 +104,11 @@ class type_User extends type_Key
                         }
                     }
                     
-                    $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed' OR #id = {$value}");
+                    $uQuery->where("#state = 'active' OR #state = 'blocked' {$closedUsers} OR #id = {$value}");
                 } else {
-                    $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed'");
+                    $uQuery->where("#state = 'active' OR #state = 'blocked' {$closedUsers}");
                 }
+
                 $uQuery->orderBy('nick', 'ASC');
                 
                 // Потребителите, които ще покажем, трябва да имат посочените роли

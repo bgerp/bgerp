@@ -198,7 +198,7 @@ class tcost_FeeZones extends core_Master
                 }
             }
 
-            if($volume * 33 < $weight) {
+            if($volume * 22 < $weight) {
                 $multiplier *= 1000;
             }
 

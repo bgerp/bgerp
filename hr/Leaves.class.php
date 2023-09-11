@@ -378,7 +378,7 @@ class hr_Leaves extends core_Master
             
             // ако не са изчислени дните за отпуска или са по-малко от 1, даваме грешка
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
-                $form->setError('leaveDays', 'Броят  неприсъствени дни е 0');
+                $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
             }
             
             // правим заявка към базата
@@ -560,9 +560,16 @@ class hr_Leaves extends core_Master
         
         $curDate = $rec->leaveFrom;
 
+        $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+        if (!$personProfile || !$personProfile->userId) {
+
+            return ;
+        }
+
         while ($curDate < dt::addDays(1, $rec->leaveTo) ){
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
+
                 $calRec = new stdClass();
                 
                 // Ключ на събитието
@@ -581,9 +588,9 @@ class hr_Leaves extends core_Master
                 
                 // Заглавие за записа в календара
                 $calRec->title = "Отпуск: {$personName}";
-                
-                $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+
                 $personId = array($personProfile->userId => 0);
+
                 $user = keylist::fromArray($personId);
                 
                 // В чии календари да влезе?
@@ -739,22 +746,32 @@ class hr_Leaves extends core_Master
         $myCompany = crm_Companies::fetchOurCompany();
         $row->myCompany = $myCompany->name;
 
-        $row->alternatePersons = static::purifyeAlternatePersons($rec);
+        $row->alternatePersons = static::purifyeAlternatePersons($rec->alternatePersons);
     }
 
 
     /**
      * Помощна функция за показване на заместващите лица
      *
-     * @param $rec
+     * @param null|string $alternatePersons
+     * @param boolean $showNick
+     *
      * @return string
      */
-    public static function purifyeAlternatePersons($rec)
+    public static function purifyeAlternatePersons($alternatePersons, $showNick = false)
     {
         $res = '';
-        if (isset($rec->alternatePersons)) {
+        if (isset($alternatePersons)) {
             $aPersonsArr = array();
-            foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
+            foreach (type_Keylist::toArray($alternatePersons) as $aPerson) {
+                if ($showNick) {
+                    $uId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
+                    if ($uId) {
+                        $aPersonsArr[] = crm_Profiles::createLink($uId);
+
+                        continue;
+                    }
+                }
                 // Ако имаме права да видим визитката
                 if (crm_Persons::haveRightFor('single', $aPerson) && ($name = crm_Persons::fetchField(array("#id = '[#1#]'", $aPerson), 'name'))) {
                     $aPersonsArr[] = ht::createLink($name, array('crm_Persons', 'single', 'id' => $aPerson), null, 'ef_icon = img/16/vcard.png');

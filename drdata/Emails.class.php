@@ -71,10 +71,12 @@ class drdata_Emails extends core_BaseClass
         
         // Проверка на MX записа на домейна
         list($user, $domain) = explode('@', $email);
-        
-        if (($mxhosts = self::mxAndARecordsValidate($domain)) === false) {
-            $result['warning'] = "Възможен е проблем с домейна|* {$user}@<b>{$domain}</b>";
-            
+
+        if ((self::mxAndARecordsValidate($domain)) === false) {
+            if (!checkdnsrr($domain, 'MX') && !checkdnsrr($domain, 'A')) {
+                $result['warning'] = "Възможен е проблем с домейна|* {$user}@<b>{$domain}</b>";
+            }
+
             return;
         }
         

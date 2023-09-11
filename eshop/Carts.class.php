@@ -568,8 +568,8 @@ class eshop_Carts extends core_Master
             }
             
             // Дигане на флаг ако има артикули очакващи доставка
-            if($rec->haveProductsWithExpectedDelivery != 'yes' && isset($settings->storeId) && $dRec->canStore == 'yes'){
-                $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->storeId)->free;
+            if($rec->haveProductsWithExpectedDelivery != 'yes' && isset($settings->inStockStores) && $dRec->canStore == 'yes'){
+                $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->inStockStores)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
                     if(!empty($eshopProductRec->deliveryTime)){
@@ -934,7 +934,11 @@ class eshop_Carts extends core_Master
             core_Users::forceSystemUser();
         }
         $cu = core_Users::getCurrent('id', false);
-        
+
+        $notes = tr("Поръчка") . " #{$rec->id}" . "\n";
+        $notes .= tr('Тел|*: ') . "{$rec->tel}" . "\n";
+        $notes .= tr('Имейл|*: ') . "{$rec->email}";
+
         // Дефолтни данни на продажбата
         $fields = array('valior' => dt::today(),
             'template' => $templateId,
@@ -949,7 +953,7 @@ class eshop_Carts extends core_Master
             'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,
             'deliveryCalcTransport' => 'no',
-            'note' => tr("Поръчка") . " #{$rec->id}",
+            'note' => $notes,
         );
 
         // Коя е ценовата политика
@@ -1057,7 +1061,11 @@ class eshop_Carts extends core_Master
         $threadRec->state = 'opened';
         doc_Threads::save($threadRec, 'state');
         doc_Threads::updateThread($threadRec->id);
-        
+
+        if(defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')){
+            static::autoCreateSaleCsvIfNeeded($saleRec);
+        }
+
         return $saleRec;
     }
     
@@ -3111,6 +3119,49 @@ class eshop_Carts extends core_Master
             if (!empty($detailsKeywords)) {
                 $res = ' ' . $res . ' ' . $detailsKeywords;
             }
+        }
+    }
+
+
+    /**
+     * Помощна ф-я експортираща създадена онлайн продажба в посочена директория като csv
+     *
+     * @param int|stdClass $saleRec - ид или запис
+     * @return void
+     */
+    public static function autoCreateSaleCsvIfNeeded($saleRec)
+    {
+        // Ако няма посочена директория - не се прави нищо
+        if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
+
+        try{
+            // Ще се експортират всички полета от мастъра и детайла
+            $Sales = cls::get('sales_Sales');
+            $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
+            $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
+            $fields = implode(',', $fields);
+
+            $saleRec = sales_Sales::fetchRec($saleRec);
+            $Sales->updateMaster_($saleRec);
+
+            // Подготовка на експорта
+            $filter = (object)array('fields' => $fields, 'showColumnNames' => 'yes', 'delimiter' => ',', 'enclosure' => '"', 'decimalSign' => '.', 'encoding' => 'utf-8');
+            $filter->_recs[$saleRec->id] = $saleRec;
+            Mode::push('csvAlwaysAddEnclosure', true);
+            $content = $Driver->export($filter);
+            Mode::pop('csvAlwaysAddEnclosure');
+
+            $name = "emagSal{$saleRec->id}";
+            $fileName = ESHOP_AUTO_EXPORT_SALE_CSV_PATH . "/{$name}.csv";
+            $res = @file_put_contents($fileName, $content);
+            if($res){
+                eshop_Carts::logDebug("Експортирано csv: `{$fileName}`");
+            } else {
+                eshop_Carts::logErr("Грешка при записване: `{$fileName}`");
+            }
+        } catch (core_exception_Expect $e){
+            reportException($e);
+            eshop_Carts::logErr("Грешка при записване на CSV");
         }
     }
 }

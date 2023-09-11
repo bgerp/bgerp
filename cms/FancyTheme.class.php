@@ -44,6 +44,9 @@ class cms_FancyTheme extends core_ProtoInner
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 3');
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 4');
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 5');
+        $form->FLD('wImg6', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 6');
+        $form->FLD('wImg7', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 7');
+        $form->FLD('wImg8', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 8');
 
         $form->FLD('menuPosition', 'enum(below=Под банера,above=Над банера)', 'caption=Меню->Позиция');
         
@@ -231,7 +234,7 @@ class cms_FancyTheme extends core_ProtoInner
     {
         $imgs = array();
         if (!Mode::is('screenMode', 'narrow')) {
-            for ($i = 1; $i <= 5; $i++) {
+            for ($i = 1; $i <= 8; $i++) {
                 $imgName = 'wImg' . $i;
                 if ($this->innerForm->{$imgName}) {
                     $imgs[$i] = $this->innerForm->{$imgName};

@@ -166,7 +166,7 @@ class barcode_Search extends core_Manager
 
             $h =  $form->rec->search ? ' class="hidden" ' : '';
 
-            $a = "<style> .cameraSource {min-width: 70px;} .cameraSource.active {background-color: #bbb;}</style> 
+            $a = "<style> .cameraSource {min-width: 60px;} .cameraSource.active {background-color: #bbb;}</style> 
             <div id='cameraHolder' {$h}>
                 <div style='margin: 0 0 10px;' id='camera-buttons'></div>
                 <div style= 'max-width: 500px; width: 100%' id='reader'></div>

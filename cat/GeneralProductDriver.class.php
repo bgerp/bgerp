@@ -82,7 +82,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                     $defaultParams = array();
                 }
             }
-            
+
             foreach ($defaultParams as $id => $value) {
                 
                 // Всеки дефолтен параметър го добавяме към формата
@@ -107,7 +107,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                     $suffix = cat_Params::getVerbal($paramRec, 'suffix');
                     $form->setField("paramcat{$id}", "unit={$suffix}");
                 }
-                
+
+                if($data->action == 'clone'){
+                    $value = cat_Params::getReplacementValueOnClone($id, $Embedder, $rec->id, $value);
+                }
+
                 // Ако има дефолтна стойност, задаваме и нея
                 if (isset($value)) {
                     $form->setDefault("paramcat{$id}", $value);
@@ -514,7 +518,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             if(is_array($params)){
                 foreach ($params as $paramId => $value){
                     $paramName = cat_Params::getTitleById($paramId, false);
-                    $res .= ' ' . plg_Search::normalizeText($paramName) . ' ' . plg_Search::normalizeText($value);
+                    $res .= ' ' . plg_Search::normalizeText($paramName) . ' ' . plg_Search::normalizeText(strip_tags($value));
                 }
             }
         }
@@ -539,5 +543,49 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         }
 
         return $fhArr;
+    }
+
+
+    /**
+     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     *
+     * @param mixed                                                                              $productId - ид на артикул
+     * @param int                                                                                $quantity  - к-во
+     * @param float                                                                              $minDelta  - минималната отстъпка
+     * @param float                                                                              $maxDelta  - максималната надценка
+     * @param datetime                                                                           $datetime  - дата
+     * @param float                                                                              $rate      - валутен курс
+     * @param string $chargeVat - начин на начисляване на ддс
+     *
+     * @return stdClass|float|NULL $price  - обект с цена и отстъпка, или само цена, или NULL ако няма
+     */
+    public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
+    {
+        // Ако има рецепта връщаме по нея
+        $priceFound = null;
+        if ($bomRec = $this->getBomForPrice($productId)) {
+
+            // Рецептата ще се преизчисли за текущия артикул, В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
+            $bomRec->productId = $productId;
+            $price = cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
+            if(!empty($price)){
+                $priceFound = $price;
+            }
+        }
+
+        if(empty($priceFound)){
+            $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId, null, $datetime);
+            if(isset($price)){
+                $priceFound = $price;
+            }
+        }
+
+        if(isset($priceFound)){
+            $res = (object)array('price' => $priceFound, 'discount' => null);
+
+            return $res;
+        }
+
+        return null;
     }
 }

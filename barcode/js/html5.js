@@ -38,6 +38,8 @@ function barcodeActions() {
             if (camera.id === cameraId && cameraId) {
                 cameraButton.classList.add("active");
                 startScanning(cameraId, html5Qrcode);
+            } else {
+                $('.cameraSource').first().click();
             }
             cameraButtonsContainer.appendChild(cameraButton);
         });

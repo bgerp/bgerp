@@ -48,7 +48,7 @@
 
 		<!--ET_BEGIN sumSize-->
 			<tr class='border-top'>
-				<td class='quiet'>|Общ размер|*:</td>
+				<td><strong>|Общ размер|*:</strong></td>
 				<td class='aright'>[#sumSize#]</td>
 			</tr>
 		<!--ET_END sumSize-->

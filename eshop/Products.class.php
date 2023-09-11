@@ -144,11 +144,11 @@ class eshop_Products extends core_Master
         $this->FLD('code', 'varchar(10)', 'caption=Код');
         $this->FLD('name', 'varchar(100)', 'caption=Артикул, mandatory,width=100%');
         
-        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
-        $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация2,column=none');
-        $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация3,column=none');
-        $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация4,column=none');
-        $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация5,column=none');
+        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1,hint=препоръчително квадрат поне 600х600px');
+        $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация2,column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация3,column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация4,column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация5,column=none,hint=препоръчително квадрат поне 600х600px");
         
         // В кои групи участва продукта
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Групи->Основна,mandatory,silent,refreshForm');
@@ -403,8 +403,11 @@ class eshop_Products extends core_Master
             } else {
                 $nearProducts = array_keys($rec->nearProducts);
                 $linkArr = array();
+
                 array_walk($nearProducts, function ($a) use (&$linkArr) {
-                    $linkArr[] = eshop_Products::getHyperlink($a, true)->getContent();
+                    if(eshop_Products::fetchField($a)){
+                        $linkArr[] = eshop_Products::getHyperlink($a, true)->getContent();
+                    }
                 });
                 $row->nearProducts = implode(', ', $linkArr);
             }

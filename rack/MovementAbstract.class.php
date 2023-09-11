@@ -305,17 +305,20 @@ abstract class rack_MovementAbstract extends core_Manager
             $data->query->where("#palletId = {$palletId}");
         }
 
-        $data->listFilter->setFieldTypeParams('workerId', array('allowEmpty' => 'allowEmpty'));
+
         $data->listFilter->setField('fromIncomingDocument', 'input=none');
-        $data->listFilter->setField('workerId', 'caption=Товарач,after=to');
+
         $data->listFilter->FLD('from', 'date', 'caption=От');
         $data->listFilter->FLD('to', 'date', 'caption=До');
+        $data->listFilter->FNC('filterUser', 'enum(workerId=Товарач,createdBy=Създадено от)', 'caption=Филтър по,after=to,input');
+        $data->listFilter->FNC('userId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal,allowEmpty)', 'caption=Потребител,after=filterUser,input');
+
         $data->listFilter->FNC('documentHnd', 'varchar', 'placeholder=Документ,caption=Документ,input,silent,recently');
         $data->listFilter->FLD('state1', 'enum(all=Всички,pending=Чакащи,waiting=Запазени,active=Активни,closed=Приключени)', 'caption=Състояние');
         $data->listFilter->input('documentHnd', 'silent');
-
-        $data->listFilter->showFields = 'selectPeriod, from, to, workerId,search,documentHnd,state1';
+        $data->listFilter->showFields = 'selectPeriod, from, to, filterUser, userId, search, documentHnd, state1';
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+        $data->listFilter->setDefault('filterUser', 'workerId');
 
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -333,8 +336,8 @@ abstract class rack_MovementAbstract extends core_Manager
                 $data->query->where("#createdOn <= '{$filterRec->to} 23:59:59'");
             }
 
-            if(!empty($filterRec->workerId)){
-                $data->query->where("#workerId = '{$filterRec->workerId}'");
+            if(!empty($filterRec->userId)){
+                $data->query->where("#{$filterRec->filterUser} = '{$filterRec->userId}'");
             }
 
             if(!empty($filterRec->documentHnd)){

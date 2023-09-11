@@ -808,6 +808,7 @@ class hr_EmployeeContracts extends core_Master
                 $persons[$id] = (object) array('stateInfo' => 'sickDay',
                     'stateDateFrom' => $recSick->startDate,
                     'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recSick->toDate, crm_Profiles::getUserByPerson($id))),
+                    'stateAlternatePersons' => $recSick->alternatePersons,
                 );
             }
         }
@@ -821,20 +822,22 @@ class hr_EmployeeContracts extends core_Master
                 $persons[$id] = (object) array('stateInfo' => 'tripDay',
                     'stateDateFrom' => $recTrip->startDate,
                     'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recTrip->toDate, crm_Profiles::getUserByPerson($id))),
+                    'stateAlternatePersons' => $recTrip->alternatePersons,
                 );
             }
         }
         
         // добавяме и отпуските
         while ($recLeave = $queryLeave->fetch()) {
-            
+
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recLeave->personId;
             
             if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recLeave->leaveFrom) {
                 $persons[$id] = (object) array('stateInfo' => 'leaveDay',
                                                'stateDateFrom' => $recLeave->leaveFrom,
-                                                'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))));
+                                                'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))),
+                                                'stateAlternatePersons' => $recLeave->alternatePersons,);
             }
         }
         
@@ -863,10 +866,12 @@ class hr_EmployeeContracts extends core_Master
             // до дата
             $rec->stateDateTo = $persons[$rec->personId]->stateDateTo;
 
+            $rec->stateAlternatePersons = $persons[$rec->personId]->stateAlternatePersons;
+
             $res[] = $rec;
 
             // и ги записваме на съответния профил
-            crm_Profiles::save($rec, 'stateInfo,stateDateFrom,stateDateTo');
+            crm_Profiles::save($rec, 'stateInfo,stateDateFrom,stateDateTo,stateAlternatePersons');
         }
     }
 

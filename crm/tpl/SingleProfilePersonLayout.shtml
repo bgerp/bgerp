@@ -1,14 +1,7 @@
 
 <div class="user-title [#userClass#]" >
     
-    <div class="user-name">
-        [#name#]
-        <!--ET_BEGIN editLink-->
-        <span class="profile-editLink" style="display: inline-block">
-            [#editLink#]
-        </span>
-        <!--ET_END editLink-->
-    </div>
+
 
     <!--ET_BEGIN image-->
     <div class="profile-image">
@@ -17,9 +10,21 @@
         </div>
     </div>
     <!--ET_END image-->
-    <!--ET_BEGIN userStatus-->
-    <small class="personStatus">[#userStatus#]</small>
-    <!--ET_END userStatus-->
+
+    <div class="nickBlock">
+        <div class="user-name">
+            [#name#]
+            <!--ET_BEGIN editLink-->
+            <span class="profile-editLink" style="display: inline-block">
+            [#editLink#]
+        </span>
+            <!--ET_END editLink-->
+        </div>
+        <!--ET_BEGIN userStatus-->
+        <small class="personStatus">[#userStatus#]</small>
+        <!--ET_END userStatus-->
+    </div>
+
 </div>
 <div class="inner-holder">
 <!--ET_BEGIN contacts-->

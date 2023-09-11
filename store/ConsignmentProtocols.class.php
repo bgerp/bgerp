@@ -474,7 +474,6 @@ class store_ConsignmentProtocols extends core_Master
             $form->setDefault('contragentClassId', $originRec->contragentClassId);
             $form->setDefault('contragentId', $originRec->contragentId);
             $form->setReadOnly('currencyId', $originRec->currencyId);
-            $form->setReadOnly('responsible');
             $form->setDefault('storeId', $originRec->storeId);
             $form->setReadOnly('productType', $defaultProductType);
         }
@@ -903,6 +902,12 @@ class store_ConsignmentProtocols extends core_Master
 
         if($mvc->haveRightFor('add', (object)array('originId' => $rec->containerId, 'protocolType' => 'return'))){
             $data->toolbar->addBtn('Връщане', array($mvc, 'add', 'originId' => $rec->containerId, 'protocolType' => 'return', 'ret_url' => true), "ef_icon=img/16/arrow_undo.png,title=Връщане на артикули от отговорно пазене");
+        }
+
+        if(store_Stores::haveRightFor('select', $rec->storeId)){
+            if(store_Transfers::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+                $data->toolbar->addBtn('Преместване', array('store_Transfers', 'add', 'fromStore' => $rec->storeId, 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/transfers.png,title=Създаване на нов междускладов трансфер за преместване на получените чужди артикули");
+            }
         }
     }
 

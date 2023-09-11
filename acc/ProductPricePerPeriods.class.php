@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на мемориални ордери (преди "счетоводни статии")
+ * Кеш на складовите цени към артикулите
  *
  *
  * @category  bgerp
@@ -33,7 +33,7 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,date,storeItemId,productItemId,price';
+    public $listFields = 'id,date,storeItemId,productItemId,price,updatedOn';
 
 
     /**
@@ -53,10 +53,11 @@ class acc_ProductPricePerPeriods extends core_Manager
      */
     public function description()
     {
-        $this->FLD('date', 'date', 'caption=Дата,remember');
+        $this->FLD('date', 'date', 'caption=Дата');
         $this->FLD('storeItemId', "acc_type_Item(select=titleNum,allowEmpty)", 'caption=Склад,mandatory,remember');
         $this->FLD('productItemId', "acc_type_Item(select=titleNum,allowEmpty)", 'caption=Артикул');
         $this->FLD('price', 'double', 'caption=Цена');
+        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Промяна');
 
         $this->setDbIndex('date');
         $this->setDbIndex('productItemId');
@@ -81,6 +82,119 @@ class acc_ProductPricePerPeriods extends core_Manager
 
 
     /**
+     * Връща крайната дата до която да се кешират записите
+     *
+     * @return mixed|string
+     */
+    public static function getCacheMaxDate()
+    {
+        $balanceBeforeCnt = acc_Setup::get('NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT');
+
+        return dt::addMonths(-1 * $balanceBeforeCnt, dt::getLastDayOfMonth(), false);
+    }
+
+
+    /**
+     * Извличане на данните от баланса
+     *
+     * @param date $fromDate
+     * @param date|null $toDate
+     * @param array $prevArr
+     * @return array $res
+     */
+    public static function extractDataFromBalance($fromDate, $toDate = null, $prevArr = array())
+    {
+        $res = array();
+        $storeAccSysId = acc_Accounts::getRecBySystemId(321)->id;
+        $bQuery = acc_Balances::getQuery();
+        $bQuery->where("#periodId IS NOT NULL");
+        $bQuery->orderBy('toDate', 'ASC');
+        $bQuery->show('toDate,id');
+        if(isset($fromDate)){
+            $bQuery->where("#toDate >= '{$fromDate}'");
+        }
+
+        // Взимат се балансите до посочената дата в настройките
+        if(!isset($toDate)){
+            $toDate = static::getCacheMaxDate();
+        }
+
+        if(isset($toDate)){
+            $bQuery->where("#toDate <= '{$toDate}'");
+        }
+
+        $bRecs = $bQuery->fetchAll();
+        $balanceIds = array_keys($bRecs);
+
+        $groupedDetails = array();
+        core_Debug::startTimer('FETCH_BDETAILS');
+        $dQuery = acc_BalanceDetails::getQuery();
+        $dQuery->EXT('toDate', 'acc_Balances', 'externalName=toDate,externalKey=balanceId');
+        $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
+        $dQuery->where("#accountId = {$storeAccSysId} AND #ent1Id IS NOT NULL");
+        $dQuery->in('balanceId', $balanceIds);
+        $dQuery->show('balanceId,blAmount,blQuantity,ent1Id,ent2Id');
+        while($dRec1 = $dQuery->fetch()){
+            $groupedDetails[$bRecs[$dRec1->balanceId]->toDate][] = $dRec1;
+        }
+        ksort($groupedDetails);
+        core_Debug::stopTimer('FETCH_BDETAILS');
+
+        $count = 0;
+        $now = dt::now();
+        foreach ($groupedDetails as $toDate => $details){
+
+            $saveArr = array();
+            $countC = countR($details);
+            core_App::setTimeLimit($countC * 0.4, false, 200);
+
+            core_Debug::startTimer('FETCHED_EACH');
+            foreach ($details as $dRec){
+                if(empty($dRec->blQuantity)){
+                    $dRec->price = 0;
+                } else {
+                    core_Debug::startTimer("ROUND");
+                    $dRec->price = round($dRec->blAmount / $dRec->blQuantity, 5);
+                    core_Debug::stopTimer("ROUND");
+                }
+                $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
+
+                if ($dRec->price < 0) continue;
+
+                // Ако цената не е променяна няма да се обновява от предходния запис
+                $key = "{$dRec->ent1Id}|{$dRec->ent2Id}";
+                if (array_key_exists($key, $prevArr)) {
+                    if (round($dRec->price, 5) == round($prevArr[$key], 5)) continue;
+                }
+                $rec = (object)array('date' => $toDate,
+                                     'storeItemId' => $dRec->ent1Id,
+                                     'productItemId' => $dRec->ent2Id,
+                                     'updatedOn' => $now,
+                                     'price' => $dRec->price);
+                $saveArr[] = $rec;
+                $prevArr[$key] = $dRec->price;
+            }
+
+            $saveCount = countR($saveArr);
+            $count += $saveCount;
+            if ($saveCount) {
+                $res[$toDate] = $saveArr;
+            }
+
+            core_Debug::stopTimer('FETCHED_EACH');
+        }
+
+        $fd = round(core_Debug::$timers["FETCH_BDETAILS"]->workingTime, 6);
+        $feTime = round(core_Debug::$timers["FETCHED_EACH"]->workingTime, 6);
+        $rTime = round(core_Debug::$timers["ROUND"]->workingTime, 6);
+
+        static::logDebug("EXTRACT: ROUND{$rTime} / COUNT{$count} / FETCH_D: {$fd}/ FETCH_E: {$feTime}");
+
+        return $res;
+    }
+
+
+    /**
      * Тестов екшън за първоначално наливане на данните
      */
     public function act_Test()
@@ -89,50 +203,9 @@ class acc_ProductPricePerPeriods extends core_Manager
         $this->truncate();
 
         core_App::setTimeLimit(300);
-        $storeAccSysId = acc_Accounts::getRecBySystemId(321)->id;
-        $bQuery = acc_Balances::getQuery();
-        $bQuery->orderBy('id', 'ASC');
-
-        $prevArr = array();
-        while($bRec = $bQuery->fetch()){
-            $dQuery = acc_BalanceDetails::getQuery();
-            $dQuery->EXT('toDate', 'acc_Balances', 'externalName=toDate,externalKey=balanceId');
-            $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
-
-            $dQuery->where("#balanceId = {$bRec->id} AND #accountId = {$storeAccSysId} AND #periodId IS NOT NULL AND #ent1Id IS NOT NULL");
-            $dQuery->XPR('price', 'double', 'ROUND(#blAmount / NULLIF(#blQuantity, 0), 5)', 'column=none');
-
-            $allRecs = $dQuery->fetchAll();
-            $count = countR($allRecs);
-            core_App::setTimeLimit($count * 0.4, false, 200);
-
-            $saveArr  = $currentArr = array();
-            foreach ($allRecs as $dRec){
-                if(is_null($dRec->price)){
-                    $dRec->price = 0;
-                } else {
-                    $dRec->price = core_Math::roundNumber($dRec->price);
-                }
-                $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
-                if($dRec->price < 0)  continue;
-
-                if(array_key_exists("{$dRec->ent1Id}|{$dRec->ent2Id}", $prevArr)){
-                    if(round($dRec->price, 5) == round($prevArr["{$dRec->ent1Id}|{$dRec->ent2Id}"], 5)){
-
-                        continue;
-                    }
-                }
-                $rec = (object)array('date' => $dRec->toDate,
-                                     'storeItemId' => $dRec->ent1Id,
-                                     'productItemId' => $dRec->ent2Id,
-                                     'price' => $dRec->price);
-                $saveArr[] = $rec;
-                $prevArr["{$dRec->ent1Id}|{$dRec->ent2Id}"] = $dRec->price;
-            }
-
-            if(countR($saveArr)){
-                $this->saveArray($saveArr);
-            }
+        $res = static::extractDataFromBalance(null);
+        foreach ($res as $recs4Balance){
+            $this->saveArray($recs4Balance);
         }
     }
 
@@ -161,19 +234,19 @@ class acc_ProductPricePerPeriods extends core_Manager
         $data->listFilter->showFields = 'balanceId,storeItemId,productItemId,toDate';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        if($rec = $data->listFilter->rec){
-            if(!empty($rec->productItemId)){
+        if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->productItemId)) {
                 $data->query->where("#productItemId = {$rec->productItemId}");
             }
-            if(!empty($rec->storeItemId)){
+            if (!empty($rec->storeItemId)) {
                 $data->query->where("#storeItemId = {$rec->storeItemId}");
             }
-            if(!empty($rec->balanceId)){
-                $toDate = acc_Balances::fetchField($rec->balanceId,'toDate');
+            if (!empty($rec->balanceId)) {
+                $toDate = acc_Balances::fetchField($rec->balanceId, 'toDate');
                 $data->query->where("#date = '{$toDate}'");
             }
 
-            if(!empty($rec->toDate)){
+            if (!empty($rec->toDate)) {
                 redirect(array($mvc, 'filter', 'toDate' => $rec->toDate, 'productItemId' => $rec->productItemId, 'storeItemId' => $rec->storeItemId));
             }
         }
@@ -188,11 +261,9 @@ class acc_ProductPricePerPeriods extends core_Manager
         requireRole('debug');
         $this->currentTab = 'Дебъг->Артикулни цени КЪМ дата';
         $toDate = Request::get('toDate', 'date');
-        $test = Request::get('test', 'int');
         $productItemId = Request::get('productItemId', 'int');
         $storeItemId = Request::get('storeItemId', 'int');
 
-        $row = array();
         $toDate = empty($toDate) ? dt::today() : $toDate;
         $recs = static::getPricesToDate($toDate, $productItemId, $storeItemId);
         $countRecs = countR($recs);
@@ -205,7 +276,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $rows = array();
         core_Debug::log("START RENDER_ROWS");
         core_Debug::startTimer('RENDER_ROWS');
-        foreach ($recs as $rec){
+        foreach ($recs as $rec) {
             if (!$Pager->isOnPage()) continue;
             $rows[$rec->id] = $this->recToVerbal($rec);
         }
@@ -225,6 +296,7 @@ class acc_ProductPricePerPeriods extends core_Manager
 
     /**
      * Връща последните цени на артикулите към дата
+     *
      * @param date $toDate
      * @param int $productItemId
      * @param int $storeItemId
@@ -239,14 +311,14 @@ class acc_ProductPricePerPeriods extends core_Manager
 
         $me = cls::get(get_called_class());
         $otherWhere = array();
-        if(!empty($productItemId)){
+        if (!empty($productItemId)) {
             $otherWhere[] = "`{$me->dbTableName}`.{$productColName} = {$productItemId}";
         }
-        if(!empty($storeItemId)){
+        if (!empty($storeItemId)) {
             $otherWhere[] = "`{$me->dbTableName}`.{$storeColName} = {$storeItemId}";
         }
         $otherWhere = implode(' AND ', $otherWhere);
-        if(!empty($otherWhere)){
+        if (!empty($otherWhere)) {
             $otherWhere = " AND {$otherWhere}";
         }
 
@@ -257,11 +329,76 @@ class acc_ProductPricePerPeriods extends core_Manager
         core_Debug::stopTimer('GROUP_ALL');
         core_Debug::log("END GROUP_ALL " . round(core_Debug::$timers["GROUP_ALL"]->workingTime, 6));
 
+        core_Debug::startTimer('PREV_EACH');
         $res = array();
-        while($arr = $me->db->fetchArray($dbTableRes)){
-            $res[] = (object)$arr;
+        while ($arr = $me->db->fetchArray($dbTableRes)) {
+            $res["{$arr['storeItemId']}|{$arr['productItemId']}"] = (object)$arr;
         }
+        core_Debug::stopTimer('PREV_EACH');
+        core_Debug::log("FETCHED PREV " . round(core_Debug::$timers["PREV_EACH"]->workingTime, 6));
 
         return $res;
+    }
+
+
+    public static function invalidateAfterDate($date)
+    {
+        core_Debug::startTimer('INVALIDATE_ALL');
+        $me = cls::get(get_called_class());
+        $toDate = dt::addMonths(-1, $date, false);
+
+        core_Debug::startTimer('TO_DATE');
+        $pricesToDate = static::getPricesToDate($toDate);
+        $prevArr = array();
+        core_Debug::startTimer('TO_DATE_PREV_EACH');
+        array_walk($pricesToDate, function($arr, $key) use (&$prevArr) {$prevArr[$key] = $arr->price;});
+        core_Debug::stopTimer('TO_DATE_PREV_EACH');
+        core_Debug::stopTimer('TO_DATE');
+
+        core_Debug::startTimer('EXTRACT_DATE');
+        $res = static::extractDataFromBalance($date, null, $prevArr);
+        $allRes = array();
+        array_walk($res, function($arr) use (&$allRes) {$allRes = array_merge($allRes, $arr);});
+        core_Debug::stopTimer('EXTRACT_DATE');
+
+        core_Debug::startTimer('SAVE_ARR');
+        $exQuery = static::getQuery();
+        $exQuery->where("#date >= '{$date}'");
+        $exRecs = $exQuery->fetchAll();
+        $synced = arr::syncArrays($allRes, $exRecs, 'storeItemId,productItemId,date', 'price');
+        $iCount = countR($synced['insert']);
+        $uCount = countR($synced['update']);
+        $dCount = countR($synced['delete']);
+
+        if ($iCount) {
+            $me->saveArray($synced['insert']);
+        }
+        if ($uCount) {
+            $me->saveArray($synced['update'], 'id,price');
+        }
+        if ($dCount) {
+            $deleteIds = implode(',', $synced['delete']);
+            static::delete("#id IN ({$deleteIds})");
+        }
+        core_Debug::stopTimer('SAVE_ARR');
+
+        core_Debug::stopTimer('INVALIDATE_ALL');
+        $wTime = round(core_Debug::$timers["INVALIDATE_ALL"]->workingTime, 6);
+        $tTime = round(core_Debug::$timers["TO_DATE"]->workingTime, 6);
+        $eTime = round(core_Debug::$timers["EXTRACT_DATE"]->workingTime, 6);
+        $sTime = round(core_Debug::$timers["SAVE_ARR"]->workingTime, 6);
+        $tpTime = round(core_Debug::$timers["TO_DATE_PREV_EACH"]->workingTime, 6);
+
+        $to = static::getCacheMaxDate();
+        static::logDebug("FROM '{$date}' TO '{$to}'-RES(I{$iCount}:U{$uCount}:D{$dCount})-T'{$wTime}'/TO:{$tTime}/E:{$eTime}/S:{$sTime}/TOPREV:{$tpTime}");
+    }
+
+
+    function act_Invalidate()
+    {
+        $from = Request::get('FROM', 'date');
+        $from = isset($from) ? $from : dt::addMonths(-5, dt::today());
+
+        acc_ProductPricePerPeriods::invalidateAfterDate($from);
     }
 }

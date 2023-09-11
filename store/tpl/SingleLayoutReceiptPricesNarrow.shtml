@@ -128,6 +128,7 @@
                   	<td colspan="2" >[#logisticInfo#]</td>
                   </tr>
                   <!--ET_END logisticInfo-->
+                  [#InvoicesToDocuments#]
                </table>
                <!--ET_BEGIN note-->
                <hr>

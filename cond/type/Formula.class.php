@@ -34,10 +34,21 @@ class cond_type_Formula extends cond_type_Text
         $fieldset->FLD('round', 'int', 'caption=Конкретизиране->Закръгляне,after=formula');
 
         // Задаване на параметрите като предложения във формата
+        $suggestions = static::getGlobalSuggestions();
+        $fieldset->setSuggestions('formula', $suggestions);
+    }
+
+
+    /**
+     * Връща глобалните съджешчъни на параметрите
+     * @return array
+     */
+    public static function getGlobalSuggestions()
+    {
         $paramIds = static::getGlobalParamIds();
         $formulaMap = cat_Params::getFormulaParamMap($paramIds);
-        $suggestions = cat_Params::formulaMapToSuggestions($formulaMap);
-        $fieldset->setSuggestions('formula', $suggestions);
+
+        return cat_Params::formulaMapToSuggestions($formulaMap);
     }
 
 
@@ -240,5 +251,58 @@ class cond_type_Formula extends cond_type_Text
         core_Debug::log("END RENDER_FORMULA_{$rec->id}: " . round(core_Debug::$timers["RENDER_FORMULA_{$rec->id}"]->workingTime, 2));
 
         return $verbal;
+    }
+
+
+    /**
+     * Преди запис в модел
+     *
+     * @param cond_type_abstract_Proto $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @return void
+     */
+    protected static function on_BeforeSave(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$res, $rec)
+    {
+        if(isset($rec->id)){
+            $rec->_oldFormula = $Embedder->fetch($rec->id, '*', false)->formula;
+        }
+    }
+
+
+    /**
+     * След запис в модела
+     *
+     * @param cond_type_abstract_Proto $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @return void
+     */
+    protected static function on_AfterSave(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$res, $rec)
+    {
+        if(isset($rec->_oldFormula)){
+            if(md5(str::removeWhiteSpace($rec->_oldFormula)) != md5(str::removeWhiteSpace($rec->formula))){
+                cat_ParamFormulaVersions::log($rec->id, $rec->_oldFormula, $rec->formula);
+            }
+        }
+    }
+
+
+    /**
+     * Обработка на стойността при клониране
+     *
+     * @param stdClass $rec
+     * @param mixed $domainClass - клас на домейна
+     * @param mixed $domainId - ид на домейна
+     * @return string
+     */
+    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value)
+    {
+        $newFormula = cat_ParamFormulaVersions::getReplacementFormula($rec->id, $domainClass, $domainId, $value);
+        if(!empty($newFormula)) return $newFormula;
+
+        return $value;
     }
 }

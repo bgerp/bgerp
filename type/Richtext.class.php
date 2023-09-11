@@ -993,8 +993,10 @@ class type_Richtext extends type_Blob
                 $url = "http://{$url}";
             }
         }
-        
-        if (core_Url::isLocal($url, $rest)) {
+
+        $dArr = cms_Domains::getDomainOptions(true);
+
+        if (core_Url::isLocal($url, $rest, $dArr)) {
             $link = $this->internalLink($url, $title, $place, $rest);
             list($url1, $url2) = explode('#', $url, 2);
             if ($url2) {
@@ -1225,8 +1227,10 @@ class type_Richtext extends type_Blob
             
             return $url;
         }
-        
-        if (core_Url::isLocal($url, $rest)) {
+
+        $dArr = cms_Domains::getDomainOptions(true);
+
+        if (core_Url::isLocal($url, $rest, $dArr)) {
             $result = $this->internalUrl($url, str::limitLen(decodeUrl($url), 120), $rest);
         } else {
             $result = $this->externalUrl($url, str::limitLen(decodeUrl($url), 120));

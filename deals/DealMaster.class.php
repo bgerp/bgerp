@@ -1575,13 +1575,15 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // ако има каса, метода за плащане е COD и текущия потребител може да се логне в касата
-        if ($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && bgerp_plg_FLB::canUse('cash_Cases', $rec->caseId)) {
+
+        $defaultCaseId = $rec->caseId ?? cash_Cases::getCurrent('id', false);
+        if ($rec->amountDeal && isset($defaultCaseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && bgerp_plg_FLB::canUse('cash_Cases', $defaultCaseId)) {
             
-            // Може да се плати с продуктите
-            $caseName = cash_Cases::getTitleById($rec->caseId);
+            // Може да се плати от каса
+            $caseName = cash_Cases::getTitleById($defaultCaseId);
             $options['pay'] = "{$opt['pay']} \"${caseName}\"";
         }
-        
+
         $res = $options;
     }
     
@@ -1624,10 +1626,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $map = ($this instanceof sales_Sales) ? self::$contoMap['sales'] : self::$contoMap['purchase'];
         
         $selected = array();
-        
+
+        $paymentType = isset($rec->paymentMethodId) ? cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type') : null;
+        $deliveryAddress = isset($rec->deliveryTermId) ? cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'address') : null;
+        $isTakenFromPlace = ($paymentType == 'cash' && $deliveryAddress == 'supplier');
+
         // Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
         if ($options['ship'] && $rec->shipmentStoreId) {
-            if ($rec->shipmentStoreId === $curStoreId && $map['service'] != $options['ship']) {
+            if ($isTakenFromPlace || ($rec->shipmentStoreId === $curStoreId && $map['service'] != $options['ship'])) {
                 $selected[] = 'ship';
             }
         } elseif ($options['ship']) {
@@ -1635,8 +1641,9 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Ако има каса и потребителя е логнат в нея, Слагаме отметка
-        if ($options['pay'] && $rec->caseId) {
-            if ($rec->caseId === $curCaseId && $hasSelectedBankAndCase === false) {
+        $defaultCaseId = $rec->caseId ?? cash_Cases::getCurrent('id', false);
+        if ($options['pay'] && isset($defaultCaseId)) {
+            if ($isTakenFromPlace) {
                 $selected[] = 'pay';
             }
             
@@ -1656,6 +1663,12 @@ abstract class deals_DealMaster extends deals_DealBase
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;
             $rec->contoActions = $form->rec->action;
             $rec->isContable = ($form->rec->action == 'activate') ? 'activate' : 'yes';
+
+            $actions = type_Set::toArray($form->rec->action);
+            if ($actions['pay'] && empty($rec->caseId)){
+                $rec->caseId = cash_Cases::getCurrent('id', false);
+            }
+
             $this->save($rec);
             
             // Ако се експедира и има склад, форсира се логване
