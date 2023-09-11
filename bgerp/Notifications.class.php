@@ -1157,11 +1157,11 @@ class bgerp_Notifications extends core_Manager
         // Добавяме резултата и броя на нотификациите
         if (is_array($res)) {
             $notifCnt = static::getOpenCnt();
-            
+
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
             $obj->arg = array('id' => 'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
-            
+
             if ($notifyMsg) {
                 $hitId = rand();
                 status_Messages::newStatus($notifyMsg, 'notice', null, 60, $hitId);
@@ -1169,7 +1169,15 @@ class bgerp_Notifications extends core_Manager
             }
             
             $res[] = $obj;
-            
+
+            if(core_Users::isContractor()){
+                $obj1 = new stdClass();
+                $obj1->func = 'notificationsCnt';
+                $notificationLinkTpl = ht::createLink($notifCnt, array('colab_Notifications', 'Show'), false, "title=Преглед на непрочетените известия,class=selected-external-tab");
+                $obj1->arg = array('id' => 'notificationCountStatus', 'cnt' => $notificationLinkTpl->getContent(), 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
+                $res[] = $obj1;
+            }
+
             $res[] = (object) array('func' => 'closeContextMenu');
         }
         
@@ -1656,24 +1664,25 @@ class bgerp_Notifications extends core_Manager
             
             // Ако има филтър
             if ($filter = $data->listFilter->rec) {
-                
+
                 // Ако се търси по всички и има права ceo
                 if ((strpos($filter->usersSearch, '|-1|') !== false) && (haveRole('ceo'))) {
                     // Търсим всичко
                 } else {
-                    
-                    // Масив с потребителите
-                    $usersArr = type_Keylist::toArray($filter->usersSearch);
-                    
-                    // Ако има избрани потребители
-                    if (countR((array) $usersArr)) {
-                        
-                        // Показваме всички потребители
-                        $data->query->orWhereArr('userId', $usersArr);
-                    } else {
-                        
-                        // Не показваме нищо
-                        $data->query->where('1=2');
+                    if (isset($filter->usersSearch)) {
+                        // Масив с потребителите
+                        $usersArr = type_Keylist::toArray($filter->usersSearch);
+
+                        // Ако има избрани потребители
+                        if (countR((array) $usersArr)) {
+
+                            // Показваме всички потребители
+                            $data->query->orWhereArr('userId', $usersArr);
+                        } else {
+
+                            // Не показваме нищо
+                            $data->query->where('1=2');
+                        }
                     }
                 }
             }
@@ -1693,10 +1702,15 @@ class bgerp_Notifications extends core_Manager
     public static function subscribeCounter($tpl = null)
     {
         if (!$tpl) {
-            $tpl = new ET();
+            $tpl = new ET("");
         }
-        
-        core_Ajax::subscribe($tpl, array('bgerp_Notifications', 'notificationsCnt'), 'notificationsCnt', 5000);
+
+        $url = array('bgerp_Notifications', 'notificationsCnt');
+        if(core_Users::isContractor()){
+            // Ако е събскрайбнато от външния изглед на партньор да се подава и кой е избрания таб
+            $url['externalTab'] = Mode::get('currentExternalTab');
+        }
+        core_Ajax::subscribe($tpl, $url, 'notificationsCnt', 5000);
         
         return $tpl;
     }
@@ -1721,9 +1735,21 @@ class bgerp_Notifications extends core_Manager
             $obj->arg = array('id' => 'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
             
             $res[] = $obj;
-            
+
             // Ако има увеличаване - пускаме звук
             $lastCnt = Mode::get('NotificationsCnt');
+
+            // Ако е партньор да се рефрешне и броя на нотификациите в блока на
+            if(core_Users::isContractor()){
+                if($lastCnt != $notifCnt){
+                    $obj1 = new stdClass();
+                    $obj1->func = 'notificationsCnt';
+                    $notificationSelectTab = Request::get('externalTab') == 'colab_Notifications' ? 'class=selected-external-tab' : '';
+                    $notificationLinkTpl = ht::createLink($notifCnt, array('colab_Notifications', 'Show'), false, "title=Преглед на непрочетените известия,{$notificationSelectTab}");
+                    $obj1->arg = array('id' => 'notificationCountStatus', 'cnt' => $notificationLinkTpl->getContent(), 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
+                    $res[] = $obj1;
+                }
+            }
             
             if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
                 $newNotifCnt = $notifCnt - $lastCnt;

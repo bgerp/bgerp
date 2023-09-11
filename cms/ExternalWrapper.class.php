@@ -29,13 +29,34 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
      */
     public function description()
     {
+        $orderedTabs = array();
+        $tabBlocks = core_Classes::getOptionsByInterface('colab_BlockIntf');
+        foreach ($tabBlocks as $className){
+            $Intf = cls::getInterface('colab_BlockIntf', $className);
+            if($Intf->displayTab()){
+                $orderedTabs[$Intf->getTabOrder()] = $Intf;
+            }
+        }
+        ksort($orderedTabs);
+
+        foreach ($orderedTabs as $tabIntf){
+            $tabUrl = $tabIntf->getBlockTabUrl();
+            $this->TAB($tabUrl, $tabIntf->getBlockTabName(), 'partner');
+        }
+
+       // bp($orderedTabs);
+
+        return;
+
+
+
         if (core_Packs::isInstalled('colab')) {
             if (core_Users::haveRole('partner')) {
                 $this->getContractorTabs();
             }
         }
         
-        $this->TAB(array('cms_Profiles', 'Single'), 'Профил', 'partner,powerUser');
+
     }
     
     

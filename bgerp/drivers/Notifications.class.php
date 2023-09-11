@@ -78,7 +78,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
         $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
-        
+
         if (!$resData->tpl) {
             
             $modifiedBefore = dt::subtractSecs($this->showOpenTopTime);
@@ -92,7 +92,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             $data->query = $Notifications->getQuery();
             
             $data->query->show('msg,state,userId,priority,cnt,url,customUrl,modifiedOn,modifiedBy,searchKeywords');
-            
+
             // Подготвяме полетата за показване
             $data->listFields = 'modifiedOn=Време,msg=Съобщение';
             
@@ -102,7 +102,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             $data->query->orderBy('modifiedOnTop', 'DESC');
             
             $data->query->orderBy('modifiedOn=DESC');
-            
+
             if (Mode::is('screenMode', 'narrow') && !Request::get($Notifications->searchInputField)) {
                 $data->query->where("#state = 'active'");
                 
@@ -110,10 +110,10 @@ class bgerp_drivers_Notifications extends core_BaseClass
                 $data->query->orWhere("#modifiedOn >= '{$modifiedBefore}'");
                 $data->query->orWhere("#lastTime >= '{$modifiedBefore}'");
             }
-            
+
             // Подготвяме филтрирането
             $Notifications->prepareListFilter($data);
-            
+
             $data->listFilter->showFields = $Notifications->searchInputField;
             bgerp_Portal::prepareSearchForm($Notifications, $data->listFilter);
             

@@ -108,8 +108,14 @@ class colab_Setup extends core_ProtoSetup
      * Кои документи могат да бъдат създавани по дефолт от контрактори
      */
     private static $defaultCreatableDocuments = 'sales_Sales,doc_Comments,doc_Notes,marketing_Inquiries2,store_ConsignmentProtocols';
-    
-    
+
+
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'colab_drivers_FoldersTabBlock,colab_drivers_ProfileTabBlock,colab_drivers_SingleThreadTabBlock,colab_drivers_ThreadTabBlock,colab_drivers_NotificationTabBlock';
+
+
     /**
      * Описание на конфигурационните константи
      */
