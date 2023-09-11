@@ -424,13 +424,13 @@ class bgerp_Notifications extends core_Manager
     {
         // Не изчистваме от опресняващи ajax заявки
         if (Request::get('ajax_mode')) {
-            
+
             return;
         }
         
         // Ако само се запознава със съдържанието - не се изчиства
         if (Request::get('OnlyMeet')) {
-            
+
             return ;
         }
         
@@ -439,20 +439,14 @@ class bgerp_Notifications extends core_Manager
         }
         
         if (empty($userId)) {
-            
+
             return;
-        }
-        
-        // Да не се нотифицира контрактора
-        if ($userId != '*' && core_Users::haveRole('partner', $userId)) {
-            
-            return ;
         }
         
         $url = toUrl($urlArr, 'local', false);
         
         $query = bgerp_Notifications::getQuery();
-        
+
         $urlId = self::prepareUrlId($url);
         if ($urlId) {
             $query->where(array("#urlId = '[#1#]'", $urlId));
