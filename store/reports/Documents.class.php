@@ -314,10 +314,6 @@ class store_reports_Documents extends frame2_driver_TableData
         
         if (!Mode::isReadOnly()) {
             $singleUrl = $Document->getSingleUrlArray();
-            if (empty($url) && frame2_Reports::haveRightFor('single', $rec->id) && $rec->state != 'rejected') {
-                $singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $Document->that);
-            }
-            
             $row->documentType = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->singleIcon}");
         }
         
