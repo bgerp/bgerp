@@ -61,7 +61,7 @@ class colab_drivers_NotificationTabBlock extends core_BaseClass
 
         $countTpl = ht::createElement("span", $attr, $openNotifications);
         $countHtml = $countTpl->getContent();
-        $tabName .= " |*(<span id = 'nCntLink'>{$countHtml}</span>)";
+        $tabName .= " |*<span id = 'nCntLink'>{$countHtml}</span>";
 
         return $tabName;
     }
