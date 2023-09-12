@@ -306,16 +306,16 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $Detail->calculateAmount($recs, $rec);
         $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        
+
         $rec->dealValue = $this->_total->amount * $rate;
         $rec->vatAmount = $this->_total->vat * $rate;
         $rec->discountAmount = $this->_total->discount * $rate;
-        
+
         if ($save === true) {
             return $this->save($rec);
         }
     }
-    
+
     
     /**
      * След подготовката на заглавието на формата
