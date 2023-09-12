@@ -1,7 +1,5 @@
-<div class='clearfix21'>
-    <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
-        [#ListFilter#]<div class='clearfix21'></div></div>
-
+<div class='clearfix21 portal no-border'>
+        [#ListFilter#]
     <div>
         <!--ET_BEGIN PortalTable-->
         [#PortalTable#]
