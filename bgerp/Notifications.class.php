@@ -1337,7 +1337,10 @@ class bgerp_Notifications extends core_Manager
         
         // Добавяме титлата на формата
         $form->title = 'Настройка за нотифициране';
-        
+        if(core_Users::isContractor()){
+            plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
+        }
+
         $tpl = $form->renderHtml();
         
         return $this->renderWrapping($tpl);
