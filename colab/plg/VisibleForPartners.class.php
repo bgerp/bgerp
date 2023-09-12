@@ -116,7 +116,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $nicks = array();
                         array_walk($selectedPartners, function($a) use (&$nicks) {$nicks[] = core_Users::getNick($a);});
                         $partnerWarningMsg = "При забранено споделяне с партньори, ще бъде заличено споделянето с|* " . implode(',', $nicks);
-                        //$form->setWarning('sharedUsers', $partnerWarningMsg);
+                        $form->setWarning('sharedUsers', $partnerWarningMsg);
                     }
                 }
 
