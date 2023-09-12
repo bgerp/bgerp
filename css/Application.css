@@ -4030,6 +4030,22 @@ table .eshop-btn {
     top: 0 !important;
     box-shadow: 0 -2px 3px -3px rgba(0, 0, 0, 0.3); }
 
+.logoutBlock {
+  padding: 0 3px; }
+
+  #notificationCountStatus a.selected-external-tab {
+    border-top: none !important; }
+  #notificationCountStatus a {
+    padding: 2px;
+    color: white !important;
+    background-color: rgba(250, 56, 55, 0.75);
+    border: 1px solid #f92f2e !important;
+    box-shadow: 0 1px 2px 0 #ff9999;
+    border-radius: 3px;
+    font-size: 0.75em;
+    position: relative;
+    top: -3px; }
+
 .contractorExtHolder {
   padding: 10px; }
   .contractorExtHolder .deal-history-tab .tab {
@@ -4039,6 +4055,18 @@ table .eshop-btn {
     .contractorExtHolder .textWithIcons span:not(.highlight) img {
       top: -2px;
       position: relative; }
+  .contractorExtHolder .noNtf {
+    display: none; }
+  .contractorExtHolder .haveNtf {
+    background-color: rgba(250, 56, 55, 0.75);
+    border: 1px solid #f92f2e !important;
+    box-shadow: 0 1px 2px 0 #ff9999;
+    color: white !important;
+    text-shadow: none;
+    border-radius: 3px;
+    font-size: 0.8em;
+    padding-right: 1px;
+    padding-left: 1px; }
   .contractorExtHolder a.button,
   .contractorExtHolder input[type="button"],
   .contractorExtHolder input[type="submit"],
