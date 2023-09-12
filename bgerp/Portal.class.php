@@ -357,8 +357,9 @@ class bgerp_Portal extends embed_Manager
     {
         Mode::set('pageMenuKey', '_none_');
         $cu = core_Users::getCurrent();
+        $isPartner = core_Users::isContractor($cu);
 
-        $blockDrivers = core_Users::isContractor($cu) ? 'bgerp_drivers_Notifications' : null;
+        $blockDrivers = $isPartner ? 'bgerp_drivers_Notifications' : null;
         $recArr = $this->getRecsForUser(null, true, 'team', $blockDrivers);
 
         $resArr = array();
@@ -372,9 +373,14 @@ class bgerp_Portal extends embed_Manager
             Request::push(array('ajax_mode' => false));
             
             $rData = new stdClass();
-            
-            $res = $this->getResForBlock($r, $rData, $cu);
 
+            if($isPartner){
+                Mode::push('renderNotificationsInExternalWrapper', true);
+            }
+            $res = $this->getResForBlock($r, $rData, $cu);
+            if($isPartner){
+                Mode::pop('renderNotificationsInExternalWrapper');
+            }
             Request::push(array('ajax_mode' => $aMode));
             
             if (!$this->saveAJAXCache($res, $rData, $r)) {

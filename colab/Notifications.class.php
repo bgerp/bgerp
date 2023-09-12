@@ -50,8 +50,8 @@ class colab_Notifications extends core_Manager
         $rData = new stdClass();
         Mode::push('renderNotificationsInExternalWrapper', true);
         $res = $Portal->getResForBlock($rec, $rData, $cu);
-        $divId = $Portal->getPortalId($rec->originIdCalc);
         Mode::pop('renderNotificationsInExternalWrapper');
+        $divId = $Portal->getPortalId($rec->originIdCalc);
 
         $tpl = new core_ET("<div id='{$divId}'>[#BLOCK#]</div>");
         $tpl->append($res, 'BLOCK');

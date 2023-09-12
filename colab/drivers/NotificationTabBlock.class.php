@@ -49,7 +49,7 @@ class colab_drivers_NotificationTabBlock extends core_BaseClass
      */
     public function getBlockTabName()
     {
-        $tabName = "Новини||News|*";
+        $tabName = tr("Новини||News");
         $openNotifications = bgerp_Notifications::getOpenCnt();
 
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
@@ -61,7 +61,7 @@ class colab_drivers_NotificationTabBlock extends core_BaseClass
 
         $countTpl = ht::createElement("span", $attr, $openNotifications);
         $countHtml = $countTpl->getContent();
-        $tabName .= " |*(<span id = 'nCntLink'>|{$countHtml}|*</span>)";
+        $tabName .= " |*(<span id = 'nCntLink'>{$countHtml}</span>)";
 
         return $tabName;
     }
