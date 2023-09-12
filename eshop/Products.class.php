@@ -144,16 +144,17 @@ class eshop_Products extends core_Master
         $this->FLD('code', 'varchar(10)', 'caption=Код');
         $this->FLD('name', 'varchar(100)', 'caption=Артикул, mandatory,width=100%');
         
-        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1,hint=препоръчително квадрат поне 600х600px');
-        $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация2,column=none,hint=препоръчително квадрат поне 600х600px");
-        $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация3,column=none,hint=препоръчително квадрат поне 600х600px");
-        $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация4,column=none,hint=препоръчително квадрат поне 600х600px");
-        $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация5,column=none,hint=препоръчително квадрат поне 600х600px");
-        
+        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация (1),hint=препоръчително квадрат поне 600х600px');
+        $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (2),column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (3),column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (4),column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (5),column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('howToSelectMainImage', 'enum(auto=Автоматично,first=Винаги първата илюстрация)', 'caption=Основна илюстрация,notNull,value=auto');
+
         // В кои групи участва продукта
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Групи->Основна,mandatory,silent,refreshForm');
         $this->FLD('sharedInGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Групи->Допълнителни');
-        
+
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри в списъка,optionsFunc=cat_Params::getPublic');
@@ -581,7 +582,12 @@ class eshop_Products extends core_Master
         }
         
         if (countR($imageArr)) {
-            $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
+            if($rec->howToSelectMainImage == 'auto'){
+                $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
+            } else {
+                $tact = key($imageArr);
+            }
+
             $image = $imageArr[$tact];
             $thumb = new thumb_Img($image, $width, $height);
         } else {
