@@ -76,7 +76,6 @@ class bgerp_drivers_Notifications extends core_BaseClass
         
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
         $resData->cacheType = $this->getCacheTypeName($userId);
-        
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
 
         if (!$resData->tpl) {
@@ -180,21 +179,11 @@ class bgerp_drivers_Notifications extends core_BaseClass
     protected function renderPortal($data)
     {
         $Notifications = cls::get('bgerp_Notifications');
-        
-        $tpl = new ET("
-            <div class='clearfix21 portal'>
-            <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
-            [#ListFilter#]<div class='clearfix21'></div></div>
-                        
-            <div>
-                <!--ET_BEGIN PortalTable-->
-                    [#PortalTable#]
-                <!--ET_END PortalTable-->
-            </div>
-            
-            [#PortalPagerBottom#]
-            </div>
-        ");
+        if(Mode::is('renderNotificationsInExternalWrapper')) {
+            $tpl = getTplFromFile('bgerp/tpl/NotificationBlockExternal.shtml');
+        } else {
+            $tpl = getTplFromFile('bgerp/tpl/NotificationBlockInternal.shtml');
+        }
         
         // Попълваме титлата
         if (!Mode::is('screenMode', 'narrow')) {
