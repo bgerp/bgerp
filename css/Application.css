@@ -7625,3 +7625,14 @@ table.bomProductionStepTable td {
   color: white;
   padding: 1px 3px; }
 
+#fileDetail .row-holder {
+  padding-right: 5px; }
+
+.ef-drag-scroll {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap; }
+  .ef-drag-scroll .tab {
+    display: inline-block; }
+
