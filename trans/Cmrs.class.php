@@ -122,8 +122,14 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'cmrNumber,loadingDate';
-    
-    
+
+
+    /**
+     * Кой може да вижда прайвит сингъла?
+     */
+    public $canViewpsingle = 'storeAll';
+
+
     /**
      * Описание на модела (таблицата)
      */
