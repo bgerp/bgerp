@@ -665,7 +665,7 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
-     * Документа не може да бъде начало на нишка; може да се създава само в съществуващи нишки
+     * Документът не може да бъде начало на нишка; може да се създава само в съществуващи нишки
      */
     public static function canAddToFolder($folderId)
     {

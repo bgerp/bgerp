@@ -221,7 +221,7 @@ abstract class bank_Document extends deals_PaymentDocument
     {
         // Може ли документа да се добави към нишката
         expect(doc_Threads::fetch($threadId), 'Невалиден тред');
-        expect(static::canAddToThread($threadId), 'Документа не може да бъде добавен в нишката');
+        expect(static::canAddToThread($threadId), 'Документът не може да бъде добавен в нишката');
         expect(isset($fields['operation']), 'Няма systemId на операция');
 
         $firstDoc = doc_Threads::getFirstDocument($threadId);

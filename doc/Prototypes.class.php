@@ -218,7 +218,7 @@ class doc_Prototypes extends core_Manager
             if (isset($rec->sharedFolders)) {
                 $origin = doc_Containers::getDocument($rec->originId);
                 if (!$origin->getInstance()->canAddToFolder($rec->sharedFolders)) {
-                    $form->setError('sharedFolders', 'Документа не може да бъде създаден в избраната папка');
+                    $form->setError('sharedFolders', 'Документът не може да бъде създаден в избраната папка');
                 }
             }
         }
