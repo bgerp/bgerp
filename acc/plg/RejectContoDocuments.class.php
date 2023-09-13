@@ -48,7 +48,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
      * Дали документа може да бъде възстановен/оттеглен/контиран, ако в транзакцията му има
      * поне едно затворено перо връща FALSE
      */
-    public static function on_AfterCanRejectOrRestore($mvc, &$res, $id, $ignoreArr = array())
+    public static function on_AfterCanRejectOrRestore($mvc, &$res, $id, $action, $ignoreArr = array())
     {
         try {
             $closedItems = $mvc->getClosedItemsInTransaction($id);
@@ -111,7 +111,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
     public static function on_BeforeConto($mvc, &$res, $id)
     {
         // Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
-        return $mvc->canRejectOrRestore($id);
+        return $mvc->canRejectOrRestore($id, 'conto');
     }
     
     
@@ -125,7 +125,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
         if ($rec->state != 'draft' && $rec->state != 'stopped' && $rec->state != 'pending') {
             
             // Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
-            return $mvc->canRejectOrRestore($id);
+            return $mvc->canRejectOrRestore($id, 'reject');
         }
     }
     
@@ -161,7 +161,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                 }
             }
             
-            return $mvc->canRejectOrRestore($id, $ignore);
+            return $mvc->canRejectOrRestore($id, 'restore', $ignore);
         }
     }
 }
