@@ -255,20 +255,40 @@ abstract class deals_ManifactureMaster extends core_Master
      * Дали документа може да бъде възстановен/оттеглен/контиран, ако в транзакцията му има
      * поне едно затворено перо връща FALSE
      */
-    protected static function on_AfterCanRejectOrRestore($mvc, &$res, $id, $ignoreArr = array())
+    protected static function on_AfterCanRejectOrRestore($mvc, &$res, $id, $action, $ignoreArr = array())
     {
         $rec = $mvc->fetchRec($id);
         $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
         if(is_object($firstDocument)){
-            if($firstDocument->isInstanceOf('planning_Jobs') || $firstDocument->isInstanceOf('planning_Tasks')){
+            if($action == 'conto'){
+                if($firstDocument->isInstanceOf('planning_Tasks')){
+                    $state = $firstDocument->fetchField('state');
+                    if($state == 'closed'){
+                        if(!planning_Tasks::isProductionAfterClosureAllowed($firstDocument->that, core_Users::getCurrent())){
+                            $msg = "Документът не може да бъде контиран, защото операцията е приключена|*!";
+                            core_Statuses::newStatus($msg, 'error');
+                            $res = false;
+                        }
+                    }
+                }
+            } elseif($firstDocument->isInstanceOf('planning_Jobs') || $firstDocument->isInstanceOf('planning_Tasks')){
                 $state = $firstDocument->fetchField('state');
                 if($state == 'closed'){
                     $msg = "Документът не може да бъде оттеглен/възстановен, докато първият документ в нишката е затворен|*!";
                     core_Statuses::newStatus($msg, 'error');
-
                     $res = false;
                 }
             }
         }
+    }
+
+
+    /**
+     * Преди оттегляне, ако има затворени пера в транзакцията, не може да се оттегля
+     */
+    public static function on_BeforeConto111($mvc, &$res, $id)
+    {bp();
+        core_Statuses::newStatus('aaaa', 'error');
+        return false;
     }
 }
