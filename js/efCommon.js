@@ -5738,6 +5738,9 @@ function calcFilemanSize(){
     var offset = $('.webdrvFieldset').offset();
     var height = $(window).outerHeight() - parseInt(offset.top, 10) - 45;
 
+
+
+    $('#fileDetail .row-holder>div').addClass('ef-drag-scroll');
     if (currentHeight < height) {
         $('.webdrvFieldset').css('height', height);
         $('.webdrvFieldset').css('overflow-y', 'auto');
@@ -5779,6 +5782,9 @@ function calcFilemanSize(){
             $('.webdrvFieldset a.linkWithIcon').css("opacity", 0);
         }, 1000);
     });
+
+    // Стартиране на отзивчивото скролиране
+    dragToScroll.run();
 }
 
 
@@ -6089,6 +6095,81 @@ function checkVatAndTriger(name) {
     jQuery.fn[sr] = function(fn){  return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr); };
 
 })(jQuery,'smartresize');
+
+
+dragToScroll = {
+
+
+    'run': function () {
+        console.log(document.querySelectorAll('.ef-drag-scroll'));
+        document.querySelectorAll('.ef-drag-scroll').forEach((el) => {
+            this.mount(el);
+        })
+    },
+
+    'mount': function (el) {
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+        let timer;
+
+        el.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - el.offsetLeft;
+            scrollLeft = el.scrollLeft;
+        });
+        el.addEventListener('touchstart', (e) => {
+            isDown = true;
+            startX = e.changedTouches[0].pageX - el.offsetLeft;
+            scrollLeft = el.scrollLeft;
+        });
+
+        el.addEventListener('touchend', (e) => {
+            isDown = false;
+            el.classList.remove('ef-ds-active');
+        });
+        el.addEventListener('mouseleave', (e) => {
+            isDown = false;
+            el.classList.remove('ef-ds-active');
+        });
+        el.addEventListener('mouseup', (e) => {
+            isDown = false;
+            el.classList.remove('ef-ds-active');
+        });
+
+        el.addEventListener('touchmove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            for (i = 0; i < e.changedTouches.length; i++) {
+                let x = e.changedTouches[i].pageX - el.offsetLeft;
+                let newX = scrollLeft - (x - startX); //scroll-fast
+                if (newX < 0) newX = 0;
+                let maxScrollLeft = el.scrollWidth - el.clientWidth;
+                if (newX > maxScrollLeft) newX = maxScrollLeft;
+                if (newX !== el.scrollLeft) {
+                    el.classList.add('ef-ds-active');
+                    el.scrollLeft = newX;
+                }
+            }
+            return false;
+        });
+        el.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - el.offsetLeft;
+            let newX = scrollLeft - (x - startX); //scroll-fast
+            if (newX < 0) newX = 0;
+            const maxScrollLeft = el.scrollWidth - el.clientWidth;
+            if (newX > maxScrollLeft) newX = maxScrollLeft;
+            if (newX !== el.scrollLeft) {
+                el.classList.add('ef-ds-active');
+                el.scrollLeft = newX;
+            }
+            return false;
+        });
+    }
+}
 
 
 runOnLoad(markSelectedChecboxes);

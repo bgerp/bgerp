@@ -8637,4 +8637,16 @@ table.bomProductionStepTable td{
 	padding: 1px 3px;
 }
 
+#fileDetail .row-holder {
+	padding-right: 5px;
+}
+.ef-drag-scroll {
+	display: flex;
+	width: 100%;
+	overflow: hidden;
+	white-space: nowrap;
 
+	.tab {
+		display: inline-block;
+	}
+}
