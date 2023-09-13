@@ -172,7 +172,10 @@ class plg_ProtoWrapper extends core_Plugin
         $subTabs = array();
         
         $tabs->htmlId = 'packWrapper';
-        
+        if(Mode::is('externalWrapper')){
+            $tabs->htmlIdClass = 'ef-drag-scroll';
+        }
+
         $hint = '';
         $hintBtn = '';
         

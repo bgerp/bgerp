@@ -62,6 +62,7 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
         }
         
         // Рендиране на обвивката от бащата
+        Mode::push('externalWrapper', true);
         parent::on_AfterRenderWrapping($invoker, $tpl, $blankTpl, $data);
         
         // Обграждаме обвивката със div
@@ -69,5 +70,6 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
             $tpl->prepend("<div class = 'contractorExtHolder'>");
             $tpl->append('</div>');
         }
+        Mode::pop('externalWrapper');
     }
 }
