@@ -540,13 +540,14 @@ abstract class deals_DealDetail extends doc_Detail
         $form->info = tr('|Списък за листване|*:') . cat_Listings::getLink($listId, 0);
         
         $listed = cat_Listings::getAll($listId, $saleRec->shipmentStoreId, 50, true);
+        if(!countR($listed)) followRetUrl(null, "В избрания списък няма активни артикули|*: " . cat_Listings::getLink($listId, 0, array('ef_icon' => false)), 'warning');
+
         $form->info .= tr('|* ( |Показване на първите|* <b>50</b> |артикула|* )');
 
         // И всички редове от продажбата
         $query = $this->getQuery();
         $query->where("#{$this->masterKey} = {$saleId}");
         $recs = $query->fetchAll();
-        expect(countR($listed));
 
         foreach ($listed as &$list) {
             $list->code = cat_Products::getVerbal($list->productId, 'code');
@@ -753,6 +754,8 @@ abstract class deals_DealDetail extends doc_Detail
 
             $title = cat_Products::getTitleById($lRec->productId);
             $title = str_replace(',', ' ', $title);
+            $title = str_replace('=', ' ', $title);
+
             if($lRec->reff != $lRec->code){
                 $title = "[{$lRec->reff}] {$title}";
             }
@@ -898,5 +901,34 @@ abstract class deals_DealDetail extends doc_Detail
         }
 
         followRetUrl(null, 'Оригиналните редове са прехвърлени успешно|*!');
+    }
+
+
+    /**
+     * След извличане на експорт на полетата за csv
+     *
+     * @param $mvc
+     * @param $fieldset
+     * @return void
+     */
+    protected static function on_AfterGetCsvExportDetailFieldset($mvc, &$fieldset)
+    {
+        deals_Helper::getExportCsvProductFieldset($mvc, $fieldset);
+    }
+
+
+    /**
+     * Взимане на детайлите за експорт в csv
+     *
+     * @param $mvc
+     * @param $masterRec
+     * @param $expandedRecs
+     * @param $detailFields
+     * @param $fieldset
+     * @return void
+     */
+    protected static function on_AfterGetCsvExportDetailRecs($mvc, $masterRec, &$expandedRecs, &$fieldset)
+    {
+        deals_Helper::addCsvExportProductRecs4Master($mvc, $masterRec, $expandedRecs);
     }
 }

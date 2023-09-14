@@ -45,7 +45,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $notAllocatedInputProductArr = array_filter($rec->_details, function($a) { return $a->type != 'allocated';});
-            $productArr = arr::extractValuesFromArray($rec->_details, 'productId');
+            $notNullQuantityProductArr = array_filter($rec->_details, function($a) { return $a->packQuantity != 0;});
+
+            $productArr = arr::extractValuesFromArray($notNullQuantityProductArr, 'productId');
             $notAllocatedInputProductArr = arr::extractValuesFromArray($notAllocatedInputProductArr, 'productId');
             unset($notAllocatedInputProductArr[$rec->productId]);
 
@@ -253,48 +255,49 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $productsOnConsignment = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($saleRec->threadId, false);
         }
 
+        $outsourced = array_filter($details, function($a){ return $a->isOutsourced == 'yes';});
+
         // Ако има вложени получени от ПОП артикули ще им се прави отделна контировка
         $consignmentAmount = 0;
-        if(is_object($saleRec) && countR($productsOnConsignment)){
-            foreach ($details as $key => $det1){
+        if(is_object($saleRec) && countR($outsourced)){
+            foreach ($outsourced as $key => $det1){
                 if($det1->type == 'input'){
-                    if(array_key_exists($det1->productId, $productsOnConsignment)){
-                        $creditArr = array('61101', array('cat_Products', $det1->productId), 'quantity' => $det1->quantity);
+                    $creditArr = array('61101', array('cat_Products', $det1->productId), 'quantity' => $det1->quantity);
 
-                        if(!empty($det1->storeId)){
-                            $creditArr = array('61103', array($classId, $documentId), array('cat_Products', $det1->productId), 'quantity' => $det1->quantity);
-                            $entry = array('debit' => array('61103',
-                                array($classId, $documentId),
-                                array('cat_Products', $det1->productId),
-                                'quantity' => $det1->quantity),
-                                'credit' => array('321',
-                                    array('store_Stores', $det1->storeId),
-                                    array('cat_Products', $det1->productId),
-                                    'quantity' => $det1->quantity),
-                                'reason' => 'Влагане на чужди материали - производство на ишлеме');
-
-                            Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
-                            $amountCheck = cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
-                            Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
-                            if(!empty($amountCheck)){
-                                $entry['amount'] = $amountCheck;
-                            }
-
-                            $entries[] = $entry;
-                        }
-
-                        $consignmentAmount += cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
-
-                        $entry = array('debit' => array('3232',
-                            array($saleRec->contragentClassId, $saleRec->contragentId),
+                    if(!empty($det1->storeId)){
+                        $creditArr = array('61103', array($classId, $documentId), array('cat_Products', $det1->productId), 'quantity' => $det1->quantity);
+                        $entry = array('debit' => array('61103',
+                            array($classId, $documentId),
                             array('cat_Products', $det1->productId),
                             'quantity' => $det1->quantity),
-                            'credit' => $creditArr,
-                            'reason' => 'Вложен чужд материал в производството на артикул - производство на ишлеме');
-                        $entries[] = $entry;
+                            'credit' => array('321',
+                                array('store_Stores', $det1->storeId),
+                                array('cat_Products', $det1->productId),
+                                'quantity' => $det1->quantity),
+                            'reason' => 'Влагане на чужди материали - производство на ишлеме');
 
-                        unset($details[$key]);
+                        Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
+                        $amountCheck = cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
+                        Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
+                        if(!empty($amountCheck)){
+                            $entry['amount'] = $amountCheck;
+                        }
+
+                        $entries[] = $entry;
                     }
+
+                    $consignmentAmount += cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
+
+                    $Cover = doc_Folders::getCover(cat_Products::fetchField($det1->productId, 'folderId'));
+                    $entry = array('debit' => array('3232',
+                        array($Cover->getClassId(), $Cover->that),
+                        array('cat_Products', $det1->productId),
+                        'quantity' => $det1->quantity),
+                        'credit' => $creditArr,
+                        'reason' => 'Вложен чужд материал в производството на артикул - производство на ишлеме');
+                    $entries[] = $entry;
+
+                    unset($details[$key]);
                 }
             }
         }
@@ -389,7 +392,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 // Ако е материал го изписваме към произведения продукт
                 $entry = array();
                 if ($dRec1->type != 'pop') {
-                    $reason = ($index == 0) ? 'Засклаждане на произведен артикул' : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
+                    $reason = ($index == 0) ? (($prodRec->canStore == 'yes') ? 'Засклаждане на произведен артикул' : 'Произвеждане на услуга') : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
                     $array['quantity'] = $quantityD;
                     $entry['debit'] = $array;
 
@@ -484,8 +487,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             } else {
                 $eItem = acc_Items::fetch($expenseItem);
             }
-                
+
             if ($eItem->classId == sales_Sales::getClassId()) {
+                $array['quantity'] = $quantity;
                 $saleRec = sales_Sales::fetch($eItem->objectId, 'contragentClassId, contragentId');
                 $entry4 = array('debit' => array('703',
                     array($saleRec->contragentClassId, $saleRec->contragentId),

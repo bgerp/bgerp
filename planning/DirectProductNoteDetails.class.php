@@ -111,6 +111,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter,tdClass=noteBomCol');
         $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,smartCenter,tdClass=noteExpectedCol');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
+        $this->FLD('isOutsourced', 'enum(no=Не,yes=Да)', 'caption=Ишлеме|*?,input=hidden,maxRadio=2,notNull,value=no');
         $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,lists=600)', 'input=none,after=expenses,caption=Разходен обект');
         
@@ -160,12 +161,26 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
 
         if (isset($rec->productId)) {
-            $prodRec = cat_Products::fetch($rec->productId, 'canStore');
+            $prodRec = cat_Products::fetch($rec->productId, 'canStore,folderId');
             if ($prodRec->canStore == 'yes') {
                 $form->rec->_isStorable = true;
                 $form->setField('storeId', 'input');
                 if (empty($rec->id) && isset($data->masterRec->inputStoreId)) {
                     $form->setDefault('storeId', $data->masterRec->inputStoreId);
+                }
+
+                $Cover = doc_Folders::getCover($prodRec->folderId);
+                if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+                    $consignmentProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($data->masterRec->threadId, false);
+                    if(array_key_exists($rec->productId, $consignmentProducts)){
+                        $form->setDefault('isOutsourced', 'yes');
+                    } else {
+                        $form->setDefault('isOutsourced', 'no');
+                    }
+
+                    if(haveRole('ceo,acc,job')){
+                        $form->setField('isOutsourced', 'input');
+                    }
                 }
             } else {
                 $options = array('' => '', '61102' => 'Разходи за услуги (без влагане)');
@@ -270,8 +285,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (!countR($data->recs)) return;
 
         // Кои са получените чужди артикули
-        $consignmentProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($data->masterData->rec->threadId, false);
-
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
             $row->ROW_ATTR['class'] = ($rec->type == 'pop') ? 'row-removed' : 'row-added';
@@ -284,9 +297,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $row->packQuantity .= " {$row->packagingId}";
             }
 
-            if(array_key_exists($rec->productId, $consignmentProducts)){
-                if(!Mode::isReadOnly()){
-                    $row->productId = ht::createHint($row->productId, 'Чужд артикул, получен от ПОП', 'noicon', false);
+            if($rec->isOutsourced == 'yes'){
+                if(!Mode::isReadOnly()) {
+                    $row->productId = ht::createHint($row->productId, 'Артикулът е отбелязан да се влага като ишлеме', 'noicon', false);
                 }
             }
 

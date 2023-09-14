@@ -68,7 +68,7 @@ class speedy_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Интеграция с API на "Speedy"';
+    public $info = 'Интеграция с куриерско API на "Speedy"';
     
     
     /**

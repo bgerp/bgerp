@@ -170,8 +170,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
                         $linkArr['class'] = 'tUnsighted';
                     }
                     
-                    $title = cal_Tasks::prepareTitle($title, $rec);
-                    
                     if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
                         $linkArr['class'] .= ' state-opened';
                     }

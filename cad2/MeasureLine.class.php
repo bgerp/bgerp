@@ -49,11 +49,11 @@ class cad2_MeasureLine extends cad2_Shape
     /**
      * Метод за изрисуване на оразмерителна линия
      */
-    public static function draw($svg, $Ax, $Ay, $Bx, $By, $dist, $measureText = null, $lineMultiplier = 1)
+    public static function draw($svg, $Ax, $Ay, $Bx, $By, $dist, $measureText = null, $lineMultiplier = 1, $showUnits = 1)
     {
         // разстояние след линията
         $offset = 2;
-        
+
         if ($dist < 0) {
             $Mx = $Ax;
             $My = $Ay;
@@ -104,8 +104,11 @@ class cad2_MeasureLine extends cad2_Shape
         
         // Текст
         $ab = new cad2_Vector($B1->x - $A1->x, $B1->y - $A1->y);
-        $text = $measureText ? $measureText . ' mm' : round($ab->r, 1). ' mm';
-        
+
+        $suffix = ($showUnits) ?  ' mm' : "";
+        $text = $measureText ? $measureText . $suffix : round($ab->r, 1). $suffix;
+
+
         $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / 10);
         
         $ab1 = $svg->p($ab->a, -$width);

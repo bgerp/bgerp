@@ -49,7 +49,7 @@ class cvc_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Интеграция с CVC API';
+    public $info = 'Интеграция с куриерско API на "CVC"';
 
     
     /**

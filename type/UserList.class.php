@@ -363,6 +363,7 @@ class type_UserList extends type_Keylist
             $nValArr = array();
             
             foreach ($valuesArr as $uId) {
+                $uId = $this->getUserIdFromKey($uId);
                 $haveMatch = false;
                 $roles = core_Users::fetchField($uId, 'roles');
                 

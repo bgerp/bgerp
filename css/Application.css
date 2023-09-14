@@ -525,6 +525,11 @@ tr.row-removed {
   .user-profile .user-title {
     position: relative;
     padding: 70px 20px 10px 132px;
+    height: 104px;
+    display: flex;
+    align-items: end;
+    justify-content: left;
+    box-sizing: border-box;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
     background: #eaeaea;
         /*
@@ -561,8 +566,6 @@ tr.row-removed {
     color: white;
     font-weight: bold;
     border-radius: 5px 5px 0 0; }
-    .user-profile .user-title.statusClass {
-      padding: 54px 20px 6px 132px; }
       .user-profile .user-title.statusClass .timeSpan {
         color: white !important; }
     .user-profile .user-title .linkWithIcon {
@@ -653,6 +656,9 @@ tr.row-removed {
   margin-top: 5px;
   display: block; }
 
+.user-title .personStatus .profile {
+  color: white !important; }
+
 /*
  * край на потребителски профил
  */
@@ -678,8 +684,8 @@ div.productImage {
 
   .taskSpecInfo .productPreviewHolder img,
   .taskSpecInfo .productImage img {
-    max-height: 50px !important;
-    max-width: 60px !important; }
+    max-height: 75px !important;
+    max-width: 90px !important; }
 
 .narrow .productPreviewHolder {
   clear: both;
@@ -2314,6 +2320,14 @@ pre.document {
 
 #invoice-info {
   border-left: 1px solid #bbbbbb; }
+
+.invoiceNoteWarning {
+  color: #c51818;
+  border: 1px dashed #910404;
+  text-align: justify;
+  padding: 5px;
+  border-radius: 5px;
+  background: #f3e0e0; }
 
 .document .lines {
   border-left: 1px solid #bbbbbb;

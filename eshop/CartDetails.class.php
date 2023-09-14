@@ -294,18 +294,23 @@ class eshop_CartDetails extends core_Detail
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
         $settings = cms_Domains::getSettings();
-        if (isset($settings->storeId) && $canStore == 'yes') {
-            $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
-            $quantityInStore = store_Products::getQuantities($productId, $settings->storeId)->free;
-            
-            if(isset($deliveryTime) && $quantityInStore <= 0) return null;
-            $maxQuantity = $quantityInStore;
+        if($canStore == 'yes'){
+            if (isset($settings->inStockStores)) {
+                $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
+                $quantityInStore = store_Products::getQuantities($productId, $settings->inStockStores)->free;
+                $maxQuantity = $quantityInStore;
+            }
+            if(!empty($settings->remoteStores)) {
+                $maxQuantity += sync_StoreStocks::getQuantityInRemoteStores($productId, $settings->remoteStores);
+            }
+
+            if(isset($deliveryTime) && $maxQuantity <= 0) return null;
         }
 
         if(!empty($maxQuantity)){
 
             // Проверка колко общо има от избрания артикул в количката без значение от опаковката
-            $cartId = isset($cartId) ? $cartId : eshop_Carts::force(null, null, false);
+            $cartId = $cartId ?? eshop_Carts::force(null, null, false);
             if($cartId){
                 $dQuery = eshop_CartDetails::getQuery();
                 $dQuery->where("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId}");
@@ -330,6 +335,7 @@ class eshop_CartDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $maxQuantity = null;
         if (isset($fields['-list'])) {
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
             $row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, true);
@@ -401,8 +407,7 @@ class eshop_CartDetails extends core_Detail
         }
         
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
-        if (isset($settings->storeId) && $productRec->canStore == 'yes') {
-            $quantity = store_Products::getQuantities($rec->productId, $settings->storeId)->free;
+        if (isset($settings->inStockStores) && $productRec->canStore == 'yes') {
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
             
             if (is_null($maxQuantity) && $maxQuantity <= 0) {

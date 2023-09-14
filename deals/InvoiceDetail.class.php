@@ -490,9 +490,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         }
                     }
                 } else {
-                    if (!haveRole('invoicer, ceo', $userId)) {
-                        $res = 'no_one';
-                    }
                     
                     // При начисляване на авансово плащане не може да се добавят други продукти
                     if ($masterRec->dpOperation == 'accrued') {
@@ -668,12 +665,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
                     if(isset($rec->clonedFromDetailId)){
                         $changedPriceAndQuantity = false;
-                        if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && round($rec->packPrice, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['price'], 5)){
+                        if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && deals_Helper::roundPrice($rec->packPrice) != deals_Helper::roundPrice($cache->recWithIds[$rec->clonedFromDetailId]['price'])){
                             $changedPriceAndQuantity = true;
                         }
                     } else {
+                        $roundPrice = deals_Helper::roundPrice($rec->packPrice);
                         $quantityKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|Q{$rec->quantity}";
-                        $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$rec->packPrice}";
+                        $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$roundPrice}";
                         $changedPriceAndQuantity = !array_key_exists($quantityKey, $cache->recs) && !array_key_exists($priceKey, $cache->recs);
                     }
 

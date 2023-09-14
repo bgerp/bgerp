@@ -77,7 +77,7 @@ function runOnLoad(functionName) {
 function fadeImages(el, transition, delay){
 	$('.fadein img:gt(0)').hide();
 	setInterval(function(){
-		$('.fadein :first-child').css({position: 'absolute'}).fadeOut(el).next('img').css({position: 'absolute'}).fadeIn(transition).end().appendTo('.fadein');
+		$('.fadein :first-child').css({position: 'absolute'}).fadeOut(transition).next('img').css({position: 'absolute'}).fadeIn(transition).end().appendTo('.fadein');
 		$('.fadein :first-child').css({position: 'relative'});
 	}, delay);
 }
@@ -5730,7 +5730,7 @@ function setFilemanPreviewSize()
  * Изчисляване на размерите на привюто на файловете
  */
 function calcFilemanSize(){
-    if (!$('.wide .webdrvFieldset').length) return;
+    if (!$('.webdrvFieldset').length) return;
 
     var currentHeight = $('.webdrvFieldset').height();
     var sidemenuWidth = $('.sidemenu-open').length  ? $('.sidemenu-open').length * ($('.sidemenu-open').width() + 10) : 0;
@@ -5746,7 +5746,7 @@ function calcFilemanSize(){
             $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
         });
     } else {
-        $('.webdrvFieldset').css('height', height - 5);
+        $('.webdrvFieldset').css('height', currentHeight);
         $('.webdrvFieldset').css('overflow-y', 'auto');
     }
     if ( $('.webdrvFieldset').width() < width) {

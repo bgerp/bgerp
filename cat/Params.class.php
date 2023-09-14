@@ -75,8 +75,14 @@ class cat_Params extends bgerp_ProtoParam
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,typeExt,order,driverClass=Вид,state,roles,valueType=Стойност,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,createdOn,createdBy';
-    
-    
+
+
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'cat_ParamFormulaVersions';
+
+
     /**
      * Кой има право да променя системните данни?
      */

@@ -327,25 +327,24 @@ class sync_StoreStocks extends sync_Helper
 
 
     /**
-     * Дали артикула е наличен с подаденото количесто в някой от подадените складове
+     * С какво количество е наличен артикула във външните складове
      *
-     * @param double $quantity - какво количество се търси
      * @param int $productId   - ид на артикул
      * @param mixed $remoteIds - ид-та на отдалечени складове
-     * @return bool
+     * @return double $totalQuantity
      */
-    public static function haveQuantityInRemoteStores($quantity, $productId, $remoteIds)
+    public static function getQuantityInRemoteStores($productId, $remoteIds)
     {
+        $totalQuantity = 0;
         $remoteIdArr = keylist::isKeylist($remoteIds) ? keylist::toArray($remoteIds) : arr::make($remoteIds, true);
         $query = static::getQuery();
         $query->where("#productId = {$productId}");
         $query->in('syncedStoreId', $remoteIdArr);
         while($rec = $query->fetch()){
-            $freeMin = $rec->quantity - $rec->reservedQuantityMin + $rec->expectedQuantityMin;
-            if($freeMin >= $quantity) return true;
+            $totalQuantity += $rec->quantity - $rec->reservedQuantityMin + $rec->expectedQuantityMin;
         }
 
-        return false;
+        return $totalQuantity;
     }
 
 

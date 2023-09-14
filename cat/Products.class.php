@@ -429,6 +429,9 @@ class cat_Products extends embed_Manager
     {
         $form = &$data->form;
         $rec = $form->rec;
+        if($data->action == 'clone'){
+            $rec->_isBeingCloned = true;
+        }
 
         // Всички позволени мерки
         $measureOptions = cat_UoM::getUomOptions();
@@ -656,11 +659,12 @@ class cat_Products extends embed_Manager
             }
             
             $metaError = null;
-            if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $rec->id, $metaError)) {
+            $checkMetaProductId = ($rec->_isBeingCloned) ? null : $rec->id;
+            if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $checkMetaProductId, $metaError)) {
                 $form->setError('meta', $metaError);
             }
 
-            if(isset($rec->id)){
+            if(isset($rec->id) && !$rec->_isBeingCloned){
                 $jobArr = array();
                 $jQuery = planning_Jobs::getQuery();
                 $jQuery->where("#productId = {$rec->id} AND #state IN ('active', 'stopped', 'wakeup')");
@@ -1174,6 +1178,29 @@ class cat_Products extends embed_Manager
         }
         if(!empty($wherePartSeven)){
             $whereArr[] = $wherePartSeven;
+        }
+
+        if(isset($filtersArr['withBom']) || isset($filtersArr['withoutBom'])){
+            $wherePartEight = "#canManifacture = 'yes'";
+            $bQuery = cat_Boms::getQuery();
+            $bQuery->where("#state IN ('active', 'closed')");
+            $bQuery->show('productId');
+            $productsWithBoms = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
+            $productsWithBomsStr = implode(',', $productsWithBoms);
+
+            if(isset($filtersArr['withBom']) && !isset($filtersArr['withoutBom'])){
+                if(!empty($productsWithBomsStr)){
+                    $wherePartEight .= " AND #{$productIdFld} IN ({$productsWithBomsStr})";
+                } else {
+                    $wherePartEight .= " AND 1=2";
+                }
+            }
+            if(isset($filtersArr['withoutBom']) && !isset($filtersArr['withBom'])){
+                if(!empty($productsWithBomsStr)){
+                    $wherePartEight .= " AND #{$productIdFld} NOT IN ({$productsWithBomsStr})";
+                }
+            }
+            $whereArr[] = $wherePartEight;
         }
 
         foreach ($whereArr as $where){
@@ -3953,6 +3980,7 @@ class cat_Products extends embed_Manager
         }
 
         $detArr = arr::make($masterMvc->details);
+        $csvFields->FLD('vatPercent', 'varchar');
 
         expect(!empty($detArr));
 
@@ -4127,22 +4155,36 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
+
+                //$csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
                 $recs[$dRec->id]->{$dInst->productFld} = cat_Products::getVerbal($dRec->{$dInst->productFld}, 'name');
 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
-                    if ($recs[$dRec->id]->packPrice && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
-                        $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
+                    if(!Mode::is('csvExportInList')) {
+                        if ($recs[$dRec->id]->packPrice && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
+                            $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
 
-                        $caption = 'Цена';
-                        if ($dInst->fields['packPrice'] && $dInst->fields['packPrice']->caption) {
-                            $caption = $dInst->fields['packPrice']->caption;
+                            $caption = 'Цена';
+                            if ($dInst->fields['packPrice'] && $dInst->fields['packPrice']->caption) {
+                                $caption = $dInst->fields['packPrice']->caption;
+                            }
+                            if (!$csvFields->fields['packPrice']) {
+                                $csvFields->FLD('packPrice', 'varchar', "caption={$caption}");
+                            }
                         }
-                        if (!$csvFields->fields['packPrice']) {
-                            $csvFields->FLD('packPrice', 'varchar', "caption={$caption}");
+                    } else {
+                        if(Mode::is('csvExportInList')){
+                            $rate = $mRec->displayRate ?? ($mRec->currencyRate ?? $mRec->rate);
+                            if(isset($rate) && $rate != 1){
+                                $recs[$dRec->id]->packPrice /= $rate;
+                                $recs[$dRec->id]->packPrice = round($recs[$dRec->id]->packPrice, 5);
+                            };
                         }
                     }
                 }
+
+                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld});
 
                 // За добавяне на бачовете
                 if ($allFFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
@@ -4199,7 +4241,6 @@ class cat_Products extends embed_Manager
                     }
                 }
             }
-
 
             /**
              * Ако артикула е ред във КИ или ДИ със промяна, да се покаже промененото количество

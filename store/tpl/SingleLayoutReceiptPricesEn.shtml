@@ -122,6 +122,7 @@
                         <td colspan="2" ><hr><span class='quiet'>Logistic units</span> [#logisticInfo#]</td>
                     </tr>
                     <!--ET_END logisticInfo-->
+                    [#InvoicesToDocuments#]
                 </table>
                 <!--ET_BEGIN note-->
                 <hr>

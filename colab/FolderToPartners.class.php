@@ -881,12 +881,13 @@ class colab_FolderToPartners extends core_Manager
             if ($Class instanceof crm_Companies) {
                 $personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
                 $personRec = crm_Persons::fetch($personId);
-                
+
                 // Свързваме лицето към фирмата
                 $personRec->buzCompanyId = $objectId;
                 $personRec->country = $form->rec->country;
-                $personRec->inCharge = $contragentRec->inCharge;
-                
+                $inChargeState = core_Users::fetchField($contragentRec->inCharge, 'state');
+                $personRec->inCharge = in_array($inChargeState, array('active', 'blocked')) ? $contragentRec->inCharge : doc_FolderPlg::getDefaultInCharge();
+
                 // Имейлът да е бизнес имейла му
                 $buzEmailsArr = type_Emails::toArray($personRec->buzEmail);
                 $buzEmailsArr[] = $personRec->email;
@@ -1071,5 +1072,22 @@ class colab_FolderToPartners extends core_Manager
             $Cover = doc_Folders::getCover($rec->folderId);
             $Cover->getInstance()->logWrite('Споделяне към партньор', $Cover->that);
         }
+    }
+
+
+    /**
+     * Връща ид-та на споделените партньори към папката
+     *
+     * @param int $folderId
+     * @return array $contractorIds
+     */
+    public static function getContractorsInFolder($folderId)
+    {
+        $cQuery = colab_FolderToPartners::getQuery();
+        $cQuery->EXT('contractorState', 'core_Users', 'externalName=state,externalKey=contractorId');
+        $cQuery->where("#folderId = '{$folderId}' AND #contractorState = 'active'");
+        $contractorIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'contractorId');
+
+        return $contractorIds;
     }
 }

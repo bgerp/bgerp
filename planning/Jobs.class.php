@@ -1471,11 +1471,16 @@ class planning_Jobs extends core_Master
         }
 
         // Всяка опция се добавя във формата
-        foreach ($options as $obj){
-            $dTaskBlock = clone $form->info->getBlock('DEFAULT_TASK_BLOCK');
-            $dTaskBlock->placeObject($obj);
-            $dTaskBlock->removeBlocksAndPlaces();
-            $form->info->append($dTaskBlock, 'TASK_ROWS');
+        if(countR($options)){
+            foreach ($options as $obj){
+                $dTaskBlock = clone $form->info->getBlock('DEFAULT_TASK_BLOCK');
+                $dTaskBlock->placeObject($obj);
+                $dTaskBlock->removeBlocksAndPlaces();
+                $form->info->append($dTaskBlock, 'TASK_ROWS');
+            }
+        } else {
+            $noOptionMsg = tr("За да създавате операции, трябва да има създадени производствени етапи към центрове на дейност|*!");
+            $form->info->append("<div class='richtext-message richtext-warning'>{$noOptionMsg}</div>", 'TASK_ROWS');
         }
 
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Назад към заданието');
@@ -2134,6 +2139,8 @@ class planning_Jobs extends core_Master
 
         $count = 0;
         while($rec = $query->fetch()){
+            // Ако е събудено в посочения интервал да не се приключва
+            if($rec->state == 'wakeup' && $rec->lastChangeStateOn >= $thresholdDate) continue;
 
             // Ако има документ на заявка в нишката, няма да се приключва заданието
             $cQuery = doc_Containers::getQuery();
@@ -2162,9 +2169,6 @@ class planning_Jobs extends core_Master
                 $lastCreatedOn = doc_Threads::getLastCreatedOnInThread($rec->threadId, 'acc_TransactionSourceIntf');
                 if($lastCreatedOn >= $thresholdDate) continue;
             }
-
-            // Ако е събудено в посочения интервал да не се приключва
-            if($rec->state == 'wakeup' && $rec->lastChangeStateOn >= $thresholdDate) continue;
 
             $isSystemUser = core_Users::isSystemUser();
             if(!$isSystemUser){

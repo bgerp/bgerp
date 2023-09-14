@@ -421,7 +421,7 @@ class core_Setup extends core_ProtoSetup
         'core_Updates',
         'core_Permanent',
         'migrate::clearCallOnTimeBadData2212',
-        'migrate::repairSearchKeywords31920',
+        'migrate::repairSearchKeywords2333',
         'migrate::setBGERPUNIQId3020'
     );
     
@@ -718,7 +718,7 @@ class core_Setup extends core_ProtoSetup
     /**
      * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
      */
-    public static function repairSearchKeywords31920()
+    public static function repairSearchKeywords2333()
     {
         // Вземаме инстанция на core_Interfaces
         $Interfaces = cls::get('core_Interfaces');

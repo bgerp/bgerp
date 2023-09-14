@@ -43,11 +43,13 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         if(!Mode::is('recontoTransaction')){
             $this->class->extractData($rec);
         }
-       // bp($rec->details['receiptDetails']);
+
+        $productsByStore = array();
         if (countR($rec->details['receiptDetails'])) {
             foreach ($rec->details['receiptDetails'] as $dRec) {
                 if ($dRec->action == 'sale') {
                     $productsArr[] = $dRec;
+                    $productsByStore[$dRec->storeId][] = $dRec;
                 } elseif ($dRec->action == 'payment') {
                     $paymentsArr[] = $dRec;
                 }
@@ -86,15 +88,30 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         
         // Проверка на артикулите преди контиране
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-            $productsArr = array_filter($rec->details['receiptDetails'], function($a){return $a->action == 'sale';});
             $productsArr = arr::extractValuesFromArray($productsArr, 'value');
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');
             
             // Проверка на артикулите
             if(countR($productCheck['notActive'])){
+                doc_Threads::doUpdateThread($rec->threadId);
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
+                doc_Threads::doUpdateThread($rec->threadId);
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");
+            }
+
+            if(!store_Setup::canDoShippingWhenStockIsNegative()){
+                $contoWarnings = array();
+                foreach ($productsByStore as $storeId => $productArr){
+                    if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($productArr, $storeId, $rec->state, 'value', 'totalQuantity')) {
+                        $contoWarnings[] = $warning;
+                    }
+                }
+                if(countR($contoWarnings)) {
+                    $warning = implode('. ', $contoWarnings);
+                    doc_Threads::doUpdateThread($rec->threadId);
+                    acc_journal_RejectRedirect::expect(false, $warning);
+                }
             }
         }
         

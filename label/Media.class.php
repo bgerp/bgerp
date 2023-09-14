@@ -335,7 +335,9 @@ class label_Media extends core_Manager
         // Активните записи да не може да се редактират или изтриват
         if ($rec && ($action == 'edit' || $action == 'delete')) {
             if (($rec->state == 'active') || ($rec->state == 'rejected') || ($rec->state == 'restore')) {
-                $requiredRoles = 'no_one';
+                if (!haveRole('debug', $userId) || ($rec->state != 'active') || ($action != 'edit')) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }

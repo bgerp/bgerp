@@ -62,26 +62,48 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
 
 
     /**
+     * Записване в помощния модел, ако обекта е създаден от друг документ
+     * @param stdClass $rec
+     * @return void
+     */
+    private static function saveIfFromContainer($mvc, $rec)
+    {
+        // След създаване синхронизиране на модела
+        $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId);
+        $paymentCurrencyCode = currency_Currencies::getCodeById($mvc->getPaymentData($rec)->currencyId);
+
+        $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
+        $vAmount = round($vAmount, 2);
+
+        $paymentData = $mvc->getPaymentData($rec);
+        $vAmount = min($paymentData->amount, $vAmount);
+
+        $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
+        deals_InvoicesToDocuments::save($dRec);
+    }
+
+
+    /**
      * Изпълнява се след създаване на нов запис
      */
-    protected static function on_AfterCreate($mvc, $rec)
+    public static function on_AfterCreate($mvc, $rec)
+    {
+        if(!isset($mvc->mainDetail)){
+            if(isset($rec->fromContainerId)){
+                static::saveIfFromContainer($mvc, $rec);
+            }
+        }
+    }
+
+
+    /**
+     * Обновява статистиката за стелажа
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
         if(isset($rec->fromContainerId)){
-
-            // След създаване синхронизиране на модела
-            $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId);
-            $paymentCurrencyCode = currency_Currencies::getCodeById($mvc->getPaymentData($rec)->currencyId);
-
-            $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
-            $vAmount = round($vAmount, 2);
-
-            $paymentData = $mvc->getPaymentData($rec);
-            $vAmount = min($paymentData->amount, $vAmount);
-
-            if($vAmount){
-                $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
-                deals_InvoicesToDocuments::save($dRec);
-            }
+            $rec = $mvc->fetchRec($id);
+            static::saveIfFromContainer($mvc, $rec);
         }
     }
 
@@ -169,7 +191,15 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         $threadsArr = deals_Helper::getCombinedThreads($rec->threadId);
 
         $isTransfer = in_array($rec->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
-        $iArr = ($rec->isReverse == 'yes' && !$isTransfer) ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, true);
+        if($mvc instanceof acc_ValueCorrections){
+            if($rec->action == 'decrease'){
+                $iArr = deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true);
+            } else {
+                $iArr = deals_Helper::getInvoicesInThread($threadsArr, null, true, true, false);
+            }
+        } else {
+            $iArr = ($rec->isReverse == 'yes' && !$isTransfer) ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, true);
+        }
 
         foreach ($iArr as $k => $number){
             $iRec = doc_Containers::getDocument($k)->fetch();

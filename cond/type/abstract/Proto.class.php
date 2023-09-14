@@ -215,4 +215,18 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
         
         return false;
     }
+
+
+    /**
+     * Обработка на стойността при клониране
+     *
+     * @param stdClass $rec
+     * @param mixed $domainClass - клас на домейна
+     * @param mixed $domainId - ид на домейна
+     * @return string
+     */
+    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value)
+    {
+        return $value;
+    }
 }

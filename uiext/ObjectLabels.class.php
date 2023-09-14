@@ -160,8 +160,14 @@ class uiext_ObjectLabels extends core_Manager
         
         if ($delete === true && isset($exRec->id)) {
             self::delete($exRec->id);
+            $tagMsg = 'Изтрит таг';
         } else {
             $this->save($rec);
+            $tagMsg = 'Променен таг';
+        }
+
+        if (cls::load($masterClassId, true)) {
+            cls::get($masterClassId)->logWrite($tagMsg, $objectId);
         }
         
         if (Request::get('ajax_mode')) {
@@ -170,8 +176,8 @@ class uiext_ObjectLabels extends core_Manager
             $resObj = new stdClass();
             $resObj->func = 'html';
             
-            $k = "{$masterClassId}|{$objectId}|{$classId}|{$hash}";
-            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($masterClassId, $objectId, $classId, $hash), 'replace' => true);
+            $k = "{$masterClassId}_{$objectId}_{$classId}_{$hash}";
+            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($masterClassId, $objectId, $classId, $hash, true), 'replace' => true);
             $res = array_merge(array($resObj));
             
             return $res;

@@ -214,7 +214,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой има право да експортва?
      */
-    public $canExport = 'ceo,invoicer';
+    public $canExport = 'ceo,invoicerSale,invoicerPurchase,invoicerFindeal';
     
     
     /**
@@ -305,7 +305,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
-     * @see plg_Clone
+     * @see plg_Clzone
      */
     public $cloneDetails = 'sales_SalesDetails';
     
@@ -332,8 +332,14 @@ class sales_Sales extends deals_DealMaster
      * Кои роли може да променят активна продажбата
      */
     public $canChangerec = 'ceo,salesMaster';
-    
-    
+
+
+    /**
+     * Възможност за експортиране на детайлите в csv експорта от лист изгледа
+     */
+    public $allowDetailCsvExportFromList = true;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -447,7 +453,7 @@ class sales_Sales extends deals_DealMaster
                 
                 // ако все още е активна и може да я избира потребителя - попълва се
                 $ownBankSelectedRec = bank_OwnAccounts::fetch("#bankAccountId = {$lastSelectedBankAccountId}");
-                if(!in_array($ownBankSelectedRec->state, array('closed', 'rejected')) && bgerp_plg_FLB::canUse('bank_OwnAccounts', $ownBankSelectedRec, null, 'select')){
+                if(!in_array($ownBankSelectedRec->state, array('closed', 'rejected')) && $ownBankSelectedRec && bgerp_plg_FLB::canUse('bank_OwnAccounts', $ownBankSelectedRec, null, 'select')){
                     $defaultBankAccountId = $lastSelectedBankAccountId;
                 }
             }
@@ -1981,6 +1987,7 @@ class sales_Sales extends deals_DealMaster
     {
         if (is_array($recs)) {
             foreach ($recs as &$rec) {
+                $id = $rec->id;
                 $rec->id = self::getRecTitle($rec, false);
                 foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced') as $amnt) {
                     if (round($rec->{"amount{$amnt}"}, 2) != 0) {
@@ -1994,6 +2001,12 @@ class sales_Sales extends deals_DealMaster
                 $invoices = deals_Helper::getInvoicesInThread($rec->threadId);
                 if (countR($invoices)) {
                     $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
+                }
+
+                if($cartRec = eshop_Carts::fetch("#saleId = {$id}")){
+                    $rec->tel = $cartRec->tel;
+                    $rec->email = $cartRec->email;
+                    $rec->cartId = $cartRec->id;
                 }
             }
         }
@@ -2232,5 +2245,18 @@ class sales_Sales extends deals_DealMaster
                 }
             }
         }
+    }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        $fieldset->FLD('tel', 'drdata_PhoneType', 'caption=Поръчител->Телефон');
+        $fieldset->FLD('email', 'email', 'caption=Поръчител->Имейл');
+        $fieldset->FLD('cartId', 'int', 'caption=Поръчител->Количка №');
     }
 }
