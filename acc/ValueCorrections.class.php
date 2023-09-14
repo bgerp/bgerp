@@ -347,6 +347,7 @@ class acc_ValueCorrections extends core_Master
         $rec = &$form->rec;
 
         // Ако се създава към известие зареждат се дефолт данните от него
+        $form->setDefault('allocateBy', 'value');
         if (isset($rec->fromContainerId)) {
             $fromContainer = doc_Containers::getDocument($rec->fromContainerId);
             if($fromContainer->isInstanceOf('deals_InvoiceMaster')){
