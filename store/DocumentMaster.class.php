@@ -1030,8 +1030,8 @@ abstract class store_DocumentMaster extends core_Master
             
             $dRec->quantity /= $dRec->quantityInPack;
             if (!($forMvc instanceof sales_Proformas)) {
-                $dRec->price -= $dRec->price * $dRec->discount;
-                unset($dRec->discount);
+                //$dRec->price -= $dRec->price * $dRec->discount;
+                //unset($dRec->discount);
             }
             unset($dRec->id);
             unset($dRec->shipmentId);
