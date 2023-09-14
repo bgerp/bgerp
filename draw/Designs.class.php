@@ -1202,7 +1202,7 @@ class draw_Designs extends core_Master
         $svg->setAttr('stroke-opacity', '1');
         $svg->setAttr('font-size', 132);
         $svg->setAttr('font-family', 'Arial, Sans-serif');
-        cad2_MeasureLine::draw($svg, $Ax, $Ay, $Bx, $By, $dist * 10, $measureText);
+        cad2_MeasureLine::draw($svg, $Ax, $Ay, $Bx, $By, $dist * 10, $measureText, 1, 0);
     }
     
     
