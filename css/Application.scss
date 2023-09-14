@@ -4738,10 +4738,27 @@ table .eshop-btn {
         box-shadow: 0 -2px 3px -3px rgba(0, 0, 0, .3);
     }
 }
+
+.narrow .foldertabs>.tab-row>.row-holder .tab>.tab-title {
+	padding: 0.5em 0.8em 0.5em 0.7em;
+}
+.narrow .foldertabs {
+	padding-top: 10px;
+	>.tab-row {
+		margin-left: 10px;
+	}
+	.row-holder {
+		padding-right: 20px;
+	}
+}
+
 .logoutBlock {
 	padding: 0 3px;
 }
 #notificationCountStatus {
+	&.noNtf {
+		display: none;
+	}
 	a.selected-external-tab {
 		border-top: none !important;
 	}
@@ -4841,7 +4858,7 @@ table .eshop-btn {
 	}
 }
 .narrow .contractorExtHolder {
-	padding-top: 40px;
+	padding: 10px 0px;
 	input[type="button"], input[type="submit"], button, a.button {
 		padding-left: 5px !important;
 	}

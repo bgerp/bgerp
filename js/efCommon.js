@@ -1919,6 +1919,9 @@ function setMinHeightExt() {
     $(window).smartresize(function () {
         setMinHeightExt();
     });
+
+    // Стартиране на отзивчивото скролиране
+    dragToScroll.run();
 }
 
 

@@ -4030,9 +4030,21 @@ table .eshop-btn {
     top: 0 !important;
     box-shadow: 0 -2px 3px -3px rgba(0, 0, 0, 0.3); }
 
+.narrow .foldertabs>.tab-row>.row-holder .tab>.tab-title {
+  padding: 0.5em 0.8em 0.5em 0.7em; }
+
+.narrow .foldertabs {
+  padding-top: 10px; }
+  .narrow .foldertabs >.tab-row {
+    margin-left: 10px; }
+  .narrow .foldertabs .row-holder {
+    padding-right: 20px; }
+
 .logoutBlock {
   padding: 0 3px; }
 
+  #notificationCountStatus.noNtf {
+    display: none; }
   #notificationCountStatus a.selected-external-tab {
     border-top: none !important; }
   #notificationCountStatus a {
@@ -4138,7 +4150,7 @@ table .eshop-btn {
     max-width: 16px !important; }
 
 .narrow .contractorExtHolder {
-  padding-top: 40px; }
+  padding: 10px 0px; }
   .narrow .contractorExtHolder input[type="button"],
   .narrow .contractorExtHolder input[type="submit"],
   .narrow .contractorExtHolder button,
