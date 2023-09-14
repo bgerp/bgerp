@@ -249,7 +249,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
             // За всеки запис ако е променен от оригиналния показваме промяната
             foreach ($recs as &$dRec) {
-                $price = round($dRec->packPrice, 5);
+                $price = deals_Helper::roundPrice($dRec->packPrice);
                 $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
                 $priceKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
 
