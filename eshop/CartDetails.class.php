@@ -295,7 +295,7 @@ class eshop_CartDetails extends core_Detail
         $canStore = cat_Products::fetchField($productId, 'canStore');
         $settings = cms_Domains::getSettings();
         if($canStore == 'yes'){
-            if (isset($settings->inStockStores)) {
+            if (countR($settings->inStockStores)) {
                 $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
                 $quantityInStore = store_Products::getQuantities($productId, $settings->inStockStores)->free;
                 $maxQuantity = $quantityInStore;
@@ -407,7 +407,7 @@ class eshop_CartDetails extends core_Detail
         }
         
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
-        if (isset($settings->inStockStores) && $productRec->canStore == 'yes') {
+        if (countR($settings->inStockStores) && $productRec->canStore == 'yes') {
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
             
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
