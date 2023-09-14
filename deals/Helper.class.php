@@ -140,11 +140,12 @@ abstract class deals_Helper
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
             $discountVal = isset($rec->{$map['discount']}) ? $rec->{$map['discount']} : $rec->{$map['autoDiscount']};
 
+            $noVatAmountOriginal = $noVatAmount;
             if($testRound == 'yes') {
                 $noVatAmount = round($noVatAmount, 2);
             }
             if ($discountVal) {
-                $withoutVatAndDisc = $noVatAmount * (1 - $discountVal);
+                $withoutVatAndDisc = $noVatAmountOriginal * (1 - $discountVal);
             } else {
                 $withoutVatAndDisc = $noVatAmount;
             }
