@@ -281,14 +281,4 @@ abstract class deals_ManifactureMaster extends core_Master
             }
         }
     }
-
-
-    /**
-     * Преди оттегляне, ако има затворени пера в транзакцията, не може да се оттегля
-     */
-    public static function on_BeforeConto111($mvc, &$res, $id)
-    {bp();
-        core_Statuses::newStatus('aaaa', 'error');
-        return false;
-    }
 }
