@@ -6,7 +6,7 @@
                     <!--ET_BEGIN correspondingDealOriginId-->
                     <div style='margin-top:5px;'><span class='quiet'>|Кореспондираща сделка|*</span>: [#correspondingDealOriginId#]</div>
                     <!--ET_END correspondingDealOriginId-->
-                    <div>
+                    <div style="margin-top: 5px;">
                         <table>[#InvoicesToDocuments#]</table>
                     </div>
                 </div>
