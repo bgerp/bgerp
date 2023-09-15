@@ -4782,7 +4782,7 @@ function changeNotificationsCnt(data) {
         if (notificationsCnt > 0) {
             nCntLink.className = 'haveNtf';
         } else {
-            nCntLink.className = 'noNtf 5555';
+            nCntLink.className = 'noNtf';
         }
 
         if($('body').hasClass('modern-theme') && $('body').hasClass('narrow')  && typeof data.notifyTime !== 'undefined' && data.notifyTime) {
