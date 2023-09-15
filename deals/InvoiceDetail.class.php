@@ -250,8 +250,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // За всеки запис ако е променен от оригиналния показваме промяната
             foreach ($recs as &$dRec) {
                 $price = round($dRec->packPrice, 5);
-                $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|Q{$dRec->quantity}";
-                $priceKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|P{$price}";
+                $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}";
+                $priceKey = "{$dRec->productId}|{$dRec->packagingId}|P{$price}";
 
                 if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
 
