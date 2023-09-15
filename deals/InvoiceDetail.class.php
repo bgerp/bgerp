@@ -255,6 +255,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
                 if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
 
+                if($rec->containerId == 8348118){
+                    $priceKey1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|P{$price}";
+                    bp($dRec, $cached, array_key_exists($priceKey, $cached->recs), array_key_exists($priceKey1, $cached->recs));
+                }
+
+
+
                 if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($quantityKey, $cached->recs)){
                     $quantityArr = is_array($cached->recWithIds[$dRec->clonedFromDetailId]) ? $cached->recWithIds[$dRec->clonedFromDetailId] : $cached->recs[$quantityKey];
                     $originPrice = deals_Helper::getDisplayPrice($quantityArr['price'], 0, 1, 'no', 5);
