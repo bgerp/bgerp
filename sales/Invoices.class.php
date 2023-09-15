@@ -770,7 +770,9 @@ class sales_Invoices extends deals_InvoiceMaster
             
             return false;
         }
-        
+
+
+        bp($query->where, $number, $rangeName);
         $queryBefore = clone $query;
         $query->orderBy('number', 'DESC');
         $queryBefore->where("#date < '{$rec->date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
