@@ -249,15 +249,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
             // За всеки запис ако е променен от оригиналния показваме промяната
             foreach ($recs as &$dRec) {
-                $price = deals_Helper::roundPrice($dRec->packPrice);
+                $price = round($dRec->packPrice, 5);
                 $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->notes}|Q{$dRec->quantity}";
                 $priceKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->notes}|P{$price}";
 
                 if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
 
                 if($rec->containerId == 9377999){
-                    $priceKey1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|P{$price}";
-                    bp($dRec, $cached,$priceKey, $priceKey1, array_key_exists($priceKey, $cached->recs), array_key_exists($priceKey1, $cached->recs));
+                    //$priceKey1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|P{$price}";
+                    //bp($dRec, $cached,$priceKey, $priceKey1, array_key_exists($priceKey, $cached->recs), array_key_exists($priceKey1, $cached->recs));
                 }
 
 

@@ -1543,7 +1543,7 @@ abstract class deals_InvoiceMaster extends core_Master
             } else {
                 $price = $dRec->packPrice;
             }
-            $price = deals_Helper::roundPrice($price);
+            $price = round(($price, 5);
             $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->notes}|Q{$dRec->quantity}";
             $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->notes}|P{$price}";
 
