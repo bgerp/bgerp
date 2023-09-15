@@ -255,9 +255,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
                 if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
 
-                if($rec->containerId == 9377999){
-                    //$priceKey1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|P{$price}";
-                    //bp($dRec, $cached,$priceKey, $priceKey1, array_key_exists($priceKey, $cached->recs), array_key_exists($priceKey1, $cached->recs));
+                if($rec->containerId == 9188968){
+                    $priceKey1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|P{$price}";
+                    bp($dRec, $cached,$priceKey, $priceKey1, array_key_exists($priceKey, $cached->recs), array_key_exists($priceKey1, $cached->recs));
                 }
 
 
