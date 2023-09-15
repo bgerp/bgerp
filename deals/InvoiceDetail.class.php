@@ -247,15 +247,20 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Намираме оригиналните к-ва и цени
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId, $applyDiscount);
 
+
             // За всеки запис ако е променен от оригиналния показваме промяната
             foreach ($recs as &$dRec) {
                 $price = deals_Helper::roundPrice($dRec->packPrice);
                 $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
                 $priceKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
 
+                $quantityKeyWithoutNotes = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}||Q{$dRec->quantity}";
+                $priceKeyWithoutNotes = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}||P{$price}";
+
+
                 if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
 
-                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($quantityKey, $cached->recs)){
+                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($quantityKey, $cached->recs) || array_key_exists($quantityKeyWithoutNotes, $cached->recs)){
                     $quantityArr = is_array($cached->recWithIds[$dRec->clonedFromDetailId]) ? $cached->recWithIds[$dRec->clonedFromDetailId] : $cached->recs[$quantityKey];
                     $originPrice = deals_Helper::getDisplayPrice($quantityArr['price'], 0, 1, 'no', 5);
                     $diffPrice = $dRec->packPrice - $originPrice;
@@ -272,7 +277,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     }
                 }
 
-                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($priceKey, $cached->recs)){
+                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($priceKey, $cached->recs) || array_key_exists($priceKeyWithoutNotes, $cached->recs)){
                     $priceArr = is_array($cached->recWithIds[$dRec->clonedFromDetailId]) ? $cached->recWithIds[$dRec->clonedFromDetailId] : $cached->recs[$priceKey];
 
                     $diffQuantity = $dRec->quantity - $priceArr['quantity'];
