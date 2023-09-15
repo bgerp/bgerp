@@ -1544,8 +1544,8 @@ abstract class deals_InvoiceMaster extends core_Master
                 $price = $dRec->packPrice;
             }
             $price = deals_Helper::roundPrice($price);
-            $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
-            $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
+            $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->notes}|Q{$dRec->quantity}";
+            $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->notes}|P{$price}";
 
             $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price);
             $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price);
