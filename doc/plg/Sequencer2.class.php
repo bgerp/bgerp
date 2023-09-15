@@ -30,7 +30,7 @@ class doc_plg_Sequencer2 extends core_Plugin
         setIfNot($mvc->numberFld, 'number');
         setIfNot($mvc->addNumberOnActivation, false);
         
-        if (!isset($mvc->fields[$mvc->rangeNumFld])) {bp();
+        if (!isset($mvc->fields[$mvc->rangeNumFld])) {
             $mvc->FLD($mvc->rangeNumFld, "key(mvc=cond_Ranges,select=id)", 'caption=Диапазон,input=hidden');
         }
     }
@@ -52,7 +52,6 @@ class doc_plg_Sequencer2 extends core_Plugin
             $form->setOptions($mvc->rangeNumFld, $options);
         }
 
-        bp($form->rec, $mvc->rangeNumFld, cond_Ranges::getDefaultRangeId($mvc));
         $form->setDefault($mvc->rangeNumFld, cond_Ranges::getDefaultRangeId($mvc));
     }
     
