@@ -51,7 +51,8 @@ class doc_plg_Sequencer2 extends core_Plugin
             $form->setField($mvc->rangeNumFld, 'input');
             $form->setOptions($mvc->rangeNumFld, $options);
         }
-        
+
+        bp($form->rec, $mvc->rangeNumFld, cond_Ranges::getDefaultRangeId($mvc));
         $form->setDefault($mvc->rangeNumFld, cond_Ranges::getDefaultRangeId($mvc));
     }
     
