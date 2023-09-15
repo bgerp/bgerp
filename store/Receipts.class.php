@@ -110,8 +110,14 @@ class store_Receipts extends store_DocumentMaster
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,store,sales,purchase';
-    
-    
+
+
+    /**
+     * Кой може да избира ф-ра по документа?
+     */
+    public $canSelectinvoice = 'cash, ceo, purchase, sales, acc, store';
+
+
     /**
      * Кой може да го изтрие?
      */
