@@ -772,10 +772,13 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
 
-        bp($query->where, $number, $rangeName);
+
         $queryBefore = clone $query;
         $query->orderBy('number', 'DESC');
         $queryBefore->where("#date < '{$rec->date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
+
+        bp($query->where, $number, $rangeName, $queryBefore->where);
+
         if ($iBefore = $queryBefore->fetch()) {
             $numberB = $this->recToVerbal($iBefore, 'number')->number;
             $msg = "(3/{$restore}/{$number}) Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|* [<b>{$rangeName}</b>]";
