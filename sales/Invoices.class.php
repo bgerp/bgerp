@@ -589,7 +589,7 @@ class sales_Invoices extends deals_InvoiceMaster
             if(empty($rec->number)){
                 $row->number = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
                 $row->number = "<span style='color:blue;'>{$row->number}</span>";
-                $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
+                $row->number = ht::createHint($row->number, "При активиране номерът ще бъде в този диапазон ($rec->numlimit)", 'notice', false);
             }
 
             // Показване на допълнителните условия от банковата сметка
