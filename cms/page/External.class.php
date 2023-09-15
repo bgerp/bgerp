@@ -118,12 +118,15 @@ class cms_page_External extends core_page_Active
     {
         $currentTab = Mode::get('currentExternalTab');
         $selectedProfileClass = ($currentTab == 'cms_Profiles') ? 'class=selected-external-tab' : '';
-        $selectedNotClass = ($currentTab == 'colab_Notifications') ? 'class=selected-external-tab' : '';
         $nick = core_Users::getNick(core_Users::getCurrent());
 
         $notificationCount = bgerp_Notifications::getOpenCnt();
         if($notificationCount){
-            $user = ht::createLink($notificationCount, array('colab_Notifications', 'Show'), false, "title=Преглед на непрочетените известия,{$selectedNotClass}");
+            $attr = arr::make("title=Преглед на непрочетените известия");
+            if($currentTab == 'colab_Notifications'){
+                $attr['class'] = 'selected-external-tab';
+            }
+            $user = ht::createLink($notificationCount, array('colab_Notifications', 'Show'), false, $attr);
             $this->replace($user, 'USER_NOTIFICATIONS');
         }
 

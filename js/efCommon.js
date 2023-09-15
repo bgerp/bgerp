@@ -4767,9 +4767,11 @@ function changeTitleCnt(cnt) {
  * data.cnt - броя на нотификациите
  */
 function changeNotificationsCnt(data) {
+
+    var replaceHtml = data.html ? data.html : data.cnt;
     render_html({
         'id': data.id,
-        'html': data.cnt,
+        'html': replaceHtml,
         'replace': 1
     });
 
@@ -4780,7 +4782,7 @@ function changeNotificationsCnt(data) {
         if (notificationsCnt > 0) {
             nCntLink.className = 'haveNtf';
         } else {
-            nCntLink.className = 'noNtf';
+            nCntLink.className = 'noNtf 5555';
         }
 
         if($('body').hasClass('modern-theme') && $('body').hasClass('narrow')  && typeof data.notifyTime !== 'undefined' && data.notifyTime) {

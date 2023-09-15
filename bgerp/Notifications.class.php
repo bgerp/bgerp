@@ -1174,7 +1174,7 @@ class bgerp_Notifications extends core_Manager
                 $obj1 = new stdClass();
                 $obj1->func = 'notificationsCnt';
                 $notificationLinkTpl = ht::createLink($notifCnt, array('colab_Notifications', 'Show'), false, "title=Преглед на непрочетените известия,class=selected-external-tab");
-                $obj1->arg = array('id' => 'notificationCountStatus', 'cnt' => $notificationLinkTpl->getContent(), 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
+                $obj1->arg = array('id' => 'notificationCountStatus', 'cnt' => $notifCnt, 'html' => $notificationLinkTpl->getContent(), 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
                 $res[] = $obj1;
             }
 
@@ -1747,9 +1747,9 @@ class bgerp_Notifications extends core_Manager
                 if($lastCnt != $notifCnt){
                     $obj1 = new stdClass();
                     $obj1->func = 'notificationsCnt';
-                    $notificationSelectTab = Request::get('externalTab') == 'colab_Notifications' ? 'class=selected-external-tab' : '';
-                    $notificationLinkTpl = ht::createLink($notifCnt, array('colab_Notifications', 'Show'), false, "title=Преглед на непрочетените известия,{$notificationSelectTab}");
-                    $obj1->arg = array('id' => 'notificationCountStatus', 'cnt' => $notificationLinkTpl->getContent(), 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
+                    $notAttr = Request::get('externalTab') == 'colab_Notifications' ? "title=Преглед на непрочетените известия,class=selected-external-tab" : "title=Преглед на непрочетените известия";
+                    $notificationLinkTpl = ht::createLink($notifCnt, array('colab_Notifications', 'Show'), false, $notAttr);
+                    $obj1->arg = array('id' => 'notificationCountStatus', 'cnt' => $notifCnt, 'html' => $notificationLinkTpl->getContent(), 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
                     $res[] = $obj1;
                 }
             }
