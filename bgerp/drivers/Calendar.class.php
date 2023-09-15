@@ -876,17 +876,18 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $cQuery = cal_Tasks::getQuery();
         $cQuery->where(array("#createdBy = '[#1#]'", $userId));
+        $cQuery->where(array("#modifiedOn > '[#1#]'", dt::addDays(-1)));
         $cQuery->orderBy('modifiedOn', 'DESC');
         $cQuery->limit(1);
         $cQuery->show('modifiedOn, id, containerId');
         $cRec = $cQuery->fetch();
         if ($cRec) {
             $cArr[] = $cRec->modifiedOn;
+            if ($cRec->containerId) {
+                $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
+            }
         }
-        if ($cRec->containerId) {
-            $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
-        }
-        
+
         $agendaStateQuery = cal_Calendar::getQuery();
         $agendaStateQuery->where("#users IS NULL OR #users = ''");
         $agendaStateQuery->orLikeKeylist('users', $userId);

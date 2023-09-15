@@ -372,6 +372,7 @@ class cal_Tasks extends embed_Manager
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('createdOn');
         $this->setDbIndex('createdBy');
+        $this->setDbIndex('parentId');
     }
     
     
