@@ -755,7 +755,7 @@ class sales_Invoices extends deals_InvoiceMaster
 
             if ($newDate > $rec->date) {
                 $newDate = dt::mysql2verbal($newDate, 'd.m.y');
-                $msg = "(2) Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] ({$newDate})";
+                $msg = "(2/{$restore}) Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] ({$newDate})";
                 
                 return false;
             }
@@ -776,7 +776,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $queryBefore->where("#date < '{$rec->date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
         if ($iBefore = $queryBefore->fetch()) {
             $numberB = $this->recToVerbal($iBefore, 'number')->number;
-            $msg = "(3) Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|* [<b>{$rangeName}</b>]";
+            $msg = "(3/{$restore}) Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|* [<b>{$rangeName}</b>]";
             
             return false;
         }
@@ -786,7 +786,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $queryAfter->where("#date > '{$rec->date}' AND #state = 'active' AND #number <= {$number} AND #id != '{$rec->id}'");
         if ($iAfter = $queryAfter->fetch()) {
             $numberA = $this->recToVerbal($iAfter, 'number')->number;
-            $msg = "(1) Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|* [<b>{$rangeName}</b>]";
+            $msg = "(1/{$restore}) Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|* [<b>{$rangeName}</b>]";
             
             return false;
         }
