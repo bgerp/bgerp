@@ -1131,6 +1131,8 @@ abstract class deals_InvoiceMaster extends core_Master
                 $rec->displayContragentId = $cRec->id;
             }
         }
+
+        core_Statuses::newStatus("RANGE ($rec->numlimit)", 'warning');
     }
     
     
