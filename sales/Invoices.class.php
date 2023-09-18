@@ -1047,7 +1047,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 }
             }
         }
-        bp($update, $notUpdated);
+       // bp($update, $notUpdated);
         $Details = cls::get('sales_InvoiceDetails');
         $Details->saveArray($update, 'id,clonedFromDetailId');
 
