@@ -1054,7 +1054,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 }
             }
 
-            bp($update, $notUpdated, $cached);
+           // bp($update, $notUpdated, $cached);
         }
 
         $Details = cls::get('sales_InvoiceDetails');
