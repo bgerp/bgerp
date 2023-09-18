@@ -998,9 +998,9 @@ class sales_Invoices extends deals_InvoiceMaster
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
                 $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
             }
-            $dRecs[$dRec->invoiceId]['recs'] = $dRec;
+            $dRecs[$dRec->invoiceId]['recs'][] = $dRec;
         }
 
-        bp($r->count, $dRecs);
+        bp($r->count(), $dRecs);
     }
 }
