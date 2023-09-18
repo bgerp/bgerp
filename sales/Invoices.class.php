@@ -1053,7 +1053,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 }
             }
 
-            bp($update);
+
             $count++;
         }
 
