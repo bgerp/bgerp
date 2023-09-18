@@ -991,7 +991,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('number', 'sales_Invoices', "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
         $dQuery->where("#stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-        $dQuery->where("#number=557475");
+        $dQuery->where("#number=557704");
 
 
         //$dQuery->show('invoiceId,productId,packagingId,originId,discount,number,price,quantity');
