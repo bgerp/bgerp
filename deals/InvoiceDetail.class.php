@@ -248,7 +248,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId, $applyDiscount);
 
             if($rec->containerId == 9113747){
-                bp($recs, $cached);
+               // bp($recs, $cached);
             }
 
 
