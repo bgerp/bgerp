@@ -988,14 +988,19 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('state', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
         $dQuery->EXT('changeAmount', 'sales_Invoices', "externalName=changeAmount,externalKey=invoiceId");
         $dQuery->where("#clonedFromDetailId IS NULL AND #state != 'rejected' AND #changeAmount IS NULL");
+
+        $r = clone $dQuery;
+
+
+
         $dQuery->limit(1000);
         while($dRec = $dQuery->fetch()){
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
-                $dRecs[$dRec->invoiceId]['originId'] = array('originId' => $dRec->originId, 'recs' => array());
+                $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
             }
-            $dRecs[$dRec->invoiceId]['recs'][] = $dRec;
+            $dRecs[$dRec->invoiceId]['recs'] = $dRec;
         }
 
-        bp($dRecs);
+        bp($r->count, $dRecs);
     }
 }
