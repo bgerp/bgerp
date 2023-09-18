@@ -1055,6 +1055,6 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
 
-        bp(countR($update), countR($notUpdated));
+        bp($iCount, countR($dRecs), countR($update), countR($notUpdated), $notUpdated);
     }
 }
