@@ -990,8 +990,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('stateInv', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
         $dQuery->EXT('number', 'sales_Invoices', "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
-        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-        //$dQuery->where("#number=557704");
+        $dQuery->where("#stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
+        $dQuery->where("#number=557704");
 
         //$dQuery->limit(1000);
 
@@ -1014,7 +1014,7 @@ class sales_Invoices extends deals_InvoiceMaster
 
             ksort($invoiceArr['recs']);
             $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], $applyDiscount);
-
+            bp($cached, $applyDiscount, $invoiceArr['recs']);
             foreach ($invoiceArr['recs'] as $dRec){
                 $foundArr = array_filter($cached->recWithIds, function($a) use ($dRec){
                     return ($a['productId'] == $dRec->productId && $a['packagingId'] == $dRec->packagingId);
