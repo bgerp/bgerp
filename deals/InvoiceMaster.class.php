@@ -1549,9 +1549,14 @@ abstract class deals_InvoiceMaster extends core_Master
             $price = round($price, 5);
             $key1 = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}|{$count}";
             $key2 = "{$dRec->productId}|{$dRec->packagingId}|P{$price}|{$count}";
-
+            $key3 = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}";
+            $key4 = "{$dRec->productId}|{$dRec->packagingId}|P{$price}";
             $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price);
             $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price);
+
+            $cache[$key3] = array('quantity' => $dRec->quantity, 'price' => $price);
+            $cache[$key4] = array('quantity' => $dRec->quantity, 'price' => $price);
+
             $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price);
             if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
                 $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));

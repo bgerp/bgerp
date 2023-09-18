@@ -247,13 +247,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Намираме оригиналните к-ва и цени
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId, $applyDiscount);
 
-            if($rec->containerId == 10173315){
-                bp($cached, $recs);
-            }
+
 
             // За всеки запис ако е променен от оригиналния показваме промяната
             $count = 1;
             foreach ($recs as &$dRec) {
+
                 $price = round($dRec->packPrice, 5);
                 $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}";
                 $priceKey = "{$dRec->productId}|{$dRec->packagingId}|P{$price}";
