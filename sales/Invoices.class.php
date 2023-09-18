@@ -1009,6 +1009,9 @@ class sales_Invoices extends deals_InvoiceMaster
 
             $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], $applyDiscount);
 
+            bp($invoiceArr['recs'], $cached);
+
+
         }
 
 
