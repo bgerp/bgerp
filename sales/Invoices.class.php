@@ -991,7 +991,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('number', 'sales_Invoices', "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
         $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-        $dQuery->show('invoiceId,productId,packagingId,originId,discount,number,price');
+        $dQuery->show('invoiceId,productId,packagingId,originId,discount,number,price,quantity');
         $r = clone $dQuery;
 
         $dQuery->limit(1000);
@@ -1000,6 +1000,7 @@ class sales_Invoices extends deals_InvoiceMaster
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
                 $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
             }
+            $dRec->price = round($dRec->price, 5);
             $dRecs[$dRec->invoiceId]['recs'][$dRec->id] = $dRec;
         }
 
@@ -1023,10 +1024,21 @@ class sales_Invoices extends deals_InvoiceMaster
                 });
 
                 if(countR($foundArr) > 1){
-                    $foundArr1 = array_filter($foundArr, function($a) use ($count){
-                        return $a['count'] == $count;
+                    $foundTotal = array_filter($foundArr, function($a) use ($dRec){
+                        return ($a->price == $dRec->price && $a->quantity = $dRec->quantity);
                     });
-                    $foundKey = key($foundArr1);
+                    if(!countR($foundTotal)){
+                        $foundTotal = array_filter($foundArr, function($a) use ($dRec){
+                            return ($a->price == $dRec->price);
+                        });
+                    }
+                    if(!countR($foundTotal)){
+                        $foundTotal = array_filter($foundArr, function($a) use ($dRec){
+                            return ($a->quantity == $dRec->quantity);
+                        });
+                    }
+
+                    $foundKey = key($foundTotal);
                 } else {
                     $foundKey = key($foundArr);
                 }
