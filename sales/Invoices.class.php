@@ -1025,16 +1025,16 @@ class sales_Invoices extends deals_InvoiceMaster
 
                 if(countR($foundArr) > 1){
                     $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                        return ($a->price == $dRec->price && $a->quantity = $dRec->quantity);
+                        return ($a['price'] == $dRec->price && $a['quantity'] = $dRec->quantity);
                     });
                     if(!countR($foundTotal)){
                         $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                            return ($a->price == $dRec->price);
+                            return ($a['price'] == $dRec->price);
                         });
                     }
                     if(!countR($foundTotal)){
                         $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                            return ($a->quantity == $dRec->quantity);
+                            return ($a['quantity'] == $dRec->quantity);
                         });
                     }
 
