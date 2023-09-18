@@ -1005,6 +1005,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $update = array();
         $Invoices = cls::get('sales_Invoices');
 
+        $iCount = $dQuery->count();
+        core_App::setTimeLimit($iCount * 0.2, false, 300);
         foreach ($dRecs as $invoiceId => $invoiceArr){
             $hasDiscount = false;
             array_walk($invoiceArr['recs'], function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
