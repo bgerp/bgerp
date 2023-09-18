@@ -1051,9 +1051,9 @@ class sales_Invoices extends deals_InvoiceMaster
                 } else {
                     $notUpdated[$dRec->id] = array('number' => $dRec->number, 'count' => $count, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
                 }
-            }
 
-            bp($update, $notUpdated, $cache);
+                bp($update, $notUpdated, $cached);
+            }
         }
 
         $Details = cls::get('sales_InvoiceDetails');
