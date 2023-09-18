@@ -1054,7 +1054,12 @@ class sales_Invoices extends deals_InvoiceMaster
             $count++;
         }
 
+        $Details = cls::get('sales_InvoiceDetails');
+        $Details->saveArray($update, 'id,clonedFromDetailId');
 
-        bp($iCount, countR($dRecs), countR($update), countR($notUpdated), $notUpdated);
+        foreach ($dRecs as $invoiceId => $invoiceArr1){
+            $invoiceRec = $Invoices->fetch($invoiceId);
+            $Invoices->updateMaster($invoiceRec);
+        }
     }
 }
