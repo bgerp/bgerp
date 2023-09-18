@@ -1036,7 +1036,7 @@ class sales_Invoices extends deals_InvoiceMaster
                     $update[$dRec->id] = $dRec;
                     //bp();
                 } else {
-                    $notUpdated[$dRec->id] = array('number' => $dRec->number, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
+                    $notUpdated[$dRec->id] = array('number' => $dRec->number, 'count' => $count, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
                 }
             }
             $count++;
