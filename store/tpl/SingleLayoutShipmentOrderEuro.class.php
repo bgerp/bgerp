@@ -63,7 +63,10 @@ class store_tpl_SingleLayoutShipmentOrderEuro extends doc_TplScript
             
             return;
         }
-        
+
+        if(array_key_exists('packPrice', $data->listFields)){
+
+        }
         arr::placeInAssocArray($data->listFields, 'priceEuro=Ед. цена в EUR', 'packPrice');
         $data->listFields['packPrice'] = 'Ед. цена';
         

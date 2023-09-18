@@ -990,7 +990,9 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('stateInv', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
         $dQuery->EXT('number', 'sales_Invoices', "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
-        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
+        $dQuery->where("#stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
+        $dQuery->where("#number=603023");
+
 
         //$dQuery->show('invoiceId,productId,packagingId,originId,discount,number,price,quantity');
         $r = clone $dQuery;
@@ -1050,6 +1052,8 @@ class sales_Invoices extends deals_InvoiceMaster
                     $notUpdated[$dRec->id] = array('number' => $dRec->number, 'count' => $count, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
                 }
             }
+
+            bp($update, $notUpdated, $cache);
         }
 
         $Details = cls::get('sales_InvoiceDetails');
