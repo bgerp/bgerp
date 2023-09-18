@@ -1025,13 +1025,14 @@ class sales_Invoices extends deals_InvoiceMaster
                 });
 
                 if(countR($foundArr) > 1){
+                    $dRec->packPrice = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
                     $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                        $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
-                        return ($a['price'] == round($price, 5) && $a['quantity'] = $dRec->quantity);
+
+                        return ($a['price'] == round($dRec->packPrice, 5) && $a['quantity'] = $dRec->quantity);
                     });
                     if(!countR($foundTotal)){
                         $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                            return ($a['price'] == $dRec->packPrice);
+                            return ($a['price'] == round($dRec->packPrice, 5));
                         });
                     }
                     if(!countR($foundTotal)){
