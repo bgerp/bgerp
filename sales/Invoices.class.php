@@ -990,8 +990,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('stateInv', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
         $dQuery->EXT('number', 'sales_Invoices', "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
-        $dQuery->where("#stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-        $dQuery->where("#number=557704");
+        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
+        //$dQuery->where("#number=557704");
 
         //$dQuery->limit(1000);
 
@@ -1056,6 +1056,7 @@ class sales_Invoices extends deals_InvoiceMaster
             $Invoices->updateMaster($invoiceRec);
         }
 
+        sales_Invoices::logDebug("RE_INV U:" . countR($update) . "/N:" . countR($notUpdated));
        // bp($update);
     }
 }
