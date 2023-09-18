@@ -1008,13 +1008,10 @@ class sales_Invoices extends deals_InvoiceMaster
         $iCount = $dQuery->count();
         core_App::setTimeLimit($iCount * 0.4, false, 400);
         foreach ($dRecs as $invoiceId => $invoiceArr){
-            $hasDiscount = false;
-            array_walk($invoiceArr['recs'], function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
-            $applyDiscount = !($hasDiscount);
 
             ksort($invoiceArr['recs']);
-            $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], $applyDiscount);
-            bp($cached, $applyDiscount, $invoiceArr['recs']);
+            $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], true);
+
             foreach ($invoiceArr['recs'] as $dRec){
                 $foundArr = array_filter($cached->recWithIds, function($a) use ($dRec){
                     return ($a['productId'] == $dRec->productId && $a['packagingId'] == $dRec->packagingId);
@@ -1050,7 +1047,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 }
             }
         }
-
+        bp($update, $notUpdated);
         $Details = cls::get('sales_InvoiceDetails');
         $Details->saveArray($update, 'id,clonedFromDetailId');
 
