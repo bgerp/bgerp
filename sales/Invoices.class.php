@@ -977,4 +977,22 @@ class sales_Invoices extends deals_InvoiceMaster
 
         return $res;
     }
+
+    function act_Test()
+    {
+        requireRole('debug');
+
+        $dRecs = array();
+        $dQuery = sales_InvoiceDetails::getQuery();
+        $dQuery->EXT('originId', 'sales_Invoices', "externalName=originId,externalKey=invoiceId");
+        $dQuery->EXT('state', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
+        $dQuery->EXT('changeAmount', 'sales_Invoices', "externalName=changeAmount,externalKey=invoiceId");
+        $dQuery->where("#clonedFromDetailId IS NULL AND #state != 'rejected' AND #changeAmount IS NULL");
+        while($dRec = $dQuery->fetch()){
+            $dRecs[$dRec->invoiceId]['originId'] = $dRec->originId;
+            $dRecs[$dRec->invoiceId]['recs'][] = $dRec;
+        }
+
+        bp($dRecs);
+    }
 }
