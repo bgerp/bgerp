@@ -988,12 +988,13 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('state', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
         $dQuery->EXT('changeAmount', 'sales_Invoices', "externalName=changeAmount,externalKey=invoiceId");
         $dQuery->EXT('stateInv', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
+        $dQuery->EXT('number', 'sales_Invoices', "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
         $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-        $dQuery->show('invoiceId,productId,packagingId,originId,discount');
+        $dQuery->show('invoiceId,productId,packagingId,originId,discount,number');
         $r = clone $dQuery;
 
-        $dQuery->limit(5000);
+        $dQuery->limit(1000);
 
         while($dRec = $dQuery->fetch()){
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
@@ -1002,7 +1003,7 @@ class sales_Invoices extends deals_InvoiceMaster
             $dRecs[$dRec->invoiceId]['recs'][$dRec->id] = $dRec;
         }
 
-        $update = array();
+        $update = $notUpdated = array();
         $Invoices = cls::get('sales_Invoices');
 
         $iCount = $dQuery->count();
@@ -1035,15 +1036,13 @@ class sales_Invoices extends deals_InvoiceMaster
                     $update[$dRec->id] = $dRec;
                     //bp();
                 } else {
-                    echo "<pre>";
-                    echo print_r($cached->recWithIds);
-                    echo "</pre>";
+                    $notUpdated[$dRec->id] = array('number' => $dRec->number, 'rec' => $dRec, 'recs' => $cached);
                 }
             }
             $count++;
         }
 
 
-        bp($update);
+        bp(countR($update), $update, countR($notUpdated), $notUpdated);
     }
 }
