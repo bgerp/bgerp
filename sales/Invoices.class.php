@@ -1004,7 +1004,7 @@ class sales_Invoices extends deals_InvoiceMaster
             $hasDiscount = false;
             array_walk($invoiceArr['recs'], function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
             $applyDiscount = !($hasDiscount);
-            p($invoiceArr['recs'], $invoiceArr);
+            bp($invoiceArr['recs'], $invoiceArr);
             $cached = cls::get('sales_Invoices')->getInvoiceDetailedInfo($invoiceArr['originId'], $applyDiscount);
             bp($invoiceArr['recs'], $cached);
         }
