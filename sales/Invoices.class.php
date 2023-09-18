@@ -991,7 +991,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('number', 'sales_Invoices', "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
         $dQuery->where("#stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-        $dQuery->where("#number=557704");
+        //$dQuery->where("#number=557704");
 
 
         //$dQuery->show('invoiceId,productId,packagingId,originId,discount,number,price,quantity');
@@ -1050,7 +1050,7 @@ class sales_Invoices extends deals_InvoiceMaster
                     $dRec->clonedFromDetailId = $foundKey;
                     $update[$dRec->id] = $dRec;
                 } else {
-                    $notUpdated[$dRec->id] = array('number' => $dRec->number, 'count' => $count, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
+                    $notUpdated[$dRec->id] = array('number' => $dRec->number, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
                 }
             }
         }
@@ -1063,6 +1063,6 @@ class sales_Invoices extends deals_InvoiceMaster
             $Invoices->updateMaster($invoiceRec);
         }
 
-        bp($update);
+       // bp($update);
     }
 }
