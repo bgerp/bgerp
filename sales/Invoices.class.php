@@ -1053,7 +1053,7 @@ class sales_Invoices extends deals_InvoiceMaster
                     $notUpdated[$dRec->id] = array('number' => $dRec->number, 'count' => $count, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
                 }
 
-                //bp($update, $notUpdated, $cached);
+                bp($update, $notUpdated, $cached);
             }
         }
 
