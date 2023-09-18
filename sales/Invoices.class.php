@@ -990,7 +990,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('stateInv', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
         $dQuery->EXT('number', 'sales_Invoices', "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
-        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
+        $dQuery->where("#stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
+        $dQuery->where("#number = '648360'");
         //$dQuery->show('invoiceId,productId,packagingId,originId,discount,number,price,quantity');
         $r = clone $dQuery;
 
@@ -1000,7 +1001,6 @@ class sales_Invoices extends deals_InvoiceMaster
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
                 $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
             }
-            $dRec->packPrice = round($dRec->packPrice, 5);
             $dRecs[$dRec->invoiceId]['recs'][$dRec->id] = $dRec;
         }
 
@@ -1025,7 +1025,8 @@ class sales_Invoices extends deals_InvoiceMaster
 
                 if(countR($foundArr) > 1){
                     $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                        return ($a['price'] == $dRec->packPrice && $a['quantity'] = $dRec->quantity);
+                        $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
+                        return ($a['price'] == round($price, 5) && $a['quantity'] = $dRec->quantity);
                     });
                     if(!countR($foundTotal)){
                         $foundTotal = array_filter($foundArr, function($a) use ($dRec){
@@ -1051,6 +1052,8 @@ class sales_Invoices extends deals_InvoiceMaster
                     $notUpdated[$dRec->id] = array('number' => $dRec->number, 'count' => $count, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
                 }
             }
+
+            bp($update);
             $count++;
         }
 
