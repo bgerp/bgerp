@@ -994,7 +994,7 @@ class sales_Invoices extends deals_InvoiceMaster
         //$dQuery->show('invoiceId,productId,packagingId,originId,discount,number,price,quantity');
         $r = clone $dQuery;
 
-        $dQuery->limit(1000);
+        //$dQuery->limit(1000);
 
         while($dRec = $dQuery->fetch()){
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
@@ -1055,6 +1055,6 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
 
-        bp(countR($update), $update, countR($notUpdated), $notUpdated);
+        bp(countR($update), countR($notUpdated));
     }
 }
