@@ -989,32 +989,59 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('changeAmount', 'sales_Invoices', "externalName=changeAmount,externalKey=invoiceId");
         $dQuery->EXT('stateInv', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
-        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv != 'rejected' AND #changeAmount IS NULL AND #type = 'dc_note'");
-
+        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
+        $dQuery->show('invoiceId,productId,packagingId,originId,discount');
         $r = clone $dQuery;
 
-        $dQuery->limit(1000);
+        $dQuery->limit(5000);
+
         while($dRec = $dQuery->fetch()){
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
                 $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
             }
-            $dRecs[$dRec->invoiceId]['recs'][] = $dRec;
+            $dRecs[$dRec->invoiceId]['recs'][$dRec->id] = $dRec;
         }
 
+        $update = array();
         $Invoices = cls::get('sales_Invoices');
+
         foreach ($dRecs as $invoiceId => $invoiceArr){
             $hasDiscount = false;
             array_walk($invoiceArr['recs'], function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
             $applyDiscount = !($hasDiscount);
 
+            ksort($invoiceArr['recs']);
             $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], $applyDiscount);
 
-            bp($invoiceArr['recs'], $cached);
+            $count = 1;
+            foreach ($invoiceArr['recs'] as $dRec){
+                $foundArr = array_filter($cached->recWithIds, function($a) use ($dRec){
+                    return ($a['productId'] == $dRec->productId && $a['packagingId'] == $dRec->packagingId);
+                });
 
+                if(countR($foundArr) > 1){
+                    $foundArr1 = array_filter($foundArr, function($a) use ($count){
+                        return $a['count'] == $count;
+                    });
+                    $foundKey = key($foundArr1);
+                } else {
+                    $foundKey = key($foundArr);
+                }
 
+                if(isset($foundKey)){
+                    $dRec->clonedFromDetailId = $foundKey;
+                    $update[$dRec->id] = $dRec;
+                    //bp();
+                } else {
+                    echo "<pre>";
+                    echo print_r($cached->recWithIds);
+                    echo "</pre>";
+                }
+            }
+            $count++;
         }
 
 
-        bp($r->count(), $dRecs);
+        bp($update);
     }
 }
