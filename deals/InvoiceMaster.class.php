@@ -1539,6 +1539,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
         $query->orderBy('id', 'ASC');
 
+        $count = 1;
         while ($dRec = $query->fetch()) {
             if($applyDiscount){
                 $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
@@ -1546,8 +1547,8 @@ abstract class deals_InvoiceMaster extends core_Master
                 $price = $dRec->packPrice;
             }
             $price = round($price, 5);
-            $key1 = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}";
-            $key2 = "{$dRec->productId}|{$dRec->packagingId}|P{$price}";
+            $key1 = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}|{$count}";
+            $key2 = "{$dRec->productId}|{$dRec->packagingId}|P{$price}|{$count}";
 
             $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price);
             $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price);
@@ -1557,6 +1558,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             $vats[$v] = $v;
+            $count++;
         }
 
         if (!countR($cache)) {
