@@ -991,8 +991,6 @@ class sales_Invoices extends deals_InvoiceMaster
 
         $r = clone $dQuery;
 
-
-
         $dQuery->limit(1000);
         while($dRec = $dQuery->fetch()){
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
@@ -1000,6 +998,16 @@ class sales_Invoices extends deals_InvoiceMaster
             }
             $dRecs[$dRec->invoiceId]['recs'][] = $dRec;
         }
+
+        foreach ($dRecs as $invoiceId => $invoiceArr){
+            $hasDiscount = false;
+            array_walk($invoiceArr['recs'], function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
+            $applyDiscount = !($hasDiscount);
+
+            $cached = cls::get('sales_Invoices')->getInvoiceDetailedInfo($invoiceArr['originId'], $applyDiscount);
+            bp($invoiceArr['recs'], $cached);
+        }
+
 
         bp($r->count(), $dRecs);
     }
