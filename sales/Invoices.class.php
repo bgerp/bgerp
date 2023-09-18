@@ -987,7 +987,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('originId', 'sales_Invoices', "externalName=originId,externalKey=invoiceId");
         $dQuery->EXT('state', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
         $dQuery->EXT('changeAmount', 'sales_Invoices', "externalName=changeAmount,externalKey=invoiceId");
-        $dQuery->where("#clonedFromDetailId IS NULL AND #state != 'rejected' AND #changeAmount IS NULL");
+        $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
+        $dQuery->where("#clonedFromDetailId IS NULL AND #state != 'rejected' AND #changeAmount IS NULL AND #type = 'dc_note'");
 
         $r = clone $dQuery;
 
@@ -1003,7 +1004,7 @@ class sales_Invoices extends deals_InvoiceMaster
             $hasDiscount = false;
             array_walk($invoiceArr['recs'], function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
             $applyDiscount = !($hasDiscount);
-
+            p($invoiceArr['recs'], $invoiceArr);
             $cached = cls::get('sales_Invoices')->getInvoiceDetailedInfo($invoiceArr['originId'], $applyDiscount);
             bp($invoiceArr['recs'], $cached);
         }
