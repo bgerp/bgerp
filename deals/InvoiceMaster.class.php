@@ -1529,7 +1529,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public function getInvoiceDetailedInfo($containerId, $applyDiscount = false)
     {
         expect($document = doc_Containers::getDocument($containerId));
-        expect($document->isInstanceOf($this));
+        expect($document->isInstanceOf($this), $document->className, $this->className);
 
         $cache = $vats = $cacheIds = array();
         $Detail = $this->mainDetail;
