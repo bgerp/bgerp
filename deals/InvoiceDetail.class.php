@@ -247,6 +247,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Намираме оригиналните к-ва и цени
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId, $applyDiscount);
 
+            if($rec->containerId == 9113747){
+                bp($recs, $cached);
+            }
+
+
             // За всеки запис ако е променен от оригиналния показваме промяната
             foreach ($recs as &$dRec) {
                 if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
