@@ -990,8 +990,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $dQuery->EXT('stateInv', 'sales_Invoices', "externalName=state,externalKey=invoiceId");
         $dQuery->EXT('number', 'sales_Invoices', "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', 'sales_Invoices', "externalName=type,externalKey=invoiceId");
-        $dQuery->where("#stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-        $dQuery->where("#number = '648360'");
+        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
+
         //$dQuery->show('invoiceId,productId,packagingId,originId,discount,number,price,quantity');
         $r = clone $dQuery;
 
@@ -1008,7 +1008,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $Invoices = cls::get('sales_Invoices');
 
         $iCount = $dQuery->count();
-        core_App::setTimeLimit($iCount * 0.2, false, 300);
+        core_App::setTimeLimit($iCount * 0.4, false, 400);
         foreach ($dRecs as $invoiceId => $invoiceArr){
             $hasDiscount = false;
             array_walk($invoiceArr['recs'], function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
@@ -1017,7 +1017,6 @@ class sales_Invoices extends deals_InvoiceMaster
             ksort($invoiceArr['recs']);
             $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], $applyDiscount);
 
-            $count = 1;
             foreach ($invoiceArr['recs'] as $dRec){
                 $foundArr = array_filter($cached->recWithIds, function($a) use ($dRec){
                     return ($a['productId'] == $dRec->productId && $a['packagingId'] == $dRec->packagingId);
@@ -1047,14 +1046,10 @@ class sales_Invoices extends deals_InvoiceMaster
                 if(isset($foundKey)){
                     $dRec->clonedFromDetailId = $foundKey;
                     $update[$dRec->id] = $dRec;
-                    //bp();
                 } else {
                     $notUpdated[$dRec->id] = array('number' => $dRec->number, 'count' => $count, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
                 }
             }
-
-
-            $count++;
         }
 
         $Details = cls::get('sales_InvoiceDetails');
