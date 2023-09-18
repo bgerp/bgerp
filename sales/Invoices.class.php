@@ -1000,7 +1000,7 @@ class sales_Invoices extends deals_InvoiceMaster
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
                 $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
             }
-            $dRec->price = round($dRec->price, 5);
+            $dRec->packPrice = round($dRec->packPrice, 5);
             $dRecs[$dRec->invoiceId]['recs'][$dRec->id] = $dRec;
         }
 
@@ -1025,11 +1025,11 @@ class sales_Invoices extends deals_InvoiceMaster
 
                 if(countR($foundArr) > 1){
                     $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                        return ($a['price'] == $dRec->price && $a['quantity'] = $dRec->quantity);
+                        return ($a['price'] == $dRec->packPrice && $a['quantity'] = $dRec->quantity);
                     });
                     if(!countR($foundTotal)){
                         $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                            return ($a['price'] == $dRec->price);
+                            return ($a['price'] == $dRec->packPrice);
                         });
                     }
                     if(!countR($foundTotal)){
