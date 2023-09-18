@@ -1008,7 +1008,7 @@ class sales_Invoices extends deals_InvoiceMaster
             $applyDiscount = !($hasDiscount);
 
             $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], $applyDiscount);
-            bp($invoiceArr['recs'], $cached);
+
         }
 
 
