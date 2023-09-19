@@ -549,7 +549,8 @@ class eshop_ProductDetails extends core_Detail
         }
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if (isset($settings->inStockStores) && $canStore == 'yes' && !$stopSale) {
+
+        if (countR($settings->inStockStores) && $canStore == 'yes' && !$stopSale) {
             $quantity = store_Products::getQuantities($rec->productId, $settings->inStockStores)->free;
             $quantityInRemote = 0;
             if(!empty($settings->remoteStores)) {

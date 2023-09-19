@@ -249,4 +249,36 @@ abstract class deals_ManifactureMaster extends core_Master
         }
         $data->form->toolbar->setBtnOrder('btnPending', 10);
     }
+
+
+    /**
+     * Дали документа може да бъде възстановен/оттеглен/контиран, ако в транзакцията му има
+     * поне едно затворено перо връща FALSE
+     */
+    protected static function on_AfterCanRejectOrRestore($mvc, &$res, $id, $action, $ignoreArr = array())
+    {
+        $rec = $mvc->fetchRec($id);
+        $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+        if(is_object($firstDocument)){
+            if($action == 'conto'){
+                if($firstDocument->isInstanceOf('planning_Tasks')){
+                    $state = $firstDocument->fetchField('state');
+                    if($state == 'closed'){
+                        if(!planning_Tasks::isProductionAfterClosureAllowed($firstDocument->that, core_Users::getCurrent())){
+                            $msg = "Документът не може да бъде контиран, защото операцията е приключена|*!";
+                            core_Statuses::newStatus($msg, 'error');
+                            $res = false;
+                        }
+                    }
+                }
+            } elseif($firstDocument->isInstanceOf('planning_Jobs') || $firstDocument->isInstanceOf('planning_Tasks')){
+                $state = $firstDocument->fetchField('state');
+                if($state == 'closed'){
+                    $msg = "Документът не може да бъде оттеглен/възстановен, докато първият документ в нишката е затворен|*!";
+                    core_Statuses::newStatus($msg, 'error');
+                    $res = false;
+                }
+            }
+        }
+    }
 }

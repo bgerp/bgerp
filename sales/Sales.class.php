@@ -1988,8 +1988,6 @@ class sales_Sales extends deals_DealMaster
     {
         if (is_array($recs)) {
             foreach ($recs as &$rec) {
-                $id = $rec->id;
-                $rec->id = self::getRecTitle($rec, false);
                 foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced') as $amnt) {
                     if (round($rec->{"amount{$amnt}"}, 2) != 0) {
                         $rec->currencyRate = ($rec->currencyRate) ? $rec->currencyRate : 1;
@@ -2004,7 +2002,7 @@ class sales_Sales extends deals_DealMaster
                     $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
                 }
 
-                if($cartRec = eshop_Carts::fetch("#saleId = {$id}")){
+                if($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}")){
                     $rec->tel = $cartRec->tel;
                     $rec->email = $cartRec->email;
                     $rec->cartId = $cartRec->id;

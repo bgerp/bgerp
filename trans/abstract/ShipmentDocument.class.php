@@ -104,7 +104,7 @@ abstract class trans_abstract_ShipmentDocument extends core_Master
 
 
     /**
-     * Документа не може да бъде начало на нишка; може да се създава само в съществуващи нишки
+     * Документът не може да бъде начало на нишка; може да се създава само в съществуващи нишки
      */
     public static function canAddToFolder($folderId)
     {

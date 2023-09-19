@@ -260,6 +260,9 @@ class planning_interface_ProductionNoteImpl
                 if(!empty($saleRec->reff)){
                     $res["SALE_REFF"] = core_Type::getByName('varchar')->toVerbal($saleRec->reff);
                 }
+                if(!empty($saleRec->deliveryLocationId)){
+                    $res["LOCATION_ID"] = crm_Locations::getTitleById($saleRec->deliveryLocationId);
+                }
             }
 
             if(isset($batch)){
@@ -289,7 +292,7 @@ class planning_interface_ProductionNoteImpl
             
             $arr[] = $res;
         }
-        
+
         $resArr[$key] = $arr;
 
         return $resArr[$key];

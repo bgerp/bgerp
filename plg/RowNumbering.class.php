@@ -66,7 +66,8 @@ class plg_RowNumbering extends core_Plugin
                 if ($data->rows[$id]->RowNumb instanceof core_Et) {
                     $data->rows[$id]->RowNumb->append($number, 'ROWTOOLS_CAPTION');
                 } else {
-                    $data->rows[$id]->RowNumb .= "<span class='detailNumbering'>${number}</span>";
+                    $title = haveRole('debug') ? "title = '{$id}'" : '';
+                    $data->rows[$id]->RowNumb .= "<span class='detailNumbering' {$title}>${number}</span>";
                 }
                 
                 $rec = $data->recs[$id];

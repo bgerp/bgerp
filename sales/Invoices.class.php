@@ -585,11 +585,15 @@ class sales_Invoices extends deals_InvoiceMaster
                 
                 $row->bic = $Varchar->toVerbal($ownAcc->bic);
             }
-            
+
+            $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
             if(empty($rec->number)){
-                $row->number = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
-                $row->number = "<span style='color:blue;'>{$row->number}</span>";
+                $row->number = "<span style='color:blue;'>{$displayRange}</span>";
                 $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
+            } else {
+                if(haveRole('debug')){
+                    $row->number = ht::createElement("span", array('title' => "ID: {$rec->id} / D: {$displayRange} [{$rec->numlimit}]"), $row->number);
+                }
             }
 
             // Показване на допълнителните условия от банковата сметка

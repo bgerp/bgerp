@@ -665,7 +665,7 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
-     * Документа не може да бъде начало на нишка; може да се създава само в съществуващи нишки
+     * Документът не може да бъде начало на нишка; може да се създава само в съществуващи нишки
      */
     public static function canAddToFolder($folderId)
     {
@@ -1030,8 +1030,8 @@ abstract class store_DocumentMaster extends core_Master
             
             $dRec->quantity /= $dRec->quantityInPack;
             if (!($forMvc instanceof sales_Proformas)) {
-                $dRec->price -= $dRec->price * $dRec->discount;
-                unset($dRec->discount);
+                //$dRec->price -= $dRec->price * $dRec->discount;
+                //unset($dRec->discount);
             }
             unset($dRec->id);
             unset($dRec->shipmentId);

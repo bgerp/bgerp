@@ -1283,6 +1283,9 @@ div.tab-control.deal-history-tab .tab-row .tab {
   top: 0 !important;
   padding: 5px !important; }
 
+div.tab-control.alphabet div.tab-row .ef-drag-scroll .tab.selected {
+  box-shadow: none !important; }
+
 @media handheld,
 only screen and (max-width: 800px) {
   .narrow  .sidemenu-push-toleft#main-container {

@@ -568,7 +568,7 @@ class eshop_Carts extends core_Master
             }
             
             // Дигане на флаг ако има артикули очакващи доставка
-            if($rec->haveProductsWithExpectedDelivery != 'yes' && isset($settings->inStockStores) && $dRec->canStore == 'yes'){
+            if($rec->haveProductsWithExpectedDelivery != 'yes' && countR($settings->inStockStores) && $dRec->canStore == 'yes'){
                 $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->inStockStores)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
@@ -940,6 +940,7 @@ class eshop_Carts extends core_Master
         $notes .= tr('Имейл|*: ') . "{$rec->email}";
 
         // Дефолтни данни на продажбата
+        setIfNot($defaultStoreId, $settings->defaultStoreId, $settings->storeId);
         $fields = array('valior' => dt::today(),
             'template' => $templateId,
             'deliveryTermId' => $rec->termId,
@@ -948,7 +949,8 @@ class eshop_Carts extends core_Master
             'makeInvoice' => ($rec->makeInvoice == 'none') ? 'no' : 'yes',
             'chargeVat' => static::calcChargeVat($rec),
             'currencyId' => $settings->currencyId,
-            'shipmentStoreId' => $settings->storeId,
+            'shipmentStoreId' => $defaultStoreId,
+            'caseId' => $settings->defaultCaseId,
             'deliveryLocationId' => $rec->locationId,
             'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,

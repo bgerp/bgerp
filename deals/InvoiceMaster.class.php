@@ -306,16 +306,16 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $Detail->calculateAmount($recs, $rec);
         $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        
+
         $rec->dealValue = $this->_total->amount * $rate;
         $rec->vatAmount = $this->_total->vat * $rate;
         $rec->discountAmount = $this->_total->discount * $rate;
-        
+
         if ($save === true) {
             return $this->save($rec);
         }
     }
-    
+
     
     /**
      * След подготовката на заглавието на формата
@@ -420,7 +420,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
         
-        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible');
+        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible', 'numlimit');
         if ($this instanceof purchase_Invoices) {
             $unsetArr[] = 'journalDate';
         }
@@ -1527,7 +1527,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public function getInvoiceDetailedInfo($containerId, $applyDiscount = false)
     {
         expect($document = doc_Containers::getDocument($containerId));
-        expect($document->isInstanceOf($this));
+        expect($document->isInstanceOf($this), $document->className, $this->className);
 
         $cache = $vats = $cacheIds = array();
         $Detail = $this->mainDetail;
@@ -1537,24 +1537,31 @@ abstract class deals_InvoiceMaster extends core_Master
         $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
         $query->orderBy('id', 'ASC');
 
+        $count = 1;
         while ($dRec = $query->fetch()) {
             if($applyDiscount){
                 $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
             } else {
                 $price = $dRec->packPrice;
             }
-            $price = deals_Helper::roundPrice($price);
-            $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
-            $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
-
+            $price = round($price, 5);
+            $key1 = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}|{$count}";
+            $key2 = "{$dRec->productId}|{$dRec->packagingId}|P{$price}|{$count}";
+            $key3 = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}";
+            $key4 = "{$dRec->productId}|{$dRec->packagingId}|P{$price}";
             $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price);
             $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price);
-            $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price);
+
+            $cache[$key3] = array('quantity' => $dRec->quantity, 'price' => $price);
+            $cache[$key4] = array('quantity' => $dRec->quantity, 'price' => $price);
+
+            $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price, 'count' => $count, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
             if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
                 $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
             }
 
             $vats[$v] = $v;
+            $count++;
         }
 
         if (!countR($cache)) {
