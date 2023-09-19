@@ -5293,35 +5293,36 @@ Experta.prototype.saveBodyId = function() {
  * return firstTime, refresh, ajaxRefresh
  */
 function getHitState(bodyId) {
-    var res;
-    if (typeof sessionStorage == "undefined") return 'firstTime';
+    if (typeof sessionStorage == "undefined") {
 
-    if(typeof (this.state) === 'undefined') {
-        if(typeof (bodyId) === 'undefined') {
-            var bodyId = $('body').attr('id');
-        }
-
-        if (!bodyId) return 'firstTime';
-        var bodyIds = sessionStorage.getItem('bodyIdHit');
-
-        if (typeof (bodyIds) !== 'undefined' && bodyIds) {
-            bodyIds = JSON.parse(bodyIds);
-            if(bodyIds[bodyId]) {
-                this.state = bodyIds[bodyId];
-                return this.state;
-            }
-        } else {
-            bodyIds = {};
-        }
-        res = 'firstTime';
-        this.state = 'firstTime';
-        bodyIds[bodyId] = 'refresh';
-
-        sessionStorage.setItem('bodyIdHit',  JSON.stringify(bodyIds));
-    } else {
-        res = this.state;
+        return 'firstTime';
     }
-    return res;
+
+    if(typeof (bodyId) === 'undefined') {
+        var bodyId = $('body').attr('id');
+    }
+
+    if (!bodyId) {
+
+        return 'firstTime'
+    }
+
+    var bodyIds = sessionStorage.getItem('bodyIdHit');
+
+    if (typeof (bodyIds) !== 'undefined' && bodyIds) {
+        bodyIds = JSON.parse(bodyIds);
+        if(bodyIds[bodyId]) {
+
+            return bodyIds[bodyId];
+        }
+    } else {
+        bodyIds = {};
+    }
+    bodyIds[bodyId] = 'refresh';
+
+    sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
+
+    return 'firstTime';
 }
 
 
@@ -5412,9 +5413,14 @@ Experta.prototype.reloadFormData = function() {
  * Добавя ивент, който да кара страницата да се презарежда, ако условиет е изпълнено
  */
 function reloadOnPageShow() {
+
 	getEO().addEvent(window, 'pageshow', function() {
         if (getEO().checkBodyId()) {
         	location.reload();
+        }
+
+        if (typeof forceReloadAfterBack != 'undefined' && forceReloadAfterBack) {
+            getEO().saveBodyId();
         }
 
         // Заместваме данните от формата с предишно избраната стойност
@@ -5885,9 +5891,9 @@ $.fn.isInViewport = function() {
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
 function focusOnce(id) {
-    getEO().checkBodyId();
+    var state = getEO().checkBodyId();
 
-    if(this.state && this.state == 'firstTime' && $(id).isInViewport && $(id).isInViewport()) {
+    if(state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
         $(id).focus();
     }
 }

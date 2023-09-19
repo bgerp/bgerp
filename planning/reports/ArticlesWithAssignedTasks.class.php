@@ -556,6 +556,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+
+        $tpl->appendOnce('var forceReloadAfterBack = true;', 'SCRIPTS');
     }
     
     

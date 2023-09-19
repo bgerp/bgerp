@@ -337,4 +337,87 @@ class deals_Setup extends core_ProtoSetup
             }
         }
     }
+
+
+    /**
+     * Миграция на КИ/ДИ разбити по артикули
+     * @todo да се премахне след рилийз
+     *
+     * @param mixed $Master
+     * @param mixed $Detail
+     * @return void
+     */
+    public function migrateDcNotes($Master, $Detail)
+    {
+        $Invoices = cls::get($Master);
+        $Details = cls::get($Detail);
+
+        $dRecs = array();
+        $dQuery = $Details->getQuery();
+        $dQuery->EXT('originId', $Invoices->className, "externalName=originId,externalKey=invoiceId");
+        $dQuery->EXT('state', $Invoices->className, "externalName=state,externalKey=invoiceId");
+        $dQuery->EXT('changeAmount', $Invoices->className, "externalName=changeAmount,externalKey=invoiceId");
+        $dQuery->EXT('stateInv', $Invoices->className, "externalName=state,externalKey=invoiceId");
+        $dQuery->EXT('number', $Invoices->className, "externalName=number,externalKey=invoiceId");
+        $dQuery->EXT('type', $Invoices->className, "externalName=type,externalKey=invoiceId");
+        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
+
+        while($dRec = $dQuery->fetch()){
+            if(!array_key_exists($dRec->invoiceId, $dRecs)){
+                $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
+            }
+            $dRecs[$dRec->invoiceId]['recs'][$dRec->id] = $dRec;
+        }
+
+        $update = $notUpdated = array();
+        $iCount = $dQuery->count();
+        core_App::setTimeLimit($iCount * 0.4, false, 400);
+        foreach ($dRecs as $invoiceId => $invoiceArr){
+
+            ksort($invoiceArr['recs']);
+            $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], true);
+
+            foreach ($invoiceArr['recs'] as $dRec){
+                $foundArr = array_filter($cached->recWithIds, function($a) use ($dRec){
+                    return ($a['productId'] == $dRec->productId && $a['packagingId'] == $dRec->packagingId);
+                });
+
+                if(countR($foundArr) > 1){
+                    $dRec->packPrice = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
+                    $foundTotal = array_filter($foundArr, function($a) use ($dRec){
+
+                        return ($a['price'] == round($dRec->packPrice, 5) && $a['quantity'] = $dRec->quantity);
+                    });
+                    if(!countR($foundTotal)){
+                        $foundTotal = array_filter($foundArr, function($a) use ($dRec){
+                            return ($a['price'] == round($dRec->packPrice, 5));
+                        });
+                    }
+                    if(!countR($foundTotal)){
+                        $foundTotal = array_filter($foundArr, function($a) use ($dRec){
+                            return ($a['quantity'] == $dRec->quantity);
+                        });
+                    }
+
+                    $foundKey = key($foundTotal);
+                } else {
+                    $foundKey = key($foundArr);
+                }
+
+                if(isset($foundKey)){
+                    $dRec->clonedFromDetailId = $foundKey;
+                    $update[$dRec->id] = $dRec;
+                } else {
+                    $notUpdated[$dRec->id] = array('number' => $dRec->number, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
+                }
+            }
+        }
+
+        $Details->saveArray($update, 'id,clonedFromDetailId');
+        foreach ($dRecs as $invoiceId => $invoiceArr1){
+            $invoiceRec = $Invoices->fetch($invoiceId);
+            $Invoices->updateMaster($invoiceRec);
+        }
+        $Invoices->logDebug("RE_INV U:" . countR($update) . "/N:" . countR($notUpdated));
+    }
 }
