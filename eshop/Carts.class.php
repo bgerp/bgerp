@@ -1035,7 +1035,7 @@ class eshop_Carts extends core_Master
             eshop_Carts::logDebug("Продажбата #Sal{$saleId} към онлайн поръчка, става на заявка", $rec->id);
         }
         
-        //self::activate($rec, $saleRec->id);
+        self::activate($rec, $saleRec->id);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
         if ($sendEmailIfNecessary === true) {
