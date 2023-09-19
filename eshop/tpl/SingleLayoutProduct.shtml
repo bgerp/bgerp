@@ -58,7 +58,12 @@
                <td>[#image5#]</td>
             </tr>
             <!--ET_END image5-->
-            
+
+             <tr>
+                 <td class="title-style" style='width:150px'>|Основна илюстрация|* 5:</td>
+                 <td>[#howToSelectMainImage#]</td>
+             </tr>
+
             <!--ET_BEGIN saleState-->
             <tr>
                <td class="title-style" style='width:150px'>|Тип|*:</td>

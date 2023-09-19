@@ -152,6 +152,12 @@ defIfNot('ESHOP_AUTO_EXPORT_SALE_CSV_DIR', '');
 
 
 /**
+ * Показване на основната илюстрация в онлайн магазина
+ */
+defIfNot('ESHOP_PRODUCT_IMG_LOGIC', 'rotation');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -254,6 +260,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL' => array('time', 'caption=Изтриване на любимите артикули на нерегистрирани потребители->Време'),
         'ESHOP_REMOVE_PRODUCTS_WITH_ENDED_SALES_DELAY' => array('time', 'caption=Премахване на артикули от Е-маг след изтичане на онлайн продажбата->Премахване след'),
         'ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES' => array('enum(yes=Да,no=Не)', 'caption=Показване на колоната за опаковката в Е-маг ако са само услуги->Избор'),
+        'ESHOP_PRODUCT_IMG_LOGIC' => array('enum(rotation=Ротация на илюстрациите,first=Първата илюстрация)', 'caption=Как се определя основната илюстрация на артикула при показване в Е-маг->Избор'),
     );
     
     

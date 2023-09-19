@@ -149,7 +149,7 @@ class eshop_Products extends core_Master
         $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (3),column=none,hint=препоръчително квадрат поне 600х600px");
         $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (4),column=none,hint=препоръчително квадрат поне 600х600px");
         $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (5),column=none,hint=препоръчително квадрат поне 600х600px");
-        $this->FLD('howToSelectMainImage', 'enum(auto=Автоматично,first=Винаги първата илюстрация)', 'caption=Основна илюстрация,notNull,value=auto');
+        $this->FLD('howToSelectMainImage', 'enum(auto=Автоматично,first=Първата илюстрация,rotation=Ротация на илюстрациите)', 'caption=Основна илюстрация,notNull,value=auto');
 
         // В кои групи участва продукта
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Групи->Основна,mandatory,silent,refreshForm');
@@ -381,6 +381,12 @@ class eshop_Products extends core_Master
                     }
                 }
             }
+
+            if($rec->howToSelectMainImage == 'auto'){
+                $howToSelectMainImage = eshop_Setup::get('PRODUCT_IMG_LOGIC');
+                $row->howToSelectMainImage = $mvc->getFieldType('howToSelectMainImage')->toVerbal($howToSelectMainImage);
+                $row->howToSelectMainImage = ht::createHint("<i style='color:blue'>{$row->howToSelectMainImage}</i>", 'Автоматично от настройките на пакета', 'notice', false);
+            }
         }
         
         if (isset($fields['-list'])) {
@@ -582,7 +588,8 @@ class eshop_Products extends core_Master
         }
         
         if (countR($imageArr)) {
-            if($rec->howToSelectMainImage == 'auto'){
+            $howToSelectMainImage = ($rec->howToSelectMainImage == 'auto') ? eshop_Setup::get('PRODUCT_IMG_LOGIC') : $rec->howToSelectMainImage;
+            if($howToSelectMainImage == 'rotation'){
                 $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
             } else {
                 $tact = key($imageArr);
