@@ -466,7 +466,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
         'migrate::recontoDeals2520',
-        'migrate::migrateDpNotes3823',
+        'migrate::migrateDpNotes3823v2',
     );
     
     
@@ -666,7 +666,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Миграция на КИ/ДИ
      */
-    public function migrateDpNotes3823()
+    public function migrateDpNotes3823v2()
     {
         cls::get('deals_Setup')->migrateDcNotes('sales_Invoices', 'sales_InvoiceDetails');
     }
