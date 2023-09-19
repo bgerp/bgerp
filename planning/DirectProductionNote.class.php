@@ -734,9 +734,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 if (isset($rec)) {
 
                     // Ако няма материали и отпадъци или всички материали са чужди от ПОП - ще може да се контира бездетайлно
-                    $hasNotOutsourced = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes'");
-                    $hasPoped = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop'");
-                    $hasInputed = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input'");
+                    $hasNotOutsourced = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes' AND #quantity != 0");
+                    $hasPoped = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop' AND #quantity != 0");
+                    $hasInputed = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #quantity != 0");
                     if ($hasNotOutsourced || (!$hasInputed && $hasPoped)) {
                         $requiredRoles = 'no_one';
                     }
