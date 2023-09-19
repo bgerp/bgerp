@@ -239,7 +239,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
         arr::sortObjects($recs, 'id', 'ASC');
 
         if (countR($recs)) {
-
             $hasDiscount = false;
             array_walk($recs, function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
             $applyDiscount = !($hasDiscount);
@@ -249,14 +248,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
             // За всеки запис ако е променен от оригиналния показваме промяната
             foreach ($recs as &$dRec) {
-                $price = deals_Helper::roundPrice($dRec->packPrice);
-                $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}";
-                $priceKey = "{$dRec->productId}|{$dRec->packagingId}|P{$price}";
-
-                if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
-
-                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($quantityKey, $cached->recs)){
-                    $quantityArr = is_array($cached->recWithIds[$dRec->clonedFromDetailId]) ? $cached->recWithIds[$dRec->clonedFromDetailId] : $cached->recs[$quantityKey];
+                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
+                    $quantityArr = $cached->recWithIds[$dRec->clonedFromDetailId];
                     $originPrice = deals_Helper::getDisplayPrice($quantityArr['price'], 0, 1, 'no', 5);
                     $diffPrice = $dRec->packPrice - $originPrice;
 
@@ -272,8 +265,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     }
                 }
 
-                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($priceKey, $cached->recs)){
-                    $priceArr = is_array($cached->recWithIds[$dRec->clonedFromDetailId]) ? $cached->recWithIds[$dRec->clonedFromDetailId] : $cached->recs[$priceKey];
+                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
+                    $priceArr = $cached->recWithIds[$dRec->clonedFromDetailId];
 
                     $diffQuantity = $dRec->quantity - $priceArr['quantity'];
                     if (round($diffQuantity, 5) != 0) {
@@ -665,16 +658,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if ($masterRec->type === 'dc_note') {
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
 
-                    if(isset($rec->clonedFromDetailId)){
-                        $changedPriceAndQuantity = false;
-                        if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && deals_Helper::roundPrice($rec->packPrice) != deals_Helper::roundPrice($cache->recWithIds[$rec->clonedFromDetailId]['price'])){
-                            $changedPriceAndQuantity = true;
-                        }
-                    } else {
-                        $roundPrice = deals_Helper::roundPrice($rec->packPrice);
-                        $quantityKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|Q{$rec->quantity}";
-                        $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$roundPrice}";
-                        $changedPriceAndQuantity = !array_key_exists($quantityKey, $cache->recs) && !array_key_exists($priceKey, $cache->recs);
+                    $changedPriceAndQuantity = false;
+                    if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && deals_Helper::roundPrice($rec->packPrice) != deals_Helper::roundPrice($cache->recWithIds[$rec->clonedFromDetailId]['price'])){
+                        $changedPriceAndQuantity = true;
                     }
 
                     if($changedPriceAndQuantity) {

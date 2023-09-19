@@ -146,6 +146,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_Quotations',
         'purchase_QuotationDetails',
         'migrate::recontoDeals2520v2',
+        'migrate::migrateDpNotes3823',
     );
     
     
@@ -247,5 +248,14 @@ class purchase_Setup extends core_ProtoSetup
     {
         if(core_Packs::isMigrationDone('purchase', 'recalcCurrencyPurchases1115')) return;
         cls::get('purchase_Purchases')->recalcDocumentsWithDealCurrencyRate();
+    }
+
+
+    /**
+     * Миграция на КИ/ДИ
+     */
+    public function migrateDpNotes3823()
+    {
+        cls::get('deals_Setup')->migrateDcNotes('purchase_Invoices', 'purchase_InvoiceDetails');
     }
 }
