@@ -1981,10 +1981,4 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $fieldset->setFieldType('dealValueWithoutDiscount', 'double');
     }
-
-
-    function act_Test()
-    {
-        cls::get('sales_Setup')->migrateDpNotes3823();
-    }
 }

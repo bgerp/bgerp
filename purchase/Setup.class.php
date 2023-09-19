@@ -146,7 +146,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_Quotations',
         'purchase_QuotationDetails',
         'migrate::recontoDeals2520v2',
-        'migrate::migrateDpNotes3823',
+        'migrate::migrateDpNotes3823v2',
     );
     
     
@@ -254,7 +254,7 @@ class purchase_Setup extends core_ProtoSetup
     /**
      * Миграция на КИ/ДИ
      */
-    public function migrateDpNotes3823()
+    public function migrateDpNotes3823v2()
     {
         cls::get('deals_Setup')->migrateDcNotes('purchase_Invoices', 'purchase_InvoiceDetails');
     }
