@@ -268,7 +268,7 @@ class store_Transfers extends core_Master
         $this->FLD(
             'state',
             'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
-            'caption=Статус, input=none'
+            'caption=Състояние, input=none'
         );
 
         $this->setDbIndex('lineId');
