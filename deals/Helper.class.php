@@ -2721,7 +2721,7 @@ abstract class deals_Helper
         if(core_Packs::isInstalled('batch')){
             $fieldset->FLD('batch', 'varchar', 'caption=Партида,detailField');
         }
-        $fieldset->FLD('packagingId', 'varchar', 'caption=Опаковка,detailField');
+        $fieldset->FLD('packagingId', 'varchar', 'caption=Мярка,detailField');
         $fieldset->FLD('packQuantity', 'varchar', 'caption=Количество,detailField');
         if(!($mvc instanceof store_TransfersDetails)){
             $fieldset->FLD('packPrice', 'varchar', 'caption=Цена,detailField');

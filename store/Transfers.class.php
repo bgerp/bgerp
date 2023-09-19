@@ -227,7 +227,7 @@ class store_Transfers extends core_Master
     /**
      * Кои полета да могат да се експортират в CSV формат
      */
-    public $exportableCsvFields = 'id,valior,fromStore,toStore,note';
+    public $exportableCsvFields = 'id,valior,fromStore,toStore,note,state';
 
 
     /**
