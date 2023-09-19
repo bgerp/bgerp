@@ -657,9 +657,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
                 if ($masterRec->type === 'dc_note') {
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
-
+                    $originRec = $cache->recWithIds[$rec->clonedFromDetailId];
                     $changedPriceAndQuantity = false;
-                    if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && deals_Helper::roundPrice($rec->packPrice) != deals_Helper::roundPrice($cache->recWithIds[$rec->clonedFromDetailId]['price'])){
+                    if(round($rec->quantity, 5) != round($originRec['quantity'], 5) && round($rec->packPrice, 5) != round($originRec['price'], 5)){
                         $changedPriceAndQuantity = true;
                     }
 
