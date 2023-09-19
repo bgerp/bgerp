@@ -160,10 +160,12 @@
                   </tr>
                   <!--ET_END logisticInfo-->
                </table>
-			   <table>
-				  <hr>
-                    [#InvoicesToDocuments#]
+               <hr>
+               <!--ET_BEGIN InvoicesToDocuments-->
+               <table>
+                  [#InvoicesToDocuments#]
                </table>
+               <!--ET_END InvoicesToDocuments-->
             </td>
             <td class="topCell vtop">
                [#/deals/tpl/DocumentPiceInfo.shtml#]

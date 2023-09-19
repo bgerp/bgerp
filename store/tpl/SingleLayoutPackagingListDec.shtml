@@ -164,11 +164,13 @@
                          </tr>
                          <!--ET_END logisticInfo-->
                        </table>
+
+                        <hr>
+                        <!--ET_BEGIN InvoicesToDocuments-->
 					   <table>
-						<hr>
 							[#InvoicesToDocuments#]
 					   </table>
-
+                        <!--ET_END InvoicesToDocuments-->
                 </td>
                 <td>
                     <table class='center' style='width:100%;'>
