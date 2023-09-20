@@ -4079,6 +4079,8 @@ table .eshop-btn {
     font-size: 0.8em;
     padding-right: 1px;
     padding-left: 1px; }
+  .contractorExtHolder input[type=text] {
+    height: 26px; }
   .contractorExtHolder a.button,
   .contractorExtHolder input[type="button"],
   .contractorExtHolder input[type="submit"],
