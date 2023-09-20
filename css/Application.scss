@@ -4801,8 +4801,9 @@ table .eshop-btn {
 		padding-right: 1px;
 		padding-left: 1px;
 	}
-	input[type=text] {
+	input[type=text], input[type=submit] {
 		height: 26px;
+		line-height: 1;
 	}
 	a.button, input[type="button"], input[type="submit"], button {
 		background-position: 4px center !important;
