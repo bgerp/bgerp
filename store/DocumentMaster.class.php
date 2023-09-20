@@ -97,6 +97,13 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
+     * Дали към документа може да се отнася повече от една ф-ра
+     * @see deals_InvoicesToDocuments
+     */
+    public $canSelectOnlyOneInvoice = false;
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
