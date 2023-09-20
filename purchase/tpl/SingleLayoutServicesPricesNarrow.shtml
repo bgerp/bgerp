@@ -59,6 +59,11 @@
                     <!--ET_BEGIN deliveryInfo-->
                     [#deliveryInfo#]
                     <td class="topCell first vtop" style='width:50%'>
+                        <!--ET_BEGIN InvoicesToDocuments-->
+                        <table>
+                            [#InvoicesToDocuments#]
+                        </table>
+                        <!--ET_END InvoicesToDocuments-->
                         <table class='shipment-table'>
                             <!--ET_BEGIN deliveryTime-->
                             <tr>
