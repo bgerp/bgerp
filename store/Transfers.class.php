@@ -227,7 +227,7 @@ class store_Transfers extends core_Master
     /**
      * Кои полета да могат да се експортират в CSV формат
      */
-    public $exportableCsvFields = 'id,valior,fromStore,toStore,note';
+    public $exportableCsvFields = 'id,valior,fromStore,toStore,note,state';
 
 
     /**
@@ -268,7 +268,7 @@ class store_Transfers extends core_Master
         $this->FLD(
             'state',
             'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
-            'caption=Статус, input=none'
+            'caption=Състояние, input=none'
         );
 
         $this->setDbIndex('lineId');

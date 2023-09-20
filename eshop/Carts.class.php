@@ -940,6 +940,7 @@ class eshop_Carts extends core_Master
         $notes .= tr('Имейл|*: ') . "{$rec->email}";
 
         // Дефолтни данни на продажбата
+        setIfNot($defaultStoreId, $settings->defaultStoreId, $settings->storeId);
         $fields = array('valior' => dt::today(),
             'template' => $templateId,
             'deliveryTermId' => $rec->termId,
@@ -948,7 +949,8 @@ class eshop_Carts extends core_Master
             'makeInvoice' => ($rec->makeInvoice == 'none') ? 'no' : 'yes',
             'chargeVat' => static::calcChargeVat($rec),
             'currencyId' => $settings->currencyId,
-            'shipmentStoreId' => $settings->storeId,
+            'shipmentStoreId' => $defaultStoreId,
+            'caseId' => $settings->defaultCaseId,
             'deliveryLocationId' => $rec->locationId,
             'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,
