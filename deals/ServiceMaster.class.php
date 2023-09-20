@@ -46,8 +46,8 @@ abstract class deals_ServiceMaster extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'valior,amountDelivered,amountDiscount,amountDeliveredVat,deliveryTime';
-    
-    
+
+
     /**
      * Кои са задължителните полета за модела
      */
