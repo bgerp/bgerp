@@ -455,7 +455,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                     // Намираме оригиналните к-ва и цени
                     $cache = $Details->Master->getInvoiceDetailedInfo($rec->originId);
                     
-                    foreach ($cache->recs as $cachRec) {
+                    foreach ($cache->recWithIds as $cachRec) {
                         foreach ($cachRec as $id => $cRec) {
                             if ($rec->dealValue < 0 && $id == $recDetail->productId) {
                                 // ще ги вадим

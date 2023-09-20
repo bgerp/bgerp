@@ -267,7 +267,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
                 if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
                     $priceArr = $cached->recWithIds[$dRec->clonedFromDetailId];
-
                     $diffQuantity = $dRec->quantity - $priceArr['quantity'];
                     if (round($diffQuantity, 5) != 0) {
                         $dRec->quantity = $diffQuantity;
