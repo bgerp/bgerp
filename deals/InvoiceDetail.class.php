@@ -656,14 +656,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
 
                 if ($masterRec->type === 'dc_note') {
+
+                    // Проверка дали са променени и цената и количеството
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
                     $originRec = $cache->recWithIds[$rec->clonedFromDetailId];
-                    $changedPriceAndQuantity = false;
-                    if(round($rec->quantity, 5) != round($originRec['quantity'], 5) && round($rec->packPrice, 5) != round($originRec['price'], 5)){
-                        $changedPriceAndQuantity = true;
-                    }
-
-                    if($changedPriceAndQuantity) {
+                    $diffPrice = round($rec->packPrice - $originRec['price'], 5);
+                    if(round($rec->quantity, 5) != round($originRec['quantity'], 5) && abs($diffPrice) > 0.0001){
                         $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
                     }
                 }
