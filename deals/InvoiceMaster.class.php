@@ -1545,12 +1545,13 @@ abstract class deals_InvoiceMaster extends core_Master
                 $price = $dRec->packPrice;
             }
             $price = round($price, 5);
-
+            $docRec->vatRate = 'no';
             $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price, 'count' => $count, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
+            $v = 0;
             if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
                 $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
             }
-            $vats[$v] = $v;
+            $vats["{$v}"] = $v;
             $count++;
         }
 
