@@ -6509,6 +6509,14 @@ div.location.public {
 	cursor: pointer;
 }
 
+#all .hasLogoutBlock .cms-row ,.hasLogoutBlock .centerContent {
+	padding-top: 30px;
+}
+
+.hasLogoutBlock .centerContent .cms-row {
+	padding-top: 10px;
+}
+
 .narrow .externalPage #maincontent.hasLogoutBlock {
 	padding-top: 29px !important;
 }
