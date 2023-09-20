@@ -611,6 +611,8 @@ class doc_Files extends core_Manager
 
             plg_Search::applySearch($filter->search, $data->query, 'searchKeywords');
         }
+
+        $data->query->orderBy('id', 'DESC');
     }
 
 
