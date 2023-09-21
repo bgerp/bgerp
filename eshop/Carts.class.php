@@ -938,6 +938,9 @@ class eshop_Carts extends core_Master
         $notes = tr("Поръчка") . " #{$rec->id}" . "\n";
         $notes .= tr('Тел|*: ') . "{$rec->tel}" . "\n";
         $notes .= tr('Имейл|*: ') . "{$rec->email}";
+        if(!empty($rec->instruction)){
+            $notes .= "\n" . tr('Инструкции|*: ') . "{$rec->instruction}";
+        }
 
         // Дефолтни данни на продажбата
         setIfNot($defaultStoreId, $settings->defaultStoreId, $settings->storeId);
