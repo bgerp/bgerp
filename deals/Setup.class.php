@@ -416,6 +416,7 @@ class deals_Setup extends core_ProtoSetup
         $Details->saveArray($update, 'id,clonedFromDetailId');
         foreach ($dRecs as $invoiceId => $invoiceArr1){
             $invoiceRec = $Invoices->fetch($invoiceId);
+            $invoiceRec->_notModified = true;
             $Invoices->updateMaster($invoiceRec);
         }
         $Invoices->logDebug("RE_INV U:" . countR($update) . "/N:" . countR($notUpdated));
