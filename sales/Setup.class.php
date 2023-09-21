@@ -677,11 +677,52 @@ class sales_Setup extends core_ProtoSetup
         $date = '2021-11-01';
         $to = '2023-09-18';
         $cQuery = doc_Containers::getQuery();
+        $cQuery->EXT('last', 'doc_Threads', "externalName=last,externalKey=threadId");
         $cQuery->where("#modifiedBy = " . core_Users::SYSTEM_USER);
         $cQuery->where(array("#createdOn <= '{$date} 00:00:00'"));
         $cQuery->where(array("#modifiedOn >= '{$to} 00:00:00'"));
-        $cQuery->limit(1000);
-        bp($cQuery->fetchAll());
+        $count = $cQuery->count();
 
+        $cQuery->limit(1000);
+        bp($count, $cQuery->fetchAll());
+
+
+
+        $tQuery = doc_Threads::getQuery();
+        $tQuery->where(array("#last > '[#1#]'", $date . ' 00:00:00'));
+        $tQuery->where(array("#last < '[#1#]'", $date . ' 23:59:59'));
+
+        $updateCnt = 0;
+        $links = '';
+
+        while ($tRec = $tQuery->fetch()) {
+            $firstDcRec = null;
+            $lastDcRec = null;
+            $lastChangeDate = null;
+
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->where("#modifiedBy = 678");
+            $cQuery->where(array("#threadId = [#1#]", $tRec->id));
+            $cQuery->where(array("#modifiedOn > '[#1#]'", $date . ' 00:00:00'));
+            $cQuery->where(array("#modifiedOn < '[#1#]'", $date . ' 23:59:59'));
+
+            while ($cRec = $cQuery->fetch()) {
+                $cRec->modifiedOn = $cRec->createdOn;
+                $cRec->modifiedBy = $cRec->modifiedBy;
+                $cRec->_notModified = true;
+                doc_Containers::save($cRec, 'modifiedOn, modifiedBy');
+
+                $links .= "<li>Документ: " . doc_Containers::getLinkForObject($cRec->id);
+            }
+
+            doc_Threads::prepareDocCnt($tRec, $firstDcRec, $lastDcRec, $lastChangeDate);
+
+            if ($lastChangeDate != $tRec->last) {
+                $updateCnt++;
+                doc_Threads::updateThread($tRec->id);
+
+                $links .= "<li>Нишка: " . doc_Threads::getLinkForObject($tRec->id);
+            }
+        }
     }
 }
