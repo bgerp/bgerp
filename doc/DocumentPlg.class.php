@@ -806,10 +806,12 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->createdOn = dt::verbal2Mysql();
             }
         }
-        
+
         // Задаваме стойностите на полетата за последно модифициране
-        $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
-        $rec->modifiedOn = dt::verbal2Mysql();
+        if (!$rec->_notModified) {
+            $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
+            $rec->modifiedOn = dt::verbal2Mysql();
+        }
         
         if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
             if ($rec->id) {
@@ -4286,23 +4288,25 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($rec) {
             $cu = Users::getCurrent();
-            
+
             // Задаваме стойностите на полетата за последно модифициране
-            $rec->modifiedBy = $cu ? $cu : 0;
-            $rec->modifiedOn = dt::verbal2Mysql();
-            
-            $mvc->save_($rec, 'modifiedOn, modifiedBy');
-            
-            if ($rec->containerId) {
-                $cRec = new stdClass();
-                $cRec->id = $rec->containerId;
-                $cRec->modifiedOn = $rec->modifiedOn;
-                $cRec->modifiedBy = $rec->modifiedBy;
-                
-                $containersInst = cls::get('doc_Containers');
-                $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+            if (!$rec->_notModified) {
+                $rec->modifiedBy = $cu ? $cu : 0;
+                $rec->modifiedOn = dt::verbal2Mysql();
+
+                $mvc->save_($rec, 'modifiedOn, modifiedBy');
+
+                if ($rec->containerId) {
+                    $cRec = new stdClass();
+                    $cRec->id = $rec->containerId;
+                    $cRec->modifiedOn = $rec->modifiedOn;
+                    $cRec->modifiedBy = $rec->modifiedBy;
+
+                    $containersInst = cls::get('doc_Containers');
+                    $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+                }
             }
-            
+
             if ($rec->threadId) {
                 doc_Threads::updateThread($rec->threadId);
             }
