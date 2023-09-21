@@ -361,7 +361,6 @@ class deals_Setup extends core_ProtoSetup
         $dQuery->EXT('number', $Invoices->className, "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', $Invoices->className, "externalName=type,externalKey=invoiceId");
         $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-
         while($dRec = $dQuery->fetch()){
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
                 $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
@@ -373,7 +372,6 @@ class deals_Setup extends core_ProtoSetup
         $iCount = $dQuery->count();
         core_App::setTimeLimit($iCount * 0.4, false, 400);
         foreach ($dRecs as $invoiceId => $invoiceArr){
-
             ksort($invoiceArr['recs']);
             $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], true);
 
@@ -418,6 +416,7 @@ class deals_Setup extends core_ProtoSetup
             $invoiceRec = $Invoices->fetch($invoiceId);
             $invoiceRec->_notModified = true;
             $Invoices->updateMaster($invoiceRec);
+            $Invoices->removeFromUpdateQueueOnShutdown($invoiceRec->id);
         }
         $Invoices->logDebug("RE_INV U:" . countR($update) . "/N:" . countR($notUpdated));
     }
