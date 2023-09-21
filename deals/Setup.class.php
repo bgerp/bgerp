@@ -433,7 +433,7 @@ class deals_Setup extends core_ProtoSetup
     {
         $Class = cls::get($class);
 
-        $date = '2021-11-01';
+        $date = '2021-12-01';
         $to = '2023-09-18';
 
         $threads = array();
