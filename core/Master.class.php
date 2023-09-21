@@ -962,4 +962,15 @@ class core_Master extends core_Manager
         
         return $masterTitle;
     }
+
+
+    /**
+     * Премахване на подадения документ от опашката за обновяване на шътдаун
+     *
+     * @param int $id
+     */
+    public function removeFromUpdateQueueOnShutdown($id)
+    {
+        unset($this->updateQueue[$id]);
+    }
 }
