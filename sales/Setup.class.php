@@ -466,6 +466,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
         'migrate::recontoDeals2520',
+        'migrate::fixDcNotesModifiedDate3823v2',
         'migrate::migrateDpNotes3823v2',
     );
     
@@ -672,45 +673,13 @@ class sales_Setup extends core_ProtoSetup
     }
 
 
+    /**
+     * Миграция на модифицираните изходящи фактури
+     */
     public function fixDcNotesModifiedDate3823v2()
     {
-        $date = '2021-11-01';
-        $to = '2023-09-18';
-
-        $threads = array();
-        $cQuery = doc_Containers::getQuery();
-        $cQuery->in("docClass", array(sales_Invoices::getClassId(), purchase_Invoices::getClassId()));
-        $cQuery->EXT('last', 'doc_Threads', "externalName=last,externalKey=threadId");
-        $cQuery->where("#modifiedBy = " . core_Users::SYSTEM_USER);
-        $cQuery->where(array("#createdOn <= '{$date} 00:00:00'"));
-        $cQuery->where(array("#modifiedOn >= '{$to} 00:00:00'"));
-
-        $count = $cQuery->count();
-        core_App::setTimeLimit($count * 0.2, false, 300);
-
-        while ($cRec = $cQuery->fetch()) {
-            $number = cls::get($cRec->docClass)->fetch($cRec->docId)->number;
-            echo "<li>" . str_pad($number, 10, '0', STR_PAD_LEFT);
-            $cRec->modifiedOn = $cRec->createdOn;
-            $cRec->modifiedBy = $cRec->modifiedBy;
-            $cRec->_notModified = true;
-
-            doc_Containers::save($cRec, 'modifiedOn, modifiedBy');
-            $threads[$cRec->threadId] = $cRec->last;
+        if(core_Packs::isMigrationDone('sales', 'migrateDpNotes3823v2')){
+            cls::get('deals_Setup')->fixDcNotesModifiedOn('sales_Invoices');
         }
-
-        foreach ($threads as $threadId => $threadLast) {
-            $firstDcRec = null;
-            $lastDcRec = null;
-            $lastChangeDate = null;
-
-            $tRec = doc_Threads::fetch($threadId);
-            doc_Threads::prepareDocCnt($tRec, $firstDcRec, $lastDcRec, $lastChangeDate);
-            if ($lastChangeDate != $tRec->last) {
-                doc_Threads::updateThread($tRec->id);
-            }
-        }
-
-        Mode::set('wrapper', 'page_Empty');
     }
 }
