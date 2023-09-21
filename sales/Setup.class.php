@@ -684,7 +684,9 @@ class sales_Setup extends core_ProtoSetup
         $cQuery->where("#modifiedBy = " . core_Users::SYSTEM_USER);
         $cQuery->where(array("#createdOn <= '{$date} 00:00:00'"));
         $cQuery->where(array("#modifiedOn >= '{$to} 00:00:00'"));
-        $cQuery->limit(10);
+
+        $count = $cQuery->count();
+        core_App::setTimeLimit($count * 0.2, false, 300);
 
         while ($cRec = $cQuery->fetch()) {
             $number = cls::get($cRec->docClass)->fetch($cRec->docId)->number;
@@ -704,10 +706,11 @@ class sales_Setup extends core_ProtoSetup
 
             $tRec = doc_Threads::fetch($threadId);
             doc_Threads::prepareDocCnt($tRec, $firstDcRec, $lastDcRec, $lastChangeDate);
-
             if ($lastChangeDate != $tRec->last) {
                 doc_Threads::updateThread($tRec->id);
             }
         }
+
+        Mode::set('wrapper', 'page_Empty');
     }
 }
