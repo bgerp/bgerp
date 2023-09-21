@@ -670,4 +670,18 @@ class sales_Setup extends core_ProtoSetup
     {
         cls::get('deals_Setup')->migrateDcNotes('sales_Invoices', 'sales_InvoiceDetails');
     }
+
+
+    public function fixDcNotesModifiedDate3823v2()
+    {
+        $date = '2021-11-01';
+        $to = '2023-09-18';
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#modifiedBy = " . core_Users::SYSTEM_USER);
+        $cQuery->where(array("#createdOn <= '{$date} 00:00:00'"));
+        $cQuery->where(array("#modifiedOn >= '{$to} 00:00:00'"));
+        $cQuery->limit(1000);
+        bp($cQuery->fetchAll());
+
+    }
 }
