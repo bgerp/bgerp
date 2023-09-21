@@ -2006,6 +2006,7 @@ class sales_Sales extends deals_DealMaster
                     $rec->tel = $cartRec->tel;
                     $rec->email = $cartRec->email;
                     $rec->cartId = $cartRec->id;
+                    $rec->instruction = $cartRec->instruction;
                 }
             }
         }
@@ -2257,5 +2258,6 @@ class sales_Sales extends deals_DealMaster
         $fieldset->FLD('tel', 'drdata_PhoneType', 'caption=Поръчител->Телефон');
         $fieldset->FLD('email', 'email', 'caption=Поръчител->Имейл');
         $fieldset->FLD('cartId', 'int', 'caption=Поръчител->Количка №');
+        $fieldset->FLD('instruction', 'int', 'caption=Поръчител->Инструкции');
     }
 }
