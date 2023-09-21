@@ -440,12 +440,10 @@ class deals_Setup extends core_ProtoSetup
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#docClass = {$Class->getClassId()}");
         $cQuery->EXT('last', 'doc_Threads', "externalName=last,externalKey=threadId");
-        $cQuery->EXT('dModifiedOn', "{$Class->className}", "externalName=modifiedOn,externalKey=docId");
         $cQuery->where("#modifiedBy = " . core_Users::SYSTEM_USER);
         $cQuery->where(array("#createdOn <= '{$date} 00:00:00'"));
-        $cQuery->where(array("#modifiedOn >= '{$to} 00:00:00' || #dModifiedOn >= '{$to} 00:00:00'"));
-        $cQuery->limit(100);
-        bp($cQuery->fetchAll());
+        $cQuery->where(array("#modifiedOn >= '{$to} 00:00:00'"));
+
         $count = $cQuery->count();
         core_App::setTimeLimit($count * 0.2, false, 300);
 
