@@ -38,16 +38,16 @@ class cms_DefaultTheme extends core_ProtoInner
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-        $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 1');
-        $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 2');
-        $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 3');
-        $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 4');
-        $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 5');
-        $form->FLD('wImg6', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 6');
-        $form->FLD('wImg7', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 7');
-        $form->FLD('wImg8', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 8');
+        $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1600x460px)->Изображение 1');
+        $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1600x460px)->Изображение 2');
+        $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1600x460px)->Изображение 3');
+        $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1600x460px)->Изображение 4');
+        $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1600x460px)->Изображение 5');
+        $form->FLD('wImg6', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1600x460px)->Изображение 6');
+        $form->FLD('wImg7', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1600x460px)->Изображение 7');
+        $form->FLD('wImg8', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1600x460px)->Изображение 8');
 
-        $form->FLD('interframeImage', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Междинна');
+        $form->FLD('interframeImage', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1600x460px)->Междинна');
 
         $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка за логин и при колаборатор (1000x150px)->Изображение');
         
@@ -254,18 +254,18 @@ class cms_DefaultTheme extends core_ProtoInner
                     $banner = '';
                     
                     if ($this->innerForm->interframeImage) {
-                        $img = new thumb_Img(array($this->innerForm->interframeImage, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                        $img = new thumb_Img(array($this->innerForm->interframeImage, 1600, 460, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');
-                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
+                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1600, 'height' => 460, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
                         $banner .= $hImage;
                     }
                     
                     $banner .= '<div class="fadein">';
                     $style = '';
                     foreach ($imgs as $iHash) {
-                        $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                        $img = new thumb_Img(array($iHash, 1600, 460, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');
-                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
+                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1600, 'height' => 460, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                         $banner .= "\n{$hImage}";
                         $style = 'display:none;';
                     }
@@ -298,7 +298,7 @@ class cms_DefaultTheme extends core_ProtoInner
             
             if ($img) {
                 if (!Mode::is('screenMode', 'narrow')) {
-                    $img = new thumb_Img(array($img, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($img, 1600, 460, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {
                     $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 }

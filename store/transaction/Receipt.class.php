@@ -160,6 +160,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
                 continue;
             }
+
             $canStore = cat_Products::fetchField($detailRec->productId, 'canStore');
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
@@ -167,6 +168,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
+                unset($detailRec->discount);
                 $splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $detailRec->id, $detailRec->productId, $detailRec->quantity, $amount, $detailRec->discount);
 
                 foreach ($splitRecs as $dRec1) {

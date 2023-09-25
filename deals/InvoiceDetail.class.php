@@ -267,7 +267,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
                 if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
                     $priceArr = $cached->recWithIds[$dRec->clonedFromDetailId];
-
                     $diffQuantity = $dRec->quantity - $priceArr['quantity'];
                     if (round($diffQuantity, 5) != 0) {
                         $dRec->quantity = $diffQuantity;
@@ -637,8 +636,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Ако има такъв запис, сетваме грешка
             $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, null, null, $rec->notes);
             if ($exRec) {
-                $form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
-                unset($rec->packPrice, $rec->price, $rec->quantityInPack);
+                if($masterRec->type != 'dc_note'){
+                    $form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
+                    unset($rec->packPrice, $rec->price, $rec->quantityInPack);
+                }
             }
 
             if(!$form->gotErrors()){
@@ -654,14 +655,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
 
                 if ($masterRec->type === 'dc_note') {
+
+                    // Проверка дали са променени и цената и количеството
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
-
-                    $changedPriceAndQuantity = false;
-                    if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && deals_Helper::roundPrice($rec->packPrice) != deals_Helper::roundPrice($cache->recWithIds[$rec->clonedFromDetailId]['price'])){
-                        $changedPriceAndQuantity = true;
-                    }
-
-                    if($changedPriceAndQuantity) {
+                    $originRec = $cache->recWithIds[$rec->clonedFromDetailId];
+                    $diffPrice = round($rec->packPrice - $originRec['price'], 5);
+                    if(round($rec->quantity, 5) != round($originRec['quantity'], 5) && abs($diffPrice) > 0.0001){
                         $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
                     }
                 }

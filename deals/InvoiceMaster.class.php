@@ -306,16 +306,16 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $Detail->calculateAmount($recs, $rec);
         $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        
+
         $rec->dealValue = $this->_total->amount * $rate;
         $rec->vatAmount = $this->_total->vat * $rate;
         $rec->discountAmount = $this->_total->discount * $rate;
-        
+
         if ($save === true) {
             return $this->save($rec);
         }
     }
-    
+
     
     /**
      * След подготовката на заглавието на формата
@@ -1529,7 +1529,7 @@ abstract class deals_InvoiceMaster extends core_Master
         expect($document = doc_Containers::getDocument($containerId));
         expect($document->isInstanceOf($this), $document->className, $this->className);
 
-        $cache = $vats = $cacheIds = array();
+        $vats = $cacheIds = array();
         $Detail = $this->mainDetail;
         $query = $Detail::getQuery();
         $docRec = $document->fetch('dpAmount,dpVatGroupId,vatRate,rate');
@@ -1545,26 +1545,17 @@ abstract class deals_InvoiceMaster extends core_Master
                 $price = $dRec->packPrice;
             }
             $price = round($price, 5);
-            $key1 = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}|{$count}";
-            $key2 = "{$dRec->productId}|{$dRec->packagingId}|P{$price}|{$count}";
-            $key3 = "{$dRec->productId}|{$dRec->packagingId}|Q{$dRec->quantity}";
-            $key4 = "{$dRec->productId}|{$dRec->packagingId}|P{$price}";
-            $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price);
-            $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price);
-
-            $cache[$key3] = array('quantity' => $dRec->quantity, 'price' => $price);
-            $cache[$key4] = array('quantity' => $dRec->quantity, 'price' => $price);
-
+            $docRec->vatRate = 'no';
             $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price, 'count' => $count, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
+            $v = 0;
             if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
                 $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
             }
-
-            $vats[$v] = $v;
+            $vats["{$v}"] = $v;
             $count++;
         }
 
-        if (!countR($cache)) {
+        if (!countR($cacheIds)) {
             if (isset($docRec->dpAmount)) {
                 $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
                 $v = ($docRec->vatRate == 'yes' || $docRec->vatRate == 'separate') ? $vRate : 0;
@@ -1572,7 +1563,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        $res = (object) array('recs' => $cache, 'vats' => $vats, 'recWithIds' => $cacheIds);
+        $res = (object) array('vats' => $vats, 'recWithIds' => $cacheIds);
 
         return $res;
     }
