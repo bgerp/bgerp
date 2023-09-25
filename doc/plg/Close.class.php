@@ -48,8 +48,8 @@ class doc_plg_Close extends core_Plugin
                 $titleCloseBtn = "Затваряне на|* |{$singleTitle}|*";
             }
             if(cls::haveInterface('doc_DocumentIntf', $mvc)){
-                $closeBtnId = "btnClose{$data->rec->containerId}";
-                $openBtnId = "btnOpen{$data->rec->containerId}";
+                $closeBtnId = "btnClose_{$data->rec->containerId}";
+                $openBtnId = "btnOpen_{$data->rec->containerId}";
             }
 
             if ($data->rec->state == 'closed') {

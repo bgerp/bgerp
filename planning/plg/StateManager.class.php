@@ -116,7 +116,7 @@ class planning_plg_StateManager extends core_Plugin
         if ($mvc->haveRightFor('close', $rec)) {
             $warning = $mvc->getChangeStateWarning($rec, 'closed');
             $attr = array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на документа', 'warning' => $warning, 'order' => 30);
-            $attr['id'] = cls::haveInterface('doc_DocumentIntf', $mvc) ? "btnClose{$rec->containerId}" : 'btnClose';
+            $attr['id'] = cls::haveInterface('doc_DocumentIntf', $mvc) ? "btnClose_{$rec->containerId}" : 'btnClose';
             
             if (isset($mvc->demandReasonChangeState, $mvc->demandReasonChangeState['close'])) {
                 unset($attr['warning']);
