@@ -1720,7 +1720,7 @@ class pos_Terminal extends peripheral_Terminal
 
         $countRows = countR($productRows);
         if($countRows){
-            $pTpl = new core_ET("<div class='grid'>[#RES#]</div>");
+            $pTpl = new core_ET("<div class='grid {$settings->productBtnTpl}'>[#RES#]</div>");
             foreach ($productRows as $row){
                 $row->elementId = "{$rec->_selectedGroupId}{$row->id}";
                 $bTpl = clone $block;
