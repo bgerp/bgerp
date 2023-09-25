@@ -735,7 +735,11 @@ class purchase_Purchases extends deals_DealMaster
         $tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowEN.shtml');
         $tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrowEN.shtml');
         $tplArr[] = array('name' => 'Заявка за транспорт', 'content' => 'purchase/tpl/purchases/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/TransportNarrow.shtml');
-        
+        $tplArr[] = array('name' => 'Договор за покупка без цени', 'content' => 'purchase/tpl/purchases/PurchaseNoPrice.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowNoPrice.shtml');
+        $tplArr[] = array('name' => 'Purchase contract without prices', 'content' => 'purchase/tpl/purchases/PurchaseENNoPrice.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowENNoPrice.shtml');
+
+
+
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
