@@ -1292,9 +1292,11 @@ abstract class deals_DealMaster extends deals_DealBase
             if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime) && in_array($rec->state, array('draft', 'pending')) ) {
                 $deliveryTermTime = $mvc->calcDeliveryTime($rec->id);
                 if (isset($deliveryTermTime)) {
-                    $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
-                    $deliveryTermTime = "<span style='color:blue'>{$deliveryTermTime}</span>";
-                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
+                    $row->deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
+                    if(!Mode::isReadOnly()){
+                        $row->deliveryTermTime = "<span style='color:blue'>{$row->deliveryTermTime}</span>";
+                        $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
+                    }
                 }
             }
             

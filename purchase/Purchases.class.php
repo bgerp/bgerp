@@ -735,10 +735,8 @@ class purchase_Purchases extends deals_DealMaster
         $tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowEN.shtml');
         $tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrowEN.shtml');
         $tplArr[] = array('name' => 'Заявка за транспорт', 'content' => 'purchase/tpl/purchases/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/TransportNarrow.shtml');
-        $tplArr[] = array('name' => 'Договор за покупка без цени', 'content' => 'purchase/tpl/purchases/PurchaseNoPrice.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowNoPrice.shtml');
-        $tplArr[] = array('name' => 'Purchase contract without prices', 'content' => 'purchase/tpl/purchases/PurchaseENNoPrice.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowENNoPrice.shtml');
-
-
+        $tplArr[] = array('name' => 'Договор за покупка без цени', 'content' => 'purchase/tpl/purchases/PurchaseNoPrice.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowNoPrice.shtml', 'toggleFields' => array('masterFld' => null, 'purchase_PurchasesDetails' => 'productId, packagingId, packQuantity'));
+        $tplArr[] = array('name' => 'Purchase contract without prices', 'content' => 'purchase/tpl/purchases/PurchaseENNoPrice.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowENNoPrice.shtml', 'toggleFields' => array('masterFld' => null, 'purchase_PurchasesDetails' => 'productId, packagingId, packQuantity'));
 
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
@@ -936,5 +934,27 @@ class purchase_Purchases extends deals_DealMaster
 
         $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $rec->folderId, 'dealerId', true);
         if (core_Users::haveRole('purchase', $dealerId)) return $dealerId;
+    }
+
+
+    /**
+     * Метод връщащ темплейта на документа, ако го няма връща ид-то на първия възможен
+     * темплейт за този тип документи
+     */
+    protected static function on_AfterGetTemplate(core_Mvc $mvc, &$res, $id)
+    {
+        if(Mode::is('text', 'xhtml')){
+            $rec = $mvc->fetchRec($id);
+            if($rec->state == 'pending'){
+
+                // Ако има зададен шаблон за изпращане на заявка на доставчик да се подмени шаблона
+                $templateLang = doc_TplManager::fetchField($res, 'lang');
+                $xhtmlTplParamSysId = $templateLang == 'bg' ? 'requestSupplierTplBg' : 'requestSupplierTplEn';
+                $defaultRequestTplId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $xhtmlTplParamSysId);
+                if(!empty($defaultRequestTplId)){
+                    $res = $defaultRequestTplId;
+                }
+            }
+        }
     }
 }
