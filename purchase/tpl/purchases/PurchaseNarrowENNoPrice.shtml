@@ -1,0 +1,116 @@
+<div class='scrolling-holder'>
+    <table class="innerTable border-table paddingCells">
+            <tbody>
+                <tr>
+                    <td class='centered'>
+                        <div class="document-title">PURCHASE CONTRACT</div> 
+                        <!--ET_BEGIN operationSysId-->
+                        <small>( [#operationSysId#] )</small>
+                        <!--ET_END operationSysId-->
+                        <div style="padding-top:5px;">
+                                <span class="state [#STATE_CLASS#]">
+                                    № <span class="bigData">[#id#]</span> /
+                                    <span class="bigData">[#valior#]</span>
+                                </span>
+                        </div>
+                        <!--ET_BEGIN reff-->
+                    	|Ваш реф|*: <span class="bigData">[#reff#]</span>
+                    	<!--ET_END reff-->
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell custom-header-bg"><b>Receiver</b></td>
+                </tr>
+                <tr>
+                    <td>
+                        [#/deals/tpl/MyCompanyBlock.shtml#]
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell custom-header-bg"><b>Supplier</b>
+                        <!--ET_BEGIN isDelivered-->
+                        <div class='stamp fright'>[#isDelivered#]</div>
+                        <!--ET_END isDelivered--></td>
+                </tr>
+                <tr>
+                    <td>
+                        [#/deals/tpl/ContragentHeaderBlock.shtml#]
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+  </div>
+<div class="lines"></div>
+<div class="scrolling-holder">
+    <div class="details">
+        [#purchase_PurchasesDetails#]
+    </div>
+</div><div class="lines"></div>
+<div class="scrolling-holder">
+    <table class="innerTable footer-notes paddingCells" style='width:100%'>
+        <tbody>
+            <tr>
+                <td class="topCell vtop" style='width:33%'>
+                        <!--ET_BEGIN paymentMethodId-->
+                        <div class='cellRow'>
+                            <span class='quiet'>Payment: </span>
+                            [#paymentMethodId#]
+                        </div>
+                        <!--ET_END paymentMethodId-->
+                        <!--ET_BEGIN currencyCode-->
+                        <div class='cellRow'>
+                            <span class='quiet'>Currency: </span>
+                            [#currencyCode#]
+                        </div>
+                        <!--ET_END currencyCode-->
+                        <!--ET_BEGIN bankAccountId-->
+                        <div class='cellRow'>
+                            <span class='quiet'>Bank account: </span>[#bankAccountId#]
+                        </div>
+                        <!--ET_END bankAccountId-->
+                    <!--ET_BEGIN purchaseConditions-->
+                    [#purchaseConditions#]
+                        <div>
+                            <b>|Conditions|*</b>
+                            <ol style = 'margin-top:1px'>
+                                <!--ET_BEGIN closedDocuments-->
+                                <li>Combines: [#closedDocuments#]</li>
+                                <!--ET_END closedDocuments-->
+                                <!--ET_BEGIN notes-->
+                                [#notes#]
+                                <!--ET_END notes-->
+                                <!--ET_BEGIN deliveryBlock-->
+                                [#deliveryBlock#]
+                                <!--ET_BEGIN deliveryTermId-->
+                                <li>Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime--></li>
+                                <!--ET_END deliveryTermId-->
+                                <!--ET_END deliveryBlock-->
+                                <!--ET_BEGIN deliveryTermTime-->
+                            	<li>Delivery time up to [#deliveryTermTime#] after starting the order</li>
+                           		<!--ET_END deliveryTermTime--> 
+                                <!--ET_BEGIN commonCondition-->
+                            	<li>Common conditions for purchase: [#commonCondition#]</li>
+                            	<!--ET_END commonCondition-->
+                            </ol>
+                        </div>
+                    <!--ET_END purchaseConditions-->
+                    <hr>
+                    <!--ET_BEGIN responsible-->
+                        <div>Receiver: [#responsible#]</div>
+                    <!--ET_END responsible-->   
+                    <!--ET_BEGIN username--> 
+                        <div>Created by: [#username#]</div>
+                    <!--ET_END username--> 
+                 </td>
+            </tr>
+            <tr>
+                <td colspan="3"><div class="attentionIcon">Please include in your delivery documents our purchase number <b>#Pur[#id#]</b>!</div></td>
+            </tr>
+            <tr class='footerDocInfo'>
+                <td>
+                    [#/doc/tpl/Copyright.shtml#]
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
