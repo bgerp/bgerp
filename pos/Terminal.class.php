@@ -1715,8 +1715,9 @@ class pos_Terminal extends peripheral_Terminal
             $resultTpl->append($tab, "TAB");
         }
         $tpl->append($resultTpl, 'GROUP_TAB');
-       
-        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
+        $blockTplPath = ($settings->productBtnTpl == 'wide') ? 'pos/tpl/terminal/ProductBtnWide.shtml' : (($settings->productBtnTpl == 'short') ? 'pos/tpl/terminal/ProductBtnShort.shtml' : 'pos/tpl/terminal/ProductBtnPicture.shtml');
+        $block = getTplFromFile($blockTplPath);
+
         $countRows = countR($productRows);
         if($countRows){
             $pTpl = new core_ET("<div class='grid'>[#RES#]</div>");
