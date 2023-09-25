@@ -861,7 +861,7 @@ select.tabHolder {
 		color:#333;
 		height: 73px;
 	}
-	.pos-price-field {
+	.pos-price-field:not(.fleft) {
 		float: right;
 	}
 	&.notSellable {

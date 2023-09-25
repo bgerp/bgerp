@@ -723,7 +723,7 @@ select.tabHolder {
   .element .pos-add-res-btn {
     color: #333333;
     height: 73px; }
-  .element .pos-price-field {
+  .element .pos-price-field:not(.fleft) {
     float: right; }
   .element.notSellable {
     background-color: #aaaaaa;
