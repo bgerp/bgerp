@@ -19,11 +19,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>Receiver</b>
-                        <!--ET_BEGIN isPaid-->
-                        <div class='stamp fright'>[#isPaid#]</div>
-                        <!--ET_END isPaid-->
-                    </td>
+                    <td class="cell custom-header-bg"><b>Receiver</b></td>
                 </tr>
                 <tr>
                     <td>
