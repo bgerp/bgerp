@@ -3144,6 +3144,7 @@ class eshop_Carts extends core_Master
             $Sales = cls::get('sales_Sales');
             $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
             $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
+            $fields[] = 'ExternalLink';
             $fields = implode(',', $fields);
 
             $saleRec = sales_Sales::fetchRec($saleRec);
@@ -3161,6 +3162,7 @@ class eshop_Carts extends core_Master
             $res = @file_put_contents($fileName, $content);
             if($res){
                 eshop_Carts::logDebug("Експортирано csv: `{$fileName}`");
+                fileman::absorbStr($content, 'exportCsv', "{$name}.csv");
             } else {
                 eshop_Carts::logErr("Грешка при записване: `{$fileName}`");
             }
