@@ -1857,7 +1857,7 @@ function scaleViewport() {
  * Проверка дали използваме touch устройство
  */
 function isTouchDevice() {
-    return (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
+    return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
 }
 
 
