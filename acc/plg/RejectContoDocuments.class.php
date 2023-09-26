@@ -41,8 +41,6 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                 $res = $transaction->getClosedItems();
             }
         }
-
-        wp($res, $transaction);
     }
     
     
