@@ -1822,20 +1822,6 @@ a.tUnsighted {
 	font-size: 0.9em !important;
 	top: 0 !important
 }
-.doc_drivers_LatestDocPortal {
-	.portalLatestThreads.withoutSubtitle {
-		float: left;
-	}
-	.threadSubTitle.withoutSubtitle .tagsHolder {
-		position: relative;
-		top: 2px;
-		margin-bottom: 4px;
-	}
-
-	.portalLatestThreads, .portalLatestFoldes{
-		clear: both;
-	}
-}
 
 .narrow .portalAuthorTitle {
 	position: relative;
@@ -1863,9 +1849,16 @@ a.tUnsighted {
 		border-radius: 5px;
 	}
 }
+.threadTitlesHolder {
+	position: relative;
+	padding-right: 25px;
+}
 
 .tagsHolder {
-	float: right;
+	position: absolute;
+	right: 0;
+	top: 50%;
+	margin-top: -8px;
 }
 
 .doc_drivers_FolderPortal {
