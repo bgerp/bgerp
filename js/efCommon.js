@@ -5891,7 +5891,7 @@ $.fn.isInViewport = function() {
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
 function focusOnce(id) {
-    var state = getEO().checkBodyId();
+    var state = getHitState();
 
     if(state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
         $(id).focus();
