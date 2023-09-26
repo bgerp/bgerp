@@ -1614,6 +1614,9 @@ a.tUnsighted {
   top: 50%;
   margin-top: -8px; }
 
+.narrow .tagsHolder {
+  margin-top: -10px; }
+
   .doc_drivers_FolderPortal .threadSubTitle {
     display: block !important;
     clear: both; }
