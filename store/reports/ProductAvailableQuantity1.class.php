@@ -230,7 +230,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $sQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $sQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
-        $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');;
+        $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+
+        $sQuery->in('state', 'rejected, draft,stopped', true);
 
         //Филтър по групи артикули
         $sQuery->likeKeylist('groups', $rec->groups);
