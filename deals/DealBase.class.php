@@ -301,7 +301,7 @@ abstract class deals_DealBase extends core_Master
         
         // Записите от журнала засягащи това перо
         $entries = acc_Journal::getEntries(array($mvc, $rec->id));
-        wp($entries, array($mvc->className, $rec->id));
+
         // Към тях добавяме и самия документ
         $entries[] = (object) array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
         
