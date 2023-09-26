@@ -84,6 +84,10 @@
 								<td>[#productBtnTpl#]</td>
 							</tr>
 							<tr>
+								<td class='dt'>|Код на артикулите в бутоните|*:</td>
+								<td>[#showProductCode#]</td>
+							</tr>
+							<tr>
 								<td class='dt'>|Брой намерени артикули|*:</td>
 								<td>[#maxSearchProducts#]</td>
 							</tr>

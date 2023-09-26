@@ -1906,7 +1906,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
             }
             
-            $result = $this->prepareProductResultRows($sellable, $rec);
+            $result = $this->prepareProductResultRows($sellable, $rec, $settings);
             core_Cache::set('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}", $result, 2);
         }
         
@@ -1919,10 +1919,11 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @param array $products
      * @param stdClass $rec
-     * 
+     * @param stdClass $settings
+     *
      * @return array $res
      */
-    private function prepareProductResultRows($products, $rec)
+    private function prepareProductResultRows($products, $rec, $settings)
     {
         $res = array();
         if(!countR($products)) {
@@ -1935,7 +1936,6 @@ class pos_Terminal extends peripheral_Terminal
         $productClassId = cat_Products::getClassId();
         
         $Policy = cls::get('price_ListToCustomers');
-        $listId = pos_Points::getSettings($rec->pointId, 'policyId');
         $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
 
         if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
@@ -1952,7 +1952,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $packQuantity = cat_products_Packagings::getPack($id, $packId, 'quantity');
             $perPack = (!empty($packQuantity)) ? $packQuantity : 1;
-            $price = $Policy->getPriceByList($listId, $id, $packId, 1, dt::now(), 1, 'no');
+            $price = $Policy->getPriceByList($settings->policyId, $id, $packId, 1, dt::now(), 1, 'no');
             
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
@@ -1970,7 +1970,6 @@ class pos_Terminal extends peripheral_Terminal
                 $price = $price->price * $perPack;
                 $price *= 1 + $vat;
                 $obj->price = $price;
-                
                 $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
             }
             
@@ -1978,7 +1977,10 @@ class pos_Terminal extends peripheral_Terminal
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
             $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
             $res[$id]->productId = mb_subStr(cat_Products::getVerbal($obj->productId, 'name'), 0, 80);
-            $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
+
+            if($settings->showProductCode == 'yes'){
+                $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
+            }
             
             $res[$id]->photo = $this->getPosProductPreview($obj->productId, 70, 70);
             $res[$id]->CLASS = ' pos-add-res-btn navigable enlargable';
