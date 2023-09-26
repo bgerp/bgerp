@@ -2707,6 +2707,10 @@ border: 1px solid $gray4;
 vertical-align: top !important;
 }
 
+.narrow .footer-notes ol li {
+	word-break: break-word;
+}
+
 .document .paddingCells > tbody > tr > td{
 	padding: 5px;
 }
