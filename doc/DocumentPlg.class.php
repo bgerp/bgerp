@@ -388,16 +388,6 @@ class doc_DocumentPlg extends core_Plugin
 
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
             $rejArr = array($mvc, 'reject', $data->rec->id);
-            if (doc_Setup::get('OPEN_FOLDER_AFTER_REJECT') == 'yes') {
-                // При оттегляне да редиректва към сингъла на папката, ако има права за там
-                if ($data->rec->folderId && doc_Folders::haveRightFor('single', $data->rec->folderId)) {
-                    if ($data->rec->threadId) {
-                        if (doc_Threads::getFirstContainerId($data->rec->threadId) == $data->rec->containerId) {
-                            $rejArr['ret_url'] = array('doc_Folders', 'single', $data->rec->folderId);
-                        }
-                    }
-                }
-            }
 
             $data->toolbar->addBtn(
                 'Оттегляне',
@@ -1172,6 +1162,22 @@ class doc_DocumentPlg extends core_Plugin
             expect($id = Request::get('id', 'int'));
             
             expect($rec = $mvc->fetch($id), $id);
+
+            // След оттегляне, да редиректва към папката, ако е настроено и има такава възможност
+            if (Request::get('afterReject') && ($rec->state == 'rejected')) {
+                if (doc_Setup::get('OPEN_FOLDER_AFTER_REJECT') == 'yes') {
+                    // При оттегляне да редиректва към сингъла на папката, ако има права за там
+                    if ($rec->folderId && doc_Folders::haveRightFor('single', $rec->folderId)) {
+                        if ($rec->threadId) {
+                            if (doc_Threads::getFirstContainerId($rec->threadId) == $rec->containerId) {
+                                $res = new Redirect(array('doc_Folders', 'single', $rec->folderId));
+
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
             
             // Изтриваме нотификацията, ако има такава, свързани с този документ
             $url = array($mvc, 'single', 'id' => $id);
