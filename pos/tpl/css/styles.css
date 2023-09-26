@@ -444,6 +444,13 @@ select.tabHolder {
   text-align: center;
   margin-bottom: 10px; }
 
+.grid.picture .element {
+  padding: 3px !important;
+  height: auto !important;
+  text-align: center; }
+  .grid.picture .element.selected {
+    padding: 0 !important; }
+
 .posResultContragent {
   justify-content: center;
   align-content: center;
