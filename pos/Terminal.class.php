@@ -1982,7 +1982,7 @@ class pos_Terminal extends peripheral_Terminal
                 $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
             }
             
-            $res[$id]->photo = $this->getPosProductPreview($obj->productId, 70, 70);
+            $res[$id]->photo = $this->getPosProductPreview($obj->productId, 100, 100);
             $res[$id]->CLASS = ' pos-add-res-btn navigable enlargable';
             $res[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;

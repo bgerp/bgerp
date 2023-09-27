@@ -445,11 +445,19 @@ select.tabHolder {
   margin-bottom: 10px; }
 
 .grid.picture .element {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 3px !important;
-  height: auto !important;
-  text-align: center; }
+  max-height: 90px;
+  box-sizing: border-box;
+  overflow: hidden; }
   .grid.picture .element.selected {
     padding: 0 !important; }
+  .grid.picture .element img {
+    display: block;
+    max-width: 100px;
+    height: auto; }
 
 .posResultContragent {
   justify-content: center;
