@@ -264,7 +264,8 @@ abstract class deals_ManifactureMaster extends core_Master
                 if($firstDocument->isInstanceOf('planning_Tasks')){
                     $state = $firstDocument->fetchField('state');
                     if($state == 'closed'){
-                        if(!planning_Tasks::isProductionAfterClosureAllowed($firstDocument->that, core_Users::getCurrent())){
+                        $roles = $mvc->getRequiredRoles('conto', $rec);
+                        if(!planning_Tasks::isProductionAfterClosureAllowed($firstDocument->that, core_Users::getCurrent(), $roles, $roles)){
                             $msg = "Документът не може да бъде контиран, защото операцията е приключена|*!";
                             core_Statuses::newStatus($msg, 'error');
                             $res = false;
