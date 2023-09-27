@@ -310,6 +310,11 @@ class price_ListRules extends core_Detail
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
+        $datetime = '2023-09-25 12:30:59';
+        $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
+
+       // echo "<li>CALL {$listId} - VARIATION {$variationId}";
+        $listId = $variationId ?? $listId;
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
             $query = self::getQuery();
@@ -326,7 +331,7 @@ class price_ListRules extends core_Detail
             $query->orderBy('#priority', 'ASC');
             $query->orderBy('#validFrom,#id', 'DESC');
             $query->limit(1);
-            
+
             $rec = $query->fetch();
             $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
@@ -345,6 +350,9 @@ class price_ListRules extends core_Detail
                 } else {
                     $validFrom = $rec->validFrom;
                     expect($parent = $listRec->parent);
+
+                    //bp($parent, $listRec);
+
                     $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false, 1, 'no', $discountIncluded);
                     if (isset($price)) {
                         if ($rec->calculation == 'reverse') {
@@ -360,7 +368,7 @@ class price_ListRules extends core_Detail
                 // Ако има дефолтна надценка и има наследена политика
                 if (isset($defaultSurcharge)) {
                     if ($parent = $listRec->parent) {
-
+                        //bp($parent, $datetime);
                         // Питаме бащата за цената
                         $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, true, 1, 'no', $discountIncluded);
                         

@@ -56,7 +56,7 @@ class price_Lists extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'price_ListRules';
+    public $details = 'price_ListRules,price_ListVariations';
     
     
     /**
@@ -172,7 +172,6 @@ class price_Lists extends core_Master
         
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
-        
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
     }
@@ -342,6 +341,12 @@ class price_Lists extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        $form->FNC('variationOf', 'key(mvc=price_Lists,select=title,allowEmpty)', 'silent,input=hidden');
+        $form->input('variationOf', 'silent');
+        if(isset($rec->variationOf)){
+            $form->info = "<div class='richtext-info-no-image'>" . tr('Вариация на|*: ') . price_Lists::getHyperlink($rec->variationOf, true) . "</div>";
+        }
 
         $folderId = $rec->folderId;
         if (isset($rec->cClass, $rec->cId)) {
@@ -568,6 +573,16 @@ class price_Lists extends core_Master
             if(empty($rec->discountComparedShowAbove)){
                 $row->discountComparedShowAbove = ht::createHint($mvc->getFieldType('discountComparedShowAbove')->toVerbal(0.01), 'Стойност по подразбиране');
             }
+
+            $variationOfArr = array();
+            $varQuery = price_ListVariations::getQuery();
+            $varQuery->where("#variationId = {$rec->id}");
+            while($vRec = $varQuery->fetch()){
+                $vRow = price_ListVariations::recToVerbal($vRec);
+                $hint = strip_tags("{$vRow->validFrom} - {$vRow->validUntil} ({$vRow->repeatInterval})");
+                $variationOfArr[] = ht::createHint($vRow->listId, $hint, 'notice', false)->getContent();
+            }
+            $row->variationsOf = implode(',', $variationOfArr);
         }
     }
     
@@ -577,9 +592,21 @@ class price_Lists extends core_Master
      */
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        //Ако създаваме копие, редиректваме до създаденото копие
+        // Ако създаваме копие, редиректваме до създаденото копие
         if (is_object($data->form) && $data->form->isSubmitted()) {
-            $data->retUrl = array($mvc, 'single', $data->form->rec->id);
+            $rec = $data->form->rec;
+
+            $redirectToSingle = true;
+            if(isset($rec->variationOf)){
+                if(price_ListVariations::haveRightFor('add', (object)array('listId' => $rec->variationOf, 'variationId' => $rec->id))){
+                    $data->retUrl = array('price_ListVariations', 'add', "listId" => $rec->variationOf, 'variationId' => $rec->id);
+                    $redirectToSingle = false;
+                }
+            }
+
+            if($redirectToSingle){
+                $data->retUrl = array($mvc, 'single', $rec->id);
+            }
         }
     }
     
