@@ -195,8 +195,10 @@ class colab_plg_VisibleForPartners extends core_Plugin
             $partners = core_Users::getByRole('partner');
             $withoutSelectedPartners = array_diff_key($sharedUsers, $partners);
 
-            $rec->sharedUsers = keylist::fromArray($withoutSelectedPartners);
-            core_Statuses::newStatus('Документът не е видим за партньори, затова са махнати споделените такива|*!', 'warning');
+            if(countR($sharedUsers) != countR($withoutSelectedPartners)){
+                $rec->sharedUsers = keylist::fromArray($withoutSelectedPartners);
+                core_Statuses::newStatus('Документът не е видим за партньори, затова са махнати споделените такива|*!', 'warning');
+            }
         }
     }
 
