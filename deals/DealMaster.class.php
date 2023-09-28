@@ -683,11 +683,11 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         if(!Request::get('Rejected')){
             $summaryQuery = clone $data->query;
-            $summaryQuery->XPR('amountDealNoVat', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
-            $summaryQuery->XPR('amountDeliveredNoVat', 'double', 'ROUND((#amountDelivered / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
-            $summaryQuery->XPR('amountPaidNoVat', 'double', 'ROUND((#amountPaid / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
-            $summaryQuery->XPR('amountBlNoVat', 'double', 'ROUND((#amountBl / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
-            $summaryQuery->XPR('amountInvoicedNoVat', 'double', 'ROUND((#amountInvoiced / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
+            $summaryQuery->XPR('amountDealNoVat', 'double', 'ROUND((COALESCE(#amountDeal, 0) - COALESCE(#amountVat, 0)), 2)');
+            $summaryQuery->XPR('amountDeliveredNoVat', 'double', 'ROUND((COALESCE(#amountDelivered, 0) / (1 + COALESCE(#amountVat, 0) / (COALESCE(#amountDeal, 0) - COALESCE(#amountVat, 0)))), 2)');
+            $summaryQuery->XPR('amountPaidNoVat', 'double', 'ROUND(COALESCE(#amountPaid, 0))');
+            $summaryQuery->XPR('amountBlNoVat', 'double', 'ROUND(COALESCE(#amountBl, 0) / (1 + COALESCE(#amountVat, 0) / (COALESCE(#amountDeal, 0) - COALESCE(#amountVat, 0))), 2)');
+            $summaryQuery->XPR('amountInvoicedNoVat', 'double', 'ROUND(COALESCE(#amountInvoiced, 0) / (1 + COALESCE(#amountVat, 0) / ((COALESCE(#amountDeal, 0) - COALESCE(#amountVat, 0)))), 2)');
 
             $data->listSummary = (object)array('mvc' => clone $this, 'query' => $summaryQuery);
             $data->listSummary->mvc->FNC('amountDealNoVat', 'varchar', 'caption=Поръчано (без ДДС),input=none,summary=amount');
