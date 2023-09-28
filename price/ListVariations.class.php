@@ -72,6 +72,12 @@ class price_ListVariations extends core_Detail
 
 
     /**
+     * Кеш на текущите вариации
+     */
+    public static $variationCache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -86,8 +92,6 @@ class price_ListVariations extends core_Detail
     }
 
 
-
-
     /**
      * Извиква се след подготовката на формата
      */
@@ -98,9 +102,9 @@ class price_ListVariations extends core_Detail
         $variationOptions = price_Lists::getAccessibleOptions();
         $form->setOptions('variationId', $variationOptions);
 
-        if(!isset($rec->id)){
+        if (!isset($rec->id)) {
             $listRec = price_Lists::fetch($rec->listId);
-            if (price_Lists::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
+            if (price_Lists::haveRightFor('add', (object)array('folderId' => $rec->folderId))) {
                 $data->form->toolbar->addBtn('Нова вариация', array('price_Lists', 'add', 'folderId' => $listRec->folderId, 'variationOf' => $listRec->id, 'ret_url' => true), null, 'order=10.00015,ef_icon=img/16/page_white_star.png');
             }
         }
@@ -114,17 +118,17 @@ class price_ListVariations extends core_Detail
     {
         $rec = &$form->rec;
 
-        if($form->isSubmitted()){
-            if(empty($rec->repeatInterval)){
+        if ($form->isSubmitted()) {
+            if (empty($rec->repeatInterval)) {
                 $rec->repeatInterval = 0;
             }
 
-            if($rec->listId == $rec->variationId){
+            if ($rec->listId == $rec->variationId) {
                 $form->setError('listId', 'Не може да изберете същата политика');
             }
 
-            $secsBetween = dt::secsBetween($rec->validTo, $rec->validFrom);
-            if($secsBetween >= $rec->repeatInterval){
+            $secsBetween = dt::secsBetween($rec->validUntil, $rec->validFrom);
+            if ($secsBetween >= $rec->repeatInterval) {
                 $form->setError('repeatInterval', 'Интервалът за повторение трябва да е по-голям от този между датите');
             }
         }
@@ -144,7 +148,7 @@ class price_ListVariations extends core_Detail
         $row->listId = price_Lists::getHyperlink($rec->listId, true);
 
         $variationState = price_Lists::fetchField($rec->variationId, 'state');
-        if($variationState == 'rejected'){
+        if ($variationState == 'rejected') {
             $row->variationId = "<div class='state-{$variationState} document-handler'>{$row->variationId}</div>";
         }
     }
@@ -155,33 +159,64 @@ class price_ListVariations extends core_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-        if(isset($data->masterMvc)){
+        if (isset($data->masterMvc)) {
             unset($data->listFields['listId']);
         }
     }
 
+
+    /**
+     * Коя е активната вариация за тази ЦП към посоченото време (кешира в хита)
+     *
+     * @param int $listId-            - ид на ЦП
+     * @param datetime|null $datetime - към коя дата или null за СЕГА
+     * @return int|null
+     */
     public static function getActiveVariationId($listId, $datetime = null)
+    {
+        if (!array_key_exists($listId, static::$variationCache)) {
+            $variationArr = static::getActiveVariations($listId, $datetime, 1);
+
+            static::$variationCache[$listId] = countR($variationArr) ? $variationArr[key($variationArr)] : null;
+        }
+
+        return static::$variationCache[$listId];
+    }
+
+
+    /**
+     * Всички активни вариации към посочената дата
+     *
+     * @param int|null $listId       - ид на ЦП или null за всички
+     * @param datetime|int $datetime - към коя дата или null за СЕГА
+     * @param int|null $limit        - ограничение или null за всички
+     * @return array
+     */
+    public static function getActiveVariations($listId, $datetime = null, $limit = null)
     {
         $datetime = $datetime ?? dt::now();
         $datetime = strlen($datetime == 10) ? "{$datetime} 23:59:59" : $datetime;
 
-        /*
-         * Имам дати F начало и E край с интервал I в секунди.Имам дата D.
-         * Смятам разликата в секунди Dst = D-F. После Dst го деля на I и закръглям с Floor = R.
-         * Смятам F1 = F + I*R. Смятам E1 = F1 + (E-F).
-         * Проверявам дали D е между F1 и E1 включително
-         */
+        $res = array();
         $query = static::getQuery();
         $query->EXT('variationState', 'price_Lists', "externalName=state,externalKey=variationId");
         $query->XPR('diff', 'int', "TIME_TO_SEC(TIMEDIFF(#validUntil , #validFrom))");
         $query->XPR('validFromNew', 'datetime', "DATE_ADD(#validFrom, INTERVAL (COALESCE(#repeatInterval, 0) * (FLOOR(TIMESTAMPDIFF(SECOND, #validFrom, '{$datetime}') / COALESCE(#repeatInterval, 0)))) SECOND)");
         $query->XPR('validFromTo', 'datetime', "DATE_ADD((DATE_ADD(#validFrom, INTERVAL (COALESCE(#repeatInterval, 0) * (FLOOR(TIMESTAMPDIFF(SECOND, #validFrom, '{$datetime}') / COALESCE(#repeatInterval, 0)))) SECOND)), INTERVAL TIME_TO_SEC(TIMEDIFF(#validUntil , #validFrom)) SECOND)");
         $query->where("#validFrom <= '{$datetime}' && (#validFromNew <= '{$datetime}' && '{$datetime}' <= #validFromTo)");
-        $query->where("#listId = {$listId} AND #variationState != 'rejected'");
-        $query->orderBy("diff,id", 'ASC');
-        $query->limit(1);
-        $foundRec = $query->fetch();
+        $query->where("#variationState != 'rejected'");
+        if(isset($listId)){
+            $query->where("#listId = {$listId}");
+        }
 
-        return is_object($foundRec) ? $foundRec->variationId : null;
+        $query->orderBy("diff,id", 'ASC');
+        if(isset($limit)){
+            $query->limit(1);
+        }
+        while($rec = $query->fetch()){
+            $res[$rec->id] = $rec->variationId;
+        }
+
+        return $res;
     }
 }

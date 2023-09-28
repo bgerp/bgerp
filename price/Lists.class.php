@@ -811,4 +811,53 @@ class price_Lists extends core_Master
         
         followRetUrl(null, "Политиката е променена на {$currentState}");
     }
+
+
+    /**
+     * Има ли промяна в ценовите правила
+     *
+     * @param datetime|null $datetime
+     * @return bool
+     */
+    public static function areListUpdated($datetime = null)
+    {
+        $datetime = $datetime ?? dt::now();
+
+        $keys = array_values(price_ListVariations::getActiveVariations(null, $datetime));
+
+        $primeCostListId = price_ListRules::PRICE_LIST_COST;
+        $ruleQuery = price_ListRules::getQuery();
+        $ruleQuery->XPR('maxCreatedOn', 'datetime', 'MAX(#createdOn)');
+        $ruleQuery->where("#listId != {$primeCostListId}");
+        $ruleQuery->show('maxCreatedOn');
+        $keys[] = $ruleQuery->fetch()->maxCreatedOn;
+
+        $ruleQuery1 = price_ListRules::getQuery();
+        $ruleQuery1->XPR('maxValidFrom', 'datetime', 'MAX(#validFrom)');
+        $ruleQuery1->where("#listId != {$primeCostListId}");
+        $ruleQuery1->where("#validFrom < '{$datetime}'");
+        $keys[] = $ruleQuery1->fetch()->maxValidFrom;
+
+        $ruleQuery2 = price_ListRules::getQuery();
+        $ruleQuery2->XPR('maxValidUntil', 'datetime', 'MAX(#validUntil)');
+        $ruleQuery2->where("#listId != {$primeCostListId}");
+        $ruleQuery2->where("#validUntil IS NULL OR #validUntil < '{$datetime}'");
+        $keys[] = $ruleQuery2->fetch()->maxValidUntil;
+
+        $query = price_Lists::getQuery();
+        $query->XPR('maxModifiedOn', 'datetime', 'MAX(#modifiedOn)');
+        $query->where("#id != {$primeCostListId}");
+        $query->show('maxModifiedOn');
+        $keys[] = $query->fetch()->maxModifiedOn;
+        $hash = md5(implode('|', $keys));
+        $pricelistHash = core_Permanent::get("priceListHash");
+
+        if($hash != $pricelistHash){
+            core_Permanent::set('priceListHash', $hash, 60);
+
+            return true;
+        }
+
+        return false;
+    }
 }

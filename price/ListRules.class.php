@@ -311,9 +311,7 @@ class price_ListRules extends core_Detail
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
 
-        //$variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
-
-       // echo "<li>CALL {$listId} - VARIATION {$variationId}";
+        $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
         $listId = $variationId ?? $listId;
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
@@ -351,8 +349,6 @@ class price_ListRules extends core_Detail
                     $validFrom = $rec->validFrom;
                     expect($parent = $listRec->parent);
 
-                    //bp($parent, $listRec);
-
                     $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false, 1, 'no', $discountIncluded);
                     if (isset($price)) {
                         if ($rec->calculation == 'reverse') {
@@ -368,7 +364,7 @@ class price_ListRules extends core_Detail
                 // Ако има дефолтна надценка и има наследена политика
                 if (isset($defaultSurcharge)) {
                     if ($parent = $listRec->parent) {
-                        //bp($parent, $datetime);
+
                         // Питаме бащата за цената
                         $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, true, 1, 'no', $discountIncluded);
                         
@@ -390,7 +386,6 @@ class price_ListRules extends core_Detail
 
                     $cRate = currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
                     if(!empty($cRate)){
-                        //$price *= 1 + $discountIncluded;
                         $rate = 1 / $cRate;
                         $price = $price * $vat * $rate;
                         $price = price_Lists::roundPrice($listRec, $price);
@@ -404,7 +399,6 @@ class price_ListRules extends core_Detail
                 if ($canUseCache) {
                     price_Cache::setPrice($price, $listId, $productId, $discountIncluded);
                 }
-
             }
         }
 
