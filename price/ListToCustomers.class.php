@@ -441,7 +441,7 @@ class price_ListToCustomers extends core_Manager
 
             if ($comparePrice && isset($rec->price)) {
                 $disc = ($rec->price - $comparePrice) / $comparePrice;
-                $discount = round(-1 * $disc, 2);
+                $discount = round(-1 * $disc, 3);
                 
                 $compareTo = isset($listRec->discountComparedShowAbove) ? $listRec->discountComparedShowAbove : 0.01;
                
@@ -450,7 +450,7 @@ class price_ListToCustomers extends core_Manager
                 if ($discount > $compareTo) {
                     
                     // Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
-                    $rec->discount = round(-1 * $disc, 2);
+                    $rec->discount = round(-1 * $disc, 3);
                     $rec->price = $comparePrice;
                 }
             }
