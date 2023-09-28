@@ -527,11 +527,9 @@ class pos_ReceiptDetails extends core_Detail
             
             // Ако няма цена
             if (!$rec->price) {
-                $createdOn = pos_Receipts::fetchField($rec->receiptId, 'createdOn');
-                $createdOn = dt::mysql2verbal($createdOn, 'd.m.Y H:i');
-                expect(false,  "Артикулът няма цена към|* <b>{$createdOn}</b>");
+                $now = dt::mysql2verbal(dt::now(), 'd.m.Y H:i');
+                expect(false,  "Артикулът няма цена към|* <b>{$now}</b>");
             }
-
 
             if (!empty($receiptRec->revertId)) {
                 if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
@@ -875,7 +873,7 @@ class pos_ReceiptDetails extends core_Detail
         }
 
         $Policy = cls::get('price_ListToCustomers');
-        $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, $receiptRec->createdOn, 1, 'no', $listId);
+        $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, dt::now(), 1, 'no', $listId);
         $rec->discountPercent = $price->discount;
         $rec->price = $price->price * $perPack;
         $rec->amount = $rec->price * $rec->quantity;

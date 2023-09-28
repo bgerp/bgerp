@@ -117,15 +117,27 @@ class pos_SellableProductsCache extends core_Master
      */
     public function cron_CacheSellablePosProducts()
     {
-        if(!pos_Points::count()) return;
-        
+        if(!pos_Points::count()) {
+            $this->logInfo("Няма налични точки на продажба");
+            return;
+        }
+
+        // Ако има промяна в ценовите политики - ще се преизчислява кеша
+        $datetime = dt::now();
+        if(!price_Lists::areListUpdated($datetime)) {
+            $this->logInfo("Няма промяна в ценовите политики");
+            //return;
+        }
+
+        // Кои ценови политики участват в ПОС-а
         $priceLists = array();
         $pointQuery = pos_Points::getQuery();
         while($pointRec = $pointQuery->fetch()){
             $policyId = pos_Points::getSettings($pointRec, 'policyId');
             $priceLists[$policyId] = $policyId;
         }
-        
+
+        // Извличане на всички активни стандартни артикули
         $toSave = array();
         $pQuery = cat_Products::getQuery();
         $pQuery->where("#state = 'active' AND #isPublic = 'yes'");
@@ -133,16 +145,15 @@ class pos_SellableProductsCache extends core_Master
         
         $count = $pQuery->count();
         core_App::setTimeLimit($count * 0.5, false, 100);
-        
+
+        // Ако имат цена ще се извлекат данните им за търсене
         while($pRec = $pQuery->fetch()){
-            $newRec = (object)array('productId' => $pRec->id, 'searchKeywords' => $pRec->searchKeywords);
-            $newRec->string = plg_Search::normalizeText($pRec->name) . " " . plg_Search::normalizeText($pRec->code);
-            
             foreach ($priceLists as $listId){
-                if(price_ListRules::getPrice($listId, $pRec->id)){
-                    $newRecClone = clone $newRec;
-                    $newRecClone->priceListId = $listId;
-                    $toSave[] = $newRecClone;
+                if(price_ListRules::getPrice($listId, $pRec->id, null, $datetime)){
+                    $newRec = (object)array('productId' => $pRec->id, 'searchKeywords' => $pRec->searchKeywords);
+                    $newRec->string = plg_Search::normalizeText($pRec->name) . " " . plg_Search::normalizeText($pRec->code);
+                    $newRec->priceListId = $listId;
+                    $toSave[] = $newRec;
                 }
             }
         }
@@ -150,19 +161,24 @@ class pos_SellableProductsCache extends core_Master
         // Синхронизиране на таблицата
         $exRecs = self::getQuery()->fetchAll();
         $res = arr::syncArrays($toSave, $exRecs, 'productId,priceListId', 'productId,string,searchKeywords,priceListId');
-        
-        if(countR($res['insert'])){
+        $iCount = countR($res['insert']);
+        $uCount = countR($res['update']);
+        $dCount = countR($res['delete']);
+
+        if($iCount){
             $this->saveArray($res['insert']);
         }
         
-        if(countR($res['update'])){
+        if($uCount){
             $this->saveArray($res['update'], 'id,string,searchKeywords');
         }
         
-        if(countR($res['delete'])){
+        if($dCount){
             foreach ($res['delete'] as $id){
                 $this->delete($id);
             }
         }
+
+        $this->logInfo("Обновени продаваеми: I:{$iCount}/U:{$uCount}/D:{$dCount}");
     }
 }
