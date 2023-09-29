@@ -4366,6 +4366,11 @@ fieldset.sharing-history {
 		background-color: rgba(241, 223, 11, 0.9) !important;
 		color:black !important;
 	}
+
+	&.saleDebug {
+		background-color: rgb(168, 243, 180, 0.9)  !important;
+		color:black !important;
+	}
 }
 .eshop-product-list-param {
 	font-size: 0.85em;
@@ -8727,4 +8732,8 @@ table.bomProductionStepTable td{
 	.tab {
 		display: inline-block;
 	}
+}
+
+.eshopHiddenRow {
+	opacity:0.3;
 }

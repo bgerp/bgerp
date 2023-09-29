@@ -3722,6 +3722,9 @@ span.sharing-history-title {
   .option-not-in-stock.saleSoon {
     background-color: rgba(241, 223, 11, 0.9) !important;
     color: black !important; }
+  .option-not-in-stock.saleDebug {
+    background-color: #a8f3b4 !important;
+    color: black !important; }
 
 .eshop-product-list-param {
   font-size: 0.85em;
@@ -7661,4 +7664,7 @@ table.bomProductionStepTable td {
   white-space: nowrap; }
   .ef-drag-scroll .tab {
     display: inline-block; }
+
+.eshopHiddenRow {
+  opacity: 0.3; }
 
