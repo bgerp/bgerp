@@ -126,7 +126,7 @@ class pos_SellableProductsCache extends core_Master
         $datetime = dt::now();
         if(!price_Lists::areListUpdated($datetime)) {
             $this->logInfo("Няма промяна в ценовите политики");
-            //return;
+            return;
         }
 
         // Кои ценови политики участват в ПОС-а

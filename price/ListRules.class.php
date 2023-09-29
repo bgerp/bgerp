@@ -310,7 +310,6 @@ class price_ListRules extends core_Detail
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
-
         $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
         $listId = $variationId ?? $listId;
 

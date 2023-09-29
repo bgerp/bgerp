@@ -258,6 +258,7 @@ class eshop_Settings extends core_Master
         $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Показване');
         
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Изглед),optionsFunc=cat_Params::getPublic');
+        $this->FLD('showProductsWithoutPrices', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на е-артикулите във външната част->Без цени,notNull,value=yes');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Списък),optionsFunc=cat_Params::getPublic');
 
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
@@ -492,6 +493,7 @@ class eshop_Settings extends core_Master
 
         $form->setDefault('mandatoryEcartContactFields', 'auto');
         $form->setDefault('mandatoryInquiryContactFields', 'auto');
+        $form->setDefault('showProductsWithoutPrices', 'auto');
     }
     
     
@@ -617,7 +619,7 @@ class eshop_Settings extends core_Master
             }
 
             $settingRec->showNavigation = (in_array($settingRec->showNavigation, array('yes', 'no'))) ? $settingRec->showNavigation : eshop_Setup::get('SHOW_NAVIGATION');
-            $fldArr = array('mandatoryEcartContactFields' => 'MANDATORY_CONTACT_FIELDS', 'mandatoryInquiryContactFields' => 'MANDATORY_INQUIRY_CONTACT_FIELDS', 'mandatoryEGN' => 'MANDATORY_EGN', 'mandatoryUicId' => 'MANDATORY_UIC_ID', 'mandatoryVatId' => 'MANDATORY_VAT_ID', 'listId' => 'DEFAULT_POLICY_ID', 'payments' => 'DEFAULT_PAYMENTS', 'terms' => 'DEFAULT_DELIVERY_TERMS');
+            $fldArr = array('mandatoryEcartContactFields' => 'MANDATORY_CONTACT_FIELDS', 'mandatoryInquiryContactFields' => 'MANDATORY_INQUIRY_CONTACT_FIELDS', 'mandatoryEGN' => 'MANDATORY_EGN', 'mandatoryUicId' => 'MANDATORY_UIC_ID', 'mandatoryVatId' => 'MANDATORY_VAT_ID', 'listId' => 'DEFAULT_POLICY_ID', 'payments' => 'DEFAULT_PAYMENTS', 'terms' => 'DEFAULT_DELIVERY_TERMS', 'showProductsWithoutPrices' => 'SHOW_PRODUCTS_WITHOUT_PRICES');
             foreach ($fldArr as $fld => $const){
                 $settingRec->{$fld} = (empty($settingRec->{$fld}) || $settingRec->{$fld} == 'auto') ? eshop_Setup::get($const) : $settingRec->{$fld};
             }

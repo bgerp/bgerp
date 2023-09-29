@@ -216,6 +216,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_Carts',
         'eshop_CartDetails',
         'eshop_Favourites',
+        'migrate::updateProductDetailState3923'
     );
     
     
@@ -303,6 +304,15 @@ class eshop_Setup extends core_ProtoSetup
             'offset' => 60,
             'timeLimit' => 100
         ),
+
+        array(
+            'systemId' => 'Update Eshop Sellable Products',
+            'description' => 'Преизчисляване на е-артикулите дали има детайли с цени',
+            'controller' => 'eshop_Products',
+            'action' => 'UpdateEshopSellableProducts',
+            'period' => 1,
+            'timeLimit' => 100
+        ),
     );
     
     
@@ -369,5 +379,41 @@ class eshop_Setup extends core_ProtoSetup
         eshop_Products::saveNearProducts();
         
         return tr('Преизчисляване на свързаните е-артикули');
+    }
+
+
+    /**
+     * Миграция на полето за операции с детайлите на е-артикула
+     */
+    public function updateProductDetailState3923()
+    {
+        $Products = cls::get('eshop_Products');
+        $Products->setupMvc();
+
+        $res = $save = array();
+        $Details = cls::get('eshop_ProductDetails');
+        $dQuery = $Details->getQuery();
+        $dQuery->where("#state = 'active'");
+        while($dRec = $dQuery->fetch()){
+            $res[$dRec->eshopProductId][$dRec->action] = $dRec->action;
+        }
+
+        foreach ($res as $eshopProductId => $actions){
+            if($actions['both'] || ($actions['inquiry'] && ($actions['price'] || $actions['buy']))){
+                $detailAction = 'mixed';
+            } elseif($actions['inquiry'] && !$actions['buy'] && !$actions['price']){
+                $detailAction = 'onlyRequests';
+            } elseif(!$actions['inquiry'] && ($actions['buy'] || $actions['price'])){
+                $detailAction = 'onlySell';
+            } else {
+                $detailAction = 'none';
+            }
+            $rec = (object)array('id' => $eshopProductId, 'detailActions' => $detailAction);
+            $save[] = $rec;
+        }
+
+        if(countR($save)){
+            $Products->saveArray($save, 'id,detailActions');
+        }
     }
 }

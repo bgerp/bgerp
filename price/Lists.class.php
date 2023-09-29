@@ -849,9 +849,12 @@ class price_Lists extends core_Master
         $query->where("#id != {$primeCostListId}");
         $query->show('maxModifiedOn');
         $keys[] = $query->fetch()->maxModifiedOn;
+
+
+
         $hash = md5(implode('|', $keys));
         $pricelistHash = core_Permanent::get("priceListHash");
-
+        //bp($keys, $hash, $pricelistHash);
         if($hash != $pricelistHash){
             core_Permanent::set('priceListHash', $hash, 60);
 
