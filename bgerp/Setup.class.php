@@ -42,7 +42,7 @@ defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
 /**
  * Колко време да се съхраняват нотификациите
  */
-defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 31556952);
+defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 15778476);
 
 
 /**

@@ -2431,9 +2431,14 @@ class core_Users extends core_Manager
      */
     public static function isActiveUserId($id)
     {
-        $user = static::fetch(array("#id = '[#1#]' AND #state = 'active'", $id));
+        $rec = static::fetch(array("#id = '[#1#]'", $id));
 
-        return (bool) $user;
+        if (!$rec) {
+
+            return false;
+        }
+
+        return (bool) ($rec->state == 'active');
     }
     
     

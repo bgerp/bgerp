@@ -225,6 +225,12 @@ class bgerp_Notifications extends core_Manager
             
             return ;
         }
+
+        // Само активните потребители да получат известие
+        if (!core_Users::isActiveUserId($userId)) {
+
+            return ;
+        }
         
         $rec = new stdClass();
         $rec->msg = $msg;
