@@ -344,6 +344,7 @@ abstract class deals_Helper
 
         $DoubleOne = cls::get('type_Double');
         $DoubleOne->params['decimals'] = 1;
+        $DoubleOne->params['smartRound'] = 'smartRound';
         
         foreach ($arr as $index => $el) {
             if (is_numeric($el)) {
