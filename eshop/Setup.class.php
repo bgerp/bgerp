@@ -116,6 +116,12 @@ defIfNot('ESHOP_DEFAULT_DELIVERY_TERMS', '');
 
 
 /**
+ * Условия на доставка
+ */
+defIfNot('ESHOP_SHOW_PRODUCTS_WITHOUT_PRICES', '');
+
+
+/**
  * Методи на плащане
  */
 defIfNot('ESHOP_DEFAULT_PAYMENTS', '');
