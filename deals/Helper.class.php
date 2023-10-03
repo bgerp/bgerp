@@ -341,18 +341,10 @@ abstract class deals_Helper
 
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-
-        $DoubleOne = cls::get('type_Double');
-        $DoubleOne->params['decimals'] = 1;
-        $DoubleOne->params['smartRound'] = 'smartRound';
         
         foreach ($arr as $index => $el) {
             if (is_numeric($el)) {
-                if ($index == 'discountValue') {
-                    $arr[$index] = $DoubleOne->toVerbal($el);
-                } else {
-                    $arr[$index] = $Double->toVerbal($el);
-                }
+                $arr[$index] = $Double->toVerbal($el);
             }
         }
         
