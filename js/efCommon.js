@@ -2182,7 +2182,7 @@ function selectInnerText(text) {
         document.body.style.cursor = 'copy';
         setTimeout(function() {
             document.body.style.cursor = cursor;
-        }, 500);
+        }, 250);
     }
 }
 
