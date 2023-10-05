@@ -100,7 +100,7 @@ class bgerp_C extends core_Mvc
                 <style>
                     .container {
                         position: relative;
-                        width: 85mm;
+                        width: 85.5mm;
                         height: 54mm;
                         text-align: center;
                         vertical-align: middle;
@@ -142,7 +142,7 @@ class bgerp_C extends core_Mvc
                     }
  
                     @page  {
-                      1size: 85mm 54mm;
+                      size: 85.5mm 54mm;
                       margin:0;
                       padding:0;
                     }
