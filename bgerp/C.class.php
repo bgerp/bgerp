@@ -100,8 +100,8 @@ class bgerp_C extends core_Mvc
                 <style>
                     .container {
                         position: relative;
-                        width: 500px;
-                        height: 312px;
+                        width: 85.5mm;
+                        height: 54mm;
                         display: table-cell;
                         text-align: center;
                         vertical-align: middle;
@@ -110,7 +110,7 @@ class bgerp_C extends core_Mvc
                         display:block;
                         background-position: center; 
                         background-size:cover;
-                        border-radius:20px;
+                        border-radius:10px;
                         page-break-after: always;
                     }
                     .qr {
@@ -118,7 +118,7 @@ class bgerp_C extends core_Mvc
                         position: absolute;
                         top: 50%; left: 50%;
                         transform: translate(-50%,-50%);
-                        width:250px;
+                        width:220px;
                         height:160px;
                         background-color:rgba(255,255,255, 0.8);
                         border-radius:15px;
@@ -143,7 +143,7 @@ class bgerp_C extends core_Mvc
                     }
  
                     @page  {
-                      size: 500px 312px;
+                      size: 85.5mm 54mm;
                       margin:0;
                       padding:0;
                     }
