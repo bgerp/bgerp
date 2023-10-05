@@ -753,23 +753,23 @@ class cal_Calendar extends core_Master
                 
                 } elseif($rec->type == 'working-travel') {
                     
-                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .">&nbsp;";
+                    $data[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/working-travel.png') .">&nbsp;";
                 
                 } elseif($rec->type == 'leaves') {
                     
-                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .">&nbsp;";
+                    $data[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/leaves.png') .">&nbsp;";
                 
                 } elseif($rec->type == 'sick') {
                     
-                    $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .">&nbsp;";
+                    $data[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/sick.png') .">&nbsp;";
                 
                 } elseif($rec->type == 'workday') {
                 
                 } elseif($rec->type == 'task' || $rec->type == 'reminder'){
                     if($rec->state == 'active' || $rec->state == 'waiting') {
-                        $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
+                        $data[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
                     } else {
-                        $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
+                        $data[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
                     }
                 }
             }
