@@ -1919,7 +1919,7 @@ class crm_Persons extends core_Master
         // Ако разширението е в допустимите, имамем права за добваня и имаме права за single' а на файла
         if (in_array($ext, $vCardExtArr) && (static::haveRightFor('add') && (fileman_Files::haveRightFor('single', $fRec)))) {
             
-            // Създаваме масива за съзване на визитка
+            // Създаваме масива за създаване на визитка
             $arr = array();
             $arr['vcard']['url'] = array('crm_Persons', 'extractVcard', 'fh' => $fRec->fileHnd, 'ret_url' => true);
             $arr['vcard']['title'] = 'Лице';

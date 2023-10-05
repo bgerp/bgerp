@@ -47,7 +47,7 @@
 	            </tr>
 	        </tbody>
 	    </table>
-    </div>
+	</div>
 	<div class="lines"></div>
 <!--ET_BEGIN TOTAL-->
 <div class='line-detail'>
@@ -91,7 +91,6 @@
 					</td>
 				</tr>
 			</table>
-		</table>
 	</div>
 </div>
 <!--ET_END TOTAL-->

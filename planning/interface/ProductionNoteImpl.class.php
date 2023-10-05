@@ -89,6 +89,10 @@ class planning_interface_ProductionNoteImpl
         $placeholders['EXPIRY_DATE'] = (object) array('type' => 'text');
         $placeholders['QR_CODE'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['QR_CODE_90'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['SALE_HANDLER'] = (object) array('type' => 'text');
+        $placeholders['SALE_ID'] = (object) array('type' => 'text');
+        $placeholders['SALE_VALIOR'] = (object) array('type' => 'text');
+        $placeholders['SALE_REFF'] = (object) array('type' => 'text');
 
         if (isset($objId)) {
             
@@ -243,8 +247,24 @@ class planning_interface_ProductionNoteImpl
         $date = dt::mysql2verbal($rec->valior, 'd.m.Y');
         $singleUrl = toUrl(array($this->class, 'single', $rec->id), 'absolute');
         $arr = array();
+
+
+        $saleRec = isset($jobRec->saleId) ? sales_Sales::fetch($jobRec->saleId) : null;
+
         for ($i = 1; $i <= $cnt; $i++) {
             $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl);
+            if(is_object($saleRec)){
+                $res["SALE_HANDLER"] = "#" . sales_Sales::getHandle($saleRec->id);
+                $res["SALE_ID"] = "#" . $saleRec->id;
+                $res["SALE_VALIOR"] = dt::mysql2verbal($saleRec->valior, 'd.m.Y');
+                if(!empty($saleRec->reff)){
+                    $res["SALE_REFF"] = core_Type::getByName('varchar')->toVerbal($saleRec->reff);
+                }
+                if(!empty($saleRec->deliveryLocationId)){
+                    $res["LOCATION_ID"] = crm_Locations::getTitleById($saleRec->deliveryLocationId);
+                }
+            }
+
             if(isset($batch)){
                 $res['BATCH'] = $batch;
             }
@@ -272,7 +292,7 @@ class planning_interface_ProductionNoteImpl
             
             $arr[] = $res;
         }
-        
+
         $resArr[$key] = $arr;
 
         return $resArr[$key];

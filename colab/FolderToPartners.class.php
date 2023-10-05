@@ -1073,4 +1073,21 @@ class colab_FolderToPartners extends core_Manager
             $Cover->getInstance()->logWrite('Споделяне към партньор', $Cover->that);
         }
     }
+
+
+    /**
+     * Връща ид-та на споделените партньори към папката
+     *
+     * @param int $folderId
+     * @return array $contractorIds
+     */
+    public static function getContractorsInFolder($folderId)
+    {
+        $cQuery = colab_FolderToPartners::getQuery();
+        $cQuery->EXT('contractorState', 'core_Users', 'externalName=state,externalKey=contractorId');
+        $cQuery->where("#folderId = '{$folderId}' AND #contractorState = 'active'");
+        $contractorIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'contractorId');
+
+        return $contractorIds;
+    }
 }

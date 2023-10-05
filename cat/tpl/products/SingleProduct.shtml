@@ -6,14 +6,18 @@
 <!--ET_BEGIN innerState-->
 <fieldset class="detail-info">
     <legend class="groupTitle">|Описание|*</legend>
-    [#innerState#]
-    [#COMPONENTS#]
+    <div class="scrolling-holder">
+        [#innerState#]
+        [#COMPONENTS#]
+    </div>
 </fieldset>
 <!--ET_END innerState-->
     <!--ET_BEGIN PARAMETERS-->
     <fieldset class="detail-info">
     <legend class="groupTitle">|Параметри|*</legend>
-     [#PARAMETERS#]
+        <div class="scrolling-holder">
+            [#PARAMETERS#]
+        </div>
     </fieldset>
     <!--ET_END PARAMETERS-->
     [#ADDITIONAL_BOTTOM_BLOCK#]

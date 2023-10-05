@@ -51,8 +51,14 @@ class label_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.66, 'Производство', 'Етикетиране', 'label_Prints', 'default', 'label, admin, ceo'),
     );
-    
-    
+
+
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'label_CsvFileProxy';
+
+
     // Инсталиране на мениджърите
     public $managers = array(
         'label_Templates',

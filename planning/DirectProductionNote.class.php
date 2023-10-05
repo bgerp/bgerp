@@ -734,13 +734,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 if (isset($rec)) {
 
                     // Ако няма материали и отпадъци или всички материали са чужди от ПОП - ще може да се контира бездетайлно
-                    $dQuery = planning_DirectProductNoteDetails::getQuery();
-                    $dQuery->where("#noteId = {$rec->id} AND #type = 'input'");
-                    $dQuery->show('productId');
-                    $dProductIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
-                    $consignedProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($rec->threadId, false);
-                    $diff = array_diff_key($dProductIds, $consignedProducts);
-                    if (countR($diff) || (!countR($dProductIds) && planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop'"))) {
+                    $hasNotOutsourced = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes' AND #quantity != 0");
+                    $hasPoped = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop' AND #quantity != 0");
+                    $hasInputed = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #quantity != 0");
+                    if ($hasNotOutsourced || (!$hasInputed && $hasPoped)) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -1173,15 +1170,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = static::fetchRec($rec);
 
         if (isset($rec->id)) {
-            $jobRec = static::getJobRec($rec->id);
-            $where = "#noteId = {$rec->id} AND #type = 'input'";
-            $consignedProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($jobRec->threadId, false);
-            if(countR($consignedProducts)){
-                $consignedProductsStr = implode(',', $consignedProducts);
-                $where .= " AND #productId NOT IN ({$consignedProductsStr})";
-            }
-
-            $input = planning_DirectProductNoteDetails::fetchField($where, 'id');
+            $input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes'", 'id');
             $pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
             if ($pop && !$input) {
 

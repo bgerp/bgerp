@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -568,7 +568,7 @@ class eshop_Carts extends core_Master
             }
             
             // Дигане на флаг ако има артикули очакващи доставка
-            if($rec->haveProductsWithExpectedDelivery != 'yes' && isset($settings->inStockStores) && $dRec->canStore == 'yes'){
+            if($rec->haveProductsWithExpectedDelivery != 'yes' && countR($settings->inStockStores) && $dRec->canStore == 'yes'){
                 $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->inStockStores)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
@@ -938,8 +938,12 @@ class eshop_Carts extends core_Master
         $notes = tr("Поръчка") . " #{$rec->id}" . "\n";
         $notes .= tr('Тел|*: ') . "{$rec->tel}" . "\n";
         $notes .= tr('Имейл|*: ') . "{$rec->email}";
+        if(!empty($rec->instruction)){
+            $notes .= "\n" . tr('Инструкции|*: ') . "{$rec->instruction}";
+        }
 
         // Дефолтни данни на продажбата
+        setIfNot($defaultStoreId, $settings->defaultStoreId, $settings->storeId);
         $fields = array('valior' => dt::today(),
             'template' => $templateId,
             'deliveryTermId' => $rec->termId,
@@ -948,7 +952,8 @@ class eshop_Carts extends core_Master
             'makeInvoice' => ($rec->makeInvoice == 'none') ? 'no' : 'yes',
             'chargeVat' => static::calcChargeVat($rec),
             'currencyId' => $settings->currencyId,
-            'shipmentStoreId' => $settings->storeId,
+            'shipmentStoreId' => $defaultStoreId,
+            'caseId' => $settings->defaultCaseId,
             'deliveryLocationId' => $rec->locationId,
             'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,
@@ -3139,6 +3144,7 @@ class eshop_Carts extends core_Master
             $Sales = cls::get('sales_Sales');
             $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
             $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
+            $fields[] = 'ExternalLink';
             $fields = implode(',', $fields);
 
             $saleRec = sales_Sales::fetchRec($saleRec);
@@ -3156,6 +3162,7 @@ class eshop_Carts extends core_Master
             $res = @file_put_contents($fileName, $content);
             if($res){
                 eshop_Carts::logDebug("Експортирано csv: `{$fileName}`");
+                fileman::absorbStr($content, 'exportCsv', "{$name}.csv");
             } else {
                 eshop_Carts::logErr("Грешка при записване: `{$fileName}`");
             }

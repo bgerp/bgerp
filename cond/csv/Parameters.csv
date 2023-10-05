@@ -30,3 +30,5 @@
 Допълнителни условия,cond_type_Text,otherConditionPurchase,Покупка,,,
 Допълнителни условия (EN),cond_type_Text,otherConditionSaleEn,Продажба,,,
 Допълнителни условия (EN),cond_type_Text,otherConditionPurchaseEn,Покупка,,,
+Шаблон при изпращане на Заявка към Доставчик (BG),cond_type_DocTemplate,requestSupplierTplBg,Покупка,,,,"class=purchase_Purchases,lang=bg"
+Шаблон при изпращане на Заявка към Доставчик (EN),cond_type_DocTemplate,requestSupplierTplEn,Покупка,,,,"class=purchase_Purchases,lang=en"

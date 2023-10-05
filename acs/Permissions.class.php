@@ -76,6 +76,7 @@ class acs_Permissions extends core_Master
     {
         $groupSysId = acs_ContragentGroupsPlg::$sysId;
         $this->FLD('companyId', "key2(mvc=crm_Companies, select=name, allowEmpty, group={$groupSysId}, silent)", 'caption=Фирма, removeAndRefreshForm=zones');
+        $this->FLD('groupId', 'key(mvc=crm_Groups,select=name, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Група, removeAndRefreshForm=zones');
         $this->FLD('personId', "key2(mvc=crm_Persons, select=name, allowEmpty, group={$groupSysId}, silent)", 'caption=Лице, removeAndRefreshForm=zones');
 
         // @todo - може да е наш тип наследник на varchar. Там може да е логиката за преобразуване на id'то на картата
@@ -90,6 +91,7 @@ class acs_Permissions extends core_Master
 
         $this->setDbIndex('personId');
         $this->setDbIndex('companyId');
+        $this->setDbIndex('groupId');
         $this->setDbIndex('state, cardId');
         $this->setDbIndex('state');
         $this->setDbIndex('cardId');
@@ -228,8 +230,11 @@ class acs_Permissions extends core_Master
         $res = array();
 
         $persCompArr = $cardPersArr = $cardCompArr = array();
+        $persGroupArr = $cardGroupArr = $compGroupArr = array();
 
         $nTimestamp = dt::mysql2timestamp();
+
+        $minActiveTime = 0;
 
         while ($rec = $query->fetch()) {
 
@@ -244,6 +249,13 @@ class acs_Permissions extends core_Master
             if ($rec->companyId) {
                 if (crm_Companies::fetchField($rec->companyId, 'state') != 'active') {
                     unset($rec->companyId);
+                }
+            }
+
+            // Ако групата не е активна
+            if ($rec->groupId) {
+                if (crm_Groups::fetchField($rec->groupId, 'state') == 'rejected') {
+                    unset($rec->groupId);
                 }
             }
 
@@ -270,7 +282,7 @@ class acs_Permissions extends core_Master
             $zArr = type_Keylist::toArray($rec->zones);
 
             // Пълним масива със стойности, като най-малкото е с по-голям приоритет, ако са попълнени повечето
-            foreach (array('cardId', 'personId', 'companyId') as $cName) {
+            foreach (array('cardId', 'groupId', 'personId', 'companyId') as $cName) {
                 if ($rec->{$cName}) {
                     foreach ($zArr as $zId) {
                         if (!$zId) {
@@ -298,23 +310,58 @@ class acs_Permissions extends core_Master
                 $persCompArr[$rec->personId] = $rec->companyId;
             }
 
+            // Връзка между лицата и групите
+            if ($rec->personId && $rec->groupId) {
+                $persGroupArr[$rec->personId] = $rec->groupId;
+            }
+
             // Връзка между картите и фирмите
             if ($rec->cardId && $rec->companyId) {
                 $cardCompArr[$rec->cardId] = $rec->companyId;
+            }
+
+            // Връзка между картите и групите
+            if ($rec->cardId && $rec->groupId) {
+                $cardGroupArr[$rec->cardId] = $rec->groupId;
             }
 
             // Връзка между картите и лицата
             if ($rec->cardId && $rec->personId) {
                 $cardPersArr[$rec->cardId] = $rec->personId;
             }
+
+            // Връзка между групите и фирмите
+            if ($rec->companyId && $rec->groupId) {
+                $compGroupArr[$rec->companyId] = $rec->groupId;
+            }
+        }
+        // Вкарваме зоните на фирмите, към групите
+        foreach ($compGroupArr as $cId => $gId) {
+            // Вкарваме зоните от модела
+            if ($res['companyId'][$gId]) {
+                foreach ($res['companyId'][$gId] as $zId => $timestamp) {
+                    $res['groupId'][$cId][$zId]['activeFrom'] = max($res['groupId'][$cId][$zId]['activeFrom'], $timestamp['activeFrom']);
+                    $res['groupId'][$cId][$zId]['activeUntil'] = max($res['groupId'][$cId][$zId]['activeUntil'], $timestamp['activeUntil']);
+                }
+            }
         }
 
         // Вкарваме зоните на фирмите, към лицата
         foreach ($persCompArr as $pId => $cId) {
-
             // Вкарваме зоните от модела
             if ($res['companyId'][$cId]) {
                 foreach ($res['companyId'][$cId] as $zId => $timestamp) {
+                    $res['personId'][$pId][$zId]['activeFrom'] = max($res['personId'][$pId][$zId]['activeFrom'], $timestamp['activeFrom']);
+                    $res['personId'][$pId][$zId]['activeUntil'] = max($res['personId'][$pId][$zId]['activeUntil'], $timestamp['activeUntil']);
+                }
+            }
+        }
+
+        // Вкарваме зоните на групите, към лицата
+        foreach ($persGroupArr as $pId => $gId) {
+            // Вкарваме зоните от модела
+            if ($res['groupId'][$gId]) {
+                foreach ($res['groupId'][$gId] as $zId => $timestamp) {
                     $res['personId'][$pId][$zId]['activeFrom'] = max($res['personId'][$pId][$zId]['activeFrom'], $timestamp['activeFrom']);
                     $res['personId'][$pId][$zId]['activeUntil'] = max($res['personId'][$pId][$zId]['activeUntil'], $timestamp['activeUntil']);
                 }
@@ -335,6 +382,16 @@ class acs_Permissions extends core_Master
         foreach ($cardPersArr as $cardId => $pId) {
             if ($res['personId'][$pId]) {
                 foreach ($res['personId'][$pId] as $zId => $timestamp) {
+                    $res['cardId'][$cardId][$zId]['activeFrom'] = max($res['cardId'][$cardId][$zId]['activeFrom'], $timestamp['activeFrom']);
+                    $res['cardId'][$cardId][$zId]['activeUntil'] = max($res['cardId'][$cardId][$zId]['activeUntil'], $timestamp['activeUntil']);
+                }
+            }
+        }
+
+        // Вкарваме зоните на групите към картите
+        foreach ($cardGroupArr as $cardId => $gId) {
+            if ($res['groupId'][$gId]) {
+                foreach ($res['groupId'][$gId] as $zId => $timestamp) {
                     $res['cardId'][$cardId][$zId]['activeFrom'] = max($res['cardId'][$cardId][$zId]['activeFrom'], $timestamp['activeFrom']);
                     $res['cardId'][$cardId][$zId]['activeUntil'] = max($res['cardId'][$cardId][$zId]['activeUntil'], $timestamp['activeUntil']);
                 }
@@ -420,7 +477,7 @@ class acs_Permissions extends core_Master
 
         $query->limit(1);
 
-        $query->show('personId, companyId');
+        $query->show('personId, companyId, groupId');
 
         $rec = $query->fetch();
 
@@ -431,8 +488,11 @@ class acs_Permissions extends core_Master
         if (crm_Persons::fetchField($rec->personId, 'state') != 'active') {
             unset($rec->personId);
         }
+        if (crm_Groups::fetchField($rec->groupId, 'state') == 'rejected') {
+            unset($rec->groupId);
+        }
 
-        return array('companyId' => $rec->companyId, 'personId' => $rec->personId);
+        return array('companyId' => $rec->companyId, 'personId' => $rec->personId, 'groupId' => $rec->groupId);
     }
 
 
@@ -449,15 +509,15 @@ class acs_Permissions extends core_Master
 
             $msg = 'Трябва да сте попълнили някои от полетата';
 
-            if (!$rec->companyId && !$rec->personId && !$rec->cardId) {
-                $form->setError('companyId, personId, cardId', $msg);
+            if (!$rec->companyId && !$rec->personId && !$rec->groupId && !$rec->cardId) {
+                $form->setError('companyId, personId, groupId, cardId', $msg);
             }
 
-            if (($rec->companyId) && ($rec->personId)) {
+            if (($rec->companyId) && ($rec->personId) && ($rec->groupId)) {
                 if (!$rec->zones) {
                     $form->setError('zones', $msg);
                 }
-            } elseif (($rec->companyId) || ($rec->personId)) {
+            } elseif (($rec->companyId) || ($rec->personId) || ($rec->groupId)) {
                 if (!$rec->cardId && !$rec->zones) {
                     $form->setError('cardId, zones', $msg);
                 }
@@ -531,17 +591,25 @@ class acs_Permissions extends core_Master
         }
 
         // Добавяме зоните от фирмата или предишните записи за лицето
-        if (($form->rec->companyId || $form->rec->personId) && !$form->rec->zones) {
+        if (($form->rec->companyId || $form->rec->personId || $form->rec->groupId) && !$form->rec->zones) {
             $personId = $form->rec->personId;
             $companyId = $form->rec->companyId;
+            $groupId = $form->rec->groupId;
             $resArr = array();
 
-            if ($personId || $companyId) {
+            if ($personId || $companyId || $groupId) {
                 if ($personId) {
                     $aQuery = acs_Permissions::getQuery();
                     $aQuery->where(array("#personId = '[#1#]'", $personId));
                     $aQuery->where("#state = 'active'");
                     $aQuery->show("zones");
+
+                    if ($groupId) {
+                        $aQuery->where(array("#groupId = '[#1#]'", $groupId));
+                        $aQuery->orWhere("#groupId IS NULL");
+                    } else {
+                        $aQuery->where("#groupId IS NULL");
+                    }
 
                     while ($pRec = $aQuery->fetch()) {
                         if ($pRec->zones) {
@@ -557,6 +625,41 @@ class acs_Permissions extends core_Master
                     }
                 }
 
+                if ($groupId) {
+                    $aQuery = acs_Permissions::getQuery();
+                    $aQuery->where("#state = 'active'");
+                    $aQuery->where(array("#groupId = '[#1#]'", $groupId));
+                    if ($personId) {
+                        $aQuery->where(array("#personId = '[#1#]'", $personId));
+                        $aQuery->orWhere("#personId IS NULL");
+                    } else {
+                        $aQuery->where("#personId IS NULL");
+                    }
+
+                    if ($companyId) {
+                        $aQuery->where(array("#companyId = '[#1#]'", $companyId));
+                        $aQuery->orWhere("#companyId IS NULL");
+                    } else {
+                        $aQuery->where("#companyId IS NULL");
+                    }
+
+                    $aQuery->orWhere("#personId = ''");
+                    $aQuery->show("zones");
+
+                    while ($pRec = $aQuery->fetch()) {
+                        if ($pRec->zones) {
+                            $zArr = type_Keylist::toArray($pRec->zones);
+                            foreach ($zArr as $zId) {
+                                $resArr[$zId] = $zId;
+                            }
+
+                            if (!$companyId) {
+                                $companyId = $pRec->companyId ? $pRec->companyId : null;
+                            }
+                        }
+                    }
+                }
+
                 if ($companyId) {
                     $aQuery = acs_Permissions::getQuery();
                     $aQuery->where("#state = 'active'");
@@ -566,6 +669,13 @@ class acs_Permissions extends core_Master
                         $aQuery->orWhere("#personId IS NULL");
                     } else {
                         $aQuery->where("#personId IS NULL");
+                    }
+
+                    if ($groupId) {
+                        $aQuery->where(array("#groupId = '[#1#]'", $groupId));
+                        $aQuery->orWhere("#groupId IS NULL");
+                    } else {
+                        $aQuery->where("#groupId IS NULL");
                     }
 
                     $aQuery->orWhere("#personId = ''");
@@ -783,7 +893,7 @@ class acs_Permissions extends core_Master
         $data->listFilter->FNC('zoneId', 'key(mvc=acs_Zones, select=name, allowEmpty)', 'caption=Зона, refreshForm');
         
         // Да се показва полето за търсене
-        $data->listFilter->showFields = 'companyId, personId, cardId, zoneId, state';
+        $data->listFilter->showFields = 'companyId, groupId, personId, cardId, zoneId, state';
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->view = 'vertical';
         
@@ -798,7 +908,7 @@ class acs_Permissions extends core_Master
             $data->query->likeKeylist('zones', $rec->zoneId);
         }
         
-        foreach (array('companyId', 'personId', 'cardId', 'type', 'state') as $fName) {
+        foreach (array('companyId', 'companyId', 'personId', 'cardId', 'type', 'state') as $fName) {
             if ($rec->{$fName}) {
                 $data->query->where(array("#{$fName} = '[#1#]'", $rec->{$fName}));
             }

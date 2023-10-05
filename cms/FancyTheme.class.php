@@ -249,7 +249,7 @@ class cms_FancyTheme extends core_ProtoInner
                 $banner .= '<div class="fadein" style="overflow: hidden;">';
                 $style = '';
                 foreach ($imgs as $iHash) {
-                    $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($iHash, 1200, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                     $imageURL = $img->getUrl('forced');
                     $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1200, 'height' => 220, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                     $banner .= "\n{$hImage}";

@@ -239,7 +239,7 @@ abstract class deals_DealBase extends core_Master
         $rec = &$data->rec;
         
         if ($mvc->haveRightFor('closeWith', $rec)) {
-            $attr = arr::make("id=btnCloseWith,ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки");
+            $attr = arr::make("id=btnCloseWith{$rec->containerId},ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки");
             if($rec->state == 'active'){
                 $attr['row'] = 2;
             }
@@ -301,7 +301,7 @@ abstract class deals_DealBase extends core_Master
         
         // Записите от журнала засягащи това перо
         $entries = acc_Journal::getEntries(array($mvc, $rec->id));
-        
+
         // Към тях добавяме и самия документ
         $entries[] = (object) array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
         

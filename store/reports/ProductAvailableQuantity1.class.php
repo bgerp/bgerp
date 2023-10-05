@@ -230,7 +230,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $sQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $sQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
-        $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');;
+        $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        $sQuery->EXT('catProdState', 'cat_Products', 'externalName=state,externalKey=productId');
+
+        $sQuery->in('catProdState', array('rejected', 'draft', 'closed'), true);
 
         //Филтър по групи артикули
         $sQuery->likeKeylist('groups', $rec->groups);
@@ -244,6 +247,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         while ($recProduct = $sQuery->fetch()) {
 
             $productId = $recProduct->productId;
+           //if ($productId != 33)continue;
 
             if ($rec->typeOfQuantity == 'free' && $recProduct->storeId) {
 
@@ -302,6 +306,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     'minOrder' => $minOrder,
                     'code' => $code,
                     'groups' => $recProduct->groups,
+                    'state' => $recProduct->catProdState,
                 );
             }
         }

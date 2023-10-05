@@ -622,7 +622,11 @@ tr.row-removed {
 	.user-title {
 		position: relative;
 		padding: 70px 20px 10px 132px;
-
+		height: 104px;
+		display: flex;
+		align-items: end;
+		justify-content:left;
+		box-sizing: border-box;
 		text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
 		background: rgb(234,234,234); /* Old browsers */
 		background: -moz-linear-gradient(top, rgba(234,234,234,1) 0%, rgba(97,97,98,1) 100%); /* FF3.6+ */
@@ -636,7 +640,6 @@ tr.row-removed {
 		font-weight: bold;
 		border-radius: 5px 5px 0 0;
 		&.statusClass {
-			padding:  54px 20px 6px 132px;
 			.timeSpan {
 				color: #FFF !important;
 			}
@@ -747,7 +750,9 @@ tr.row-removed {
 	margin-top: 5px;
 	display: block;
 }
-
+.user-title .personStatus .profile {
+	color: #fff !important
+}
 /*край на потребителски профил*/
 
 
@@ -1408,6 +1413,21 @@ table.listTable > tbody > tr {
 	@include border-radius(5px);
 	background-color: white;
 	position: relative;
+	&.no-border {
+		border: none;
+		padding: 0;
+		margin: 0;
+		position: relative;
+		.portal-filter {
+			position: absolute;
+			right: 0;
+			top:5px;
+			float: none;
+		}
+		.SearchBtnPortal {
+			border: none !important;
+		}
+	}
 	.state-closed {
         background-color: transparent;
     }
@@ -1802,20 +1822,6 @@ a.tUnsighted {
 	font-size: 0.9em !important;
 	top: 0 !important
 }
-.doc_drivers_LatestDocPortal {
-	.portalLatestThreads.withoutSubtitle {
-		float: left;
-	}
-	.threadSubTitle.withoutSubtitle .tagsHolder {
-		position: relative;
-		top: 2px;
-		margin-bottom: 4px;
-	}
-
-	.portalLatestThreads, .portalLatestFoldes{
-		clear: both;
-	}
-}
 
 .narrow .portalAuthorTitle {
 	position: relative;
@@ -1843,9 +1849,20 @@ a.tUnsighted {
 		border-radius: 5px;
 	}
 }
+.threadTitlesHolder {
+	position: relative;
+	padding-right: 25px;
+}
 
 .tagsHolder {
-	float: right;
+	position: absolute;
+	right: 0;
+	top: 50%;
+	margin-top: -8px;
+}
+
+.narrow .tagsHolder {
+	margin-top: -10px;
 }
 
 .doc_drivers_FolderPortal {
@@ -2685,6 +2702,10 @@ padding: 1px !important;
 .footer-notes > tbody > tr > td{
 border: 1px solid $gray4;
 vertical-align: top !important;
+}
+
+.narrow .footer-notes ol li {
+	word-break: break-word;
 }
 
 .document .paddingCells > tbody > tr > td{
@@ -4345,6 +4366,11 @@ fieldset.sharing-history {
 		background-color: rgba(241, 223, 11, 0.9) !important;
 		color:black !important;
 	}
+
+	&.saleDebug {
+		background-color: rgb(168, 243, 180, 0.9)  !important;
+		color:black !important;
+	}
 }
 .eshop-product-list-param {
 	font-size: 0.85em;
@@ -4719,6 +4745,42 @@ table .eshop-btn {
     }
 }
 
+.narrow .foldertabs>.tab-row>.row-holder .tab>.tab-title {
+	padding: 0.5em 0.8em 0.5em 0.7em;
+}
+.narrow .foldertabs {
+	padding-top: 10px;
+	>.tab-row {
+		margin-left: 10px;
+	}
+	.row-holder {
+		padding-right: 20px;
+	}
+}
+
+.logoutBlock {
+	padding: 0 3px;
+}
+#notificationCountStatus {
+	&.noNtf {
+		display: none;
+	}
+	a.selected-external-tab {
+		border-top: none !important;
+	}
+	a {
+		padding:2px;
+		color: white !important;
+		background-color: rgba(250,56,55,.75);
+		border: 1px solid #f92f2e !important;
+		box-shadow: 0 1px 2px 0 #f99;
+		border-radius: 3px;
+		font-size: 0.75em;
+		position: relative;
+		top: -3px
+	}
+
+}
 .contractorExtHolder {
     padding: 10px;
 	.deal-history-tab .tab {
@@ -4730,6 +4792,24 @@ table .eshop-btn {
 			top: -2px;
 			position: relative;
 		}
+	}
+	.noNtf {
+		display: none;
+	}
+	.haveNtf {
+		background-color: rgba(250,56,55,.75);
+		border: 1px solid #f92f2e !important;
+		box-shadow: 0 1px 2px 0 #f99;
+		color: white !important;
+		text-shadow: none;
+		border-radius: 3px;
+		font-size: 0.8em;
+		padding-right: 1px;
+		padding-left: 1px;
+	}
+	input[type=text], input[type=submit] {
+		height: 26px;
+		line-height: 1;
 	}
 	a.button, input[type="button"], input[type="submit"], button {
 		background-position: 4px center !important;
@@ -4787,7 +4867,7 @@ table .eshop-btn {
 	}
 }
 .narrow .contractorExtHolder {
-	padding-top: 40px;
+	padding: 10px 0px;
 	input[type="button"], input[type="submit"], button, a.button {
 		padding-left: 5px !important;
 	}
@@ -6436,6 +6516,14 @@ div.location.public {
 
 .favouritesBtn.linkWithIcon:hover {
 	cursor: pointer;
+}
+
+#all .hasLogoutBlock .cms-row ,.hasLogoutBlock .centerContent {
+	padding-top: 30px;
+}
+
+.hasLogoutBlock .centerContent .cms-row {
+	padding-top: 10px;
 }
 
 .narrow .externalPage #maincontent.hasLogoutBlock {
@@ -8632,4 +8720,20 @@ table.bomProductionStepTable td{
 	padding: 1px 3px;
 }
 
+#fileDetail .row-holder {
+	padding-right: 5px;
+}
+.ef-drag-scroll {
+	display: flex;
+	width: 100%;
+	overflow: hidden;
+	white-space: nowrap;
 
+	.tab {
+		display: inline-block;
+	}
+}
+
+.eshopHiddenRow {
+	opacity:0.3;
+}

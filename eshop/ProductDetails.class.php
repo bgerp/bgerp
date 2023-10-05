@@ -57,7 +57,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Настройки->Опаковки,moq=Настройки->МКП,deliveryTime=Настройки->Доставка,action==Настройки->Действия,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
+    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Настройки->Опаковки,moq=Настройки->МКП,deliveryTime=Настройки->Доставка,action=Настройки->Действия,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
     
     
     /**
@@ -212,13 +212,13 @@ class eshop_ProductDetails extends core_Detail
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
         $settings = cms_Domains::getSettings($domainId);
         $listId = cms_Helper::getCurrentEshopPriceList($settings);
-        
+
         // Ако има ценоразпис
+        $now = dt::now();
         if (isset($listId)) {
-            $price = price_ListRules::getPrice($listId, $productId, $packagingId);
-            
+            $price = price_ListRules::getPrice($listId, $productId, $packagingId, $now);
             if (isset($price)) {
-                $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $productId, $packagingId, $quantityInPack);
+                $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $productId, $packagingId, $quantityInPack, $now);
                 
                 $price *= $quantityInPack;
                 if ($settings->chargeVat == 'yes') {
@@ -304,7 +304,7 @@ class eshop_ProductDetails extends core_Detail
         $data->listFields = arr::make('code=Код,productId=Артикул,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
-        
+
         $query = self::getQuery();
         $query->where("#eshopProductId = {$data->rec->id} AND #state = 'active'");
         $query->orderBy('productId');
@@ -336,8 +336,13 @@ class eshop_ProductDetails extends core_Detail
         // Сортиране на резултатите
         arr::sortObjects($recs, 'orderField', $orderByDir, 'str');
 
+        $settings = cms_Domains::getSettings();
+        $groupRec = eshop_Groups::fetch($data->rec->groupId);
+        $showProductsWithoutPrices = ($groupRec->showProductsWithoutPrices == 'auto') ? $settings->showProductsWithoutPrices : $groupRec->showProductsWithoutPrices;
+
         $onlyServices = true;
         foreach ($recs as $rec){
+
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
             if($canStore == 'yes'){
                 $onlyServices = false;
@@ -362,8 +367,12 @@ class eshop_ProductDetails extends core_Detail
                 $clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
                 
                 $row = self::getExternalRow($clone);
+                if(isset($row->_noPrice) && $showProductsWithoutPrices == 'no') {
+                    if(!haveRole('debug')) continue;
+                    $row->ROW_ATTR['class'] .= 'eshopHiddenRow';
+                }
+
                 $row->paramsText = $paramsText;
-                
                 $me->invoke('AfterRecToVerbal', array($row, $rec));
                 
                 $data->recs[] = $clone;
@@ -448,10 +457,16 @@ class eshop_ProductDetails extends core_Detail
             } else {
                 $showCartBtn = $showPrice = false;
                 if($rec->action != 'inquiry'){
-                    $row->catalogPrice = "<span class=' option-not-in-stock ' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
-                
+                    $row->catalogPrice = "<span class=' option-not-in-stock' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
+                    if(in_array($rec->action, array('price', 'buy'))){
+                        $row->_noPrice = true;
+                    }
                     if(eshop_Products::haveRightFor('single')){
                         $row->catalogPrice = ht::createHint($row->catalogPrice, 'Артикулът няма цена за продажба', 'error', false);
+                    }
+
+                    if($rec->action == 'both'){
+                        unset($row->catalogPrice);
                     }
                 }
             }
@@ -549,7 +564,8 @@ class eshop_ProductDetails extends core_Detail
         }
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if (isset($settings->inStockStores) && $canStore == 'yes' && !$stopSale) {
+
+        if (countR($settings->inStockStores) && $canStore == 'yes' && !$stopSale) {
             $quantity = store_Products::getQuantities($rec->productId, $settings->inStockStores)->free;
             $quantityInRemote = 0;
             if(!empty($settings->remoteStores)) {

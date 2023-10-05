@@ -466,6 +466,8 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
         'migrate::recontoDeals2520',
+        'migrate::fixDcNotesModifiedDate3823v2',
+        'migrate::migrateDpNotes3823v2',
     );
     
     
@@ -659,5 +661,25 @@ class sales_Setup extends core_ProtoSetup
     {
         if(core_Packs::isMigrationDone('sales', 'recalcCurrencySales1115')) return;
         cls::get('sales_Sales')->recalcDocumentsWithDealCurrencyRate();
+    }
+
+
+    /**
+     * Миграция на КИ/ДИ
+     */
+    public function migrateDpNotes3823v2()
+    {
+        cls::get('deals_Setup')->migrateDcNotes('sales_Invoices', 'sales_InvoiceDetails');
+    }
+
+
+    /**
+     * Миграция на модифицираните изходящи фактури
+     */
+    public function fixDcNotesModifiedDate3823v2()
+    {
+        if(core_Packs::isMigrationDone('sales', 'migrateDpNotes3823v2')){
+            cls::get('deals_Setup')->fixDcNotesModifiedOn('sales_Invoices');
+        }
     }
 }

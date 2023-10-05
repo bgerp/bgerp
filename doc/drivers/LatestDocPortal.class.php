@@ -298,7 +298,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $data->res->append("<div class='portalLatestFoldes'>" . doc_Folders::getLink($fId) . '</div>');
                     
                     foreach ($docRowArr as $dRow) {
-                        $data->res->append($dRow);
+                        $data->res->append("<div class='threadTitlesHolder'>" . $dRow . '</div>');
                     }
                 }
             }

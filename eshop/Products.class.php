@@ -144,16 +144,17 @@ class eshop_Products extends core_Master
         $this->FLD('code', 'varchar(10)', 'caption=Код');
         $this->FLD('name', 'varchar(100)', 'caption=Артикул, mandatory,width=100%');
         
-        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
-        $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация2,column=none');
-        $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация3,column=none');
-        $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация4,column=none');
-        $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация5,column=none');
-        
+        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация (1),hint=препоръчително квадрат поне 600х600px');
+        $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (2),column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (3),column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (4),column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', "caption=Илюстрация (5),column=none,hint=препоръчително квадрат поне 600х600px");
+        $this->FLD('howToSelectMainImage', 'enum(auto=Автоматично,first=Първата илюстрация,rotation=Ротация на илюстрациите)', 'caption=Основна илюстрация,notNull,value=auto');
+
         // В кои групи участва продукта
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Групи->Основна,mandatory,silent,refreshForm');
         $this->FLD('sharedInGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Групи->Допълнителни');
-        
+
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри в списъка,optionsFunc=cat_Params::getPublic');
@@ -173,6 +174,8 @@ class eshop_Products extends core_Master
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
         $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,other=Други,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
+        $this->FLD('detailActions', 'enum(none=Без действия,onlyRequests=Само запитвания,onlySell=Само купуване, mixed=Запитвания и купуване)', 'caption=Операции с артикули,input=none,notNull,value=none');
+        $this->FLD('haveProductsWithPrice', 'enum(no=Не,yes=Да)', 'caption=Има детайли с цени,input=none,notNull,value=no');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=none');
         
         $this->setDbIndex('groupId');
@@ -380,6 +383,12 @@ class eshop_Products extends core_Master
                     }
                 }
             }
+
+            if($rec->howToSelectMainImage == 'auto'){
+                $howToSelectMainImage = eshop_Setup::get('PRODUCT_IMG_LOGIC');
+                $row->howToSelectMainImage = $mvc->getFieldType('howToSelectMainImage')->toVerbal($howToSelectMainImage);
+                $row->howToSelectMainImage = ht::createHint("<i style='color:blue'>{$row->howToSelectMainImage}</i>", 'Автоматично от настройките на пакета', 'notice', false);
+            }
         }
         
         if (isset($fields['-list'])) {
@@ -403,8 +412,11 @@ class eshop_Products extends core_Master
             } else {
                 $nearProducts = array_keys($rec->nearProducts);
                 $linkArr = array();
+
                 array_walk($nearProducts, function ($a) use (&$linkArr) {
-                    $linkArr[] = eshop_Products::getHyperlink($a, true)->getContent();
+                    if(eshop_Products::fetchField($a)){
+                        $linkArr[] = eshop_Products::getHyperlink($a, true)->getContent();
+                    }
                 });
                 $row->nearProducts = implode(', ', $linkArr);
             }
@@ -578,7 +590,13 @@ class eshop_Products extends core_Master
         }
         
         if (countR($imageArr)) {
-            $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
+            $howToSelectMainImage = ($rec->howToSelectMainImage == 'auto') ? eshop_Setup::get('PRODUCT_IMG_LOGIC') : $rec->howToSelectMainImage;
+            if($howToSelectMainImage == 'rotation'){
+                $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
+            } else {
+                $tact = key($imageArr);
+            }
+
             $image = $imageArr[$tact];
             $thumb = new thumb_Img($image, $width, $height);
         } else {
@@ -596,6 +614,7 @@ class eshop_Products extends core_Master
     {
         $data->lastOrderedData = array();
         $pQuery = self::getQuery();
+        $displayedGroupRec = null;
         if($data->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
             $pQuery->where("#state = 'active'");
 
@@ -618,29 +637,42 @@ class eshop_Products extends core_Master
             } else {
                 $pQuery->where("1=2");
             }
+            $perPage = null;
         } else {
+            $displayedGroupRec = eshop_Groups::fetch($data->groupId);
             $pQuery->where("#state = 'active' AND #saleState != 'closed' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
             $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
             $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
         }
-
         $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$data->groupId}, #saoOrder, 999999999)");
+        $pQuery->EXT('showProductsWithoutPrices', 'eshop_Groups', "externalName=showProductsWithoutPrices,externalKey=groupId");
         $pQuery->orderBy('cOrder,code');
+
+        $haveDebug = haveRole('debug');
+        $settings = cms_Domains::getSettings();
+        while($pRec1 = $pQuery->fetch()){
+            $showProductsWithoutPrices = is_object($displayedGroupRec) ? $displayedGroupRec->showProductsWithoutPrices : $pRec1->showProductsWithoutPrices;
+            $pRec1->showProductsWithoutPrices = ($showProductsWithoutPrices == 'auto') ? $settings->showProductsWithoutPrices : $showProductsWithoutPrices;
+            if($pRec1->showProductsWithoutPrices == 'no' && !$haveDebug) continue;
+            $data->recs[$pRec1->id] = $pRec1;
+        }
 
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = $pQuery->count();
-        $data->Pager->setLimit($pQuery);
-        $settings = cms_Domains::getSettings();
 
-        while ($pRec = $pQuery->fetch()) {
-            $data->recs[$pRec->id] = $pRec;
-            $pRow = $data->rows[$pRec->id] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
-            $pRow->_id = $pRec->id;
+        foreach ($data->recs as $pRec) {
+            if (!$data->Pager->isOnPage()) continue;
+
+            $pRow = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
+            if($haveDebug && ($pRec->showProductsWithoutPrices == 'no' && $pRec->detailActions == 'onlySell' && $pRec->haveProductsWithPrice == 'no' && empty($pRec->coDriver))){
+                $pRow->CLASS = 'eshopHiddenRow';
+            }
 
             // Показване на тъмбнейл на артикула
+            $pRow->_id = $pRec->id;
             $thumb = static::getProductThumb($pRec);
             $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
-            
+
             // Кои от детайлите отговарят на разрешените опаковки (ако има)
             $allowedPacks = eshop_Products::getSettingField($pRec->id, 'null', 'showPacks');
             $dQuery = eshop_ProductDetails::getQuery();
@@ -648,10 +680,10 @@ class eshop_Products extends core_Master
             if(countR($allowedPacks)){
                 $dQuery->likeKeylist('packagings', $allowedPacks);
             }
-            
+
             $countWithAllowedPacks = $dQuery->count();
             $saleState = $pRec->saleState;
-            
+
             // Ако е множествен избор но само 1 или 0 детайла ще се покажат
             if($saleState == 'multi'){
                 if($countWithAllowedPacks == 1){
@@ -660,34 +692,34 @@ class eshop_Products extends core_Master
                     $saleState = 'empty';
                 }
             }
-            
+
             // Ако е едина опцията, подсигуряване, че ще се покаже
             if($saleState == 'single'){
                 if($countWithAllowedPacks == 0){
                     $saleState = 'empty';
                 }
             }
-            
+
             if ($saleState == 'single') {
-               
+
                 // Детайлите на артикула
                 $dQuery = eshop_ProductDetails::getQuery();
                 $dQuery->where("#eshopProductId = {$pRec->id} AND #state != 'closed'");
                 if(countR($allowedPacks)){
                     $dQuery->likeKeylist('packagings', $allowedPacks);
                 }
-                
+
                 $dRec = $dQuery->fetch();
                 $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
                 $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
-                
+
                 // Какви са к-та в опаковките
                 $selectedPackagings = keylist::toArray($dRec->packagings);
                 $packs = array($measureId => 1);
                 foreach ($packagings as $packRec) {
                     $packs[$packRec->packagingId] = $packRec->quantity;
                 }
-                
+
                 // Коя е най-малката опаковка от избраните
                 $minPackagingId = $minQuantityInPack = null;
                 foreach ($selectedPackagings as $selPackId) {
@@ -695,13 +727,13 @@ class eshop_Products extends core_Master
                     if (!$q) {
                         continue;
                     }
-                    
+
                     if (is_null($minPackagingId) || (isset($minPackagingId) && $q < $minQuantityInPack)) {
                         $minPackagingId = $selPackId;
                         $minQuantityInPack = $q;
                     }
                 }
-                
+
                 // Ако мярката е брой и е показано да се показва
                 if (isset($minPackagingId)) {
                     if (eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $minPackagingId, $minQuantityInPack)) {
@@ -710,7 +742,7 @@ class eshop_Products extends core_Master
                         $pRecClone->quantityInPack = $minQuantityInPack;
                         $pRecClone->_listView = true;
                         $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
-                        
+
                         $pRow->saleInfo = $dRow->saleInfo;
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
@@ -724,9 +756,10 @@ class eshop_Products extends core_Master
             } elseif ($saleState == 'closed' && empty($pRec->coDriver)) {
                 $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
-            
+
             $commonParams = self::getCommonParams($pRec->id, true);
             $pRow->commonParams = (countR($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : null;
+            $data->rows[$pRec->id] = $pRow;
         }
 
         if(countR($data->lastOrderedData) && countR($data->rows)){
@@ -913,6 +946,16 @@ class eshop_Products extends core_Master
             }
         }
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
+
+        $settings = cms_Domains::getSettings();
+        $showProductsWithoutPrices = ($data->groups->rec->showProductsWithoutPrices == 'auto') ? $settings->showProductsWithoutPrices : $data->groups->rec->showProductsWithoutPrices;
+        $data->hideProductIfItIsWithoutPrices = ($showProductsWithoutPrices == 'no' && $data->rec->detailActions == 'onlySell' && $data->rec->haveProductsWithPrice == 'no' && empty($data->rec->coDriver));
+        if(!haveRole('debug') && $data->hideProductIfItIsWithoutPrices){
+            $groupRec = eshop_Groups::fetch($data->rec->groupId);
+
+            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът, който търсите вече не се предлага|*!', 'warning');
+        }
+
         $data->groups->menuId = cms_Content::getMainMenuId($data->groups->rec->menuId, $data->groups->rec->sharedMenus);
         cms_Content::setCurrent($data->groups->menuId);
         $this->prepareProduct($data);
@@ -994,7 +1037,7 @@ class eshop_Products extends core_Master
         Mode::set('SOC_TITLE', $data->row->name);
         Mode::set('SOC_SUMMARY', $data->row->info);
         
-        $data->detailData = (object) array('rec' => $data->rec);
+        $data->detailData = (object) array('rec' => $data->rec, 'hideProductIfItIsWithoutPrices' => $data->hideProductIfItIsWithoutPrices);
         eshop_ProductDetails::prepareExternal($data->detailData);
         
         // Линк към менюто
@@ -1021,9 +1064,13 @@ class eshop_Products extends core_Master
         // Навигация до артикула
         $data->row->productPath = $menuLink . ' » ' . $groupLink;
         $uniqueProductsArr = arr::extractValuesFromArray($data->detailData->recs, 'productId');
-        
+
+        if(haveRole('debug') && $data->hideProductIfItIsWithoutPrices){
+            $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock saleDebug' style='font-size:0.9em !important'>" . tr('Този артикул е без цени и само потребители с права го виждат') . '</span>';
+        }
+
         if ($data->rec->saleState == 'closed') {
-            $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . '</span>';
+            $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този артикул вече не се предлага') . '</span>';
         } elseif (countR($uniqueProductsArr) == 1) {
             if (!empty($data->detailData->rows[0]->saleInfo)) {
                 $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
@@ -1706,19 +1753,17 @@ class eshop_Products extends core_Master
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
-     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-        if (empty($rec)) {
-            return;
-        }
-        
-        $rec->saleState = $this->getSaleState($rec->id);
-        
-        // Обновяване на модела, за да се преизчислят ключовите думи
+        if (empty($rec)) return;
+
+        $metaData = $this->getMetaData($id);
+        $rec->saleState = $metaData->saleState;
+        $rec->detailActions = $metaData->detailActions;
+
         return $this->save($rec);
     }
     
@@ -1738,16 +1783,15 @@ class eshop_Products extends core_Master
         
         return $msg;
     }
-    
-    
+
+
     /**
      * Какво е продажното състояние на артикула
      *
-     * @param int $id на е-артоли;а
-     *
+     * @param int $id на е-артикула
      * @return string $saleState
      */
-    private function getSaleState($id)
+    private function getMetaData($id)
     {
         // Всички детайли към опциите
         $dQuery = eshop_ProductDetails::getQuery();
@@ -1755,11 +1799,11 @@ class eshop_Products extends core_Master
         $dQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
         $dQuery->show('state, pState,action');
         $details = $dQuery->fetchAll();
-        
+
         // Колко опции има и дали сред тях има затворени
-        $countNotClosed = $countClosed = $countBuyable = 0;
+        $countNotClosed = $countClosed = $countBuyable = $countSellable = $countRequests = 0;
         $count = $dQuery->count();
-        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed, &$countBuyable) {
+        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed, &$countBuyable, &$countSellable, &$countRequests) {
             if ($a->state != 'active' || $a->pState != 'active') {
                 $countClosed++;
             } else {
@@ -1768,21 +1812,41 @@ class eshop_Products extends core_Master
                     $countBuyable++;
                 }
             }
+
+            if($a->state == 'active'){
+                if(in_array($a->action, array('buy', 'price'))){
+                    $countSellable++;
+                } elseif($a->action == 'inquiry'){
+                    $countRequests++;
+                } elseif($a->action == 'both'){
+                    $countSellable++;
+                    $countRequests++;
+                }
+            }
         });
-        
+
+        $res = new stdClass();
         if ($count == 0) {
-            $saleState = 'empty';
+            $res->saleState = 'empty';
         } elseif ($count > 0 && $count == $countClosed) {
-            $saleState = 'closed';
+            $res->saleState = 'closed';
         } elseif ($countNotClosed == 1 && $countBuyable == 1) {
-            $saleState = 'single';
+            $res->saleState = 'single';
         } elseif($countNotClosed > 1 && $countBuyable == $countNotClosed) {
-            $saleState = 'multi';
+            $res->saleState = 'multi';
         } else {
-            $saleState = 'other';
+            $res->saleState = 'other';
         }
-        
-        return $saleState;
+        $res->detailActions = 'mixed';
+        if(!$countRequests && !$countSellable){
+            $res->detailActions = 'none';
+        } elseif($countRequests >= 1 && !$countSellable){
+            $res->detailActions = 'onlyRequests';
+        } elseif($countSellable >= 1 && !$countRequests){
+            $res->detailActions = 'onlySell';
+        }
+
+        return $res;
     }
     
     
@@ -2081,5 +2145,51 @@ class eshop_Products extends core_Master
     public function getSourceTitle($id)
     {
         return $this->getHyperlink($id, true);
+    }
+
+
+    /**
+     * Обновяване това дали е-артикула има артикули с цени
+     */
+    public function cron_UpdateEshopSellableProducts()
+    {
+        $Products = cls::get('eshop_Products');
+
+        $pQuery = $Products->getQuery();
+        $pQuery->where("#detailActions = 'onlySell'");
+        $pQuery->show('id,detailActions');
+        $productIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+        if(!countR($productIds)) {
+            $this->logInfo("Няма е-артикули само с артикули за продажба");
+            return;
+        }
+
+        $datetime = dt::now();
+        if(!price_Lists::areListUpdated($datetime)) {
+            $this->logInfo("Няма промяна в ценовите политики");
+            return;
+        }
+
+        $save = $settings = array();
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->in('eshopProductId', $productIds);
+        $dQuery->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
+        while($dRec = $dQuery->fetch()){
+            if(!array_key_exists($dRec->eshopProductId, $save)){
+                $save[$dRec->eshopProductId] = (object)array('id' => $dRec->eshopProductId, 'haveProductsWithPrice' => 'no');
+            }
+            if(!array_key_exists($dRec->domainId, $settings)){
+                $settings[$dRec->domainId] = cms_Domains::getSettings($dRec->domainId);
+            }
+            $listId = $settings[$dRec->domainId]->listId;
+            $price = price_ListRules::getPrice($listId, $dRec->productId, null, $datetime);
+            if (isset($price)) {
+                $save[$dRec->eshopProductId]->haveProductsWithPrice = 'yes';
+            }
+        }
+
+        if(countR($save)){
+            $Products->saveArray($save, 'id,haveProductsWithPrice');
+        }
     }
 }

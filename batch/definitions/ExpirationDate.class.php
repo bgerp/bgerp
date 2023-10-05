@@ -56,7 +56,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
             $time = $this->rec->time;
         }
         
-        if (isset($time)) {
+        if (!empty($time)) {
             $date = dt::addSecs($time, $date);
             $date = dt::verbal2mysql($date, false);
         }

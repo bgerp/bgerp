@@ -67,7 +67,7 @@ class findeals_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-        array('pettyCashReport'),
+        array('pettyCashReport', 'invoicerFindeal'),
         array('findeals', 'pettyCashReport,seePrice'),
         array('findealsMaster', 'findeals'),
     );

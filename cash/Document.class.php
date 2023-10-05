@@ -54,8 +54,15 @@ abstract class cash_Document extends deals_PaymentDocument
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, cash';
-    
-    
+
+
+    /**
+     * Дали към документа може да се отнася повече от една ф-ра
+     * @see deals_InvoicesToDocuments
+     */
+    public $canSelectOnlyOneInvoice = true;
+
+
     /**
      * Кой има право да променя?
      */

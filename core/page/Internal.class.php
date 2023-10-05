@@ -141,6 +141,7 @@ class core_page_Internal extends core_page_Active
             $attr['class'] = 'noNtf';
         }
         $nLink = ht::createLink("{$openNotifications}", $url, null, $attr);
+
         $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
         
         return $tpl;

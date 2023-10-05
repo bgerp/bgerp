@@ -206,7 +206,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_ProductPricePerPeriods',
         'migrate::updatePriceRoles2247',
         'migrate::deleteEmptyRateDifferences1620',
-        'migrate::fillStockPrices',
+        //'migrate::fillStockPrices',
     );
     
     

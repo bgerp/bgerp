@@ -63,23 +63,22 @@ class store_tpl_SingleLayoutShipmentOrderEuro extends doc_TplScript
             
             return;
         }
-        
-        arr::placeInAssocArray($data->listFields, 'priceEuro=Ед. цена в EUR', 'packPrice');
-        $data->listFields['packPrice'] = 'Ед. цена';
-        
+
+        $before = 'packQuantity';
+        if(isset($data->listFields['packPrice'])){
+            $before = 'packPrice';
+            $data->listFields['packPrice'] = 'Ед. цена';
+        }
+        arr::placeInAssocArray($data->listFields, 'priceEuro=Ед. цена в EUR', $before);
+
         $euroRate = round(currency_CurrencyRates::getRate($data->masterData->rec->date, 'EUR', null), 4);
         currency_CurrencyRates::checkRateAndRedirect($euroRate);
-        
-        $conf = core_Packs::getConfig('core');
-        $decPoint = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
-        
+
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
             $priceEuro = ($rec->packPrice * $data->masterData->rec->currencyRate) / $euroRate;
             
-            $Double = cls::get('type_Double');
-            $Double->params['decimals'] = 2;
-            
+            $Double = core_Type::getByName('double(decimals=2)');
             $row->priceEuro = "<span style='float:right'>" . $Double->toVerbal($priceEuro) . '</span>';
         }
     }

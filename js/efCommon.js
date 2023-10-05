@@ -1857,7 +1857,7 @@ function scaleViewport() {
  * Проверка дали използваме touch устройство
  */
 function isTouchDevice() {
-    return (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
+    return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
 }
 
 
@@ -1919,6 +1919,9 @@ function setMinHeightExt() {
     $(window).smartresize(function () {
         setMinHeightExt();
     });
+
+    // Стартиране на отзивчивото скролиране
+    dragToScroll.run();
 }
 
 
@@ -2179,7 +2182,7 @@ function selectInnerText(text) {
         document.body.style.cursor = 'copy';
         setTimeout(function() {
             document.body.style.cursor = cursor;
-        }, 500);
+        }, 250);
     }
 }
 
@@ -4764,9 +4767,11 @@ function changeTitleCnt(cnt) {
  * data.cnt - броя на нотификациите
  */
 function changeNotificationsCnt(data) {
+
+    var replaceHtml = data.html ? data.html : data.cnt;
     render_html({
         'id': data.id,
-        'html': data.cnt,
+        'html': replaceHtml,
         'replace': 1
     });
 
@@ -5288,35 +5293,36 @@ Experta.prototype.saveBodyId = function() {
  * return firstTime, refresh, ajaxRefresh
  */
 function getHitState(bodyId) {
-    var res;
-    if (typeof sessionStorage == "undefined") return 'firstTime';
+    if (typeof sessionStorage == "undefined") {
 
-    if(typeof (this.state) === 'undefined') {
-        if(typeof (bodyId) === 'undefined') {
-            var bodyId = $('body').attr('id');
-        }
-
-        if (!bodyId) return 'firstTime';
-        var bodyIds = sessionStorage.getItem('bodyIdHit');
-
-        if (typeof (bodyIds) !== 'undefined' && bodyIds) {
-            bodyIds = JSON.parse(bodyIds);
-            if(bodyIds[bodyId]) {
-                this.state = bodyIds[bodyId];
-                return this.state;
-            }
-        } else {
-            bodyIds = {};
-        }
-        res = 'firstTime';
-        this.state = 'firstTime';
-        bodyIds[bodyId] = 'refresh';
-
-        sessionStorage.setItem('bodyIdHit',  JSON.stringify(bodyIds));
-    } else {
-        res = this.state;
+        return 'firstTime';
     }
-    return res;
+
+    if(typeof (bodyId) === 'undefined') {
+        var bodyId = $('body').attr('id');
+    }
+
+    if (!bodyId) {
+
+        return 'firstTime'
+    }
+
+    var bodyIds = sessionStorage.getItem('bodyIdHit');
+
+    if (typeof (bodyIds) !== 'undefined' && bodyIds) {
+        bodyIds = JSON.parse(bodyIds);
+        if(bodyIds[bodyId]) {
+
+            return bodyIds[bodyId];
+        }
+    } else {
+        bodyIds = {};
+    }
+    bodyIds[bodyId] = 'refresh';
+
+    sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
+
+    return 'firstTime';
 }
 
 
@@ -5407,9 +5413,14 @@ Experta.prototype.reloadFormData = function() {
  * Добавя ивент, който да кара страницата да се презарежда, ако условиет е изпълнено
  */
 function reloadOnPageShow() {
+
 	getEO().addEvent(window, 'pageshow', function() {
         if (getEO().checkBodyId()) {
         	location.reload();
+        }
+
+        if (typeof forceReloadAfterBack != 'undefined' && forceReloadAfterBack) {
+            getEO().saveBodyId();
         }
 
         // Заместваме данните от формата с предишно избраната стойност
@@ -5738,6 +5749,9 @@ function calcFilemanSize(){
     var offset = $('.webdrvFieldset').offset();
     var height = $(window).outerHeight() - parseInt(offset.top, 10) - 45;
 
+
+
+    $('#fileDetail .row-holder>div').addClass('ef-drag-scroll');
     if (currentHeight < height) {
         $('.webdrvFieldset').css('height', height);
         $('.webdrvFieldset').css('overflow-y', 'auto');
@@ -5746,7 +5760,7 @@ function calcFilemanSize(){
             $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
         });
     } else {
-        $('.webdrvFieldset').css('height', height - 5);
+        $('.webdrvFieldset').css('height', currentHeight);
         $('.webdrvFieldset').css('overflow-y', 'auto');
     }
     if ( $('.webdrvFieldset').width() < width) {
@@ -5779,6 +5793,9 @@ function calcFilemanSize(){
             $('.webdrvFieldset a.linkWithIcon').css("opacity", 0);
         }, 1000);
     });
+
+    // Стартиране на отзивчивото скролиране
+    dragToScroll.run();
 }
 
 
@@ -5874,9 +5891,9 @@ $.fn.isInViewport = function() {
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
 function focusOnce(id) {
-    getEO().checkBodyId();
+    var state = getHitState();
 
-    if(this.state && this.state == 'firstTime' && $(id).isInViewport && $(id).isInViewport()) {
+    if(state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
         $(id).focus();
     }
 }
@@ -6089,6 +6106,81 @@ function checkVatAndTriger(name) {
     jQuery.fn[sr] = function(fn){  return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr); };
 
 })(jQuery,'smartresize');
+
+
+dragToScroll = {
+
+
+    'run': function () {
+        console.log(document.querySelectorAll('.ef-drag-scroll'));
+        document.querySelectorAll('.ef-drag-scroll').forEach((el) => {
+            this.mount(el);
+        })
+    },
+
+    'mount': function (el) {
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+        let timer;
+
+        el.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - el.offsetLeft;
+            scrollLeft = el.scrollLeft;
+        });
+        el.addEventListener('touchstart', (e) => {
+            isDown = true;
+            startX = e.changedTouches[0].pageX - el.offsetLeft;
+            scrollLeft = el.scrollLeft;
+        });
+
+        el.addEventListener('touchend', (e) => {
+            isDown = false;
+            el.classList.remove('ef-ds-active');
+        });
+        el.addEventListener('mouseleave', (e) => {
+            isDown = false;
+            el.classList.remove('ef-ds-active');
+        });
+        el.addEventListener('mouseup', (e) => {
+            isDown = false;
+            el.classList.remove('ef-ds-active');
+        });
+
+        el.addEventListener('touchmove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            for (i = 0; i < e.changedTouches.length; i++) {
+                let x = e.changedTouches[i].pageX - el.offsetLeft;
+                let newX = scrollLeft - (x - startX); //scroll-fast
+                if (newX < 0) newX = 0;
+                let maxScrollLeft = el.scrollWidth - el.clientWidth;
+                if (newX > maxScrollLeft) newX = maxScrollLeft;
+                if (newX !== el.scrollLeft) {
+                    el.classList.add('ef-ds-active');
+                    el.scrollLeft = newX;
+                }
+            }
+            return false;
+        });
+        el.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - el.offsetLeft;
+            let newX = scrollLeft - (x - startX); //scroll-fast
+            if (newX < 0) newX = 0;
+            const maxScrollLeft = el.scrollWidth - el.clientWidth;
+            if (newX > maxScrollLeft) newX = maxScrollLeft;
+            if (newX !== el.scrollLeft) {
+                el.classList.add('ef-ds-active');
+                el.scrollLeft = newX;
+            }
+            return false;
+        });
+    }
+}
 
 
 runOnLoad(markSelectedChecboxes);

@@ -295,7 +295,7 @@ class eshop_CartDetails extends core_Detail
         $canStore = cat_Products::fetchField($productId, 'canStore');
         $settings = cms_Domains::getSettings();
         if($canStore == 'yes'){
-            if (isset($settings->inStockStores)) {
+            if (countR($settings->inStockStores)) {
                 $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
                 $quantityInStore = store_Products::getQuantities($productId, $settings->inStockStores)->free;
                 $maxQuantity = $quantityInStore;
@@ -407,7 +407,7 @@ class eshop_CartDetails extends core_Detail
         }
         
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
-        if (isset($settings->inStockStores) && $productRec->canStore == 'yes') {
+        if (countR($settings->inStockStores) && $productRec->canStore == 'yes') {
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
             
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
@@ -648,23 +648,24 @@ class eshop_CartDetails extends core_Detail
         // Коя е ценовата политика
         $oldListId = $settings->listId;
         $listId = cms_Helper::getCurrentEshopPriceList($settings);
+        $now = dt::now();
 
         // Ако има взема се цената от нея
         if (isset($listId)) {
-            $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId);
+            $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId, $now);
             
             // Ако стария лист е различен от новия
             if($oldListId != $listId){
                 
                 // И старата цена е по-евтина, то се взима тя
-                $priceOld = price_ListRules::getPrice($oldListId, $rec->productId, $rec->packagingId);
+                $priceOld = price_ListRules::getPrice($oldListId, $rec->productId, $rec->packagingId, $now);
                 if(!empty($priceOld) && trim(round($priceOld, 5)) < trim(round($price, 5))){
                     $price = $priceOld;
                     $listId = $oldListId;
                 }
             }
             
-            $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+            $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack, $now);
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;
             }

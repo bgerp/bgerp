@@ -310,6 +310,8 @@ class price_ListRules extends core_Detail
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
+        $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
+        $listId = $variationId ?? $listId;
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
             $query = self::getQuery();
@@ -326,7 +328,7 @@ class price_ListRules extends core_Detail
             $query->orderBy('#priority', 'ASC');
             $query->orderBy('#validFrom,#id', 'DESC');
             $query->limit(1);
-            
+
             $rec = $query->fetch();
             $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
@@ -345,6 +347,7 @@ class price_ListRules extends core_Detail
                 } else {
                     $validFrom = $rec->validFrom;
                     expect($parent = $listRec->parent);
+
                     $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false, 1, 'no', $discountIncluded);
                     if (isset($price)) {
                         if ($rec->calculation == 'reverse') {
@@ -382,7 +385,6 @@ class price_ListRules extends core_Detail
 
                     $cRate = currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
                     if(!empty($cRate)){
-                        //$price *= 1 + $discountIncluded;
                         $rate = 1 / $cRate;
                         $price = $price * $vat * $rate;
                         $price = price_Lists::roundPrice($listRec, $price);
@@ -396,7 +398,6 @@ class price_ListRules extends core_Detail
                 if ($canUseCache) {
                     price_Cache::setPrice($price, $listId, $productId, $discountIncluded);
                 }
-
             }
         }
 

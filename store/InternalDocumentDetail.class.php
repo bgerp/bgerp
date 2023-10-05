@@ -88,7 +88,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         } elseif($productType == 'other' && (($mvc instanceof store_ConsignmentProtocolDetailsSend) || $rec->type == 'out')){
             $form->_needPrice = false;
         }
-        core_Statuses::newStatus($form->_needPrice);
+
         if(!$form->_needPrice){
             $form->setField('packPrice', "input=none");
         } else {

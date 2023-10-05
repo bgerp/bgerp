@@ -86,7 +86,7 @@
                   <!--ET_BEGIN deliveryAddressBlock-->
                   [#deliveryAddressBlock#]
                   <tr>
-                     <td class='quiet nowrap aright'>|От адрес|*:</td>
+                     <td class='quiet nowrap aright' style="width:1%">|От адрес|*:</td>
                      <td>
                         [#deliveryTo#] [#deliveryLocationAddress#]
                      </td>
@@ -131,6 +131,9 @@
                      <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span> [#logisticInfo#]</td>
                   </tr>
                   <!--ET_END logisticInfo-->
+               </table>
+               <hr>
+               <table>
                   [#InvoicesToDocuments#]
                </table>
             </td>

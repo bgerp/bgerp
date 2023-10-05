@@ -160,16 +160,10 @@ class uiext_ObjectLabels extends core_Manager
         
         if ($delete === true && isset($exRec->id)) {
             self::delete($exRec->id);
-            $tagMsg = 'Изтрит таг';
         } else {
             $this->save($rec);
-            $tagMsg = 'Променен таг';
         }
 
-        if (cls::load($masterClassId, true)) {
-            cls::get($masterClassId)->logWrite($tagMsg, $objectId);
-        }
-        
         if (Request::get('ajax_mode')) {
             
             // Заместваме клетката по AJAX за да визуализираме промяната
@@ -177,7 +171,7 @@ class uiext_ObjectLabels extends core_Manager
             $resObj->func = 'html';
             
             $k = "{$masterClassId}_{$objectId}_{$classId}_{$hash}";
-            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($masterClassId, $objectId, $classId, $hash), 'replace' => true);
+            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($masterClassId, $objectId, $classId, $hash, true), 'replace' => true);
             $res = array_merge(array($resObj));
             
             return $res;

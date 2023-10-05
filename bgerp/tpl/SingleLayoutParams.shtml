@@ -41,7 +41,10 @@
                 <td>[#order#]</td>
             </tr>
             <!--ET_END order-->
-            
+            <tr>
+                <td class="title-style nowrap">|Създаване|*</td>
+                <td>|от|* [#createdBy#] |на|* [#createdOn#]</td>
+            </tr>
             <!--ET_BEGIN groupParams-->
             [#groupParams#]
             <tr>
@@ -209,9 +212,7 @@
                 <td>[#editInLabel#]</td>
             </tr>
             <!--ET_END editInLabel-->
-            
         </table>
-        
-    	<div style='margin-top: 20px;'><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
     </div>
+    [#DETAILS#]
 </div>

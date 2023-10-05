@@ -102,74 +102,107 @@ class colab_plg_VisibleForPartners extends core_Plugin
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         // Ако е споделен към колаборатор, който има достъп до папката, да може да вижда документа
-        if ($form->rec->visibleForPartners == 'no') {
+        $rec = &$form->rec;
+        if ($rec->visibleForPartners == 'no') {
             if ($form->isSubmitted()) {
-                $allSharedUsersArr = array();
 
-                $rec = &$form->rec;
+                // Ако има споделени партньори, добавя се предупреждение
+                if(isset($rec->sharedUsers)){
+                    $sharedUsers = keylist::toArray($rec->sharedUsers);
+                    $partners = core_Users::getByRole('partner');
+                    $selectedPartners = array_intersect_key($sharedUsers, $partners);
 
-                $sharedUsersArrAll = array();
-
-                $fName = '';
-
-                // Обхождаме всички полета от модела, за да разберем кои са ричтекст
-                foreach ((array) $mvc->fields as $name => $field) {
-                    if ($field->type instanceof type_Richtext) {
-                        if ($field->type->params['nickToLink'] == 'no') {
-                            continue;
-                        }
-
-                        // Вземаме споделените потребители
-                        $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
-                        if (empty($sharedUsersArr)) {
-                            continue;
-                        }
-
-                        // Обединяваме всички потребители от споделянията
-                        $sharedUsersArrAll = array_merge($sharedUsersArrAll, $sharedUsersArr);
-                        if (!empty($sharedUsersArrAll)) {
-                            $fName = $fName? $fName : $field->name;
-                        }
+                    if(countR($selectedPartners)){
+                        $nicks = array();
+                        array_walk($selectedPartners, function($a) use (&$nicks) {$nicks[] = core_Users::getNick($a);});
+                        $partnerWarningMsg = "При забранено споделяне с партньори, ще бъде заличено споделянето с|* " . implode(',', $nicks);
+                        $form->setWarning('sharedUsers', $partnerWarningMsg);
                     }
                 }
 
-                // Ако има споделяния
-                if (!empty($sharedUsersArrAll)) {
-                    // Добавяме id-тата на споделените потребители
-                    foreach ((array) $sharedUsersArrAll as $nick) {
-                        $nick = strtolower($nick);
-                        $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
+                if(!$form->gotErrors()){
+                    $allSharedUsersArr = array();
+                    $sharedUsersArrAll = array();
+                    $fName = '';
 
-                        if (!core_Users::haveRole('partner', $id)) {
-                            continue;
+                    // Обхождаме всички полета от модела, за да разберем кои са ричтекст
+                    foreach ((array) $mvc->fields as $name => $field) {
+                        if ($field->type instanceof type_Richtext) {
+                            if ($field->type->params['nickToLink'] == 'no') {
+                                continue;
+                            }
+
+                            // Вземаме споделените потребители
+                            $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
+                            if (empty($sharedUsersArr)) {
+                                continue;
+                            }
+
+                            // Обединяваме всички потребители от споделянията
+                            $sharedUsersArrAll = array_merge($sharedUsersArrAll, $sharedUsersArr);
+                            if (!empty($sharedUsersArrAll)) {
+                                $fName = $fName? $fName : $field->name;
+                            }
+                        }
+                    }
+
+                    // Ако има споделяния
+                    if (!empty($sharedUsersArrAll)) {
+                        // Добавяме id-тата на споделените потребители
+                        foreach ((array) $sharedUsersArrAll as $nick) {
+                            $nick = strtolower($nick);
+                            $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
+
+                            if (!core_Users::haveRole('partner', $id)) {
+                                continue;
+                            }
+
+                            $allSharedUsersArr[$id] = $id;
+                        }
+                    }
+
+                    $errArray = array();
+
+                    if (!empty($allSharedUsersArr)) {
+                        foreach ($allSharedUsersArr as $uId) {
+                            $cRec = colab_FolderToPartners::fetchField(array("#folderId = '[#1#]' AND #contractorId = '[#2#]'", $form->rec->folderId, $uId));
+
+                            if (!$cRec) {
+                                $errArray[$uId] = core_Users::getNick($uId);
+                            }
                         }
 
-                        $allSharedUsersArr[$id] = $id;
-                    }
-                }
-
-                $errArray = array();
-
-                if (!empty($allSharedUsersArr)) {
-                    foreach ($allSharedUsersArr as $uId) {
-                        $cRec = colab_FolderToPartners::fetchField(array("#folderId = '[#1#]' AND #contractorId = '[#2#]'", $form->rec->folderId, $uId));
-
-                        if (!$cRec) {
-                            $errArray[$uId] = core_Users::getNick($uId);
+                        if (!empty($errArray)) {
+                            $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Контракторът не е споделен към папката');
+                        } else {
+                            $form->rec->visibleForPartners = 'yes';
                         }
-                    }
-
-                    if (!empty($errArray)) {
-                        $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Контракторът не е споделен към папката');
-                    } else {
-                        $form->rec->visibleForPartners = 'yes';
                     }
                 }
             }
         }
     }
-    
-    
+
+
+    /**
+     * Изпълнява се преди записа
+     * Ако липсва - записваме id-то на връзката към титлата
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if($rec->visibleForPartners == 'no' && isset($rec->sharedUsers)) {
+            $sharedUsers = keylist::toArray($rec->sharedUsers);
+            $partners = core_Users::getByRole('partner');
+            $withoutSelectedPartners = array_diff_key($sharedUsers, $partners);
+
+            if(countR($sharedUsers) != countR($withoutSelectedPartners)){
+                $rec->sharedUsers = keylist::fromArray($withoutSelectedPartners);
+                core_Statuses::newStatus('Документът не е видим за партньори, затова са махнати споделените такива|*!', 'warning');
+            }
+        }
+    }
+
+
     /**
      * Връща дали документа е видим за партньори
      *

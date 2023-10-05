@@ -68,4 +68,18 @@ class cond_ParamTypeIntf extends embed_DriverIntf
     {
         return $this->class->toVerbal($rec, $domainClass, $domainId, $value);
     }
+
+
+    /**
+     * Обработка на стойността при клониране
+     *
+     * @param stdClass $rec
+     * @param mixed $domainClass - клас на домейна
+     * @param mixed $domainId - ид на домейна
+     * @return string
+     */
+    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value)
+    {
+        return $this->class->getReplacementValueOnClone($rec, $domainClass, $domainId, $value);
+    }
 }

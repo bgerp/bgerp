@@ -303,9 +303,19 @@ class doc_SharablePlg extends core_Plugin
         
         // Добавяме раздел със споделените в папката
         $shareUsersArr = self::getShareUsersArr($form->rec);
+        $form->fields['sharedUsers']->type->userOtherGroup = array();
+
         if (!empty($shareUsersArr)) {
             $title = "От папката";
-            $form->fields['sharedUsers']->type->userOtherGroup = array(-1 => (object) array('suggName' => 'doc', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $shareUsersArr));
+            $form->fields['sharedUsers']->type->userOtherGroup[-1] = (object) array('suggName' => 'doc', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $shareUsersArr);
+        }
+
+        if(core_Packs::isInstalled('colab')){
+            $contractorIds = colab_FolderToPartners::getContractorsInFolder($form->rec->folderId);
+            if(countR($contractorIds)){
+                $title = "Партньори";
+                $form->fields['sharedUsers']->type->userOtherGroup[-2] = (object) array('suggName' => 'colab', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $contractorIds);
+            }
         }
     }
     
