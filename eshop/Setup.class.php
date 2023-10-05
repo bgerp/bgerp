@@ -118,7 +118,7 @@ defIfNot('ESHOP_DEFAULT_DELIVERY_TERMS', '');
 /**
  * Условия на доставка
  */
-defIfNot('ESHOP_SHOW_PRODUCTS_WITHOUT_PRICES', '');
+defIfNot('ESHOP_SHOW_PRODUCTS_WITHOUT_PRICES', 'yes');
 
 
 /**
@@ -260,6 +260,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_MANDATORY_EGN' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕГН'),
         'ESHOP_MANDATORY_UIC_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕИК'),
         'ESHOP_MANDATORY_VAT_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ДДС №'),
+        'ESHOP_SHOW_PRODUCTS_WITHOUT_PRICES' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на е-артикулите във външната част->Без цени'),
 
         'ESHOP_DEFAULT_POLICY_ID' => array('key(mvc=price_Lists,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Политика'),
         'ESHOP_DEFAULT_DELIVERY_TERMS' => array('keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Дефолти в настройките а онлайн магазина->Условия на доставка'),
