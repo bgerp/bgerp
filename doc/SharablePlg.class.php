@@ -313,7 +313,17 @@ class doc_SharablePlg extends core_Plugin
         if(core_Packs::isInstalled('colab')){
             $folderId = $form->rec->folderId ?? doc_Threads::fetchField($form->rec->threadId, 'folderId');
             $contractorIds = colab_FolderToPartners::getContractorsInFolder($folderId);
-            if(countR($contractorIds)){
+
+            $showPartners = countR($contractorIds);
+            $threadId = isset($form->rec->threadId) ? $form->rec->threadId : (isset($form->rec->originId) ? doc_Containers::fetchField($form->rec->originId, 'threadId') : null);
+            if(isset($threadId)){
+                $firstDoc = doc_Threads::getFirstDocument($threadId);
+                if(!$firstDoc->isVisibleForPartners()){
+                    $showPartners = false;
+                }
+            }
+
+            if($showPartners){
                 $title = "Партньори";
                 $form->fields['sharedUsers']->type->userOtherGroup[-2] = (object) array('suggName' => 'colab', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $contractorIds);
             }

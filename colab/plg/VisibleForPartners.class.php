@@ -41,17 +41,28 @@ class colab_plg_VisibleForPartners extends core_Plugin
     {
         $rec = $data->form->rec;
         if ($rec->folderId) {
-            
+
             // Полето се показва ако е в папката, споделена до колаборатор
             // Ако няма originId или ако originId е към документ, който е видим от колаборатор
             if (colab_FolderToPartners::fetch(array("#folderId = '[#1#]'", $rec->folderId))) {
                 if (!$rec->originId || ($doc = doc_Containers::getDocument($rec->originId)) && ($dIsVisible = $doc->isVisibleForPartners())) {
+
                     if (core_Users::haveRole('partner')) {
                         // Ако текущия потребител е контрактор, полето да е скрито
                         $data->form->setField('visibleForPartners', 'input=hidden');
                         $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
-                        $data->form->setField('visibleForPartners', 'input=input');
+                        $showField = true;
+                        if(isset($rec->threadId)){
+                            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                            if(!$firstDoc->isVisibleForPartners()){
+                                $showField = false;
+                            }
+                        }
+
+                        if($showField){
+                            $data->form->setField('visibleForPartners', 'input=input');
+                        }
                     }
                     
                     if ($rec->originId) {
