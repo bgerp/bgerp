@@ -113,13 +113,12 @@ class bgerp_C extends core_Mvc
                         page-break-after: always;
                     }
                     .qr {
-                        border:solid 1px black;
                         position: absolute;
                         top: 50%; left: 50%;
                         transform: translate(-50%,-50%);
                         width:170px;
                         height:120px;
-                        background-color:rgba(255,255,255, 0.8);
+                        background-color:rgba(255,255,255, 0.6);
                         border-radius:10px;
                         writing-mode: vertical-lr;
                         text-orientation: mixed;
@@ -131,9 +130,9 @@ class bgerp_C extends core_Mvc
                     }
                     .qr img {
                         max-width: 100px;
-                        position: absolute;
-                        top: 50%; left: 50%;
-                        transform: translate(-50%,-50%);
+                        transform: rotate(90deg);
+                        position:relative;
+                        right:5px;
                     }
 
                     .info {
