@@ -51,7 +51,7 @@ class acc_journal_Item
             $this->id = $classId;
             
             if ($this->id) {
-                acc_journal_Exception::expect($this->itemRec = $this->fetchItemRecById($this->id), 'Липсва перо');
+                acc_journal_Exception::expect($this->itemRec = acc_Items::fetchField($this->id, 'id'), 'Липсва перо');
                 $this->classId = $this->itemRec->classId;
                 $this->objectId = $this->itemRec->objectId;
             }
@@ -148,17 +148,5 @@ class acc_journal_Item
         }
         
         return $state == 'closed';
-    }
-    
-    
-    /**
-     * Връща записа отговарящ на това ид
-     */
-    public function fetchItemRecById($id)
-    {
-        $Items = cls::get('acc_Items');
-        $cache = $Items->getCachedItems();
-        
-        return $cache['items'][$id];
     }
 }

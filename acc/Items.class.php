@@ -522,20 +522,12 @@ class acc_Items extends core_Manager
      *
      * @param int  $class
      * @param int  $objectId
-     * @param bool $useCachedItems - дали да се използва кеширане на информацията за перата
      */
-    public static function fetchItem($class, $objectId, $useCachedItems = false)
+    public static function fetchItem($class, $objectId)
     {
         $Class = cls::get($class);
         $self = cls::get(get_called_class());
         $objectId = $Class->fetchRec($objectId)->id;
-        
-        if ($useCachedItems === true) {
-            $index = $Class->getClassId() . '|' . $objectId;
-            $cache = $self->getCachedItems();
-            
-            return $cache['indexedItems'][$index];
-        }
         
         return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
     }
