@@ -1880,6 +1880,9 @@ class planning_Jobs extends core_Master
 
         $res = array();
         $taskExpenseItemIds = static::getTaskCostObjectItems($jobRec);
+        if($jobItemId = acc_Items::fetchItem('planning_Jobs', $jobRec->id)->id){
+            $taskExpenseItemIds[$jobItemId] = $jobItemId;
+        }
         if(!countR($taskExpenseItemIds)) return $res;
 
         $createdOn = dt::verbal2mysql($jobRec->createdOn, false);
