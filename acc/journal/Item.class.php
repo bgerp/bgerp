@@ -51,7 +51,7 @@ class acc_journal_Item
             $this->id = $classId;
             
             if ($this->id) {
-                acc_journal_Exception::expect($this->itemRec = acc_Items::fetchField($this->id, 'id'), 'Липсва перо');
+                acc_journal_Exception::expect($this->itemRec = acc_Items::fetch($this->id, 'id,classId,objectId'), 'Липсва перо');
                 $this->classId = $this->itemRec->classId;
                 $this->objectId = $this->itemRec->objectId;
             }
