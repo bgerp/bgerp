@@ -4085,7 +4085,7 @@ table .eshop-btn {
     font-size: 0.8em;
     padding-right: 1px;
     padding-left: 1px; }
-  .contractorExtHolder input[type=text],
+  .contractorExtHolder input[type=text]:not(.combo),
   .contractorExtHolder input[type=submit] {
     height: 26px;
     line-height: 1; }

@@ -4807,7 +4807,7 @@ table .eshop-btn {
 		padding-right: 1px;
 		padding-left: 1px;
 	}
-	input[type=text], input[type=submit] {
+	input[type=text]:not(.combo), input[type=submit] {
 		height: 26px;
 		line-height: 1;
 	}
