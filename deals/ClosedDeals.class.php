@@ -136,6 +136,10 @@ abstract class deals_ClosedDeals extends core_Master
         //$h = clone $docs['165|347442'];
         if (countR($docs)) {
 
+            echo "<pre>";
+            print_r($docs);
+            echo "</pre>";
+            echo "</hr>";
             //bp($docs);
 
             //unset($docs['165|347442']);
