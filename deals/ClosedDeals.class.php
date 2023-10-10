@@ -165,7 +165,7 @@ abstract class deals_ClosedDeals extends core_Master
                 $copyEntries = $entries;
 
                 if(Mode::is('closeSales')){
-                    //bp($entries, $docs, $dealItem, $closeDeal, $rec);
+                    bp($entries, $docs, $dealItem, $closeDeal, $rec);
                 }
 
                 if(static::$count == 3){
