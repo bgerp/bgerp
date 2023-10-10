@@ -153,7 +153,7 @@ abstract class deals_ClosedDeals extends core_Master
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries;
 
-                if($index == '165|347442'){
+                if($index != '165|347442'){
                     bp($transactionSource, $entries);
                 }
 
