@@ -153,9 +153,12 @@ abstract class deals_ClosedDeals extends core_Master
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries;
 
+                if(Mode::is('closeSales')){
+                    bp($entries);
+                }
 
                 if($index != '165|347442'){
-                    bp($this->class, $transactionSource, $entries);
+                    //bp($this->class, $transactionSource, $entries);
                 }
 
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
