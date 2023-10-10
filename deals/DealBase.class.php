@@ -494,7 +494,7 @@ abstract class deals_DealBase extends core_Master
                     $dRec = $this->fetch($dealId);
                     $clId = $CloseDoc->create($this->className, $dRec, $id);
                     $this->logWrite('Приключено с друга сделка', $dealId);
-                    //$CloseDoc->conto($clId);
+                    $CloseDoc->conto($clId);
                     core_Debug::stopTimer('CONTO_CLOSE_DOC');
                 }
 

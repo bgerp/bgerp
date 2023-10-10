@@ -139,47 +139,25 @@ abstract class deals_ClosedDeals extends core_Master
         $dealItem->docClassName = cls::get($dealItem->classId)->className;
         $dealClassId = cls::get($dealItem->classId)->getClassId();
 
-        //$h = clone $docs['165|347442'];
         if (countR($docs)) {
-
-            //echo "<pre>";
-            //print_r($docs);
-            //echo "</pre>";
-            //echo "</hr>";
-            //bp($docs);
-
-           // unset($docs['165|347442']);
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
                 if(array_key_exists($index, static::$byNow)) continue;
                 static::$byNow[$index] = $index;
 
-                if($index == '95|73327'){
-                    static::$count++;
-                }
-
-                //echo "<li>CALL $index";
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
-
-
 
                 Mode::push('closedDealCall', true);
                 $entries1 = $transactionSource->getTransaction($doc->docId)->entries;
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries1;
 
-
                 if(Mode::is('closeSales')){
                     if(static::$count > 10){
                         bp($entries1, $index, $docs, $dealItem, $closeDeal, $rec);
                     }
-
-                }
-
-                if($index != '165|347442'){
-                    //bp($this->class, $transactionSource, $entries);
                 }
 
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
@@ -203,8 +181,6 @@ abstract class deals_ClosedDeals extends core_Master
                         
                         $newEntries[] = $entry;
                     }
-
-
 
                     // Втори път обхождаме записите
                     foreach ($entries1 as &$entry2) {
@@ -235,7 +211,6 @@ abstract class deals_ClosedDeals extends core_Master
             }
         }
 
-        //bp($newEntries, $h);
         // Връщаме генерираните записи
         return $newEntries;
     }
