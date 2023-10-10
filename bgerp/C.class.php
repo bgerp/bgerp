@@ -169,7 +169,7 @@ class bgerp_C extends core_Mvc
     
         for($i = 0; $i < 10; $i++) {
             $code = base_convert(random_int(1000000000, 4000000000), 10, 36);
-            $qrUrl = barcode_Qr::getUrl("https://bcvt.eu/C/{$code}", false, 4);
+            $qrUrl = barcode_Qr::getUrl("https://bcvt.eu/C/{$code}", false, 4, 0, array('bgOpacity' => 1));
 
             $card = "<div class='container' style=' background-image: url(\"/C/Img/?code={$code}\")'><div class='qr'><p class='link'>www.bcvt.eu/C/{$code}</p><img src='{$qrUrl}'><p class='info'>Регистрирайте се тук:</p></div></div>";
             
