@@ -41,6 +41,12 @@ abstract class deals_ManifactureMaster extends core_Master
 
 
     /**
+     * Кой може да променя активирани записи
+     */
+    public $canChangerec = 'ceo,consumption,store';
+
+
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     public $changableFields = 'note,sender,receiver';

@@ -56,8 +56,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,consumption,store';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
