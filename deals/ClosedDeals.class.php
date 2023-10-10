@@ -147,6 +147,7 @@ abstract class deals_ClosedDeals extends core_Master
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
 
+                echo "<li>CALL $index";
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
 
@@ -158,7 +159,7 @@ abstract class deals_ClosedDeals extends core_Master
                 $copyEntries = $entries;
 
                 if(Mode::is('closeSales')){
-                    bp($entries, $docs);
+                    bp($entries, $docs, $dealItem, $closeDeal, $rec);
                 }
 
                 if($index != '165|347442'){
