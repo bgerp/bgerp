@@ -145,7 +145,7 @@ abstract class deals_ClosedDeals extends core_Master
             //echo "</hr>";
             //bp($docs);
 
-            unset($docs['165|347442']);
+           // unset($docs['165|347442']);
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
