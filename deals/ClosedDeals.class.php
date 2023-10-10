@@ -135,6 +135,7 @@ abstract class deals_ClosedDeals extends core_Master
 
         if (countR($docs)) {
 
+            $r = $docs;
             unset($docs['165|347442']);
 
             // За всеки транзакционен клас
@@ -201,10 +202,9 @@ abstract class deals_ClosedDeals extends core_Master
                     }
                 }
             }
-
-
         }
 
+        bp($newEntries, $r['165|347442']);
         // Връщаме генерираните записи
         return $newEntries;
     }
