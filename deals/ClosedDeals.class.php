@@ -145,15 +145,17 @@ abstract class deals_ClosedDeals extends core_Master
 
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
-                if($index == '165|347442'){
-                    bp($transactionSource);
-                }
+
 
 
                 Mode::push('closedDealCall', true);
                 $entries = $transactionSource->getTransaction($doc->docId)->entries;
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries;
+
+                if($index == '165|347442'){
+                    bp($transactionSource, $entries);
+                }
 
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
                 // Така зануляване салдата по следката
