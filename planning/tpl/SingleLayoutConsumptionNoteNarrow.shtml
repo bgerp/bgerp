@@ -65,7 +65,7 @@
 							                <!--ET_END responsible-->
 							                
 							                <!--ET_BEGIN username-->
-							                <div>|Съставил|*:  [#sender#]</div>
+							                <div>|Предал|*:  [#sender#]</div>
 							                <!--ET_END username-->
                                         </td>
                                     </tr>
