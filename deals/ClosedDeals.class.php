@@ -201,7 +201,7 @@ abstract class deals_ClosedDeals extends core_Master
             }
         }
 
-        bp($newEntries, $h);
+        //bp($newEntries, $h);
         // Връщаме генерираните записи
         return $newEntries;
     }
