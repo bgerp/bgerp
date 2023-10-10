@@ -109,6 +109,9 @@ abstract class deals_ClosedDeals extends core_Master
     static $count = 0;
 
 
+    static $byNow = array();
+
+
     /**
      * Подготвя записите за приключване на дадена сделка с друга сделка
      *
@@ -149,6 +152,8 @@ abstract class deals_ClosedDeals extends core_Master
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
+                if(array_key_exists($index, static::$byNow)) continue;
+                static::$byNow[$index] = $index;
 
                 if($index == '95|73327'){
                     static::$count++;
