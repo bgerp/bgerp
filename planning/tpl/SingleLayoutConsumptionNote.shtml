@@ -81,8 +81,8 @@
                                                     <td></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                    <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
+                                                    <td class='centered border-right'><span class="sign_names nowrap"><!--ET_BEGIN receiver-->/ [#receiver#] /<!--ET_END receiver--></span></td>
+                                                    <td class='centered'><span class="sign_names nowrap"><!--ET_BEGIN sender-->/ [#sender#] /<!--ET_END sender--></span></td>
                                                 </tr>
                                             </table>
                                         </td>

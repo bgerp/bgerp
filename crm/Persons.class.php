@@ -2997,7 +2997,7 @@ class crm_Persons extends core_Master
      *
      * @return array $options        - опции
      */
-    public static function getEmployeesOptions($withAccess = false, $hrCodes = null)
+    public static function getEmployeesOptions($withAccess = false, $hrCodes = null, $onlyNames = false)
     {
         $options = array();
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
@@ -3023,7 +3023,12 @@ class crm_Persons extends core_Master
             }
             
             // Показва се името с ид-то след него заради служителите с еднакви имена
-            $options[$rec->id] = self::getVerbal($rec, 'name') . " ({$rec->id})";
+            if($onlyNames){
+                $names = self::getVerbal($rec, 'name');
+                $options[$names] = self::getVerbal($rec, 'name') . " ({$rec->id})";
+            } else {
+                $options[$rec->id] = self::getVerbal($rec, 'name') . " ({$rec->id})";
+            }
         }
         
         if (countR($options)) {

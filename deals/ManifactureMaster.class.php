@@ -38,19 +38,29 @@ abstract class deals_ManifactureMaster extends core_Master
      * Дата на очакване
      */
     public $termDateFld = 'deadline';
-    
-    
+
+
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    public $changableFields = 'note,sender,receiver';
+
+
     /**
      * Кои са задължителните полета за модела
      */
     protected static function setDocumentFields($mvc)
     {
+        setIfNot($mvc->haveSenderAndReceiverNames, false);
         $mvc->FLD('valior', 'date', 'caption=Вальор');
         $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $mvc->FLD('deadline', 'datetime', 'caption=Срок до');
         $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
+        if($mvc->haveSenderAndReceiverNames){
+            $mvc->FLD('sender', 'varchar', 'caption=Допълнително->Предал,after=note');
+            $mvc->FLD('receiver', 'varchar', 'caption=Допълнително->Получил,after=sender');
+        }
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
-        
         $mvc->setDbIndex('valior');
     }
     
@@ -97,9 +107,19 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $form = &$data->form;
         $folderCover = doc_Folders::getCover($data->form->rec->folderId);
         if ($folderCover->haveInterface('store_AccRegIntf')) {
-            $data->form->setDefault('storeId', $folderCover->that);
+            $form->setDefault('storeId', $folderCover->that);
+        }
+
+        if($mvc->haveSenderAndReceiverNames){
+            $options = crm_Persons::getEmployeesOptions(false, null, true);
+            if(countR($options)){
+                $options = array('' => '') + $options;
+                $form->setSuggestions('sender', $options);
+                $form->setSuggestions('receiver', $options);
+            }
         }
     }
     

@@ -37,7 +37,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,change_Plugin,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
     /**
@@ -144,8 +144,14 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn,valior,deadline,modifiedOn';
-    
-    
+
+
+    /**
+     * Дали има полета за получил и предал
+     */
+    public $haveSenderAndReceiverNames = true;
+
+
     /**
      * Описание на модела
      */
@@ -153,7 +159,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         parent::setDocumentFields($this);
         $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
-        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане,notNull,default=yes,maxRadio=2,before=note');
+        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Детайлно влагане,notNull,default=yes,maxRadio=2');
+
         $this->setField('storeId', 'placeholder=Само услуги');
     }
     

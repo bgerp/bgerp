@@ -61,11 +61,11 @@
                                             [#note#]
 							                <!--ET_BEGIN responsible-->
 							                <hr>
-							                <div>|Получил|*:  [#responsible#]</div>
+							                <div>|Получил|*:  [#receiver#]</div>
 							                <!--ET_END responsible-->
 							                
 							                <!--ET_BEGIN username-->
-							                <div>|Съставил|*:  [#username#]</div>
+							                <div>|Съставил|*:  [#sender#]</div>
 							                <!--ET_END username-->
                                         </td>
                                     </tr>
