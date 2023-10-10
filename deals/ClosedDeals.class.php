@@ -167,7 +167,7 @@ abstract class deals_ClosedDeals extends core_Master
 
 
                 if(Mode::is('closeSales')){
-                    if(static::$count > 4){
+                    if(static::$count > 10){
                         bp($entries1, $index, $docs, $dealItem, $closeDeal, $rec);
                     }
 
