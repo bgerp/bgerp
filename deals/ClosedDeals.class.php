@@ -149,7 +149,8 @@ abstract class deals_ClosedDeals extends core_Master
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
-                if($index['95|73327']){
+
+                if($index == '95|73327'){
                     static::$count++;
                 }
 
@@ -164,14 +165,12 @@ abstract class deals_ClosedDeals extends core_Master
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries1;
 
-                if($index == '95|73327'){
-                }
-                if(Mode::is('closeSales')){
-                    bp($entries1, $index, $docs, $dealItem, $closeDeal, $rec);
-                }
 
-                if(static::$count == 3){
-                   // bp();
+                if(Mode::is('closeSales')){
+                    if(static::$count > 4){
+                        bp($entries1, $index, $docs, $dealItem, $closeDeal, $rec);
+                    }
+
                 }
 
                 if($index != '165|347442'){
