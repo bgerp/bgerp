@@ -394,7 +394,7 @@ abstract class deals_DealBase extends core_Master
 
             if (countR($err)) {
                 $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
-                $form->setError('closeWith', $msg);
+                //$form->setError('closeWith', $msg);
             }
 
             if (countR($warning) != 1) {
