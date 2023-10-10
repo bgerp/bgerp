@@ -154,7 +154,7 @@ abstract class deals_ClosedDeals extends core_Master
                 $copyEntries = $entries;
 
                 if(Mode::is('closeSales')){
-                    bp($entries);
+                    bp($entries, $docs);
                 }
 
                 if($index != '165|347442'){
