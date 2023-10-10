@@ -133,10 +133,10 @@ abstract class deals_ClosedDeals extends core_Master
         $dealItem->docClassName = cls::get($dealItem->classId)->className;
         $dealClassId = cls::get($dealItem->classId)->getClassId();
 
-        $h = clone $docs['165|347442'];
+        //$h = clone $docs['165|347442'];
         if (countR($docs)) {
 
-            //bp($docs);
+            bp($docs);
 
             unset($docs['165|347442']);
 
