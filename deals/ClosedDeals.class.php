@@ -205,12 +205,6 @@ abstract class deals_ClosedDeals extends core_Master
                     }
                 }
             }
-
-            if(isset($e) || isset($e1)){
-                bp($e, $e1);
-            }
-
-
         }
 
 
