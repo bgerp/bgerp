@@ -581,6 +581,10 @@ class support_TaskType extends core_Mvc
                 'ret_url' => true
             ), 'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
         }
+
+        $data->toolbar->setBtnAttr("btnSubTask_{$data->rec->containerId}", 'row', 2);
+        $data->toolbar->setBtnAttr("btnClose_{$data->rec->containerId}", 'row', 2);
+        $data->toolbar->setBtnAttr("btnComment_{$data->rec->id}", 'row', 2);
     }
     
     
