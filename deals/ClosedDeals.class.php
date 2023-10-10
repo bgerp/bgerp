@@ -105,7 +105,10 @@ abstract class deals_ClosedDeals extends core_Master
         $this->setDbIndex('valior');
     }
     
-    
+
+    static $count = 0;
+
+
     /**
      * Подготвя записите за приключване на дадена сделка с друга сделка
      *
@@ -146,6 +149,9 @@ abstract class deals_ClosedDeals extends core_Master
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
+                if($index['95|73327']){
+                    static::$count++;
+                }
 
                 echo "<li>CALL $index";
                 // Взимаме му редовете на транзакцията
@@ -159,7 +165,11 @@ abstract class deals_ClosedDeals extends core_Master
                 $copyEntries = $entries;
 
                 if(Mode::is('closeSales')){
-                    bp($entries, $docs, $dealItem, $closeDeal, $rec);
+                    //bp($entries, $docs, $dealItem, $closeDeal, $rec);
+                }
+
+                if(static::$count == 3){
+                    bp();
                 }
 
                 if($index != '165|347442'){
