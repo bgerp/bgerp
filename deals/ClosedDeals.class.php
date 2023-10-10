@@ -160,10 +160,13 @@ abstract class deals_ClosedDeals extends core_Master
 
 
                 Mode::push('closedDealCall', true);
-                $entries = $transactionSource->getTransaction($doc->docId)->entries;
+                $entries1 = $transactionSource->getTransaction($doc->docId)->entries;
                 Mode::pop('closedDealCall');
-                $copyEntries = $entries;
+                $copyEntries = $entries1;
 
+                if($index == '95|73327'){
+                    //bp($entries);
+                }
                 if(Mode::is('closeSales')){
                     //bp($entries, $docs, $dealItem, $closeDeal, $rec);
                 }
@@ -178,7 +181,7 @@ abstract class deals_ClosedDeals extends core_Master
 
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
                 // Така зануляване салдата по следката
-                if (countR($entries)) {
+                if (countR($entries1)) {
                     foreach ($copyEntries as &$entry) {
                         
                         // Ако има сума добавяме я към общата сума на транзакцията
@@ -201,7 +204,7 @@ abstract class deals_ClosedDeals extends core_Master
 
 
                     // Втори път обхождаме записите
-                    foreach ($entries as &$entry2) {
+                    foreach ($entries1 as &$entry2) {
                         if (isset($entry2['amount'])) {
                             $total += $entry2['amount'];
                         }
