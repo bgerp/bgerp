@@ -145,7 +145,11 @@ abstract class deals_ClosedDeals extends core_Master
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries;
 
-                bp($entries);
+                echo "<li>$doc->docId";
+                echo "<pre>";
+                print_r($entries);
+                echo "</pre>";
+
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
                 // Така зануляване салдата по следката
                 if (countR($entries)) {
