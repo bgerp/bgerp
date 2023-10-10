@@ -144,7 +144,7 @@ abstract class deals_ClosedDeals extends core_Master
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
-                if(!array_key_exists($index, static::$byNow)) {
+                if(array_key_exists($index, static::$byNow)) continue;
                     // Взимаме му редовете на транзакцията
                     $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
 
@@ -152,7 +152,6 @@ abstract class deals_ClosedDeals extends core_Master
                     $entries1 = $transactionSource->getTransaction($doc->docId)->entries;
                     Mode::pop('closedDealCall');
                     static::$byNow[$index] = $entries1;
-                }
 
 
 
