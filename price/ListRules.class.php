@@ -311,9 +311,10 @@ class price_ListRules extends core_Detail
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
         $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
-        $listId = $variationId ?? $listId;
+        $listId = !empty($variationId) ? $variationId : $listId;
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
+            if(empty($listId)) wp('Няма listId', $listId, $variationId, $datetime);
             $query = self::getQuery();
             $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
