@@ -132,7 +132,7 @@ abstract class deals_ClosedDeals extends core_Master
         
         $dealItem->docClassName = cls::get($dealItem->classId)->className;
         $dealClassId = cls::get($dealItem->classId)->getClassId();
-        bp($docs, $entries);
+
         if (countR($docs)) {
 
             // За всеки транзакционен клас
@@ -194,6 +194,8 @@ abstract class deals_ClosedDeals extends core_Master
                     }
                 }
             }
+
+            bp($docs, $entries);
         }
 
         // Връщаме генерираните записи
