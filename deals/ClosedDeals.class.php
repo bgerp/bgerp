@@ -129,7 +129,7 @@ abstract class deals_ClosedDeals extends core_Master
                 }
             }
         }
-        bp($entries, $docs);
+
         $dealItem->docClassName = cls::get($dealItem->classId)->className;
         $dealClassId = cls::get($dealItem->classId)->getClassId();
 
@@ -145,6 +145,7 @@ abstract class deals_ClosedDeals extends core_Master
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries;
 
+                bp($entries);
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
                 // Така зануляване салдата по следката
                 if (countR($entries)) {
