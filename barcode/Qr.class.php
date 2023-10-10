@@ -29,13 +29,25 @@ class barcode_Qr extends core_Manager
      * @param boolean $isAbsolute
      * @param number $pixelPerPoint
      * @param number $outerFrame
+     * @param array $colorParams - Цвят и прозрачност
+     * $colorParams['opacity'] - Прозрачност - 0-1
+     * $colorParams['color'] - Цвят - 0-255|0-255|0-255
+     * $colorParams['bgOpacity'] - Прозрачност на фона - 0-1
+     * $colorParams['bgColor] - Цвят на фона 0-255|0-255|0-255
+     *
      * @return string
      */
-    public static function getUrl($text, $isAbsolute = false, $pixelPerPoint = 3, $outerFrame = 0)
+    public static function getUrl($text, $isAbsolute = false, $pixelPerPoint = 3, $outerFrame = 0, $colorParams = array())
     {
         $protect = self::getProtectSalt($text, $pixelPerPoint, $outerFrame);
-        
-        return toUrl(array(get_called_class(), 'Generate', 'text' => $text, 'pixelPerPoint' => $pixelPerPoint, 'outerFrame' => $outerFrame, 'protect' => $protect), $isAbsolute);
+
+        $urlArr = array(get_called_class(), 'Generate', 'text' => $text, 'pixelPerPoint' => $pixelPerPoint, 'outerFrame' => $outerFrame, 'protect' => $protect);
+
+        foreach ($colorParams as $k => $v) {
+            $urlArr[$k] = $v;
+        }
+
+        return toUrl($urlArr, $isAbsolute);
     }
     
     
@@ -55,13 +67,27 @@ class barcode_Qr extends core_Manager
         
         // Променливата за проверка дали кода е генериран от системата
         $protect = Request::get('protect');
-        
+
+        $opacity = Request::get('opacity');
+        $color = Request::get('color');
+        $bgOpacity = Request::get('bgOpacity');
+        $bgColor = Request::get('bgColor');
+        $quality = Request::get('quality');
+        setIfNot($quality, 'L');
+
+        setIfNot($opacity, 0);
+        setIfNot($color, '0|0|0');
+        setIfNot($bgOpacity, 0);
+        setIfNot($bgColor, '255|255|255');
+
+        $colorArr = array('opacity' => $opacity, 'color' => $color, 'bgOpacity' => $bgOpacity, 'bgColor' => $bgColor);
+
         // Генерираме код с параемтите
         $salt = self::getProtectSalt($text, $pixelPerPoint, $outerFrame);
         
         // Ако двата кода си съвпадат, тогава генерираме QR изображението
         if ($salt == $protect) {
-            self::getImg($text, $pixelPerPoint, $outerFrame);
+            self::getImg($text, $pixelPerPoint, $outerFrame, $quality, null, $colorArr);
         }
         
         shutdown();
@@ -71,7 +97,7 @@ class barcode_Qr extends core_Manager
     /**
      * Връща QR изображението
      */
-    public static function getImg($text, $pixelPerPoint = 3, $outerFrame = 0, $quality = 'L', $outFileName = null)
+    public static function getImg($text, $pixelPerPoint = 3, $outerFrame = 0, $quality = 'L', $outFileName = null, $colorArr = array())
     {
         // Параметри за генериране на QR изображение
         $params = array(
@@ -79,8 +105,9 @@ class barcode_Qr extends core_Manager
             'outFileName' => $outFileName,
             'quality' => $quality,
             'outerFrame' => $outerFrame,
+            'colorArr' => $colorArr,
         );
-        
+
         //Генерира QR изображение
         barcode_Generator::printImg('qr', $text, null, $params);
     }
