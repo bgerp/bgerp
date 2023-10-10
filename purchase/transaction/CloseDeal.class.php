@@ -78,8 +78,8 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
         if ($rec->closeWith) {
             if ($dealItem) {
                 $closeDealItem = array('purchase_Purchases', $rec->closeWith);
-                $closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
-                bp($closeEntries, $dealItem);
+                //$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
+                $closeEntries = array();
                 $result->entries = array_merge($result->entries, $closeEntries);
             }
         } else {
