@@ -498,7 +498,6 @@ abstract class deals_DealBase extends core_Master
                     core_Debug::stopTimer('CONTO_CLOSE_DOC');
                 }
 
-                bp($deals);
                 core_Debug::log("CLOSE: CONTO CLOSE_DOC " . round(core_Debug::$timers["CONTO_CLOSE_DOC"]->workingTime, 6));
 
                 core_Debug::startTimer('AFTER_ACT');
