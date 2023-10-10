@@ -164,9 +164,7 @@ abstract class deals_ClosedDeals extends core_Master
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries;
 
-                if(Mode::is('closeSales')){
-                    bp($entries, $docs, $dealItem, $closeDeal, $rec);
-                }
+
 
                 if(static::$count == 3){
                     bp();
@@ -196,6 +194,10 @@ abstract class deals_ClosedDeals extends core_Master
                         }
                         
                         $newEntries[] = $entry;
+                    }
+
+                    if(Mode::is('closeSales')){
+                        bp($entries, $docs, $dealItem, $closeDeal, $rec);
                     }
 
                     // Втори път обхождаме записите
