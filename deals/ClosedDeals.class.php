@@ -144,34 +144,24 @@ abstract class deals_ClosedDeals extends core_Master
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
-                //if(array_key_exists($index, static::$byNow)) continue;
-                static::$byNow[$index] = $index;
+                if(!array_key_exists($index, static::$byNow)) {
+                    // Взимаме му редовете на транзакцията
+                    $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
 
-                // Взимаме му редовете на транзакцията
-                $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
-
-                Mode::push('closedDealCall', true);
-                $entries1 = $transactionSource->getTransaction($doc->docId)->entries;
-                Mode::pop('closedDealCall');
-                $copyEntries = $entries1;
-
-                echo "<li>$index";
-                if($index == '165|347442') {
-                    $e = $entries1;
+                    Mode::push('closedDealCall', true);
+                    $entries1 = $transactionSource->getTransaction($doc->docId)->entries;
+                    Mode::pop('closedDealCall');
+                    static::$byNow[$index] = $entries1;
                 }
 
-                if($index == '165|347441') {
-                    $e1 = $entries1;
-                }
-                if(Mode::is('closeSales')){
-                    if(static::$count > 10){
-                        bp($entries1, $index, $docs, $dealItem, $closeDeal, $rec);
-                    }
-                }
+
+
+                $copyEntries = static::$byNow[$index];
+
 
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
                 // Така зануляване салдата по следката
-                if (countR($entries1)) {
+                if (countR(static::$byNow[$index])) {
                     foreach ($copyEntries as &$entry) {
                         
                         // Ако има сума добавяме я към общата сума на транзакцията
@@ -192,7 +182,7 @@ abstract class deals_ClosedDeals extends core_Master
                     }
 
                     // Втори път обхождаме записите
-                    foreach ($entries1 as &$entry2) {
+                    foreach (static::$byNow[$index] as &$entry2) {
                         if (isset($entry2['amount'])) {
                             $total += $entry2['amount'];
                         }
