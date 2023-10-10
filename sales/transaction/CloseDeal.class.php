@@ -66,7 +66,9 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
         if ($rec->closeWith) {
             if ($dealItem) {
                 $closeDeal = array('sales_Sales', $rec->closeWith);
+                Mode::push('closeSales', true);
                 $closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDeal, $rec);
+                Mode::pop('closeSales');
                 $result->entries = array_merge($result->entries, $closeEntries);
             }
         } else {
