@@ -139,12 +139,12 @@ abstract class deals_ClosedDeals extends core_Master
         $dealItem->docClassName = cls::get($dealItem->classId)->className;
         $dealClassId = cls::get($dealItem->classId)->getClassId();
 
-        bp($docs);
+
         if (countR($docs)) {
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
-                if(array_key_exists($index, static::$byNow)) continue;
+                //if(array_key_exists($index, static::$byNow)) continue;
                 static::$byNow[$index] = $index;
 
                 // Взимаме му редовете на транзакцията
@@ -155,6 +155,13 @@ abstract class deals_ClosedDeals extends core_Master
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries1;
 
+                if($index == '165|347442') {
+                    $e = $entries1;
+                }
+
+                if($index == '165|347441') {
+                    $e1 = $entries1;
+                }
                 if(Mode::is('closeSales')){
                     if(static::$count > 10){
                         bp($entries1, $index, $docs, $dealItem, $closeDeal, $rec);
@@ -211,6 +218,9 @@ abstract class deals_ClosedDeals extends core_Master
                 }
             }
         }
+
+        bp($e, $e1);
+
 
         // Връщаме генерираните записи
         return $newEntries;
