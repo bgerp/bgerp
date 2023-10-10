@@ -155,6 +155,7 @@ abstract class deals_ClosedDeals extends core_Master
                 Mode::pop('closedDealCall');
                 $copyEntries = $entries1;
 
+                echo "<li>$index";
                 if($index == '165|347442') {
                     $e = $entries1;
                 }
