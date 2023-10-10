@@ -184,6 +184,10 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                 $form->setField('storeId', 'mandatory');
             }
         }
+
+        if(empty($rec->id)){
+            $form->setDefault('sender', core_Users::getCurrent('names'));
+        }
     }
     
     

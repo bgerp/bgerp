@@ -250,6 +250,10 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         if ($folderCover->isInstanceOf('planning_Centers')) {
             $form->setDefault('departmentId', $folderCover->that);
         }
+
+        if(empty($rec->id)){
+            $form->setDefault('receiver', core_Users::getCurrent('names'));
+        }
     }
     
     
