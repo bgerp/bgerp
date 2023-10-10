@@ -129,7 +129,7 @@ abstract class deals_ClosedDeals extends core_Master
                 }
             }
         }
-        
+        bp($entries, $docs);
         $dealItem->docClassName = cls::get($dealItem->classId)->className;
         $dealClassId = cls::get($dealItem->classId)->getClassId();
 
