@@ -139,10 +139,10 @@ abstract class deals_ClosedDeals extends core_Master
         //$h = clone $docs['165|347442'];
         if (countR($docs)) {
 
-            echo "<pre>";
-            print_r($docs);
-            echo "</pre>";
-            echo "</hr>";
+            //echo "<pre>";
+            //print_r($docs);
+            //echo "</pre>";
+            //echo "</hr>";
             //bp($docs);
 
             unset($docs['165|347442']);
@@ -153,7 +153,7 @@ abstract class deals_ClosedDeals extends core_Master
                     static::$count++;
                 }
 
-                echo "<li>CALL $index";
+                //echo "<li>CALL $index";
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
 
@@ -165,11 +165,11 @@ abstract class deals_ClosedDeals extends core_Master
                 $copyEntries = $entries;
 
                 if(Mode::is('closeSales')){
-                    bp($entries, $docs, $dealItem, $closeDeal, $rec);
+                    //bp($entries, $docs, $dealItem, $closeDeal, $rec);
                 }
 
                 if(static::$count == 3){
-                    bp();
+                   // bp();
                 }
 
                 if($index != '165|347442'){
