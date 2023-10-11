@@ -123,6 +123,14 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
+
+            if (isset($form->rec->type, $form->rec->workingPdogresOn) && ($form->rec->type == 'long')) {
+                $form->setError('type', 'Незавършено произвосдство може да се включи само при избрам вариант "Кратка".');
+            }
+
+            if (isset($form->rec->workingPdogresOnly) && (($form->rec->workingPdogresOnly != 'yes') || ($form->rec->workingPdogresOn != 'yes'))) {
+                $form->setError('workingPdogresOn', 'Трябва да се разреши включването на "Незавършено производство"');
+            }
         }
     }
 
