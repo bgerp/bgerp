@@ -2323,27 +2323,13 @@ abstract class deals_DealMaster extends deals_DealBase
 
         if (!countR($products)) return $details;
 
-        // Ако сделката е обединяваща
-        $invoicedAll = array();
-        $invoicedAll[] = arr::make($info->get('invoicedProducts'));
-        if(!empty($rec->closedDocuments)){
-            $closedDocuments = keylist::toArray($rec->closedDocuments);
-            foreach ($closedDocuments as $closedDealId){
-
-                // Сумира всичко фактурирано от договорите по нея
-                $closedAggregator = $this->getAggregateDealInfo($closedDealId);
-                $invoicedAll[] = arr::make($closedAggregator->get('invoicedProducts'));
-            }
-        }
-
         $invoiced = array();
-        foreach ($invoicedAll as $invArr){
-            foreach ($invArr as $iProduct){
-                if(!array_key_exists($iProduct->productId, $invoiced)){
-                    $invoiced[$iProduct->productId] = 0;
-                }
-                $invoiced[$iProduct->productId] += $iProduct->quantity;
+        $invoicedArr = $info->get('invoicedProducts');
+        foreach ($invoicedArr as $iProduct){
+            if(!array_key_exists($iProduct->productId, $invoiced)){
+                $invoiced[$iProduct->productId] = 0;
             }
+            $invoiced[$iProduct->productId] += $iProduct->quantity;
         }
 
         // Приспадане на фактурираното, ако има
