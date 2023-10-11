@@ -101,6 +101,11 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
        // $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Филтри->"Общо" по групи,after=orderBy,input=none,single=none');
         $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
+        $fieldset->FLD('workingPdogresOn', 'set(yes=)', 'caption=Включи незавършеното производство,after=seeByGroups, single=none');
+      if(haveRole('debug')){
+          $fieldset->FLD('workingPdogresOnly', 'set(yes=)', 'caption=Само незавършеното производство,after=seeByGroups, single=none');
+      }
+
 
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
         $fieldset->FNC('sumByGroup', 'blob', 'input=none,single=none');
@@ -139,6 +144,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $form->setDefault('seeByGroups', 'no');
         $form->setDefault('orderBy', 'name');
         $form->setDefault('type', 'short');
+        $form->setDefault('workingPdogresOn', '');
+        $form->setDefault('workingPdogresOnly', '');
 
         if ($rec->type == 'long') {
             $today = dt::today();
@@ -193,17 +200,44 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $rec->products)->id : null;
 
-        $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => '321', 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
-        $bRecs = $Balance->getBalance('321');
+        $accsArr = array(321);
+
+        //За тестване на само незавършено производство
+        if (haveRole('debug')){
+            if($rec->workingPdogresOnly == 'yes' && $rec->workingPdogresOn == 'yes'){
+                $accsArr = array();
+            }
+        }
+
+        //systemId на сметката "Незавършено производство" = 61101
+        $workingPdogresAccRec = acc_Accounts::fetch("#systemId = 61101");
+
+        if ($rec->workingPdogresOn == 'yes'){
+
+            array_push($accsArr,$workingPdogresAccRec -> num);
+        }
+
+        $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => $accsArr, 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
+
+        $bRecs = $Balance->getBalance($accsArr);
 
         foreach ($bRecs as $item) {
 
-            if (($rec->storeId && !in_array($item->ent1Id, $storeItemIdArr)) ||
-                ($rec->products && $item->ent2Id != $productItemId)
-            ) continue;
+            //Когато движението е в сметката на суровините и материалите можем да филтрираме по склад. Ако е избран.
+            if ($item -> accountId == acc_Accounts::fetch("#num = 321")->id) {
+
+                if (($rec->storeId && !in_array($item->ent1Id, $storeItemIdArr)) ||
+                    ($rec->products && $item->ent2Id != $productItemId)
+                ) continue;
+
+                //река на перото
+                $iRec = acc_Items::fetch($item->ent2Id);
+
+            }elseif($item -> accountId == $workingPdogresAccRec->id){
+                $iRec = acc_Items::fetch($item->ent1Id);
+            }
 
             $blQuantity = 0;
-            $iRec = acc_Items::fetch($item->ent2Id);
 
             $prodClass = core_Classes::fetch($iRec->classId)->name;
 
@@ -657,6 +691,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                                         <!--ET_BEGIN products--><div>|Артикул|*: [#products#]</div><!--ET_END products-->
                                         <!--ET_BEGIN availability--><div>|Наличност|*: [#availability#]</div><!--ET_END availability-->
                                         <!--ET_BEGIN totalProducts--><div>|Брой артикули|*: [#totalProducts#]</div><!--ET_END totalProducts-->
+                                        <!--ET_BEGIN workingPdogresOn--><div>|Незавършено производство|*: [#workingPdogresOn#]</div><!--ET_END workingPdogresOn-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -702,6 +737,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         if ((isset($data->rec->products))) {
             $fieldTpl->append('<b>' . cat_Products::getTitleById($data->rec->products) . '</b>', 'products');
+        }
+
+        if ((isset($data->rec->workingPdogresOn))) {
+            $fieldTpl->append('<b>' . ($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
         }
 
         if ((isset($data->rec->availability))) {
