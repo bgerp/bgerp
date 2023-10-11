@@ -88,7 +88,7 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Работен кеш
      */
-    protected static $getTransactionsByNow = array();
+    protected $getTransactionsByNow = array();
 
 
     /**
@@ -143,8 +143,11 @@ abstract class deals_ClosedDeals extends core_Master
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
-                if(array_key_exists($index, static::$getTransactionsByNow)) continue;
-                static::$getTransactionsByNow[$index] = $index;
+                if(array_key_exists($index, $this->getTransactionsByNow) && $this->getTransactionsByNow[$index] > 5) {
+                    wp($dealItem, $total, $closeDeal, $entries, $rec, $docs);
+                    continue;
+                }
+                $this->getTransactionsByNow[$index] += 1;
 
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
