@@ -589,6 +589,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+        $Enum = cls::get('type_Enum', array('options' => array('yes' => 'Включено')));
 
         $row = new stdClass();
 
@@ -680,6 +681,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+        $Enum = cls::get('type_Enum', array('options' => array('yes' => 'Включено')));
+
 
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -740,7 +743,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
 
         if ((isset($data->rec->workingPdogresOn))) {
-            $fieldTpl->append('<b>' . ($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
+            $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
+        }else{
+            $fieldTpl->append('<b>' . 'Не е включено' . '</b>', 'workingPdogresOn');
         }
 
         if ((isset($data->rec->availability))) {
