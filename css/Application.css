@@ -5110,6 +5110,9 @@ div.location.public {
     width: 100%;
     margin-bottom: 0 !important; }
 
+.no-padding td {
+  padding: 0; }
+
 /*
  * шаблон за пускане в експлоатация на ДА
  */
