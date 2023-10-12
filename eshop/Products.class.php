@@ -612,7 +612,7 @@ class eshop_Products extends core_Master
      */
     public static function prepareGroupList($data)
     {
-        $data->lastOrderedData = array();
+        $data->lastOrderedData = $data->recs = array();
         $pQuery = self::getQuery();
         $displayedGroupRec = null;
         if($data->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
