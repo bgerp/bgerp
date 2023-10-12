@@ -51,8 +51,13 @@ class batch_type_StringParamDate extends type_Varchar
             }
         }
 
+        $res = $valueArr;
         if(empty($valueArr['d'])){
-            $errorArr[] = 'Липсва дата';
+            $defaultDate = $this->getDefaultExpirationDate($this->params['productId']);
+            $res['d'] = $defaultDate;
+            if(empty($defaultDate)){
+                $errorArr[] = 'Липсва дата';
+            }
         } else {
             if(!dt::checkByMask($valueArr['d'], $this->params['format'])){
                 $example = dt::mysql2verbal(null, $this->params['format']);
@@ -70,7 +75,35 @@ class batch_type_StringParamDate extends type_Varchar
             return false;
         }
 
-        return implode('|', $valueArr);
+        return implode('|', $res);
+    }
+
+
+    /**
+     * Помощна ф-я връщаща дефолтния срок на годност
+     *
+     * @param $productId
+     * @param null $startDate
+     * @param null $params
+     * @return datetime|null $date
+     */
+    private function getDefaultExpirationDate($productId, $startDate = null, $params = null)
+    {
+        $date = null;
+        $params = is_array($params) ? $params : cat_Products::getParams($productId);
+        $startDate = $startDate ?? dt::now();
+
+        $expiryParamId = cat_Params::fetchIdBySysId('expiryTime');
+        $time = $params[$expiryParamId];
+        if (empty($time)) {
+            $time = $this->params['defaultTime'];
+        }
+        if (!empty($time)) {
+            $date = dt::addSecs($time, $startDate);
+            $date = dt::mysql2verbal($date, $this->params['format']);
+        }
+
+        return $date;
     }
 
 
@@ -85,6 +118,7 @@ class batch_type_StringParamDate extends type_Varchar
             $params = cat_Products::getParams($productId);
         }
 
+        $datePlaceholder = $this->getDefaultExpirationDate($this->params['productId'], null, $params);
         if(!empty($value)){
             if (is_array($value)) {
                 $valString = $value['s'];
@@ -95,19 +129,6 @@ class batch_type_StringParamDate extends type_Varchar
             }
         } else {
             $valString = $valDate = null;
-            $productId = $this->params['productId'];
-
-            $params = cat_Products::getParams($productId);
-            $expiryParamId = cat_Params::fetchIdBySysId('expiryTime');
-
-            $time = $params[$expiryParamId];
-            if (empty($time)) {
-                $time = $this->params['defaultTime'];
-            }
-            if (!empty($time)) {
-                $valDate = dt::addSecs($time, dt::now());
-                $valDate = dt::mysql2verbal($valDate, $this->params['format']);
-            }
             $valManifacture = $params[$this->params['manifactureParamId']];
         }
 
@@ -118,21 +139,22 @@ class batch_type_StringParamDate extends type_Varchar
             $manifactureOptions = $Driver::text2Options($paramRec->options);
         }
 
-        $attr['title'] = 'Номер';
-        $attr['id'] = "batchNameS". rand(1, 100);
-        $tpl = $this->createInput($name . '[s]', $valString, $attr);
+        $attrString = $attrMan = $attrDate = $attr;
+        $attrString['placeholder'] = 'Номер';
+        $attrString['id'] = "batchNameS". rand(1, 100);
+        $tpl = $this->createInput($name . '[s]', $valString, $attrString);
 
-        $attr['placeholder'] = 'Произв.';
-        $attr['id'] = "batchNameM". rand(1, 100);
+        $attrMan['placeholder'] = 'Произв.';
+        $attrMan['id'] = "batchNameM". rand(1, 100);
         if(countR($manifactureOptions)){
-            $tpl->append(ht::createCombo($name . '[m]', $valManifacture, $attr, $manifactureOptions));
+            $tpl->append(ht::createCombo($name . '[m]', $valManifacture, $attrMan, $manifactureOptions));
         } else {
-            $tpl->append($this->createInput($name . '[m]', $valManifacture, $attr));
+            $tpl->append($this->createInput($name . '[m]', $valManifacture, $attrMan));
         }
 
-        $attr['placeholder'] = 'Годен до';
-        $attr['id'] = "batchNameD". rand(1, 100);
-        $tpl->append($this->createInput($name . '[d]', $valDate, $attr));
+        $attrDate['placeholder'] = !empty($datePlaceholder) ? $datePlaceholder : 'Годен до';
+        $attrDate['id'] = "batchNameD". rand(1, 100);
+        $tpl->append($this->createInput($name . '[d]', $valDate, $attrDate));
         $tpl = new ET('<span style="white-space:nowrap;">[#1#]</span>', $tpl);
 
         return $tpl;
