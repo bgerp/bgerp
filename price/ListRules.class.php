@@ -87,8 +87,14 @@ class price_ListRules extends core_Detail
      * Поле - ключ към мастера
      */
     public $masterKey = 'listId';
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    public static $alreadyReplaced = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -301,8 +307,8 @@ class price_ListRules extends core_Detail
             }
         }
     }
-    
-    
+
+
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
@@ -310,8 +316,14 @@ class price_ListRules extends core_Detail
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
-        $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
-        $listId = !empty($variationId) ? $variationId : $listId;
+
+        if(!static::$alreadyReplaced[$listId]){
+            $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
+            if(!empty($variationId)){
+                static::$alreadyReplaced[$listId] = true;
+                $listId = $variationId;
+            }
+        }
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
             if(empty($listId)) wp('Няма listId', $listId, $variationId, $datetime);
@@ -360,7 +372,7 @@ class price_ListRules extends core_Detail
                 }
             } else {
                 $defaultSurcharge = $listRec->defaultSurcharge;
-                
+
                 // Ако има дефолтна надценка и има наследена политика
                 if (isset($defaultSurcharge)) {
                     if ($parent = $listRec->parent) {
