@@ -149,7 +149,6 @@ abstract class deals_ClosedDeals extends core_Master
                 static::$getTransactionsByNow[$index] += 1;
 
                 // Взимаме му редовете на транзакцията
-                echo "<li>GET TRANS {$doc->handle}";
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
                 Mode::push('closedDealCall', true);
                 $entries = $transactionSource->getTransaction($doc->docId)->entries;
