@@ -132,7 +132,7 @@ abstract class deals_ClosedDeals extends core_Master
         if (countR($entries)) {
             foreach ($entries as $ent) {
                 if ($ent->docType != $rec->classId || ($ent->docType == $rec->classId && $ent->docId != $rec->id)) {
-                    $docs[$ent->docType . '|' . $ent->docId] = (object) array('docType' => $ent->docType, 'docId' => $ent->docId);
+                    $docs[$ent->docType . '|' . $ent->docId] = (object) array('docType' => $ent->docType, 'docId' => $ent->docId, 'handle' => cls::get($ent->docType)->getHandle($ent->docId));
                 }
             }
         }
@@ -155,7 +155,7 @@ abstract class deals_ClosedDeals extends core_Master
                 static::$getTransactionsByNow[$index] += 1;
 
                 // Взимаме му редовете на транзакцията
-                echo "<li>GET TRANS {$doc->docType}/{$doc->docId}";
+                echo "<li>GET TRANS {$doc->handle}";
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
                 Mode::push('closedDealCall', true);
                 $entries = $transactionSource->getTransaction($doc->docId)->entries;
