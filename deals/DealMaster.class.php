@@ -2320,11 +2320,13 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $invoiced = array();
         $invoicedArr = $info->get('invoicedProducts');
-        foreach ($invoicedArr as $iProduct){
-            if(!array_key_exists($iProduct->productId, $invoiced)){
-                $invoiced[$iProduct->productId] = 0;
+        if(is_array($invoicedArr)){
+            foreach ($invoicedArr as $iProduct){
+                if(!array_key_exists($iProduct->productId, $invoiced)){
+                    $invoiced[$iProduct->productId] = 0;
+                }
+                $invoiced[$iProduct->productId] += $iProduct->quantity;
             }
-            $invoiced[$iProduct->productId] += $iProduct->quantity;
         }
 
         // Приспадане на фактурираното, ако има
