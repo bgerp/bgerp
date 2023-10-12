@@ -61,8 +61,10 @@ class sales_reports_MostFrequentlySoldQuantities extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('periodStart', 'time(suggestions=|1 ден|3 дена|1 седмица|1 месец)', 'caption=Период->Старт, after=title,mandatory,single=none,removeAndRefreshForm');
-        $fieldset->FLD('periodEnd', 'time(suggestions=1 седмица|2 седмици|3 седмици|1 месец|3 месеца)', 'caption=Период->Край, after=periodStart,mandatory,single=none,removeAndRefreshForm');
+        $fieldset->FLD('period', 'time(suggestions=|7 дни|30 дни|180 дни|365 дни)', 'caption=Период, after=title,mandatory,single=none,removeAndRefreshForm');
+
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=period,single=none');
+
     }
 
 
@@ -93,7 +95,7 @@ class sales_reports_MostFrequentlySoldQuantities extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('periodStart', '3 дена');
+        $form->setDefault('period', '365 дни');
 
         $form->setDefault('periodEnd', '3 седмици');
 
