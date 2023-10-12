@@ -7590,7 +7590,9 @@ only screen and (max-width: 320px) {
   font-weight: normal;
   color: #555555;
   border: 1px solid #cdcdcd;
-  padding: 3px; }
+  padding: 2px 3px;
+  position: relative;
+  top: -2px; }
 
 table.bomProductionStepTable td {
   border: 0px !important; }

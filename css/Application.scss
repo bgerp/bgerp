@@ -8637,7 +8637,9 @@ body.narrow {
 	font-weight:normal;
 	color:#555;
 	border:1px solid #cdcdcd;
-	padding:3px;
+	padding:2px 3px;
+	position: relative;
+	top: -2px;
 }
 
 table.bomProductionStepTable td{
