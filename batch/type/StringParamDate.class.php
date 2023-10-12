@@ -41,6 +41,8 @@ class batch_type_StringParamDate extends type_Varchar
             if(strpos($valueArr['s'], $delimiter) !== false){
                 $errorArr[] = "В номера не трябва да се съдържа|* <b>{$delimiter}</b>";
             }
+
+
         }
 
         if(empty($valueArr['m'])){

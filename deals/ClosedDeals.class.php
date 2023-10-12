@@ -127,6 +127,7 @@ abstract class deals_ClosedDeals extends core_Master
         // Намираме записите в които участва перото
         $entries = acc_Journal::getEntries($dealItem);
 
+        echo "<li>GET ENTRIES {$dealItem->title}";
         // Намираме документите, които имат транзакции към перото
         if (countR($entries)) {
             foreach ($entries as $ent) {
@@ -139,17 +140,22 @@ abstract class deals_ClosedDeals extends core_Master
         $dealItem->docClassName = cls::get($dealItem->classId)->className;
         $dealClassId = cls::get($dealItem->classId)->getClassId();
 
+        echo "<pre>";
+        print_r($docs);
+        echo "</pre>";
+
         if (countR($docs)) {
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
-                if(array_key_exists($index, static::$getTransactionsByNow) && static::$getTransactionsByNow[$index] > 5) {
-                    wp($dealItem, $total, $closeDeal, $entries, $rec, $docs);
+                if(array_key_exists($index, static::$getTransactionsByNow) && static::$getTransactionsByNow[$index] > 10) {
+                    bp($dealItem, $total, $closeDeal, $entries, $rec, $docs);
                     continue;
                 }
                 static::$getTransactionsByNow[$index] += 1;
 
                 // Взимаме му редовете на транзакцията
+                echo "<li>GET TRANS {$doc->docType}/{$doc->docId}";
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
                 Mode::push('closedDealCall', true);
                 $entries = $transactionSource->getTransaction($doc->docId)->entries;
