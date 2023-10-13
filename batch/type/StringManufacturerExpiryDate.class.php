@@ -163,13 +163,16 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
         $datePlaceholder = $this->getDefaultExpirationDate($this->params['productId'], null, $params);
         $manifactureOptions = batch_ManufacturersPerProducts::getArray($this->params['folderId'], $this->params['productId']);
 
-        if(!empty($value)){
-            if (is_array($value)) {
-                $valString = $value['s'];
-                $valManifacture = $value['m'];
-                $valDate = $value['d'];
+        // Ако има грешка във формата се взимат данните от рекуеста а е не от $value
+        $useValue = $this->formWithErrors ? Request::get($name) : $value;
+        $useValue = empty($value) ? $value : $useValue;
+        if(!empty($useValue)){
+            if (is_array($useValue)) {
+                $valString = $useValue['s'];
+                $valManifacture = $useValue['m'];
+                $valDate = $useValue['d'];
             } else {
-                list($valString, $valManifacture, $valDate) = explode('|', $value);
+                list($valString, $valManifacture, $valDate) = explode('|', $useValue);
             }
         } else {
             $valString = $valDate = null;
