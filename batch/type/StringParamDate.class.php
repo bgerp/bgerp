@@ -34,12 +34,54 @@ class batch_type_StringParamDate extends type_Varchar
             $valueArr['d'] = trim($valueParsed[2]);
         }
 
+        $foundDate = null;
         $errorArr = array();
         if(empty($valueArr['s'])){
             $errorArr[] = 'Задайте номер на партидата';
         } else {
             if(strpos($valueArr['s'], $delimiter) !== false){
                 $errorArr[] = "В номера не трябва да се съдържа|* <b>{$delimiter}</b>";
+            }
+
+            if(strpos($valueArr['s'], 'L') === 0){
+                $parsedDates = array();
+                $string = trim($valueArr['s'],'L');
+                $string = str_replace('.', '', $string);
+                $string = str_replace('/', '', $string);
+
+                if(is_numeric($string)){
+                    $strlen = strlen($string);
+                    $masks = array();
+                    if($strlen == 6){
+                        $masks = array('dmy', 'ymd');
+                    } elseif($strlen == 4){
+                        $masks = array('ym', 'my');
+                    } elseif($strlen == 8){
+                        $masks = array('dmY', 'Ymd');
+                    }
+
+                    foreach ($masks as $mask){
+                        $parsed = date_parse_from_format($mask, $string);
+                        if(!$parsed['error_count'] && !$parsed['warning_count']){
+                            if(!$parsed['day']){
+                                $parsedDate = dt::getLastDayOfMonth("{$parsed['year']}-{$parsed['month']}");
+                            } else {
+                                $parsedDate = "{$parsed['year']}-{$parsed['month']}-{$parsed['day']}";
+                            }
+                            $parsedDates[strtotime($parsedDate)] = $parsedDate;
+                        }
+                    }
+
+                    if(countR($parsedDates)){
+                        $diffArr = array();
+                        $nowTime = strtotime(dt::now());
+                        array_walk($parsedDates, function($a, $k) use (&$diffArr, $nowTime){
+                            $diffArr[abs($nowTime - $k)] = $a;
+                        });
+                        ksort($diffArr);
+                        $foundDate = $diffArr[key($diffArr)];
+                    }
+                }
             }
         }
 
@@ -53,7 +95,7 @@ class batch_type_StringParamDate extends type_Varchar
 
         $res = $valueArr;
         if(empty($valueArr['d'])){
-            $defaultDate = $this->getDefaultExpirationDate($this->params['productId']);
+            $defaultDate = $this->getDefaultExpirationDate($this->params['productId'], $foundDate);
             $res['d'] = $defaultDate;
             if(empty($defaultDate)){
                 $errorArr[] = 'Липсва дата';
