@@ -551,7 +551,7 @@ class email_Incomings extends core_Master
             
             // Ако писмото не е с лошо форматиране
             if ($status != 'misformatted') {
-                $this->doProcessEmail($mime, $accId, $uid);
+                $status = $this->doProcessEmail($mime, $accId, $uid);
             }
         } catch (core_exception_Expect $exp) {
             // Обща грешка
@@ -1803,7 +1803,7 @@ class email_Incomings extends core_Master
 
                         $status = 'outgoing';
 
-                        email_Fingerprints::setStatus($headersMime, '', $accId, $uId);
+//                        email_Fingerprints::setStatus($headersMime, $status, $accId, $uId);
                     } else {
                         $sId = null;
 
