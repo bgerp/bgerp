@@ -257,7 +257,7 @@ class support_TaskType extends core_Mvc
 
         $data->form->setField('title', array('mandatory' => false));
         $rec = $data->form->rec;
-        
+        $data->form->setField('parentId', 'changable=no');
         $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         
         if (!$systemId && $data->form->rec->folderId) {
