@@ -129,11 +129,13 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_Varchar
      */
     protected static function on_AfterInputEditForm($Driver, $Embedder, &$form)
     {
-        $exampleDate = dt::mysql2verbal(null, $form->rec->format);
-        $delimiter = html_entity_decode($form->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        if($form->isSubmitted()){
+            $exampleDate = dt::mysql2verbal(null, $form->rec->format);
+            $delimiter = html_entity_decode($form->rec->delimiter, ENT_COMPAT, 'UTF-8');
 
-        if(strpos($exampleDate, $delimiter) !== false){
-            $form->setError('format,delimiter', "Разделителят се съдържа във формата на датата");
+            if(strpos($exampleDate, $delimiter) !== false){
+                $form->setError('format,delimiter', "Разделителят се съдържа във формата на датата");
+            }
         }
     }
 
