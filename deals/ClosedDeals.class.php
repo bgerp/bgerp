@@ -143,9 +143,6 @@ abstract class deals_ClosedDeals extends core_Master
 
             // За всеки транзакционен клас
             foreach ($docs as $index => $doc) {
-                if(array_key_exists($index, static::$getTransactionsByNow)) {
-                   continue;
-                }
                 static::$getTransactionsByNow[$index] += 1;
 
                 // Взимаме му редовете на транзакцията
