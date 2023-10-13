@@ -117,6 +117,9 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
             return false;
         }
 
+        $res['s'] = trim($res['s']);
+        $res['m'] = trim($res['m']);
+
         return implode('|', $res);
     }
 
