@@ -105,7 +105,7 @@ class batch_Setup extends core_ProtoSetup
                           batch_definitions_StringAndCodeAndDate,
                           batch_definitions_Digits,
                           batch_definitions_Job,
-                          batch_definitions_StringParamDate,
+                          batch_definitions_StringManufacturerDate,
                           batch_definitions_DealReff';
     
     

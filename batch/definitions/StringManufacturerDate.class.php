@@ -2,7 +2,7 @@
 
 
 /**
- * Тип партидност за Номер + Параметър + Годен до
+ * Тип партидност за Номер + Производител + Годен до
  *
  *
  * @category  bgerp
@@ -13,15 +13,15 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title Номер + Параметър + Годен до
+ * @title Номер + Производител + Годен до
  */
-class batch_definitions_StringParamDate extends batch_definitions_Varchar
+class batch_definitions_StringManufacturerDate extends batch_definitions_Varchar
 {
 
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    public $oldClassName = 'batch_definitions_ManifactureString';
+    public $oldClassName = 'batch_definitions_StringParamDate';
 
 
     /**
