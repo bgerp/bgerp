@@ -2,7 +2,7 @@
 
 
 /**
- * Клас  'batch_type_ManifactureString' - Тип за вевеждане на партидност от типа Номер + Параметър + Годен до
+ * Клас  'batch_type_ManifactureString' - Тип за вевеждане на партидност от типа Номер + Производител + Годен до
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @link
  */
-class batch_type_StringParamDate extends type_Varchar
+class batch_type_StringManufacturerExpiryDate extends type_Varchar
 {
     /**
      * Получава дата от трите входни стойности
@@ -161,6 +161,8 @@ class batch_type_StringParamDate extends type_Varchar
         }
 
         $datePlaceholder = $this->getDefaultExpirationDate($this->params['productId'], null, $params);
+        $manifactureOptions = batch_ManufacturersPerProducts::getArray($this->params['folderId'], $this->params['productId']);
+
         if(!empty($value)){
             if (is_array($value)) {
                 $valString = $value['s'];
@@ -171,14 +173,7 @@ class batch_type_StringParamDate extends type_Varchar
             }
         } else {
             $valString = $valDate = null;
-            $valManifacture = $params[$this->params['manifactureParamId']];
-        }
-
-        $manifactureOptions = array();
-        $Driver = cat_Params::getDriver($this->params['manifactureParamId']);
-        if(cat_Params::haveDriver($this->params['manifactureParamId'], 'cond_type_Enum')){
-            $paramRec = cat_Params::fetch($this->params['manifactureParamId']);
-            $manifactureOptions = $Driver::text2Options($paramRec->options);
+            $valManifacture = key($manifactureOptions);
         }
 
         $attrString = $attrMan = $attrDate = $attr;

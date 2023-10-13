@@ -41,21 +41,30 @@ class batch_definitions_StringParamDate extends batch_definitions_Varchar
         $fieldset->FLD('format', 'varchar(20)', 'caption=Формат,mandatory');
         $fieldset->setOptions('format', array('' => '') + arr::make($this->formatSuggestions, true));
         $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок по подразбиране,unit=след текущата дата');
-        $fieldset->FLD('manParamId', 'key(mvc=cat_Params,select=nameExt)', 'caption=Параметър за производител,mandatory');
-
-        $paramOptions = cat_Params::getOptionsByDriverClass('cond_type_Enum,cond_type_Varchar', 'typeExt');
-        $fieldset->setOptions('manParamId', array('' => '') + $paramOptions);
     }
 
 
     /**
      * Проверява дали стойността е невалидна
      *
+     * @param mixed $class
+     * @param int $objectId
      * @return core_Type - инстанция на тип
      */
-    public function getBatchClassType()
+    public function getBatchClassType($class = null, $objectId = null)
     {
-        $Type = core_Type::getByName("batch_type_StringParamDate(productId={$this->rec->productId},format={$this->rec->format},defaultTime={$this->rec->time},manifactureParamId={$this->rec->manParamId},delimiter={$this->rec->delimiter})");
+        if(isset($class) && isset($objectId)){
+            $Class = cls::get($class);
+            if($Class instanceof core_Detail){
+                if(cls::haveInterface('doc_DocumentIntf', $Class->Master)){
+                    $masterKey = $Class->fetchRec($objectId)->{$Class->masterKey};
+                    $this->rec->folderId = $Class->Master->fetchField($masterKey, 'folderId');
+                }
+            } elseif(cls::haveInterface('doc_DocumentIntf', $Class)){
+                $this->rec->folderId = $Class->fetchRec($objectId)->folderId;
+            }
+        }
+        $Type = core_Type::getByName("batch_type_StringManufacturerExpiryDate(productId={$this->rec->productId},format={$this->rec->format},defaultTime={$this->rec->time},folderId={$this->rec->folderId},delimiter={$this->rec->delimiter})");
 
         return $Type;
     }
@@ -162,8 +171,19 @@ class batch_definitions_StringParamDate extends batch_definitions_Varchar
     public function normalize($value)
     {
         $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        $string = str_replace($delimiter, '|', $value);
 
-        return str_replace($delimiter, '|', $value);
+        if(isset($this->rec->folderId) && isset($this->rec->productId)){
+            $exploded = explode('|', $string);
+            if(!empty($exploded[1])){
+                if(!batch_ManufacturersPerProducts::fetch("#folderId = {$this->rec->folderId} AND #productId = {$this->rec->productId} AND #string = '{$exploded[1]}'")){
+                    $dRec = (object)array('folderId' => $this->rec->folderId, 'productId' => $this->rec->productId, 'string' => $exploded[1]);
+                    batch_ManufacturersPerProducts::save($dRec);
+                }
+            }
+        }
+
+        return $string;
     }
 
 
