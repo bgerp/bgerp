@@ -755,7 +755,8 @@ class core_Form extends core_FieldSet
             }
             
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
-            
+            $haveErrors = $this->gotErrors();
+
             // Създаваме input - елементите
             foreach ($fields as $name => $field) {
                 expect($field->kind, $name, 'Липсващо поле');
@@ -811,7 +812,10 @@ class core_Form extends core_FieldSet
                 }
                 
                 $type = clone($field->type);
-                
+                if($haveErrors){
+                    $type->formWithErrors = true;
+                }
+
                 if ($this->gotErrors($name)) {
                     if ($this->errors[$name]->ignorable) {
                         $attr['class'] .= ' inputWarning';
@@ -882,6 +886,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Рендиране на select или input полето
+
                 if ((countR($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
@@ -896,7 +901,6 @@ class core_Form extends core_FieldSet
                             $title = tr($title);
                         }
                     }
-                    
                     $input = ht::createSmartSelect(
                         $options,
                         $name,
