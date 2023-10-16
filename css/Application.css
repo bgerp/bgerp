@@ -4989,15 +4989,16 @@ table .eshop-btn {
     padding: 5px 6px 4px 5px;
     max-width: 160px; }
   .rowtoolsGroup a,
-  .rowtoolsGroup span {
+  .rowtoolsGroup span:not(.highlight) {
     text-align: left;
     display: block;
     font-size: 0.95em;
     padding: 3px 0;
     padding-left: 22px !important;
-    color: #333333 !important; }
+    color: #333333 !important;
+    background-color: white; }
     .rowtoolsGroup a:hover,
-    .rowtoolsGroup span:hover {
+    .rowtoolsGroup span:not(.highlight):hover {
       color: black !important;
       background-color: #e1e1e1;
       cursor: pointer; }

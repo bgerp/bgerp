@@ -5742,7 +5742,7 @@ table .eshop-btn {
 		padding: 5px 6px 4px 5px;
 		max-width: 160px;
 	}
-	a, span {
+	a, span:not(.highlight) {
 		text-align: left;
 		display: block;
 		font-size: 0.95em;
