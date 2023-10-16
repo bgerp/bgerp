@@ -555,7 +555,14 @@ class planning_Tasks extends core_Master
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(isset($rec->assetId)){
             if(isset($fields['-single'])) {
-                $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+                $row->assetId = planning_AssetResources::getTitleById($rec->assetId);
+                $assetSingleUrlArray = planning_AssetResources::getSingleUrlArray($rec->assetId);
+                if(!Mode::isReadOnly()){
+                    if(countR($assetSingleUrlArray)){
+                        $assetSingleUrlArray['Tab'] = 'Tasks';
+                    }
+                    $row->assetId = ht::createLink($row->assetId, $assetSingleUrlArray, false, 'ef_icon=img/16/equipment.png');
+                }
             }
             if(planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
                 if(isset($fields['-single'])) {
