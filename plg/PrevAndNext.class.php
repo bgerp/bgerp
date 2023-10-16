@@ -191,7 +191,9 @@ class plg_PrevAndNext extends core_Plugin
                 $query = $DetailMvc->getQuery();
                 $query->orderBy('id');
                 while ($dRec = $query->fetch("#{$DetailMvc->masterKey} = ${masterId}")) {
-                    $selArr[] = $dRec->id;
+                    if($DetailMvc->haveRightFor('edit', $dRec)) {
+                        $selArr[] = $dRec->id;
+                    }
                 }
             }
             $res = $selArr;
