@@ -285,6 +285,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_StepConditions',
         'planning_GenericProductPerDocuments',
         'planning_WorkInProgress',
+        'planning_AssetGroupIssueTemplates',
         'migrate::updateLabelType',
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
