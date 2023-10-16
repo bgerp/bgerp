@@ -2073,10 +2073,12 @@ class planning_Tasks extends core_Master
         $query = $this->getQuery();
         $query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $query->where("#state != 'rejected'");
-        $query->orderBy('saoOrder', 'ASC');
+
         if ($data->masterMvc instanceof planning_AssetResources) {
+            $query->orderBy('orderByAssetId', 'ASC');
             $query->where("#assetId = {$data->masterId}");
         } else {
+            $query->orderBy('saoOrder', 'ASC');
             $query->where("#originId = {$data->masterData->rec->containerId}");
         }
         $data->pager->setLimit($query);
