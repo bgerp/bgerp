@@ -61,11 +61,11 @@ abstract class deals_ManifactureMaster extends core_Master
         $mvc->FLD('valior', 'date', 'caption=Вальор');
         $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $mvc->FLD('deadline', 'datetime', 'caption=Срок до');
-        $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
         if($mvc->haveSenderAndReceiverNames){
-            $mvc->FLD('sender', 'varchar', 'caption=Допълнително->Предал,after=note');
-            $mvc->FLD('receiver', 'varchar', 'caption=Допълнително->Получил,after=sender');
+            $mvc->FLD('sender', 'varchar', 'caption=Предал');
+            $mvc->FLD('receiver', 'varchar', 'caption=Получил');
         }
+        $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Забележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
         $mvc->setDbIndex('valior');
     }
@@ -244,9 +244,8 @@ abstract class deals_ManifactureMaster extends core_Master
     protected function canAddToOriginId($containerId, $userId = null)
     {
         $origin = doc_Containers::getDocument($containerId);
-        if (!$origin->isInstanceOf('planning_Tasks') && !$origin->isInstanceOf('planning_ConsumptionNotes')) {
-            return false;
-        }elseif($origin->isInstanceOf('planning_Tasks')){
+
+        if($origin->isInstanceOf('planning_Tasks')){
             $state = $origin->fetchField('state');
             if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
                 return false;
@@ -255,6 +254,13 @@ abstract class deals_ManifactureMaster extends core_Master
                     return false;
                 }
             }
+        } elseif(($this instanceof planning_ConsumptionNotes) && $origin->isInstanceOf('cal_Tasks')){
+            $supportTaskClassType = support_TaskType::getClassId();
+            $originRec = $origin->fetch('driverClass,state');
+            if($originRec->driverClass != $supportTaskClassType) return false;
+            if (in_array($originRec->state, array('rejected', 'draft', 'waiting', 'stopped'))) return false;
+        } elseif(!$origin->isInstanceOf('planning_ConsumptionNotes')){
+            return false;
         }
 
         return true;

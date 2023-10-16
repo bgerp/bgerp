@@ -555,7 +555,7 @@ class planning_Tasks extends core_Master
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(isset($rec->assetId)){
             if(isset($fields['-single'])) {
-                $row->assetId = planning_AssetResources::getTitleById($rec->assetId);
+                $row->assetId = new core_ET(planning_AssetResources::getTitleById($rec->assetId));
                 $assetSingleUrlArray = planning_AssetResources::getSingleUrlArray($rec->assetId);
                 if(!Mode::isReadOnly()){
                     if(countR($assetSingleUrlArray)){

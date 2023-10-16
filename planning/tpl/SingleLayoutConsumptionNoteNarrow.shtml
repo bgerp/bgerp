@@ -3,8 +3,7 @@
             <tbody>
                 <tr>
                     <td class='centered'>  
-                        <div class="document-title">|протокол за влагане в производство|*</div>
-                        <div class='small'>( <i>|на складируеми суровини и материали|*</i> )</div>
+                        <div class="document-title">[#protocolTitle#]</div>
                         <div style="padding-top:5px;">
                                 <span class="state [#STATE_CLASS#]">
                                     № <span class="bigData">[#id#]</span> /
@@ -57,15 +56,21 @@
                                                 </tr>
                                                 <!--ET_END useResourceAccounts-->
                                             </table>
+                                            <!--ET_BEGIN description-->
+                                            <hr>
+                                            [#description#]
+                                            <!--ET_END description-->
+                                            <!--ET_BEGIN note-->
                                             <hr>
                                             [#note#]
+                                            <!--ET_END note-->
 							                <!--ET_BEGIN responsible-->
 							                <hr>
-							                <div>|Получил|*:  [#receiver#]</div>
+							                <div>[#receiverCaption#]:  [#receiver#]</div>
 							                <!--ET_END responsible-->
 							                
 							                <!--ET_BEGIN username-->
-							                <div>|Предал|*:  [#sender#]</div>
+							                <div>[#senderCaption#]:  [#sender#]</div>
 							                <!--ET_END username-->
                                         </td>
                                     </tr>
