@@ -34,7 +34,7 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->TAB(array('planning_AssetResources', 'type' => 'material'), 'Ресурси->Оборудване', 'ceo,planning');
         $this->TAB(array('planning_AssetResources', 'type' => 'nonMaterial'), 'Ресурси->Нематериални', 'ceo,planning');
         $this->TAB('planning_Hr', 'Ресурси->Хора', 'ceo,planning');
-        $this->TAB('planning_AssetGroups', 'Ресурси->Групи', 'ceo,planning');
+        $this->TAB('planning_AssetGroups', 'Ресурси->Видове', 'ceo,planning');
         $this->TAB('planning_Steps', 'Етапи->Списък', 'ceo,planning');
         $this->TAB('planning_StepConditions', 'Етапи->Зависимости', 'ceo,planning');
         $this->TAB('planning_FoldersWithResources', 'Настройки->Папки с ресурси', 'ceo,planning');
