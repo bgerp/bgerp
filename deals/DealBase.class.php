@@ -525,7 +525,6 @@ abstract class deals_DealBase extends core_Master
                         Mode::pop('isBeingClosedWithDeal');
                     } catch (acc_journal_RejectRedirect $e) {
                         // Ако е имало грешка и има изтрити разходи възстановяват се
-                       // Mode::pop('closedDealCall');
                         foreach ($tmpCache as $exAccCostId => $deletedCostRec){
                             acc_CostAllocations::save($deletedCostRec);
                             unset($allocatedExpenses[$exAccCostId]);
