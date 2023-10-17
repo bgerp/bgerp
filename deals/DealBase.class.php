@@ -477,6 +477,8 @@ abstract class deals_DealBase extends core_Master
                     core_Debug::log("CLOSE: RECALC DIFF " . round(core_Debug::$timers["RECALC_RATE_DIFF"]->workingTime, 6));
                 }
 
+                $expenseClosedDeals = $allocatedExpenses = array();
+
                 // Обединения договор ще е активен
                 $dealRec = $this->fetch($rec->id, '*', false);
                 $dealRec->contoActions = 'activate';
@@ -484,16 +486,54 @@ abstract class deals_DealBase extends core_Master
                 $dealRec->closedDocuments = keylist::merge($dealRec->closedDocuments, $formRec->closeWith);
                 $this->save($dealRec);
 
+                $listId = acc_Lists::fetchBySystemId('costObjects')->id;
+                if (!acc_Items::isItemInList($this, $rec->id, 'costObjects')) {
+                    $listId = acc_Lists::fetchBySystemId('costObjects')->id;
+                    acc_Items::force($this->getClassId(), $rec->id, $listId);
+                }
+                $combinedDealItemId = acc_Items::fetchItem($this, $rec->id)->id;
+
                 core_App::setTimeLimit(2000);
                 $CloseDoc = cls::get($this->closeDealDoc);
                 foreach ($deals as $dealId) {
+
+                    // Ако има разпределени разходи към сделката, запомнят се и се изтриват
+                    $tmpCache = array();
+                    if(acc_Items::isItemInList($this, $dealId, 'costObjects')){
+                        $dItemId = acc_Items::fetchItem($this, $dealId)->id;
+                        $cQuery = acc_CostAllocations::getQuery();
+                        $cQuery->where("#expenseItemId = {$dItemId}");
+                        while($cRec = $cQuery->fetch()){
+                            $exAccId = $cRec->id;
+                            acc_CostAllocations::delete($cRec->id);
+                            unset($cRec->id, $cRec->createdOn, $cRec->createdBy);
+                            $tmpCache[$exAccId] = clone $cRec;
+                            $cRec->_oldExpenceItemId = $cRec->expenseItemId;
+                            $cRec->expenseItemId = $combinedDealItemId;
+                            $allocatedExpenses[$exAccId] = $cRec;
+                        }
+                    }
 
                     // Създаване на приключващ документ-чернова
                     core_Debug::startTimer('CONTO_CLOSE_DOC');
                     $dRec = $this->fetch($dealId);
                     $clId = $CloseDoc->create($this->className, $dRec, $id);
+
+                    try {
+                        Mode::push('isBeingClosedWithDeal', true);
+                        $CloseDoc->conto($clId);
+                        Mode::pop('isBeingClosedWithDeal');
+                    } catch (acc_journal_RejectRedirect $e) {
+                        // Ако е имало грешка и има изтрити разходи възстановяват се
+                       // Mode::pop('closedDealCall');
+                        foreach ($tmpCache as $exAccCostId => $deletedCostRec){
+                            acc_CostAllocations::save($deletedCostRec);
+                            unset($allocatedExpenses[$exAccCostId]);
+                        }
+                        $errorArr[] = "Не може да се контира|*: #{$CloseDoc->getHandle($clId)}";
+                    }
+
                     $this->logWrite('Приключено с друга сделка', $dealId);
-                    $CloseDoc->conto($clId);
                     core_Debug::stopTimer('CONTO_CLOSE_DOC');
                 }
                 core_Debug::log("CLOSE: CONTO CLOSE_DOC " . round(core_Debug::$timers["CONTO_CLOSE_DOC"]->workingTime, 6));
@@ -502,6 +542,11 @@ abstract class deals_DealBase extends core_Master
                 $this->invoke('AfterActivation', array($dealRec));
                 core_Debug::stopTimer('AFTER_ACT');
                 core_Debug::log("CLOSE: AFTER_ACT " . round(core_Debug::$timers["AFTER_ACT"]->workingTime, 6));
+
+                // Разпределените разходи към приключените сделки се насочват към новата сделка
+                foreach ($allocatedExpenses as $newExpense){
+                    acc_CostAllocations::save($newExpense);
+                }
 
                 // Записваме, че потребителя е разглеждал този списък
                 $this->logWrite('Приключване на сделка с друга сделка', $id);
