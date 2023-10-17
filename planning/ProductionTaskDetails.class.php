@@ -584,7 +584,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     if(empty($rec->batch) && $rec->type == 'production'){
                         $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
                     }
-                } elseif(!empty($serialInfo['batch'])){
+                } elseif(!empty($serialInfo['batch']) && $rec->type == 'production'){
                     $form->setWarning('serial', "Номера досега се е отчитал по партида, а в текущата операция е избрано да не се отчита по партида! Сигурни ли сте, че не трябва да промените операцията да се отчита по партида|*?");
                 }
 
