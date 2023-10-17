@@ -669,7 +669,7 @@ class rack_Pallets extends core_Manager
         } else {
 
             // Ако има променя му се количеството
-            expect($rec->productId == $productId, 'Артикулът е различен');
+            expect($rec->productId == $productId, 'Артикулът е различен', $rec->productId, $productId);
             expect($rec->storeId == $storeId, 'Склада е различен');
             
             $incrementQuantity = $quantity;
