@@ -638,6 +638,9 @@ class rack_Pallets extends core_Manager
 
         $rQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
         $rQuery->orderBy('order');
+        $rQuery->orderBy('createdOn', 'DESC');
+        $rQuery->orderBy('id', 'DESC');
+        $rQuery->limit(1);
         $rec = $rQuery->fetch();
 
         if(!$rec) {
@@ -651,6 +654,9 @@ class rack_Pallets extends core_Manager
                 }
                 $rQuery2->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
                 $rQuery2->orderBy('order');
+                $rQuery2->orderBy('createdOn', 'DESC');
+                $rQuery2->orderBy('id', 'DESC');
+                $rQuery2->limit(1);
                 $rec = $rQuery2->fetch();
             }
         }
