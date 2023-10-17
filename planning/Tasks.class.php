@@ -2082,8 +2082,9 @@ class planning_Tasks extends core_Master
         $query->where("#state != 'rejected'");
 
         if ($data->masterMvc instanceof planning_AssetResources) {
-            $query->orderBy('orderByAssetId', 'ASC');
+            $query->orderBy('orderByDate', 'ASC');
             $query->where("#assetId = {$data->masterId}");
+            $query->in("state", array('pending', 'active', 'wakeup', 'stopped'));
         } else {
             $query->orderBy('saoOrder', 'ASC');
             $query->where("#originId = {$data->masterData->rec->containerId}");
@@ -2195,7 +2196,7 @@ class planning_Tasks extends core_Master
         }
 
         if ($data->masterMvc instanceof planning_AssetResources) {
-            $tpl->append(tr('Производствени операции'), 'title');
+            $tpl->append("Производствени операции (заявки, активни, събудени, спрени)", 'title');
             $tpl->append($contentTpl, 'content');
         } else {
             $tpl = $contentTpl;
