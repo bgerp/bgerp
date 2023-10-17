@@ -697,7 +697,7 @@ class rack_Pallets extends core_Manager
      */
     public static function create($productId, $storeId, $quantity, $position, $batch = null, $label = null)
     {
-        expect(rack_Racks::isPlaceUsable($position, $productId, $storeId, $batch, $error), $error);
+        expect(rack_Racks::isPlaceUsable($position, $productId, $storeId, $batch, $error), $error, $position, $productId, $storeId, $batch);
         $rec = (object) array('productId' => $productId, 'storeId' => $storeId, 'label' => $label, 'position' => $position, 'quantity' => $quantity, 'state' => 'active', 'batch' => $batch);
         
         list($num, , ) = rack_PositionType::toArray($rec->position);
