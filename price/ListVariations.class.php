@@ -162,6 +162,7 @@ class price_ListVariations extends core_Detail
         if (isset($data->masterMvc)) {
             unset($data->listFields['listId']);
         }
+        $data->query->orderBy('validFrom', 'ASC');
     }
 
 
