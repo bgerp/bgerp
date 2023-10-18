@@ -520,8 +520,11 @@ class price_ListRules extends core_Detail
         }
         
         if (!$rec->id) {
+            $defaultUntil = Mode::get('PRICE_VALID_UNTIL');
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
-            $rec->validUntil = Mode::get('PRICE_VALID_UNTIL');
+            if($defaultUntil > $rec->validFrom){
+                $rec->validUntil = $defaultUntil;
+            }
         }
     }
     
@@ -607,9 +610,7 @@ class price_ListRules extends core_Detail
             }
             
             if (!$form->gotErrors()) {
-                if(empty($rec->validUntil) || $rec->validUntil > $now){
-                    Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
-                }
+                Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
             }
         }
     }
