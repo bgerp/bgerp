@@ -42,10 +42,31 @@ class colab_plg_VisibleForPartners extends core_Plugin
         $rec = $data->form->rec;
         if ($rec->folderId) {
 
+            $folderId = $rec->folderId;
+            if(empty($rec->id) && ($mvc instanceof planning_Tasks)){
+                if($requestFolderId = Request::get('folderId', 'int')){
+                    $folderId = $requestFolderId;
+                }
+            }
+
             // Полето се показва ако е в папката, споделена до колаборатор
             // Ако няма originId или ако originId е към документ, който е видим от колаборатор
-            if (colab_FolderToPartners::fetch(array("#folderId = '[#1#]'", $rec->folderId))) {
-                if (!$rec->originId || ($doc = doc_Containers::getDocument($rec->originId)) && ($dIsVisible = $doc->isVisibleForPartners())) {
+            if (colab_FolderToPartners::fetch(array("#folderId = '[#1#]'", $folderId))) {
+                $doc = $dIsVisible = null;
+                $showVisibleField = true;
+                if(isset($rec->originId)){
+                    $doc = doc_Containers::getDocument($rec->originId);
+                    if(!$mvc->onlyFirstInThread){
+                        $dIsVisible = $doc->isVisibleForPartners();
+                        if(!$dIsVisible){
+                            $showVisibleField = false;
+                        }
+                    } else{
+                        $dIsVisible = true;
+                    }
+                }
+
+                if ($showVisibleField) {
 
                     if (core_Users::haveRole('partner')) {
                         // Ако текущия потребител е контрактор, полето да е скрито
@@ -53,7 +74,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
                         $showField = true;
-                        if(isset($rec->threadId)){
+                        if(isset($rec->threadId) && !($mvc instanceof planning_Tasks)){
                             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
                             if(!$firstDoc->isVisibleForPartners()){
                                 $showField = false;
