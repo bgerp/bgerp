@@ -106,8 +106,15 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Детайл
      */
     public $details = 'planning_ReturnNoteDetails';
-    
-    
+
+
+    /**
+     * Да се показват ли винаги полетата за промяна на артикули при създаване
+     * @var bool
+     */
+    public $autoAddDetailsToChange = true;
+
+
     /**
      * Кой е главния детайл
      *
@@ -179,10 +186,15 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         $Detail = cls::get($this->mainDetail);
         $id = $rec->clonedFromId;
 
+        $additionalWhereClause = '';
         if (isset($rec->originId) && empty($rec->id)) {
             $origin = doc_Containers::getDocument($rec->originId);
             if ($origin->isInstanceOf('planning_ConsumptionNotes')) {
                 $Detail = cls::get('planning_ConsumptionNoteDetails');
+                $id = $origin->that;
+            } elseif ($origin->isInstanceOf('planning_DirectProductionNote')) {
+                $Detail = cls::get('planning_DirectProductNoteDetails');
+                $additionalWhereClause = "#type = 'pop'";
                 $id = $origin->that;
             }
         }
@@ -193,6 +205,9 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         if(!isset($rec->storeId)){
             $dQuery->where("#canStore = 'no'");
+        }
+        if(!empty($additionalWhereClause)){
+            $dQuery->where($additionalWhereClause);
         }
         while($dRec = $dQuery->fetch()){
             if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
@@ -313,11 +328,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
             if (isset($rec->originId)) {
                 if(!$mvc->canAddToOriginId($rec->originId, $userId)){
                     $requiredRoles = 'no_one';
-                } else {
-                    $threadId = doc_Containers::fetchField($rec->originId, 'threadId');
-                    if(!planning_ConsumptionNotes::count("#threadId = {$threadId} AND #state IN ('active', 'pending')")){
-                        $requiredRoles = 'no_one';
-                    }
                 }
             }
         }
