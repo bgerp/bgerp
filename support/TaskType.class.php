@@ -652,9 +652,9 @@ class support_TaskType extends core_Mvc
         $query = $Tasks->getQuery();
         $query->where("#driverClass = {$me->getClassId()} AND #state != 'rejected'");
         $query->where("#assetResourceId = {$data->masterId}");
-
+        $query->orderBy('createdOn=DESC,id=DESC');
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
-        $data->Pager->setPageVar($data->masterMvc->className, $data->masterId, $DetailName);
+        $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
         $data->Pager->setLimit($query);
 
         // Вербализиране

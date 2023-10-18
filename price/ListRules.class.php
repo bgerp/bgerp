@@ -607,7 +607,9 @@ class price_ListRules extends core_Detail
             }
             
             if (!$form->gotErrors()) {
-                Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
+                if(empty($rec->validUntil) || $rec->validUntil > $now){
+                    Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
+                }
             }
         }
     }
