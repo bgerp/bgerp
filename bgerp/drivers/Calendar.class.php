@@ -140,18 +140,18 @@ class bgerp_drivers_Calendar extends core_BaseClass
                         }
                         $resData->cData[$i]->type = $rec->type;
                     } elseif ($rec->type == 'working-travel') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .'>&nbsp;';
+                        $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/working-travel.png') .'>&nbsp;';
                     } elseif ($rec->type == 'leaves') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .'>&nbsp;';
+                        $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/leaves.png') .'>&nbsp;';
                     } elseif ($rec->type == 'sick') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .'>&nbsp;';
+                        $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/sick.png') .'>&nbsp;';
                     } elseif ($rec->type == 'workday') {
                         // Нищо не се прави
                     } elseif ($rec->type == 'task' || $rec->type == 'reminder') {
                         if ($rec->state == 'active' || $rec->state == 'waiting') {
-                            $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
+                            $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
                         } else {
-                            $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
+                            $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
                         }
                     }
                 }

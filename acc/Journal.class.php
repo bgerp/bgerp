@@ -1059,7 +1059,7 @@ class acc_Journal extends core_Master
      */
     public static function throwErrorsIfFoundWhenTryingToPost()
     {
-        return (Mode::is('saveTransaction') && !Mode::is('recontoTransaction'));
+        return (Mode::is('saveTransaction') && !Mode::is('recontoTransaction') && !Mode::is('closedDealCall'));
     }
 
 

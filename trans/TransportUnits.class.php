@@ -254,6 +254,8 @@ class trans_TransportUnits extends core_Manager
 
                 $pQuery->where("#productId = {$productId} AND #type = 'production' AND (#tState IN ('closed', 'active', 'wakeup', 'stopped')) AND #packagingId = {$transPackagingId} AND #quantity != {$transQuantityInPack}");
                 $pQuery->orderBy('createdOn', "DESC");
+                $pQuery->useIndex('product_id_type');
+
                 $pQuery->limit(1);
                 $pQuery->show('quantity');
 

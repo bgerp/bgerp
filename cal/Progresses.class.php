@@ -565,7 +565,7 @@ class cal_Progresses extends core_Mvc
         $showFieldArr = array('links', 'createdOn', 'createdBy', 'message', 'progress', 'workingTime');
         $tTpl = $table->get($data->rows, $showFieldArr);
 
-        $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
+        $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;display: table-cell">
                             <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">' . tr('Прогрес') . '</div>
                             <div class="listRows" style="margin-top:10px">
                             [#TABLE#]

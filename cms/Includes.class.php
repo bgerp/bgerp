@@ -59,7 +59,7 @@ class cms_Includes extends core_Master
         if($domainId == 1) {
             $query->where("#domainId = 1 OR #domainId IS NULL");
         } else {
-            $query->where("#domainId = {$domainId}");
+            $query->where("#domainId = '{$domainId}'");
         }
 
         while ($rec = $query->fetch()) {

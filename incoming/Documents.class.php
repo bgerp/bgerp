@@ -436,7 +436,7 @@ class incoming_Documents extends core_Master
         if (self::canKeepDoc($fRec->name, $fRec->fileLen)) {
             $dfRec = doc_files::fetch("#fileHnd = '{$fRec->fileHnd}'");
             
-            // Създаваме масива за съзване на визитка
+            // Създаваме масива за създаване на визитка
             $arr = array();
             $inst = cls::get('incoming_Documents');
             $arr['incoming']['url'] = array($inst->className, 'add', 'fh' => $fRec->fileHnd, 'ret_url' => true);

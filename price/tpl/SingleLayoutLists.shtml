@@ -110,5 +110,16 @@
             <td>[#connectedClients#]</td>
         </tr>
         <!--ET_END connectedClients-->
+
+        <!--ET_BEGIN variationsOf-->
+        <tr>
+            <td class="title-style" style='vertical-align:top'>|Вариация на|*</td>
+            <td>[#variationsOf#]</td>
+        </tr>
+        <!--ET_END variationsOf-->
     </table>
+
+<b>|Вариации|*</b>
+[#price_ListVariations#]
+<hr style="margin-bottom:15px">
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

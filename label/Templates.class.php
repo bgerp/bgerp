@@ -389,7 +389,7 @@ class label_Templates extends core_Master
         }
 
         if(isset($rec->classId)){
-            if(cls::haveInterface('label_SequenceIntf', $rec->classId)){
+            if(cls::load($rec->classId, true) && cls::haveInterface('label_SequenceIntf', $rec->classId)){
                 $series = cls::get($rec->classId)->getLabelSeries();
                 $row->series = $series[$rec->series];
             } else {

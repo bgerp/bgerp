@@ -38,19 +38,35 @@ abstract class deals_ManifactureMaster extends core_Master
      * Дата на очакване
      */
     public $termDateFld = 'deadline';
-    
-    
+
+
+    /**
+     * Кой може да променя активирани записи
+     */
+    public $canChangerec = 'ceo,consumption,store';
+
+
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    public $changableFields = 'note,sender,receiver';
+
+
     /**
      * Кои са задължителните полета за модела
      */
     protected static function setDocumentFields($mvc)
     {
+        setIfNot($mvc->haveSenderAndReceiverNames, false);
         $mvc->FLD('valior', 'date', 'caption=Вальор');
         $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $mvc->FLD('deadline', 'datetime', 'caption=Срок до');
-        $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
+        if($mvc->haveSenderAndReceiverNames){
+            $mvc->FLD('sender', 'varchar', 'caption=Предал');
+            $mvc->FLD('receiver', 'varchar', 'caption=Получил');
+        }
+        $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Забележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
-        
         $mvc->setDbIndex('valior');
     }
     
@@ -97,9 +113,19 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $form = &$data->form;
         $folderCover = doc_Folders::getCover($data->form->rec->folderId);
         if ($folderCover->haveInterface('store_AccRegIntf')) {
-            $data->form->setDefault('storeId', $folderCover->that);
+            $form->setDefault('storeId', $folderCover->that);
+        }
+
+        if($mvc->haveSenderAndReceiverNames){
+            $options = crm_Persons::getEmployeesOptions(false, null, true);
+            if(countR($options)){
+                $options = array('' => '') + $options;
+                $form->setSuggestions('sender', $options);
+                $form->setSuggestions('receiver', $options);
+            }
         }
     }
     
@@ -218,9 +244,8 @@ abstract class deals_ManifactureMaster extends core_Master
     protected function canAddToOriginId($containerId, $userId = null)
     {
         $origin = doc_Containers::getDocument($containerId);
-        if (!$origin->isInstanceOf('planning_Tasks') && !$origin->isInstanceOf('planning_ConsumptionNotes')) {
-            return false;
-        }elseif($origin->isInstanceOf('planning_Tasks')){
+
+        if($origin->isInstanceOf('planning_Tasks')){
             $state = $origin->fetchField('state');
             if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
                 return false;
@@ -229,6 +254,13 @@ abstract class deals_ManifactureMaster extends core_Master
                     return false;
                 }
             }
+        } elseif(($this instanceof planning_ConsumptionNotes) && $origin->isInstanceOf('cal_Tasks')){
+            $supportTaskClassType = support_TaskType::getClassId();
+            $originRec = $origin->fetch('driverClass,state');
+            if($originRec->driverClass != $supportTaskClassType) return false;
+            if (in_array($originRec->state, array('rejected', 'draft', 'waiting', 'stopped'))) return false;
+        } elseif(!$origin->isInstanceOf('planning_ConsumptionNotes')){
+            return false;
         }
 
         return true;
@@ -264,7 +296,8 @@ abstract class deals_ManifactureMaster extends core_Master
                 if($firstDocument->isInstanceOf('planning_Tasks')){
                     $state = $firstDocument->fetchField('state');
                     if($state == 'closed'){
-                        if(!planning_Tasks::isProductionAfterClosureAllowed($firstDocument->that, core_Users::getCurrent())){
+                        $roles = $mvc->getRequiredRoles('conto', $rec);
+                        if(!planning_Tasks::isProductionAfterClosureAllowed($firstDocument->that, core_Users::getCurrent(), $roles, $roles)){
                             $msg = "Документът не може да бъде контиран, защото операцията е приключена|*!";
                             core_Statuses::newStatus($msg, 'error');
                             $res = false;

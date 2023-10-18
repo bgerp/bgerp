@@ -2100,7 +2100,7 @@ abstract class deals_Helper
             $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
             if ($canStore != 'yes') continue;
 
-            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
+            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, $obj->{$quantityFld});
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
             }
@@ -2291,9 +2291,6 @@ abstract class deals_Helper
      */
     public static function getContoRedirectError($productArr, $haveMetas, $haveNotMetas = null, $metaError = null)
     {
-        // При ръчно реконтиране се подтискат всякакви грешки
-        if(Mode::is('recontoTransaction')) return;
-
         $productCheck = deals_Helper::checkProductForErrors($productArr, $haveMetas, $haveNotMetas);
         if ($productCheck['notActive']) {
             return 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |са затворени|*!';

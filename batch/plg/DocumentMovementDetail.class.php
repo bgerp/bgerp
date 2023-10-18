@@ -63,8 +63,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         if (isset($rec->{$mvc->productFieldName})) {
             $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
             if ($BatchClass) {
+                $folderId = ($mvc instanceof core_Detail) ? $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'folderId') : $rec->folderId;
                 $form->setField('batch', 'input');
-                $form->setFieldType('batch', $BatchClass->getBatchClassType());
+                $form->setFieldType('batch', $BatchClass->getBatchClassType($mvc, $rec));
 
                 // Ако има само позволени опции само тях
                 $allowedOptions = $mvc->getAllowedInBatches($rec);

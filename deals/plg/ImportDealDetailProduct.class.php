@@ -236,8 +236,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
             $masterId = Request::get($mvc->masterKey, 'int');
             $metaArr = arr::make($mvc->metaProducts, true);
+            $masterRec = $mvc->Master->fetch($masterId);
             if(!countR($metaArr)){
-                $masterRec = $mvc->Master->fetch($masterId);
                 if($mvc instanceof planning_DirectProductNoteDetails){
                     $metaArr = array('canConvert' => 'canConvert');
                 } elseif($mvc instanceof store_InternalDocumentDetail){
@@ -387,7 +387,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             // Ако е инсталиран пакета за партидност и има партида
             if ($batchInstalled && isset($obj->batch, $pRec->productId)) {
                 if ($batchDef = batch_Defs::getBatchDef($pRec->productId)) {
-                    $batchType = $batchDef->getBatchClassType();
+                    $batchType = $batchDef->getBatchClassType($mvc, (object)array($mvc->masterKey => $masterId));
                     $obj->batch = $batchType->fromVerbal($obj->batch);
                     $r = $batchType->isValid($obj->batch);
                     

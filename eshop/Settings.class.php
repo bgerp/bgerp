@@ -258,6 +258,7 @@ class eshop_Settings extends core_Master
         $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Показване');
         
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Изглед),optionsFunc=cat_Params::getPublic');
+        $this->FLD('showProductsWithoutPrices', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на е-артикулите във външната част->Без цени,notNull,value=yes');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Списък),optionsFunc=cat_Params::getPublic');
 
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
@@ -492,6 +493,7 @@ class eshop_Settings extends core_Master
 
         $form->setDefault('mandatoryEcartContactFields', 'auto');
         $form->setDefault('mandatoryInquiryContactFields', 'auto');
+        $form->setDefault('showProductsWithoutPrices', 'auto');
     }
     
     

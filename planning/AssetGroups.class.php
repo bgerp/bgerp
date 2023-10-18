@@ -85,7 +85,7 @@ class planning_AssetGroups extends core_Master
     /**
      * Детайли
      */
-    public $details = 'planning_AssetResourcesNorms,planning_AssetResources';
+    public $details = 'planning_AssetResources,planning_AssetResourcesNorms,planning_AssetGroupIssueTemplates';
     
     
     /**

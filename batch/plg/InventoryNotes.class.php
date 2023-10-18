@@ -77,7 +77,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             // Ако е сериен номер само едно поле се показва
             if ($Def instanceof batch_definitions_Serial) {
                 $form->setField('batchEx', 'input=none');
-                $form->setFieldType('batchNew', $Def->getBatchClassType());
+                $form->setFieldType('batchNew', $Def->getBatchClassType($mvc, $rec->id));
                 $form->setField('batchNew', 'caption=Серийни номера');
                 $autohide = '';
                 
@@ -93,7 +93,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             } else {
                 
                 // Иначе се добавя полето за нова партида
-                $form->setFieldType('batchNew', $Def->getBatchClassType());
+                $form->setFieldType('batchNew', $Def->getBatchClassType($mvc, $rec));
                 
                 if (countR($quantities)) {
                     $options = array();

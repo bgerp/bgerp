@@ -938,9 +938,9 @@
     class QRimage {
     
         //----------------------------------------------------------------------
-        public static function png($frame, $filename = false, $pixelPerPoint = 4, $outerFrame = 4,$saveandprint=FALSE) 
+        public static function png($frame, $filename = false, $pixelPerPoint = 4, $outerFrame = 4,$saveandprint = FALSE, $colorArr = array())
         {
-            $image = self::image($frame, $pixelPerPoint, $outerFrame);
+            $image = self::image($frame, $pixelPerPoint, $outerFrame, $colorArr);
             
             if ($filename === false) {
                 Header("Content-type: image/png");
@@ -974,7 +974,7 @@
         }
     
         //----------------------------------------------------------------------
-        private static function image($frame, $pixelPerPoint = 4, $outerFrame = 4) 
+        private static function image($frame, $pixelPerPoint = 4, $outerFrame = 4, $colorArr = array())
         {
             $h = count($frame);
             $w = strlen($frame[0]);
@@ -983,9 +983,31 @@
             $imgH = $h + 2*$outerFrame;
             
             $base_image =ImageCreate($imgW, $imgH);
-            
-            $col[0] = ImageColorAllocate($base_image,255,255,255);
-            $col[1] = ImageColorAllocate($base_image,0,0,0);
+
+            setIfNot($colorArr['opacity'], 0);
+            setIfNot($colorArr['color'], '0|0|0');
+            setIfNot($colorArr['bgOpacity'], 0);
+            setIfNot($colorArr['bgColor'], '255|255|255');
+
+            $colorArr['color'] = explode('|', $colorArr['color']);
+            $colorArr['bgColor'] = explode('|', $colorArr['bgColor']);
+
+            $base_image =ImageCreate($imgW, $imgH);
+            if ($colorArr['bgOpacity'] !== 0) {
+                $opacity = (int) ($colorArr['bgOpacity'] * 127);
+                $opacity = min($opacity, 127);
+                $col[0] = ImageColorAllocatealpha($base_image, $colorArr['bgColor'][0], $colorArr['bgColor'][1], $colorArr['bgColor'][2], $opacity);
+            } else {
+                $col[0] = ImageColorAllocate($base_image, $colorArr['bgColor'][0], $colorArr['bgColor'][1], $colorArr['bgColor'][2]);
+            }
+
+            if ($colorArr['opacity'] !== 0) {
+                $opacity = (int) ($colorArr['opacity'] * 127);
+                $opacity = min($opacity, 127);
+                $col[1] = ImageColorAllocatealpha($base_image, $colorArr['color'][0], $colorArr['color'][1], $colorArr['color'][2], $opacity);
+            } else {
+                $col[1] = ImageColorAllocate($base_image, $colorArr['color'][0], $colorArr['color'][1], $colorArr['color'][2]);
+            }
 
             imagefill($base_image, 0, 0, $col[0]);
 
@@ -3088,10 +3110,10 @@
         }
         
         //----------------------------------------------------------------------
-        public static function png($text, $outfile = false, $level = QR_ECLEVEL_L, $size = 3, $margin = 4, $saveandprint=false) 
+        public static function png($text, $outfile = false, $level = QR_ECLEVEL_L, $size = 3, $margin = 4, $saveandprint = false, $colorArr = array())
         {
             $enc = QRencode::factory($level, $size, $margin);
-            return $enc->encodePNG($text, $outfile, $saveandprint=false);
+            return $enc->encodePNG($text, $outfile, $saveandprint, $colorArr);
         }
 
         //----------------------------------------------------------------------
@@ -3285,7 +3307,7 @@
         }
         
         //----------------------------------------------------------------------
-        public function encodePNG($intext, $outfile = false,$saveandprint=false) 
+        public function encodePNG($intext, $outfile = false,$saveandprint = false, $colorArr = array())
         {
             try {
             
@@ -3299,7 +3321,7 @@
                 
                 $maxSize = (int)(QR_PNG_MAXIMUM_SIZE / (count($tab)+2*$this->margin));
                 
-                QRimage::png($tab, $outfile, min(max(1, $this->size), $maxSize), $this->margin,$saveandprint);
+                QRimage::png($tab, $outfile, min(max(1, $this->size), $maxSize), $this->margin, $saveandprint, $colorArr);
             
             } catch (Exception $e) {
             

@@ -220,7 +220,7 @@ class batch_plg_Jobs extends core_Plugin
         if(!$res){
             $rec = $mvc->fetchRec($rec);
             if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
-                $BatchType = $BatchDef->getBatchClassType();
+                $BatchType = $BatchDef->getBatchClassType($mvc, $rec);
                 if($BatchType instanceof type_Enum){
                     $options = $BatchType->options;
                     $res = $options;
@@ -259,7 +259,7 @@ class batch_plg_Jobs extends core_Plugin
 
             // Ако няма взимат се тези от типа на партидността (ако има такива)
             if(!countR($options)){
-                $BatchType = $BatchClass->getBatchClassType();
+                $BatchType = $BatchClass->getBatchClassType('planning_Jobs', $jobRec);
                 if($BatchType instanceof type_Enum){
                     $options = $BatchType->options;
                     unset($options['']);

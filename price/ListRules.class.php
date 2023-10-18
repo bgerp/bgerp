@@ -87,8 +87,14 @@ class price_ListRules extends core_Detail
      * Поле - ключ към мастера
      */
     public $masterKey = 'listId';
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    public static $alreadyReplaced = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -301,8 +307,8 @@ class price_ListRules extends core_Detail
             }
         }
     }
-    
-    
+
+
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
@@ -311,7 +317,16 @@ class price_ListRules extends core_Detail
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
 
+        if(!static::$alreadyReplaced[$listId]){
+            $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
+            if(!empty($variationId)){
+                static::$alreadyReplaced[$listId] = true;
+                $listId = $variationId;
+            }
+        }
+
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
+            if(empty($listId)) wp('Няма listId', $listId, $variationId, $datetime);
             $query = self::getQuery();
             $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
@@ -326,7 +341,7 @@ class price_ListRules extends core_Detail
             $query->orderBy('#priority', 'ASC');
             $query->orderBy('#validFrom,#id', 'DESC');
             $query->limit(1);
-            
+
             $rec = $query->fetch();
             $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
@@ -345,6 +360,7 @@ class price_ListRules extends core_Detail
                 } else {
                     $validFrom = $rec->validFrom;
                     expect($parent = $listRec->parent);
+
                     $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false, 1, 'no', $discountIncluded);
                     if (isset($price)) {
                         if ($rec->calculation == 'reverse') {
@@ -356,7 +372,7 @@ class price_ListRules extends core_Detail
                 }
             } else {
                 $defaultSurcharge = $listRec->defaultSurcharge;
-                
+
                 // Ако има дефолтна надценка и има наследена политика
                 if (isset($defaultSurcharge)) {
                     if ($parent = $listRec->parent) {
@@ -382,7 +398,6 @@ class price_ListRules extends core_Detail
 
                     $cRate = currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
                     if(!empty($cRate)){
-                        //$price *= 1 + $discountIncluded;
                         $rate = 1 / $cRate;
                         $price = $price * $vat * $rate;
                         $price = price_Lists::roundPrice($listRec, $price);
@@ -396,7 +411,6 @@ class price_ListRules extends core_Detail
                 if ($canUseCache) {
                     price_Cache::setPrice($price, $listId, $productId, $discountIncluded);
                 }
-
             }
         }
 

@@ -1273,7 +1273,9 @@ class cat_BomDetails extends doc_Detail
         $bomId = static::fetchField($detailId, 'bomId');
         $orderedDetails = self::getOrderedBomDetails($bomId);
         foreach ($orderedDetails as $rec){
-            $res[] = $rec->id;
+            if($DetailMvc->haveRightFor('edit', $rec)){
+                $res[] = $rec->id;
+            }
         }
     }
 

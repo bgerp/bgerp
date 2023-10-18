@@ -361,7 +361,6 @@ class deals_Setup extends core_ProtoSetup
         $dQuery->EXT('number', $Invoices->className, "externalName=number,externalKey=invoiceId");
         $dQuery->EXT('type', $Invoices->className, "externalName=type,externalKey=invoiceId");
         $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-
         while($dRec = $dQuery->fetch()){
             if(!array_key_exists($dRec->invoiceId, $dRecs)){
                 $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
@@ -373,7 +372,6 @@ class deals_Setup extends core_ProtoSetup
         $iCount = $dQuery->count();
         core_App::setTimeLimit($iCount * 0.4, false, 400);
         foreach ($dRecs as $invoiceId => $invoiceArr){
-
             ksort($invoiceArr['recs']);
             $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], true);
 
@@ -416,8 +414,57 @@ class deals_Setup extends core_ProtoSetup
         $Details->saveArray($update, 'id,clonedFromDetailId');
         foreach ($dRecs as $invoiceId => $invoiceArr1){
             $invoiceRec = $Invoices->fetch($invoiceId);
+            $invoiceRec->_notModified = true;
             $Invoices->updateMaster($invoiceRec);
+            $Invoices->removeFromUpdateQueueOnShutdown($invoiceRec->id);
         }
         $Invoices->logDebug("RE_INV U:" . countR($update) . "/N:" . countR($notUpdated));
+    }
+
+
+    /**
+     * Миграция на КИ/ДИ разбити по артикули
+     * @todo да се премахне след рилийз
+     *
+     * @param mixed $class
+     * @return void
+     */
+    public function fixDcNotesModifiedOn($class)
+    {
+        $Class = cls::get($class);
+
+        $date = '2021-12-01';
+        $to = '2023-09-18';
+
+        $threads = array();
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#docClass = {$Class->getClassId()}");
+        $cQuery->EXT('last', 'doc_Threads', "externalName=last,externalKey=threadId");
+        $cQuery->where("#modifiedBy = " . core_Users::SYSTEM_USER);
+        $cQuery->where(array("#createdOn <= '{$date} 00:00:00'"));
+        $cQuery->where(array("#modifiedOn >= '{$to} 00:00:00'"));
+
+        $count = $cQuery->count();
+        core_App::setTimeLimit($count * 0.2, false, 300);
+
+        while ($cRec = $cQuery->fetch()) {
+            $cRec->modifiedOn = $cRec->createdOn;
+            $cRec->modifiedBy = $cRec->modifiedBy;
+            $cRec->_notModified = true;
+            doc_Containers::save($cRec, 'modifiedOn, modifiedBy');
+            $threads[$cRec->threadId] = $cRec->last;
+        }
+
+        foreach ($threads as $threadId => $threadLast) {
+            $firstDcRec = null;
+            $lastDcRec = null;
+            $lastChangeDate = null;
+
+            $tRec = doc_Threads::fetch($threadId);
+            doc_Threads::prepareDocCnt($tRec, $firstDcRec, $lastDcRec, $lastChangeDate);
+            if ($lastChangeDate != $tRec->last) {
+                doc_Threads::updateThread($tRec->id);
+            }
+        }
     }
 }

@@ -295,13 +295,13 @@ class trans_Lines extends core_Master
     {
         $rec = $data->rec;
 
-        if (!$data->toolbar->haveButton('btnClose')) {
+        if (!$data->toolbar->haveButton("btnOpen_{$rec->containerId}")) {
             if (self::countDocumentsByState($rec->id, 'draft,pending') && $rec->state == 'active') {
                 $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нея|*!', 'title' => 'Затваряне на транспортна линия'));
             }
         }
 
-        if (!$data->toolbar->haveButton('btnActivate')) {
+        if (!$data->toolbar->haveButton("btnActivate_{$rec->containerId}")) {
             if (in_array($rec->state, array('draft', 'pending')) && self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf', store_Receipts::getClassId())) {
                 $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В транспортната линия има заявки, чернови или оттеглени експедиционни документи|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на транспортната линия'));
             }

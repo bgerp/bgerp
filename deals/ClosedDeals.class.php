@@ -83,8 +83,14 @@ abstract class deals_ClosedDeals extends core_Master
      * Кратък баланс на записите от журнала засегнали сделката
      */
     protected $shortBalance;
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    protected static $getTransactionsByNow = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -104,8 +110,8 @@ abstract class deals_ClosedDeals extends core_Master
         
         $this->setDbIndex('valior');
     }
-    
-    
+
+
     /**
      * Подготвя записите за приключване на дадена сделка с друга сделка
      *
@@ -136,7 +142,12 @@ abstract class deals_ClosedDeals extends core_Master
         if (countR($docs)) {
 
             // За всеки транзакционен клас
-            foreach ($docs as $doc) {
+            foreach ($docs as $index => $doc) {
+                if(array_key_exists($index, static::$getTransactionsByNow) && static::$getTransactionsByNow[$index] > 5) {
+                    wp($dealItem, $total, $closeDeal, $entries, $rec, $docs);
+                    continue;
+                }
+                static::$getTransactionsByNow[$index] += 1;
 
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);

@@ -18,7 +18,7 @@
 class plg_RowTools extends core_Plugin
 {
     /**
-     * Шаблон за съзване на rowTools
+     * Шаблон за създаване на rowTools
      */
     public static $rowToolsTpl = "<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>";
     

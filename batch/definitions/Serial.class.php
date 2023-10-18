@@ -38,14 +38,16 @@ class batch_definitions_Serial extends batch_definitions_Proto
         $fieldset->FLD('prefixHistory', 'blob', 'input=none');
         $fieldset->FLD('suffixHistory', 'blob', 'input=none');
     }
-    
-    
+
+
     /**
      * Проверява дали стойността е невалидна
      *
+     * @param mixed $class
+     * @param int $objectId
      * @return core_Type - инстанция на тип
      */
-    public function getBatchClassType()
+    public function getBatchClassType($class = null, $objectId = null)
     {
         $Type = core_Type::getByName('text(rows=3)');
         

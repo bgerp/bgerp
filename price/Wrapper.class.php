@@ -25,6 +25,7 @@ class price_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('price_Lists', 'Политики->Всички политики', 'price,sales,ceo');
+        $this->TAB('price_ListVariations', 'Политики->Вариации', 'price,sales,ceo');
         $this->TAB('price_ListToCustomers', 'Политики->Клиентски политики', 'price,ceo');
         $this->TAB('price_Updates', 'Обновяване', 'priceMaster,ceo');
         $this->TAB('price_Cache', 'Дебъг->Кеш', 'debug');

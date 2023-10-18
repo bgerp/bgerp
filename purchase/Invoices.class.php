@@ -565,7 +565,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
         if (self::haveRightFor('createfromfile') && self::canKeepDoc($fRec->name, $fRec->fileLen)) {
             
-            // Създаваме масива за съзване на визитка
+            // Създаваме масива за създаване на визитка
             $arr = array();
             
             $me = cls::get(get_called_class());

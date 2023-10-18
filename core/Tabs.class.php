@@ -156,12 +156,16 @@ class core_Tabs extends core_BaseClass
             
             $head .= "</div>\n";
         }
+
+        $idAttr = "";
         if ($this->htmlId) {
-            $idAttr = " id=\"head-{$this->htmlId}\"";
+            $idAttr .= " id=\"head-{$this->htmlId}\"";
+        }
+        if($this->htmlIdClass){
+            $idAttr .= " class='{$this->htmlIdClass}'";
         }
  
         $html = "<div class='tab-control {$this->htmlClass}'>\n";
- 
         $html .= "<div class='tab-row'><div class='row-holder'>\n";
         $html .= "<div {$idAttr}>[#1#]</div>\n";
         $html .= "</div>\n";

@@ -388,16 +388,6 @@ class doc_DocumentPlg extends core_Plugin
 
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
             $rejArr = array($mvc, 'reject', $data->rec->id);
-            if (doc_Setup::get('OPEN_FOLDER_AFTER_REJECT') == 'yes') {
-                // При оттегляне да редиректва към сингъла на папката, ако има права за там
-                if ($data->rec->folderId && doc_Folders::haveRightFor('single', $data->rec->folderId)) {
-                    if ($data->rec->threadId) {
-                        if (doc_Threads::getFirstContainerId($data->rec->threadId) == $data->rec->containerId) {
-                            $rejArr['ret_url'] = array('doc_Folders', 'single', $data->rec->folderId);
-                        }
-                    }
-                }
-            }
 
             $data->toolbar->addBtn(
                 'Оттегляне',
@@ -806,10 +796,12 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->createdOn = dt::verbal2Mysql();
             }
         }
-        
+
         // Задаваме стойностите на полетата за последно модифициране
-        $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
-        $rec->modifiedOn = dt::verbal2Mysql();
+        if (!$rec->_notModified) {
+            $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
+            $rec->modifiedOn = dt::verbal2Mysql();
+        }
         
         if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
             if ($rec->id) {
@@ -1170,6 +1162,22 @@ class doc_DocumentPlg extends core_Plugin
             expect($id = Request::get('id', 'int'));
             
             expect($rec = $mvc->fetch($id), $id);
+
+            // След оттегляне, да редиректва към папката, ако е настроено и има такава възможност
+            if (Request::get('afterReject') && ($rec->state == 'rejected')) {
+                if (doc_Setup::get('OPEN_FOLDER_AFTER_REJECT') == 'yes') {
+                    // При оттегляне да редиректва към сингъла на папката, ако има права за там
+                    if ($rec->folderId && doc_Folders::haveRightFor('single', $rec->folderId)) {
+                        if ($rec->threadId) {
+                            if (doc_Threads::getFirstContainerId($rec->threadId) == $rec->containerId) {
+                                $res = new Redirect(array('doc_Folders', 'single', $rec->folderId));
+
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
             
             // Изтриваме нотификацията, ако има такава, свързани с този документ
             $url = array($mvc, 'single', 'id' => $id);
@@ -4286,23 +4294,25 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($rec) {
             $cu = Users::getCurrent();
-            
+
             // Задаваме стойностите на полетата за последно модифициране
-            $rec->modifiedBy = $cu ? $cu : 0;
-            $rec->modifiedOn = dt::verbal2Mysql();
-            
-            $mvc->save_($rec, 'modifiedOn, modifiedBy');
-            
-            if ($rec->containerId) {
-                $cRec = new stdClass();
-                $cRec->id = $rec->containerId;
-                $cRec->modifiedOn = $rec->modifiedOn;
-                $cRec->modifiedBy = $rec->modifiedBy;
-                
-                $containersInst = cls::get('doc_Containers');
-                $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+            if (!$rec->_notModified) {
+                $rec->modifiedBy = $cu ? $cu : 0;
+                $rec->modifiedOn = dt::verbal2Mysql();
+
+                $mvc->save_($rec, 'modifiedOn, modifiedBy');
+
+                if ($rec->containerId) {
+                    $cRec = new stdClass();
+                    $cRec->id = $rec->containerId;
+                    $cRec->modifiedOn = $rec->modifiedOn;
+                    $cRec->modifiedBy = $rec->modifiedBy;
+
+                    $containersInst = cls::get('doc_Containers');
+                    $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+                }
             }
-            
+
             if ($rec->threadId) {
                 doc_Threads::updateThread($rec->threadId);
             }

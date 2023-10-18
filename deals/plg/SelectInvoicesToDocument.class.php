@@ -24,7 +24,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     protected static function on_AfterDescription(core_Master &$mvc)
     {
         $mvc->FLD('fromContainerId', 'int', 'caption=Към,input=hidden,silent');
-        setIfNot($mvc->canSelectOnlyOneInvoice, true);
+        setIfNot($mvc->canSelectOnlyOneInvoice, false);
     }
 
 
