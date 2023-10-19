@@ -243,6 +243,11 @@ class cat_products_PriceDetails extends core_Manager
         $catalogPriceCanBeAdded = price_ListRules::haveRightFor('add', (object) array('productId' => $data->masterId, 'listId' => price_ListRules::PRICE_LIST_CATALOG));
         if (isset($catalogCost) || $catalogPriceCanBeAdded) {
             $type = tr('Политика "Каталог"');
+            $variationId = price_ListVariations::getActiveVariationId($catalogListId);
+            if($variationId){
+                $variationName = price_Lists::getTitleById($variationId);
+                $type = ht::createHint($type, "Към момента е активна вариация|*: {$variationName}", 'notice', false);
+            }
             $threadId = price_Lists::fetchField($catalogListId, 'threadId');
             
             if (doc_Threads::haveRightFor('single', $threadId)) {
