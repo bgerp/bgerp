@@ -209,7 +209,7 @@ class deals_Setup extends core_ProtoSetup
 
             // За всеки създател на активна сделка
             foreach ($dealArr as $userId => $createdThreads) {
-                if ($userId < 1) continue;
+                if ($userId < 1 || core_Users::isContractor($userId)) continue;
 
                 // Ако в някоя от нишките му така с последно създаден документ преди хоризонта, изпраща се нотификация
                 $intersect = array_intersect_key($threadsWithoutNewDocuments, $createdThreads);
