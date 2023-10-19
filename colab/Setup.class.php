@@ -213,9 +213,19 @@ class colab_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Colab за ПО', 'colab_plg_Document', 'planning_Tasks', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПО', 'colab_plg_VisibleForPartners', 'planning_Tasks', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на напомняния', 'colab_plg_VisibleForPartners', 'cal_Reminders', 'private');
+        $html .= $Plugins->installPlugin('Colab за ПП', 'colab_plg_Document', 'planning_DirectProductionNote', 'private');
+        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПП', 'colab_plg_VisibleForPartners', 'planning_DirectProductionNote', 'private');
+        $html .= $Plugins->installPlugin('Colab за ПВ', 'colab_plg_Document', 'planning_ConsumptionNotes', 'private');
+        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПВ', 'colab_plg_VisibleForPartners', 'planning_ConsumptionNotes', 'private');
+        $html .= $Plugins->installPlugin('Colab за ПВР', 'colab_plg_Document', 'planning_ReturnNotes', 'private');
+        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПВР', 'planning_ReturnNotes', 'planning_ConsumptionNotes', 'private');
 
         cls::get('cal_Tasks')->setupMvc();
         cls::get('cal_Reminders')->setupMvc();
+        cls::get('planning_Tasks')->setupMvc();
+        cls::get('planning_ReturnNotes')->setupMvc();
+        cls::get('planning_ConsumptionNotes')->setupMvc();
+        cls::get('planning_DirectProductionNote')->setupMvc();
 
         foreach ($defaultCreatableDocuments as $docName) {
             $Doc = cls::get($docName);
