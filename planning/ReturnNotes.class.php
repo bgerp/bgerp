@@ -200,6 +200,8 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         }
 
         $recs = array();
+        if(empty($id)) return array();
+
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
         $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
