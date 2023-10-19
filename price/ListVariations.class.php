@@ -231,7 +231,7 @@ class price_ListVariations extends core_Detail
         foreach ($data->rows as $id => &$row){
             if(array_key_exists($id, $activeVariations)){
                 $row->ROW_ATTR['class'] .= ' state-active';
-                $row->variationId = ht::createHint($row->variationId, 'Активна е към момента', 'notice', false);
+                $row->variationId = ht::createHint($row->variationId, 'Активна е към момента');
             } else {
                 $row->ROW_ATTR['class'] .= ' state-closed';
             }
