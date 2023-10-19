@@ -220,4 +220,21 @@ class price_ListVariations extends core_Detail
 
         return $res;
     }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $activeVariations = static::getActiveVariations($data->masterId);
+        foreach ($data->rows as $id => &$row){
+            if(array_key_exists($id, $activeVariations)){
+                $row->ROW_ATTR['class'] .= ' state-active';
+                $row->variationId = ht::createHint($row->variationId, 'Активна е към момента', 'notice', false);
+            } else {
+                $row->ROW_ATTR['class'] .= ' state-closed';
+            }
+        }
+    }
 }
