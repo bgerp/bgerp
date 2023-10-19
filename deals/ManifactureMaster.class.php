@@ -280,9 +280,6 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        if(isset($data->form->rec->originId)){
-            $data->form->toolbar->removeBtn('btnNewThread');
-        }
         $data->form->toolbar->setBtnOrder('btnPending', 10);
     }
 
