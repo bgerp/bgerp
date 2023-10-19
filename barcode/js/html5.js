@@ -19,13 +19,13 @@ function barcodeActions() {
 
             // Ако има Front/back в името на камерите, ги записваме F1,F2,B1,B2 .. или с пореден номер
            if (camera.label.indexOf("front") != -1 ) {
-               cameraButton.className = "f" + frontCounter;
+               cameraButton.className = "front";
                cameraButton.textContent = "F" + frontCounter++;
            } else if(camera.label.indexOf("back") != -1 || camera.label.indexOf("rare") != -1) {
-               cameraButton.className = "b" + + backCounter;
+               cameraButton.className = "back";
                cameraButton.textContent = "B" + backCounter++;
            } else {
-               cameraButton.className = "device" + index + 1;
+               cameraButton.className = "device";
                cameraButton.textContent = index + 1;
            }
 
@@ -46,8 +46,8 @@ function barcodeActions() {
 
         });
 
-        if( $('.cameraSource.active').length == 0 &&  $('.cameraSource.b1').length == 1) {
-            $('.cameraSource.b1').click();
+        if( $('.cameraSource.active').length == 0 &&  $('.cameraSource.back').length) {
+            $('.cameraSource.back').last().click();
         } else {
             $('.cameraSource').first().click();
         }
