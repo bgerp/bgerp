@@ -334,4 +334,21 @@ class planning_ReturnNotes extends deals_ManifactureMaster
             }
         }
     }
+
+
+    /**
+     * Може ли документа да се добавя като свързан документ към оридижина си
+     */
+    public static function canAddDocumentToOriginAsLink_($rec)
+    {
+        if(isset($rec->originId)){
+            // Ако е към оридижин и той е в друга нишка - да се добави като свързан документ
+            $origin = doc_Containers::getDocument($rec->originId);
+            $originThreadId = $origin->fetchField('threadId');
+
+            if($originThreadId != $rec->threadId) return true;
+        }
+
+        return false;
+    }
 }
