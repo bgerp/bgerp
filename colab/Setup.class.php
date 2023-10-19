@@ -210,6 +210,7 @@ class colab_Setup extends core_ProtoSetup
         $defaultCreatableDocuments = arr::make(self::$defaultCreatableDocuments);
         $html .= $Plugins->installPlugin('Colab за справки', 'colab_plg_Document', 'frame2_Reports', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на справки', 'colab_plg_VisibleForPartners', 'frame2_Reports', 'private');
+
         $html .= $Plugins->installPlugin('Colab за ПО', 'colab_plg_Document', 'planning_Tasks', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПО', 'colab_plg_VisibleForPartners', 'planning_Tasks', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на напомняния', 'colab_plg_VisibleForPartners', 'cal_Reminders', 'private');
@@ -218,7 +219,7 @@ class colab_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Colab за ПВ', 'colab_plg_Document', 'planning_ConsumptionNotes', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПВ', 'colab_plg_VisibleForPartners', 'planning_ConsumptionNotes', 'private');
         $html .= $Plugins->installPlugin('Colab за ПВР', 'colab_plg_Document', 'planning_ReturnNotes', 'private');
-        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПВР', 'planning_ReturnNotes', 'planning_ConsumptionNotes', 'private');
+        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПВР', 'colab_plg_VisibleForPartners', 'planning_ConsumptionNotes', 'private');
 
         cls::get('cal_Tasks')->setupMvc();
         cls::get('cal_Reminders')->setupMvc();
