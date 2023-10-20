@@ -102,38 +102,25 @@ class pos_SellableProductsCache extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('sync')) {
-            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
+            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'warning=Наистина ли искате да синхронизирате продаваемите артикули в POS-а,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
         }
     }
-    
-    
-    /**
-     * Екшън за ръчно обновяване на кешираните артикули
-     */
-    function act_sync()
-    {
-        $this->requireRightFor('sync');
-        $this->cron_CacheSellablePosProducts();
-        
-        followRetUrl();
-    }
-    
-    
-    /**
-     * Крон процес обновяващ продаваемите в ПОС-а артикули
-     */
-    public function cron_CacheSellablePosProducts()
-    {
-        if(!pos_Points::count()) {
-            $this->logInfo("Няма налични точки на продажба");
-            return;
-        }
 
-        // Ако има промяна в ценовите политики - ще се преизчислява кеша
+
+    /**
+     * Синхронизиране на продаваемите пос артикули
+     *
+     * @param bool $force - дали да се форсира преизчисляването
+     * @return string
+     */
+    private function sync($force = false)
+    {
+        if(!pos_Points::count()) return "Няма налични точки на продажба";
+
+        // Ако има промяна в ценовите политики - ще се синхронизира (освен ако не се форсира синхронизирането)
         $datetime = dt::now();
-        if(!price_Lists::areListUpdated($datetime)) {
-            $this->logInfo("Няма промяна в ценовите политики");
-            return;
+        if(!$force){
+            if(!price_Lists::areListUpdated($datetime)) return "Няма промяна в ценовите политики";
         }
 
         // Кои ценови политики участват в ПОС-а
@@ -177,17 +164,39 @@ class pos_SellableProductsCache extends core_Master
         if($iCount){
             $this->saveArray($res['insert']);
         }
-        
+
         if($uCount){
             $this->saveArray($res['update'], 'id,string,searchKeywords');
         }
-        
+
         if($dCount){
             foreach ($res['delete'] as $id){
                 $this->delete($id);
             }
         }
 
-        $this->logInfo("Обновени продаваеми: I:{$iCount}/U:{$uCount}/D:{$dCount}");
+        return "Резултат|*: Добавени:{$iCount}, Обновени:{$uCount}, Изтрити:{$dCount}";
+    }
+
+
+    /**
+     * Крон процес обновяващ продаваемите в ПОС-а артикули
+     */
+    public function cron_CacheSellablePosProducts()
+    {
+        $res = $this->sync();
+        $this->logDebug($res);
+    }
+
+
+    /**
+     * Екшън за ръчно обновяване на кешираните артикули
+     */
+    function act_sync()
+    {
+        $this->requireRightFor('sync');
+        $res = $this->sync(true);
+
+        followRetUrl(null, $res);
     }
 }
