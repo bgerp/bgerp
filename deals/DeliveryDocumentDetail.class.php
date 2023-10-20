@@ -59,7 +59,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
         // Ако ще се позволява въвеждането на цена за к-то - полето за цена става varchar
         if($mvc->allowInputPriceForQuantity){
-            $data->form->setFieldType('packPrice', 'varchar');
+            $data->form->setFieldType('packPrice', 'varchar(nullIfEmpty)');
             $data->form->setField('packPrice', 'class=w25');
         }
 
@@ -144,10 +144,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             }
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-            
+
             if (!isset($rec->packPrice)) {
                 $autoPrice = true;
-                
+
                 // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
                 $origin = $mvc->Master->getOrigin($masterRec);
                 if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {

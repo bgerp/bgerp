@@ -216,7 +216,7 @@ abstract class deals_DealDetail extends doc_Detail
 
         // Ако ще се позволява въвеждането на цена за к-то - полето за цена става varchar
         if($mvc->allowInputPriceForQuantity){
-            $form->setFieldType('packPrice', 'varchar');
+            $form->setFieldType('packPrice', 'varchar(nullIfEmpty)');
             $form->setField('packPrice', 'class=w25');
         }
 
