@@ -55,7 +55,7 @@ class pos_SellableProductsCache extends core_Master
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $this->FLD('string', 'varchar', 'caption=Код');
         $this->FLD('searchKeywords', 'text', 'caption=Ключови думи');
-        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика');
         
         $this->setDbIndex('productId,priceListId');
         $this->setDbIndex('priceListId');
@@ -149,7 +149,7 @@ class pos_SellableProductsCache extends core_Master
         $pQuery = cat_Products::getQuery();
         $pQuery->where("#state = 'active' AND #isPublic = 'yes'");
         $pQuery->show('name,nameEn,code,measureId,searchKeywords');
-        
+
         $count = $pQuery->count();
         core_App::setTimeLimit($count * 0.5, false, 100);
 
@@ -164,10 +164,12 @@ class pos_SellableProductsCache extends core_Master
                 }
             }
         }
-        
+
         // Синхронизиране на таблицата
         $exRecs = self::getQuery()->fetchAll();
+
         $res = arr::syncArrays($toSave, $exRecs, 'productId,priceListId', 'productId,string,searchKeywords,priceListId');
+
         $iCount = countR($res['insert']);
         $uCount = countR($res['update']);
         $dCount = countR($res['delete']);
