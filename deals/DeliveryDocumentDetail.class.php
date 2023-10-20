@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -39,6 +39,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
 
         $mvc->setDbIndex('productId,packagingId');
+        setIfNot($mvc->allowInputPriceForQuantity, false);
     }
 
     
@@ -56,7 +57,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-        
+        // Ако ще се позволява въвеждането на цена за к-то - полето за цена става varchar
+        if($mvc->allowInputPriceForQuantity){
+            $data->form->setFieldType('packPrice', 'varchar');
+            $data->form->setField('packPrice', 'class=w25');
+        }
+
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
         }
@@ -188,9 +194,17 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 }
             } else {
                 $autoPrice = false;
-                
+                $error = $price4Quantity = null;
+                if($mvc->allowInputPriceForQuantity){
+                    $price4Quantity = deals_Helper::isPrice4Quantity($rec->packPrice, $rec->quantity, $error);
+                    if(!empty($error)){
+                        $form->setError('packPrice', $error);
+                        return;
+                    }
+                }
+
                 // Изчисляване цената за единица продукт в осн. мярка
-                $rec->price = $rec->packPrice / $rec->quantityInPack;
+                $rec->price = $price4Quantity ?? ($rec->packPrice / $rec->quantityInPack);
                 
                 if (!$form->gotErrors() || ($form->gotErrors() && Request::get('Ignore'))) {
                     $rec->packPrice = deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);

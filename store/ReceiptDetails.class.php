@@ -116,8 +116,14 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      * Да се показва ли кода като в отделна колона
      */
     public $showCodeColumn = true;
-    
-    
+
+
+    /**
+     * Дали се позволява да се въвежда цена за к-то
+     */
+    public $allowInputPriceForQuantity = true;
+
+
     /**
      * Полета, които при клониране да не са попълнени
      *
