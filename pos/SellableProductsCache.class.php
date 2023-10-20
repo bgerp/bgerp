@@ -55,7 +55,7 @@ class pos_SellableProductsCache extends core_Master
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $this->FLD('string', 'varchar', 'caption=Код');
         $this->FLD('searchKeywords', 'text', 'caption=Ключови думи');
-        $this->FLD('priceListId', 'key(mvc=cat_Products,select=name)', 'caption=Ценова политика');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика');
         
         $this->setDbIndex('productId,priceListId');
         $this->setDbIndex('priceListId');
@@ -81,11 +81,18 @@ class pos_SellableProductsCache extends core_Master
     /**
      * Подготовка на филтър формата
      */
-    public static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'search,priceListId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+
+        if($filter = $data->listFilter->rec){
+            if(isset($filter->priceListId)){
+                $data->query->where("#priceListId = {$filter->priceListId}");
+            }
+        }
     }
     
     
