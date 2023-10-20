@@ -110,7 +110,12 @@
             <td>[#connectedClients#]</td>
         </tr>
         <!--ET_END connectedClients-->
-
+        <!--ET_BEGIN activeVariationId-->
+        <tr class="state-active">
+            <td class="title-style" style='vertical-align:top'>|Активна вариация|*</td>
+            <td>[#activeVariationId#]</td>
+        </tr>
+        <!--ET_END activeVariationId-->
         <!--ET_BEGIN variationsOf-->
         <tr>
             <td class="title-style" style='vertical-align:top'>|Вариация на|*</td>
@@ -118,8 +123,4 @@
         </tr>
         <!--ET_END variationsOf-->
     </table>
-
-<b>|Вариации|*</b>
-[#price_ListVariations#]
-<hr style="margin-bottom:15px">
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

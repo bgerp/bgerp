@@ -227,6 +227,7 @@ class price_ListVariations extends core_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        $data->TabCaption = tr('Вариация');
         $activeVariations = static::getActiveVariations($data->masterId);
         foreach ($data->rows as $id => &$row){
             if(array_key_exists($id, $activeVariations)){
@@ -236,5 +237,19 @@ class price_ListVariations extends core_Detail
                 $row->ROW_ATTR['class'] .= ' state-closed';
             }
         }
+    }
+
+
+    /**
+     * Подготовка на Детайлите
+     */
+    public function prepareDetail_($data)
+    {
+        $res = parent::prepareDetail_($data);
+        $count = countR($data->recs);
+        $data->TabCaption = "Вариации|* ({$count})";
+        $data->Tab = 'top';
+
+        return $res;
     }
 }

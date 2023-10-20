@@ -835,6 +835,9 @@ class price_ListRules extends core_Detail
      */
     public function prepareDetail_($data)
     {
+        $data->TabCaption = 'Правила';
+        $data->Tab = 'top';
+
         setIfNot($data->masterKey, $this->masterKey);
         setIfNot($data->masterMvc, $this->Master);
         
