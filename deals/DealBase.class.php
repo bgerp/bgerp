@@ -491,12 +491,13 @@ abstract class deals_DealBase extends core_Master
                 }
 
                 // Ако поне една от сделките е РО, то и обединяващата сделка ще е ПО
+                $combinedDealItemId = null;
                 if($haveDealExpenseItem){
                     if (!acc_Items::isItemInList($this, $rec->id, 'costObjects')) {
                         acc_Items::force($this->getClassId(), $rec->id, $listId);
                     }
+                    $combinedDealItemId = acc_Items::fetchItem($this, $rec->id)->id;
                 }
-                $combinedDealItemId = acc_Items::fetchItem($this, $rec->id)->id;
 
                 core_App::setTimeLimit(2000);
                 $CloseDoc = cls::get($this->closeDealDoc);
@@ -544,6 +545,11 @@ abstract class deals_DealBase extends core_Master
                 // Разпределените разходи към приключените сделки се насочват към новата сделка
                 foreach ($allocatedExpenses as $newExpense){
                     acc_CostAllocations::save($newExpense);
+                }
+
+                // Форсиране на съмърито, ако сделката е форсирана като РО
+                if($haveDealExpenseItem && $combinedDealItemId){
+                    doc_ExpensesSummary::updateSummary($rec->containerId, $combinedDealItemId, true);
                 }
 
                 // Записваме, че потребителя е разглеждал този списък
