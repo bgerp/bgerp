@@ -22,12 +22,6 @@ class colab_Search extends doc_Search
 
 
     /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'title=Заглавие,author=Автор,partnerDocLast=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
-
-
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'title';
