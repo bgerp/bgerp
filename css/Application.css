@@ -4995,8 +4995,7 @@ table .eshop-btn {
     font-size: 0.95em;
     padding: 3px 0;
     padding-left: 22px !important;
-    color: #333333 !important;
-    background-color: white; }
+    color: #333333 !important; }
     .rowtoolsGroup a:hover,
     .rowtoolsGroup span:not(.highlight):hover {
       color: black !important;
