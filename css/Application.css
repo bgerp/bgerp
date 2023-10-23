@@ -4955,6 +4955,9 @@ table .eshop-btn {
 /*
  * стилове за автор в документ
  */
+.hiddenBtn {
+  display: none !important; }
+
 /*
  * стилове за custom таблица
  */

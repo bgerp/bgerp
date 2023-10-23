@@ -10,6 +10,9 @@ function barcodeActions() {
 
     // Вземаме всички камери с Html5Qrcode.getCameras()
     Html5Qrcode.getCameras().then(cameras => {
+        const scanBtn = document.getElementById("scanBtn");
+        scanBtn.classList.remove("hiddenBtn");
+
         var frontCounter = 1;
         var backCounter = 1;
         // Добавяме бутони за всяка камера

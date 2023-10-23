@@ -66,7 +66,7 @@ class barcode_Search extends core_Manager
         if (!$useHtml5Camera) {
             $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод');
         } else {
-            $form->toolbar->addFnBtn('Сканирай', "openCamera();", 'id=scanBtn', "ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод");
+            $form->toolbar->addFnBtn('Сканирай', "openCamera();", 'id=scanBtn', "ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод, class=hiddenBtn");
         }
         
         $form->formAttr['id'] = 'barcodeForm';
