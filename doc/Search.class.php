@@ -110,7 +110,23 @@ class doc_Search extends core_Manager
         
         $data->listFilter->setDefault('author', 'all_users');
 
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, tags, state, fromDate, toDate';
+        $colabIsInstalled = core_Packs::isInstalled('colab');
+        if(Mode::is('colabSearch') && $colabIsInstalled){
+            $data->listFilter->class = 'simpleForm';
+            $data->listFilter->showFields = 'search, docClass, fromDate, toDate';
+
+            // Ако се филтрира от партньор да се виждат само видимите от него документи в посочените папки
+            $docClassesOption = array();
+            $cloneQuery = clone $data->query;
+            $visibleColabDocClasses = arr::extractValuesFromArray($cloneQuery->fetchAll(), 'docClass');
+            foreach ($visibleColabDocClasses as $visibleDocClass){
+                $docClassesOption[$visibleDocClass] = core_Classes::getTitleById($visibleDocClass);
+            }
+            $data->listFilter->setOptions('docClass', $docClassesOption);
+        } else {
+            $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, tags, state, fromDate, toDate';
+        }
+
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         $tagsArr = tags_Tags::getTagsOptions();
@@ -133,8 +149,8 @@ class doc_Search extends core_Manager
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate) ||
-        $filterRec->author != 'all_users';
-        
+        $filterRec->author != 'all_users' || (Mode::is('colabSearch') && $colabIsInstalled);
+
         // Флаг, указващ дали се филтрира
         $mvc->isFiltered = $isFiltered;
         
@@ -274,7 +290,7 @@ class doc_Search extends core_Manager
             
             // Ако е избран автор или не са избрани всичките
             if (!empty($filterRec->author) && $filterRec->author != 'all_users' && (strpos($filterRec->author, '|-1|') === false)) {
-                
+
                 // Масив с всички избрани автори
                 $authorArr = keylist::toArray($filterRec->author);
                 
@@ -311,7 +327,7 @@ class doc_Search extends core_Manager
             $currUserId = core_Users::getCurrent();
             
             if ($filterRec->withMe && ($currUserId > 0)) {
-                
+
                 // Ако ще се показват само харесаните от текущия потребител
                 if ($filterRec->withMe == 'liked_from_me') {
                     // Всички харесвания
@@ -346,15 +362,17 @@ class doc_Search extends core_Manager
                     $data->query->where(array('#tags IN (' . implode(',', $pTags) . ') AND #tagsCreatedBy = "[#1#]"', core_Users::getCurrent()), $or);
                 }
             }
-            
-            if ($restrictAccess) {
+
+            // Ако ще се търси по достъпа, но не се прави партньорско търсене да се ограничи допълнително заявката
+            if ($restrictAccess && !Mode::is('colabSearch')) {
+
                 // Ограничаване на заявката само до достъпните нишки
                 doc_Threads::restrictAccess($data->query, $currUserId);
                 
                 // Създател
                 $data->query->orWhere("#createdBy = '{$currUserId}'");
             }
-            
+
             // Експеримент за оптимизиране на бързодействието
             $data->query->orderBy('#modifiedOn=DESC');
             
