@@ -416,7 +416,6 @@ abstract class deals_DealBase extends core_Master
                 core_App::setTimeLimit(2000);
 
                 if(countR($threads)){
-                    core_Debug::startTimer('REJECT_RATE_DIFF');
 
                     // Намират се документите за КР в сделките, които ще се оттеглят
                     $notifiedItems = array();
@@ -441,12 +440,9 @@ abstract class deals_DealBase extends core_Master
                         acc_Items::notifyObject($itemRecToNotify);
                     }
                     cls::get('acc_Items')->flushTouched();
-                    core_Debug::stopTimer('REJECT_RATE_DIFF');
-                    core_Debug::log("CLOSE: REJECT DIFF " . round(core_Debug::$timers["REJECT_RATE_DIFF"]->workingTime, 6));
                 }
 
                 if($formRec->_recalRate){
-                    core_Debug::startTimer('RECALC_RATE_DIFF');
                     $notifiedItems2 = array();
                     $recalcRates = $deals + array($rec->id => $rec);
                     foreach ($recalcRates as $recalcDealId){
@@ -473,8 +469,6 @@ abstract class deals_DealBase extends core_Master
                         acc_Items::notifyObject($itemRecToNotify);
                     }
                     cls::get('acc_Items')->flushTouched();
-                    core_Debug::stopTimer('RECALC_RATE_DIFF');
-                    core_Debug::log("CLOSE: RECALC DIFF " . round(core_Debug::$timers["RECALC_RATE_DIFF"]->workingTime, 6));
                 }
 
                 $expenseClosedDeals = $allocatedExpenses = array();
@@ -486,10 +480,21 @@ abstract class deals_DealBase extends core_Master
                 $dealRec->closedDocuments = keylist::merge($dealRec->closedDocuments, $formRec->closeWith);
                 $this->save($dealRec);
 
+                // Проверка дали някоя от сделките, които ще се обединяват е РО
+                $haveDealExpenseItem = false;
                 $listId = acc_Lists::fetchBySystemId('costObjects')->id;
-                if (!acc_Items::isItemInList($this, $rec->id, 'costObjects')) {
-                    $listId = acc_Lists::fetchBySystemId('costObjects')->id;
-                    acc_Items::force($this->getClassId(), $rec->id, $listId);
+                foreach ($deals as $dealId1) {
+                    if (acc_Items::isItemInList($this, $dealId1, 'costObjects')) {
+                        $haveDealExpenseItem = true;
+                        break;
+                    }
+                }
+
+                // Ако поне една от сделките е РО, то и обединяващата сделка ще е ПО
+                if($haveDealExpenseItem){
+                    if (!acc_Items::isItemInList($this, $rec->id, 'costObjects')) {
+                        acc_Items::force($this->getClassId(), $rec->id, $listId);
+                    }
                 }
                 $combinedDealItemId = acc_Items::fetchItem($this, $rec->id)->id;
 
@@ -515,7 +520,6 @@ abstract class deals_DealBase extends core_Master
                     }
 
                     // Създаване на приключващ документ-чернова
-                    core_Debug::startTimer('CONTO_CLOSE_DOC');
                     $dRec = $this->fetch($dealId);
                     $clId = $CloseDoc->create($this->className, $dRec, $id);
 
@@ -533,14 +537,9 @@ abstract class deals_DealBase extends core_Master
                     }
 
                     $this->logWrite('Приключено с друга сделка', $dealId);
-                    core_Debug::stopTimer('CONTO_CLOSE_DOC');
                 }
-                core_Debug::log("CLOSE: CONTO CLOSE_DOC " . round(core_Debug::$timers["CONTO_CLOSE_DOC"]->workingTime, 6));
 
-                core_Debug::startTimer('AFTER_ACT');
                 $this->invoke('AfterActivation', array($dealRec));
-                core_Debug::stopTimer('AFTER_ACT');
-                core_Debug::log("CLOSE: AFTER_ACT " . round(core_Debug::$timers["AFTER_ACT"]->workingTime, 6));
 
                 // Разпределените разходи към приключените сделки се насочват към новата сделка
                 foreach ($allocatedExpenses as $newExpense){
