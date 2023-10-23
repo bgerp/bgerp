@@ -629,7 +629,6 @@ class rack_Pallets extends core_Manager
     public static function increment($productId, $storeId, $position, $quantity, $batch)
     {
         // Ако няма палет се създава нов
-        $batchDef = core_Packs::isInstalled('batch') ? batch_Defs::getBatchDef($productId) : null;
         $rQuery = static::getQuery();
         $rQuery->where(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId}", $position));
         if(core_Packs::isInstalled('batch')){
@@ -639,33 +638,31 @@ class rack_Pallets extends core_Manager
 
         $rQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
         $rQuery->orderBy('order');
+        $rQuery->orderBy('createdOn', 'DESC');
+        $rQuery->orderBy('id', 'DESC');
+        $rQuery->limit(1);
         $rec = $rQuery->fetch();
 
         if(!$rec) {
             $samePosPallets = static::canHaveMultipleOnOnePosition($storeId);
-
             if(!$samePosPallets) {
                 $rQuery2 = static::getQuery();
-                $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId}", $position));
+                $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
                 if(core_Packs::isInstalled('batch')){
                     $rQuery2->XPR('batchCalc', 'varchar', "COALESCE(#batch, '')");
                     $rQuery2->where(array("#batchCalc = '[#1#]'", $batch));
                 }
-
                 $rQuery2->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
                 $rQuery2->orderBy('order');
+                $rQuery2->orderBy('createdOn', 'DESC');
+                $rQuery2->orderBy('id', 'DESC');
+                $rQuery2->limit(1);
                 $rec = $rQuery2->fetch();
-
-                $str = is_object($rec) ? "FOUND2 ($rec->id)" : "NOT FOUND";
-                static::logDebug("{$str} : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
             }
-        } else {
-            static::logDebug("FOUND1 ($rec->id) : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
         }
       
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position, $batch);
-            static::logDebug("NEW ($rec->id) : {$productId}/{$storeId}/{$position}/{$batch}/Q:{$quantity}");
         } else {
 
             // Ако има променя му се количеството
@@ -675,7 +672,6 @@ class rack_Pallets extends core_Manager
             $incrementQuantity = $quantity;
             $rec->quantity += $incrementQuantity;
             $rec->quantity = round($rec->quantity, 5);
-            
             self::save($rec, 'position,quantity,state,closedOn');
         }
         

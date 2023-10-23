@@ -70,7 +70,18 @@
                <td>[#saleState#]</td>
             </tr>
             <!--ET_END saleState-->
-            
+             <!--ET_BEGIN detailActions-->
+             <tr>
+                 <td class="title-style" style='width:150px'>|Операции с артикулите|*:</td>
+                 <td>[#detailActions#]</td>
+             </tr>
+             <!--ET_END detailActions-->
+             <!--ET_BEGIN haveProductsWithPrice-->
+             <tr>
+                 <td class="title-style" style='width:150px'>|Има ли артикули с цени|*:</td>
+                 <td>[#haveProductsWithPrice#]</td>
+             </tr>
+             <!--ET_END haveProductsWithPrice-->
             <tr>
                <td class="title-style" style='width:150px'>|Създаване|*:</td>
                <td>[#createdOn#] |от|* [#createdBy#]</td>

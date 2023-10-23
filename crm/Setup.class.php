@@ -200,7 +200,7 @@ class crm_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg,png', '3MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg,png,heic', '3MB', 'user', 'every_one');
         
         // Кофа за снимки
         $html .= $Bucket->createBucket('location_Images', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');

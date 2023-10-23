@@ -69,7 +69,8 @@ class acc_plg_RejectContoDocuments extends core_Plugin
             
             // Ако има затворени пера, показваме съобщение и връщаме FALSE
             if (countR($closedItems)) {
-                $msg = tr('Документът не може да бъде оттеглен/възстановен докато перата:');
+
+                $msg = tr("|*#{$mvc->getHandle($id)} |не може да бъде оттеглен/възстановен докато перата|*:");
                 
                 foreach ($closedItems as $itemId) {
                     $msg .= "'" . acc_Items::getVerbal($itemId, 'title') . "', ";
@@ -87,7 +88,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
             if (countR($mvc->usedIn)) {
                 foreach ($mvc->usedIn as $itemId => $used) {
                     $itemName = acc_Items::getVerbal($itemId, 'title');
-                    $msg = tr("|Документа |* \"{$itemName}\" |не може да бъде оттеглен/възстановен докато е контиран от следните документи извън нишката|*:");
+                    $msg = tr("|Документът|* \"{$itemName}\" |не може да бъде оттеглен/възстановен докато е контиран от следните документи извън нишката|*:");
                     
                     foreach ($used as $doc) {
                         $msg .= '#' . $doc . ', ';

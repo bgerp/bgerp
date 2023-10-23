@@ -84,7 +84,7 @@ class social_Followers extends core_Master
         $query = static::getQuery();
         $query->orderBy('#order');
         $domainId = cms_Domains::getPublicDomain('id');
-        $socialNetworks = $query->fetchAll("#state = 'active' AND #domainId = {$domainId}");
+        $socialNetworks = $query->fetchAll("#state = 'active' AND #domainId = '{$domainId}'");
         
         // За всеки един запис от базата
         foreach ($socialNetworks as $socialNetwork) {

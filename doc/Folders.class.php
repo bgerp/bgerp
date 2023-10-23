@@ -2282,16 +2282,22 @@ class doc_Folders extends core_Master
      *
      * @param mixed  $folderArr - списък с папки
      * @param string $inline    - на един ред разделени с `,` или да се върнат като масив
+     * @param boolean $showTypeInName - да се показва ли типа на папката до името ѝ
      *
      * @return array|string - линковете към папките
      */
-    public static function getVerbalLinks($folderArr, $inline = false)
+    public static function getVerbalLinks($folderArr, $inline = false, $showTypeInName = false)
     {
         $res = array();
         $folderArr = (is_array($folderArr)) ? $folderArr : keylist::toArray($folderArr);
         
         foreach ($folderArr  as $folderId) {
-            $res[$folderId] = doc_Folders::recToVerbal(doc_Folders::fetch($folderId))->title;
+            $folderRow = doc_Folders::recToVerbal(doc_Folders::fetch($folderId));
+            if($showTypeInName){
+                $res[$folderId] = "{$folderRow->title} ({$folderRow->type})";
+            } else {
+                $res[$folderId] = $folderRow->title;
+            }
         }
         
         $res = ($inline === true) ? implode(', ', $res) : $res;

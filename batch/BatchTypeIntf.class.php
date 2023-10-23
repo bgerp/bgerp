@@ -72,11 +72,13 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Проверява дали стойността е невалидна
      *
+     * @param mixed $class
+     * @param int $objectId
      * @return core_Type - инстанция на тип
      */
-    public function getBatchClassType()
+    public function getBatchClassType($class = null, $objectId = null)
     {
-        return $this->class->getBatchClassType();
+        return $this->class->getBatchClassType($class, $objectId);
     }
     
     

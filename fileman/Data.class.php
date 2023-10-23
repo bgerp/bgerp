@@ -116,8 +116,13 @@ class fileman_Data extends core_Manager
         }
         
         $lastUse = is_null($lastUse) ? dt::now() : $lastUse;
-        
-        if (!$rec->lastUse || ($lastUse > $rec->lastUse)) {
+
+        if ($lastUse > dt::now()) {
+            wp('Разминаване в подаденото време', $lastUse);
+            $lastUse = dt::now();
+        }
+
+        if (!$rec->lastUse || ($lastUse > $rec->lastUse) || ($rec->lastUse > dt::now())) {
             $rec->lastUse = $lastUse;
             
             self::save($rec, 'lastUse');

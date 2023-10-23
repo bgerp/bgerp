@@ -117,14 +117,6 @@ abstract class bank_Document extends deals_PaymentDocument
 
 
     /**
-     * Дали към документа може да се отнася повече от една ф-ра
-     *
-     * @see deals_InvoicesToDocuments
-     */
-    public $canSelectOnlyOneInvoice = false;
-
-
-    /**
      * До потребители с кои роли може да се споделя документа
      *
      * @var string

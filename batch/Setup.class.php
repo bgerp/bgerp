@@ -77,7 +77,8 @@ class batch_Setup extends core_ProtoSetup
         'batch_CategoryDefinitions',
         'batch_Features',
         'batch_Templates',
-        'batch_BatchesInDocuments'
+        'batch_BatchesInDocuments',
+        'batch_ManufacturersPerProducts',
     );
     
     
@@ -104,6 +105,7 @@ class batch_Setup extends core_ProtoSetup
                           batch_definitions_StringAndCodeAndDate,
                           batch_definitions_Digits,
                           batch_definitions_Job,
+                          batch_definitions_StringManufacturerDate,
                           batch_definitions_DealReff';
     
     

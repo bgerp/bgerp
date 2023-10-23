@@ -37,7 +37,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,change_Plugin,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
     /**
@@ -56,8 +56,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,consumption,store';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -144,16 +144,23 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn,valior,deadline,modifiedOn';
-    
-    
+
+
+    /**
+     * Дали има полета за получил и предал
+     */
+    public $haveSenderAndReceiverNames = true;
+
+
     /**
      * Описание на модела
      */
     public function description()
     {
         parent::setDocumentFields($this);
-        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
-        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане,notNull,default=yes,maxRadio=2,before=note');
+        $this->FLD('description', 'richtext(bucket=Notes,rows=2)', 'caption=Извършени дейности,after=departmentId,input=none');
+        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,after=receiver');
+        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Детайлно влагане,notNull,default=yes,maxRadio=2');
         $this->setField('storeId', 'placeholder=Само услуги');
     }
     
@@ -177,6 +184,20 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                 $form->setField('storeId', 'mandatory');
             }
         }
+
+        if(empty($rec->id)){
+            $form->setDefault('sender', core_Users::getCurrent('names'));
+        }
+
+        if(isset($rec->originId)){
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('cal_Tasks')){
+                $form->setField('description', "input,mandatory,changable");
+                $form->setField('sender', 'caption=Извършил');
+                $form->setField('receiver', 'caption=Приел ремонта');
+                $form->setField('departmentId', 'caption=Ц-р на дейност,after=deadline');
+            }
+        }
     }
     
     
@@ -198,6 +219,18 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 
         if(empty($rec->storeId)){
             $row->storeId = ht::createHint("<i style='color:blue'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
+        }
+
+        $row->protocolTitle = tr("протокол за влагане в производство");
+        $row->receiverCaption = tr("Получил");
+        $row->senderCaption = tr("Предал");
+        if($rec->originId){
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('cal_Tasks')){
+                $row->protocolTitle = tr("Протокол за извършен ремонт");
+                $row->receiverCaption = tr("Приел ремонта");
+                $row->senderCaption = tr("Извършил ремонта");
+            }
         }
     }
     
@@ -255,6 +288,16 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
 
             return true;
+        }
+
+        // Може да добавяме или към нишка в която има сигнал
+        $originId = Request::get('originId', 'int');
+        if(isset($originId)){
+            $taskSupportClassId = support_TaskType::getClassId();
+            if (cal_Tasks::fetchField("#containerId = {$originId} AND #driverClass = {$taskSupportClassId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
+
+                return true;
+            }
         }
 
         return false;

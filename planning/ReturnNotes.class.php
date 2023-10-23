@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, deals_plg_SaveValiorOnActivation, store_plg_StockPlanning, store_plg_Request, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Sorting,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Sorting,change_Plugin,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -50,7 +50,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
-     * @see store_StockPlanning
      */
     public $stockPlanningDirection = 'in';
 
@@ -147,8 +146,14 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,deadline,modifiedOn';
-    
-    
+
+
+    /**
+     * Дали има полета за получил и предал
+     */
+    public $haveSenderAndReceiverNames = true;
+
+
     /**
      * Описание на модела
      */
@@ -244,6 +249,10 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
             $form->setDefault('departmentId', $folderCover->that);
+        }
+
+        if(empty($rec->id)){
+            $form->setDefault('receiver', core_Users::getCurrent('names'));
         }
     }
     

@@ -36,7 +36,7 @@
         <div class="centerContent">
         <!--ET_BEGIN USERLINK-->
         <div class="logoutBlock">
-            [#USERLINK#] <span id='cart-external-status'>[#USERCART#]</span> [#LOGOUT#]
+            <!--ET_BEGIN USER_NOTIFICATIONS--><span id='notificationCountStatus'>[#USER_NOTIFICATIONS#]</span><!--ET_END USER_NOTIFICATIONS--> [#USERLINK#] <span id='cart-external-status'>[#USERCART#]</span> [#LOGOUT#]
         </div>
         <!--ET_END USERLINK-->
         [#CMS_LAYOUT#]

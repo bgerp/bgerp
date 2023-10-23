@@ -306,7 +306,7 @@ class cal_Tasks extends embed_Manager
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
         $this->FLD('parentId', 'key2(mvc=cal_Tasks,select=title,allowEmpty)', 'caption=Подзадача на,width=100%,changable,silent,remember');
-        $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, refreshForm, silent, after=typeId, changable');
+        $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, removeAndRefreshForm, silent, after=typeId, changable');
 
         $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
 
@@ -928,7 +928,7 @@ class cal_Tasks extends embed_Manager
         if ($mvc->haveRightFor('add', (object)array('parentId' => $data->rec->id))) {
             $url = array($mvc, 'add', 'parentId' => $data->rec->id, 'folderId' => $data->rec->folderId, 'ret_url' => true);
             $parentTitle = $mvc->getRecTitle($data->rec, false);
-            $data->toolbar->addBtn('Подзадача||Subtask', $url, "ef_icon=img/16/add-sub.png,title=Добавяне на нова подзадача на|* '{$parentTitle}'");
+            $data->toolbar->addBtn('Подзадача||Subtask', $url, "id=btnSubTask_{$data->rec->containerId},ef_icon=img/16/add-sub.png,title=Добавяне на нова подзадача на|* '{$parentTitle}'");
         }
 
         if (cal_TaskConditions::haveRightFor('add', (object) array('baseId' => $data->rec->id))) {

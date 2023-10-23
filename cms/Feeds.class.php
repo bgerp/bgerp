@@ -297,7 +297,8 @@ class cms_Feeds extends core_Manager
         $tableName = static::instance()->dbTableName;
         if (static::instance()->db->tableExists($tableName)) {
             $feedQuery = static::getQuery();
-            while ($feed = $feedQuery->fetch('#domainId = ' . cms_domains::getPublicDomain('id'))) {
+            $dId = cms_domains::getPublicDomain('id');
+            while ($feed = $feedQuery->fetch("#domainId = '{$dId}'")) {
                    
                    // Адрес на хранилката
                 $url = toUrl(array('cms_Feeds', 'get', $feed->id), 'absolute');
@@ -330,7 +331,7 @@ class cms_Feeds extends core_Manager
         
         $query = static::getQuery();
         $domainId = cms_Domains::getPublicDomain('id');
-        $feeds = $query->fetchAll("#domainId = ${domainId}");
+        $feeds = $query->fetchAll("#domainId = '${domainId}'");
         if (!countR($feeds)) {
             
             return;

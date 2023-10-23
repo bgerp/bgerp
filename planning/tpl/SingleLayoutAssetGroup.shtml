@@ -7,10 +7,6 @@
         <!--ET_BEGIN planningParams-->
         <div><span class="quiet">|Планиращи параметри|*:</span> [#planningParams#]</div>
         <!--ET_END planningParams-->
-        <div style="margin-top:20px">
-           [#planning_AssetResources#]
-           [#addAssetBtn#]
-           </div>
-           <div style='margin-top:15px'>[#planning_AssetResourcesNorms#]</div>
+        [#DETAILS#]
     </div>
 </div>

@@ -285,6 +285,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_StepConditions',
         'planning_GenericProductPerDocuments',
         'planning_WorkInProgress',
+        'planning_AssetGroupIssueTemplates',
         'migrate::updateLabelType',
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
@@ -295,6 +296,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::cleanClosedTasks2250',
         'migrate::updateTasks1520',
         'migrate::updateMigratedTasks1620',
+        'migrate::taskDetailsRepairSerchKeywords2341',
     );
 
 
@@ -664,5 +666,14 @@ class planning_Setup extends core_ProtoSetup
                 planning_ProductionTaskDetails::save($dRec);
             }
         }
+    }
+
+
+    /**
+     * Форсира регенерирането на ключовите думи за planning_ProductionTaskDetails
+     */
+    public static function taskDetailsRepairSerchKeywords2341()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ProductionTaskDetails', dt::addSecs(120));
     }
 }

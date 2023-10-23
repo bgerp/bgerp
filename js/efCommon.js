@@ -1857,7 +1857,7 @@ function scaleViewport() {
  * Проверка дали използваме touch устройство
  */
 function isTouchDevice() {
-    return (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
+    return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
 }
 
 
@@ -1919,6 +1919,9 @@ function setMinHeightExt() {
     $(window).smartresize(function () {
         setMinHeightExt();
     });
+
+    // Стартиране на отзивчивото скролиране
+    dragToScroll.run();
 }
 
 
@@ -2179,7 +2182,7 @@ function selectInnerText(text) {
         document.body.style.cursor = 'copy';
         setTimeout(function() {
             document.body.style.cursor = cursor;
-        }, 500);
+        }, 250);
     }
 }
 
@@ -4764,9 +4767,11 @@ function changeTitleCnt(cnt) {
  * data.cnt - броя на нотификациите
  */
 function changeNotificationsCnt(data) {
+
+    var replaceHtml = data.html ? data.html : data.cnt;
     render_html({
         'id': data.id,
-        'html': data.cnt,
+        'html': replaceHtml,
         'replace': 1
     });
 

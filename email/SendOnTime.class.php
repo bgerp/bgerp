@@ -106,7 +106,7 @@ class email_SendOnTime extends core_Manager
         $rec->data = $data;
         $rec->delaySendOn = $delay;
         $rec->state = 'waiting';
-        
+
         return self::save($rec);
     }
     
@@ -339,8 +339,10 @@ class email_SendOnTime extends core_Manager
 
             $sudoUser = core_Users::sudo($rec->createdBy);
             try {
-                $inst = cls::get($rec->class);
-                $inst->send($rec->data['rec'], $rec->data['options'], $rec->data['lg']);
+                $inst = cls::getInterface('email_SendOnTimeIntf', $rec->class);
+
+                $inst->sendOnTime($rec->data, $rec->objectId);
+
                 self::logNotice('Успешно изпращане', $rec->id);
             } catch (ErrorException $e) {
                 reportException($e);

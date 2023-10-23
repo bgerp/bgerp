@@ -1238,6 +1238,18 @@ div.acc-detail {
   border-radius: 5px;
   background-color: white;
   position: relative; }
+  .portal.no-border {
+    border: none;
+    padding: 0;
+    margin: 0;
+    position: relative; }
+    .portal.no-border .portal-filter {
+      position: absolute;
+      right: 0;
+      top: 5px;
+      float: none; }
+    .portal.no-border .SearchBtnPortal {
+      border: none !important; }
   .portal .state-closed {
     background-color: rgba(0, 0, 0, 0); }
   .portal.planning,
@@ -1567,16 +1579,6 @@ a.tUnsighted {
   font-size: 0.9em !important;
   top: 0 !important; }
 
-  .doc_drivers_LatestDocPortal .portalLatestThreads.withoutSubtitle {
-    float: left; }
-  .doc_drivers_LatestDocPortal .threadSubTitle.withoutSubtitle .tagsHolder {
-    position: relative;
-    top: 2px;
-    margin-bottom: 4px; }
-  .doc_drivers_LatestDocPortal .portalLatestThreads,
-  .doc_drivers_LatestDocPortal .portalLatestFoldes {
-    clear: both; }
-
 .narrow .portalAuthorTitle {
   position: relative;
   top: 2px; }
@@ -1602,8 +1604,18 @@ a.tUnsighted {
   .portal .threadSubTitle .tags.tagType-personal {
     border-radius: 5px; }
 
+.threadTitlesHolder {
+  position: relative;
+  padding-right: 25px; }
+
 .tagsHolder {
-  float: right; }
+  position: absolute;
+  right: 0;
+  top: 50%;
+  margin-top: -8px; }
+
+.narrow .tagsHolder {
+  margin-top: -10px; }
 
   .doc_drivers_FolderPortal .threadSubTitle {
     display: block !important;
@@ -2311,6 +2323,9 @@ pre.document {
 .footer-notes > tbody > tr > td {
   border: 1px solid #bbbbbb;
   vertical-align: top !important; }
+
+.narrow .footer-notes ol li {
+  word-break: break-word; }
 
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }
@@ -3345,8 +3360,6 @@ span.sharing-history-title {
   max-width: 80em;
   display: block;
   margin: 0 auto; }
-  #all #searchform {
-    margin-bottom: 20px; }
 
 #all .filemanSingle {
   padding: 20px; }
@@ -3707,6 +3720,9 @@ span.sharing-history-title {
   .option-not-in-stock.saleSoon {
     background-color: rgba(241, 223, 11, 0.9) !important;
     color: black !important; }
+  .option-not-in-stock.saleDebug {
+    background-color: #a8f3b4 !important;
+    color: black !important; }
 
 .eshop-product-list-param {
   font-size: 0.85em;
@@ -4018,6 +4034,34 @@ table .eshop-btn {
     top: 0 !important;
     box-shadow: 0 -2px 3px -3px rgba(0, 0, 0, 0.3); }
 
+.narrow .foldertabs>.tab-row>.row-holder .tab>.tab-title {
+  padding: 0.5em 0.8em 0.5em 0.7em; }
+
+.narrow .foldertabs {
+  padding-top: 10px; }
+  .narrow .foldertabs >.tab-row {
+    margin-left: 10px; }
+  .narrow .foldertabs .row-holder {
+    padding-right: 20px; }
+
+.logoutBlock {
+  padding: 0 3px; }
+
+  #notificationCountStatus.noNtf {
+    display: none; }
+  #notificationCountStatus a.selected-external-tab {
+    border-top: none !important; }
+  #notificationCountStatus a {
+    padding: 2px;
+    color: white !important;
+    background-color: rgba(250, 56, 55, 0.75);
+    border: 1px solid #f92f2e !important;
+    box-shadow: 0 1px 2px 0 #ff9999;
+    border-radius: 3px;
+    font-size: 0.75em;
+    position: relative;
+    top: -3px; }
+
 .contractorExtHolder {
   padding: 10px; }
   .contractorExtHolder .deal-history-tab .tab {
@@ -4027,6 +4071,22 @@ table .eshop-btn {
     .contractorExtHolder .textWithIcons span:not(.highlight) img {
       top: -2px;
       position: relative; }
+  .contractorExtHolder .noNtf {
+    display: none; }
+  .contractorExtHolder .haveNtf {
+    background-color: rgba(250, 56, 55, 0.75);
+    border: 1px solid #f92f2e !important;
+    box-shadow: 0 1px 2px 0 #ff9999;
+    color: white !important;
+    text-shadow: none;
+    border-radius: 3px;
+    font-size: 0.8em;
+    padding-right: 1px;
+    padding-left: 1px; }
+  .contractorExtHolder input[type=text]:not(.combo),
+  .contractorExtHolder input[type=submit] {
+    height: 26px;
+    line-height: 1; }
   .contractorExtHolder a.button,
   .contractorExtHolder input[type="button"],
   .contractorExtHolder input[type="submit"],
@@ -4098,7 +4158,7 @@ table .eshop-btn {
     max-width: 16px !important; }
 
 .narrow .contractorExtHolder {
-  padding-top: 40px; }
+  padding: 10px 0px; }
   .narrow .contractorExtHolder input[type="button"],
   .narrow .contractorExtHolder input[type="submit"],
   .narrow .contractorExtHolder button,
@@ -4929,15 +4989,16 @@ table .eshop-btn {
     padding: 5px 6px 4px 5px;
     max-width: 160px; }
   .rowtoolsGroup a,
-  .rowtoolsGroup span {
+  .rowtoolsGroup span:not(.highlight) {
     text-align: left;
     display: block;
     font-size: 0.95em;
     padding: 3px 0;
     padding-left: 22px !important;
-    color: #333333 !important; }
+    color: #333333 !important;
+    background-color: white; }
     .rowtoolsGroup a:hover,
-    .rowtoolsGroup span:hover {
+    .rowtoolsGroup span:not(.highlight):hover {
       color: black !important;
       background-color: #e1e1e1;
       cursor: pointer; }
@@ -5049,6 +5110,9 @@ div.location.public {
   .barcodeSearch .listTable {
     width: 100%;
     margin-bottom: 0 !important; }
+
+.no-padding td {
+  padding: 0; }
 
 /*
  * шаблон за пускане в експлоатация на ДА
@@ -5644,6 +5708,13 @@ div.location.public {
 
 .favouritesBtn.linkWithIcon:hover {
   cursor: pointer; }
+
+#all .hasLogoutBlock .cms-row,
+.hasLogoutBlock .centerContent {
+  padding-top: 30px; }
+
+.hasLogoutBlock .centerContent .cms-row {
+  padding-top: 10px; }
 
 .narrow .externalPage #maincontent.hasLogoutBlock {
   padding-top: 29px !important; }
@@ -7520,7 +7591,9 @@ only screen and (max-width: 320px) {
   font-weight: normal;
   color: #555555;
   border: 1px solid #cdcdcd;
-  padding: 3px; }
+  padding: 2px 3px;
+  position: relative;
+  top: -2px; }
 
 table.bomProductionStepTable td {
   border: 0px !important; }
@@ -7595,4 +7668,7 @@ table.bomProductionStepTable td {
   white-space: nowrap; }
   .ef-drag-scroll .tab {
     display: inline-block; }
+
+.eshopHiddenRow {
+  opacity: 0.3; }
 

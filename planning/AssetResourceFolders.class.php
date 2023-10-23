@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -18,9 +18,15 @@ class planning_AssetResourceFolders extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Папки за оборудване';
-    
-    
+    public $title = 'Споделени папки към ресурси';
+
+
+    /**
+     * Заглавие
+     */
+    public $singleTitle = 'Споделена папка';
+
+
     /**
      * Плъгини за зареждане
      */
@@ -73,7 +79,7 @@ class planning_AssetResourceFolders extends core_Manager
         $this->FLD('classId', 'class', 'caption=Клас,mandatory,silent,input=hidden');
         $this->FLD('objectId', 'int', 'caption=Оборудване/Група,mandatory,silent,input=hidden');
         $this->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка, mandatory, tdClass=leftCol wrapText');
-        $this->FLD('users', 'userList', 'caption=Потребители');
+        $this->FLD('users', 'userList', 'caption=Отговорници');
         
         $this->setDbUnique('classId, objectId, folderId');
         $this->setDbIndex('classId, folderId');
@@ -116,33 +122,9 @@ class planning_AssetResourceFolders extends core_Manager
         if($data->masterMvc instanceof planning_AssetResources){
             foreach ($data->rows as $id => $row){
                 $rec = $data->recs[$id];
-
-                if (doc_Folders::haveRightFor('single', $rec->folderId)) {
-                    $sQuery = cal_Tasks::getQuery();
-                    $sQuery->where(array("#folderId = '[#1#]'", $rec->folderId));
-                    $sQuery->where("#state != 'rejected' AND #state != 'closed'");
-                    $sQuery->where(array("#assetResourceId = '[#1#]'", $rec->objectId));
-                    $sQuery->orderBy('state', 'ASC');
-                    $sQuery->orderBy('modifiedOn', 'DESC');
-
-                    $links = '';
-                    while ($sRec = $sQuery->fetch()) {
-                        $linkTitle = cal_Tasks::getVerbal($sRec->id, 'progress');
-                        $linkTitle .= ' ' . cal_Tasks::getVerbal($sRec->id, 'title');
-
-                        // Вземаме линка
-                        $link = ht::createLink($linkTitle, cal_Tasks::getSingleUrlArray($sRec->id), null, array('ef_icon' => cal_Tasks::getIcon($sRec->id)));
-                        $links .= "<div class='state-{$sRec->state} document-handler'>" . $link . '</div> ';
-                    }
-
-                    if(!empty($links)){
-                        $row->folderId .= "<br> " . $links;
-                    }
-                }
             }
         }
 
-        
         $data->toolbar = cls::get('core_Toolbar');
         if ($this->haveRightFor('add')) {
             Request::setProtected(array('classId', 'objectId'));
@@ -189,7 +171,7 @@ class planning_AssetResourceFolders extends core_Manager
         
         // Попълваме таблицата с редовете
         setIfNot($data->listTableMvc, clone $this);
-        $data->listFields = 'folderId=Папка,users=Потребители';
+        $data->listFields = 'folderId=Папка,users=Отговорници';
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете
@@ -224,7 +206,7 @@ class planning_AssetResourceFolders extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->folderId = doc_Folders::getVerbalLinks($rec->folderId, true);
+        $row->folderId = doc_Folders::getVerbalLinks($rec->folderId, true, true);
         
         if ($rec->users) {
             $row->users = $mvc->fields['users']->type->toVerbal($rec->users);
@@ -247,15 +229,15 @@ class planning_AssetResourceFolders extends core_Manager
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $form = $data->form;
-        
+        $form = &$data->form;
+        $rec = &$form->rec;
+
         $forType = null;
-        $clsId = Request::get('classId', 'int');
-        if ($clsId) {
-            $inst = cls::get($clsId);
-            if ($inst instanceof planning_AssetResources) {
+        if ($rec->classId) {
+            $Inst = cls::get($rec->classId);
+            if ($Inst instanceof planning_AssetResources) {
                 $forType = 'assets';
-            } elseif ($inst instanceof planning_Hr) {
+            } elseif ($Inst instanceof planning_Hr) {
                 $forType = 'hr';
             }
         }
@@ -264,8 +246,20 @@ class planning_AssetResourceFolders extends core_Manager
         $suggestions = doc_FolderResources::getFolderSuggestions($forType);
         $form->setOptions('folderId', array('' => '') + $suggestions);
     }
-    
-    
+
+
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+        $rec = $data->form->rec;
+        if ($rec->classId) {
+            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->objectId, $mvc->singleTitle, $rec->id, 'към');
+        }
+    }
+
+
     /**
      * Добавяне на дефолтна папка за обект
      *

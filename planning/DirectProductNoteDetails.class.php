@@ -305,7 +305,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
             if(!empty($rec->expenseItemId)){
                 $itemLink = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-                $row->productId .= new core_ET($row->productId);
+                $row->productId = new core_ET($row->productId);
                 $row->productId->append("<br><small><span class='quiet'>" . tr('Раз. обект') . "</span>: {$itemLink}</small>");
             }
         }

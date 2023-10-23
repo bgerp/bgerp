@@ -648,23 +648,24 @@ class eshop_CartDetails extends core_Detail
         // Коя е ценовата политика
         $oldListId = $settings->listId;
         $listId = cms_Helper::getCurrentEshopPriceList($settings);
+        $now = dt::now();
 
         // Ако има взема се цената от нея
         if (isset($listId)) {
-            $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId);
+            $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId, $now);
             
             // Ако стария лист е различен от новия
             if($oldListId != $listId){
                 
                 // И старата цена е по-евтина, то се взима тя
-                $priceOld = price_ListRules::getPrice($oldListId, $rec->productId, $rec->packagingId);
+                $priceOld = price_ListRules::getPrice($oldListId, $rec->productId, $rec->packagingId, $now);
                 if(!empty($priceOld) && trim(round($priceOld, 5)) < trim(round($price, 5))){
                     $price = $priceOld;
                     $listId = $oldListId;
                 }
             }
             
-            $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+            $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack, $now);
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;
             }

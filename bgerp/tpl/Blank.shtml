@@ -1,11 +1,11 @@
-<table style="width: 100%; margin-bottom:5px;">
+<table style="width: 100%; margin-bottom:5px;" class="no-padding">
     <tr>
         <td class='blankImage'>
             <!--ET_BEGIN blankImage-->
             [#blankImage#]
             <!--ET_END blankImage-->
         </td>
-        <td class='qrcode aright vbottom'>
+        <td class='qrcode aright vbottom' style="padding-left: 3px;">
             <!--ET_BEGIN blankQr-->
             [#blankQr#]
             <!--ET_END blankQr-->

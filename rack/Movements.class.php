@@ -378,7 +378,9 @@ class rack_Movements extends rack_MovementAbstract
                 reportException($e);
                 
                 // Ако има проблем ревърт на предното движение
-                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity, $transaction->batch);
+                if($transaction->from != rack_PositionType::FLOOR){
+                    rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity, $transaction->batch);
+                }
                 
                 return false;
             }
