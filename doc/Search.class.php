@@ -198,7 +198,7 @@ class doc_Search extends core_Manager
         
         // Има зададен условия за търсене - генерираме SQL заявка.
         if ($isFiltered && !$data->listFilter->gotErrors()) {
-            
+
             // Ако някой ще направи обработки преди вземането на резултата
             $mvc->invoke('BeforePrepareSearchQuery', array($data, $filterRec));
             
@@ -412,7 +412,7 @@ class doc_Search extends core_Manager
      * @param object     $data
      * @param object     $filtreRec
      */
-    public function on_BeforePrepareSearchQuery($mvc, $data, $filtreRec)
+    public static function on_BeforePrepareSearchQuery($mvc, $data, $filtreRec)
     {
         // Тримваме търсенето
         $search = trim($filtreRec->search);
@@ -455,7 +455,7 @@ class doc_Search extends core_Manager
     /**
      * След извличане на записите от базата данни
      */
-    public function on_AfterPrepareListRecs($mvc, $data)
+    public static function on_AfterPrepareListRecs($mvc, $data)
     {
         if (countR($data->recs) == 0) {
             
@@ -476,7 +476,7 @@ class doc_Search extends core_Manager
     /**
      * След подготовка на записите
      */
-    public function on_AfterPrepareListRows($mvc, $data)
+    public static function on_AfterPrepareListRows($mvc, $data)
     {
         if (countR($data->recs) == 0) {
             
@@ -503,7 +503,7 @@ class doc_Search extends core_Manager
     /**
      * Преди рендиране на лист таблицата
      */
-    public function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if(Mode::get('screenMode') == 'narrow') {
             $data->listTableMvc->FLD('title', 'varchar', 'tdClass=largeNarrowCell');
