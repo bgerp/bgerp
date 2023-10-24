@@ -113,7 +113,7 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'colab_drivers_FoldersTabBlock,colab_drivers_ProfileTabBlock,colab_drivers_SingleThreadTabBlock,colab_drivers_ThreadTabBlock,colab_drivers_NotificationTabBlock';
+    public $defClasses = 'colab_drivers_FoldersTabBlock,colab_drivers_ProfileTabBlock,colab_drivers_SingleThreadTabBlock,colab_drivers_ThreadTabBlock,colab_drivers_NotificationTabBlock,colab_drivers_SearchTabBlock';
 
 
     /**

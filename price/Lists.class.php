@@ -583,6 +583,11 @@ class price_Lists extends core_Master
                 $variationOfArr[] = ht::createHint($vRow->listId, $hint, 'notice', false)->getContent();
             }
             $row->variationsOf = implode(',', $variationOfArr);
+
+            $activeVariationId = price_ListVariations::getActiveVariationId($rec->id);
+            if(isset($activeVariationId)){
+                $row->activeVariationId = price_Lists::getHyperlink($activeVariationId, true);
+            }
         }
     }
     

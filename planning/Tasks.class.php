@@ -2432,7 +2432,14 @@ class planning_Tasks extends core_Master
         $str = str_pad($str, 13, '0', STR_PAD_LEFT);
         $taskDetailQuery->where(array("#serial = '[#1#]'", $str));
 
+        $isPartner = core_Packs::isInstalled('colab') && core_Users::isContractor();
+        $taskDetailQuery->EXT('threadId', 'planning_Tasks', "externalName=threadId,externalKey=taskId");
         while ($dRec = $taskDetailQuery->fetch()) {
+
+            if($isPartner){
+                $threadRec = doc_Threads::fetch($dRec->threadId);
+                if(!colab_Threads::haveRightFor('single', $threadRec)) continue;
+            }
 
             $res = new stdClass();
             $tRec = $this->fetch($dRec->taskId);
@@ -2448,7 +2455,6 @@ class planning_Tasks extends core_Master
 
                 $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
                 $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;
-
                 if ($tRec->progress) {
                     $progress = $this->getVerbal($tRec, 'progress');
                     $res->title .= ' (' . $progress . ')';

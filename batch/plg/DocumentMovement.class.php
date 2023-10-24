@@ -54,7 +54,7 @@ class batch_plg_DocumentMovement extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
-        
+
         // Ако няма избран склад, няма какво да се прави
         if(empty($rec->{$mvc->storeFieldName}) || ($mvc instanceof sales_Sales && !isset($actions['ship']))) {
             
@@ -64,8 +64,7 @@ class batch_plg_DocumentMovement extends core_Plugin
         static $cache = array();
         
         // Гледат се детайлите на документа
-        $productsWithoutBatchesArr = array();
-        $productsWithNotExistingBatchesArr = array();
+        $productsWithoutBatchesArr = $productsWithNotExistingBatchesArr = $batchDiffArr = array();
         $detailMvcs = ($mvc instanceof store_ConsignmentProtocols) ? array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend') : (isset($mvc->mainDetail) ? array($mvc->mainDetail) : array());
         
         foreach ($detailMvcs as $det){
@@ -123,16 +122,20 @@ class batch_plg_DocumentMovement extends core_Plugin
                         }
                     }
                 }
-               
+
                 // Ако някои от тях нямат посочена партида, документа няма да се контира
                 if($checkIfBatchIsMandatory == 'yes' && round($sum, 3) < round($dRec->{$Detail->quantityFld}, 3)){
                     $productsWithoutBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
+                }
+
+                if(round($sum, 3) > round($dRec->{$Detail->quantityFld}, 3)){
+                    $batchDiffArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
                 }
             }
         }
 
         // Ако има артикули, с задължителни партидности, които не са посочени няма да може да се контира
-        if(countR($productsWithoutBatchesArr) || countR($productsWithNotExistingBatchesArr)){
+        if(countR($productsWithoutBatchesArr) || countR($productsWithNotExistingBatchesArr) || countR($batchDiffArr)){
             if(countR($productsWithoutBatchesArr)){
                 $productMsg = implode(', ', $productsWithoutBatchesArr);
                 core_Statuses::newStatus("Следните артикули, не могат да са без партида|*: {$productMsg}", 'error');
@@ -141,6 +144,11 @@ class batch_plg_DocumentMovement extends core_Plugin
             if(countR($productsWithNotExistingBatchesArr)){
                 $productMsg = implode(', ', $productsWithNotExistingBatchesArr);
                 core_Statuses::newStatus("Следните артикули, са с неналични партиди|*: {$productMsg}", 'error');
+            }
+
+            if(countR($batchDiffArr)){
+                $productMsg = implode(', ', $batchDiffArr);
+                core_Statuses::newStatus("Следните артикули, разпределеното по партиди е повече от това на реда|*: {$productMsg}", 'error');
             }
             
             $res = false;

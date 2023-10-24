@@ -33,6 +33,7 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
 
         // Извличане на наличните блокове
         $tabBlocks = core_Classes::getOptionsByInterface('colab_BlockIntf');
+
         foreach ($tabBlocks as $className){
             $Intf = cls::getInterface('colab_BlockIntf', $className);
             if($Intf->displayTab()){

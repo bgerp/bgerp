@@ -148,6 +148,7 @@ class colab_Threads extends core_Manager
         // Ако има папка записва се като активна
         colab_Folders::setLastActiveContragentFolder($data->folderId);
 
+        $data->threadRec->partnerDocLast = (empty($data->threadRec->partnerDocLast)) ? '0000-00-00' : $data->threadRec->partnerDocLast;
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         $otherDocChanges = doc_Threads::fetch(array("#id != '[#1#]' AND #folderId = '[#2#]' AND #state != 'rejected' AND #partnerDocLast > '[#3#]'",
             $data->threadRec->id, $data->threadRec->folderId, $data->threadRec->partnerDocLast));
