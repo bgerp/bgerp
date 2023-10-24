@@ -580,7 +580,14 @@ class label_Templates extends core_Master
             if (!isset($val) || strlen($val) === 0) {
                 $et = new ET();
                 $et->setContent($string);
-                $et->removeBlock($key);
+                for($i=0; $i<100; $i++) {
+                    $et->removeBlock($key);
+                    $pArr = self::getPlaceholders($et);
+                    $uKey = mb_strtoupper($key);
+                    if (!$pArr[$uKey]) {
+                        break;
+                    }
+                }
                 $string = $et->getContent(null, "CONTENT", false, false);
 
                 continue;
