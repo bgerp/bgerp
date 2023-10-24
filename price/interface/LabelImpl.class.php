@@ -79,8 +79,11 @@ class price_interface_LabelImpl
         Mode::push('text', 'plain');
         $priceCaption = ($rec->vat == 'yes') ? tr('цена с ДДС') : tr('цена без ДДС');
         if(is_array($recs)){
+            // От редовете, ще останат САМО тези, които ще могат да се печатат на етикети
+            $printableRecs = $this->getPrintableRecs($rec, $recs);
+
             $date = dt::mysql2verbal(dt::today(), 'd.m.Y');
-            foreach ($recs as $pRec){
+            foreach ($printableRecs as $pRec){
                 $ean = '';
                 if($onlyPreview === true){
                     $ean = '0000000000000';
@@ -117,6 +120,37 @@ class price_interface_LabelImpl
 
 
     /**
+     * Кои редове от справката да се печатат етикети
+     *
+     * @param stdClass $rec
+     * @param array $recs
+     * @return array $res
+     */
+    private function getPrintableRecs($rec, $recs)
+    {
+        // Ако е инсталиран пакета `uiext` или не се искат конкретни тагове за отпечатване
+        $res = array();
+        if(!core_Packs::isInstalled('uiext') || $rec->showUiextLabels != 'yes') return $recs;
+
+        $printLabelId = uiext_Labels::fetchField("#systemId='printLabel'", 'id');
+        $hashFields = $this->class->getUiextLabelHashFields($rec);
+        foreach($recs as $dRec){
+
+            // Остават само редовете, в чиито тагове е посочено че са за принтиране
+            $hash = uiext_Labels::getHash($dRec, $hashFields);
+            $selRec = uiext_ObjectLabels::fetchByDoc(frame2_Reports::getClassId(), $rec->id, $hash);
+            if($selRec){
+                if(keylist::isIn($printLabelId, $selRec->labels)){
+                    $res[] = $dRec;
+                }
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Броя на етикетите, които могат да се отпечатат
      *
      * @param int $id
@@ -126,16 +160,16 @@ class price_interface_LabelImpl
      */
     public function getLabelEstimatedCnt($id, $series = 'label')
     {
-        $rec = frame2_Reports::fetchRec($id);
-        
         $count = 0;
-        if(is_array($rec->data->recs)){
-            foreach ($rec->data->recs as $dRec){
-                if($rec->showMeasureId == 'yes' && !empty($dRec->price)){
-                    $count++;
-                }
-                $count += countR($dRec->packs);
+        $rec = frame2_Reports::fetchRec($id);
+        if(!is_array($rec->data->recs)) return $count;
+
+        $recs = $this->getPrintableRecs($rec, $rec->data->recs);
+        foreach ($recs as $dRec){
+            if($rec->showMeasureId == 'yes' && !empty($dRec->price)){
+                $count++;
             }
+            $count += countR($dRec->packs);
         }
         
         return $count;

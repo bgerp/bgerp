@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -80,6 +80,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed');
         $fieldset->FLD('showEan', 'enum(yes=Показване ако има,no=Да не се показва)', 'caption=Допълнително->EAN|*?,after=showMeasureId');
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan');
+        $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan');
     }
     
     
@@ -117,6 +118,10 @@ class price_reports_PriceList extends frame2_driver_TableData
         $form->setDefault('showMeasureId', 'yes');
         $form->setDefault('displayDetailed', 'no');
         $form->setDefault('packType', 'yes');
+        $form->setDefault('showUiextLabels', 'no');
+        if(!core_Packs::isInstalled('uiext')){
+            $form->setFiedl('showUiextLabels', 'input=none');
+        }
 
         $suggestions = cat_UoM::getPackagingOptions();
         $form->setSuggestions('packagings', $suggestions);
@@ -694,5 +699,17 @@ class price_reports_PriceList extends frame2_driver_TableData
     public function requireUserForNotification($rec)
     {
         return false;
+    }
+
+
+    /**
+     * Да се показват ли разширените тагове на редовете на справката
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    protected function showUiextRowLabelsIfExist($rec)
+    {
+        return $rec->showUiextLabels == 'yes';
     }
 }
