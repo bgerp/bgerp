@@ -188,7 +188,9 @@ class cat_interface_PackLabelImpl
         $measureId = cat_UoM::getShortName($measureId);
         
         // Продуктови параметри
+        Mode::push('printLabel', true);
         $params = cat_Products::getParams($rec->productId, null, true);
+        Mode::pop('printLabel');
         $params = cat_Params::getParamNameArr($params, true);
         
         $additionalFields = array();
