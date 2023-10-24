@@ -138,7 +138,15 @@
                      <td>[#lineVehicleId#]</td>
                   </tr>
                   <!--ET_END lineVehicleId-->
-                  [#InvoicesToDocuments#]
+                  <!--ET_BEGIN InvoicesToDocuments-->
+                  <tr> <td colspan="2">
+                     <hr>
+                     <table>
+                        [#InvoicesToDocuments#]
+                     </table>
+                  </td> </tr>
+
+                  <!--ET_END InvoicesToDocuments-->
                   <!--ET_BEGIN note-->
                   <tr>
                      <td colspan="2" >
