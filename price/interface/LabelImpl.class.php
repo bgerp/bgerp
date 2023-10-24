@@ -52,6 +52,23 @@ class price_interface_LabelImpl
         $placeholders['MEASURE_ID'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['PRICE_CAPTION'] = (object) array('type' => 'text', 'hidden' => true);
 
+        if (isset($objId)) {
+
+            // Показване обединението на множеството от плейсхолдърите на артикулите, които ще им се печата етикет
+            $rec = frame2_Reports::fetch($objId);
+            $printableRecs = $this->getPrintableRecs($rec, $rec->data->recs);
+            $combinedParams = array();
+            foreach ($printableRecs as $dRec){
+                $params = cat_Products::getParams($dRec->productId);
+                $params = array_keys(cat_Params::getParamNameArr($params, true));
+                $combinedParams = array_merge($combinedParams, $params);
+            }
+            foreach ($combinedParams as $paramName) {
+                $placeholders[$paramName] = (object) array('type' => 'text');
+                $placeholders[$paramName]->hidden = true;
+            }
+        }
+
         return $placeholders;
     }
 
@@ -78,6 +95,8 @@ class price_interface_LabelImpl
         $currentCount = 0;
         Mode::push('text', 'plain');
         $priceCaption = ($rec->vat == 'yes') ? tr('цена с ДДС') : tr('цена без ДДС');
+        $allergenPramId = cat_Params::fetchIdBySysId('allergens');
+
         if(is_array($recs)){
             // От редовете, ще останат САМО тези, които ще могат да се печатат на етикети
             $printableRecs = $this->getPrintableRecs($rec, $recs);
@@ -95,8 +114,23 @@ class price_interface_LabelImpl
                 $code = !empty($code) ? $code : "Art{$pRec->productId}";
                 $measureId = cat_UoM::getShortName($pRec->measureId);
 
+                // Ревербализиране на алергена
+                Mode::push('text', 'plain');
+                $params = cat_Products::getParams($pRec->productId, null, true);
+                if(array_key_exists($allergenPramId, $params)){
+                    $allergenParamRec =  cat_Products::getParams($pRec->productId, $allergenPramId);
+                    $AllergenKeylist = core_Type::getByName("keylist(mvc=cond_Allergens,select=num)");
+                    $params[$allergenPramId] = strip_tags($AllergenKeylist->toVerbal($allergenParamRec));
+                }
+                Mode::pop('text');
+                $params = cat_Params::getParamNameArr($params, true);
+
                 if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
                     $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'PRICE_CAPTION' => $priceCaption);
+                    if (countR($params)) {
+                        $res = array_merge($res, $params);
+                    }
+
                     $resArr[] = $res;
                     $currentCount++;
                     if($currentCount == $cnt) break;
@@ -106,6 +140,9 @@ class price_interface_LabelImpl
                     $ean = !empty($packRec->eanCode) ? $packRec->eanCode : null;
                     $packName = cat_UoM::getShortName($packRec->packagingId);
                     $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($packRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "({$packRec->quantity} {$measureId})", 'PRICE_CAPTION' => $priceCaption);
+                    if (countR($params)) {
+                        $res = array_merge($res, $params);
+                    }
                     $resArr[] = $res;
                     $currentCount++;
                     if($currentCount == $cnt) break;
@@ -114,7 +151,7 @@ class price_interface_LabelImpl
         }
         
         Mode::pop('text', 'plain');
-        
+
         return $resArr;
     }
 
