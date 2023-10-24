@@ -115,14 +115,11 @@ class price_interface_LabelImpl
                 $measureId = cat_UoM::getShortName($pRec->measureId);
 
                 // Ревербализиране на алергена
+                Mode::push('printLabel', true);
                 Mode::push('text', 'plain');
                 $params = cat_Products::getParams($pRec->productId, null, true);
-                if(array_key_exists($allergenPramId, $params)){
-                    $allergenParamRec =  cat_Products::getParams($pRec->productId, $allergenPramId);
-                    $AllergenKeylist = core_Type::getByName("keylist(mvc=cond_Allergens,select=num)");
-                    $params[$allergenPramId] = strip_tags($AllergenKeylist->toVerbal($allergenParamRec));
-                }
                 Mode::pop('text');
+                Mode::pop('printLabel');
                 $params = cat_Params::getParamNameArr($params, true);
 
                 if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
