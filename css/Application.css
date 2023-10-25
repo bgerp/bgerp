@@ -4086,7 +4086,7 @@ table .eshop-btn {
   .contractorExtHolder .select2-container .select2-selection--single .select2-selection__rendered,
   .contractorExtHolder .select2-container .select2-selection--single {
     height: 32px;
-    line-height: 32px; }
+    line-height: 30px; }
   .contractorExtHolder a.button,
   .contractorExtHolder input[type="button"],
   .contractorExtHolder input[type="submit"],
