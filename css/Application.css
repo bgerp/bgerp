@@ -5303,6 +5303,9 @@ div.location.public {
   min-width: 20px;
   float: left; }
 
+.narrow .portal .linkWithIcon {
+  overflow-wrap: anywhere; }
+
 .portal-filter .hFormField {
   width: 7.5em;
   border: solid 1px #cccccc;

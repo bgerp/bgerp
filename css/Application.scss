@@ -6102,6 +6102,10 @@ div.location.public {
 	float: left;
 }
 
+.narrow .portal .linkWithIcon {
+	overflow-wrap:anywhere;
+}
+
 .portal-filter .hFormField {
 	width: 7.5em;
 	border: solid 1px #ccc;
