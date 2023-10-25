@@ -4208,9 +4208,15 @@ table .eshop-btn {
 #cmsNavigation a.linkWithIcon {
   display: inline-block;
   height: 21px;
-  float: right;
   margin-left: 5px;
   background-position: center !important; }
+
+#cmsNavigation .navWithIcon.lastOrderedLink a.linkWithIcon {
+  height: auto !important;
+  background-position: 5px 5px !important; }
+
+.narrow #cmsNavigation a.linkWithIcon {
+  float: right; }
 
 #cmsNavigation form {
   display: inline-block;
