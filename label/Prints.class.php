@@ -1439,13 +1439,13 @@ class label_Prints extends core_Master
         
         $this->save($rec, 'printedCnt, printHistory');
 
-        // Ако се печата етикет от източник да се записва в лога
+        // Ако се печата етикет от източник да се нотифицира източника
         if ($rec->objectId && $rec->classId) {
             $Source = cls::get($rec->classId);
             if(cls::haveInterface('frame2_ReportIntf', $Source)){
                 $Source = cls::get('frame2_Reports');
             }
-            $Source->invoke('AfterLabelIsPrinted', array($rec->objectId, &$rec));
+            $Source->invoke('AfterLabelIsPrinted', array($Source->fetchRec($rec->objectId), &$rec));
         }
 
         $this->logRead('Отпечатване', $rec->id);
