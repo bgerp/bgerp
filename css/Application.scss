@@ -4918,9 +4918,14 @@ table .eshop-btn {
 #cmsNavigation a.linkWithIcon {
     display: inline-block;
     height: 21px;
-    float: left;
+    float: right;
     margin-left: 5px;
     background-position: center !important;
+}
+
+#cmsNavigation form {
+	display: inline-block;;
+	float: left;
 }
 
 #cmsNavigation .level1 {
