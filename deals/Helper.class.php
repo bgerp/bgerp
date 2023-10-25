@@ -2780,9 +2780,10 @@ abstract class deals_Helper
             // Ако цената започва с "=" значи ще е цена за к-то
             $isPrice4Quantity = false;
             $packPrice = $priceInput;
-            if(strpos($priceInput, '=') === 0){
+
+            if(strpos($priceInput, '/') === strlen($priceInput) - 1){
                 $isPrice4Quantity = true;
-                $packPrice = ltrim($packPrice, '=');
+                $packPrice = rtrim($packPrice, '/');
             }
 
             // Проверка дали цената е валидна
