@@ -3639,10 +3639,10 @@ class cal_Tasks extends embed_Manager
         
         $contrData = new stdClass();
         
-        if ($rec->createdBy > 0) {
-            $personId = crm_Profiles::fetchField("#userId = '{$rec->createdBy}'", 'personId');
-            $contrData = crm_Persons::getContragentData($personId);
-        }
+//        if ($rec->createdBy > 0) {
+//            $personId = crm_Profiles::fetchField("#userId = '{$rec->createdBy}'", 'personId');
+//            $contrData = crm_Persons::getContragentData($personId);
+//        }
         
         $Driver = self::getDriver($id);
         $Driver->prepareContragentData($rec, $contrData);

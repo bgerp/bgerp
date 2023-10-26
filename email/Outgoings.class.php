@@ -2140,6 +2140,10 @@ class email_Outgoings extends core_Master
                     if (!$fromEml || !in_array($fromEml, $emailsArr)) {
                         $use = false;
                     }
+                } else {
+                    if ($contrData && $contrData->groupEmails) {
+                        $contragentData->groupEmails = $contragentData->groupEmails ? $contrData->groupEmails . ', ' . $contragentData->groupEmails : $contrData->groupEmails;
+                    }
                 }
 
                 if ($use) {
