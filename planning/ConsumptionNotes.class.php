@@ -147,19 +147,15 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 
 
     /**
-     * Дали има полета за получил и предал
-     */
-    public $haveSenderAndReceiverNames = true;
-
-
-    /**
      * Описание на модела
      */
     public function description()
     {
         parent::setDocumentFields($this);
-        $this->FLD('description', 'richtext(bucket=Notes,rows=2)', 'caption=Извършени дейности,after=departmentId,input=none');
-        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,after=receiver');
+        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Допълнително->Ц-р на дейност,after=receiver');
+        $this->FLD('description', 'richtext(bucket=Notes,rows=2)', 'caption=Информация за ремонта->Извършени дейности,after=departmentId,input=none');
+        $this->FLD('sender', 'varchar', 'caption=Допълнително->Предал');
+        $this->FLD('receiver', 'varchar', 'caption=Допълнително->Получил');
         $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Детайлно влагане,notNull,default=yes,maxRadio=2');
         $this->setField('storeId', 'placeholder=Само услуги');
     }
@@ -186,17 +182,32 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         }
 
         if(empty($rec->id)){
-            $form->setDefault('sender', core_Users::getCurrent('names'));
+            $showSenderAndReceiver = planning_Setup::get('SHOW_SENDER_AND_RECEIVER_SETTINGS');
+            if($showSenderAndReceiver == 'yesDefault'){
+                $form->setDefault('sender', core_Users::getCurrent('names'));
+            }
+        }
+
+        $showSenderAndReceiver = true;
+        $showSenderAndReceiverSetting = planning_Setup::get('SHOW_SENDER_AND_RECEIVER_SETTINGS');
+        if($showSenderAndReceiverSetting == 'no'){
+            $form->setField('sender', 'input=none');
+            $form->setField('receiver', 'input=none');
+            $showSenderAndReceiver = false;
         }
 
         if(isset($rec->originId)){
             $origin = doc_Containers::getDocument($rec->originId);
             if($origin->isInstanceOf('cal_Tasks')){
                 $form->setField('description', "input,mandatory,changable");
-                $form->setField('sender', 'caption=Извършил');
-                $form->setField('receiver', 'caption=Приел ремонта');
-                $form->setField('departmentId', 'caption=Ц-р на дейност,after=deadline');
+                $form->setField('sender', 'caption=Информация за ремонта->Извършил,input');
+                $form->setField('receiver', 'caption=Информация за ремонта->Приел,input');
+                $showSenderAndReceiver = true;
             }
+        }
+
+        if($showSenderAndReceiver){
+            $mvc->setEmployeesOptions($form);
         }
     }
     

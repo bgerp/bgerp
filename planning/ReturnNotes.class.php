@@ -149,19 +149,15 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 
 
     /**
-     * Дали има полета за получил и предал
-     */
-    public $haveSenderAndReceiverNames = true;
-
-
-    /**
      * Описание на модела
      */
     public function description()
     {
         parent::setDocumentFields($this);
-        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
-        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане,notNull,default=yes,maxRadio=2,before=note');
+        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Допълнително->Ц-р на дейност');
+        $this->FLD('sender', 'varchar', 'caption=Допълнително->Предал');
+        $this->FLD('receiver', 'varchar', 'caption=Допълнително->Получил');
+        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Детайлно връщане,notNull,default=yes,maxRadio=2');
         $this->setField('storeId', 'placeholder=Само услуги,silent,removeAndRefreshForm=quantity');
     }
     
@@ -251,8 +247,18 @@ class planning_ReturnNotes extends deals_ManifactureMaster
             $form->setDefault('departmentId', $folderCover->that);
         }
 
+        $showSenderAndReceiver = planning_Setup::get('SHOW_SENDER_AND_RECEIVER_SETTINGS');
         if(empty($rec->id)){
-            $form->setDefault('receiver', core_Users::getCurrent('names'));
+            if($showSenderAndReceiver == 'yesDefault'){
+                $form->setDefault('receiver', core_Users::getCurrent('names'));
+            }
+        }
+
+        if($showSenderAndReceiver == 'no'){
+            $form->setField('sender', 'input=none');
+            $form->setField('receiver', 'input=none');
+        } else {
+            $mvc->setEmployeesOptions($form);
         }
     }
     

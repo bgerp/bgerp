@@ -57,14 +57,9 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     protected static function setDocumentFields($mvc)
     {
-        setIfNot($mvc->haveSenderAndReceiverNames, false);
         $mvc->FLD('valior', 'date', 'caption=Вальор');
         $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $mvc->FLD('deadline', 'datetime', 'caption=Срок до');
-        if($mvc->haveSenderAndReceiverNames){
-            $mvc->FLD('sender', 'varchar', 'caption=Предал');
-            $mvc->FLD('receiver', 'varchar', 'caption=Получил');
-        }
         $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Забележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
         $mvc->setDbIndex('valior');
@@ -118,18 +113,9 @@ abstract class deals_ManifactureMaster extends core_Master
         if ($folderCover->haveInterface('store_AccRegIntf')) {
             $form->setDefault('storeId', $folderCover->that);
         }
-
-        if($mvc->haveSenderAndReceiverNames){
-            $options = crm_Persons::getEmployeesOptions(false, null, true);
-            if(countR($options)){
-                $options = array('' => '') + $options;
-                $form->setSuggestions('sender', $options);
-                $form->setSuggestions('receiver', $options);
-            }
-        }
     }
-    
-    
+
+
     /**
      * @see doc_DocumentIntf::getDocumentRow()
      */
@@ -312,6 +298,24 @@ abstract class deals_ManifactureMaster extends core_Master
                     $res = false;
                 }
             }
+        }
+    }
+
+
+    /**
+     * Задаване на служителите на фирмата за избор
+     *
+     * @param core_Form $form
+     * @return void
+     */
+    protected function setEmployeesOptions(&$form)
+    {
+        // Възможност за избор на служителите в полетата за получил/предал
+        $options = crm_Persons::getEmployeesOptions(false, null, true);
+        if(countR($options)){
+            $options = array('' => '') + $options;
+            $form->setSuggestions('sender', $options);
+            $form->setSuggestions('receiver', $options);
         }
     }
 }

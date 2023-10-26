@@ -164,6 +164,12 @@ defIfNot('PLANNING_INPUT_PREVIOUS_BOM_STEP', 'yes');
 
 
 /**
+ * Настройки на полета за получил/предал в ПВ и ПВР
+ */
+defIfNot('PLANNING_SHOW_SENDER_AND_RECEIVER_SETTINGS', 'no');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -239,6 +245,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_PREVIOUS_TASK_BLOCKS' => array('int(min=0)', 'caption=За колко от предходните Операции да се визуализира готовността->Брой'),
         'PLANNING_SORT_TASKS_IN_JOB_STRATEGY' => array('class(interface=planning_OrderTasksInJobStrategyIntf,select=title)', 'caption=Подреждане на операциите в заданието->Стратегия'),
         'PLANNING_INPUT_PREVIOUS_BOM_STEP' => array('enum(yes=Влагат се,no=Не се влагат)', 'caption=Операция от Етап в рецепта - Влагане на предходния и вложените Етапи->Планиране'),
+        'PLANNING_SHOW_SENDER_AND_RECEIVER_SETTINGS' => array('enum(no=Скриване,yes=Показване,yesDefault=Показване с дефолт)', 'caption=Полета за получил/предал в ПВ и ПВР->Избор'),
     );
 
 
