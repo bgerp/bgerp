@@ -113,8 +113,8 @@ class doc_Search extends core_Manager
         $colabIsInstalled = core_Packs::isInstalled('colab');
         if(Mode::is('colabSearch') && $colabIsInstalled){
             $data->listFilter->class = 'simpleForm';
-            $data->listFilter->showFields = 'search, docClass, fromDate, toDate';
-
+            $data->listFilter->showFields = 'search, docClass, state, fromDate, toDate';
+            $data->listFilter->setField('state', 'input=hidden');
             // Ако се филтрира от партньор да се виждат само видимите от него документи в посочените папки
             $docClassesOption = array();
             $cloneQuery = clone $data->query;
@@ -156,7 +156,7 @@ class doc_Search extends core_Manager
         
         // Ако формата е субмитната
         if ($isFiltered && ($filterRec->fromDate || $filterRec->toDate)) {
-            
+
             // Ако са попълнени полетата От и До
             if ($filterRec->fromDate && $filterRec->toDate) {
                 
@@ -200,9 +200,7 @@ class doc_Search extends core_Manager
                 }
             }
         }
-        
 
-        
         if ($data->query->isSlowQuery && !$data->listFilter->ignore && !$useIndex) {
             if (!$filterRec->fromDate && !$filterRec->toDate) {
                 $data->listFilter->setWarning('search, fromDate, toDate', 'Заявката за търсене е много обща и вероятно ще се изпълни бавно. Добавете още думи или я ограничете по дати');
@@ -384,7 +382,7 @@ class doc_Search extends core_Manager
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
              */
-            
+
             // Ако ще се филтира по състояни и текущия потребител (автор)
             if ($filterRec->state) {
                 $url = array($mvc, 'state' => $filterRec->state);
@@ -411,7 +409,8 @@ class doc_Search extends core_Manager
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
 
-                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDateHorizon' => Request::get('toDateHorizon', 'time'));
+                $url3 = array($mvc, 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDateHorizon' => Request::get('toDateHorizon', 'time'));
+
                 bgerp_Notifications::clear($url3);
             }
         } else {

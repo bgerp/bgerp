@@ -3902,13 +3902,16 @@ table .eshop-btn {
   .productBtn:hover {
     background-color: #eeeeee !important; }
 
+.narrow .productBtn {
+  margin-right: 5px !important; }
+
 .narrow .eshop-btn.addToCard,
 .narrow .productBtn.addToCard {
   background-image: url("../img/32/cart_go.png") !important;
   background-size: 16px;
   background-position: 3px center;
   background-repeat: no-repeat;
-  margin-bottom: 5px !important;
+  margin: 0 0px 5px 5px !important;
   padding: 4px 8px 5px 25px !important;
   top: -1px !important;
   position: relative;
@@ -4047,6 +4050,8 @@ table .eshop-btn {
 .logoutBlock {
   padding: 0 3px; }
 
+#notificationCountStatus {
+  margin-right: 5px; }
   #notificationCountStatus.noNtf {
     display: none; }
   #notificationCountStatus a.selected-external-tab {
@@ -4086,7 +4091,7 @@ table .eshop-btn {
   .contractorExtHolder .select2-container .select2-selection--single .select2-selection__rendered,
   .contractorExtHolder .select2-container .select2-selection--single {
     height: 32px;
-    line-height: 32px; }
+    line-height: 30px; }
   .contractorExtHolder a.button,
   .contractorExtHolder input[type="button"],
   .contractorExtHolder input[type="submit"],
@@ -4208,9 +4213,19 @@ table .eshop-btn {
 #cmsNavigation a.linkWithIcon {
   display: inline-block;
   height: 21px;
-  float: left;
   margin-left: 5px;
   background-position: center !important; }
+
+#cmsNavigation .navWithIcon.lastOrderedLink a.linkWithIcon {
+  height: auto !important;
+  background-position: 5px 5px !important; }
+
+.narrow #cmsNavigation a.linkWithIcon {
+  float: right; }
+
+#cmsNavigation form {
+  display: inline-block;
+  float: left; }
 
 #cmsNavigation .level1 {
   font-size: 16px;
@@ -5298,6 +5313,9 @@ div.location.public {
   margin-left: 5px;
   min-width: 20px;
   float: left; }
+
+.narrow .portal .linkWithIcon {
+  overflow-wrap: anywhere; }
 
 .portal-filter .hFormField {
   width: 7.5em;

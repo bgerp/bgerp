@@ -12,7 +12,7 @@
  * @package   cond
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -63,7 +63,8 @@ class cond_Setup extends core_ProtoSetup
         'cond_Countries',
         'cond_TaxAndFees',
         'cond_Colors',
-        'cond_Ranges'
+        'cond_Ranges',
+        'cond_Allergens',
     );
     
     

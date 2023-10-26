@@ -205,9 +205,9 @@ class planning_interface_ProductionNoteImpl
         
         // Продуктови параметри
         $measureId = cat_UoM::getShortName($measureId);
-        Mode::push('dontVerbalizeText', true);
+        Mode::push('printLabel', true);
         $params = cat_Products::getParams($rec->productId, null, true);
-        Mode::pop();
+        Mode::pop('printLabel');
         $params = cat_Params::getParamNameArr($params, true);
         
         $additionalFields = array();

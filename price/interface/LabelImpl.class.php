@@ -52,6 +52,23 @@ class price_interface_LabelImpl
         $placeholders['MEASURE_ID'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['PRICE_CAPTION'] = (object) array('type' => 'text', 'hidden' => true);
 
+        if (isset($objId)) {
+
+            // Показване обединението на множеството от плейсхолдърите на артикулите, които ще им се печата етикет
+            $rec = frame2_Reports::fetch($objId);
+            $printableRecs = $this->getPrintableRecs($rec, $rec->data->recs);
+            $combinedParams = array();
+            foreach ($printableRecs as $dRec){
+                $params = cat_Products::getParams($dRec->productId);
+                $params = array_keys(cat_Params::getParamNameArr($params, true));
+                $combinedParams = array_merge($combinedParams, $params);
+            }
+            foreach ($combinedParams as $paramName) {
+                $placeholders[$paramName] = (object) array('type' => 'text');
+                $placeholders[$paramName]->hidden = true;
+            }
+        }
+
         return $placeholders;
     }
 
@@ -78,9 +95,14 @@ class price_interface_LabelImpl
         $currentCount = 0;
         Mode::push('text', 'plain');
         $priceCaption = ($rec->vat == 'yes') ? tr('цена с ДДС') : tr('цена без ДДС');
+        $allergenPramId = cat_Params::fetchIdBySysId('allergens');
+
         if(is_array($recs)){
+            // От редовете, ще останат САМО тези, които ще могат да се печатат на етикети
+            $printableRecs = $this->getPrintableRecs($rec, $recs);
+
             $date = dt::mysql2verbal(dt::today(), 'd.m.Y');
-            foreach ($recs as $pRec){
+            foreach ($printableRecs as $pRec){
                 $ean = '';
                 if($onlyPreview === true){
                     $ean = '0000000000000';
@@ -92,8 +114,20 @@ class price_interface_LabelImpl
                 $code = !empty($code) ? $code : "Art{$pRec->productId}";
                 $measureId = cat_UoM::getShortName($pRec->measureId);
 
+                // Ревербализиране на алергена
+                Mode::push('printLabel', true);
+                Mode::push('text', 'plain');
+                $params = cat_Products::getParams($pRec->productId, null, true);
+                Mode::pop('text');
+                Mode::pop('printLabel');
+                $params = cat_Params::getParamNameArr($params, true);
+
                 if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
                     $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'PRICE_CAPTION' => $priceCaption);
+                    if (countR($params)) {
+                        $res = array_merge($res, $params);
+                    }
+
                     $resArr[] = $res;
                     $currentCount++;
                     if($currentCount == $cnt) break;
@@ -103,6 +137,9 @@ class price_interface_LabelImpl
                     $ean = !empty($packRec->eanCode) ? $packRec->eanCode : null;
                     $packName = cat_UoM::getShortName($packRec->packagingId);
                     $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($packRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "({$packRec->quantity} {$measureId})", 'PRICE_CAPTION' => $priceCaption);
+                    if (countR($params)) {
+                        $res = array_merge($res, $params);
+                    }
                     $resArr[] = $res;
                     $currentCount++;
                     if($currentCount == $cnt) break;
@@ -111,8 +148,39 @@ class price_interface_LabelImpl
         }
         
         Mode::pop('text', 'plain');
-        
+
         return $resArr;
+    }
+
+
+    /**
+     * Кои редове от справката да се печатат етикети
+     *
+     * @param stdClass $rec
+     * @param array $recs
+     * @return array $res
+     */
+    private function getPrintableRecs($rec, $recs)
+    {
+        // Ако е инсталиран пакета `uiext` или не се искат конкретни тагове за отпечатване
+        $res = array();
+        if(!core_Packs::isInstalled('uiext') || $rec->showUiextLabels != 'yes') return $recs;
+
+        $printLabelId = uiext_Labels::fetchField("#systemId='printLabel'", 'id');
+        $hashFields = $this->class->getUiextLabelHashFields($rec);
+        foreach($recs as $dRec){
+
+            // Остават само редовете, в чиито тагове е посочено че са за принтиране
+            $hash = uiext_Labels::getHash($dRec, $hashFields);
+            $selRec = uiext_ObjectLabels::fetchByDoc(frame2_Reports::getClassId(), $rec->id, $hash);
+            if($selRec){
+                if(keylist::isIn($printLabelId, $selRec->labels)){
+                    $res[] = $dRec;
+                }
+            }
+        }
+
+        return $res;
     }
 
 
@@ -126,16 +194,16 @@ class price_interface_LabelImpl
      */
     public function getLabelEstimatedCnt($id, $series = 'label')
     {
-        $rec = frame2_Reports::fetchRec($id);
-        
         $count = 0;
-        if(is_array($rec->data->recs)){
-            foreach ($rec->data->recs as $dRec){
-                if($rec->showMeasureId == 'yes' && !empty($dRec->price)){
-                    $count++;
-                }
-                $count += countR($dRec->packs);
+        $rec = frame2_Reports::fetchRec($id);
+        if(!is_array($rec->data->recs)) return $count;
+
+        $recs = $this->getPrintableRecs($rec, $rec->data->recs);
+        foreach ($recs as $dRec){
+            if($rec->showMeasureId == 'yes' && !empty($dRec->price)){
+                $count++;
             }
+            $count += countR($dRec->packs);
         }
         
         return $count;

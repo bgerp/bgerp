@@ -577,6 +577,22 @@ class label_Templates extends core_Master
         
         // Заместване на плейсхолдърите със стойностите
         foreach ((array) $placeArr as $key => $val) {
+            if (!isset($val) || strlen($val) === 0) {
+                $et = new ET();
+                $et->setContent($string);
+                for($i=0; $i<100; $i++) {
+                    $et->removeBlock($key);
+                    $pArr = self::getPlaceholders($et);
+                    $uKey = mb_strtoupper($key);
+                    if (!$pArr[$uKey]) {
+                        break;
+                    }
+                }
+                $string = $et->getContent(null, "CONTENT", false, false);
+
+                continue;
+            }
+
             $key = mb_strtoupper($key);
             $key = self::toPlaceholder($key);
             $nArr[$key] = $val;

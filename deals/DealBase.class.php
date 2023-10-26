@@ -471,9 +471,8 @@ abstract class deals_DealBase extends core_Master
                     cls::get('acc_Items')->flushTouched();
                 }
 
-                $expenseClosedDeals = $allocatedExpenses = array();
-
                 // Обединения договор ще е активен
+                $allocatedExpenses = array();
                 $dealRec = $this->fetch($rec->id, '*', false);
                 $dealRec->contoActions = 'activate';
                 $dealRec->state = 'active';

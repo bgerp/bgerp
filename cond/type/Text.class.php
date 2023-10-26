@@ -69,7 +69,7 @@ class cond_type_Text extends cond_type_abstract_Proto
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
-        if(Mode::is('dontVerbalizeText')) return $value;
+        if(Mode::is('dontVerbalizeText') || Mode::is('printLabel')) return $value;
         $Type = cls::get('type_Text');
 
         // Ако има посочен парсатор

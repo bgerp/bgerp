@@ -1438,7 +1438,16 @@ class label_Prints extends core_Master
         $rec->printHistory[] = array('from' => $form->rec->from, 'to' => $form->rec->to, 'printedBy' => core_Users::getCurrent(), 'printedOn' => dt::now());
         
         $this->save($rec, 'printedCnt, printHistory');
-        
+
+        // Ако се печата етикет от източник да се нотифицира източника
+        if ($rec->objectId && $rec->classId) {
+            $Source = cls::get($rec->classId);
+            if(cls::haveInterface('frame2_ReportIntf', $Source)){
+                $Source = cls::get('frame2_Reports');
+            }
+            $Source->invoke('AfterLabelIsPrinted', array($Source->fetchRec($rec->objectId), &$rec));
+        }
+
         $this->logRead('Отпечатване', $rec->id);
         
         return $tpl;

@@ -121,7 +121,8 @@ class cms_page_External extends core_page_Active
     {
         $currentTab = Mode::get('currentExternalTab');
         $Ctr = Request::get('Ctr');
-        $selectedProfileClass = ($Ctr == 'cms_Profiles') ? 'class=selected-external-tab' : '';
+
+        $selectedProfileClass = in_array($Ctr, array('cms_Profiles', 'colab_Folders', 'colab_Threads', 'colab_Search', 'school_GroupSchedules')) ? 'class=selected-external-tab' : '';
         $selectedBarcodeSearchClass = ($Ctr == 'barcode_Search') ? 'class=selected-external-tab' : '';
 
         $nick = core_Users::getNick(core_Users::getCurrent());
