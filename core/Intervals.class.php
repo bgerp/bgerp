@@ -315,4 +315,35 @@ class core_Intervals {
 
         return $res;
     }
+
+
+    /**
+     * Проверява дали подадената дата попада в някой от интервалите
+     *
+     * @param datetime $datetime
+     *
+     * @return bool
+     */
+    public function isIn($datetime = null)
+    {
+        if (!isset($datetime)) {
+            $datetime = dt::now();
+        }
+
+        $datesArr = $this->getDates();
+
+        if (!isset($datesArr)) {
+
+            return false;
+        }
+
+        foreach ($datesArr as $dArr) {
+            if ($datetime >= $dArr[0] && $datetime <= $dArr[1]) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
