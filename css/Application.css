@@ -5336,6 +5336,9 @@ div.location.public {
   position: relative;
   top: -1px; }
 
+.narrow .details .portal {
+  display: table-cell; }
+
 .portal-filter .hFormField input {
   height: 1.4em;
   border: none !important;
