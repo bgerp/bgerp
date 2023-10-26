@@ -3815,7 +3815,7 @@ class planning_Tasks extends core_Master
         $this->requireRightFor('editprevioustask', $rec);
 
         $form = cls::get('core_Form');
-        $form->title = 'Избор на предходна операция|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
+        $form->title = 'Избор на предходна операция|* <b>' . planning_Tasks::getHyperlink($id, true) . '</b>';
         $form->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=name,allowEmpty)', 'caption=Пр. операция');
 
         $options = array();
