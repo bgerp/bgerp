@@ -4050,6 +4050,8 @@ table .eshop-btn {
 .logoutBlock {
   padding: 0 3px; }
 
+#notificationCountStatus {
+  margin-right: 5px; }
   #notificationCountStatus.noNtf {
     display: none; }
   #notificationCountStatus a.selected-external-tab {
