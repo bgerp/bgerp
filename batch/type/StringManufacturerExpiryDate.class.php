@@ -34,6 +34,9 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
             $valueArr['d'] = trim($valueParsed[2]);
         }
 
+        // Ако нищо не е въведено, значи няма да се изсикват други полета
+        if(empty($valueArr['s']) && empty($valueArr['m']) && empty($valueArr['d'])) return;
+
         $foundDate = null;
         $errorArr = array();
         if(empty($valueArr['s'])){
@@ -43,11 +46,9 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
                 $errorArr[] = "В номера не трябва да се съдържа|* <b>{$delimiter}</b>";
             }
 
-            if(strpos($valueArr['s'], 'L') === 0){
-                $parsedDates = array();
-                $string = trim($valueArr['s'],'L');
-                $string = str_replace('.', '', $string);
-                $string = str_replace('/', '', $string);
+            $matches = array();
+            if(preg_match_all("/\d+/", $valueArr['s'], $matches)){
+                $string = implode($matches[0]);
 
                 if(is_numeric($string)){
                     $strlen = strlen($string);
@@ -60,6 +61,7 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
                         $masks = array('dmY', 'Ymd');
                     }
 
+                    $parsedDates = array();
                     foreach ($masks as $mask){
                         $parsed = date_parse_from_format($mask, $string);
                         if(!$parsed['error_count'] && !$parsed['warning_count']){
