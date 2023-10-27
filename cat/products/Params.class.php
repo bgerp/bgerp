@@ -573,8 +573,10 @@ class cat_products_Params extends doc_Detail
         
         $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
         $logMsg = ($rec->_isCreated) ? 'Добавяне на параметър' : 'Редактиране на параметър';
+
         $Class->logWrite($logMsg, $rec->productId);
         $Class->logDebug("{$logMsg}: {$paramName}", $rec->productId);
+        $Class->touchRec($rec->productId);
     }
     
     
