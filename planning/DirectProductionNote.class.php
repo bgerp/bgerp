@@ -737,7 +737,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $hasNotOutsourced = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes' AND #quantity != 0");
                     $hasPoped = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop' AND #quantity != 0");
                     $hasInputed = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #quantity != 0");
-                    if ($hasNotOutsourced || (!$hasInputed && $hasPoped)) {
+                    $hasAllocated = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'allocated' AND #quantity != 0");
+
+                    if ($hasNotOutsourced || $hasAllocated || (!$hasInputed && $hasPoped)) {
                         $requiredRoles = 'no_one';
                     }
                 }
