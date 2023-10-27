@@ -168,6 +168,18 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
         $datePlaceholder = $this->getDefaultExpirationDate($this->params['productId'], null, $params);
         $manifactureOptions = batch_ManufacturersPerProducts::getArray($this->params['folderId'], $this->params['productId']);
 
+        $delimiter = html_entity_decode($this->params['delimiter'], ENT_COMPAT, 'UTF-8');
+        $stringSgt = $dateSgt = array();
+        if(is_array($this->suggestions)){
+            unset($this->suggestions['']);
+            foreach ($this->suggestions as $sgt){
+                $sgtOpt = explode($delimiter, $sgt);
+                $stringSgt[] = $sgtOpt[0];
+                $dateSgt[] = $sgtOpt[2];
+            }
+        }
+        $this->suggestions = countR($stringSgt) ? array('' => '') + $stringSgt : array();
+
         // Ако има грешка във формата се взимат данните от рекуеста а е не от $value
         $useValue = $this->formWithErrors ? Request::get($name) : $value;
         $useValue = empty($value) ? $value : $useValue;
@@ -191,12 +203,10 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
 
         $attrMan['placeholder'] = 'Произв.';
         $attrMan['id'] = "batchNameM". rand(1, 100);
-        if(countR($manifactureOptions)){
-            $tpl->append(ht::createCombo($name . '[m]', $valManifacture, $attrMan, $manifactureOptions));
-        } else {
-            $tpl->append($this->createInput($name . '[m]', $valManifacture, $attrMan));
-        }
+        $this->suggestions = $manifactureOptions;
+        $tpl->append($this->createInput($name . '[m]', $valManifacture, $attrMan));
 
+        $this->suggestions = countR($dateSgt) ? array('' => '') + $dateSgt : array();
         $attrDate['placeholder'] = !empty($datePlaceholder) ? $datePlaceholder : 'Годен до';
         $attrDate['id'] = "batchNameD". rand(1, 100);
         $tpl->append($this->createInput($name . '[d]', $valDate, $attrDate));
