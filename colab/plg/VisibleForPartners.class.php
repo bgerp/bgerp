@@ -76,8 +76,10 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $showField = true;
                         if(isset($rec->threadId) && !($mvc instanceof planning_Tasks)){
                             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                            if(!$firstDoc->isVisibleForPartners()){
-                                $showField = false;
+                            if($rec->containerId != $firstDoc->fetchField('containerId')){
+                                if(!$firstDoc->isVisibleForPartners()){
+                                    $showField = false;
+                                }
                             }
                         }
 

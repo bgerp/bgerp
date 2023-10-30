@@ -536,6 +536,9 @@ class colab_Threads extends core_Manager
     protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         $mvc->prepareTitle($data);
+
+        $url = array('colab_Threads', 'list', 'folderId' => Request::get('folderId', 'int'));
+        bgerp_Notifications::clear($url);
     }
     
     

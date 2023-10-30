@@ -66,6 +66,20 @@ class batch_ManufacturersPerProducts extends core_Manager
 
 
     /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+        $row->productId = cat_Products::getHyperlink($rec->productId);
+    }
+
+
+    /**
      * Връща опциите за избор
      *
      * @param int $folderId
