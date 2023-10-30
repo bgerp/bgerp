@@ -315,10 +315,10 @@ class doc_SharablePlg extends core_Plugin
             $contractorIds = colab_FolderToPartners::getContractorsInFolder($folderId);
             $showPartners = countR($contractorIds);
 
-            $threadId = isset($form->rec->threadId) ? $form->rec->threadId : (isset($form->rec->originId) ? doc_Containers::fetchField($form->rec->originId, 'threadId') : null);
+            $threadId = $form->rec->threadId ?? (isset($form->rec->originId) ? doc_Containers::fetchField($form->rec->originId, 'threadId') : null);
             if(isset($threadId)){
                 $firstDoc = doc_Threads::getFirstDocument($threadId);
-                if(!$firstDoc->isVisibleForPartners()){
+                if(!$firstDoc->isVisibleForPartners() && $data->action != 'changefields'){
                     $showPartners = false;
                 }
             }
