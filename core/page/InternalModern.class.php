@@ -300,7 +300,7 @@ class core_page_InternalModern extends core_page_Active
         $tpl->append($html, 'MENU_ROW');
     }
     
-    
+
     /**
      * Допълнителни линкове в менюто
      */
@@ -312,30 +312,9 @@ class core_page_InternalModern extends core_page_Active
         
         // Създава линк за поддръжка
         $conf = core_Packs::getConfig('help');
-        
-        if ($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== false) {
-            $singal = ht::createLink(tr('Сигнал'), $conf->BGERP_SUPPORT_URL, false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
-            
-            $email = email_Inboxes::getUserEmail();
-            if (!$email) {
-                $email = core_Users::getCurrent('email');
-            }
 
-            list($user, $domain) = explode('@', $email);
-            $currUrl = getCurrentUrl();
-            $ctr = $currUrl['Ctr'];
-            $act = $currUrl['Act'];
-            $sysDomain = $_SERVER['HTTP_HOST'];
-            $name = core_Users::getCurrent('names');
-            
-            if ($conf->HELP_AUTO_FILL_USER_NAME_AND_EMAIL == 'no') {
-                $user = $name = $domain = '';
-            }
-            
-            $form = new ET("<form id='bugReportForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}'); \" action='" . $conf->BGERP_SUPPORT_URL . "'></form>");
-            $tpl->append($form);
-        }
-        
+        $signal = help_Info::prepareSupportLink($tpl);
+
         // Създава линк за изход
         $signOut = ht::createLink(tr('Изход'), array('core_Users', 'logout'), false, array('title' => 'Излизане от системата', 'ef_icon' => 'img/16/logout.png'));
         $tpl->replace($signOut, 'SIGN_OUT');
@@ -404,7 +383,7 @@ class core_page_InternalModern extends core_page_Active
         $tpl->replace($debug, 'DEBUG_BTN');
         $tpl->replace($about, 'ABOUT_BTN');
         $tpl->replace($mode, 'CHANGE_MODE');
-        $tpl->replace($singal, 'SIGNAL');
+        $tpl->replace($signal, 'SIGNAL');
         $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
         $tpl->replace($portalLink, 'PORTAL');
         

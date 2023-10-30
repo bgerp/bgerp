@@ -88,7 +88,42 @@ class help_Info extends core_Master
         
         $this->setDbUnique('class,lg');
     }
-    
+
+
+    /**
+     * @param $tpl
+     * @return void
+     */
+    public static function prepareSupportLink(&$tpl)
+    {
+        $sUrl = help_Setup::get('BGERP_SUPPORT_URL', true);
+        $signal = '';
+        if ($sUrl && strpos($sUrl, '//') !== false) {
+            $currUrl = getCurrentUrl();
+            $ctr = $currUrl['Ctr'];
+            $act = $currUrl['Act'];
+            $sysDomain = $_SERVER['HTTP_HOST'];
+
+            if (help_Setup::get('AUTO_FILL_USER_NAME_AND_EMAIL') == 'no') {
+                $user = $name = $domain = '';
+            } else {
+                $email = email_Inboxes::getUserEmail();
+                if (!$email) {
+                    $email = core_Users::getCurrent('email');
+                }
+                list($user, $domain) = explode('@', $email);
+                $name = core_Users::getCurrent('names');
+            }
+
+            $form = new ET("<form id='bugReportForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}'); \" action='" . $sUrl . "'></form>");
+            $tpl->append($form);
+
+            $signal = ht::createLink(tr('Сигнал'), $sUrl, false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
+        }
+
+        return $signal;
+    }
+
     
     /**
      * Изчисляване на полето 'titla'

@@ -532,7 +532,14 @@ class cms_Content extends core_Manager
             $footer = new ET(getFileContent('cms/tpl/Footer.shtml'));
         }
         $footer->replace(getBoot() . '/' . EF_SBF . '/' . EF_APP_NAME, 'boot');
-        
+
+        if (haveRole('user')) {
+            $signal = help_Info::prepareSupportLink($footer);
+        } else {
+            $signal = '';
+        }
+        $footer->replace($signal, 'SIGNAL');
+
         return $footer;
     }
     

@@ -5553,10 +5553,18 @@ function getEfae() {
 function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 {
 	var url = document.URL;
+    var dTitle = document.title;
 	var width = $(window).width();
 	var height = $(window).height();
 	var browser = getUserAgent();
-	var title = sysDomain + '/' + ctr + '/' + act;
+    if (!dTitle) {
+        dTitle = ctr + '/' + act;
+    }
+    if (dTitle && (dTitle.length > 495)) {
+        dTitle = dTitle.substring(0, 495);
+        dTitle += '...';
+    }
+	var title = sysDomain + '/' + dTitle;
 
 	if (url && (url.length > 495)) {
 		url = url.substring(0, 495);
