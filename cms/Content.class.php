@@ -533,11 +533,7 @@ class cms_Content extends core_Manager
         }
         $footer->replace(getBoot() . '/' . EF_SBF . '/' . EF_APP_NAME, 'boot');
 
-        if (haveRole('user')) {
-            $signal = help_Info::prepareSupportLink($footer);
-        } else {
-            $signal = '';
-        }
+        $signal = help_Info::prepareSupportLink($footer);
         $footer->replace($signal, 'SIGNAL');
 
         return $footer;
