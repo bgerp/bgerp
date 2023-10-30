@@ -8,21 +8,15 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  * @see label_SequenceIntf
  *
  */
-class planning_interface_TaskLabel
+class planning_interface_TaskLabel extends label_ProtoSequencerImpl
 {
-    /**
-     * Инстанция на класа
-     */
-    public $class;
-
-
     /**
      * Връща наименованието на етикета
      *
@@ -286,19 +280,6 @@ class planning_interface_TaskLabel
             return $rec->labelTemplate;
         }
 
-        return null;
-    }
-
-    /**
-     * Връща дефолтен шаблон за печат на бърз етикет
-     *
-     * @param int  $id
-     * @param stdClass|null  $driverRec
-     *
-     * @return int
-     */
-    public function getDefaultFastLabel($id, $driverRec = null)
-    {
         return null;
     }
 }

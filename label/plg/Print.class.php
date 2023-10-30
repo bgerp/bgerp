@@ -396,13 +396,4 @@ class label_plg_Print extends core_Plugin
             }
         }
     }
-
-
-    /**
-     * След успешно отпечатване на етикет
-     */
-    protected function on_AfterLabelIsPrinted($mvc, $id, $printRec)
-    {
-        $mvc->logWrite('Печат на етикет', $id);
-    }
 }

@@ -8,21 +8,15 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  * @see label_SequenceIntf
  *
  */
-class price_interface_LabelImpl
+class price_interface_LabelImpl extends label_ProtoSequencerImpl
 {
-    /**
-     * Инстанция на класа
-     */
-    public $class;
-
-
     /**
      * Връща масив с данните за плейсхолдерите
      *
@@ -223,46 +217,33 @@ class price_interface_LabelImpl
         
         return $rec->title;
     }
-    
-    
-    /**
-     * Връща дефолтен шаблон за печат на бърз етикет
-     *
-     * @param int  $id
-     * @param stdClass|null  $driverRec
-     *
-     * @return int
-     */
-    public function getDefaultFastLabel($id, $driverRec = null)
-    {
-        return null;
-    }
-    
-    
-    /**
-     * Връща попълнен дефолтен шаблон с дефолтни данни.
-     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
-     *
-     * @param int  $id
-     * @param int $templateId
-     *
-     * @return core_ET|null
-     */
-    public function getDefaultLabelWithData($id, $templateId)
-    {
-        return null;
-    }
 
 
     /**
-     * Кой е дефолтния шаблон за печат към обекта
+     * Кога е отпечатан етикет от източника
      *
-     * @param $id
-     * @param string $series
-     * @return int|null
+     * @param int $id
+     * @return void
      */
-    public function getDefaultLabelTemplateId($id, $series = 'label')
+    public function onLabelIsPrinted($id)
     {
-        return null;
+        $rec = frame2_Reports::fetchRec($id);
+        frame2_Reports::logWrite('Печат на етикет', $rec->id);
+        $classId = frame2_Reports::getClassId();
+
+        if(!core_Packs::isInstalled('uiext')) return;
+        if($rec->showUiextLabels != 'yes') return;
+
+        // Ако има отбелязани редове с таг "Печат" да се занулят след печата
+        $printLabelId = uiext_Labels::fetchField("#systemId='printLabel'", 'id');
+        $recLabelQuery = uiext_ObjectLabels::getQuery();
+        $recLabelQuery->where("#classId={$classId} AND #objectId={$rec->id}");
+        $recLabelQuery->where("LOCATE('|{$printLabelId}|', #labels)");
+        while($recLabel = $recLabelQuery->fetch()){
+            $recLabel->labels = keylist::removeKey($recLabel->labels, $printLabelId);
+            if(empty($recLabel->labels)){
+                uiext_ObjectLabels::delete($recLabel->id);
+            }
+        }
     }
 }
