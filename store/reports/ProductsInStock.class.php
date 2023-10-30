@@ -102,9 +102,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
        // $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Филтри->"Общо" по групи,after=orderBy,input=none,single=none');
         $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
         $fieldset->FLD('workingPdogresOn', 'set(yes=)', 'caption=Включи незавършеното производство,after=seeByGroups, single=none');
-      if(haveRole('debug')){
-          $fieldset->FLD('workingPdogresOnly', 'set(yes=)', 'caption=Само незавършеното производство,after=seeByGroups, single=none');
-      }
+        $fieldset->FLD('workingPdogresOnly', 'set(yes=)', 'caption=Само незавършеното производство,after=seeByGroups, single=none');
 
 
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
@@ -211,10 +209,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $accsArr = array(321);
 
         //За тестване на само незавършено производство
-        if (haveRole('debug')){
-            if($rec->workingPdogresOnly == 'yes' && $rec->workingPdogresOn == 'yes'){
-                $accsArr = array();
-            }
+        if($rec->workingPdogresOnly == 'yes' && $rec->workingPdogresOn == 'yes'){
+            $accsArr = array();
         }
 
         //systemId на сметката "Незавършено производство" = 61101
