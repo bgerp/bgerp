@@ -1441,11 +1441,8 @@ class label_Prints extends core_Master
 
         // Ако се печата етикет от източник да се нотифицира източника
         if ($rec->objectId && $rec->classId) {
-            $Source = cls::get($rec->classId);
-            if(cls::haveInterface('frame2_ReportIntf', $Source)){
-                $Source = cls::get('frame2_Reports');
-            }
-            $Source->invoke('AfterLabelIsPrinted', array($Source->fetchRec($rec->objectId), &$rec));
+            $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+            $intfInst->onLabelIsPrinted($rec->objectId);
         }
 
         $this->logRead('Отпечатване', $rec->id);

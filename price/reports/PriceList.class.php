@@ -721,26 +721,4 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         return $rec->showUiextLabels == 'yes';
     }
-
-
-    /**
-     * След успешно отпечатване на етикет
-     */
-    protected function on_AfterLabelIsPrinted(frame2_driver_Proto $Driver, embed_Manager $Embedder, $rec, $printRec)
-    {
-        if(!core_Packs::isInstalled('uiext')) return;
-        if($rec->showUiextLabels != 'yes') return;
-
-        // Ако има отбелязани редове с таг "Печат" да се занулят след печата
-        $printLabelId = uiext_Labels::fetchField("#systemId='printLabel'", 'id');
-        $recLabelQuery = uiext_ObjectLabels::getQuery();
-        $recLabelQuery->where("#classId={$Embedder->getClassId()} AND #objectId={$rec->id}");
-        $recLabelQuery->where("LOCATE('|{$printLabelId}|', #labels)");
-        while($recLabel = $recLabelQuery->fetch()){
-            $recLabel->labels = keylist::removeKey($recLabel->labels, $printLabelId);
-            if(empty($recLabel->labels)){
-                uiext_ObjectLabels::delete($recLabel->id);
-            }
-        }
-    }
 }
