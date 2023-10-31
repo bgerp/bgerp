@@ -28,3 +28,4 @@
 Оборудване,cond_type_Keylist,,planningAssets,,no,active,"class=planning_AssetResources,select=name",no
 Грамаж,cond_type_Double,г/м2,densityGm2,,no,active,,yes
 Алергени,cond_type_Keylist,,allergens,,yes,active,"class=cond_Allergens,select=titleNum,selectLabel=num",no
+Енергийна стойност,cond_type_Double,kcal,energyKcal,,yes,active,,no

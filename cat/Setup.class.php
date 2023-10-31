@@ -242,7 +242,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cat_GeneralProductDriver,cat_ImportedProductDriver,cat_interface_BomDetailImport';
+    public $defClasses = 'cat_GeneralProductDriver,cat_ImportedProductDriver,cat_interface_BomDetailImport,cat_interface_AllergensParamAggregateImpl,cat_interface_EnergyValueAggregateImpl';
     
     
     /**
