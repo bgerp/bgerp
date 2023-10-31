@@ -822,10 +822,11 @@ class doc_Folders extends core_Master
      * Връща масив с потребители, които ще се нотифицират за действия в папката
      *
      * @param stdClass $rec
+     * @param bool $notifyPartners
      *
      * @return array
      */
-    public static function getUsersArrForNotify($rec)
+    public static function getUsersArrForNotify($rec, $notifyPartners = false)
     {
         static $resArr = array();
         
@@ -900,11 +901,13 @@ class doc_Folders extends core_Master
         }
 
         // Ако папката е споделена и достъпна към партньори, да се добавят и споделените партньори към нея
-        if(core_Packs::isInstalled('colab')){
-            $partnersArr = colab_Folders::getSharedUsers($rec->id);
-            foreach ($partnersArr as $partnerId){
-                if (colab_Threads::haveRightFor('list', (object) array('folderId' => $rec->id), $partnerId)) {
-                    $rNotifyArr[$partnerId] = $partnerId;
+        if($notifyPartners) {
+            if(core_Packs::isInstalled('colab')){
+                $partnersArr = colab_Folders::getSharedUsers($rec->id);
+                foreach ($partnersArr as $partnerId){
+                    if (colab_Threads::haveRightFor('list', (object) array('folderId' => $rec->id), $partnerId)) {
+                        $rNotifyArr[$partnerId] = $partnerId;
+                    }
                 }
             }
         }
