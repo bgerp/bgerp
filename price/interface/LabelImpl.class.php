@@ -49,13 +49,17 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
         if (isset($objId)) {
 
             // Показване обединението на множеството от плейсхолдърите на артикулите, които ще им се печата етикет
+            $allergenSysId = cat_Params::fetchIdBySysId('allergens');
             $rec = frame2_Reports::fetch($objId);
             $printableRecs = $this->getPrintableRecs($rec, $rec->data->recs);
             $combinedParams = array();
             foreach ($printableRecs as $dRec){
                 $params = cat_Products::getParams($dRec->productId);
-                $params = array_keys(cat_Params::getParamNameArr($params, true));
-                $combinedParams = array_merge($combinedParams, $params);
+                $paramsPlaceholders = array_keys(cat_Params::getParamNameArr($params, true));
+                if(array_key_exists($allergenSysId, $params)){
+                    $paramsPlaceholders[] = 'ALLERGENS_IMG';
+                }
+                $combinedParams = array_merge($combinedParams, $paramsPlaceholders);
             }
             foreach ($combinedParams as $paramName) {
                 $placeholders[$paramName] = (object) array('type' => 'text');

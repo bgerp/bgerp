@@ -52,7 +52,7 @@ class cond_iface_AllergensTemplateRendered extends core_BaseClass
                 $tpl->append($iconImg);
             }
 
-            $labelDataArr['АЛЕРГЕНИ'] = $tpl->getContent();
+            $labelDataArr['ALLERGENS_IMG'] = $tpl->getContent();
         }
     }
 }
