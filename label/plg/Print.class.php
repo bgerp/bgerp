@@ -232,7 +232,7 @@ class label_plg_Print extends core_Plugin
         foreach ($series as $series => $caption){
             $res[$series] = array('url' => null, 'attr' => '', 'caption' => $caption);
             if ($mvc->haveRightFor('printlabel', $rec)) {
-                $templates = $mvc->getLabelTemplates($rec, $series, false);
+                $templates = $mvc->getLabelTemplates($rec, $series);
                 if(countR($templates)){
                     if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series))) {
                         core_Request::setProtected(array('classId,objectId,series'));
