@@ -175,12 +175,13 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
         
         $docRec = $firstDoc->rec();
         
-        // Валутата на плащането е тази на сделката
-        $currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-        
+        // Какво е салдото по 402 за ТАЗИ сделка
         $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+        $accId = acc_Accounts::getRecBySystemId('402')->id;
+        $thisDealItemId = acc_Items::fetchItem($firstDoc->className, $firstDoc->that)->id;
+        $jRecs = array_filter($jRecs, function($a) use ($accId, $thisDealItemId){return (($a->debitAccId == $accId && $a->debitItem2 == $thisDealItemId) || ($a->creditAccId == $accId && $a->creditItem2 == $thisDealItemId));});
         $downpaymentArrs = acc_Balances::getBlQuantities($jRecs, '402');
-        
+
         if (is_array($downpaymentArrs)) {
             foreach ($downpaymentArrs as $index => $obj) {
                 $res = deals_Helper::convertJournalCurrencies(array($index => $obj), $docRec->currencyId, $result->valior);
