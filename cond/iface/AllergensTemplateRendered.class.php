@@ -54,5 +54,21 @@ class cond_iface_AllergensTemplateRendered extends core_BaseClass
 
             $labelDataArr['ALLERGENS_IMG'] = $tpl->getContent();
         }
+
+        if($labelDataArr['ЛЮТО']){
+            $tpl = new core_ET("");
+            $iconImg = ($labelDataArr['ЛЮТО'] == 'Малко люто') ? 'yellow' : (($labelDataArr['ЛЮТО'] == 'Средно люто') ? 'orange' : 'red');
+            $iconImg = ht::createImg(array('class' => 'icons','src' => sbf("cond/img/{$iconImg}.png", '')));
+            $tpl->append($iconImg);
+            $labelDataArr['ЛЮТО'] = $tpl->getContent();
+        }
+
+        if($labelDataArr['ВЕГЕТАРИАНСКО']){
+            $tpl = new core_ET("");
+            $iconImg = $labelDataArr['ВЕГЕТАРИАНСКО'] == 'Веган' ? 'leave-red' : 'leave-green';
+            $iconImg = ht::createImg(array('class' => 'pictograms','src' => sbf("cond/img/{$iconImg}.png", '')));
+            $tpl->append($iconImg);
+            $labelDataArr['ВЕГЕТАРИАНСКО'] = $tpl->getContent();
+        }
     }
 }
