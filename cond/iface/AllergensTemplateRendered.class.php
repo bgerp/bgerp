@@ -48,7 +48,7 @@ class cond_iface_AllergensTemplateRendered extends core_BaseClass
             $allergenNums = explode(',', $labelDataArr['АЛЕРГЕНИ']);
             foreach ($allergenNums as $num){
                 $numTrimmed = trim($num);
-                $iconImg = ht::createImg(array('width' => '12px', 'height' => '12px','src' => sbf("cond/img/{$numTrimmed}.png", '')));
+                $iconImg = ht::createImg(array('class' => 'icons','src' => sbf("cond/img/{$numTrimmed}.png", '')));
                 $tpl->append($iconImg);
             }
 
