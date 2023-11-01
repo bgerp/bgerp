@@ -54,12 +54,6 @@ class cat_products_Params extends doc_Detail
     
     
     /**
-     * Активния таб в случай, че wrapper-а е таб контрол.
-     */
-    public $tabName = 'cat_Products';
-    
-    
-    /**
      * Кой може да добавя
      */
     public $canAdd = 'powerUser';
@@ -520,18 +514,21 @@ class cat_products_Params extends doc_Detail
         
         return self::renderDetail($data);
     }
-    
-    
+
+
     /**
-     * Добавяне на свойтвата към обекта
+     * Връща параметрите, които са счетоводни свойства
+     *
+     * @param mixed $classId
+     * @param int $objectId
+     * @return array $features
      */
     public static function getFeatures($classId, $objectId)
     {
         $features = array();
         $query = self::getQuery();
         $classId = cls::get($classId)->getClassId();
-        
-        $query->where("#productId = '{$objectId}'");
+        $query->where("#classId = {$classId} AND #productId = '{$objectId}'");
         $query->EXT('isFeature', 'cat_Params', 'externalName=isFeature,externalKey=paramId');
         $query->where("#isFeature = 'yes'");
         
@@ -788,30 +785,30 @@ class cat_products_Params extends doc_Detail
 
 
     /**
-     * Записване на параметрите от подадения обект
+     * Синхронизиране на параметрите на артикула
      *
-     * @param $class
-     * @param $rec
-     * @param $paramField
+     * @param mixed $class
+     * @param int $id
+     * @param array $params
      * @return void
      */
-    public static function saveParams($class, $rec, $paramField = '_params')
+    public static function syncParams($class, $id, $params)
     {
         $Class = cls::get($class);
 
         // Извличане на старите записи
         $newRecs = array();
         $exQuery = static::getQuery();
-        $exQuery->where("#classId = {$Class->getClassId()} AND #productId = {$rec->id}");
+        $exQuery->where("#classId = {$Class->getClassId()} AND #productId = {$id}");
         $exRecs = $exQuery->fetchAll();
 
         // Кои записи ще се добавят/обновяват
-        foreach ($rec->{$paramField} as $k => $o) {
-            if (!isset($rec->{$k})) continue;
-            $paramDriver = cat_Params::getDriver($o->paramId);
-            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image || $paramDriver instanceof cond_type_Files) && empty($rec->{$k})) continue;
+        foreach ($params as $paramId => $val) {
+            if (!isset($val)) continue;
 
-            $nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $Class->getClassId(), 'productId' => $rec->id);
+            $paramDriver = cat_Params::getDriver($paramId);
+            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image || $paramDriver instanceof cond_type_Files) && empty($val)) continue;
+            $nRec = (object)array('paramId' => $paramId, 'paramValue' => $val, 'classId' => $Class->getClassId(), 'productId' => $id);
             $newRecs[] = $nRec;
         }
 
@@ -829,6 +826,25 @@ class cat_products_Params extends doc_Detail
             $delete = implode(',', $synced['delete']);
             static::delete("#id IN ({$delete})");
         }
+    }
+
+
+    /**
+     * Записване на параметрите от подадения обект
+     *
+     * @param $class
+     * @param $rec
+     * @param $paramField
+     * @return void
+     */
+    public static function saveParams($class, $rec, $paramField = '_params')
+    {
+        $params = array();
+        foreach ($rec->{$paramField} as $k => $o) {
+            $params[$o->paramId] = $rec->{$k};
+        }
+
+        static::syncParams($class, $rec->id, $params);
     }
 
 

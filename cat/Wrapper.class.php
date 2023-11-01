@@ -11,7 +11,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -39,6 +39,9 @@ class cat_Wrapper extends plg_ProtoWrapper
         $this->TAB('cat_ProductTplCache', 'Дебъг->Кеш', 'ceo, debug, cat');
         $this->TAB('cat_Serials', 'Дебъг->Генерирани номера', 'debug');
         $this->TAB('cat_products_Params', 'Дебъг->Продуктови параметри', 'debug');
+        $this->TAB('cat_products_VatGroups', 'Дебъг->ДДС групи', 'debug');
+
+
 
         $this->title = 'Продукти';
     }
