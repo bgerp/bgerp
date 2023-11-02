@@ -207,13 +207,16 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $workingTime = $lastWorkTime = $lastWorkHash = array();
 
+        $lastIpType = array();
+
         while ($lRec = $logDatQuery->fetch()){
 
-            $oldIpType = $ipType;
+            $oldIpType = $lastIpType[$lRec->userId];
 
-            $minutesToAdd = 0;
+            $minutesToAdd = $minute =0;
 
             $ipType = (in_array($lRec->ipId,$iPInArr)) ? 'office':'home';
+
 
             $hash = md5($lRec->type . $lRec->actionCrc . $lRec->classCrc . $lRec->objectId);
 
@@ -228,6 +231,8 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home') && ($oldIpType == 'office')){
                 $ipType = 'office';
             }
+
+            $lastIpType[$lRec->userId] = $ipType;
 
             // if ($ipType == 'home')continue;
 
