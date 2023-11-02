@@ -27,7 +27,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'userId,office,home,summ' ;
+    protected $sortableListFields = 'userName,office,home,summ' ;
 
 
     /**
