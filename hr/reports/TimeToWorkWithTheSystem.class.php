@@ -267,6 +267,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
                 'userId' => $key,
                 'home' => $val['home'],
                 'office' => $val['office'],
+                'summ' => $val['office']+$val['home'],
                 'userName' => $userName
 
             );
@@ -294,7 +295,8 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
 
-            $fld->FLD('userId', 'varchar', 'caption=Потребител');
+            $fld->FLD('userName', 'varchar', 'caption=Потребител');
+            //$fld->FLD('userId', 'varchar', 'caption=Потребител');
             $fld->FLD('office', 'time', 'caption=Офис,smartCenter');
             $fld->FLD('home', 'time', 'caption=Отдалечено,smartCenter');
             $fld->FLD('summ', 'time', 'caption=Сумарно,smartCenter');
@@ -328,12 +330,12 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->userId = $dRec->userName;
-        $row->userId .= ' ['.crm_Profiles::createLink($dRec->userId).']';
+        $row->userName = $dRec->userName;
+        $row->userName .= ' ['.crm_Profiles::createLink($dRec->userId).']';
 
         $row->office = $Time->toVerbal($dRec->office*60);
         $row->home = $Time->toVerbal($dRec->home*60);
-        $row->summ = $Time->toVerbal(($dRec->home + $dRec->office)*60);
+        $row->summ = $Time->toVerbal($dRec->summ*60);
 
 
         return $row;
