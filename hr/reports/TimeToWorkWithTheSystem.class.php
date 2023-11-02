@@ -27,7 +27,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields ;
+    protected $sortableListFields = 'userId,office,home,summ' ;
 
 
     /**
@@ -257,14 +257,24 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         }
 
         foreach ($workingTime as $key => $val){
+
+            $personId = crm_Profiles::fetch("#userId =$key")->personId;
+
+            $userName = crm_Persons::fetch($personId)->name;
+
             $recs[$key] = (object)array(
 
                 'userId' => $key,
                 'home' => $val['home'],
-                'office' => $val['office']
+                'office' => $val['office'],
+                'userName' => $userName
 
             );
 
+        }
+
+        if (countR($recs)) {
+            arr::sortObjects($recs, 'userName', 'ASC');
         }
 
         return $recs;
@@ -318,10 +328,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $personId = crm_Profiles::fetch("#userId =$dRec->userId")->personId;
-
-        $row->userId = crm_Persons::fetch($personId)->name;
-
+        $row->userId = $dRec->userName;
         $row->userId .= ' ['.crm_Profiles::createLink($dRec->userId).']';
 
         $row->office = $Time->toVerbal($dRec->office*60);
