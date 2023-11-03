@@ -1242,7 +1242,7 @@ class pos_Terminal extends peripheral_Terminal
                     }
 
                     if(countR($contragents)){
-                        $tpl->append(tr("|*<div class='divider'>|Партньори|*</div>"));
+                        $tpl->append(tr("|*<div class='divider'>|Представители|*</div>"));
                     }
                 }
             }
