@@ -445,7 +445,7 @@ select.tabHolder {
   position: relative; }
   .companyName .contragentImg img {
     position: absolute;
-    top: -2px;
+    top: -25%;
     right: 0px;
     border-radius: 3px; }
 
