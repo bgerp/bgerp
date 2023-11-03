@@ -205,7 +205,16 @@ class pos_Terminal extends peripheral_Terminal
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
-        
+
+        // Ако контрагента е лице и е потребител да се показва и аватара му
+        if($rec->contragentClass == crm_Persons::getClassId()){
+            $contragentUserId = crm_Profiles::getUserByPerson($rec->contragentObjectId);
+            if($contragentUserId){
+                $avatarTpl = avatar_Plugin::getImg($contragentUserId, null, 17, 17);
+                $headerData->contragentAvatar = $avatarTpl->getContent();
+            }
+        }
+
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? null : cls::get($rec->contragentClass)->getHyperlink($rec->contragentObjectId);
         $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : $contragentName;
@@ -1755,7 +1764,7 @@ class pos_Terminal extends peripheral_Terminal
             $suggestedArr = arr::make($suggestedArr);
             
             if($listId = cond_Parameters::getParameter($rec->contragentClass, $rec->contragentObjectId, 'salesList')){
-                $productsInList = arr::extractValuesFromArray(cat_Listings::getAll($listId, 'productId'));
+                $productsInList = arr::extractValuesFromArray(cat_Listings::getAll($listId), 'productId');
                 if(is_array($productsInList)){
                     $suggestedArr += $productsInList;
                 }
@@ -1817,7 +1826,6 @@ class pos_Terminal extends peripheral_Terminal
                     $sellable[$pRec->productId] = $pRec;
                 }
             } else {
-                $count = 0;
                 $maxCount = $settings->maxSearchProducts;
                 
                 // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре

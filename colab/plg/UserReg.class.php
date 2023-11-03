@@ -32,8 +32,7 @@ class colab_plg_UserReg extends core_Plugin
                     $info = crm_ext_Cards::getInfo($domainRec->clientCardNumber);
                     
                     $retUrl = array('crm_ext_Cards', 'checkCard', 'ret_url' => true);
-                    $newRegUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($info['contragent']->getInstance(), $info['contragent']->that, $retUrl);
-                    
+                    $newRegUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($info['contragentClassId'], $info['contragentId'], $retUrl);
                     if(!empty($newRegUrl)){
                         $tpl->append("<p>&nbsp;<A HREF='{$newRegUrl}' class='login-links' rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . '</A>', 'FORM');
                         

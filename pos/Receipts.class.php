@@ -967,10 +967,9 @@ class pos_Receipts extends core_Master
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
         $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
-        
-        $Policy = cls::get('price_ListToCustomers');
-        
+
         // Ако има детайли
+        $Policy = cls::get('price_ListToCustomers');
         $dQuery = pos_ReceiptDetails::getQuery();
         $dQuery->where("#action = 'sale|code' AND #receiptId = {$rec->id}");
         while($dRec = $dQuery->fetch()){
@@ -989,7 +988,20 @@ class pos_Receipts extends core_Master
         }
         
         $this->logWrite('Задаване на контрагент', $id);
-        
+
+        if (Request::get('ajax_mode')) {
+            $resObj2 = new stdClass();
+            $resObj2->func = 'redirect';
+            $resObj2->arg = array('url' => getRetUrl());
+
+            $hitTime = Request::get('hitTime', 'int');
+            $idleTime = Request::get('idleTime', 'int');
+            $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+            $res = array_merge(array($resObj2), (array) $statusData);
+
+            return $res;
+        }
+
         followRetUrl();
     }
     
