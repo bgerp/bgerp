@@ -990,16 +990,7 @@ class pos_Receipts extends core_Master
         $this->logWrite('Задаване на контрагент', $id);
 
         if (Request::get('ajax_mode')) {
-            $resObj2 = new stdClass();
-            $resObj2->func = 'redirect';
-            $resObj2->arg = array('url' => getRetUrl());
-
-            $hitTime = Request::get('hitTime', 'int');
-            $idleTime = Request::get('idleTime', 'int');
-            $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-            $res = array_merge(array($resObj2), (array) $statusData);
-
-            return $res;
+            return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true);
         }
 
         followRetUrl();

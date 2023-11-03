@@ -686,7 +686,7 @@ class pos_Terminal extends peripheral_Terminal
             $refreshResults = false;
         }
         
-        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, $refreshResults, null);
+        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, $refreshResults, null, true);
     }
     
     
@@ -2227,7 +2227,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return array $res
      */
-    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null, $clearInput = false)
+    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null, $refreshHeader = false)
     {
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
@@ -2277,8 +2277,17 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
                 $res[] = $resObj;
-            }            
-            
+            }
+
+            // Ще се реплейсват резултатите
+            if($refreshHeader){
+                $headerTpl = $me->renderHeader($rec);
+                $resObj = new stdClass();
+                $resObj->func = 'html';
+                $resObj->arg = array('id' => 'receiptTerminalHeader', 'html' => $headerTpl->getContent(), 'replace' => true);
+                $res[] = $resObj;
+            }
+
             $resObj = new stdClass();
             $resObj->func = 'prepareResult';
             $res[] = $resObj;
