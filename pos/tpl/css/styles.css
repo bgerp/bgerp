@@ -473,6 +473,26 @@ select.tabHolder {
     max-width: 100px;
     height: auto; }
 
+.grid.pictureAndText .element {
+  display: flex;
+  padding: 3px !important;
+  height: 130px;
+  box-sizing: border-box;
+  overflow: hidden;
+  flex-direction: column;
+  align-content: center; }
+  .grid.pictureAndText .element.selected {
+    padding: 0 !important; }
+  .grid.pictureAndText .element .photo {
+    display: flex;
+    width: 130px;
+    height: 100px;
+    justify-content: center;
+    align-items: center; }
+  .grid.pictureAndText .element .short-title {
+    height: 20px;
+    overflow: hidden; }
+
 .grid.short {
   font-size: 15px; }
   .grid.short .pos-title {

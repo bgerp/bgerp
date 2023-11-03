@@ -558,6 +558,30 @@ select.tabHolder {
 
 	}
 }
+.grid.pictureAndText .element {
+	display: flex;
+	padding: 3px !important;
+	height: 130px;
+	box-sizing: border-box;
+	overflow: hidden;
+	flex-direction: column;
+
+	align-content: center;
+	&.selected {
+		padding: 0 !important;
+	}
+	.photo {
+		display: flex;
+		width: 130px;
+		height: 100px;
+		justify-content: center;
+		align-items: center;
+	}
+	.short-title {
+		height: 20px;
+		overflow: hidden;
+	}
+}
 .grid.short {
 	font-size: 15px;
 	.pos-title {
