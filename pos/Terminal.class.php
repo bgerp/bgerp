@@ -210,7 +210,7 @@ class pos_Terminal extends peripheral_Terminal
         if($rec->contragentClass == crm_Persons::getClassId()){
             $contragentUserId = crm_Profiles::getUserByPerson($rec->contragentObjectId);
             if($contragentUserId){
-                $avatarTpl = avatar_Plugin::getImg($contragentUserId, null, 17, 17);
+                $avatarTpl = avatar_Plugin::getImg($contragentUserId, null, 26, 26);
                 $headerData->contragentAvatar = $avatarTpl->getContent();
             }
         }
@@ -995,7 +995,10 @@ class pos_Terminal extends peripheral_Terminal
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $defaultContragentClassId = crm_Persons::getClassId();
         $canSetContragent = pos_Receipts::haveRightFor('setcontragent', $rec);
-        
+        $personClassId = crm_Persons::getClassId();
+        $companyClassId = crm_Companies::getClassId();
+        $showUniqueNumberLike = false;
+
         $tpl = new core_ET("");
         if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
             
@@ -1029,8 +1032,7 @@ class pos_Terminal extends peripheral_Terminal
             $ownCompany = crm_Companies::fetchOurCompany();
             $Varchar = core_Type::getByName('varchar');
             $searchString = plg_Search::normalizeText($stringInput);
-            $showUniqueNumberLike = false;
-            
+
             if(!empty($stringInput)){
                 $showUniqueNumberLike = type_Int::isInt($searchString) || preg_match('/^[a-zA-Z]{2}\d/', $searchString);
                 $maxContragents = pos_Points::getSettings($rec->pointId, 'maxSearchContragent');
@@ -1040,9 +1042,6 @@ class pos_Terminal extends peripheral_Terminal
                     $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec->contragentClassId)->getTitleById($cardRec->contragentId));
                     $count++;
                 }
-                
-                $personClassId = crm_Persons::getClassId();
-                $companyClassId = crm_Companies::getClassId();
                 
                 // Ако има фирма с такъв данъчен или национален номер
                 $cQuery = crm_Companies::getQuery();
@@ -1149,50 +1148,6 @@ class pos_Terminal extends peripheral_Terminal
                     }
                 }
             }
-            
-            $cnt = 0;
-            $temp =  new core_ET("");
-            foreach ($contragents as $obj){
-                $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
-                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'title' => "Избиране на клиента в бележката", 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
-                if(!$canSetContragent){
-                    $divAttr['disabled'] = 'disabled';
-                    $divAttr['disabledBtn'] = 'disabledBtn';
-                    unset($divAttr['data-url']);
-                }
-                
-                $shortName = cls::get($obj->contragentClassId)->getVerbal($obj->contragentId, 'name');
-                $obj->title = ht::createHint(str::limitLen($shortName, 28), $obj->title);
-                if($showUniqueNumberLike){
-                    $subArr = array();
-                    if(!empty($obj->vatId)){
-                        $subArr[] = tr("ДДС №") . ": {$obj->vatId}";
-                    }
-                    if($obj->contragentId == $personClassId){
-                        if(!empty($obj->egn)){
-                            $subArr[] = tr("ЕГН") . ": {$obj->egn}";
-                        }
-                    } else {
-                        if(!empty($obj->uicId)){
-                            $subArr[] = tr("Нац. №") . ": {$obj->uicId}";
-                        }
-                    }
-                    
-                    if(countR($subArr)){
-                        $stringInputSearch = strtoupper($stringInput);
-                        array_walk($subArr, function(&$a) use ($stringInputSearch) {$a = str_replace($stringInputSearch, "<span style='color:blue'>{$stringInputSearch}</span>", $a);});
-                        
-                        $subTitle = implode('; ', $subArr);
-                        $subTitle = "<div style='font-size:0.7em'>{$subTitle}</div>";
-                        $obj->title .= $subTitle;
-                    }
-                }
-                
-                $holderDiv = ht::createElement('div', $divAttr, $obj->title, true);
-                $temp->append($holderDiv);
-                $cnt++;
-            }
-            $tpl->append(ht::createElement('div', array('class' => 'grid'), $temp, true));
         } else {
             $contragentName = cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
             $tpl = new core_ET("<div class='divider'>{$contragentName}</div><div class='grid'>");
@@ -1260,8 +1215,73 @@ class pos_Terminal extends peripheral_Terminal
                 }
                 $tpl->append("</div>");
             }
+
+            // Ако бележката е на лице и то има споделени фирмени папки, да се показват като бутони за добавяне
+            $contragents = array();
+            if($rec->contragentClass == $personClassId){
+                if(core_Packs::isInstalled('colab')){
+                    if($userId = crm_Profiles::getUserByPerson($rec->contragentObjectId)){
+                        $sharedFolders = colab_Folders::getSharedFolders($userId, true, 'crm_CompanyAccRegIntf');
+                        foreach($sharedFolders as $companyFolderId => $companyName){
+                            $companyCover = doc_Folders::getCover($companyFolderId);
+                            $companyRec = $companyCover->fetch();
+                            $contragents["{$companyClassId}|{$companyCover->that}"] = (object)array('contragentClassId' => $companyClassId, 'contragentId' => $companyCover->that, 'title' => $companyName, 'vatId' => core_Type::getByName('varchar')->toVerbal($companyRec->vatId), "uicId" => core_Type::getByName('varchar')->toVerbal($companyRec->{$uicField}));
+                        }
+                    }
+                }
+            }
+
+            if(countR($contragents)){
+                $tpl->append(tr("|*<div class='divider'>|Споделени фирми|*</div>"));
+            }
         }
-       
+
+        $cnt = 0;
+        $temp =  new core_ET("");
+        foreach ($contragents as $obj){
+            $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
+            $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'title' => "Избиране на клиента в бележката", 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
+            if(!$canSetContragent){
+                $divAttr['disabled'] = 'disabled';
+                $divAttr['disabledBtn'] = 'disabledBtn';
+                unset($divAttr['data-url']);
+            }
+
+            $shortName = cls::get($obj->contragentClassId)->getVerbal($obj->contragentId, 'name');
+            $obj->title = ht::createHint(str::limitLen($shortName, 28), $obj->title);
+            if($showUniqueNumberLike){
+                $subArr = array();
+                if(!empty($obj->vatId)){
+                    $subArr[] = tr("ДДС №") . ": {$obj->vatId}";
+                }
+                if($obj->contragentId == $personClassId){
+                    if(!empty($obj->egn)){
+                        $subArr[] = tr("ЕГН") . ": {$obj->egn}";
+                    }
+                } else {
+                    if(!empty($obj->uicId)){
+                        $subArr[] = tr("Нац. №") . ": {$obj->uicId}";
+                    }
+                }
+
+                if(countR($subArr)){
+                    $stringInputSearch = strtoupper($stringInput);
+                    array_walk($subArr, function(&$a) use ($stringInputSearch) {$a = str_replace($stringInputSearch, "<span style='color:blue'>{$stringInputSearch}</span>", $a);});
+
+                    $subTitle = implode('; ', $subArr);
+                    $subTitle = "<div style='font-size:0.7em'>{$subTitle}</div>";
+                    $obj->title .= $subTitle;
+                }
+            }
+
+            $holderDiv = ht::createElement('div', $divAttr, $obj->title, true);
+            $temp->append($holderDiv);
+            $cnt++;
+        }
+        $tpl->append(ht::createElement('div', array('class' => 'grid'), $temp, true));
+
+
+
         $tpl->prepend("<div class='contentHolderResults'>");
         $tpl->append("</div>");
         
