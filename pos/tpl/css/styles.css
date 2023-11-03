@@ -473,6 +473,9 @@ select.tabHolder {
     max-width: 100px;
     height: auto; }
 
+.grid.short {
+  font-size: 15px; }
+
 .posResultContragent {
   justify-content: center;
   align-content: center;
