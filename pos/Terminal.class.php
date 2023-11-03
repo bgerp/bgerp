@@ -1218,8 +1218,8 @@ class pos_Terminal extends peripheral_Terminal
 
             // Ако бележката е на лице и то има споделени фирмени папки, да се показват като бутони за добавяне
             $contragents = array();
-            if($rec->contragentClass == $personClassId){
-                if(core_Packs::isInstalled('colab')){
+            if(core_Packs::isInstalled('colab')){
+                if($rec->contragentClass == $personClassId){
                     if($userId = crm_Profiles::getUserByPerson($rec->contragentObjectId)){
                         $sharedFolders = colab_Folders::getSharedFolders($userId, true, 'crm_CompanyAccRegIntf');
                         foreach($sharedFolders as $companyFolderId => $companyName){
@@ -1228,11 +1228,23 @@ class pos_Terminal extends peripheral_Terminal
                             $contragents["{$companyClassId}|{$companyCover->that}"] = (object)array('contragentClassId' => $companyClassId, 'contragentId' => $companyCover->that, 'title' => $companyName, 'vatId' => core_Type::getByName('varchar')->toVerbal($companyRec->vatId), "uicId" => core_Type::getByName('varchar')->toVerbal($companyRec->{$uicField}));
                         }
                     }
-                }
-            }
 
-            if(countR($contragents)){
-                $tpl->append(tr("|*<div class='divider'>|Споделени фирми|*</div>"));
+                    if(countR($contragents)){
+                        $tpl->append(tr("|*<div class='divider'>|Споделени фирми|*</div>"));
+                    }
+                } else {
+                    $companyFolderId = cls::get($rec->contragentClass)->fetchField($rec->contragentObjectId, 'folderId');
+                    $partners = colab_FolderToPartners::getContractorsInFolder($companyFolderId);
+                    foreach($partners as $partnerId){
+                        $partnerPersonId = crm_Profiles::getPersonByUser($partnerId);
+                        $partnerPersonRec = crm_Persons::fetch($partnerPersonId);
+                        $contragents["{$personClassId}|{$partnerPersonId}"] = (object)array('contragentClassId' => $personClassId, 'contragentId' => $partnerPersonId, 'title' => crm_Persons::getTitleById($partnerPersonId), 'vatId' => core_Type::getByName('varchar')->toVerbal($partnerPersonRec->vatId), "egn" => core_Type::getByName('varchar')->toVerbal($partnerPersonRec->egn));
+                    }
+
+                    if(countR($contragents)){
+                        $tpl->append(tr("|*<div class='divider'>|Партньори|*</div>"));
+                    }
+                }
             }
         }
 
