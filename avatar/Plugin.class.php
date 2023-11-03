@@ -59,13 +59,11 @@ class avatar_Plugin extends core_Plugin
         }
         
         $attr = array();
-        
-        $attr['width'] = $width;
-        
+
         if (!$minHeight) {
             $minHeight = $width . 'px';
         }
-        $attr['style'] = "min-height: {$minHeight}";
+        $attr['style'] = "width: {$width}px; min-height: {$minHeight}";
         
         $url = self::getUrl($userId, $email, $width);
         $attr['src'] = $url;
