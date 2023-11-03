@@ -519,6 +519,21 @@ select.tabHolder {
 		display: none;
 	}
 }
+.companyName .contragentImg {
+	width: 16px;
+	height: 16px;
+	margin: 0 5px 0 0 ;
+	position: relative;
+	img {
+		position: absolute;
+		top:-2px;
+		right: 0px;
+		border-radius: 3px;
+	}
+}
+.narrow .companyName .contragentImg img {
+	top: -4px;
+}
 .grid {
 	display: grid;
 	align-items: center;
