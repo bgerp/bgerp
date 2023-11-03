@@ -560,6 +560,9 @@ select.tabHolder {
 }
 .grid.short {
 	font-size: 15px;
+	.pos-title {
+		overflow-wrap: break-word;
+	}
 }
 
 .posResultContragent {

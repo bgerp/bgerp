@@ -475,6 +475,8 @@ select.tabHolder {
 
 .grid.short {
   font-size: 15px; }
+  .grid.short .pos-title {
+    overflow-wrap: break-word; }
 
 .posResultContragent {
   justify-content: center;
