@@ -1225,7 +1225,7 @@ class pos_Terminal extends peripheral_Terminal
                         foreach($sharedFolders as $companyFolderId => $companyName){
                             $companyCover = doc_Folders::getCover($companyFolderId);
                             $companyRec = $companyCover->fetch();
-                            $contragents["{$companyClassId}|{$companyCover->that}"] = (object)array('contragentClassId' => $companyClassId, 'contragentId' => $companyCover->that, 'title' => $companyName, 'vatId' => core_Type::getByName('varchar')->toVerbal($companyRec->vatId), "uicId" => core_Type::getByName('varchar')->toVerbal($companyRec->{$uicField}));
+                            $contragents["{$companyClassId}|{$companyCover->that}"] = (object)array('contragentClassId' => $companyClassId, 'contragentId' => $companyCover->that, 'title' => $companyName, 'vatId' => core_Type::getByName('varchar')->toVerbal($companyRec->vatId), "uicId" => core_Type::getByName('varchar')->toVerbal($companyRec->uicId));
                         }
                     }
 
