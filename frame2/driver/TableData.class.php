@@ -9,7 +9,7 @@
  * @package   frame2
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -375,7 +375,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
         // Показване на тагове
         if (core_Packs::isInstalled('uiext')) {
-            uiext_Labels::showLabels($this, 'frame2_Reports', $rec->id, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
+            if($this->showUiextRowLabelsIfExist($rec)){
+                uiext_Labels::showLabels($this, 'frame2_Reports', $rec->id, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
+            }
         }
         
         $filterFields = arr::make($this->filterEmptyListFields, true);
@@ -820,8 +822,32 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             }
         }
     }
-    
-    
+
+
+    /**
+     * Да се показват ли разширените тагове на редовете на справката
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    protected function showUiextRowLabelsIfExist($rec)
+    {
+        return true;
+    }
+
+
+    /**
+     * Връща хеш полетата за таговете от редовете
+     *
+     * @param stdClass $rec
+     * @return string
+     */
+    public function getUiextLabelHashFields($rec)
+    {
+        return $this->hashField;
+    }
+
+
     /**
      * Кои записи ще се показват в таблицата
      *

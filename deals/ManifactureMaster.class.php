@@ -245,6 +245,10 @@ abstract class deals_ManifactureMaster extends core_Master
             $originRec = $origin->fetch('driverClass,state');
             if($originRec->driverClass != $supportTaskClassType) return false;
             if (in_array($originRec->state, array('rejected', 'draft', 'waiting', 'stopped'))) return false;
+        } elseif(($this instanceof planning_ReturnNotes) && $origin->isInstanceOf('planning_DirectProductionNote')){
+            $originRec = $origin->fetch('state');
+            if(!planning_DirectProductNoteDetails::count("#noteId = {$originRec->id} AND #type = 'pop' AND #quantity != 0")) return false;
+            if($originRec->state != 'active') return false;
         } elseif(!$origin->isInstanceOf('planning_ConsumptionNotes')){
             return false;
         }
@@ -262,9 +266,6 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        if(isset($data->form->rec->originId)){
-            $data->form->toolbar->removeBtn('btnNewThread');
-        }
         $data->form->toolbar->setBtnOrder('btnPending', 10);
     }
 

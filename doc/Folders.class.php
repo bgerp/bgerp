@@ -680,9 +680,8 @@ class doc_Folders extends core_Master
                         $url = array('doc_Threads', 'list', 'folderId' => $id);
                         
                         $priority = 'normal';
-                        
                         $notifyArr = $mvc->getUsersArrForNotify($rec);
-                        
+
                         // Ако всички потребители, които ще се нотифицират са оттеглени, вземаме всички администратори в системата
                         $isRejected = core_Users::checkUsersIsRejected($notifyArr);
                         if ($isRejected) {
@@ -726,8 +725,17 @@ class doc_Folders extends core_Master
                         
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
                         foreach ((array) $notifyArr as $nUserId) {
+                            $isPartner = core_Packs::isInstalled('colab') && core_Users::isContractor($nUserId);
                             if (!doc_Folders::haveRightFor('single', $id, $nUserId)) {
-                                continue;
+                                if($isPartner){
+                                    if(!colab_Threads::haveRightFor('list', (object)array('folderId' => $id), $nUserId)){
+                                        continue;
+                                    } else {
+                                        $url = array('colab_Threads', 'list', 'folderId' => $id);
+                                    }
+                                } else {
+                                    continue;
+                                }
                             }
                             
                             bgerp_Notifications::add($msg, $url, $nUserId, $priority);
@@ -735,6 +743,9 @@ class doc_Folders extends core_Master
                     } elseif ($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
                         // Изчистване на нотификации за отворени теми в тази папка
                         $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
+                        bgerp_Notifications::clear($url, '*');
+
+                        $url = array('colab_Threads', 'list', 'folderId' => $rec->id);
                         bgerp_Notifications::clear($url, '*');
                     }
                 }
@@ -811,10 +822,11 @@ class doc_Folders extends core_Master
      * Връща масив с потребители, които ще се нотифицират за действия в папката
      *
      * @param stdClass $rec
+     * @param bool $notifyPartners
      *
      * @return array
      */
-    public static function getUsersArrForNotify($rec)
+    public static function getUsersArrForNotify($rec, $notifyPartners = false)
     {
         static $resArr = array();
         
@@ -868,7 +880,7 @@ class doc_Folders extends core_Master
             } elseif ($folOpening['folOpenings'] == 'yes') {
                 
                 // Може да е абониран, но да няма права
-                if (doc_Folders::haveRightFor('single', $rec->folderId, $userId)) {
+                if (doc_Folders::haveRightFor('single', $rec->id, $userId)) {
                     $notifyArr[$userId] = $userId;
                 }
             }
@@ -883,11 +895,23 @@ class doc_Folders extends core_Master
         
         $rNotifyArr = array();
         foreach ($notifyArr as $kUId => $uId) {
-            if (doc_Folders::haveRightFor('single', $rec->folderId, $uId)) {
+            if (doc_Folders::haveRightFor('single', $rec->id, $uId)) {
                 $rNotifyArr[$kUId] = $uId;
             }
         }
-        
+
+        // Ако папката е споделена и достъпна към партньори, да се добавят и споделените партньори към нея
+        if($notifyPartners) {
+            if(core_Packs::isInstalled('colab')){
+                $partnersArr = colab_Folders::getSharedUsers($rec->id);
+                foreach ($partnersArr as $partnerId){
+                    if (colab_Threads::haveRightFor('list', (object) array('folderId' => $rec->id), $partnerId)) {
+                        $rNotifyArr[$partnerId] = $partnerId;
+                    }
+                }
+            }
+        }
+
         $resArr[$rec->id] = $rNotifyArr;
         
         return $resArr[$rec->id];

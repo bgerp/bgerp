@@ -8,34 +8,15 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  * @see label_SequenceIntf
  *
  */
-class planning_interface_ProductionNoteImpl
+class planning_interface_ProductionNoteImpl extends label_ProtoSequencerImpl
 {
-    /**
-     * Инстанция на класа
-     */
-    public $class;
-    
-    /**
-     * Връща дефолтен шаблон за печат на бърз етикет
-     *
-     * @param int  $id
-     * @param stdClass|null  $driverRec
-     *
-     * @return int
-     */
-    public function getDefaultFastLabel($id, $driverRec = null)
-    {
-        return null;
-    }
-
-
     /**
      * Връща наименованието на етикета
      *
@@ -205,9 +186,9 @@ class planning_interface_ProductionNoteImpl
         
         // Продуктови параметри
         $measureId = cat_UoM::getShortName($measureId);
-        Mode::push('dontVerbalizeText', true);
+        Mode::push('printLabel', true);
         $params = cat_Products::getParams($rec->productId, null, true);
-        Mode::pop();
+        Mode::pop('printLabel');
         $params = cat_Params::getParamNameArr($params, true);
         
         $additionalFields = array();
@@ -316,18 +297,5 @@ class planning_interface_ProductionNoteImpl
         }
 
         return $res;
-    }
-
-
-    /**
-     * Кой е дефолтния шаблон за печат към обекта
-     *
-     * @param $id
-     * @param string $series
-     * @return int|null
-     */
-    public function getDefaultLabelTemplateId($id, $series = 'label')
-    {
-        return null;
     }
 }

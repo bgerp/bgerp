@@ -317,16 +317,16 @@ class price_ListRules extends core_Detail
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
 
-        if(!static::$alreadyReplaced[$listId]){
+        if(!static::$alreadyReplaced["{$listId}|{$productId}"]){
             $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
             if(!empty($variationId)){
-                static::$alreadyReplaced[$listId] = true;
+                static::$alreadyReplaced["{$listId}|{$productId}"] = true;
                 $listId = $variationId;
             }
         }
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
-            if(empty($listId)) wp('Няма listId', $listId, $variationId, $datetime);
+
             $query = self::getQuery();
             $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
@@ -520,8 +520,11 @@ class price_ListRules extends core_Detail
         }
         
         if (!$rec->id) {
+            $defaultUntil = Mode::get('PRICE_VALID_UNTIL');
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
-            $rec->validUntil = Mode::get('PRICE_VALID_UNTIL');
+            if($defaultUntil > $rec->validFrom){
+                $rec->validUntil = $defaultUntil;
+            }
         }
     }
     
@@ -607,9 +610,7 @@ class price_ListRules extends core_Detail
             }
             
             if (!$form->gotErrors()) {
-                if(empty($rec->validUntil) || $rec->validUntil > $now){
-                    Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
-                }
+                Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
             }
         }
     }
@@ -834,6 +835,9 @@ class price_ListRules extends core_Detail
      */
     public function prepareDetail_($data)
     {
+        $data->TabCaption = 'Правила';
+        $data->Tab = 'top';
+
         setIfNot($data->masterKey, $this->masterKey);
         setIfNot($data->masterMvc, $this->Master);
         

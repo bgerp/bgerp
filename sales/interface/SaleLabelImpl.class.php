@@ -8,21 +8,15 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  * @see label_SequenceIntf
  *
  */
-class sales_interface_SaleLabelImpl
+class sales_interface_SaleLabelImpl extends label_ProtoSequencerImpl
 {
-    /**
-     * Инстанция на класа
-     */
-    public $class;
-
-
     /**
      * Връща наименованието на етикета
      *
@@ -182,47 +176,5 @@ class sales_interface_SaleLabelImpl
         $resArr[$key] = $arr;
 
         return $resArr[$key];
-    }
-
-
-    /**
-     * Връща дефолтен шаблон за печат на бърз етикет
-     *
-     * @param int  $id
-     * @param stdClass|null  $driverRec
-     *
-     * @return int
-     */
-    public function getDefaultFastLabel($id, $driverRec = null)
-    {
-        return null;
-    }
-
-
-    /**
-     * Връща попълнен дефолтен шаблон с дефолтни данни.
-     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
-     *
-     * @param int  $id
-     * @param int $templateId
-     *
-     * @return core_ET|null
-     */
-    public function getDefaultLabelWithData($id, $templateId)
-    {
-        return null;
-    }
-
-
-    /**
-     * Кой е дефолтния шаблон за печат към обекта
-     *
-     * @param $id
-     * @param string $series
-     * @return int|null
-     */
-    public function getDefaultLabelTemplateId($id, $series = 'label')
-    {
-        return null;
     }
 }

@@ -2762,4 +2762,45 @@ abstract class deals_Helper
             $expandedRecs[] = clone $masterRec;
         }
     }
+
+
+    /**
+     * Помощна ф-я за парсиране на цена дали е въведена за подаденото к-во
+     *
+     * @param $priceInput
+     * @param $quantity
+     * @param $error
+     * @return float|int|void|null
+     */
+    public static function isPrice4Quantity(&$priceInput, $quantity, &$error)
+    {
+        $price4Quantity = null;
+        if(!empty($priceInput)){
+
+            // Ако цената започва с "=" значи ще е цена за к-то
+            $isPrice4Quantity = false;
+            $packPrice = $priceInput;
+
+            if(strpos($priceInput, '/') === strlen($priceInput) - 1){
+                $isPrice4Quantity = true;
+                $packPrice = rtrim($packPrice, '/');
+            }
+
+            // Проверка дали цената е валидна
+            $Double = core_Type::getByName('double');
+            $packPrice = $Double->fromVerbal($packPrice);
+            if(!empty($Double->error)){
+                $error = $Double->error;
+                return;
+            }
+
+            // Ако е цената ще е за к-то
+            $priceInput = $packPrice;
+            if($isPrice4Quantity && !empty($quantity)){
+                $price4Quantity = $packPrice / $quantity;
+            }
+        }
+
+        return $price4Quantity;
+    }
 }

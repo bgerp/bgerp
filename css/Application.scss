@@ -4581,13 +4581,16 @@ table .eshop-btn {
 		background-color: #eee !important;
 	}
 }
+.narrow .productBtn {
+	margin-right: 5px !important;
+}
 
 .narrow .eshop-btn.addToCard, .narrow .productBtn.addToCard {
 	background-image: url("../img/32/cart_go.png") !important;
 	background-size: 16px;
 	background-position: 3px center;
 	background-repeat: no-repeat;
-	margin-bottom: 5px !important;
+	margin: 0 0px 5px 5px !important;
 	padding: 4px 8px 5px 25px !important;
 	top: -1px !important;
 	position: relative;
@@ -4759,6 +4762,7 @@ table .eshop-btn {
 	padding: 0 3px;
 }
 #notificationCountStatus {
+	margin-right: 5px;
 	&.noNtf {
 		display: none;
 	}
@@ -4804,13 +4808,12 @@ table .eshop-btn {
 		padding-right: 1px;
 		padding-left: 1px;
 	}
-	input[type=text]:not(.combo), input[type=submit] {
-		height: 26px;
-		line-height: 1;
+	.select2-container .select2-selection--single .select2-selection__rendered,.select2-container .select2-selection--single {
+		height: 32px;
+		line-height: 30px;
 	}
 	a.button, input[type="button"], input[type="submit"], button {
 		background-position: 4px center !important;
-		padding: 0.34em 5px 0.34em 23px !important;
 		background-repeat: no-repeat !important;
 		background-color: #dddddd;
 		border: 1px solid #bbbbbb !important;
@@ -4827,6 +4830,8 @@ table .eshop-btn {
 		-webkit-box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.8);
 		box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.8);
 		text-shadow: 0 1px 0px #f1f1f1;
+		height: 31px;
+		box-sizing: border-box;
 		&:hover {
 			background-color: #e5e5e5;
 			&.btn-disabled {
@@ -4917,9 +4922,21 @@ table .eshop-btn {
 #cmsNavigation a.linkWithIcon {
     display: inline-block;
     height: 21px;
-    float: left;
     margin-left: 5px;
     background-position: center !important;
+}
+
+#cmsNavigation .navWithIcon.lastOrderedLink a.linkWithIcon {
+	height: auto !important;
+	background-position: 5px 5px !important;
+}
+.narrow #cmsNavigation a.linkWithIcon {
+	float: right;
+}
+
+#cmsNavigation form {
+	display: inline-block;;
+	float: left;
 }
 
 #cmsNavigation .level1 {
@@ -5700,6 +5717,9 @@ table .eshop-btn {
 }
 /*стилове за автор в документ*/
 
+.hiddenBtn {
+	display: none !important;
+}
 
 /*стилове за custom таблица*/
 .styled-table {
@@ -6093,6 +6113,10 @@ div.location.public {
 	float: left;
 }
 
+.narrow .portal .linkWithIcon {
+	overflow-wrap:anywhere;
+}
+
 .portal-filter .hFormField {
 	width: 7.5em;
 	border: solid 1px #ccc;
@@ -6109,6 +6133,10 @@ div.location.public {
 	height: auto;
 	position: relative;
 	top: -1px;
+}
+
+.narrow .details .portal {
+	display: table-cell;
 }
 
 .portal-filter .hFormField input {

@@ -10,7 +10,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -143,6 +143,12 @@ class purchase_PurchasesDetails extends deals_DealDetail
      * @var string|array
      */
     public $canCopydetailsfromcloned = 'ceo, purchase';
+
+
+    /**
+     * Дали се позволява да се въвежда цена за к-то
+     */
+    public $allowInputPriceForQuantity = true;
 
 
     /**

@@ -17,6 +17,9 @@
  */
 class cms_page_External extends core_page_Active
 {
+    /**
+     * Имплементирани интерфейси
+     */
     public $interfaces = 'cms_page_WrapperIntf';
     
     
@@ -117,7 +120,11 @@ class cms_page_External extends core_page_Active
     private function placeExternalUserData()
     {
         $currentTab = Mode::get('currentExternalTab');
-        $selectedProfileClass = ($currentTab == 'cms_Profiles') ? 'class=selected-external-tab' : '';
+        $Ctr = Request::get('Ctr');
+
+        $selectedProfileClass = in_array($Ctr, array('cms_Profiles', 'colab_Folders', 'colab_Threads', 'colab_Search', 'school_GroupSchedules')) ? 'class=selected-external-tab' : '';
+        $selectedBarcodeSearchClass = ($Ctr == 'barcode_Search') ? 'class=selected-external-tab' : '';
+
         $nick = core_Users::getNick(core_Users::getCurrent());
 
         $notificationCount = bgerp_Notifications::getOpenCnt();
@@ -132,7 +139,9 @@ class cms_page_External extends core_page_Active
 
         $user = ht::createLink($nick, array('cms_Profiles', 'single'), false, "ef_icon=img/16/user-black.png,title=Към профила,{$selectedProfileClass}");
         $logout = ht::createLink(tr('Изход'), array('core_Users', 'logout'), false, 'ef_icon=img/16/logout.png,title=Изход от системата');
-        
+
+        $barcodeLink = ht::createLink('Баркод', array('barcode_Search', 'list'), false, "ef_icon=img/16/barcode-icon.png,title=Търсене по баркод,{$selectedBarcodeSearchClass}");
+        $this->replace($barcodeLink, 'BARCODE_LINK');
         $this->replace($user, 'USERLINK');
         $this->replace($logout, 'LOGOUT');
         $this->replace("class='cmsTopContractor'", 'TOP_CLASS');

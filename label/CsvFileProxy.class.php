@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class label_CsvFileProxy extends core_Manager
+class label_CsvFileProxy extends label_ProtoSequencerImpl
 {
     /**
      * Интерфейсни методи

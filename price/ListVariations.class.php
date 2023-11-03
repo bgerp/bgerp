@@ -162,6 +162,7 @@ class price_ListVariations extends core_Detail
         if (isset($data->masterMvc)) {
             unset($data->listFields['listId']);
         }
+        $data->query->orderBy('validFrom', 'DESC');
     }
 
 
@@ -216,6 +217,38 @@ class price_ListVariations extends core_Detail
         while($rec = $query->fetch()){
             $res[$rec->id] = $rec->variationId;
         }
+
+        return $res;
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->TabCaption = tr('Вариация');
+        $activeVariations = static::getActiveVariations($data->masterId);
+        foreach ($data->rows as $id => &$row){
+            if(array_key_exists($id, $activeVariations)){
+                $row->ROW_ATTR['class'] .= ' state-active';
+                $row->variationId = ht::createHint($row->variationId, 'Активна е към момента');
+            } else {
+                $row->ROW_ATTR['class'] .= ' state-closed';
+            }
+        }
+    }
+
+
+    /**
+     * Подготовка на Детайлите
+     */
+    public function prepareDetail_($data)
+    {
+        $res = parent::prepareDetail_($data);
+        $count = countR($data->recs);
+        $data->TabCaption = "Вариации|* ({$count})";
+        $data->Tab = 'top';
 
         return $res;
     }

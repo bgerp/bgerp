@@ -1186,6 +1186,25 @@ function prepareContextMenu() {
 }
 
 /**
+ * Създава бисквитка
+ */
+function setCookie(key, value) {
+    var expires = new Date();
+    expires.setTime(expires.getTime() + (1 * 24 * 60 * 60 * 1000));
+    document.cookie = key + '=' + value + ';expires=' + expires.toUTCString() + "; path=/";
+}
+
+
+/**
+ * Чете информацията от дадена бисквитка
+ */
+function getCookie(key) {
+    var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
+    return keyValue ? keyValue[2] : null;
+}
+
+
+/**
  * Запазване на текущия таб
  * @param lastNotifyTime
  */
@@ -5534,10 +5553,18 @@ function getEfae() {
 function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 {
 	var url = document.URL;
+    var dTitle = document.title;
 	var width = $(window).width();
 	var height = $(window).height();
 	var browser = getUserAgent();
-	var title = sysDomain + '/' + ctr + '/' + act;
+    if (!dTitle) {
+        dTitle = ctr + '/' + act;
+    }
+    if (dTitle && (dTitle.length > 495)) {
+        dTitle = dTitle.substring(0, 495);
+        dTitle += '...';
+    }
+	var title = sysDomain + '/' + dTitle;
 
 	if (url && (url.length > 495)) {
 		url = url.substring(0, 495);

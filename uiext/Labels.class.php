@@ -79,8 +79,10 @@ class uiext_Labels extends core_Manager
         $this->FLD('docClassId', 'class(select=title,allowEmpty)', 'caption=Клас, mandatory,remember');
         $this->FLD('title', 'varchar', 'caption=Заглавие, mandatory');
         $this->FLD('color', 'color_Type()', 'caption=Фон, mandatory,tdClass=rightCol');
-        
+        $this->FLD('systemId', 'varchar', 'caption=Систем ид', 'input=none');
+
         $this->setDbUnique('docClassId,title');
+        $this->setDbUnique('systemId');
     }
     
     
@@ -275,5 +277,43 @@ class uiext_Labels extends core_Manager
         }
         
         return $input;
+    }
+
+
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    public function loadSetupData()
+    {
+        // Подготвяме пътя до файла с данните
+        $file = 'uiext/data/Labels.csv';
+
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => 'csv_docClassId',
+            1 => 'title',
+            2 => 'color',
+            3 => 'systemId',
+        );
+
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
+
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res = $cntObj->html;
+
+        return $res;
+    }
+
+
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        if (isset($rec->csv_docClassId)){
+            $rec->docClassId = cls::get($rec->csv_docClassId)->getClassId();
+        }
     }
 }

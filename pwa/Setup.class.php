@@ -88,6 +88,7 @@ class pwa_Setup extends core_ProtoSetup
         // Инсталираме плъгина към страницата
         $html .= $Plugins->installPlugin('bgERP PWA', 'pwa_Plugin', 'core_page_Active', 'family');
         $html .= $Plugins->installPlugin('bgERP PWA Profile', 'pwa_ProfilePlg', 'crm_Profiles', 'private');
+        $html .= $Plugins->installPlugin('bgERP PWA Profile за колаборатори', 'pwa_ProfilePlg', 'cms_Profiles', 'private');
         $html .= $Plugins->installPlugin('bgERP PWA Domains', 'pwa_DomainsPlg', 'cms_Domains', 'private');
 
         $html .= $Plugins->installPlugin('PWA Абониране', 'pwa_SubscribePlg', 'bgerp_Index', 'private');

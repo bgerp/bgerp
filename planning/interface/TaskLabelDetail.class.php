@@ -204,17 +204,4 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         return $resArr[$key];
     }
-
-
-    /**
-     * Кой е дефолтния шаблон за печат към обекта
-     *
-     * @param $id
-     * @param string $series
-     * @return int|null
-     */
-    public function getDefaultLabelTemplateId($id, $series = 'label')
-    {
-        return null;
-    }
 }

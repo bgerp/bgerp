@@ -100,8 +100,12 @@ function posActions() {
 		if($(this).hasClass('reload')) return;
 		if($(this).hasClass('deleteRow')) return;
 		if($(this).hasClass('printReceiptBtn')) return;
-		
-		if(Date.now() - oldTime > 400) {	
+
+		var timeOffset = Date.now() - oldTime;
+
+		// при double click да изпраща веднъж
+		// или при touch устройства
+		if(timeOffset > 400 || isTouchDevice()) {
 			pressNavigable(this);
 			e.preventDefault();
 		}
