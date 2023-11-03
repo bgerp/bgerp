@@ -565,6 +565,7 @@ function openPayment() {
 function calculateWidth(){
 	var winWidth = parseInt($(window).outerWidth());
 	var winHeight = parseInt($(window).outerHeight());
+
 	if (winWidth >= 1200) {
 		//задаване на ширина на двете колони
 		$('#result-holder').css('width', winWidth - $('#single-receipt-holder').width());
@@ -598,16 +599,8 @@ function calculateWidth(){
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
 
 		$('.tools-content').css('height',460);
-
-		if(!isTouchDevice()) {
-			$('#keyboard-num').css('display','block');
-			$('.buttons').removeClass('oneRow');
-		} else {
-			$('#tools-holder').css('height', 330);
-			$('#keyboard-num').css('display','none');
-			$('.buttons').addClass('oneRow');
-		}
-
+		$('#keyboard-num').css('display','block');
+		$('.buttons').removeClass('oneRow');
 	} else {
 		$('#keyboard-num').css('display','none');
 
