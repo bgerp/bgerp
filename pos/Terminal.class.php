@@ -1756,7 +1756,7 @@ class pos_Terminal extends peripheral_Terminal
             $resultTpl->append($tab, "TAB");
         }
         $tpl->append($resultTpl, 'GROUP_TAB');
-        $blockTplPath = ($settings->productBtnTpl == 'wide') ? 'pos/tpl/terminal/ProductBtnWide.shtml' : (($settings->productBtnTpl == 'short') ? 'pos/tpl/terminal/ProductBtnShort.shtml' : (($settings->productBtnTpl == 'picture') ? 'pos/tpl/terminal/ProductBtnPicture.shtml' : 'pos/tpl/terminal/ProductBtnPictureAndText'));
+        $blockTplPath = ($settings->productBtnTpl == 'wide') ? 'pos/tpl/terminal/ProductBtnWide.shtml' : (($settings->productBtnTpl == 'short') ? 'pos/tpl/terminal/ProductBtnShort.shtml' : (($settings->productBtnTpl == 'picture') ? 'pos/tpl/terminal/ProductBtnPicture.shtml' : 'pos/tpl/terminal/ProductBtnPictureAndText.shtml'));
         $block = getTplFromFile($blockTplPath);
 
         $countRows = countR($productRows);
