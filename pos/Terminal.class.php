@@ -1153,7 +1153,7 @@ class pos_Terminal extends peripheral_Terminal
             $tpl = new core_ET("<div class='divider'>{$contragentName}</div><div class='grid'>");
             
             // Добавя бутон за прехвърляне към папката на контрагента
-            $setDefaultContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $defaultContragentClassId, 'contragentId' => $defaultContragentId, 'ret_url' => true));
+            $setDefaultContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $defaultContragentClassId, 'contragentId' => $defaultContragentId), 'local');
             $transferDivAttr = $divAttr = array("id" => "contragent0", 'class' => 'posBtns contragentLinkBtns', 'data-url' => $setDefaultContragentUrl);
             
             $transferDivAttr['id'] = "contragent1";
@@ -1172,7 +1172,7 @@ class pos_Terminal extends peripheral_Terminal
             $transferBtnBody = new core_ET(tr("|*[#IMG#]|Прехвърляне|*"));
             $transferBtnBody->replace($transferImg, 'IMG');
 
-            $transferDivAttr['class'] .= " imgDiv";
+            $transferDivAttr['class'] .= " imgDiv contragentRedirectBtn";
             $holderDiv = ht::createElement('div', $transferDivAttr, $transferBtnBody, true);
             $tpl->append($holderDiv);
             if(!$canSetContragent){
@@ -1251,7 +1251,7 @@ class pos_Terminal extends peripheral_Terminal
         $cnt = 0;
         $temp =  new core_ET("");
         foreach ($contragents as $obj){
-            $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
+            $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId), 'local');
             $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'title' => "Избиране на клиента в бележката", 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
             if(!$canSetContragent){
                 $divAttr['disabled'] = 'disabled';

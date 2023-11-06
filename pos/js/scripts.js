@@ -878,7 +878,7 @@ function pressNavigable(element)
 		doPayment(url, type);
 		return;
 		
-	} else if(element.hasClass('contragentLinkBtns') || element.hasClass('posResultContragent')){
+	} else if(element.hasClass('contragentRedirectBtn')){
 		
 		clearTimeout(timeout);
 		if(element.hasClass("openInNewTab")){
