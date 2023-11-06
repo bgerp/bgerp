@@ -921,6 +921,10 @@ class core_App
                 $type = 'relative';
             }
         }
+
+        if ($type == 'absolute' && Mode::is('exporting')) {
+            $type = 'absolute-force';
+        }
         
         // TRUE == 'absolute', FALSE == 'relative'
         if ($type === true) {
