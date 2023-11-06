@@ -83,7 +83,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем,info=Инфо';
+    public $listFields = 'productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount, weight=Тегло, volume=Обем,info=Инфо';
     
     
     /**

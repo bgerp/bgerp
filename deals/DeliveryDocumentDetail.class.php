@@ -33,9 +33,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none,caption=К-во в опаковката');
         $mvc->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
-        $mvc->FNC('packQuantity', 'double', 'caption=К-во,smartCenter,input=input');
+        $mvc->FNC('packQuantity', 'double', 'caption=Количество,smartCenter,input=input');
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отст.,smartCenter');
+        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
 
         $mvc->setDbIndex('productId,packagingId');

@@ -67,7 +67,7 @@ class deals_QuotationDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, weight,optional, amount, discAmount,quantity';
+    public $listFields = 'productId, packagingId, quantityInPack, packQuantity=К-во, packPrice, discount=Отст., tolerance, term, weight,optional, amount, discAmount,quantity';
 
 
     /**

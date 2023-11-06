@@ -90,13 +90,13 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount';
 
 
     /**
      * Полета за скриване/показване от шаблоните
      */
-    public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума';
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=К-во,packPrice=Цена,discount=Отст.,amount=Сума';
 
 
     /**
