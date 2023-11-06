@@ -170,7 +170,11 @@ class webkittopdf_Converter extends core_Manager
             // Добавяме в настройките
             $wk .= ' --print-media-type';
         }
-        
+
+        if ($conf->WEBKIT_TO_PDF_SHOW_PAGE_NUMBERS != 'no') {
+            $wk .= ' --footer-center [page]/[topage]';
+        }
+
         // Ако е зададено да се използва grayscale
         if (!$isImage && $conf->WEBKIT_TO_PDF_USE_GRAYSCALE == 'yes') {
             

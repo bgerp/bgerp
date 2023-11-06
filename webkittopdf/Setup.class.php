@@ -65,6 +65,13 @@ defIfNot('WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE', 'yes');
 
 
 /**
+ * Дали да се показват броя на страниците
+ * --footer-center
+ */
+defIfNot('WEBKIT_TO_PDF_SHOW_PAGE_NUMBERS', 'no');
+
+
+/**
  * Да се използва ли grayscale скалата
  * --grayscale
  */
@@ -122,11 +129,13 @@ class webkittopdf_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE' => array('enum(no=Не, yes=Да)', 'caption=Да се използва PRINT медиа тип, вместо SCREEN'),
+        'WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE' => array('enum(no=Не, yes=Да)', 'caption=Да се използва PRINT медиа тип|&#44;|* вместо SCREEN->Избор'),
+
+        'WEBKIT_TO_PDF_SHOW_PAGE_NUMBERS' => array('enum(no=Не, yes=Да)', 'caption=Дали да се показват броя на страниците->Избор'),
+
+        'WEBKIT_TO_PDF_USE_GRAYSCALE' => array('enum(no=Не, yes=Да)', 'caption=PDF файловете да се генерират в grayscale->Избор'),
         
-        'WEBKIT_TO_PDF_USE_GRAYSCALE' => array('enum(no=Не, yes=Да)', 'caption=PDF файловете да се генерират в grayscale'),
-        
-        'WEBKIT_TO_PDF_INPUT_ENCODING' => array('varchar', 'caption=Енкодинг на входящия файл'),
+        'WEBKIT_TO_PDF_INPUT_ENCODING' => array('varchar', 'caption=Енкодинг на входящия файл->Енкодинг'),
         
         'WEBKIT_TO_PDF_USE_JS' => array('enum( , no=Не, yes=Да)', 'caption=Работа с JS->Да се използва, allowEmpty'),
         
