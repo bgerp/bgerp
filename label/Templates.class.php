@@ -590,10 +590,7 @@ class label_Templates extends core_Master
                     }
                 }
 
-                if(strpos($string, "<!--ET_BEGIN {$uKey}") !== false){
-                    $string = $et->getContent(null, "CONTENT", false, false);
-                    continue;
-                }
+                $string = $et->getContent(null, "CONTENT", false, false);
             }
 
             $key = mb_strtoupper($key);
