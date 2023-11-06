@@ -991,7 +991,7 @@ class pos_Receipts extends core_Master
 
         if(Request::get('autoSelect')){
             if($rec->contragentClass == crm_Persons::getClassId()){
-                $avatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 80, 80);
+                $avatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 130, 130);
                 $personName = crm_Persons::fetchField($rec->contragentObjectId, 'name');
                 core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'notice', null, 120);
             }
