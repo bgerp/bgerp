@@ -3253,4 +3253,42 @@ class crm_Persons extends core_Master
             self::save($rec, $saveFields);
         }
     }
+
+
+    /**
+     * Изображение на аватара на лицето
+     *  - ако има във визитката него
+     *  - ако няма, но е потребител - аватара(граватара) му
+     *  - ако не е потребител - граватара от имейлите му
+     *
+     * @param int $personId
+     * @param double $width
+     * @param double $height
+     * @return core_ET
+     */
+    public static function getPersonAvatarImg($personId, $width = 120, $height = 120)
+    {
+        $personRec = static::fetch($personId);
+
+        // Снимката от визитката е с приоритет
+        if ($personRec->photo) {
+            $thumb = new thumb_Img(array($personRec->photo, $width, $height, 'fileman', 'isAbsolute' => true));
+            return $thumb->createImg();
+        }
+
+        // Ако лицето е потребител - неговия аватар
+        $contragentUserId = crm_Profiles::getUserByPerson($personRec->id);
+        if ($contragentUserId) return avatar_Plugin::getImg($contragentUserId, null, $width, $height);
+
+        // Ако има граватар към някой от имейлите му
+        foreach (array('email', 'buzEmail') as $emailFld) {
+            if (!empty($personRec->{$emailFld})) {
+                $emlArr = type_Emails::toArray($personRec->{$emailFld});
+                $imgUrl = avatar_Gravatar::getUrl($emlArr[0], $width);
+                if (!empty($imgUrl)) return ht::createElement('img', array('src' => $imgUrl, 'width' => $width, 'height' => $height));
+            }
+        }
+
+        return null;
+    }
 }
