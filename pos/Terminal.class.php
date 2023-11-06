@@ -208,10 +208,9 @@ class pos_Terminal extends peripheral_Terminal
 
         // Ако контрагента е лице и е потребител да се показва и аватара му
         if($rec->contragentClass == crm_Persons::getClassId()){
-            $contragentUserId = crm_Profiles::getUserByPerson($rec->contragentObjectId);
-            if($contragentUserId){
-                $avatarTpl = avatar_Plugin::getImg($contragentUserId, null, 26, 26);
-                $headerData->contragentAvatar = $avatarTpl->getContent();
+            $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+            if($rec->contragentObjectId != $defaultContragentId){
+                $headerData->contragentAvatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 26, 26);
             }
         }
 

@@ -989,6 +989,14 @@ class pos_Receipts extends core_Master
         
         $this->logWrite('Задаване на контрагент', $id);
 
+        if(Request::get('autoSelect')){
+            if($rec->contragentClass == crm_Persons::getClassId()){
+                $avatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 80, 80);
+                $personName = crm_Persons::fetchField($rec->contragentObjectId, 'name');
+                core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'notice', null, 120);
+            }
+        }
+
         if (Request::get('ajax_mode')) {
             return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true);
         }
