@@ -329,6 +329,8 @@ class eshop_ProductDetails extends core_Detail
                 $value = cat_Products::getParams($a->productId, $orderByParam);
                 if(isset($value)){
                     $a->orderField = $value;
+                } else {
+                    $a->orderField = '99999999999';
                 }
             }
         });

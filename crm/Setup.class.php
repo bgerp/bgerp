@@ -154,6 +154,7 @@ class crm_Setup extends core_ProtoSetup
         'migrate::updateGroupsCountry2123',
         'migrate::fixCountryGroupsInput21233',
         'migrate::companiesRepairSerchKeywords2124',
+        'migrate::updateCards',
     );
     
     
@@ -308,5 +309,29 @@ class crm_Setup extends core_ProtoSetup
     public static function companiesRepairSerchKeywords2124()
     {
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Companies', dt::addSecs(180));
+    }
+
+
+    /**
+     * Миграция на старите клиентски карти
+     */
+    public function updateCards()
+    {
+        if(!crm_ext_Cards::count()) return;
+
+        $companyClassId = crm_Companies::getClassId();
+        $query = crm_ext_Cards::getQuery();
+        $query->FLD('contragentId', 'varchar');
+        $query->FLD('contragentClassId', 'varchar');
+        $query->where("#contragentClassId IS NOT NULL");
+        while($rec = $query->fetch()){
+            if($rec->contragentClassId == $companyClassId){
+                crm_ext_Cards::delete($rec->id);
+            } else {
+                $rec->type = 'personal';
+                $rec->personId = $rec->contragentId;
+                crm_ext_Cards::save($rec);
+            }
+        }
     }
 }

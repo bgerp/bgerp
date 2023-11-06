@@ -967,10 +967,9 @@ class pos_Receipts extends core_Master
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
         $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
-        
-        $Policy = cls::get('price_ListToCustomers');
-        
+
         // Ако има детайли
+        $Policy = cls::get('price_ListToCustomers');
         $dQuery = pos_ReceiptDetails::getQuery();
         $dQuery->where("#action = 'sale|code' AND #receiptId = {$rec->id}");
         while($dRec = $dQuery->fetch()){
@@ -978,7 +977,7 @@ class pos_Receipts extends core_Master
             // Обновява им се цената по текущата политика, ако може
             $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);
             $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
-            $price = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $rec->createdOn, 1, 'no');
+            $price = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, dt::now(), 1, 'no');
             if(!empty($price->price)){
                
                 $dRec->price = $price->price * $perPack;
@@ -989,7 +988,11 @@ class pos_Receipts extends core_Master
         }
         
         $this->logWrite('Задаване на контрагент', $id);
-        
+
+        if (Request::get('ajax_mode')) {
+            return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true);
+        }
+
         followRetUrl();
     }
     
