@@ -482,7 +482,7 @@ select.tabHolder {
   flex-direction: column;
   align-content: center; }
   .grid.pictureAndText .element.selected {
-    padding: 0 !important; }
+    padding: 1px !important; }
   .grid.pictureAndText .element .photo {
     display: flex;
     width: 130px;
@@ -491,7 +491,10 @@ select.tabHolder {
     align-items: center; }
   .grid.pictureAndText .element .short-title {
     height: 20px;
-    overflow: hidden; }
+    padding: 2px;
+    overflow: hidden;
+    font-size: 0.95em;
+    box-sizing: border-box; }
 
 .grid.short {
   font-size: 15px; }
