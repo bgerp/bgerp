@@ -209,9 +209,39 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         if($showSenderAndReceiver){
             $mvc->setEmployeesOptions($form);
         }
+
+        if($jobRec = static::getJobFromThread($rec->threadId)){
+            $rec->_inputStores = keylist::toArray($jobRec->inputStores);
+            $selectableStores = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $rec->_inputStores);
+            if(countR($selectableStores) == 1){
+                $form->setDefault('storeId', key($selectableStores));
+            }
+        }
     }
-    
-    
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = &$form->rec;
+        if($form->isSubmitted()){
+            if($rec->state == 'draft' || empty($rec->state)){
+                if(is_array($rec->_inputStores)){
+                    if(empty($rec->storeId)){
+                        if(countR($rec->_inputStores)){
+                            $form->setWarning('storeId', 'Не е избран склад при очакван такъв по Задание|*!');
+                        }
+                    } elseif(!in_array($rec->storeId, $rec->_inputStores)) {
+                        $form->setWarning('storeId', 'Избраният склад не е от очакваните по Задание|*!');
+                    }
+                }
+            }
+        }
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *
