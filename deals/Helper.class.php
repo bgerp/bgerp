@@ -483,7 +483,7 @@ abstract class deals_Helper
         }
         
         $info = tr($text);
-        $obj = (object) array('formInfo' => "<div class='formNotice formCustomInfo'>{$info}</div>");
+        $obj = (object) array('formInfo' => "<div class='formCustomInfo'>{$info}</div>");
         $quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
         
         // Показваме предупреждение ако наличното в склада е по-голямо от експедираното

@@ -201,7 +201,7 @@ class purchase_PurchasesData extends core_Manager
 
             $lastPriceVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($lastPriceDisplayed);
 
-            return "<div class='formNotice formCustomInfo'>" . tr("|Последна покупка|*: <b>{$lastPriceVerbal}</b> |без ДДС|*") . " [{$lastPurchaseDocument->getLink(0)}]</div>";
+            return "<div class='formCustomInfo'>" . tr("|Последна покупка|*: <b>{$lastPriceVerbal}</b> |без ДДС|*") . " [{$lastPurchaseDocument->getLink(0)}]</div>";
         }
 
         return null;
