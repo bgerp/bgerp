@@ -61,7 +61,7 @@ class purchase_PurchasesData extends core_Manager
      /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,amount,expenses,state,folderId';
+    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,discount=Отст.,amount,expenses,state,folderId';
   
     
     /**
@@ -86,7 +86,7 @@ class purchase_PurchasesData extends core_Manager
         $this->FLD('packagingId', 'int', 'caption=Пакетиране,mandatory');
         
         $this->FLD('price', 'double', 'caption=Цена,mandatory');
-        $this->FLD('discount', 'double', 'caption=Цени->Отстъпка,mandatory');
+        $this->FLD('discount', 'percent', 'caption=Цени->Отстъпка,mandatory');
         $this->FLD('amount', 'double', 'caption=Стойност,mandatory');
         $this->FLD('expenses', 'double', 'caption=Разходи,mandatory');
         
