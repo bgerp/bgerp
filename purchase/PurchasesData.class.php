@@ -178,4 +178,32 @@ class purchase_PurchasesData extends core_Manager
             }
         }
     }
+
+
+    /**
+     * Връща информация за последната покупка на посочения артикул
+     *
+     * @param int $productId
+     * @param double $currencyRate
+     * @param mixed $currencyId
+     * @return string|null
+     */
+    public static function getLastPurchaseFormInfo($productId, $currencyRate, $currencyId)
+    {
+        $pQuery = purchase_PurchasesData::getQuery();
+        $pQuery->where("#productId = {$productId} AND #state IN ('active', 'closed')");
+        $pQuery->orderBy('#valior,#id', 'DESC');
+        if($lastPurchaseRec = $pQuery->fetch()){
+            $lastPurchaseDocument = doc_Containers::getDocument($lastPurchaseRec->containerId);
+            $price = isset($lastPurchaseRec->discount) ? $lastPurchaseRec->price * (1 - $lastPurchaseRec->discount) : $lastPurchaseRec->price;
+            $lastPriceDisplayed = deals_Helper::getDisplayPrice($price, 0, $currencyRate, 'no');
+            $lastPriceDisplayed = currency_Currencies::decorate($lastPriceDisplayed, $currencyId);
+
+            $lastPriceVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($lastPriceDisplayed);
+
+            return "<div class='formNotice formCustomInfo'>" . tr("|Последна покупка|*: <b>{$lastPriceVerbal}</b> |без ДДС|*") . " [{$lastPurchaseDocument->getLink(0)}]</div>";
+        }
+
+        return null;
+    }
 }
