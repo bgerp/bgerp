@@ -421,11 +421,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Попълване на склада за влагане
         $jobRec = static::getJobRec($rec);
-        $jobInputStores = keylist::toArray($jobRec->inputStores);
-        if(countR($jobInputStores) == 1){
-            $threadId = $rec->threadId ?? doc_Containers::fetchField($rec->originId, 'threadId');
-            if(!planning_ConsumptionNotes::existActivatedInThread($threadId)){
-                $form->setDefault('inputStoreId', key($jobInputStores));
+        $threadId = $rec->threadId ?? doc_Containers::fetchField($rec->originId, 'threadId');
+        if(!planning_ConsumptionNotes::existActivatedInThread($threadId)){
+            $selectableStore = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $jobRec->inputStores);
+            if(countR($selectableStore) == 1){
+                $form->setDefault('inputStoreId', key($selectableStore));
             }
         }
 
