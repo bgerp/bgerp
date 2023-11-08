@@ -3617,7 +3617,7 @@ class cat_Products extends embed_Manager
         $form->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name');
         $form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
-        $form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
+        $form->FLD('groupsInput', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
         $form->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
         if (isset($id)) {
