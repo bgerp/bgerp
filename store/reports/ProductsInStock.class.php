@@ -127,9 +127,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                 $form->setError('type', 'Незавършено производство може да се включи само при избран вариант "Кратка".');
             }
 
-            if (isset($form->rec->workingPdogresOnly) && (($form->rec->workingPdogresOnly != 'yes') || ($form->rec->workingPdogresOn != 'yes'))) {
-                $form->setError('workingPdogresOn', 'Трябва да се разреши включването на "Незавършено производство"');
-            }
         }
     }
 
