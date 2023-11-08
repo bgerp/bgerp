@@ -172,7 +172,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
         $rec = $form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         if (isset($rec->productId)) {
-            $form->info = purchase_PurchasesData::getLastPurchaseFormInfo($rec->productId, $masterRec->currencyRate, $masterRec->currencyId);
+            $form->info = purchase_PurchasesData::getLastPurchaseFormInfo($rec->productId, $masterRec->valior, $masterRec->chargeVat, $masterRec->currencyRate, $masterRec->currencyId);
         }
 
         parent::inputDocForm($mvc, $form);

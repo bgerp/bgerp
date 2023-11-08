@@ -171,7 +171,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         if($masterRec->isReverse == 'no'){
             if (isset($rec->productId)) {
-                $form->info = purchase_PurchasesData::getLastPurchaseFormInfo($rec->productId, $masterRec->currencyRate, $masterRec->currencyId);
+                $form->info = purchase_PurchasesData::getLastPurchaseFormInfo($rec->productId, $masterRec->valior, $masterRec->chargeVat, $masterRec->currencyRate, $masterRec->currencyId);
             }
         }
 
