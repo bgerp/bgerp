@@ -102,7 +102,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
        // $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Филтри->"Общо" по групи,after=orderBy,input=none,single=none');
         $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
 
-        $fieldset->FLD('workingPdogresOn', 'enum(included=Включено,off=Изключено)', 'notNull,caption=Незавършено производство->Незавършено производство,removeAndRefreshForm,after=seeByGroups,silent');
+        $fieldset->FLD('workingPdogresOn', 'enum(included=Включено,off=Изключено)', 'notNull,caption=Незавършено производство->Незавършено производство,removeAndRefreshForm,after=seeByGroups, single=none,silent');
         $fieldset->FLD('workingPdogresOnly', 'set(yes=)', 'caption=Незавършено производство->Само незавършеното производство,after=workingPdogresOn, single=none');
 
 
@@ -123,7 +123,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
 
-            if (isset($form->rec->type, $form->rec->workingPdogresOn) && ($form->rec->type == 'long')) {
+            if (isset($form->rec->workingPdogresOn) && $form->rec->workingPdogresOn == 'included'  && ($form->rec->type == 'long')) {
                 $form->setError('type', 'Незавършено производство може да се включи само при избран вариант "Кратка".');
             }
 
