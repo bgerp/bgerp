@@ -690,7 +690,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $Enum = cls::get('type_Enum', array('options' => array('yes' => 'Включено')));
+        $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено','off' => 'Изключено')));
 
 
 
