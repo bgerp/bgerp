@@ -1854,7 +1854,7 @@ class cat_Boms extends core_Master
                         $foundStepTask = $foundStepArr[key($foundStepArr)];
                         if($foundStepTask){
                             if($defTask->_inputPreviousSteps == 'yes'){
-                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack, 'isPrevStep' => true);
                             }
                         }
                     }

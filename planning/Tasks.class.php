@@ -1505,7 +1505,12 @@ class planning_Tasks extends core_Master
                                 $nRec->taskId = $rec->id;
                                 $nRec->packagingId = $p->packagingId;
                                 $nRec->quantityInPack = $p->quantityInPack;
-                                $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
+                                if($p->isPrevStep){
+                                    $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
+                                } else {
+                                    $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
+                                }
+
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
