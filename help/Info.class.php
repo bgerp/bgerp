@@ -118,7 +118,7 @@ class help_Info extends core_Master
             $form = new ET("<form id='bugReportForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}'); \" action='" . $sUrl . "'></form>");
             $tpl->append($form);
 
-            $signal = ht::createLink(tr('Сигнал'), $sUrl, false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
+            $signal = ht::createLink("", $sUrl, false, array('class' => 'soc-following noSelect','title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => 'img/24/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
         }
 
         return $signal;
