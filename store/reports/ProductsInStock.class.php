@@ -153,8 +153,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         if ($rec->workingPdogresOn == 'off') {
             $form->setField('workingPdogresOnly', 'input=none');
-        }else{
-            $rec->workingPdogresOnly == '';
+
         }
 
 
@@ -194,7 +193,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
+
     {
+
         $date = (is_null($rec->date)) ? dt::today() : $rec->date;
 
         $recs = array();
@@ -752,8 +753,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
 
         if ((isset($data->rec->workingPdogresOn))) {
+
             $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
-            if(isset($data->rec->workingPdogresOn,$data->rec->workingPdogresOnly)){
+            if($data->rec->workingPdogresOn == 'included' && $data->rec->workingPdogresOnly == 'yes'){
                 $fieldTpl->append('<b>' . ' само незавършено'.'</b>', 'workingPdogresOn');
             }
         }else{
