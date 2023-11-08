@@ -87,8 +87,8 @@ class doc_Notes extends core_Master
     
     
     public $canSingle = 'powerUser';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
@@ -135,7 +135,7 @@ class doc_Notes extends core_Master
     /**
      * Кой може да променя активирани записи
      */
-    public $canChangerec = 'powerUser';
+    public $canChangerec = 'user';
     
     
     /**
