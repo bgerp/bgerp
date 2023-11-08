@@ -101,8 +101,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
        // $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Филтри->"Общо" по групи,after=orderBy,input=none,single=none');
         $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
-        $fieldset->FLD('workingPdogresOn', 'set(yes=)', 'caption=Включи незавършеното производство,after=seeByGroups, single=none');
-        $fieldset->FLD('workingPdogresOnly', 'set(yes=)', 'caption=Само незавършеното производство,after=seeByGroups, single=none');
+
+        $fieldset->FLD('workingPdogresOn', 'enum(included=Включено,off=Изключено)', 'notNull,caption=Незавършено производство->Незавършено производство,removeAndRefreshForm,after=seeByGroups,silent');
+        $fieldset->FLD('workingPdogresOnly', 'set(yes=вкл)', 'caption=Незавършено производство->Само незавършеното производство,after=workingPdogresOn, single=none');
 
 
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
@@ -150,8 +151,15 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $form->setDefault('seeByGroups', 'no');
         $form->setDefault('orderBy', 'name');
         $form->setDefault('type', 'short');
-        $form->setDefault('workingPdogresOn', '');
+        $form->setDefault('workingPdogresOn', 'off');
         $form->setDefault('workingPdogresOnly', '');
+
+        if ($rec->workingPdogresOn == 'off') {
+            $form->setField('workingPdogresOnly', 'input=none');
+        }else{
+            $rec->workingPdogresOnly == '';
+        }
+
 
         if ($rec->type == 'long') {
             $today = dt::today();
