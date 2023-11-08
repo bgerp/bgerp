@@ -94,8 +94,18 @@ class help_Info extends core_Master
      * @param $tpl
      * @return void
      */
-    public static function prepareSupportLink(&$tpl)
+    public static function prepareSupportLink(&$tpl, $isForFooter = false)
     {
+        $linkText = tr('Сигнал');
+        $imgSize = 16;
+        $class = '';
+
+        if ($isForFooter) {
+            $linkText = '';
+            $imgSize = 24;
+            $class = 'soc-following noSelect';
+        }
+
         $sUrl = help_Setup::get('BGERP_SUPPORT_URL', true);
         $signal = '';
         if ($sUrl && strpos($sUrl, '//') !== false) {
@@ -118,7 +128,7 @@ class help_Info extends core_Master
             $form = new ET("<form id='bugReportForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}'); \" action='" . $sUrl . "'></form>");
             $tpl->append($form);
 
-            $signal = ht::createLink("", $sUrl, false, array('class' => 'soc-following noSelect','title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => 'img/24/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
+            $signal = ht::createLink($linkText, $sUrl, false, array('class' => $class,'title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => "img/{$imgSize}/headset.png", 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
         }
 
         return $signal;
