@@ -1084,6 +1084,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
         $form->setField('debitPrice', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+
         $form->input();
 
         if (!haveRole('seePrice,ceo')) {
@@ -1092,6 +1093,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->cmd = 'save';
             } else {
                 followRetUrl(null, 'Документът не може да бъде контиран, защото няма себестойност', 'error');
+            }
+        } else {
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('planning_Tasks')){
+                if(isset($form->rec->debitPrice)) {
+                    $form->info = "<div class='formCustomInfo'>Артикулът е към ПО и не може да му се променя очакваната сб-ст</div>";
+                    $form->setReadOnly('debitPrice');
+                }
             }
         }
 
