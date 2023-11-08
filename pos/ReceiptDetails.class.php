@@ -523,8 +523,8 @@ class pos_ReceiptDetails extends core_Detail
                     $cardInfo = crm_ext_Cards::getInfo($rec->ean);
                     if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
                         $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' =>1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
-                    } if($cardInfo['status'] == crm_ext_Cards::STATUS_EXPIRED){
-                        core_Statuses::newStatus("Клиентската карта е изтекла|*!", 'warning');
+                    } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
+                        core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
                     }
                 }
                 
