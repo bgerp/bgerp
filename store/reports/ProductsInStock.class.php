@@ -214,14 +214,14 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $accsArr = array(321);
 
         //За тестване на само незавършено производство
-        if($rec->workingPdogresOnly == 'yes' && $rec->workingPdogresOn == 'yes'){
+        if($rec->workingPdogresOnly == 'yes' && $rec->workingPdogresOn == 'included'){
             $accsArr = array();
         }
 
         //systemId на сметката "Незавършено производство" = 61101
         $workingPdogresAccRec = acc_Accounts::fetch("#systemId = 61101");
 
-        if ($rec->workingPdogresOn == 'yes'){
+        if ($rec->workingPdogresOn == 'included'){
 
             array_push($accsArr,$workingPdogresAccRec -> num);
         }
@@ -753,6 +753,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         if ((isset($data->rec->workingPdogresOn))) {
             $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
+            if(isset($data->rec->workingPdogresOn,$data->rec->workingPdogresOnly)){
+                $fieldTpl->append('<b>' . ' само незавършено'.'</b>', 'workingPdogresOn');
+            }
         }else{
             $fieldTpl->append('<b>' . 'Не е включено' . '</b>', 'workingPdogresOn');
         }
