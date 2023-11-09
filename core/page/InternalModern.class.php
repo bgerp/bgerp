@@ -313,7 +313,8 @@ class core_page_InternalModern extends core_page_Active
         // Създава линк за поддръжка
         $conf = core_Packs::getConfig('help');
 
-        $signal = help_Info::prepareSupportLink($tpl);
+        $signal = help_Info::prepareSupportLink();
+        $tpl->replace($signal, 'SIGNAL');
 
         // Създава линк за изход
         $signOut = ht::createLink(tr('Изход'), array('core_Users', 'logout'), false, array('title' => 'Излизане от системата', 'ef_icon' => 'img/16/logout.png'));
