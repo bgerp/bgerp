@@ -1475,7 +1475,7 @@ class label_Prints extends core_Master
         $counterItemsQuery = label_CounterItems::getQuery();
         $counterItemsQuery->where(array("#number = '[#1#]'", $str));
 
-        bp($str, $counterItemsQuery->fetchAll());
+        bp($str, $counterItemsQuery->buildQuery(), $counterItemsQuery->fetchAll());
         while ($cRec = $counterItemsQuery->fetch()) {
             if (!$cRec->printId) {
                 continue;
