@@ -5755,6 +5755,9 @@ div.location.public {
   margin-bottom: 10px;
   height: auto; }
 
+.narrow .eshop-group-button-title {
+  margin-bottom: 0 !important; }
+
 .eshop-group-button:hover  .eshop-group-button-title a {
   color: #cc6600; }
 
@@ -6481,8 +6484,7 @@ only screen and (max-width: 480px) {
 
   .narrow .eshop-group-button {
     width: 46%;
-    margin-right: 2%;
-    margin-left: 2%;
+    margin: 0 2%;
     font-size: 0.9em; }
 
     :not(.modern-theme) .narrow .main-container .chzn-container,
