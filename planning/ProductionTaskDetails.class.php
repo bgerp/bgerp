@@ -1565,7 +1565,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     // Дали да се печата бърз етикет
                     if(core_Packs::isInstalled('label')) {
                         $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-                        if ($labelPrintFromProgress == 'yes') {
+                        if ($labelPrintFromProgress != 'no') {
                             $taskPrintLabelFromTask = planning_Tasks::fetchField("#id = {$rec->taskId}", 'labelPrintFromProgress');
                             if ($taskPrintLabelFromTask != 'yes') {
                                 $requiredRoles = 'no_one';

@@ -1067,7 +1067,7 @@ class planning_Tasks extends core_Master
         unset($row->labelPrintFromProgress);
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
+            if ($labelPrintFromProgress != 'no') {
                 $row->labelPrintFromProgress = $mvc->getFieldType('labelPrintFromProgress')->toVerbal($rec->labelPrintFromProgress);
             }
         }
@@ -1574,7 +1574,7 @@ class planning_Tasks extends core_Master
 
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
+            if ($labelPrintFromProgress != 'no') {
                 $form->setField('labelPrintFromProgress', "input");
             }
         }
