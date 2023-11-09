@@ -161,8 +161,9 @@ class barcode_Search extends core_Manager
             $tpl->push('barcode/js/html5-qrcode.min.js', 'JS');
 
             $h =  $form->rec->search ? ' class="hidden" ' : '';
+            $img = sbf("img/32/camera.png", "");
 
-            $a = "<style> .cameraSource {min-width: 60px;} .cameraSource.active {background-color: #bbb;}</style> 
+            $a = "<style> .cameraSource { min-width: 40px;padding-left: 24px !important; padding-right: 7px !important; background: #ddd url({$img}) left center; background-size: 16px; } .narrow .cameraSource { min-width: 50px;padding-left: 25px !important;}.cameraSource.active {background-color: #bbb;}</style> 
             <div id='cameraHolder' {$h}>
                 <div style='margin: 0 0 10px;' id='camera-buttons'></div>
                 <div style= 'max-width: 500px; width: 100%' id='reader'></div>
