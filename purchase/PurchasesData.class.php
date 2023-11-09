@@ -199,12 +199,12 @@ class purchase_PurchasesData extends core_Manager
             $lastPurchaseDocument = doc_Containers::getDocument($lastPurchaseRec->containerId);
             $price = isset($lastPurchaseRec->discount) ? $lastPurchaseRec->price * (1 - $lastPurchaseRec->discount) : $lastPurchaseRec->price;
             $vat = cat_Products::getVat($productId, $valior);
-
             $lastPriceDisplayed = deals_Helper::getDisplayPrice($price, $vat, $currencyRate, $chargeVat);
-            $lastPriceDisplayed = currency_Currencies::decorate($lastPriceDisplayed, $currencyId);
 
             $unit = ($chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
             $lastPriceVerbal = core_Type::getByName('double(smartRound)')->toVerbal($lastPriceDisplayed);
+            $lastPriceVerbal = currency_Currencies::decorate($lastPriceVerbal, $currencyId);
+
             return "<div class='formCustomInfo'>" . tr("|Последна покупка|*: <b>{$lastPriceVerbal}</b>, |{$unit}|*") . " [{$lastPurchaseDocument->getLink(0)}]</div>";
         }
 
