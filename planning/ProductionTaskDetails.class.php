@@ -338,7 +338,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($rec->type == 'production' && $masterRec->labelType == 'scan') {
                 $form->setField('serial', 'mandatory');
             } elseif($rec->type == 'production' && $masterRec->labelType == 'print'){
-                $form->setField('serial', 'input=none');
+                $form->setField('serial', 'caption=Допълнително->Производ. №,formOrder=6,placeholder=Автоматично генериране');
+                unset($form->fields['serial']->focus);
             } elseif ($rec->type == 'input') {
                 $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
                 if(countR($availableSerialsToInput)){
