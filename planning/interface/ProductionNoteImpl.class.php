@@ -70,6 +70,7 @@ class planning_interface_ProductionNoteImpl extends label_ProtoSequencerImpl
         $placeholders['EXPIRY_DATE'] = (object) array('type' => 'text');
         $placeholders['QR_CODE'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['QR_CODE_90'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['SALE_CONTRAGENT_NAME'] = (object) array('type' => 'text');
         $placeholders['SALE_HANDLER'] = (object) array('type' => 'text');
         $placeholders['SALE_ID'] = (object) array('type' => 'text');
         $placeholders['SALE_VALIOR'] = (object) array('type' => 'text');
@@ -235,6 +236,7 @@ class planning_interface_ProductionNoteImpl extends label_ProtoSequencerImpl
         for ($i = 1; $i <= $cnt; $i++) {
             $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl);
             if(is_object($saleRec)){
+                $res["SALE_CONTRAGENT_NAME"] = cls::get($saleRec->contragentClassId)->getVerbal($saleRec->contragentId, 'name');
                 $res["SALE_HANDLER"] = "#" . sales_Sales::getHandle($saleRec->id);
                 $res["SALE_ID"] = "#" . $saleRec->id;
                 $res["SALE_VALIOR"] = dt::mysql2verbal($saleRec->valior, 'd.m.Y');
