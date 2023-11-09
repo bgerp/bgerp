@@ -84,7 +84,7 @@ class barcode_Search extends core_Manager
                         continue;
                     }
 
-                    if (strpos($form->rec->search, '://' . $dName) || strpos($form->rec->search, $dName === 0)) {
+                    if (strpos($form->rec->search, '://' . $dName) || strpos($form->rec->search, $dName)  === 0) {
                         if ($cDomain && ($cDomain != $dName)) {
                             $form->rec->search = preg_replace('/' . preg_quote($dName, '/') . '/', $cDomain, $form->rec->search, 1);
                         }
