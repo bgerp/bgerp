@@ -904,6 +904,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $uomRec = cat_UoM::fetch($dRec->packagingId, 'roundSignificant,round');
             $dRec->quantity = core_Math::roundNumber($roundQuantity, $uomRec->round, $uomRec->roundSignificant);
+            $dRec->quantity *= $dRec->quantityInPack;
             $dRec->quantityFromBom = $dRec->quantity;
 
             $pRec = cat_Products::fetch($resource->productId, 'measureId,canStore');
