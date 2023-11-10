@@ -1,5 +1,5 @@
 <style>
-    label-holder {
+    .label-holder {
         border-radius: 8px;
         padding: 2px 3px 2px 3px;
         width: 81mm;
