@@ -78,7 +78,7 @@
         </tr>
         <!--ET_BEGIN АЛЕРГЕНИ-->
         <tr>
-            <td colspan = 3 class='smallText border-top' style='padding-top:0 !important;'>
+            <td colspan = 3 class='smallText border-top center' style='padding-top:0 !important;'>
                 <div class='alergens'>Алергени: [#АЛЕРГЕНИ#]</div>
                 <div class='grid'>[#ALLERGENS_IMG#]</div>
             </td>
