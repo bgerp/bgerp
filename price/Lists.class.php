@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,7 +56,7 @@ class price_Lists extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'price_ListRules,price_ListVariations';
+    public $details = 'price_ListRules,price_ListVariations,price_ListBasicDiscounts';
     
     
     /**
