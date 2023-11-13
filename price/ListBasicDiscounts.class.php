@@ -106,15 +106,19 @@ class price_ListBasicDiscounts extends core_Detail
                 $form->setError('discountPercent,discountAmount', 'Трябва поне едно от полетата да е попълнено');
             }
 
-            if(isset($rec->amountFrom)){
-                if(static::fetch("#amountTo >= {$rec->amountFrom} AND #id != '{$rec->id}' AND #listId = {$rec->listId}")){
-                    $form->setError('amountFrom', 'Сума:От вече присъства в друг интервал1');
-                }
+            $from = $rec->amountFrom ?? 0;
+            $to = $rec->amountTo ?? 999999999999;
+            if($from >= $to){
+                $form->setError('amountFrom,amountTo', 'Сума от трябва да е по-малка от сума до|*');
             }
 
-            if(isset($rec->amountTo)){
-                if(static::fetch("#amountFrom >= {$rec->amountTo} AND #id != '{$rec->id}' AND #listId = {$rec->listId}")){
-                    $form->setError('amountTo', 'Сума:До вече присъства в друг интервал2');
+            if(!$form->gotErrors()){
+                $query = static::getQuery();
+                $query->XPR('amountToCalc', 'int', "COALESCE(#amountTo, 999999999999)");
+                $query->where("#id != '{$rec->id}' AND #listId = {$rec->listId}");
+                $query->where("!('{$from}' > #amountToCalc || '{$to}' < #amountFrom)");
+                if($query->count()){
+                    $form->setError('amountFrom,amountTo', 'Посочения интервал се засича с вече съществиващ|*!');
                 }
             }
 
