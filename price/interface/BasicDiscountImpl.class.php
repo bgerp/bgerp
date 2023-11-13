@@ -91,7 +91,7 @@ class price_interface_BasicDiscountImpl extends core_Manager
         $foundDiscountRec = null;
         foreach ($foundRecs as $fRec){
             $convertedAmount = currency_CurrencyRates::convertAmount($totalAmountWithoutVatAndDiscount, null, null, $fRec->currencyId);
-            if($convertedAmount >= $fRec->amountFrom && $convertedAmount <= $fRec->amountTo){
+            if($convertedAmount >= $fRec->amountFrom && (($convertedAmount <= $fRec->amountTo) || !isset($fRec->amountTo))){
                 $foundDiscountRec = $fRec;
                 break;
             }
