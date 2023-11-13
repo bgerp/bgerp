@@ -13,73 +13,26 @@
  *
  * @since     v 0.1
  */
-class openai_Api
+abstract class openai_Api
 {
-    /**
-     * Праща заявка и връща резултата чрез text-davinci-003
-     *
-     * @param null|string $prompt - стойността, която се подава на `prompt`
-     * @param array $pArr
-     * ['prompt'] - въпорсът, който задаваме
-     * @param boolean|string $useCache
-     * @param interger $index
-     * @param null|string $cKey
-     *
-     * @trows openai_Exception
-     *
-     * @return string|false
-     */
-    public static function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null)
-    {
-        self::setDefaultParams($pArr);
-        setIfNot($pArr['__endpoint'], 'completions');
-        setIfNot($pArr['model'], 'text-davinci-003');
 
-        if (isset($prompt)) {
-            $pArr['prompt'] = $prompt;
-        }
-
-        expect($pArr['prompt'], $pArr);
-
-        $resObj = self::execCurl($pArr, $useCache, $cKey);
-
-        return $resObj->choices[$index]->text ? $resObj->choices[$index]->text : false;
-    }
 
 
     /**
-     * Праща заявка и връща резултата чрез gpt-3.5-turbo
-     *
-     * @param null|string $prompt - стойността, която се подава на `messages` => `content` с `role` => `user`
-     * @param array $pArr
-     * ['messages'] - въпорсът, който задаваме
-     * ['messages'][['role' => 'user', 'content' => 'Hello']]
-     * ['messages'][['role' => 'system', 'content' => 'You are a helpful assistant.']]
-     * ['messages'][['role' => 'assistant', 'content' => 'Prev answer']]
-     * @param boolean|string $useCache
-     * @param interger $index
-     * @param null|string $cKey
-     *
-     * @trows openai_Exception
-     *
-     * @return string|false
+     * Инрерфейси
      */
-    public static function getChatRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null)
-    {
-        self::setDefaultParams($pArr);
-        setIfNot($pArr['__endpoint'], 'chat/completions');
-        setIfNot($pArr['model'], 'gpt-3.5-turbo');
+    public $interfaces = 'openai_GPTIntf';
 
-        if (isset($prompt)) {
-            $pArr['messages'] = array(array('role' => 'user', 'content' => $prompt));
-        }
 
-        expect($pArr['messages'], $pArr);
-
-        $resObj = self::execCurl($pArr, $useCache, $cKey);
-
-        return $resObj->choices[$index]->message ? $resObj->choices[$index]->message->content : false;
-    }
+    /**
+     * @param $prompt
+     * @param $pArr
+     * @param $useCache
+     * @param $index
+     * @param $cKey
+     * @return mixed
+     */
+    abstract public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null);
 
 
     /**
@@ -123,7 +76,7 @@ class openai_Api
      *
      * @param array $pArr
      */
-    protected static function setDefaultParams(&$pArr)
+    public static function setDefaultParams(&$pArr)
     {
         setIfNot($pArr['temperature'], openai_Setup::get('API_TEMPERATURE'));
         setIfNot($pArr['max_tokens'], openai_Setup::get('API_MAX_TOKENS'));
@@ -142,7 +95,7 @@ class openai_Api
      *
      * @return mixed
      */
-    protected static  function execCurl($params, $useCache, &$cKey = null)
+    public static function execCurl($params, $useCache, &$cKey = null)
     {
         setIfNot($params['__method'], 'POST');
         expect($params['__endpoint']);
@@ -164,14 +117,19 @@ class openai_Api
             if ($responseJson === false) {
                 $url = rtrim(openai_Setup::get('BASE_URL'), '/') . '/' .  ltrim($params['__endpoint'], '/');
 
-                unset($params['__endpoint']);
                 openai_Exception::expect($url, 'Не е настроен пакета');
 
                 $curl = self::prepareCurl($url);
 
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $params['__method']);
                 $method = $params['__method'];
-                unset($params['__method']);
+
+                foreach ($params as $pKey => $pVal) {
+                    if (substr($pKey, 0, 2) == '__') {
+                        unset($params[$pKey]);
+                    }
+                }
+
                 if ($method != 'GET') {
                     curl_setopt($curl, CURLOPT_POSTFIELDS, @json_encode($params));
                 }

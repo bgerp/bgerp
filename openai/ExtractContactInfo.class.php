@@ -203,13 +203,7 @@ class openai_ExtractContactInfo
 
         $aiModel = openai_Setup::get('API_MODEL_VERSION');
 
-        if ($aiModel == 'GPT 3.5 TURBO') {
-            $oRes =  openai_Api::getChatRes($text->getContent(), array(), $useCache);
-        } elseif ($aiModel == 'TEXT DAVINCI 003') {
-            $oRes =  openai_Api::getRes($text->getContent(), array(), $useCache);
-        } else {
-            expect(false, $aiModel);
-        }
+        $oRes = cls::getInterface('openai_GPTIntf', $aiModel)->getRes($text->getContent(), array(), $useCache);
 
         if ($oRes === false) {
 
