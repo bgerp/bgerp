@@ -57,9 +57,13 @@ class price_interface_BasicDiscountImpl extends core_Manager
         }
 
         // Кеш на твърдите отстъпки за посочените политики
+        $classId = $this->getClassId();
         $basicDiscountQuery = price_ListBasicDiscounts::getQuery();
         $basicDiscountQuery->EXT('currencyId', 'price_Lists', 'externalName=currency,externalKey=listId');
+        $basicDiscountQuery->EXT('discountClass', 'price_Lists', 'externalName=discountClass,externalKey=listId');
         $basicDiscountQuery->in('listId', $listPaths);
+        $basicDiscountQuery->where("#discountClass = {$classId}");
+
         while($basicRec = $basicDiscountQuery->fetch()){
             $basicArr[$basicRec->listId][$basicRec->id] = $basicRec;
         }
