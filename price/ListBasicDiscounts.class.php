@@ -191,11 +191,4 @@ class price_ListBasicDiscounts extends core_Detail
 
         return parent::renderDetail_($data);
     }
-
-
-    function act_Test()
-    {
-        $masterRec = sales_Sales::fetch(4345);
-        cls::get('sales_Sales')->updateMaster($masterRec);
-    }
 }
