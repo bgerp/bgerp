@@ -112,7 +112,12 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         $recs = array();
 
-        //Определяме контрагентите с експедиции в периода на активност и периода на пасивност
+        //Определяне на активните складове
+        $storeQuery = store_Stores::getQuery();
+        $storeQuery->where("#state = 'active'");
+        $activeStateArr = arr::extractValuesFromArray($storeQuery->fetchAll(),'id');
+
+
         $shQuery = store_ShipmentOrders::getQuery();
         $shQuery->in('state', array('pending', 'draft'));
 
@@ -133,12 +138,35 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         while ($shDetRec = $shDetQuery->fetch()) {
 
-          //  $id = $shRec->folderId;
-bp($shDetRec);
+            //Количество от артикула в склада от ЕН
+            if(!in_array($shDetRec->storeId,$activeStateArr)) continue;
+            $storeQuantity = store_Products::getQuantities($shDetRec->productId,$shDetRec->storeId);
+            $allStoriesQuantity = store_Products::getQuantities($shDetRec->productId);
+
+            //Експедирано количество общо от всички опаковки
+            $shipmentQuantity = $shDetRec->quantityInPack * $shDetRec->packQuantity;
+
+            if (! array_key_exists($shDetRec->productId, $recs)) {
+                $recs[$shDetRec->productId] =
+
+                    (object) array(
+
+                        'shipmentId' => $shDetRec->shipmentId,
+                        'productId' => $shDetRec->productId,
+                        'storeId' => $shDetRec->storeId,
+                        'shipmentQuantity' => $shipmentQuantity,
+                        'storeQuantity' => $storeQuantity->quantity,
+                        'allStoriesQuantity' => $allStoriesQuantity->quantity,
+                        'measure' => cat_Products::fetchField($shDetRec->productId, 'measureId'),
+                    );
+            } else {
+                $obj = &$recs[$shDetRec->productId];
+
+                $obj->quantity += $shDetRec->quantity;
+            }
 
         }
 
-bp();
         return $recs;
     }
 
@@ -158,9 +186,18 @@ bp();
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
 
+            $fld->FLD('shipmentId', 'key(mvc=store_ShipmentOrders,select=id)', 'caption=ЕН');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('shipmentQuantity', 'double', 'caption=Количество -> по ЕН');
+            $fld->FLD('storeQuantity', 'double', 'caption=Количество -> в склада');
+            $fld->FLD('allStoriesQuantity', 'double', 'caption=Количество -> общо');
+            $fld->FLD('tag', 'varchar', 'caption=Таг');
         }else{
+            $fld->FLD('shipmentId', 'key(mvc=store_ShipmentOrders,select=id)', 'caption=ЕН');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('shipmentQuantity', 'double', 'caption=Количество-> по ЕН');
+            $fld->FLD('storeQuantity', 'double', 'caption=Количество -> в склада');
+            $fld->FLD('allStoriesQuantity', 'double', 'caption=Количество -> общо');
 
 
         }
@@ -188,7 +225,26 @@ bp();
         $row = new stdClass();
 
 
-        $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+        $shipmentHandle = '#' . store_ShipmentOrders::getHandle($dRec->shipmentId);
+        $row->shipmentId = ht::createLink($shipmentHandle, array('store_ShipmentOrders', 'Single', $dRec->shipmentId), null);
+
+        $row->productId = cat_Products::getHyperlink($dRec->productId, 'name');
+
+        $row->shipmentQuantity = $Double->toVerbal($dRec->shipmentQuantity);
+        $row->storeQuantity = $Double->toVerbal($dRec->storeQuantity);
+        $row->allStoriesQuantity = $Double->toVerbal($dRec->allStoriesQuantity);
+
+        if($dRec->shipmentQuantity < $dRec->storeQuantity){
+            $row->shipmentQuantity = "<span class= 'red'>".$Double->toVerbal($dRec->shipmentQuantity);
+            $row->storeQuantity = "<span class= 'red'>" . '<b>' .$Double->toVerbal($dRec->storeQuantity). '</b>';
+        }
+        if(($dRec->shipmentQuantity >= $dRec->storeQuantity) && ($dRec->allStoriesQuantity > $dRec->shipmentQuantity)){
+            $row->shipmentQuantity = "<span class= 'red'>".$Double->toVerbal($dRec->shipmentQuantity);
+            $row->allStoriesQuantity = "<span class= 'red'>" . '<b>' .$Double->toVerbal($dRec->allStoriesQuantity). '</b>';
+
+        }
+
+
 
         return $row;
     }
