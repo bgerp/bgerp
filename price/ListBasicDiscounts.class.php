@@ -20,13 +20,13 @@ class price_ListBasicDiscounts extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Общи отстъпки към ценови политики';
+    public $title = 'Общи отстъпки на ценови политики';
 
 
     /**
      * Заглавие
      */
-    public $singleTitle = 'Обща отстъпка към ценова политика';
+    public $singleTitle = 'Обща отстъпка на ценова политика';
 
 
     /**
@@ -88,9 +88,9 @@ class price_ListBasicDiscounts extends core_Detail
         $rec = &$form->rec;
 
         $listRec = price_Lists::fetch($rec->listId);
-        $form->setField('amountFrom', "unit={$listRec->currency}");
-        $form->setField('amountTo', "unit={$listRec->currency}");
-        $form->setField('discountAmount', "unit={$listRec->currency}");
+        $form->setField('amountFrom', array('unit' => "{$listRec->currency}, |без ДДС|*"));
+        $form->setField('amountTo', array('unit' => "{$listRec->currency}, |без ДДС|*"));
+        $form->setField('discountAmount', array('unit' => "{$listRec->currency}, |без ДДС|*"));
     }
 
 
