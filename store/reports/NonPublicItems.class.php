@@ -300,4 +300,29 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
 
     }
+
+    /**
+     * Връща следващите три дати, когато да се актуализира справката
+     *
+     * @param stdClass $rec
+     *                      - запис
+     *
+     * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
+     */
+    public function getNextRefreshDates($rec)
+    {
+        $date = new DateTime(dt::now());
+        $date->add(new DateInterval('P0DT1H0M0S'));
+        $d1 = $date->format('Y-m-d H:i:s');
+        $date->add(new DateInterval('P0DT1H0M0S'));
+        $d2 = $date->format('Y-m-d H:i:s');
+        $date->add(new DateInterval('P0DT1H0M0S'));
+        $d3 = $date->format('Y-m-d H:i:s');
+
+        return array(
+            $d1,
+            $d2,
+            $d3
+        );
+    }
 }
