@@ -118,7 +118,7 @@ class price_ListBasicDiscounts extends core_Detail
                 $query->where("#id != '{$rec->id}' AND #listId = {$rec->listId}");
                 $query->where("!('{$from}' > #amountToCalc || '{$to}' < #amountFrom)");
                 if($query->count()){
-                    $form->setError('amountFrom,amountTo', 'Посочения интервал се засича с вече съществиващ|*!');
+                    $form->setError('amountFrom,amountTo', 'Посочения интервал се засича с вече зададен|*!');
                 }
             }
 
