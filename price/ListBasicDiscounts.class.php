@@ -118,7 +118,7 @@ class price_ListBasicDiscounts extends core_Detail
                 $query->where("#id != '{$rec->id}' AND #listId = {$rec->listId}");
                 $query->where("!('{$from}' > #amountToCalc || '{$to}' < #amountFrom)");
                 if($query->count()){
-                    $form->setError('amountFrom,amountTo', 'Посочения интервал се засича с вече зададен|*!');
+                    $form->setError('amountFrom,amountTo', 'Посоченият интервал се засича с вече зададен|*!');
                 }
             }
 
@@ -143,7 +143,7 @@ class price_ListBasicDiscounts extends core_Detail
             $row->listId = price_Lists::getHyperlink($rec->listId, true);
             $row->currencyId = $listRec->currency;
             if(empty($rec->amountTo)){
-                $row->amountTo = "<i style='color:blue'>" . tr('Безкрай') . "</i class>";
+                $row->amountTo = "<i style='color:blue'>" . tr('Без лимит') . "</i class>";
             }
         }
     }
