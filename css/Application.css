@@ -5314,7 +5314,8 @@ div.location.public {
   min-width: 20px;
   float: left; }
 
-.narrow .portal .linkWithIcon {
+.portal .linkWithIcon,
+.portal .ajaxContext {
   overflow-wrap: anywhere; }
 
 .portal-filter .hFormField {
