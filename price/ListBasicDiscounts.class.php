@@ -72,8 +72,8 @@ class price_ListBasicDiscounts extends core_Detail
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис,input=hidden,silent');
 
-        $this->FLD('amountFrom', 'double(min=0,minDecimals=2)', 'caption=Сума->От');
-        $this->FLD('amountTo', 'double(Min=0,minDecimals=2)', 'caption=Сума->До');
+        $this->FLD('amountFrom', 'double(min=0,minDecimals=2)', 'caption=Сума (без ДДС)->От');
+        $this->FLD('amountTo', 'double(Min=0,minDecimals=2)', 'caption=Сума (без ДДС)->До');
         $this->FLD('discountPercent', 'percent', 'caption=Отстъпка->Процент');
         $this->FLD('discountAmount', 'double(minDecimals=2)', 'caption=Отстъпка->Твърда');
     }
