@@ -171,7 +171,7 @@ class price_ListBasicDiscounts extends core_Detail
 
         $res = parent::prepareDetail_($data);
         $count = countR($data->recs);
-        $data->TabCaption = "Твърди отстъпки|* ({$count})";
+        $data->TabCaption = "Общи отстъпки|* ({$count})";
         $data->Tab = 'top';
 
         return $res;
@@ -190,5 +190,12 @@ class price_ListBasicDiscounts extends core_Detail
         if($data->hide) return null;
 
         return parent::renderDetail_($data);
+    }
+
+
+    function act_Test()
+    {
+        $masterRec = sales_Sales::fetch(4345);
+        cls::get('sales_Sales')->updateMaster($masterRec);
     }
 }

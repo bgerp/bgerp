@@ -77,7 +77,8 @@ class price_interface_BasicDiscountImpl extends core_Manager
         // Колко е сумата на продажбата без ддс и приложена ТО
         $totalAmountWithoutVatAndDiscount = 0;
         $dQuery = sales_SalesDetails::getQuery();
-        $dQuery->where("#saleId = {$masterRec->id}");
+        $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $dQuery->where("#saleId = {$masterRec->id} AND #isPublic = 'yes'");
         while($dRec = $dQuery->fetch()){
             $totalAmountWithoutVatAndDiscount += $dRec->amount;
         }
@@ -92,9 +93,9 @@ class price_interface_BasicDiscountImpl extends core_Manager
             }
         }
 
+        // Изчисляване на очаквания среден процент
         if($foundDiscountRec){
             $totalWithoutDiscountInListCurrency = currency_CurrencyRates::convertAmount($totalAmountWithoutVatAndDiscount, null, null, $foundDiscountRec->currencyId);
-
             $totalOld = $totalWithoutDiscountInListCurrency;
             $calcDiscountInListCurrency = 0;
             $totalWithoutDiscountInListCurrency -= $foundDiscountRec->amountFrom;
@@ -127,7 +128,9 @@ class price_interface_BasicDiscountImpl extends core_Manager
     public function calcAutoSaleDiscount($dRec, $masterRec)
     {
         $percent = $this->getBasicDiscount($masterRec);
+        $isPublic = cat_Products::fetchField($dRec->productId, 'isPublic');
+        if($isPublic == 'yes') return $percent;
 
-        return $percent;
+        return null;
     }
 }
