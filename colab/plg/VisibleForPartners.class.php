@@ -145,13 +145,6 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     $sharedUsers = keylist::toArray($rec->sharedUsers);
                     $partners = core_Users::getByRole('partner');
                     $selectedPartners = array_intersect_key($sharedUsers, $partners);
-
-                    if(countR($selectedPartners)){
-                        $nicks = array();
-                        array_walk($selectedPartners, function($a) use (&$nicks) {$nicks[] = core_Users::getNick($a);});
-                        $partnerWarningMsg = "При забранено споделяне с партньори, ще бъде заличено споделянето с|* " . implode(',', $nicks);
-                        $form->setWarning('sharedUsers', $partnerWarningMsg);
-                    }
                 }
 
                 if(!$form->gotErrors()){
@@ -196,9 +189,9 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     }
 
                     $errArray = array();
-
                     if (!empty($allSharedUsersArr)) {
                         foreach ($allSharedUsersArr as $uId) {
+                            unset($selectedPartners[$uId]);
                             $cRec = colab_FolderToPartners::fetchField(array("#folderId = '[#1#]' AND #contractorId = '[#2#]'", $form->rec->folderId, $uId));
 
                             if (!$cRec) {
@@ -212,6 +205,13 @@ class colab_plg_VisibleForPartners extends core_Plugin
                             $form->rec->visibleForPartners = 'yes';
                         }
                     }
+                }
+
+                if (countR($selectedPartners)) {
+                    $nicks = array();
+                    array_walk($selectedPartners, function($a) use (&$nicks) {$nicks[] = core_Users::getNick($a);});
+                    $partnerWarningMsg = "При забранено споделяне с партньори, ще бъде заличено споделянето с|* " . implode(',', $nicks);
+                    $form->setWarning('sharedUsers', $partnerWarningMsg);
                 }
             }
         }
