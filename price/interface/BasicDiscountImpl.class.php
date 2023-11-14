@@ -2,7 +2,7 @@
 
 
 /**
- * Клас за автоматични отстъпки от твърдо зададените отстъпки към политика
+ * Клас за автоматични отстъпки автоматични отстъпки според сумата към политика
  *
  *
  * @category  bgerp
@@ -60,6 +60,7 @@ class price_interface_BasicDiscountImpl extends core_Manager
         $classId = $this->getClassId();
         $basicDiscountQuery = price_ListBasicDiscounts::getQuery();
         $basicDiscountQuery->EXT('currencyId', 'price_Lists', 'externalName=currency,externalKey=listId');
+        $basicDiscountQuery->EXT('vat', 'price_Lists', 'externalName=vat,externalKey=listId');
         $basicDiscountQuery->EXT('discountClass', 'price_Lists', 'externalName=discountClass,externalKey=listId');
         $basicDiscountQuery->in('listId', $listPaths);
         $basicDiscountQuery->where("#discountClass = {$classId}");
@@ -79,18 +80,23 @@ class price_interface_BasicDiscountImpl extends core_Manager
         }
 
         // Колко е сумата на продажбата без ддс и приложена ТО
-        $totalAmountWithoutVatAndDiscount = 0;
+        $totalAmountWithoutVatAndDiscount = $totalAmountWithVatAndWithoutDiscount = 0;
         $dQuery = sales_SalesDetails::getQuery();
         $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $dQuery->where("#saleId = {$masterRec->id} AND #isPublic = 'yes'");
         while($dRec = $dQuery->fetch()){
             $totalAmountWithoutVatAndDiscount += $dRec->amount;
+            $vat = cat_Products::getVat($dRec->productId, $masterRec->valior);
+            $totalAmountWithVatAndWithoutDiscount += $dRec->amount * (1 + $vat);
         }
+        $totalAmountWithoutVatAndDiscount = round($totalAmountWithoutVatAndDiscount, 2);
+        $totalAmountWithVatAndWithoutDiscount = round($totalAmountWithVatAndWithoutDiscount, 2);
 
         // Оставям само първия запис в този диапазон
         $foundDiscountRec = null;
         foreach ($foundRecs as $fRec){
-            $convertedAmount = currency_CurrencyRates::convertAmount($totalAmountWithoutVatAndDiscount, null, null, $fRec->currencyId);
+            $valToCheck = ($fRec->vat == 'yes') ? $totalAmountWithVatAndWithoutDiscount : $totalAmountWithoutVatAndDiscount;
+            $convertedAmount = currency_CurrencyRates::convertAmount($valToCheck, null, null, $fRec->currencyId);
             if($convertedAmount >= $fRec->amountFrom && (($convertedAmount <= $fRec->amountTo) || !isset($fRec->amountTo))){
                 $foundDiscountRec = $fRec;
                 break;
@@ -99,7 +105,9 @@ class price_interface_BasicDiscountImpl extends core_Manager
 
         // Изчисляване на очаквания среден процент
         if($foundDiscountRec){
-            $totalWithoutDiscountInListCurrency = currency_CurrencyRates::convertAmount($totalAmountWithoutVatAndDiscount, null, null, $foundDiscountRec->currencyId);
+            $valToCheck = ($foundDiscountRec->vat == 'yes') ? $totalAmountWithVatAndWithoutDiscount : $totalAmountWithoutVatAndDiscount;
+
+            $totalWithoutDiscountInListCurrency = currency_CurrencyRates::convertAmount($valToCheck, null, null, $foundDiscountRec->currencyId);
             $totalOld = $totalWithoutDiscountInListCurrency;
             $calcDiscountInListCurrency = 0;
             $totalWithoutDiscountInListCurrency -= $foundDiscountRec->amountFrom;
