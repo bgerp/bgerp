@@ -2343,6 +2343,10 @@ class planning_Tasks extends core_Master
                 $res = ' ' . $res . ' ' . $keywords;
             }
         }
+
+        // Добавяне на драйвера на артикула в ключовите думи
+        $productDriverClass = cat_Products::getVerbal($rec->productId, 'innerClass');
+        $res .= ' ' . plg_Search::normalizeText($productDriverClass);
     }
 
 
