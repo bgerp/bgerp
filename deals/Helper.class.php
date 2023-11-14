@@ -1176,7 +1176,7 @@ abstract class deals_Helper
         $amount = $price * $quantity;
         
         $round = round($amount, 2);
-        $res = ((double) abs($round) >= 0.01);
+        $res = ((double) $round >= 0.01);
         
         if ($res === false) {
             if ($autoPrice === true) {
