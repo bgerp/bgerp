@@ -64,22 +64,6 @@ thead {
   word-break: break-word;
 }
 
-.printing-page-break {
-  page-break-after: always;
-}
-.print-break {
-  page-break-after: always;
-}
-.print-break.print-nobreak{
-    page-break-after: avoid;
-  }
-
 .footer-notes, .print-block, .footerDocTable, .footerDocBlock{
   page-break-inside: avoid;
-}
-
-.listTable tr td {
-  break-inside: avoid;
-  page-break-inside: avoid;
-
 }
