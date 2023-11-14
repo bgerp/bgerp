@@ -154,8 +154,10 @@ class openai_Setup extends core_ProtoSetup
     {
         $query = openai_Prompt::getQuery();
         while ($rec = $query->fetch()) {
+            if (!$rec->ignoreWords) {
                 $rec->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*'));
                 openai_Prompt::save($rec, 'ignoreWords');
+            }
         }
     }
 
@@ -183,8 +185,10 @@ class openai_Setup extends core_ProtoSetup
                 $aArr[$oRec->{$fld}] = $oRec->{$fld};
             }
 
-            $rec->emailIgnoreWords = implode("\n", $aArr);
-            openai_Prompt::save($rec, 'emailIgnoreWords');
+            if (!$rec->emailIgnoreWords) {
+                $rec->emailIgnoreWords = implode("\n", $aArr);
+                openai_Prompt::save($rec, 'emailIgnoreWords');
+            }
         }
     }
 
