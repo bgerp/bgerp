@@ -135,7 +135,7 @@ class rtac_Plugin extends core_Plugin
                 $folderId = $tRec->folderId;
             }
 
-            if ($folderId) {
+            if ($folderId && core_Packs::isInstalled('colab')) {
                 $contractorIds = colab_FolderToPartners::getContractorsInFolder($folderId);
                 if (!empty($contractorIds)) {
                     $userIdsStr = implode(',', $contractorIds);
