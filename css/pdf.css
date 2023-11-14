@@ -67,12 +67,13 @@ thead {
 .printing-page-break {
   page-break-after: always;
 }
-.print-break{
+.print-break {
   page-break-after: always;
-  &.print-nobreak{
+}
+.print-break.print-nobreak{
     page-break-after: avoid;
   }
-}
+
 .footer-notes, .print-block, .footerDocTable, .footerDocBlock{
   page-break-inside: avoid;
 }
