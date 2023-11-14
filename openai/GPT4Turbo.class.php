@@ -53,7 +53,9 @@ class openai_GPT4Turbo extends openai_GPT35Turbo
 
         expect($pArr['messages'], $pArr);
 
-        $pArr['messages'][] = array('role' => 'system', 'content' => 'You are a helpful assistant designed to output JSON.');
+        if ($pArr['response_format']->type == 'json_object') {
+            $pArr['messages'][] = array('role' => 'system', 'content' => 'You are a helpful assistant designed to output JSON.');
+        }
 
         $resObj = self::execCurl($pArr, $useCache, $cKey);
 
