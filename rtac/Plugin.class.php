@@ -121,16 +121,37 @@ class rtac_Plugin extends core_Plugin
             if (! ($shareUsersRoles = $mvc->params['shareUsersRoles'])) {
                 $shareUsersRoles = $conf->RTAC_DEFAUL_SHARE_USER_ROLES;
             }
+
+            $userIdsStr = '';
             $shareUsersRoles = str_replace('|', ',', $shareUsersRoles);
-            
+            $folderId = Request::get('folderId');
+            if (!$folderId && ($originId = Request::get('originId'))) {
+                $oRec = doc_Containers::fetch($originId);
+                $folderId = $oRec->folderId;
+            }
+
+            if (!$folderId && $threadId = Request::get('threadId')) {
+                $tRec = doc_Threads::fetch($threadId);
+                $folderId = $tRec->folderId;
+            }
+
+            if ($folderId) {
+                $contractorIds = colab_FolderToPartners::getContractorsInFolder($folderId);
+                if (!empty($contractorIds)) {
+                    $userIdsStr = implode(',', $contractorIds);
+                }
+            }
+
             // Обекти за данните
             $tpl->appendOnce('rtacObj.shareUsersURL = {};', 'SCRIPTS');
             $tpl->appendOnce('rtacObj.shareUserRoles = {};', 'SCRIPTS');
             $tpl->appendOnce('rtacObj.sharedUsers = {};', 'SCRIPTS');
+            $tpl->appendOnce('rtacObj.shareUsersIds = {};', 'SCRIPTS');
+            $tpl->appendOnce("rtacObj.shareUsersIds.{$id} = '{$userIdsStr}';", 'SCRIPTS');
 
             // Добавяме потребителите, до които ще се споделя
             $tpl->appendOnce("rtacObj.shareUserRoles.{$id} = '{$shareUsersRoles}';", 'SCRIPTS');
-            
+
             // Фунцкията, която ще приеме управелението след извикване на екшъна, в която ще се добавят потребителите
             $tpl->appendOnce("\n function render_sharedUsers(data){rtacObj.sharedUsers[data.id] = data.users;}", 'SCRIPTS');
             
@@ -155,8 +176,8 @@ class rtac_Plugin extends core_Plugin
     public function act_GetUsers()
     {
         // Ако заявката е по ajax
-        if (Request::get('ajax_mode')) {
-            
+        if (Request::get('ajax_mode') && haveRole('powerUser')) {
+
             // id на ричтекста
             $id = Request::get('rtid');
             
@@ -176,6 +197,14 @@ class rtac_Plugin extends core_Plugin
             $usersArr = core_Users::getUsersArr($roles, $term, $limit);
             $i = 0;
             $usersArrRes = array();
+
+            if ($users = Request::get('users')) {
+                $users = explode(',', $users);
+                foreach ((array) $users as $uId) {
+                    $uRec = core_Users::fetch($uId);
+                    $usersArr[$uRec->nick] = core_Users::prepareUserNames($uRec->names);
+                }
+            }
             
             // Добавяме потребителите в нов масив
             foreach ((array) $usersArr as $key => $users) {
