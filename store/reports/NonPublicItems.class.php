@@ -38,6 +38,15 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
      */
     protected $listItemsPerPage = 30;
 
+    /**
+     * Полета за хеширане на таговете
+     *
+     * @see uiext_Labels
+     *
+     * @var string
+     */
+    protected $hashField = 'productId' ;
+
 
     /**
      * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
@@ -109,8 +118,9 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-
         $recs = array();
+
+        $rec->priority = 'normal';
 
         //Определяне на активните складове
         $storeQuery = store_Stores::getQuery();
@@ -167,7 +177,10 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         }
 
+//self::canSendNotificationOnRefresh($rec);
+
         return $recs;
+
     }
 
 
@@ -244,8 +257,6 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         }
 
-
-
         return $row;
     }
 
@@ -301,6 +312,44 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
     }
 
+
+    /**
+     * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+     *
+     * @param stdClass $rec
+     *
+     * @return bool $res
+     */
+    public function canSendNotificationOnRefresh($rec)
+    {
+
+        $me = cls::get(get_called_class());
+        foreach ($rec->data->recs as $r) {
+
+            $hashFields = $this->getUiextLabelHashFields($r);
+            $hash = uiext_Labels::getHash($r, $hashFields);
+            $selRec = uiext_ObjectLabels::fetchByDoc(frame2_Reports::getClassId(), $rec->id, $hash);
+
+            if(($r->shipmentQuantity < $r->storeQuantity) && ($selRec === false)){
+
+                $rec->priority = 'alert';
+                $me->save_($rec, 'priority');
+
+                return true;
+            }
+
+            if(($r->shipmentQuantity >= $r->storeQuantity) &&
+                ($r->shipmentQuantity < $r->allStoriesQuantity) &&
+                ($selRec === false)){
+
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *
@@ -312,11 +361,11 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     public function getNextRefreshDates($rec)
     {
         $date = new DateTime(dt::now());
-        $date->add(new DateInterval('P0DT1H0M0S'));
+        $date->add(new DateInterval('P0DT0H1M0S'));
         $d1 = $date->format('Y-m-d H:i:s');
-        $date->add(new DateInterval('P0DT1H0M0S'));
+        $date->add(new DateInterval('P0DT0H1M0S'));
         $d2 = $date->format('Y-m-d H:i:s');
-        $date->add(new DateInterval('P0DT1H0M0S'));
+        $date->add(new DateInterval('P0DT0H1M0S'));
         $d3 = $date->format('Y-m-d H:i:s');
 
         return array(
