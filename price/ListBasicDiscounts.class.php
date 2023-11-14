@@ -71,9 +71,8 @@ class price_ListBasicDiscounts extends core_Detail
     public function description()
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис,input=hidden,silent');
-
-        $this->FLD('amountFrom', 'double(min=0,minDecimals=2)', 'caption=Сума (без ДДС)->От');
-        $this->FLD('amountTo', 'double(Min=0,minDecimals=2)', 'caption=Сума (без ДДС)->До');
+        $this->FLD('amountFrom', 'double(min=0,minDecimals=2)', 'caption=Сума->От');
+        $this->FLD('amountTo', 'double(Min=0,minDecimals=2)', 'caption=Сума->До');
         $this->FLD('discountPercent', 'percent', 'caption=Отстъпка->Процент');
         $this->FLD('discountAmount', 'double(minDecimals=2)', 'caption=Отстъпка->Твърда');
     }
@@ -86,11 +85,12 @@ class price_ListBasicDiscounts extends core_Detail
     {
         $form = &$data->form;
         $rec = &$form->rec;
-
         $listRec = price_Lists::fetch($rec->listId);
-        $form->setField('amountFrom', array('unit' => "{$listRec->currency}, |без ДДС|*"));
-        $form->setField('amountTo', array('unit' => "{$listRec->currency}, |без ДДС|*"));
-        $form->setField('discountAmount', array('unit' => "{$listRec->currency}, |без ДДС|*"));
+
+        $vatUnit = ($listRec->vat == 'yes') ? tr('с ДДС') : tr('без ДДС');
+        $form->setField('amountFrom', array('unit' => "|*{$listRec->currency}, {$vatUnit}"));
+        $form->setField('amountTo', array('unit' => "|*{$listRec->currency},  {$vatUnit}"));
+        $form->setField('discountAmount', array('unit' => "|*{$listRec->currency},  {$vatUnit}"));
     }
 
 
@@ -192,6 +192,11 @@ class price_ListBasicDiscounts extends core_Detail
     {
         // Ако не се иска да се показва детайла - да се скрива
         if($data->hide) return null;
+
+        $vatUnit = ($data->masterData->rec->vat == 'yes') ? tr('с ДДС') : tr('без ДДС');
+        $data->listFields['amountFrom'] = "Сума|* <small>($vatUnit)</small>->От";
+        $data->listFields['amountTo'] = "Сума|* <small>($vatUnit)</small>->До";
+        $data->listFields['discountAmount'] = "Отстъпка->Твърда|* <small>($vatUnit)</small>";
 
         return parent::renderDetail_($data);
     }
