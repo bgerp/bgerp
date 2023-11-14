@@ -219,7 +219,7 @@ class openai_Setup extends core_ProtoSetup
             }
 
             if (!empty($dArr)) {
-                core_Packs::setConfig('fileman', $dArr);
+                core_Packs::setConfig('openai', $dArr);
             }
         }
     }
