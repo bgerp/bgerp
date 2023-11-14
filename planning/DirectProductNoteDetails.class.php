@@ -82,7 +82,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=Количество->Въведено,quantityFromBom=Количество->Рецепта,quantityExpected=Количество->Очаквано,storeId';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=К-во->Въведено,quantityFromBom=К-во->Рецепта,quantityExpected=К-во->Очаквано,storeId';
     
     
     /**
@@ -202,12 +202,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
         
         if ($rec->type == 'pop') {
-
-            // Артикула, по която е ПО да може винаги да се избира, ако е складируем
-            $noteProductId = planning_DirectProductionNote::fetchField($rec->noteId, 'productId');
-            if(cat_Products::fetchField($noteProductId, 'canStore') == 'yes'){
-                $form->setFieldTypeParams('productId', array('alwaysShow' => array($noteProductId)));
-            }
+            $form->setFieldTypeParams('productId', array('groups' => cat_Groups::getKeylistBySysIds('waste')));
             $form->setField('storeId', 'input=none');
         } elseif($rec->type == 'input'){
 
@@ -424,15 +419,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
         if(empty($iData->listFields['quantityFromBom']) && empty($iData->listFields['quantityExpected'])){
-            $iData->listFields['packQuantity'] = 'Количество';
+            $iData->listFields['packQuantity'] = 'К-во';
         }
 
         if(isset($iData->listFields['quantityFromBom'])){
-            $iData->listFields['quantityFromBom'] = 'Количество->|*<small>|Рецепта|*</small>';
+            $iData->listFields['quantityFromBom'] = 'К-во->|*<small>|Рецепта|*</small>';
         }
 
         if(isset($iData->listFields['quantityExpected'])){
-            $iData->listFields['quantityExpected'] = 'Количество->|*<small>|Очаквано|*</small>';
+            $iData->listFields['quantityExpected'] = 'К-во->|*<small>|Очаквано|*</small>';
         }
 
         $this->modifyRows($iData);

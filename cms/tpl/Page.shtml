@@ -43,6 +43,7 @@
             <div class="socialBtns">
                 [#cms_Feeds::generateFeedLink#]
                 [#social_Followers::getButtons#]
+                [#SIGNAL#]
             </div>
             [#cms_Content::getFooter#]
             <!--ET_BEGIN FOOTER_CENTER_WIDE-->

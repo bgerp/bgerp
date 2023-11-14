@@ -83,7 +83,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем,info=Инфо';
+    public $listFields = 'productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount, weight=Тегло, volume=Обем,info=Инфо';
     
     
     /**
@@ -167,6 +167,14 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
+        $rec = $form->rec;
+        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        if($masterRec->isReverse == 'no'){
+            if (isset($rec->productId)) {
+                $form->info = purchase_PurchasesData::getLastPurchaseFormInfo($rec->productId, $masterRec->valior, $masterRec->chargeVat, $masterRec->currencyRate, $masterRec->currencyId);
+            }
+        }
+
         parent::inputDocForm($mvc, $form);
     }
     

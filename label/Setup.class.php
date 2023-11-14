@@ -86,7 +86,7 @@ class label_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'LABEL_AUTO_PRINT_AFTER_SAVE_AND_NEW' => array('enum(no=Не,yes=Да)', 'caption=Автоматично отпечатване след "Запис и Нов"->Избор,customizeBy=label'),
+        'LABEL_AUTO_PRINT_AFTER_SAVE_AND_NEW' => array('enum(no=Изключено,yes=След "Запис и нов",afterSave=След "Запис",both=След "Запис" и "Запис и нов")', 'caption=Автоматично отпечатване след запис->Избор,customizeBy=label|ceo'),
     );
     
     

@@ -1325,7 +1325,7 @@ class sales_Sales extends deals_DealMaster
         $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
         $saleQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $saleQuery->where("#canManifacture = 'yes'");
-        $saleQuery->orderBy('productId', 'ASC');
+        $saleQuery->orderBy('id', 'ASC');
         $saleQuery->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
         $saleQuery->show('productId,codeExp');
 
@@ -1346,6 +1346,7 @@ class sales_Sales extends deals_DealMaster
 
         // Сортиране на артикулите, както сa подредени в продажбата
         $detailOrderBy = $rec->detailOrderBy;
+
         if($detailOrderBy == 'code'){
             arr::sortObjects($productArr, 'code', 'ASC', 'natural');
         } elseif($detailOrderBy == 'reff' && isset($listId)){

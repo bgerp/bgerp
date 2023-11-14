@@ -402,7 +402,7 @@ class email_ServiceRules extends embed_Manager
 
         $pattern = str_ireplace('\\*', '.{0,10000}', $pattern);
 
-        $pattern = '/^\s*' . $pattern . '\s*$/iu';
+        $pattern = '/\s*' . $pattern . '\s*/iu';
 
         $filtersArr[$str] = $pattern;
 

@@ -565,10 +565,9 @@ select.tabHolder {
 	box-sizing: border-box;
 	overflow: hidden;
 	flex-direction: column;
-
 	align-content: center;
 	&.selected {
-		padding: 0 !important;
+		padding: 1px !important;
 	}
 	.photo {
 		display: flex;
@@ -579,7 +578,10 @@ select.tabHolder {
 	}
 	.short-title {
 		height: 20px;
+		padding: 2px;
 		overflow: hidden;
+		font-size: 0.95em;
+		box-sizing: border-box;
 	}
 }
 .grid.short {

@@ -47,7 +47,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, quantity=К-во, packPrice, discount=Отст., amount';
     
     
     /**

@@ -77,9 +77,9 @@ class crm_ext_Cards extends core_Manager
 
 
     /**
-     * Константа за изтекла карта
+     * Константа за неактивна карта
      */
-    const STATUS_EXPIRED = 'expired';
+    const STATUS_NOT_ACTIVE = 'notActive';
 
 
     /**
@@ -99,7 +99,7 @@ class crm_ext_Cards extends core_Manager
      */
     public function description()
     {
-        $this->FLD('number', 'varchar(32)', 'caption=Номер,placeholder=Автоматично');
+        $this->FLD('number', 'varchar(32)', 'caption=Номер,placeholder=Автоматично генериране');
         $this->FLD('personId', 'key2(mvc=crm_Persons,select=name)', 'caption=Лице,silent,input=hidden');
         $this->FLD('type', 'enum(personal=Лична,company=Фирмена)', 'caption=Вид,notNull,value=personal,silent,removeAndRefreshForm=companyId');
         $this->FLD('companyId', 'key(mvc=crm_Companies,select=name)', 'input=hidden,silent,caption=Фирма,tdClass=leftCol');
@@ -218,8 +218,8 @@ class crm_ext_Cards extends core_Manager
         $row->created = tr("|* {$row->createdOn} |от|* {$row->createdBy}");
 
         if($info = static::getInfo($rec->number)){
-            if($info['status'] == static::STATUS_EXPIRED){
-                $row->number = ht::createHint($row->number, 'Картата е изтекла|*!', 'warning', false);
+            if($info['status'] == static::STATUS_NOT_ACTIVE){
+                $row->number = ht::createHint($row->number, 'Картата е неактивна|*!', 'warning', false);
             }
         }
     }
@@ -323,7 +323,7 @@ class crm_ext_Cards extends core_Manager
         if(!$rec) return $info;
 
         $info['type'] = $rec->type;
-        $info['status'] = ($rec->state != 'closed') ? self::STATUS_ACTIVE : self::STATUS_EXPIRED;
+        $info['status'] = ($rec->state != 'closed') ? self::STATUS_ACTIVE : self::STATUS_NOT_ACTIVE;
         if($rec->type == 'company'){
             $info['contragentClassId'] = crm_Companies::getClassId();
             $info['contragentId'] = $rec->companyId;
@@ -333,12 +333,12 @@ class crm_ext_Cards extends core_Manager
             if(core_Packs::isInstalled('colab') && isset($userId) && core_Users::isContractor($userId)){
                 $folderId = crm_Companies::fetchField($rec->companyId, 'folderId');
                 if(!colab_FolderToPartners::fetchField("#contractorId = {$userId} AND #folderId = {$folderId}")){
-                    $info['status'] = self::STATUS_EXPIRED;
+                    $info['status'] = self::STATUS_NOT_ACTIVE;
                 }
             } else {
 
                 // Фирмената карта не е активна, ако потребителя не е партньор или вече не му е споделена папката
-                $info['status'] = self::STATUS_EXPIRED;
+                $info['status'] = self::STATUS_NOT_ACTIVE;
             }
         } else {
             $info['contragentClassId'] = crm_Persons::getClassId();
@@ -348,7 +348,7 @@ class crm_ext_Cards extends core_Manager
         if($info['status'] == self::STATUS_ACTIVE){
             $contragentState = cls::get($info['contragentClassId'])->fetchField($info['contragentId'], 'state');
             if(in_array($contragentState, array('closed', 'rejected'))){
-                $info['status'] = self::STATUS_EXPIRED;
+                $info['status'] = self::STATUS_NOT_ACTIVE;
             }
         }
         
@@ -409,8 +409,8 @@ class crm_ext_Cards extends core_Manager
             $info = crm_ext_Cards::getInfo($form->rec->search);
             if($info['status'] == self::STATUS_NOT_FOUND){
                 $form->setError('search', "Невалиден номер на карта");
-            } elseif($info['status'] == self::STATUS_EXPIRED){
-                $form->setError('search', "Картата вече е изтекла");
+            } elseif($info['status'] == self::STATUS_NOT_ACTIVE){
+                $form->setError('search', "Картата вече не е активна");
             }
             
             if(!$form->gotErrors()){

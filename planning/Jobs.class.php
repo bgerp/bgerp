@@ -359,7 +359,7 @@ class planning_Jobs extends core_Master
             $form->setFieldType('productId', 'key(mvc=cat_Products)');
 
             // Дефолтния артикул е първия без задание към продажбата
-            $packsInDeal = array();
+            $packsInDeal = $packsInDealOrdered = array();
             $sQuery = sales_SalesDetails::getQuery();
             $sQuery->where("#saleId = {$rec->saleId}");
             $sQuery->in('productId', array_keys($products));
@@ -368,6 +368,14 @@ class planning_Jobs extends core_Master
                 $packsInDeal[$sRec->productId][$sRec->packagingId] = $sRec->packQuantity;
             }
 
+            // Подредба в реда на производимите
+            $pKeys = array_keys($products);
+            foreach ($pKeys as $pKey){
+                $packsInDealOrdered[$pKey] = $packsInDeal[$pKey];
+            }
+            $packsInDeal = $packsInDealOrdered;
+
+            $found = false;
             foreach ($products as $pId => $pName){
                 if(isset($rec->productId) && $rec->productId != $pId) continue;
 
@@ -377,9 +385,12 @@ class planning_Jobs extends core_Master
                         $defaultProductId = $pId;
                         $defaultProductPack = $packId;
                         $defaultQuantity = $packQuantity;
+                        $found = true;
                         break;
                     }
                 }
+
+                if($found) break;
             }
 
             $form->setDefault('productId', $defaultProductId);

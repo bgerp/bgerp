@@ -100,6 +100,9 @@ class batch_plg_DocumentMovement extends core_Plugin
                 $Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
                 $bdQuery = batch_BatchesInDocuments::getQuery();
                 $bdQuery->where("#detailClassId = {$dRec->detMvcId} AND #detailRecId = {$dRec->id}");
+                if($Detail instanceof store_TransfersDetails){
+                    $bdQuery->where("#operation = 'out'");
+                }
 
                 $sum = 0;
                 while($bdRec = $bdQuery->fetch()){

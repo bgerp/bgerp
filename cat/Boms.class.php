@@ -837,7 +837,7 @@ class cat_Boms extends core_Master
         }
 
         $resources['resources'] = array_values($materials);
-        
+
         if (is_array($materials)) {
             foreach ($materials as &$m) {
                 if ($m->propQuantity != cat_BomDetails::CALC_ERROR) {
@@ -845,7 +845,7 @@ class cat_Boms extends core_Master
                 }
             }
         }
-        
+
         if ($rec->expenses) {
             $resources['expenses'] = $rec->expenses;
         }
@@ -1396,7 +1396,7 @@ class cat_Boms extends core_Master
             // Искаме количеството да е за единица, не за опаковка
             $rQuantity *= $rec->quantityInPack;
         }
-        
+
         // Сумираме какви количества ще вложим към материалите
         if ($rec->type != 'stage') {
             $index = "{$rec->resourceId}|{$rec->type}";
@@ -1409,7 +1409,7 @@ class cat_Boms extends core_Master
                 );
 
                 if ($rQuantity != cat_BomDetails::CALC_ERROR) {
-                    $materials[$index]->propQuantity = $t * $rQuantity * $rec->quantityInPack;
+                    $materials[$index]->propQuantity = $t * $rQuantity;
                 } else {
                     $materials[$index]->propQuantity = $rQuantity;
                 }
@@ -1550,7 +1550,7 @@ class cat_Boms extends core_Master
         }
         
         self::popParams($params, $rec->resourceId);
-        
+
         // Връщаме намерената цена
         return $price;
     }
@@ -1600,7 +1600,7 @@ class cat_Boms extends core_Master
         }
         
         $quantity /= $rec->quantity;
-        
+
         // Количеството за което изчисляваме е 1-ца
         $q = 1;
         
@@ -1627,7 +1627,7 @@ class cat_Boms extends core_Master
                 $pushParams = static::getProductParams($rec->productId);
                 $pushParams[$rec->productId]['$T'] = $quantity;
                 self::pushParams($params, $pushParams);
-                
+
                 // Опитваме се да намерим себестойността за основното количество
                 $rowCost1 = self::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
 
@@ -1854,7 +1854,7 @@ class cat_Boms extends core_Master
                         $foundStepTask = $foundStepArr[key($foundStepArr)];
                         if($foundStepTask){
                             if($defTask->_inputPreviousSteps == 'yes'){
-                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack, 'isPrevStep' => true);
                             }
                         }
                     }

@@ -226,8 +226,10 @@ class core_Master extends core_Manager
         $newDRec = new stdClass();
         foreach ((array) $dRec as $dRecKey => $dRecVal) {
             if (strpos($dRecKey, '__') === 0) {
+                if (!isset($oldRec->{$dRecKey})) {
 
-                continue;
+                    continue;
+                }
             }
 
             $newDRec->{$dRecKey} = $dRecVal;

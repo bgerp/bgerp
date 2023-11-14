@@ -63,6 +63,7 @@
             <div class="socialBtns">
                 [#cms_Feeds::generateFeedLink#]
                 [#social_Followers::getButtons#]
+                [#SIGNAL#]
             </div>
             [#cms_Content::getFooter#]
             <div class='footer-links'>[#FOOTER_CENTER_WIDE#]</div>

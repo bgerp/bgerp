@@ -63,3 +63,7 @@ thead {
   hyphens: auto;
   word-break: break-word;
 }
+
+.footer-notes, .print-block, .footerDocTable, .footerDocBlock{
+  page-break-inside: avoid;
+}

@@ -832,7 +832,7 @@ class doc_Threads extends core_Manager
         doc_Folders::requireRightFor('single', $folderRec);
         
         $mvc::applyFilter($data->listFilter->rec, $data->query, $data->rejQuery);
-        $data->rejQuery = clone($data->query);
+
         
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
@@ -847,7 +847,8 @@ class doc_Threads extends core_Manager
         // Позволяваме на корицата да модифицира филтъра
         $Cover = doc_Folders::getCover($folderId);
         $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query));
-        
+        $data->rejQuery = clone($data->query);
+
         $data->query->useCacheForPager = true;
         
         // Ако има търсене, рефрешването да е след по-дълго време

@@ -338,7 +338,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($rec->type == 'production' && $masterRec->labelType == 'scan') {
                 $form->setField('serial', 'mandatory');
             } elseif($rec->type == 'production' && $masterRec->labelType == 'print'){
-                $form->setField('serial', 'input=none');
+                $form->setField('serial', 'caption=Допълнително->Производ. №,formOrder=6,placeholder=Автоматично генериране');
+                unset($form->fields['serial']->focus);
             } elseif ($rec->type == 'input') {
                 $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
                 if(countR($availableSerialsToInput)){
@@ -1565,7 +1566,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     // Дали да се печата бърз етикет
                     if(core_Packs::isInstalled('label')) {
                         $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-                        if ($labelPrintFromProgress == 'yes') {
+                        if ($labelPrintFromProgress != 'no') {
                             $taskPrintLabelFromTask = planning_Tasks::fetchField("#id = {$rec->taskId}", 'labelPrintFromProgress');
                             if ($taskPrintLabelFromTask != 'yes') {
                                 $requiredRoles = 'no_one';

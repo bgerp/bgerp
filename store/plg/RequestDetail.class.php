@@ -30,7 +30,7 @@ class store_plg_RequestDetail extends core_Plugin
         setIfNot($mvc->packQuantityFld, 'packQuantity');
         
         // Добавяне на поле за заявено количество
-        $mvc->FLD($mvc->requestQuantityFieldName, 'double', 'caption=Заявено,forceField,smartCenter');
+        $mvc->FLD($mvc->requestQuantityFieldName, 'double', 'caption=Пор.,forceField,smartCenter');
     }
 
 
@@ -76,7 +76,7 @@ class store_plg_RequestDetail extends core_Plugin
         
         if ($showRequested === true) {
             $data->listTableMvc->setField("{$mvc->requestQuantityFieldName}", 'tdClass=lighterColor');
-            arr::placeInAssocArray($data->listFields, array("{$mvc->requestQuantityFieldName}" => 'Поръчано'), null, 'packQuantity');
+            arr::placeInAssocArray($data->listFields, array("{$mvc->requestQuantityFieldName}" => 'Пор.'), null, 'packQuantity');
         }
     }
     
