@@ -525,6 +525,24 @@ select.tabHolder {
 	text-align: center;
 	margin-bottom:10px;
 }
+.grid.picture .element {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 3px !important;
+	max-height: 90px;
+	box-sizing: border-box;
+	overflow: hidden;
+	&.selected {
+		padding: 0 !important;
+	}
+	img {
+		display: block;
+		max-width: 100px;
+		height: auto;
+
+	}
+}
 .posResultContragent {
 	justify-content: center;
 	align-content: center;
@@ -861,7 +879,7 @@ select.tabHolder {
 		color:#333;
 		height: 73px;
 	}
-	.pos-price-field {
+	.pos-price-field:not(.fleft) {
 		float: right;
 	}
 	&.notSellable {

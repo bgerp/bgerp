@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Автоматични отстъпки към продажби
+ * @title     !!! Тест !!! Да не се използва !!!
  */
 class price_AutoDiscounts extends core_Manager
 {

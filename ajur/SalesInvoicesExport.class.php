@@ -224,6 +224,9 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
             }
 
+            //Колона 50 да има ли запис в дневника за ДДС
+            $saveInVat = 1;
+
             // Дали е авансова фактура
             $isDpInvoice = ($rec->dpOperation == 'accrued') ? 1 : 0;
 
@@ -286,7 +289,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                     47 => $sRec->exciseTax * $sRec->rate,      // * Общо акциз в лева
                     48 => $sRec->productTax * $sRec->rate,     // * Общо екотакса в лева
                     49 => 1,                       // * Връзка със склад
-                    50 => 1,     //ВЪПРОС          // * Дали трябва да има запис в дневника по ДДС
+                    50 => $saveInVat,              // * Дали трябва да има запис в дневника по ДДС
                     51 => 0,                       // Звено по ДДС
                     52 => $vatAlocation->taxBase20Vat,         // ДО на сделки с ДДС 20% бкл. дист. на територията на страната
                     53 => $vatAlocation->vatTax20,         // Начислен ДДС за доставки по колона 52( 20%)
@@ -495,11 +498,19 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
         $fld->FLD('vatTax20', 'double', 'caption=Начислен ДДС за доставки 20% ');//53
         $fld->FLD('taxBase9Vat', 'double', 'caption=ДО на сделки с ДДС 9% ');//54
         $fld->FLD('vatTax9', 'double', 'caption=Начислен ДДС за доставки 9% ');//55
-
-
-
-
-
+        $fld->FLD('taxBase0Vat', 'double', 'caption=ДО на сделки с ДДС 0% ');//56
+        $fld->FLD('vatTax0', 'double', 'caption=Начислен ДДС за доставки 0%');//57
+        $fld->FLD('coll58', 'varchar', 'caption=ДО чл.140, 146 и чл.173, ал.1 и 4 ЗДДС');//58
+        $fld->FLD('coll59', 'varchar', 'caption=ДО чл.21, ал 3 и чл.24-24 от ЗДДС');//59
+        $fld->FLD('coll60', 'varchar', 'caption=ДО чл.69, ал 2 от ЗДДС ');//60
+        $fld->FLD('coll61', 'varchar', 'caption=ДО на осв. доставки и осв. ВОП, без чл50 т2');//61
+        $fld->FLD('coll62', 'varchar', 'caption=Доставки по чл. 50 т.2');//62
+        $fld->FLD('coll63', 'varchar', 'caption=ДО посредник в тристранни операции');//63
+        $fld->FLD('coll64', 'varchar', 'caption=ВОД на стоки, участващи във VIES декларацията');//64
+        $fld->FLD('coll65', 'varchar', 'caption=ДО на стоки, участващи във VIES декларацията');//65
+        $fld->FLD('coll66', 'varchar', 'caption=Услуги в ЕС, участващи във VIES декларацията');//66
+        $fld->FLD('coll67', 'varchar', 'caption=Вид на стоката / услугата');//*67
+        $fld->FLD('isDpInvoice', 'int', 'caption=Дали фактурата е за аванс');//*68
 
 
 

@@ -45,7 +45,9 @@ class marketing_Router extends core_Manager
 
                         return $settings->dealerId;
                     } else {
-                        cms_Domains::logErr('Отговорникът не е активен потребител с роля "sales" в настройките на домейна', $domainId);
+                        if ($settings->dealerId) {
+                            cms_Domains::logErr('Отговорникът не е активен потребител с роля "sales" в настройките на домейна', $domainId);
+                        }
                     }
                 }
             }

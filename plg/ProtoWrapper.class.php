@@ -172,7 +172,10 @@ class plg_ProtoWrapper extends core_Plugin
         $subTabs = array();
         
         $tabs->htmlId = 'packWrapper';
-        
+        if(Mode::is('externalWrapper')){
+            $tabs->htmlIdClass = 'ef-drag-scroll';
+        }
+
         $hint = '';
         $hintBtn = '';
         
@@ -226,9 +229,11 @@ class plg_ProtoWrapper extends core_Plugin
      */
     public static function changeWrapper($mvc, $newWrapper)
     {
-        foreach ($mvc->_plugins as $key => $plg) {
-            if (is_a($plg, 'plg_ProtoWrapper')) {
-                $mvc->_plugins[$key] = cls::get($newWrapper);
+        if(is_array($mvc->_plugins)){
+            foreach ($mvc->_plugins as $key => $plg) {
+                if (is_a($plg, 'plg_ProtoWrapper')) {
+                    $mvc->_plugins[$key] = cls::get($newWrapper);
+                }
             }
         }
     }

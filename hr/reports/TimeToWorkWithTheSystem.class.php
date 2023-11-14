@@ -27,7 +27,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields ;
+    protected $sortableListFields = 'userName,office,home,summ' ;
 
 
     /**
@@ -207,13 +207,16 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $workingTime = $lastWorkTime = $lastWorkHash = array();
 
+        $lastIpType = array();
+
         while ($lRec = $logDatQuery->fetch()){
 
-            $oldIpType = $ipType;
+            $oldIpType = $lastIpType[$lRec->userId];
 
-            $minutesToAdd = 0;
+            $minutesToAdd = $minute =0;
 
             $ipType = (in_array($lRec->ipId,$iPInArr)) ? 'office':'home';
+
 
             $hash = md5($lRec->type . $lRec->actionCrc . $lRec->classCrc . $lRec->objectId);
 
@@ -228,6 +231,8 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             if(($rec->maxTimeWaiting/60 >= $minutesToAdd) && ($ipType == 'home') && ($oldIpType == 'office')){
                 $ipType = 'office';
             }
+
+            $lastIpType[$lRec->userId] = $ipType;
 
             // if ($ipType == 'home')continue;
 
@@ -252,14 +257,25 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         }
 
         foreach ($workingTime as $key => $val){
+
+            $personId = crm_Profiles::fetch("#userId =$key")->personId;
+
+            $userName = crm_Persons::fetch($personId)->name;
+
             $recs[$key] = (object)array(
 
                 'userId' => $key,
                 'home' => $val['home'],
-                'office' => $val['office']
+                'office' => $val['office'],
+                'summ' => $val['office']+$val['home'],
+                'userName' => $userName
 
             );
 
+        }
+
+        if (countR($recs)) {
+            arr::sortObjects($recs, 'userName', 'ASC');
         }
 
         return $recs;
@@ -279,7 +295,8 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
 
-            $fld->FLD('userId', 'varchar', 'caption=Потребител');
+            $fld->FLD('userName', 'varchar', 'caption=Потребител');
+            //$fld->FLD('userId', 'varchar', 'caption=Потребител');
             $fld->FLD('office', 'time', 'caption=Офис,smartCenter');
             $fld->FLD('home', 'time', 'caption=Отдалечено,smartCenter');
             $fld->FLD('summ', 'time', 'caption=Сумарно,smartCenter');
@@ -313,15 +330,12 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $personId = crm_Profiles::fetch("#userId =$dRec->userId")->personId;
-
-        $row->userId = crm_Persons::fetch($personId)->name;
-
-        $row->userId .= ' ['.crm_Profiles::createLink($dRec->userId).']';
+        $row->userName = $dRec->userName;
+        $row->userName .= ' ['.crm_Profiles::createLink($dRec->userId).']';
 
         $row->office = $Time->toVerbal($dRec->office*60);
         $row->home = $Time->toVerbal($dRec->home*60);
-        $row->summ = $Time->toVerbal(($dRec->home + $dRec->office)*60);
+        $row->summ = $Time->toVerbal($dRec->summ*60);
 
 
         return $row;

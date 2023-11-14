@@ -343,8 +343,8 @@ class cat_Products extends embed_Manager
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn,state';
-    
-    
+
+
     /**
      * Описание на модела
      */

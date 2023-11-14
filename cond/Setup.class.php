@@ -12,7 +12,7 @@
  * @package   cond
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -63,7 +63,8 @@ class cond_Setup extends core_ProtoSetup
         'cond_Countries',
         'cond_TaxAndFees',
         'cond_Colors',
-        'cond_Ranges'
+        'cond_Ranges',
+        'cond_Allergens',
     );
     
     
@@ -78,7 +79,7 @@ class cond_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings,cond_type_Url,cond_type_YesOrNo,cond_type_Color, cond_type_Egn, cond_type_Email, cond_type_Keylist, cond_type_Files, cond_type_Html, cond_type_Product, cond_type_Formula, cond_type_Key';
+    public $defClasses = 'cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings,cond_type_Url,cond_type_YesOrNo,cond_type_Color, cond_type_Egn, cond_type_Email, cond_type_Keylist, cond_type_Files, cond_type_Html, cond_type_Product, cond_type_Formula, cond_type_Key,cond_type_DocTemplate,cond_iface_AllergensTemplateRendered';
     
     
     /**

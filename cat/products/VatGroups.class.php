@@ -2,14 +2,14 @@
 
 
 /**
- * Клас 'cat_products_Vat'
+ * Клас 'cat_products_VatGroups'
  *
  *
  * @category  bgerp
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -26,19 +26,19 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'ДДС групи';
+    public $title = 'ДДС групи на артикулите';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'vatGroup,vatPercent=ДДС (%),validFrom';
+    public $listFields = 'productId,vatGroup,vatPercent=ДДС (%),validFrom';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_Created';
+    public $loadList = 'cat_Wrapper, plg_Created,plg_Sorting';
     
     
     /**
@@ -58,15 +58,27 @@ class cat_products_VatGroups extends core_Detail
      *
      * @var string
      */
-    public $singleTitle = 'ДДС група';
-    
-    
+    public $singleTitle = 'ДДС група на артикул';
+
+
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 20;
+
+
+    /**
+     * Кой може да листва
+     */
+    public $canList = 'debug';
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'caption=Артикул,input=hidden,silent,mandatory');
         $this->FLD('vatGroup', 'key(mvc=acc_VatGroups,select=title,allowEmpty)', 'caption=Група,mandatory');
         $this->FLD('validFrom', 'date', 'caption=В сила от');
     }
@@ -113,6 +125,7 @@ class cat_products_VatGroups extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->vatGroup = acc_VatGroups::getTitleById($rec->vatGroup);
         $row->vatPercent = acc_VatGroups::getVerbal($rec->vatGroup, 'vat');
     }
@@ -299,5 +312,27 @@ class cat_products_VatGroups extends core_Detail
     protected static function on_AfterCreate($mvc, $rec)
     {
         price_Cache::invalidateProduct($rec->productId);
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->setField('productId', 'input');
+        $data->listFilter->showFields = 'productId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+
+        if($filter = $data->listFilter->rec){
+            if(isset($filter->productId)){
+                $data->query->where("#productId = {$filter->productId}");
+            }
+        }
     }
 }

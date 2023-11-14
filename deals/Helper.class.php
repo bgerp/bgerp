@@ -139,13 +139,16 @@ abstract class deals_Helper
             
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
             $discountVal = isset($rec->{$map['discount']}) ? $rec->{$map['discount']} : $rec->{$map['autoDiscount']};
-            
+
+            $noVatAmountOriginal = $noVatAmount;
+            if($testRound == 'yes') {
+                $noVatAmount = round($noVatAmount, 2);
+            }
             if ($discountVal) {
-                $withoutVatAndDisc = $noVatAmount * (1 - $discountVal);
+                $withoutVatAndDisc = $noVatAmountOriginal * (1 - $discountVal);
             } else {
                 $withoutVatAndDisc = $noVatAmount;
             }
-            
             
             $vatRow = round($withoutVatAndDisc * $vat, $vatDecimals);
             
@@ -159,7 +162,11 @@ abstract class deals_Helper
                     $discount += $rec->{$map['amountFld']} * $discountVal;
                 }
             }
-            
+
+            if($testRound == 'yes') {
+                $discount = round($discount, 2);
+            }
+
             // Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
             if ($masterRec->type === 'dc_note') {
                 if ($rec->changedQuantity === true || $rec->changedPrice === true) {
@@ -196,19 +203,14 @@ abstract class deals_Helper
                     }
                 }
             }
-            
+
             if (!($masterRec->type === 'dc_note' && ($rec->changedQuantity !== true && $rec->changedPrice !== true))) {
                 if (!array_key_exists($vat, $vats)) {
                     $vats[$vat] = (object) array('amount' => 0, 'sum' => 0);
                 }
                 
                 $vats[$vat]->amount += $vatRow;
-
-                if($testRound == 'yes') {
-                    $vats[$vat]->sum += round($withoutVatAndDisc, 2);
-                } else {
-                    $vats[$vat]->sum += $withoutVatAndDisc;
-                }
+                $vats[$vat]->sum += $withoutVatAndDisc;
             }
         }
         
@@ -216,7 +218,7 @@ abstract class deals_Helper
         $mvc->_total->amount = round($amountRow, 2);
         $mvc->_total->vat = round($amountVat, 2);
         $mvc->_total->vats = $vats;
-        
+
         if (!$map['alwaysHideVat']) {
             $mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
         } else {
@@ -224,12 +226,11 @@ abstract class deals_Helper
         }
 
         // "Просто" изчисляване на ДДС-то в документа, ако има само една ставка
-        if (countR($vats) == 1 && ($masterRec->type == 'invoice' || $masterRec->type == 'dc_note')) {
-
+        if (countR($vats) == 1 && ($mvc instanceof deals_InvoiceMaster)) {
             $vat = key($vats);
             $vats[$vat]->sum = round($vats[$vat]->sum, 2);
             $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
-            //$mvc->_total->amount = $vats[$vat]->sum;
+
             $mvc->_total->vat = $vats[$vat]->amount;
             $mvc->_total->vats = $vats;
         }
@@ -2099,7 +2100,7 @@ abstract class deals_Helper
             $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
             if ($canStore != 'yes') continue;
 
-            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
+            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, $obj->{$quantityFld});
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
             }
@@ -2290,9 +2291,6 @@ abstract class deals_Helper
      */
     public static function getContoRedirectError($productArr, $haveMetas, $haveNotMetas = null, $metaError = null)
     {
-        // При ръчно реконтиране се подтискат всякакви грешки
-        if(Mode::is('recontoTransaction')) return;
-
         $productCheck = deals_Helper::checkProductForErrors($productArr, $haveMetas, $haveNotMetas);
         if ($productCheck['notActive']) {
             return 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |са затворени|*!';
@@ -2720,7 +2718,7 @@ abstract class deals_Helper
         if(core_Packs::isInstalled('batch')){
             $fieldset->FLD('batch', 'varchar', 'caption=Партида,detailField');
         }
-        $fieldset->FLD('packagingId', 'varchar', 'caption=Опаковка,detailField');
+        $fieldset->FLD('packagingId', 'varchar', 'caption=Мярка,detailField');
         $fieldset->FLD('packQuantity', 'varchar', 'caption=Количество,detailField');
         if(!($mvc instanceof store_TransfersDetails)){
             $fieldset->FLD('packPrice', 'varchar', 'caption=Цена,detailField');
@@ -2763,5 +2761,46 @@ abstract class deals_Helper
         } else {
             $expandedRecs[] = clone $masterRec;
         }
+    }
+
+
+    /**
+     * Помощна ф-я за парсиране на цена дали е въведена за подаденото к-во
+     *
+     * @param $priceInput
+     * @param $quantity
+     * @param $error
+     * @return float|int|void|null
+     */
+    public static function isPrice4Quantity(&$priceInput, $quantity, &$error)
+    {
+        $price4Quantity = null;
+        if(!empty($priceInput)){
+
+            // Ако цената започва с "=" значи ще е цена за к-то
+            $isPrice4Quantity = false;
+            $packPrice = $priceInput;
+
+            if(strpos($priceInput, '/') === strlen($priceInput) - 1){
+                $isPrice4Quantity = true;
+                $packPrice = rtrim($packPrice, '/');
+            }
+
+            // Проверка дали цената е валидна
+            $Double = core_Type::getByName('double');
+            $packPrice = $Double->fromVerbal($packPrice);
+            if(!empty($Double->error)){
+                $error = $Double->error;
+                return;
+            }
+
+            // Ако е цената ще е за к-то
+            $priceInput = $packPrice;
+            if($isPrice4Quantity && !empty($quantity)){
+                $price4Quantity = $packPrice / $quantity;
+            }
+        }
+
+        return $price4Quantity;
     }
 }

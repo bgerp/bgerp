@@ -444,6 +444,21 @@ select.tabHolder {
   text-align: center;
   margin-bottom: 10px; }
 
+.grid.picture .element {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3px !important;
+  max-height: 90px;
+  box-sizing: border-box;
+  overflow: hidden; }
+  .grid.picture .element.selected {
+    padding: 0 !important; }
+  .grid.picture .element img {
+    display: block;
+    max-width: 100px;
+    height: auto; }
+
 .posResultContragent {
   justify-content: center;
   align-content: center;
@@ -723,7 +738,7 @@ select.tabHolder {
   .element .pos-add-res-btn {
     color: #333333;
     height: 73px; }
-  .element .pos-price-field {
+  .element .pos-price-field:not(.fleft) {
     float: right; }
   .element.notSellable {
     background-color: #aaaaaa;

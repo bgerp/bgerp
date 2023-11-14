@@ -512,7 +512,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
 
             // Ако има опции от типа добавят се с възможност за избор
-            $BatchType = $Def->getBatchClassType();
+            $BatchType = $Def->getBatchClassType($Detail, $detailRecId);
             if ($BatchType instanceof type_Enum) {
                 $bOptions = $BatchType->options;
                 $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;

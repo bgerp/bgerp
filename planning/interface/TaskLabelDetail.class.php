@@ -112,7 +112,9 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         // Ако има със същия сериен номер да се третират като един запис
         $dQuery = planning_ProductionTaskDetails::getQuery();
-        $dQuery->where("#type = '{$rec->type}' AND #serial = {$rec->serial} AND #id != {$rec->id} AND #state != 'rejected'");
+        $dQuery->where("#type = '{$rec->type}' AND #serial = {$rec->serial} AND #taskId = '{$rec->taskId}' AND #id != {$rec->id} AND #state != 'rejected'");
+        $dQuery->useIndex('task_id');
+
         while($dRec = $dQuery->fetch()){
             $rec->employees = keylist::merge($rec->employees, $dRec->employees);
             $rec->quantity += $dRec->quantity;
@@ -203,18 +205,5 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $resArr[$key] = $arr;
 
         return $resArr[$key];
-    }
-
-
-    /**
-     * Кой е дефолтния шаблон за печат към обекта
-     *
-     * @param $id
-     * @param string $series
-     * @return int|null
-     */
-    public function getDefaultLabelTemplateId($id, $series = 'label')
-    {
-        return null;
     }
 }

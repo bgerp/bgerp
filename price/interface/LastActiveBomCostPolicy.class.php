@@ -141,6 +141,8 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
         $now = dt::now();
         foreach (array('price_interface_LastActiveBomCostPolicy', 'price_interface_LastActiveBomCostWithExpenses') as $className){
             $Class = cls::get($className);
+            if(!cls::load($Class, true)) continue;
+
             $classId = $Class->getClassId();
             $updateProductIds = $updateCategoryFolderIds = $updateGroupIds = array();
 

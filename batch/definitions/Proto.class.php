@@ -126,14 +126,16 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
         $this->rec = $rec;
     }
-    
-    
+
+
     /**
      * Проверява дали стойността е невалидна
      *
+     * @param mixed $class
+     * @param int $objectId
      * @return core_Type - инстанция на тип
      */
-    public function getBatchClassType()
+    public function getBatchClassType($class = null, $objectId = null)
     {
         $Type = core_Type::getByName('varchar');
         

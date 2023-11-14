@@ -378,7 +378,9 @@ class rack_Movements extends rack_MovementAbstract
                 reportException($e);
                 
                 // Ако има проблем ревърт на предното движение
-                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity, $transaction->batch);
+                if($transaction->from != rack_PositionType::FLOOR){
+                    rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity, $transaction->batch);
+                }
                 
                 return false;
             }
@@ -1145,7 +1147,7 @@ class rack_Movements extends rack_MovementAbstract
         // Проверяване и на движенията по зоните
         $zoneErrors = $zoneWarnings = array();
         foreach ($transaction->zonesQuantityArr as $zone) {
-            $zRec = rack_ZoneDetails::fetch("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId} AND #batch = '{$transaction->batch}'");
+            $zRec = rack_ZoneDetails::fetch(array("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId} AND #batch = '[#1#]'", $transaction->batch));
             $movementQuantity = is_object($zRec) ? $zRec->movementQuantity : null;
             $documentQuantity = is_object($zRec) ? $zRec->documentQuantity : null;
             $diff = round($movementQuantity, 4) + round($zone->quantity, 4);

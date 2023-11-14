@@ -106,7 +106,7 @@ class ztm_Devices extends core_Master
      *
      * @var string
      */
-    public $interfaces = 'acs_ZoneIntf';
+//    public $interfaces = 'acs_ZoneIntf';
     
     
     /**

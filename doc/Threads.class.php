@@ -179,7 +179,7 @@ class doc_Threads extends core_Manager
         $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=За партньори->видимист, input=none');
         
         // Брой документи
-        $this->FLD('partnerDocCnt', 'int', 'caption=За партньори->Брой документи, oldFieldName=pubDocCnt');
+        $this->FLD('partnerDocCnt', 'int', 'caption=За партньори->Брой документи, oldFieldName=pubDocCnt,smartCenter');
         
         // Дали нишката е видима за партньори
         $this->FLD('partnerDocLast', 'datetime(format=smartTime)', 'caption=За партньори->Последен, input=none');

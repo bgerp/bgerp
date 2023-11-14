@@ -258,6 +258,7 @@ class eshop_Settings extends core_Master
         $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Показване');
         
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Изглед),optionsFunc=cat_Params::getPublic');
+        $this->FLD('showProductsWithoutPrices', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на е-артикулите във външната част->Без цени,notNull,value=yes');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Списък),optionsFunc=cat_Params::getPublic');
 
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
@@ -282,6 +283,8 @@ class eshop_Settings extends core_Master
         $this->FLD('defaultMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Дефолти за анонимни потребители->Плащане');
         $this->FLD('defaultTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Дефолти за анонимни потребители->Доставка');
         $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty,rolesForAll=eshop|ceo|admin,rolesForTeam=eshop|ceo|admin)', 'caption=Продажби създадени от онлайн магазина->Търговец');
+        $this->FLD('defaultStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Склад');
+        $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Каса');
 
         $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми,both=Фирми и лица)', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
         $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за,notNull,value=auto');
@@ -490,6 +493,7 @@ class eshop_Settings extends core_Master
 
         $form->setDefault('mandatoryEcartContactFields', 'auto');
         $form->setDefault('mandatoryInquiryContactFields', 'auto');
+        $form->setDefault('showProductsWithoutPrices', 'auto');
     }
     
     

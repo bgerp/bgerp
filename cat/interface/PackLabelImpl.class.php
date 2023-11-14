@@ -15,14 +15,8 @@
  * @see label_SequenceIntf
  *
  */
-class cat_interface_PackLabelImpl
+class cat_interface_PackLabelImpl extends label_ProtoSequencerImpl
 {
-    /**
-     * Инстанция на класа
-     */
-    public $class;
-
-
     /**
      * Връща наименованието на етикета
      *
@@ -188,7 +182,9 @@ class cat_interface_PackLabelImpl
         $measureId = cat_UoM::getShortName($measureId);
         
         // Продуктови параметри
+        Mode::push('printLabel', true);
         $params = cat_Products::getParams($rec->productId, null, true);
+        Mode::pop('printLabel');
         $params = cat_Params::getParamNameArr($params, true);
         
         $additionalFields = array();
@@ -264,48 +260,6 @@ class cat_interface_PackLabelImpl
             return ceil($count);
         }
         
-        return null;
-    }
-    
-    
-    /**
-     * Връща дефолтен шаблон за печат на бърз етикет
-     *
-     * @param int  $id
-     * @param stdClass|null  $driverRec
-     *
-     * @return int
-     */
-    public function getDefaultFastLabel($id, $driverRec = null)
-    {
-        return null;
-    }
-    
-    
-    /**
-     * Връща попълнен дефолтен шаблон с дефолтни данни.
-     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
-     *
-     * @param int  $id
-     * @param int $templateId
-     *
-     * @return core_ET|null 
-     */
-    public function getDefaultLabelWithData($id, $templateId)
-    {
-        return null;
-    }
-
-
-    /**
-     * Кой е дефолтния шаблон за печат към обекта
-     *
-     * @param $id
-     * @param string $series
-     * @return int|null
-     */
-    public function getDefaultLabelTemplateId($id, $series = 'label')
-    {
         return null;
     }
 }

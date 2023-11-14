@@ -1880,6 +1880,9 @@ class planning_Jobs extends core_Master
 
         $res = array();
         $taskExpenseItemIds = static::getTaskCostObjectItems($jobRec);
+        if($jobItemId = acc_Items::fetchItem('planning_Jobs', $jobRec->id)->id){
+            $taskExpenseItemIds[$jobItemId] = $jobItemId;
+        }
         if(!countR($taskExpenseItemIds)) return $res;
 
         $createdOn = dt::verbal2mysql($jobRec->createdOn, false);
@@ -2155,7 +2158,7 @@ class planning_Jobs extends core_Master
 
             // Ако има неприключени ПО към заданието, да не се приключва и да се бие нотификация
             $tQuery = planning_Tasks::getQuery();
-            $tQuery->where("#originId = {$rec->containerId} AND #state != 'rejected'");
+            $tQuery->where("#originId = {$rec->containerId} AND #state != 'rejected' AND #state != 'closed'");
             $notRejectedTasks = $tQuery->fetchAll();
             foreach($notRejectedTasks as $taskRec){
                 $notificationUrl = array('doc_Containers', 'list', "threadId" => $taskRec->threadId);

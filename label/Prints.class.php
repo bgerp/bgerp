@@ -893,7 +893,7 @@ class label_Prints extends core_Master
             
             $btnAttr = arr::make('ef_icon=img/16/printer.png, title=Отпечатване, class=fleft');
             if (isset($rec->classId)) {
-                if (!cls::haveInterface('label_SequenceIntf', $rec->classId)) {
+                if (cls::load($rec->classId, true) && !cls::haveInterface('label_SequenceIntf', $rec->classId)) {
                     $btnAttr['error'] = 'Проблем при разпечатването на етикета|*!';
                     $btnAttr['ef_icon'] = 'img/16/error.png';
                 }
@@ -924,6 +924,8 @@ class label_Prints extends core_Master
                     $row->source = $clsInst->getHyperlink($rec->objectId, true);
                 } elseif (cls::haveInterface('frame2_ReportIntf', $clsInst)) {
                     $row->source = frame2_Reports::getLink($rec->objectId, 0);
+                } elseif ($clsInst instanceof label_CsvFileProxy) {
+                    $row->source = fileman_Files::getLinkById($rec->objectId);
                 }
             }
         }
@@ -955,7 +957,7 @@ class label_Prints extends core_Master
         
         if ($action == 'add' && $rec && $requiredRoles != 'no_one') {
             if ($rec->classId && $rec->objectId) {
-                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId, false, $rec->series)) {
+                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId, $rec->series, false)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -1436,7 +1438,13 @@ class label_Prints extends core_Master
         $rec->printHistory[] = array('from' => $form->rec->from, 'to' => $form->rec->to, 'printedBy' => core_Users::getCurrent(), 'printedOn' => dt::now());
         
         $this->save($rec, 'printedCnt, printHistory');
-        
+
+        // Ако се печата етикет от източник да се нотифицира източника
+        if ($rec->objectId && $rec->classId) {
+            $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+            $intfInst->onLabelIsPrinted($rec->objectId);
+        }
+
         $this->logRead('Отпечатване', $rec->id);
         
         return $tpl;
@@ -1457,7 +1465,9 @@ class label_Prints extends core_Master
     public function searchByCode($str)
     {
         $resArr = array();
-        
+        $isPartner = core_Packs::isInstalled('colab') && core_Users::isContractor();
+        if($isPartner) return $resArr;
+
         $str = trim($str);
         $oStr = $str;
         $str = ltrim($str, 0);

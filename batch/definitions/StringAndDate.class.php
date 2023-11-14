@@ -164,14 +164,16 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         
         return parent::isValid($value, $quantity, $msg);
     }
-    
-    
+
+
     /**
      * Проверява дали стойността е невалидна
      *
+     * @param mixed $class
+     * @param int $objectId
      * @return core_Type - инстанция на тип
      */
-    public function getBatchClassType()
+    public function getBatchClassType($class = null, $objectId = null)
     {
         $Type = core_Type::getByName('varchar');
         

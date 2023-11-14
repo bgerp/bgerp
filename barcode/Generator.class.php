@@ -110,6 +110,11 @@ class barcode_Generator extends core_Manager
      * $params['addText']['font'] - Определен шрифт от системата
      * $params['addText']['fontSiz'] - Размер на шрифта
      * $params['addText']['bgOnlyText'] - Фона (background) на текста, да е колко дължината му
+     * $params['colorArr'] - Цвят и прозрачност
+     * $params['colorArr']['opacity'] - Прозрачност - 0-1
+     * $params['colorArr']['color'] - Цвят - 0-255|0-255|0-255
+     * $params['colorArr']['bgOpacity'] - Прозрачност на фона - 0-1
+     * $params['colorArr']['bgColor] - Цвят на фона 0-255|0-255|0-255
      * @param array $output - Масив, в който се записват данните след генерирането на баркода
      *
      * @return resource gdRes
@@ -133,13 +138,13 @@ class barcode_Generator extends core_Manager
             $quality = $params['quality'] ? $params['quality'] : 'l';
             $outerFrame = $params['outerFrame'] ? $params['outerFrame'] : 0;
             $params['saveAndPrint'] = $outFileName ? $params['saveAndPrint'] : false;
-            
+
             // Генерира QR изображение
-            $im = QRcode::png($content, $outFileName, $quality, $pixelPerPoint, $outerFrame, $params['saveAndPrint']);
+            $im = QRcode::png($content, $outFileName, $quality, $pixelPerPoint, $outerFrame, $params['saveAndPrint'], $params['colorArr']);
             
             return $im;
         }
-        
+
         // Проверяваме дали подадени данни са коректни
         self::checkContent($type, $content);
         
@@ -274,8 +279,8 @@ class barcode_Generator extends core_Manager
         
         return $size;
     }
-    
-    
+
+
     /**
      * Показва баркод изображението
      *
@@ -290,6 +295,11 @@ class barcode_Generator extends core_Manager
      * $params['outFileName'] - Името на файла
      * $params['quality'] - Качеството на QR изображението. По подразбиране е 'l'
      * $params['outerFrame'] - Рамката на изображението. По подразбирена е 0.
+     * $params['colorArr'] - Цвят и прозрачност
+     * $params['colorArr']['opacity'] - Прозрачност - 0-1
+     * $params['colorArr']['color'] - Цвят - 0-255|0-255|0-255
+     * $params['colorArr']['bgOpacity'] - Прозрачност на фона - 0-1
+     * $params['colorArr']['bgColor] - Цвят на фона 0-255|0-255|0-255
      *
      * За останалите:
      * $params['angle'] - Ъгъл на завъртане. По подразбиране е 0. Представалява ъгъла на завъртане спрямо центъра.

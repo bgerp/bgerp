@@ -339,7 +339,7 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
-        $this->setDbIndex('originId,saoOrder');
+        $this->setDbIndex('saoOrder');
     }
 
 
@@ -555,7 +555,14 @@ class planning_Tasks extends core_Master
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(isset($rec->assetId)){
             if(isset($fields['-single'])) {
-                $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+                $row->assetId = new core_ET(planning_AssetResources::getTitleById($rec->assetId));
+                $assetSingleUrlArray = planning_AssetResources::getSingleUrlArray($rec->assetId);
+                if(!Mode::isReadOnly()){
+                    if(countR($assetSingleUrlArray)){
+                        $assetSingleUrlArray['Tab'] = 'Tasks';
+                    }
+                    $row->assetId = ht::createLink($row->assetId, $assetSingleUrlArray, false, 'ef_icon=img/16/equipment.png');
+                }
             }
             if(planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
                 if(isset($fields['-single'])) {
@@ -2072,10 +2079,13 @@ class planning_Tasks extends core_Master
         $query = $this->getQuery();
         $query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $query->where("#state != 'rejected'");
-        $query->orderBy('saoOrder', 'ASC');
+
         if ($data->masterMvc instanceof planning_AssetResources) {
+            $query->orderBy('orderByDate', 'ASC');
             $query->where("#assetId = {$data->masterId}");
+            $query->in("state", array('pending', 'active', 'wakeup', 'stopped'));
         } else {
+            $query->orderBy('saoOrder', 'ASC');
             $query->where("#originId = {$data->masterData->rec->containerId}");
         }
         $data->pager->setLimit($query);
@@ -2185,7 +2195,7 @@ class planning_Tasks extends core_Master
         }
 
         if ($data->masterMvc instanceof planning_AssetResources) {
-            $tpl->append(tr('Производствени операции'), 'title');
+            $tpl->append("Производствени операции (заявки, активни, събудени, спрени)", 'title');
             $tpl->append($contentTpl, 'content');
         } else {
             $tpl = $contentTpl;
@@ -2421,7 +2431,14 @@ class planning_Tasks extends core_Master
         $str = str_pad($str, 13, '0', STR_PAD_LEFT);
         $taskDetailQuery->where(array("#serial = '[#1#]'", $str));
 
+        $isPartner = core_Packs::isInstalled('colab') && core_Users::isContractor();
+        $taskDetailQuery->EXT('threadId', 'planning_Tasks', "externalName=threadId,externalKey=taskId");
         while ($dRec = $taskDetailQuery->fetch()) {
+
+            if($isPartner){
+                $threadRec = doc_Threads::fetch($dRec->threadId);
+                if(!colab_Threads::haveRightFor('single', $threadRec)) continue;
+            }
 
             $res = new stdClass();
             $tRec = $this->fetch($dRec->taskId);
@@ -2437,7 +2454,6 @@ class planning_Tasks extends core_Master
 
                 $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
                 $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;
-
                 if ($tRec->progress) {
                     $progress = $this->getVerbal($tRec, 'progress');
                     $res->title .= ' (' . $progress . ')';
@@ -3799,7 +3815,7 @@ class planning_Tasks extends core_Master
         $this->requireRightFor('editprevioustask', $rec);
 
         $form = cls::get('core_Form');
-        $form->title = 'Избор на предходна операция|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
+        $form->title = 'Избор на предходна операция|* <b>' . planning_Tasks::getHyperlink($id, true) . '</b>';
         $form->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=name,allowEmpty)', 'caption=Пр. операция');
 
         $options = array();

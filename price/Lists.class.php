@@ -56,7 +56,7 @@ class price_Lists extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'price_ListRules';
+    public $details = 'price_ListRules,price_ListVariations';
     
     
     /**
@@ -172,7 +172,6 @@ class price_Lists extends core_Master
         
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
-        
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
     }
@@ -342,6 +341,12 @@ class price_Lists extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        $form->FNC('variationOf', 'key(mvc=price_Lists,select=title,allowEmpty)', 'silent,input=hidden');
+        $form->input('variationOf', 'silent');
+        if(isset($rec->variationOf)){
+            $form->info = "<div class='richtext-info-no-image'>" . tr('Вариация на|*: ') . price_Lists::getHyperlink($rec->variationOf, true) . "</div>";
+        }
 
         $folderId = $rec->folderId;
         if (isset($rec->cClass, $rec->cId)) {
@@ -568,6 +573,21 @@ class price_Lists extends core_Master
             if(empty($rec->discountComparedShowAbove)){
                 $row->discountComparedShowAbove = ht::createHint($mvc->getFieldType('discountComparedShowAbove')->toVerbal(0.01), 'Стойност по подразбиране');
             }
+
+            $variationOfArr = array();
+            $varQuery = price_ListVariations::getQuery();
+            $varQuery->where("#variationId = {$rec->id}");
+            while($vRec = $varQuery->fetch()){
+                $vRow = price_ListVariations::recToVerbal($vRec);
+                $hint = strip_tags("{$vRow->validFrom} - {$vRow->validUntil} ({$vRow->repeatInterval})");
+                $variationOfArr[] = ht::createHint($vRow->listId, $hint, 'notice', false)->getContent();
+            }
+            $row->variationsOf = implode(',', $variationOfArr);
+
+            $activeVariationId = price_ListVariations::getActiveVariationId($rec->id);
+            if(isset($activeVariationId)){
+                $row->activeVariationId = price_Lists::getHyperlink($activeVariationId, true);
+            }
         }
     }
     
@@ -577,9 +597,21 @@ class price_Lists extends core_Master
      */
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        //Ако създаваме копие, редиректваме до създаденото копие
+        // Ако създаваме копие, редиректваме до създаденото копие
         if (is_object($data->form) && $data->form->isSubmitted()) {
-            $data->retUrl = array($mvc, 'single', $data->form->rec->id);
+            $rec = $data->form->rec;
+
+            $redirectToSingle = true;
+            if(isset($rec->variationOf)){
+                if(price_ListVariations::haveRightFor('add', (object)array('listId' => $rec->variationOf, 'variationId' => $rec->id))){
+                    $data->retUrl = array('price_ListVariations', 'add', "listId" => $rec->variationOf, 'variationId' => $rec->id);
+                    $redirectToSingle = false;
+                }
+            }
+
+            if($redirectToSingle){
+                $data->retUrl = array($mvc, 'single', $rec->id);
+            }
         }
     }
     
@@ -783,5 +815,57 @@ class price_Lists extends core_Master
         $currentState = ($rec->public == 'yes') ? 'публична' : 'частна';
         
         followRetUrl(null, "Политиката е променена на {$currentState}");
+    }
+
+
+    /**
+     * Има ли промяна в ценовите правила
+     *
+     * @param datetime|null $datetime
+     * @return bool
+     */
+    public static function areListUpdated($datetime = null)
+    {
+        $datetime = $datetime ?? dt::now();
+
+        $keys = array_values(price_ListVariations::getActiveVariations(null, $datetime));
+
+        $primeCostListId = price_ListRules::PRICE_LIST_COST;
+        $ruleQuery = price_ListRules::getQuery();
+        $ruleQuery->XPR('maxCreatedOn', 'datetime', 'MAX(#createdOn)');
+        $ruleQuery->where("#listId != {$primeCostListId}");
+        $ruleQuery->show('maxCreatedOn');
+        $keys[] = $ruleQuery->fetch()->maxCreatedOn;
+
+        $ruleQuery1 = price_ListRules::getQuery();
+        $ruleQuery1->XPR('maxValidFrom', 'datetime', 'MAX(#validFrom)');
+        $ruleQuery1->where("#listId != {$primeCostListId}");
+        $ruleQuery1->where("#validFrom < '{$datetime}'");
+        $keys[] = $ruleQuery1->fetch()->maxValidFrom;
+
+        $ruleQuery2 = price_ListRules::getQuery();
+        $ruleQuery2->XPR('maxValidUntil', 'datetime', 'MAX(#validUntil)');
+        $ruleQuery2->where("#listId != {$primeCostListId}");
+        $ruleQuery2->where("#validUntil IS NULL OR #validUntil < '{$datetime}'");
+        $keys[] = $ruleQuery2->fetch()->maxValidUntil;
+
+        $query = price_Lists::getQuery();
+        $query->XPR('maxModifiedOn', 'datetime', 'MAX(#modifiedOn)');
+        $query->where("#id != {$primeCostListId}");
+        $query->show('maxModifiedOn');
+        $keys[] = $query->fetch()->maxModifiedOn;
+
+
+
+        $hash = md5(implode('|', $keys));
+        $pricelistHash = core_Permanent::get("priceListHash");
+        //bp($keys, $hash, $pricelistHash);
+        if($hash != $pricelistHash){
+            core_Permanent::set('priceListHash', $hash, 60);
+
+            return true;
+        }
+
+        return false;
     }
 }

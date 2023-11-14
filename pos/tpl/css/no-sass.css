@@ -2,3 +2,10 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
+.grid.short {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.grid.picture {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+}

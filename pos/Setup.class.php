@@ -98,12 +98,6 @@ defIfNot('POS_TERMINAL_SEARCH_SECONDS', 2000);
 
 
 /**
- *  Време на изпълнение на периодичния процес за обновяване на продаваемите артикули
- */
-defIfNot('POS_CRON_CACHE_SELLABLE_PERIOD', 3600);
-
-
-/**
  * Сумиране на рейтингите
  */
 defIfNot('POS_RATINGS_DATA_FOR_THE_LAST',  6 * core_DateTime::SECONDS_IN_MONTH);
@@ -180,7 +174,6 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_ADD_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Добавяне'),
         'POS_TERMINAL_EDIT_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Редактиране'),
         'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
-        'POS_CRON_CACHE_SELLABLE_PERIOD' => array('time', 'caption=Време за изпълнение на периодичните процеси->Кеш на продаваемите артикули'),
         'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
         'POS_SHOW_EXACT_QUANTITIES' => array('enum(no=Не,yes=Да)', 'caption=Показване на наличните к-ва в терминала->Избор'),
     );
@@ -196,8 +189,8 @@ class pos_Setup extends core_ProtoSetup
         'pos_Reports',
         'pos_SellableProductsCache',
     );
-    
-    
+
+
     /**
      * Роли за достъп до модула
      */
@@ -237,6 +230,14 @@ class pos_Setup extends core_ProtoSetup
             'offset' => 1320,
             'timeLimit' => 100,
         ),
+        array(
+            'systemId' => 'Update POS sellableProducts',
+            'description' => 'Обновява на кеша на продаваемите артикули в ПОС-а',
+            'controller' => 'pos_SellableProductsCache',
+            'action' => 'CacheSellablePosProducts',
+            'period' => 1,
+            'timeLimit' => 60
+        ),
     );
     
     
@@ -256,18 +257,7 @@ class pos_Setup extends core_ProtoSetup
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
-        
-        // Залагаме в cron
-        $rec = new stdClass();
-        $rec->systemId = 'Update POS sellableProducts';
-        $rec->description = 'Обновява на кеша на продаваемите артикули в ПОС-а';
-        $rec->controller = 'pos_SellableProductsCache';
-        $rec->action = 'CacheSellablePosProducts';
-        $rec->period = static::get('CRON_CACHE_SELLABLE_PERIOD') / 60;
-        $rec->timeLimit = 200;
-        
-        $html .= core_Cron::addOnce($rec);
-        
+
         return $html;
     }
     

@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, deals_plg_SaveValiorOnActivation, store_plg_StockPlanning, store_plg_Request, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Sorting,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Sorting,change_Plugin,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -50,7 +50,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
-     * @see store_StockPlanning
      */
     public $stockPlanningDirection = 'in';
 
@@ -107,8 +106,15 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Детайл
      */
     public $details = 'planning_ReturnNoteDetails';
-    
-    
+
+
+    /**
+     * Да се показват ли винаги полетата за промяна на артикули при създаване
+     * @var bool
+     */
+    public $autoAddDetailsToChange = true;
+
+
     /**
      * Кой е главния детайл
      *
@@ -147,16 +153,18 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,deadline,modifiedOn';
-    
-    
+
+
     /**
      * Описание на модела
      */
     public function description()
     {
         parent::setDocumentFields($this);
-        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
-        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане,notNull,default=yes,maxRadio=2,before=note');
+        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Допълнително->Ц-р на дейност');
+        $this->FLD('sender', 'varchar', 'caption=Допълнително->Предал');
+        $this->FLD('receiver', 'varchar', 'caption=Допълнително->Получил');
+        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Детайлно връщане,notNull,default=yes,maxRadio=2');
         $this->setField('storeId', 'placeholder=Само услуги,silent,removeAndRefreshForm=quantity');
     }
     
@@ -174,20 +182,30 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         $Detail = cls::get($this->mainDetail);
         $id = $rec->clonedFromId;
 
+        $additionalWhereClause = '';
         if (isset($rec->originId) && empty($rec->id)) {
             $origin = doc_Containers::getDocument($rec->originId);
             if ($origin->isInstanceOf('planning_ConsumptionNotes')) {
                 $Detail = cls::get('planning_ConsumptionNoteDetails');
                 $id = $origin->that;
+            } elseif ($origin->isInstanceOf('planning_DirectProductionNote')) {
+                $Detail = cls::get('planning_DirectProductNoteDetails');
+                $additionalWhereClause = "#type = 'pop'";
+                $id = $origin->that;
             }
         }
 
         $recs = array();
+        if(empty($id)) return array();
+
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
         $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         if(!isset($rec->storeId)){
             $dQuery->where("#canStore = 'no'");
+        }
+        if(!empty($additionalWhereClause)){
+            $dQuery->where($additionalWhereClause);
         }
         while($dRec = $dQuery->fetch()){
             if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
@@ -244,6 +262,20 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
             $form->setDefault('departmentId', $folderCover->that);
+        }
+
+        $showSenderAndReceiver = planning_Setup::get('SHOW_SENDER_AND_RECEIVER_SETTINGS');
+        if(empty($rec->id)){
+            if($showSenderAndReceiver == 'yesDefault'){
+                $form->setDefault('receiver', core_Users::getCurrent('names'));
+            }
+        }
+
+        if($showSenderAndReceiver == 'no'){
+            $form->setField('sender', 'input=none');
+            $form->setField('receiver', 'input=none');
+        } else {
+            $mvc->setEmployeesOptions($form);
         }
     }
     
@@ -304,13 +336,25 @@ class planning_ReturnNotes extends deals_ManifactureMaster
             if (isset($rec->originId)) {
                 if(!$mvc->canAddToOriginId($rec->originId, $userId)){
                     $requiredRoles = 'no_one';
-                } else {
-                    $threadId = doc_Containers::fetchField($rec->originId, 'threadId');
-                    if(!planning_ConsumptionNotes::count("#threadId = {$threadId} AND #state IN ('active', 'pending')")){
-                        $requiredRoles = 'no_one';
-                    }
                 }
             }
         }
+    }
+
+
+    /**
+     * Може ли документа да се добавя като свързан документ към оридижина си
+     */
+    public static function canAddDocumentToOriginAsLink_($rec)
+    {
+        if(isset($rec->originId)){
+            // Ако е към оридижин и той е в друга нишка - да се добави като свързан документ
+            $origin = doc_Containers::getDocument($rec->originId);
+            $originThreadId = $origin->fetchField('threadId');
+
+            if($originThreadId != $rec->threadId) return true;
+        }
+
+        return false;
     }
 }

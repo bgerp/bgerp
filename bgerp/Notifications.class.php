@@ -225,10 +225,10 @@ class bgerp_Notifications extends core_Manager
             
             return ;
         }
-        
-        // Да не се нотифицира контракторът
-        if (core_Users::haveRole('partner', $userId)) {
-            
+
+        // Само активните потребители да получат известие
+        if (!core_Users::isActiveUserId($userId)) {
+
             return ;
         }
         
@@ -430,13 +430,13 @@ class bgerp_Notifications extends core_Manager
     {
         // Не изчистваме от опресняващи ajax заявки
         if (Request::get('ajax_mode')) {
-            
+
             return;
         }
         
         // Ако само се запознава със съдържанието - не се изчиства
         if (Request::get('OnlyMeet')) {
-            
+
             return ;
         }
         
@@ -445,20 +445,14 @@ class bgerp_Notifications extends core_Manager
         }
         
         if (empty($userId)) {
-            
+
             return;
-        }
-        
-        // Да не се нотифицира контрактора
-        if ($userId != '*' && core_Users::haveRole('partner', $userId)) {
-            
-            return ;
         }
         
         $url = toUrl($urlArr, 'local', false);
         
         $query = bgerp_Notifications::getQuery();
-        
+
         $urlId = self::prepareUrlId($url);
         if ($urlId) {
             $query->where(array("#urlId = '[#1#]'", $urlId));
@@ -1169,11 +1163,11 @@ class bgerp_Notifications extends core_Manager
         // Добавяме резултата и броя на нотификациите
         if (is_array($res)) {
             $notifCnt = static::getOpenCnt();
-            
+
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
             $obj->arg = array('id' => 'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
-            
+
             if ($notifyMsg) {
                 $hitId = rand();
                 status_Messages::newStatus($notifyMsg, 'notice', null, 60, $hitId);
@@ -1181,7 +1175,15 @@ class bgerp_Notifications extends core_Manager
             }
             
             $res[] = $obj;
-            
+
+            if(core_Users::isContractor()){
+                $obj1 = new stdClass();
+                $obj1->func = 'notificationsCnt';
+                $notificationLinkTpl = ht::createLink($notifCnt, array('colab_Notifications', 'Show'), false, "title=Преглед на непрочетените известия,class=selected-external-tab");
+                $obj1->arg = array('id' => 'notificationCountStatus', 'cnt' => $notifCnt, 'html' => $notificationLinkTpl->getContent(), 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
+                $res[] = $obj1;
+            }
+
             $res[] = (object) array('func' => 'closeContextMenu');
         }
         
@@ -1341,7 +1343,10 @@ class bgerp_Notifications extends core_Manager
         
         // Добавяме титлата на формата
         $form->title = 'Настройка за нотифициране';
-        
+        if(core_Users::isContractor()){
+            plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
+        }
+
         $tpl = $form->renderHtml();
         
         return $this->renderWrapping($tpl);
@@ -1668,24 +1673,25 @@ class bgerp_Notifications extends core_Manager
             
             // Ако има филтър
             if ($filter = $data->listFilter->rec) {
-                
+
                 // Ако се търси по всички и има права ceo
                 if ((strpos($filter->usersSearch, '|-1|') !== false) && (haveRole('ceo'))) {
                     // Търсим всичко
                 } else {
-                    
-                    // Масив с потребителите
-                    $usersArr = type_Keylist::toArray($filter->usersSearch);
-                    
-                    // Ако има избрани потребители
-                    if (countR((array) $usersArr)) {
-                        
-                        // Показваме всички потребители
-                        $data->query->orWhereArr('userId', $usersArr);
-                    } else {
-                        
-                        // Не показваме нищо
-                        $data->query->where('1=2');
+                    if (isset($filter->usersSearch)) {
+                        // Масив с потребителите
+                        $usersArr = type_Keylist::toArray($filter->usersSearch);
+
+                        // Ако има избрани потребители
+                        if (countR((array) $usersArr)) {
+
+                            // Показваме всички потребители
+                            $data->query->orWhereArr('userId', $usersArr);
+                        } else {
+
+                            // Не показваме нищо
+                            $data->query->where('1=2');
+                        }
                     }
                 }
             }
@@ -1705,10 +1711,15 @@ class bgerp_Notifications extends core_Manager
     public static function subscribeCounter($tpl = null)
     {
         if (!$tpl) {
-            $tpl = new ET();
+            $tpl = new ET("");
         }
-        
-        core_Ajax::subscribe($tpl, array('bgerp_Notifications', 'notificationsCnt'), 'notificationsCnt', 5000);
+
+        $url = array('bgerp_Notifications', 'notificationsCnt');
+        if(core_Users::isContractor()){
+            // Ако е събскрайбнато от външния изглед на партньор да се подава и кой е избрания таб
+            $url['externalTab'] = Mode::get('currentExternalTab');
+        }
+        core_Ajax::subscribe($tpl, $url, 'notificationsCnt', 5000);
         
         return $tpl;
     }
@@ -1733,9 +1744,21 @@ class bgerp_Notifications extends core_Manager
             $obj->arg = array('id' => 'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
             
             $res[] = $obj;
-            
+
             // Ако има увеличаване - пускаме звук
             $lastCnt = Mode::get('NotificationsCnt');
+
+            // Ако е партньор да се рефрешне и броя на нотификациите в блока на
+            if(core_Users::isContractor()){
+                if($lastCnt != $notifCnt){
+                    $obj1 = new stdClass();
+                    $obj1->func = 'notificationsCnt';
+                    $notAttr = Request::get('externalTab') == 'colab_Notifications' ? "title=Преглед на непрочетените известия,class=selected-external-tab" : "title=Преглед на непрочетените известия";
+                    $notificationLinkTpl = ht::createLink($notifCnt, array('colab_Notifications', 'Show'), false, $notAttr);
+                    $obj1->arg = array('id' => 'notificationCountStatus', 'cnt' => $notifCnt, 'html' => $notificationLinkTpl->getContent(), 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
+                    $res[] = $obj1;
+                }
+            }
             
             if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
                 $newNotifCnt = $notifCnt - $lastCnt;
@@ -1876,15 +1899,14 @@ class bgerp_Notifications extends core_Manager
     public function cron_HideInaccesable()
     {
         $query = self::getQuery();
-        
         $before = dt::subtractSecs(180000); // преди 50 часа
         $query->setUnion(array("#modifiedOn >= '[#1#]'", $before));
         $query->setUnion(array("#closedOn >= '[#1#]'", $before));
         $query->setUnion(array("#lastTime >= '[#1#]'", $before));
         $query->setUnion(array("#activatedOn >= '[#1#]'", $before));
-        
         $query->orderBy('modifiedOn', 'DESC');
-        
+
+        $isColabInstalled = core_Packs::isInstalled('colab');
         while ($rec = $query->fetch()) {
             $urlArr = self::getUrl($rec);
 
@@ -1897,7 +1919,8 @@ class bgerp_Notifications extends core_Manager
             if (($act != 'single') && ($act != 'list')) {
                 continue;
             }
-            
+
+            $isPartner = core_Users::isContractor($rec->userId);
             try {
                 $ctr = $urlArr['Ctr'];
                 
@@ -1909,10 +1932,29 @@ class bgerp_Notifications extends core_Manager
                     self::delete($rec->id);
                     self::logInfo('Изтрита нотификация за премахнат ресурс', $rec->id);
                 } else {
+
                     if ($ctr == 'doc_Threads' && $urlArr['folderId'] && $act == 'list') {
                         $haveRight = doc_Folders::haveRightFor('single', $urlArr['folderId'], $rec->userId);
                     } else {
                         $haveRight = $ctr::haveRightFor($act, $urlArr['id'], $rec->userId);
+
+                        // Ако е инсталиран пакета `colab` и потребителя е партньор и екшъна е сингъл и няма достъп до него
+                        if($isColabInstalled && $act == 'single' && $isPartner && !$haveRight){
+
+                            // Ако сингъла е към документ, който е видим за партньори и нишката му е видима от този партньор
+                            if(cls::haveInterface('doc_DocumentIntf', $ctr)){
+                                $docRec = $ctr::fetch($urlArr['id'], 'threadId,containerId');
+                                $haveRight = colab_Threads::haveRightFor('single', doc_Threads::fetch($docRec->threadId), $rec->userId);
+
+                                // Ако няма достъп до него, да не го вижда
+                                if($haveRight){
+                                    $visibleForPartners = doc_Containers::fetchField($docRec->containerId, 'visibleForPartners');
+                                    if($visibleForPartners != 'yes'){
+                                        $haveRight = false;
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     if (!$haveRight && ($rec->hidden == 'no')) {

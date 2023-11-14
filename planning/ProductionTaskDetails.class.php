@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -115,7 +115,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'productId,type,fixedAsset,employees,notes';
+    public $searchFields = 'productId,type,fixedAsset,notes';
 
 
     /**
@@ -164,6 +164,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->setDbIndex('taskId,productId');
         $this->setDbIndex('productId,type');
         $this->setDbIndex('taskId,state');
+        $this->setDbIndex('date');
+        $this->setDbIndex('createdOn');
     }
 
 
@@ -578,8 +580,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $form->setWarning('quantity', $warning);
                 }
 
-                if ($masterRec->followBatchesForFinalProduct == 'yes' && empty($rec->batch) && $rec->type == 'production') {
-                    $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
+                if ($masterRec->followBatchesForFinalProduct == 'yes') {
+                    if(empty($rec->batch) && $rec->type == 'production'){
+                        $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
+                    }
+                } elseif(!empty($serialInfo['batch']) && $rec->type == 'production'){
+                    $form->setWarning('serial', "Номера досега се е отчитал по партида, а в текущата операция е избрано да не се отчита по партида! Сигурни ли сте, че не трябва да промените операцията да се отчита по партида|*?");
                 }
 
                 if ($rec->type == 'production') {
@@ -770,6 +776,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if($canStore == 'yes') {
                     $serial = $Driver->generateSerial($serialProductId, 'planning_Tasks', $rec->taskId);
                     if(isset($serial)){
+                        $rec->_serialIsForced = true;
                         $rec->serial = $serial;
                         $rec->serialType = 'generated';
                     }
@@ -777,12 +784,28 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         } else {
             if ($Driver = cat_Products::getDriver($serialProductId)) {
+                $rec->_serialIsForced = true;
                 $rec->serial = $Driver->canonizeSerial($serialProductId, $rec->serial);
             }
         }
+    }
 
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
         if (!empty($rec->serial)) {
-            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
+            $res .= ' ' . plg_Search::normalizeText($rec->serial);
+        }
+
+        // Добавяне на кодовете на служителите към ключовите думи
+        if(!empty($rec->employees)){
+            $employees = array_keys(planning_Hr::getPersonsCodesArr($rec->employees, false, true));
+            foreach ($employees as $employee){
+                $res .= ' ' . plg_Search::normalizeText($employee);
+            }
         }
     }
 
@@ -1343,6 +1366,10 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         if(isset($rec->newAssetId)){
             Mode::setPermanent("newAsset{$rec->taskId}", $rec->newAssetId);
+        }
+
+        if($rec->_serialIsForced){
+            plg_Search::forceUpdateKeywords($mvc, $rec);
         }
     }
     

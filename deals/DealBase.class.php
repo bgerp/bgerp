@@ -239,7 +239,7 @@ abstract class deals_DealBase extends core_Master
         $rec = &$data->rec;
         
         if ($mvc->haveRightFor('closeWith', $rec)) {
-            $attr = arr::make("id=btnCloseWith,ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки");
+            $attr = arr::make("id=btnCloseWith{$rec->containerId},ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки");
             if($rec->state == 'active'){
                 $attr['row'] = 2;
             }
@@ -301,7 +301,7 @@ abstract class deals_DealBase extends core_Master
         
         // Записите от журнала засягащи това перо
         $entries = acc_Journal::getEntries(array($mvc, $rec->id));
-        
+
         // Към тях добавяме и самия документ
         $entries[] = (object) array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
         
@@ -472,25 +472,85 @@ abstract class deals_DealBase extends core_Master
                 }
 
                 // Обединения договор ще е активен
+                $allocatedExpenses = array();
                 $dealRec = $this->fetch($rec->id, '*', false);
                 $dealRec->contoActions = 'activate';
                 $dealRec->state = 'active';
                 $dealRec->closedDocuments = keylist::merge($dealRec->closedDocuments, $formRec->closeWith);
                 $this->save($dealRec);
 
+                // Проверка дали някоя от сделките, които ще се обединяват е РО
+                $haveDealExpenseItem = false;
+                $listId = acc_Lists::fetchBySystemId('costObjects')->id;
+                foreach ($deals as $dealId1) {
+                    if (acc_Items::isItemInList($this, $dealId1, 'costObjects')) {
+                        $haveDealExpenseItem = true;
+                        break;
+                    }
+                }
+
+                // Ако поне една от сделките е РО, то и обединяващата сделка ще е ПО
+                $combinedDealItemId = null;
+                if($haveDealExpenseItem){
+                    if (!acc_Items::isItemInList($this, $rec->id, 'costObjects')) {
+                        acc_Items::force($this->getClassId(), $rec->id, $listId);
+                    }
+                    $combinedDealItemId = acc_Items::fetchItem($this, $rec->id)->id;
+                }
+
                 core_App::setTimeLimit(2000);
                 $CloseDoc = cls::get($this->closeDealDoc);
                 foreach ($deals as $dealId) {
 
+                    // Ако има разпределени разходи към сделката, запомнят се и се изтриват
+                    $tmpCache = array();
+                    if(acc_Items::isItemInList($this, $dealId, 'costObjects')){
+                        $dItemId = acc_Items::fetchItem($this, $dealId)->id;
+                        $cQuery = acc_CostAllocations::getQuery();
+                        $cQuery->where("#expenseItemId = {$dItemId}");
+                        while($cRec = $cQuery->fetch()){
+                            $exAccId = $cRec->id;
+                            acc_CostAllocations::delete($cRec->id);
+                            unset($cRec->id, $cRec->createdOn, $cRec->createdBy);
+                            $tmpCache[$exAccId] = clone $cRec;
+                            $cRec->_oldExpenceItemId = $cRec->expenseItemId;
+                            $cRec->expenseItemId = $combinedDealItemId;
+                            $allocatedExpenses[$exAccId] = $cRec;
+                        }
+                    }
+
                     // Създаване на приключващ документ-чернова
                     $dRec = $this->fetch($dealId);
                     $clId = $CloseDoc->create($this->className, $dRec, $id);
+
+                    try {
+                        Mode::push('isBeingClosedWithDeal', true);
+                        $CloseDoc->conto($clId);
+                        Mode::pop('isBeingClosedWithDeal');
+                    } catch (acc_journal_RejectRedirect $e) {
+                        // Ако е имало грешка и има изтрити разходи възстановяват се
+                        foreach ($tmpCache as $exAccCostId => $deletedCostRec){
+                            acc_CostAllocations::save($deletedCostRec);
+                            unset($allocatedExpenses[$exAccCostId]);
+                        }
+                        $errorArr[] = "Не може да се контира|*: #{$CloseDoc->getHandle($clId)}";
+                    }
+
                     $this->logWrite('Приключено с друга сделка', $dealId);
-                    $CloseDoc->conto($clId);
                 }
 
                 $this->invoke('AfterActivation', array($dealRec));
-                
+
+                // Разпределените разходи към приключените сделки се насочват към новата сделка
+                foreach ($allocatedExpenses as $newExpense){
+                    acc_CostAllocations::save($newExpense);
+                }
+
+                // Форсиране на съмърито, ако сделката е форсирана като РО
+                if($haveDealExpenseItem && $combinedDealItemId){
+                    doc_ExpensesSummary::updateSummary($rec->containerId, $combinedDealItemId, true);
+                }
+
                 // Записваме, че потребителя е разглеждал този списък
                 $this->logWrite('Приключване на сделка с друга сделка', $id);
                 if(countR($errorArr)){

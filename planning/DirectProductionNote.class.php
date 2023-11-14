@@ -734,10 +734,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 if (isset($rec)) {
 
                     // Ако няма материали и отпадъци или всички материали са чужди от ПОП - ще може да се контира бездетайлно
-                    $hasNotOutsourced = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes'");
-                    $hasPoped = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop'");
-                    $hasInputed = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input'");
-                    if ($hasNotOutsourced || (!$hasInputed && $hasPoped)) {
+                    $hasNotOutsourced = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes' AND #quantity != 0");
+                    $hasPoped = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop' AND #quantity != 0");
+                    $hasInputed = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #quantity != 0");
+                    $hasAllocated = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'allocated' AND #quantity != 0");
+
+                    if ($hasNotOutsourced || $hasAllocated || (!$hasInputed && $hasPoped)) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -1028,6 +1030,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         if(haveRole('debug') && $rec->state != 'rejected'){
             $data->toolbar->addBtn('Зареди очакваното', array($mvc, 'fillNote', $rec->id, 'ret_url' => true), null, 'ef_icon = img/16/bug.png,title=Зареди очакваните количества,row=2');
+        }
+
+        if (planning_ReturnNotes::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
+            $data->toolbar->addBtn('Връщане (отпадък)', array('planning_ReturnNotes', 'add', 'originId' => $rec->containerId, 'storeId' => $rec->storeId, 'ret_url' => true), null, 'ef_icon = img/16/produce_out.png,title=Връщане на отпадъци от протокола за производство');
         }
     }
 

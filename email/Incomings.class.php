@@ -551,7 +551,7 @@ class email_Incomings extends core_Master
             
             // Ако писмото не е с лошо форматиране
             if ($status != 'misformatted') {
-                $this->doProcessEmail($mime, $accId, $uid);
+                $status = $this->doProcessEmail($mime, $accId, $uid);
             }
         } catch (core_exception_Expect $exp) {
             // Обща грешка
@@ -1803,7 +1803,7 @@ class email_Incomings extends core_Master
 
                         $status = 'outgoing';
 
-                        email_Fingerprints::setStatus($headersMime, '', $accId, $uId);
+//                        email_Fingerprints::setStatus($headersMime, $status, $accId, $uId);
                     } else {
                         $sId = null;
 
@@ -3308,15 +3308,13 @@ class email_Incomings extends core_Master
             }
 
             if ($content) {
-                $content = mb_strtolower($content);
                 $content = str::utf2ascii($content);
-                $content = preg_replace('/\s+/u', ' ', $content);
+                $content = preg_replace('/\s+/ui', ' ', $content);
 
                 // Стрингове за отписване
                 $unsStr = 'Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
-                $unsStr = mb_strtolower($unsStr);
                 $unsStr = str::utf2ascii($unsStr);
-                $unsStr = preg_replace('/\s+/u', ' ', $unsStr);
+                $unsStr = preg_replace('/\s+/ui', ' ', $unsStr);
 
                 if (preg_match("/<a[^>]*>([^>]*({$unsStr})+[^>]*)<\/a>/iu", $content, $matches)) {
                     if (preg_match(type_Richtext::URL_PATTERN, $matches[0], $lMatches)) {

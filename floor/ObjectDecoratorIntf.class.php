@@ -24,15 +24,17 @@ class floor_ObjectDecoratorIntf
     
     
     /**
-     * Връща дефолтната единична цена отговаряща на количеството
+     * Украсява обекта
      *
      * @param mixed $id - ид/запис на обекта
+     * @param array $styleArr
      * @param double $quantity - За какво количество
      * 
      * @return double|NULL - дефолтната единична цена
      */
-    public function decorate($name, $stuleArr, $html)
+    public function decorate($name, $styleArr, $html)
     {
-        return $this->class->decorate($name, $stuleArr, $html);
+
+        return $this->class->decorate($name, $styleArr, $html);
     }
 }

@@ -336,6 +336,7 @@ abstract class embed_Manager extends core_Master
                 case 'afterupdate':
                 case 'afterread':
                 case 'beforechangestate':
+                case 'afterlabelisprinted':
                 case 'afteractivation':
 
                     $driverClass = $args[0]->{$this->driverClassField};

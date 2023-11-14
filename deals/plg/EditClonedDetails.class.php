@@ -63,6 +63,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 
         $MainDetail = cls::get($mvc->mainDetail);
         $detailsToCloneArr = $mvc->getDetailsToCloneAndChange($rec);
+
         $detailsToClone = $detailsToCloneArr['recs'];
         $Detail = $detailsToCloneArr['detailMvc'];
 
@@ -100,6 +101,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
             if($Detail->className != $MainDetail->className && empty($dRec->{$Detail->quantityFld})) continue;
             $caption = cat_Products::getTitleById($dRec->{$Detail->productFld});
             $caption .= ' / ' . cat_UoM::getShortName($dRec->packagingId);
+            $caption = str_replace('=', ' ', $caption);
             $caption = str_replace(',', ' ', $caption);
             $caption = "{$num}. {$caption}";
             

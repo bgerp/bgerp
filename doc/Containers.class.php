@@ -3020,7 +3020,8 @@ class doc_Containers extends core_Manager
         $authorTemasArr = array();
         
         while ($rec = $query->fetch()) {
-            
+            if($rec->createdBy < 1 || core_Users::isContractor($rec->createdBy)) continue;
+
             // Масив с екипите на съответния потребител
             $authorTemasArr[$rec->createdBy] = type_Users::getUserFromTeams($rec->createdBy);
             

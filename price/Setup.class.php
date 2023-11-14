@@ -99,6 +99,7 @@ class price_Setup extends core_ProtoSetup
     public $managers = array(
         'price_Lists',
         'price_ListToCustomers',
+        'price_ListVariations',
         'price_ListRules',
         'price_ListDocs',
         'price_ProductCosts',

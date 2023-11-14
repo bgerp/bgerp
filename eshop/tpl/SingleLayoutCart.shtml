@@ -181,7 +181,7 @@
             <!--ET_END deliveryTime-->
             <!--ET_BEGIN instruction-->
             <tr>
-               <td style='width:150px'><span class="title-style nowrap">|Уточнения|*:</span></td>
+               <td style='width:150px'><span class="title-style nowrap">|Инструкции|*:</span></td>
                <td>[#instruction#]</td>
             </tr>
             <!--ET_END instruction-->

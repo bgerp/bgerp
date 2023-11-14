@@ -57,6 +57,11 @@
             <tbody>
                 <tr>
                     <td class="topCell first vtop">
+                        <!--ET_BEGIN InvoicesToDocuments-->
+                        <table>
+                            [#InvoicesToDocuments#]
+                        </table>
+                        <!--ET_END InvoicesToDocuments-->
                         <table style='width:100%;'>
                             <!--ET_BEGIN deliveryTime-->
                             <tr>

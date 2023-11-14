@@ -303,9 +303,30 @@ class doc_SharablePlg extends core_Plugin
         
         // Добавяме раздел със споделените в папката
         $shareUsersArr = self::getShareUsersArr($form->rec);
+        $form->fields['sharedUsers']->type->userOtherGroup = array();
+
         if (!empty($shareUsersArr)) {
             $title = "От папката";
-            $form->fields['sharedUsers']->type->userOtherGroup = array(-1 => (object) array('suggName' => 'doc', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $shareUsersArr));
+            $form->fields['sharedUsers']->type->userOtherGroup[-1] = (object) array('suggName' => 'doc', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $shareUsersArr);
+        }
+
+        if(core_Packs::isInstalled('colab') && $mvc->hasPlugin('colab_plg_VisibleForPartners')){
+            $folderId = $form->rec->folderId ?? (isset($form->rec->originId) ? doc_Containers::fetchField($form->rec->originId, 'folderId') : (($form->rec->threadId) ? doc_Threads::fetchField($form->rec->threadId, 'folderId') : $form->rec->folderId));
+            $contractorIds = colab_FolderToPartners::getContractorsInFolder($folderId);
+            $showPartners = countR($contractorIds);
+
+            $threadId = $form->rec->threadId ?? (isset($form->rec->originId) ? doc_Containers::fetchField($form->rec->originId, 'threadId') : null);
+            if(isset($threadId)){
+                $firstDoc = doc_Threads::getFirstDocument($threadId);
+                if(!$firstDoc->isVisibleForPartners() && $data->action != 'changefields'){
+                    $showPartners = false;
+                }
+            }
+
+            if($showPartners){
+                $title = "Партньори";
+                $form->fields['sharedUsers']->type->userOtherGroup[-2] = (object) array('suggName' => 'colab', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $contractorIds);
+            }
         }
     }
     
@@ -324,22 +345,19 @@ class doc_SharablePlg extends core_Plugin
     public static function getShareUsersArr($formRec)
     {
         $shareUsers = array();
-        
-        if (!$formRec->folderId) {
+        $folderId = $formRec->folderId ?? (isset($formRec->originId) ? doc_Containers::fetchField($formRec->originId, 'folderId') : (($formRec->threadId) ? doc_Threads::fetchField($formRec->threadId, 'folderId') : $formRec->folderId));
+        if (!$folderId) {
             
             return $shareUsers;
         }
         
-        $vals = core_Settings::fetchKey(doc_Folders::getSettingsKey($formRec->folderId));
-        
+        $vals = core_Settings::fetchKey(doc_Folders::getSettingsKey($folderId));
         if ($vals['shareMaxCnt'] === 0) {
             
             return $shareUsers;
         }
         
         setIfNot($vals['shareMaxCnt'], 12);
-        
-        $shareUsers = array();
         
         if ($formRec->threadId && ($vals['shareFromThread'] != 'no')) {
             $shareUsers += doc_ThreadUsers::getSubscribed($formRec->threadId);
@@ -349,7 +367,7 @@ class doc_SharablePlg extends core_Plugin
         if ($vals['shareUsers']) {
             $shareUsers += type_Keylist::toArray($vals['shareUsers']);
         } else {
-            $fRec = doc_Folders::fetch($formRec->folderId);
+            $fRec = doc_Folders::fetch($folderId);
             if ($fRec->shared) {
                 $shareUsers += type_Keylist::toArray($fRec->shared);
             }

@@ -306,16 +306,16 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $Detail->calculateAmount($recs, $rec);
         $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        
+
         $rec->dealValue = $this->_total->amount * $rate;
         $rec->vatAmount = $this->_total->vat * $rate;
         $rec->discountAmount = $this->_total->discount * $rate;
-        
+
         if ($save === true) {
             return $this->save($rec);
         }
     }
-    
+
     
     /**
      * След подготовката на заглавието на формата
@@ -420,7 +420,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
         
-        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible');
+        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible', 'numlimit');
         if ($this instanceof purchase_Invoices) {
             $unsetArr[] = 'journalDate';
         }
@@ -1382,8 +1382,8 @@ abstract class deals_InvoiceMaster extends core_Master
                 if(!Mode::isReadOnly()){
                     $documents = deals_InvoicesToDocuments::getDocumentsToInvoices($rec->containerId, 'acc_ValueCorrections,store_Receipts,store_ShipmentOrders');
                     if(!countR($documents)){
-                        $string = "При издаване/въвеждане на Дебитно/Кредитно известие ЗАДЪЛЖИТЕЛНО трябва да се създаде и втори документ: Корекция на стойности (при промяна само на стойността) или ЕН/СР (при промяна на количества)!
-                           В полето \"Към фактура\" на създадения документ изберете настоящото Известие, за да премахнете това съобщение!";
+                        $string = "Към Дебитно/Кредитно известие ЗАДЪЛЖИТЕЛНО трябва да се създаде и втори документ: Корекция на стойности (при промяна само на стойността) или ЕН/СР/ПП (при промяна на количества)!
+                           В полето \"Към фактура\" на създадения втори документ изберете настоящото Известие, за да премахнете това съобщение!";
                         $row->additionalInfo .= "<div class='invoiceNoteWarning'>" . tr($string) . "</div>";
                     }
                 }
@@ -1527,9 +1527,9 @@ abstract class deals_InvoiceMaster extends core_Master
     public function getInvoiceDetailedInfo($containerId, $applyDiscount = false)
     {
         expect($document = doc_Containers::getDocument($containerId));
-        expect($document->isInstanceOf($this));
+        expect($document->isInstanceOf($this), $document->className, $this->className);
 
-        $cache = $vats = $cacheIds = array();
+        $vats = $cacheIds = array();
         $Detail = $this->mainDetail;
         $query = $Detail::getQuery();
         $docRec = $document->fetch('dpAmount,dpVatGroupId,vatRate,rate');
@@ -1537,27 +1537,25 @@ abstract class deals_InvoiceMaster extends core_Master
         $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
         $query->orderBy('id', 'ASC');
 
+        $count = 1;
         while ($dRec = $query->fetch()) {
             if($applyDiscount){
                 $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
             } else {
                 $price = $dRec->packPrice;
             }
-            $price = deals_Helper::roundPrice($price);
-            $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
-            $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
-
-            $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price);
-            $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price);
-            $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price);
+            $price = round($price, 5);
+            $docRec->vatRate = 'no';
+            $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price, 'count' => $count, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
+            $v = 0;
             if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
                 $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
             }
-
-            $vats[$v] = $v;
+            $vats["{$v}"] = $v;
+            $count++;
         }
 
-        if (!countR($cache)) {
+        if (!countR($cacheIds)) {
             if (isset($docRec->dpAmount)) {
                 $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
                 $v = ($docRec->vatRate == 'yes' || $docRec->vatRate == 'separate') ? $vRate : 0;
@@ -1565,7 +1563,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        $res = (object) array('recs' => $cache, 'vats' => $vats, 'recWithIds' => $cacheIds);
+        $res = (object) array('vats' => $vats, 'recWithIds' => $cacheIds);
 
         return $res;
     }
