@@ -2322,8 +2322,13 @@ class planning_Tasks extends core_Master
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
-        if($jobSaleId = planning_Jobs::fetchField("#containerId = '{$rec->originId}'", 'saleId')){
-            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobSaleId));
+        if($jobRec = planning_Jobs::fetch("#containerId = '{$rec->originId}'", 'saleId,productId')){
+            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobRec->saleId));
+
+            // Добавяне на драйвера на артикула в ключовите думи
+            $productDriverClass = cat_Products::getVerbal($jobRec->productId, 'innerClass');
+            $res .= ' ' . plg_Search::normalizeText($productDriverClass);
+            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getHandle($jobRec->id));
         }
 
         // Добавяне на всички ключови думи от прогреса
