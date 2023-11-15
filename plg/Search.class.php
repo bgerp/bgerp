@@ -802,7 +802,9 @@ class plg_Search extends core_Plugin
         $query->limit(10000);
         
         $lastId = $kVal;
-        
+
+        $Containers = cls::get('doc_Containers');
+
         try {
             while ($rec = $query->fetch()) {
                 
@@ -819,16 +821,24 @@ class plg_Search extends core_Plugin
                 
                 try {
                     $generatedKeywords = $clsInst->getSearchKeywords($rec);
-                    if ($generatedKeywords == $rec->searchKeywords) {
-                        
-                        continue;
+                    if ($generatedKeywords != $rec->searchKeywords) {
+
+                        $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+
+                        $rec->searchKeywords = $generatedKeywords;
+
+                        $clsInst->save_($rec, 'searchKeywords');
                     }
-                    
-                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
-                    
-                    $rec->searchKeywords = $generatedKeywords;
-                    
-                    $clsInst->save_($rec, 'searchKeywords');
+
+                    // Обновяваме и ключовите думи в контейнерите, дори и да няма промяна в модела
+                    if ($rec->containerId) {
+                        $cRec = $Containers->fetch($rec->containerId);
+                        if ($cRec) {
+                            if ($generatedKeywords != $cRec->searchKeywords) {
+                                $Containers->save_($cRec, 'searchKeywords');
+                            }
+                        }
+                    }
                 } catch (Exception $e) {
                     reportException($e);
                 } catch (Throwable  $e) {
