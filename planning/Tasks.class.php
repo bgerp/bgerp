@@ -792,9 +792,9 @@ class planning_Tasks extends core_Master
             // Филтър по документите за тази спецификация в папката на ПО
             $innerClass = cat_Products::fetchField($jobProductId, 'innerClass');
             if(doc_Threads::haveRightFor('list', (object)array('folderId' => $rec->folderId))){
-                $row->specificationBtnLink = ht::createLink('', array('doc_Threads', 'list', 'folderId' => $rec->folderId, 'driverClassId' => $innerClass), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване');
+                $row->specificationBtnLink = ht::createLink('Подобни', array('doc_Threads', 'list', 'folderId' => $rec->folderId, 'driverClassId' => $innerClass), false, 'ef_icon=img/16/funnel.png,title=Филтър по заданията и операциите в папката за вида на артикула от спецификацията');
             } elseif(core_Packs::isInstalled('colab') && colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->folderId))){
-                $row->specificationBtnLink = ht::createLink('', array('colab_Threads', 'list', 'folderId' => $rec->folderId, 'driverClassId' => $innerClass), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване');
+                $row->specificationBtnLink = ht::createLink('Подобни', array('colab_Threads', 'list', 'folderId' => $rec->folderId, 'driverClassId' => $innerClass), false, 'ef_icon=img/16/funnel.png,title=Филтър по заданията и операциите в папката за вида на артикула от спецификацията');
             }
         } else {
             // Ако има предишна операция, ще може да се поставя след нея
