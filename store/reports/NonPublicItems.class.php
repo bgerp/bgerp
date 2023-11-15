@@ -409,11 +409,11 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     public function getNextRefreshDates($rec)
     {
         $date = new DateTime(dt::now());
-        $date->add(new DateInterval('P0DT0H01M0S'));
+        $date->add(new DateInterval('P0DT0H10M0S'));
         $d1 = $date->format('Y-m-d H:i:s');
-        $date->add(new DateInterval('P0DT0H01M0S'));
+        $date->add(new DateInterval('P0DT0H10M0S'));
         $d2 = $date->format('Y-m-d H:i:s');
-        $date->add(new DateInterval('P0DT0H01M0S'));
+        $date->add(new DateInterval('P0DT0H10M0S'));
         $d3 = $date->format('Y-m-d H:i:s');
 
         return array(
