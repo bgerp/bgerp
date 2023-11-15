@@ -785,7 +785,7 @@ class plg_Search extends core_Plugin
         
         if (!$cnt) {
             if (!is_null($kVal)) {
-                core_Permanent::set($pKey, $kVal, 200);
+                core_Permanent::set($pKey, $kVal, 5);
             } else {
                 core_Permanent::remove($pKey);
             }
