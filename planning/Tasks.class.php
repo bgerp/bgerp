@@ -1276,7 +1276,10 @@ class planning_Tasks extends core_Master
             core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
         }
 
-        return $this->save_($rec, $updateFields);
+        $res = $this->save_($rec, $updateFields);
+        plg_Search::forceUpdateKeywords($this, $rec);
+
+        return $res;
     }
 
 
