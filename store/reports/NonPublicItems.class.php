@@ -252,14 +252,10 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         $row = new stdClass();
 
-
-
-        if($oldShipment != $dRec->shipmentId) {
-
             $shipmentHandle = '#' . store_ShipmentOrders::getHandle($dRec->shipmentId);
             $row->shipmentId = ht::createLink($shipmentHandle, array('store_ShipmentOrders', 'Single', $dRec->shipmentId), null);
             $oldShipment = $dRec->shipmentId;
-        }
+
         $row->productId = cat_Products::getHyperlink($dRec->productId, 'name');
 
         $row->shipmentQuantity = $Double->toVerbal($dRec->shipmentQuantity);
