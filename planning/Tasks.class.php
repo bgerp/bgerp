@@ -38,7 +38,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
 
 
     /**
@@ -51,6 +51,12 @@ class planning_Tasks extends core_Master
      * Заглавие
      */
     public $title = 'Производствени операции';
+
+
+    /**
+     * Скриване на полето за споделени потребители
+     */
+    public $hideSharedUsersFld = true;
 
 
     /**
@@ -2348,8 +2354,6 @@ class planning_Tasks extends core_Master
                 $res = ' ' . $res . ' ' . $keywords;
             }
         }
-
-
     }
 
 
