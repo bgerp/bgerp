@@ -6,7 +6,7 @@
                 |Параметри на операцията|*
             </th>
             <th class="cell custom-header-bg">
-                |Спецификация|*  <small style="font-weight:normal"> [#specificationBtnLink#]</small>
+                |Спецификация|* <!--ET_BEGIN specificationBtnLink--><small style="font-weight:normal">[[#specificationBtnLink#]]</small><!--ET_END specificationBtnLink-->
             </th>
         </tr>
        <tr>
