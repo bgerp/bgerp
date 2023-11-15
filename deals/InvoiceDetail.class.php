@@ -627,7 +627,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             // Проверка на цената
             $msg = null;
-            if (!deals_Helper::isPriceAllowed($rec->price, $rec->quantity, $autoPrice, $msg)) {
+            $quantityInBaseMeasureId = $rec->quantity * $rec->quantityInPack;
+            if (!deals_Helper::isPriceAllowed($rec->price, $quantityInBaseMeasureId, $autoPrice, $msg)) {
                 $form->setError('packPrice,quantity', $msg);
             }
             
