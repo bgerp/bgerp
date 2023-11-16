@@ -28,6 +28,9 @@ class doc_SharablePlg extends core_Plugin
         // Поле за потребителите, с които е споделен документа (ако няма)
         if (!$mvc->getField('sharedUsers', false)) {
             $mvc->FLD('sharedUsers', 'userList(showClosedUsers=no)', 'caption=Споделяне->Потребители');
+            if($mvc->hideSharedUsersFld){
+                $mvc->setField('sharedUsers', 'input=hidden');
+            }
         }
         
         // Поле за потребителите, с които е споделен документа (ако няма)

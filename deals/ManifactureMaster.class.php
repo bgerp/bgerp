@@ -53,6 +53,12 @@ abstract class deals_ManifactureMaster extends core_Master
 
 
     /**
+     * Скриване на полето за споделени потребители
+     */
+    public $hideSharedUsersFld = true;
+
+
+    /**
      * Кои са задължителните полета за модела
      */
     protected static function setDocumentFields($mvc)

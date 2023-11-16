@@ -663,6 +663,10 @@ class frame2_Reports extends embed_Manager
      */
     public static function refresh(&$rec)
     {
+        self::logDebug('Стартирано обновление на отчет', $rec->id);
+        $refreshReportTimer = 'REFRESH_REPORT_' . $rec->id;
+        core_Debug::startTimer($refreshReportTimer);
+
         $rec = self::fetchRec($rec);
         $me = cls::get(get_called_class());
 
@@ -671,6 +675,7 @@ class frame2_Reports extends embed_Manager
 
             // Ако се обновява ръчно или се обновява по-крон и не е спряно ръчното обновяване
             if(!$rec->_refreshByCron || $Driver->tryToAutoRefresh($rec)){
+                $sendNotificationOnlyAfterDataIsChanged = $Driver->sendNotificationOnlyAfterDataIsChanged;
 
                 try {
                     // Опресняват се данните му
@@ -692,10 +697,19 @@ class frame2_Reports extends embed_Manager
                 $rec->lastRefreshed = dt::now();
                 $me->save_($rec, 'data,lastRefreshed');
 
+                // Ако е оказано ще се проверява за изпращане на нотификация след всяко обновяване, дори и да няма промяна
+                if(!$sendNotificationOnlyAfterDataIsChanged){
+                    if($rec->data !== static::DATA_ERROR_STATE){
+                        $me->refreshReports[$rec->id] = $rec;
+                    }
+                }
+
                 // Записване в опашката че справката е била опреснена
                 if (frame2_ReportVersions::log($rec->id, $rec)) {
                     if($rec->data !== static::DATA_ERROR_STATE){
-                        $me->refreshReports[$rec->id] = $rec;
+                        if($sendNotificationOnlyAfterDataIsChanged){
+                            $me->refreshReports[$rec->id] = $rec;
+                        }
                     }
 
                     if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
@@ -736,6 +750,14 @@ class frame2_Reports extends embed_Manager
                 }
             }
         }
+        core_Debug::stopTimer($refreshReportTimer);
+        $timer = round(core_Debug::$timers[$refreshReportTimer]->workingTime, 2);
+        self::logDebug("Приключи обновление на отчет за {$timer}s", $rec->id);
+
+        if ($timer > 30) {
+            self::logNotice("Бавно обновяване на отчет за {$timer}s", $rec->id);
+//            wp('Бавно обновяване на отчет', $timer, $rec);
+        }
     }
 
 
@@ -748,7 +770,7 @@ class frame2_Reports extends embed_Manager
         if (is_array($mvc->refreshReports)) {
             foreach ($mvc->refreshReports as $rec) {
                 if ($Driver = $mvc->getDriver($rec)) {
-                    
+
                     // Проверява се трябва ли да бъде изпратена нова нотификация до споделените
                     if ($Driver->canSendNotificationOnRefresh($rec)) {
                         
