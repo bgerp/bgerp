@@ -307,5 +307,41 @@ class core_CallOnTime extends core_Manager
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
+
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'callOnTime2';
+        $rec->description = 'Стартиране на еднократни процеси';
+        $rec->controller = $mvc->className;
+        $rec->action = 'start';
+        $rec->period = 1;
+        $rec->offset = 0;
+        $rec->delay = 10;
+        $rec->timeLimit = 50;
+        $res .= core_Cron::addOnce($rec);
+
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'callOnTime3';
+        $rec->description = 'Стартиране на еднократни процеси';
+        $rec->controller = $mvc->className;
+        $rec->action = 'start';
+        $rec->period = 1;
+        $rec->offset = 0;
+        $rec->delay = 20;
+        $rec->timeLimit = 50;
+        $res .= core_Cron::addOnce($rec);
+
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'callOnTime4';
+        $rec->description = 'Стартиране на еднократни процеси';
+        $rec->controller = $mvc->className;
+        $rec->action = 'start';
+        $rec->period = 1;
+        $rec->offset = 0;
+        $rec->delay = 30;
+        $rec->timeLimit = 50;
+        $res .= core_Cron::addOnce($rec);
     }
 }
