@@ -68,7 +68,7 @@
         
         <!--ET_BEGIN discountClass-->
         <tr>
-            <td class="title-style">|Клас за автоматични отстъпки|*</td>
+            <td class="title-style">|Автоматични отстъпки|*</td>
             <td>[#discountClass#]</td>
         </tr>
         <!--ET_END discountClass-->
