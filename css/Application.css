@@ -5123,14 +5123,20 @@ div.location.public {
   float: none;
   text-align: center; }
 
+.flexBox {
+  display: flex;
+  align-content: baseline;
+  align-items: baseline; }
+  .flexBox div {
+    display: flex;
+    align-content: baseline;
+    align-items: baseline; }
+
   .barcodeSearch .noPadding {
     padding: 0px !important; }
   .barcodeSearch .listTable {
     width: 100%;
     margin-bottom: 0 !important; }
-
-.no-padding td {
-  padding: 0; }
 
 /*
  * шаблон за пускане в експлоатация на ДА
