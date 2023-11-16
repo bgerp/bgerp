@@ -663,6 +663,10 @@ class frame2_Reports extends embed_Manager
      */
     public static function refresh(&$rec)
     {
+        self::logDebug('Стартирано обновление на отчет', $rec->id);
+        $refreshReportTimer = 'REFRESH_REPORT_' . $rec->id;
+        core_Debug::startTimer($refreshReportTimer);
+
         $rec = self::fetchRec($rec);
         $me = cls::get(get_called_class());
 
@@ -745,6 +749,14 @@ class frame2_Reports extends embed_Manager
                     }
                 }
             }
+        }
+        core_Debug::stopTimer($refreshReportTimer);
+        $timer = round(core_Debug::$timers[$refreshReportTimer]->workingTime, 2);
+        self::logDebug("Приключи обновление на отчет за {$timer}s", $rec->id);
+
+        if ($timer > 30) {
+            self::logNotice("Бавно обновяване на отчет за {$timer}s", $rec->id);
+            wp('Бавно обновяване на отчет', $timer, $rec);
         }
     }
 
