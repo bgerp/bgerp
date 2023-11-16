@@ -103,10 +103,7 @@ class cond_Parameters extends bgerp_ProtoParam
     public static function getParameter($cClass, $cId, $conditionSysId)
     {
         // Ако няма клас и ид на документ да не връща нищо
-        if (!isset($cClass) && !isset($cId)) {
-            
-            return;
-        }
+        if (!isset($cClass) && !isset($cId)) return;
         
         expect($Class = cls::get($cClass));
         expect($cRec = $Class::fetch($cId));
@@ -114,40 +111,37 @@ class cond_Parameters extends bgerp_ProtoParam
         
         // Връщаме стойността ако има директен запис за условието
         $value = cond_ConditionsToCustomers::fetchByCustomer($Class, $cId, $condId);
-        if ($value) {
-            
-            return $value;
-        }
+        if ($value) return $value;
         
         // Търси се метод дефиниран за връщане на стойността на условието
         $method = "get{$conditionSysId}";
-        if (method_exists($Class, $method)) {
-            
-            return $Class::$method($cId);
+        if (method_exists($Class, $method)) return $Class::$method($cId);
+
+        // Всички условия групирани по държава (потребителските заместват системните)
+        $allConditions = array();
+        $cQuery = cond_Countries::getQuery();
+        $cQuery->where("#conditionId = {$condId}");
+        $cQuery->orderBy('createdBy', 'ASC');
+        while($cRec = $cQuery->fetch()){
+            $allConditions[$cRec->country] = $cRec;
         }
-        
+
         // Ако има поле за държава
         $countryFieldName = $Class->countryFieldName;
+
         if ($countryFieldName) {
-            
-            // Търсим имали дефинирано търговско условие за държавата на контрагента
+
+            // Търси се имали дефинирано търговско условие за държавата на контрагента
             $countryId = $cRec->{$countryFieldName};
             if ($countryId) {
-                $value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
-                if (isset($value)) {
-                    
-                    return $value;
-                }
+                if(array_key_exists($countryId, $allConditions)) return $allConditions[$countryId]->value;
             }
         }
-        
-        // От глобалния дефолт за всички държави
-        $value = cond_Countries::fetchField("#country IS NULL AND #conditionId = {$condId}", 'value');
-        
-        if (isset($value)) {
-            
-            return $value;
-        }
+
+        // Търси се има ли глобален дефолт за всички държави
+        if(array_key_exists('', $allConditions)) return $allConditions['']->value;
+
+        return null;
     }
     
     
