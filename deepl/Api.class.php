@@ -147,35 +147,6 @@ class deepl_Api
 
 
     /**
-     * Праща заявка и връща резултата
-     *
-     * @param string $prompt
-     * @param array $pArr
-     * @param boolean $useCache
-     * @param integer $index
-     *
-     * @trows deepl_Exception
-     *
-     * @return string|false
-     */
-    public static function getRes($prompt, $pArr = array(), $useCache = true, $index = 0)
-    {
-        setIfNot($pArr['model'], 'text-davinci-003');
-        setIfNot($pArr['temperature'], 0.7);
-        setIfNot($pArr['max_tokens'], 256);
-        setIfNot($pArr['top_p'], 1);
-        setIfNot($pArr['frequency_penalty'], 0);
-        setIfNot($pArr['presence_penalty'], 0);
-
-        $pArr['prompt'] = $prompt;
-
-        $resObj = self::execCurl($pArr, $useCache);
-
-        return $resObj->choices[$index]->text ? $resObj->choices[$index]->text : false;
-    }
-
-
-    /**
      * Помощна функция за правена на GET заявки
      *
      * @param array $params

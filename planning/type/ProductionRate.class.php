@@ -36,7 +36,8 @@ class planning_type_ProductionRate extends type_Varchar
                                          'minPer1000' => '|минути за|* 1000 |[#measureId#]|*',
                                          'per1Hour'   => '|[#measureId#]|* |за|* 1 |час|*',
                                          'per1Min'    => '|[#measureId#]|* |за|* 1 |минута|*',
-                                         'per8Hour'   => '|[#measureId#]|* |за|* 8 |часа|*',);
+                                         'per8Hour'   => '|[#measureId#]|* |за|* 8 |часа|*',
+                                         'hoursPer1'   => '|часове за|* |[#measureId#]|*',);
 
 
     /**
@@ -141,7 +142,7 @@ class planning_type_ProductionRate extends type_Varchar
 
         $options = array();
         foreach ($allowedOptions as $aRate => $aCaption){
-            $num = in_array($aRate, array('secsPer1', 'minPer1')) ? 1 : 2;
+            $num = in_array($aRate, array('secsPer1', 'minPer1', 'hoursPer1')) ? 1 : 2;
             $pluralOrSingularMeasureName = str::getPlural($num, $measureName, true);
             $aCaption = str_replace('[#measureId#]', $pluralOrSingularMeasureName, $aCaption);
             $options[$aRate] = tr($aCaption);
@@ -237,6 +238,9 @@ class planning_type_ProductionRate extends type_Varchar
                 break;
             case 'minPer1':
                 $secs = round(60 * $parseValue['left'] * $quantity);
+                break;
+            case 'hoursPer1':
+                $secs = round(60 * 60 * $parseValue['left'] * $quantity);
                 break;
             case 'minPer10':
                 $secs = round((60 * $parseValue['left'] / 10) * $quantity);

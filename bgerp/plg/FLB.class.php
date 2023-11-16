@@ -313,4 +313,26 @@ class bgerp_plg_FLB extends core_Plugin
             }
         }
     }
+
+
+    /**
+     * От масив от обекти връща само избираемите от потребителя
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $options
+     * @return array $selectable
+     */
+    public static function getSelectableFromArr($mvc, $options, $userId = null)
+    {
+        $mvc = cls::get($mvc);
+        $options = keylist::isKeylist($options) ? keylist::toArray($options) : arr::make($options, true);
+        $selectable = array();
+        foreach ($options as $objectId){
+            if(self::canUse($mvc, $objectId, $userId, 'select')){
+                $selectable[$objectId] = $objectId;
+            }
+        }
+
+        return $selectable;
+    }
 }

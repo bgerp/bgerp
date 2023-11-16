@@ -1067,7 +1067,7 @@ class planning_Tasks extends core_Master
         unset($row->labelPrintFromProgress);
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
+            if ($labelPrintFromProgress != 'no') {
                 $row->labelPrintFromProgress = $mvc->getFieldType('labelPrintFromProgress')->toVerbal($rec->labelPrintFromProgress);
             }
         }
@@ -1505,7 +1505,12 @@ class planning_Tasks extends core_Master
                                 $nRec->taskId = $rec->id;
                                 $nRec->packagingId = $p->packagingId;
                                 $nRec->quantityInPack = $p->quantityInPack;
-                                $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
+                                if($p->isPrevStep){
+                                    $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
+                                } else {
+                                    $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
+                                }
+
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
@@ -1569,7 +1574,7 @@ class planning_Tasks extends core_Master
 
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
+            if ($labelPrintFromProgress != 'no') {
                 $form->setField('labelPrintFromProgress', "input");
             }
         }
@@ -2342,6 +2347,8 @@ class planning_Tasks extends core_Master
                 $res = ' ' . $res . ' ' . $keywords;
             }
         }
+
+
     }
 
 

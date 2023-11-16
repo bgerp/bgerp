@@ -1555,7 +1555,7 @@ class core_Form extends core_FieldSet
                 } else {
                     $value = $this->rec->{$name};
                 }
-                $value = empty($value) ? '' : $value;
+                $value = !isset($value) ? '' : $value;
             }
             
             unset($field->type->params['allowEmpty']);

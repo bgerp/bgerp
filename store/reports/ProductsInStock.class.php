@@ -101,8 +101,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
        // $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Филтри->"Общо" по групи,after=orderBy,input=none,single=none');
         $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
-        $fieldset->FLD('workingPdogresOn', 'set(yes=)', 'caption=Включи незавършеното производство,after=seeByGroups, single=none');
-        $fieldset->FLD('workingPdogresOnly', 'set(yes=)', 'caption=Само незавършеното производство,after=seeByGroups, single=none');
+
+        $fieldset->FLD('workingPdogresOn', 'enum(included=Включено,off=Изключено)', 'notNull,caption=Незавършено производство->Незавършено производство,removeAndRefreshForm,after=seeByGroups, single=none,silent');
+        $fieldset->FLD('workingPdogresOnly', 'set(yes=)', 'caption=Незавършено производство->Само незавършеното производство,after=workingPdogresOn, single=none');
 
 
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
@@ -122,13 +123,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
 
-            if (isset($form->rec->type, $form->rec->workingPdogresOn) && ($form->rec->type == 'long')) {
-                $form->setError('type', 'Незавършено произвосдство може да се включи само при избрам вариант "Кратка".');
+            if (isset($form->rec->workingPdogresOn) && $form->rec->workingPdogresOn == 'included'  && ($form->rec->type == 'long')) {
+                $form->setError('type', 'Незавършено производство може да се включи само при избран вариант "Кратка".');
             }
 
-            if (isset($form->rec->workingPdogresOnly) && (($form->rec->workingPdogresOnly != 'yes') || ($form->rec->workingPdogresOn != 'yes'))) {
-                $form->setError('workingPdogresOn', 'Трябва да се разреши включването на "Незавършено производство"');
-            }
         }
     }
 
@@ -150,8 +148,14 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $form->setDefault('seeByGroups', 'no');
         $form->setDefault('orderBy', 'name');
         $form->setDefault('type', 'short');
-        $form->setDefault('workingPdogresOn', '');
+        $form->setDefault('workingPdogresOn', 'off');
         $form->setDefault('workingPdogresOnly', '');
+
+        if ($rec->workingPdogresOn == 'off') {
+            $form->setField('workingPdogresOnly', 'input=none');
+
+        }
+
 
         if ($rec->type == 'long') {
             $today = dt::today();
@@ -189,7 +193,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
+
     {
+
         $date = (is_null($rec->date)) ? dt::today() : $rec->date;
 
         $recs = array();
@@ -209,14 +215,14 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $accsArr = array(321);
 
         //За тестване на само незавършено производство
-        if($rec->workingPdogresOnly == 'yes' && $rec->workingPdogresOn == 'yes'){
+        if($rec->workingPdogresOnly == 'yes' && $rec->workingPdogresOn == 'included'){
             $accsArr = array();
         }
 
         //systemId на сметката "Незавършено производство" = 61101
         $workingPdogresAccRec = acc_Accounts::fetch("#systemId = 61101");
 
-        if ($rec->workingPdogresOn == 'yes'){
+        if ($rec->workingPdogresOn == 'included'){
 
             array_push($accsArr,$workingPdogresAccRec -> num);
         }
@@ -685,7 +691,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $Enum = cls::get('type_Enum', array('options' => array('yes' => 'Включено')));
+        $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено','off' => 'Изключено')));
 
 
 
@@ -747,7 +753,11 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
 
         if ((isset($data->rec->workingPdogresOn))) {
+
             $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
+            if($data->rec->workingPdogresOn == 'included' && $data->rec->workingPdogresOnly == 'yes'){
+                $fieldTpl->append('<b>' . ' само незавършено'.'</b>', 'workingPdogresOn');
+            }
         }else{
             $fieldTpl->append('<b>' . 'Не е включено' . '</b>', 'workingPdogresOn');
         }

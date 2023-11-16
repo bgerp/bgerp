@@ -508,6 +508,7 @@ class batch_BatchesInDocuments extends core_Manager
             $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди->{$caption},placeholder={$Def->placeholder}");
 
             if (is_array($bOptions)) {
+                $bOptions = array_combine(array_values($bOptions), array_values($bOptions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $bOptions));
             }
 
@@ -762,7 +763,7 @@ class batch_BatchesInDocuments extends core_Manager
             
             return;
         }
-        
+
         $bArray = array();
         foreach ($batches as $key => $batch) {
             if (!empty($batch)) {
@@ -780,8 +781,8 @@ class batch_BatchesInDocuments extends core_Manager
                 }
                 
                 if (array_key_exists($batch, $bArray)) {
-                    $error[] = 'Повтаряща се партида';
-                    $errorFields['batch'][$key] = 'Повтаряща се партида';
+                    $error[] = "Повтаряща се партида|*: <b>{$batch}</b> ";
+                    $errorFields['batch'][$key] = "Повтаряща се партида|*: '$batch'";
                 } else {
                     $bArray[$batch] = $batch;
                 }
