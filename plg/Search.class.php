@@ -835,6 +835,7 @@ class plg_Search extends core_Plugin
                         $cRec = $Containers->fetch($rec->containerId);
                         if ($cRec) {
                             if ($generatedKeywords != $cRec->searchKeywords) {
+                                $cRec->searchKeywords = $generatedKeywords;
                                 $Containers->save_($cRec, 'searchKeywords');
                             }
                         }
