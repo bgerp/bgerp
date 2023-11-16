@@ -228,7 +228,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         $rec = &$form->rec;
         if($form->isSubmitted()){
             if($rec->state == 'draft' || empty($rec->state)){
-                if(is_array($rec->_inputStores)){
+                if(is_array($rec->_inputStores) && countR($rec->_inputStores)){
                     if(empty($rec->storeId)){
                         if(countR($rec->_inputStores)){
                             $form->setWarning('storeId', 'Не е избран склад при очакван такъв по Задание|*!');
