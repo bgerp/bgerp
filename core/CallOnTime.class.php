@@ -222,7 +222,7 @@ class core_CallOnTime extends core_Manager
         // Вземаме всички записи, които не са фечнати преди и им е дошло времето
         $res = '';
         $now = dt::now();
-        $query = self::getQuery();
+        $query = $this->getQuery();
         $query->where("#callOn <= '{$now}'");
         $query->where("#state != 'pending'");
         $query->orderBy('callOn', 'ASC');
@@ -231,13 +231,13 @@ class core_CallOnTime extends core_Manager
             
             // Ако сме се доближили до края - да приключваме процеса
             if (core_Cron::getTimeLeft() < 5) {
-                self::logDebug('Отложен процес, поради свършване на времето');
+                $this->logDebug('Отложен процес, поради свършване на времето');
                 
                 break;
             }
 
             // При бавно обновяване на някой процес, да не се изпълнява повторно от друг процес
-            $bRec = $this->fetch($rec->id);
+            $bRec = $this->fetch($rec->id, '*', false);
             if ($bRec->state == 'pending') {
 
                 continue;
@@ -246,7 +246,7 @@ class core_CallOnTime extends core_Manager
             // Променяме състоянието, за да не може да се извика повторно
             $nRec = clone $rec;
             $nRec->state = 'pending';
-            self::save($nRec, 'state');
+            $this->save($nRec, 'state');
             
             $singletons = cls::$singletons;
             
@@ -258,12 +258,12 @@ class core_CallOnTime extends core_Manager
                 $res .= @call_user_func($callback, $rec->data) . "\n";
                 
                 // Изтриваме след като се изпълни веднъж
-                self::delete($rec->id);
+                $this->delete($rec->id);
                 
                 sleep(1);
             } catch (core_exception_Expect $e) {
                 $res .= "Грешка при извикване на '{$rec->className}->callback_{$rec->methodName}'";
-                self::logErr('Грешка при извикване на функция', $rec->id);
+                $this->logErr('Грешка при извикване на функция', $rec->id);
                 
                 reportException($e);
             }
@@ -280,15 +280,15 @@ class core_CallOnTime extends core_Manager
         }
         
         // Ако някой процес е гръмнал и е останал в чакащо състояние го оправяме
-        $pQuery = self::getQuery();
+        $pQuery = $this->getQuery();
         $pQuery->where("#state = 'pending'");
         $before = dt::subtractSecs(10000);
         $pQuery->where("#callOn <= '{$before}'");
         $pQuery->limit(1);
         while ($pRec = $pQuery->fetch()) {
             $pRec->state = 'draft';
-            self::save($pRec, 'state');
-            self::logNotice('Променено състояние', $pRec->id);
+            $this->save($pRec, 'state');
+            $this->logNotice('Променено състояние', $pRec->id);
         }
         
         return $res;
