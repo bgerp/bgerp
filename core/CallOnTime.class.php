@@ -235,7 +235,14 @@ class core_CallOnTime extends core_Manager
                 
                 break;
             }
-            
+
+            // При бавно обновяване на някой процес, да не се изпълнява повторно от друг процес
+            $bRec = $this->fetch($rec->id);
+            if ($bRec->state == 'pending') {
+
+                continue;
+            }
+
             // Променяме състоянието, за да не може да се извика повторно
             $nRec = clone $rec;
             $nRec->state = 'pending';
