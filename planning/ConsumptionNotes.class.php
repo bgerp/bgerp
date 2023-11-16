@@ -36,7 +36,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, doc_SharablePlg, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,change_Plugin,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
@@ -44,8 +44,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'storeId,note';
-    
-    
+
+
     /**
      * Кой има право да чете?
      */

@@ -373,6 +373,9 @@ class colab_Threads extends core_Manager
         $data->listFilter->rec->LastFieldName = 'partnerDocLast';
         
         doc_Threads::applyFilter($data->listFilter->rec, $data->query);
+        $data->listFilterAddedFields = array();
+        $Cover = doc_Folders::getCover($data->listFilter->rec->folderId);
+        $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query, &$data->listFilterAddedFields));
         $data->rejQuery = clone($data->query);
         
         if(core_Users::isContractor() && !haveRole('powerPartner')){
