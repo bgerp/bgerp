@@ -756,7 +756,7 @@ class frame2_Reports extends embed_Manager
 
         if ($timer > 30) {
             self::logNotice("Бавно обновяване на отчет за {$timer}s", $rec->id);
-            wp('Бавно обновяване на отчет', $timer, $rec);
+//            wp('Бавно обновяване на отчет', $timer, $rec);
         }
     }
 
