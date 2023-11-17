@@ -65,7 +65,7 @@ class cond_type_Text extends cond_type_abstract_Proto
     {
         $Type = parent::getType($rec, $domainClass, $domainId, $value);
         if($rec->richtext == 'yes'){
-            $Type = cls::get('type_RichText');
+            $Type = cls::get('type_Richtext');
         }
 
         if (isset($rec->rows)) {
