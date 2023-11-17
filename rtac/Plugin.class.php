@@ -135,6 +135,18 @@ class rtac_Plugin extends core_Plugin
                 $folderId = $tRec->folderId;
             }
 
+            if (!$folderId && ($rId = Request::get('id')) && ($ctr = Request::get('Ctr'))) {
+                if (cls::load($ctr, true)) {
+                    $ctr = cls::get($ctr);
+                    if ($ctr instanceof core_Manager) {
+                        $cRec = $ctr->fetch($rId);
+                        if ($cRec && $cRec->folderId) {
+                            $folderId = $cRec->folderId;
+                        }
+                    }
+                }
+            }
+
             if ($folderId && core_Packs::isInstalled('colab')) {
                 $contractorIds = colab_FolderToPartners::getContractorsInFolder($folderId);
                 if (!empty($contractorIds)) {
