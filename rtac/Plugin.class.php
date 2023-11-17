@@ -220,11 +220,24 @@ class rtac_Plugin extends core_Plugin
             
             // Добавяме потребителите в нов масив
             foreach ((array) $usersArr as $key => $users) {
+                if ($term) {
+                    if (mb_stripos($key, $term) !== 0) {
+                        if (mb_stripos($users, $term) !== 0) {
+                            if (mb_stripos($users, ' ' . $term) === false) {
+                                continue;
+                            }
+                        }
+                    }
+                }
                 $usersArrRes[$i]['nick'] = $key;
                 $usersArrRes[$i]['names'] = $users;
                 $i++;
             }
-            
+
+            if ($limit) {
+                $usersArrRes = array_slice($usersArrRes, 0, $limit);
+            }
+
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'sharedUsers';
