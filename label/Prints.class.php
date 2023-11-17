@@ -1465,8 +1465,14 @@ class label_Prints extends core_Master
     public function searchByCode($str)
     {
         $resArr = array();
+
+        if (!is_numeric($str)) {
+
+            return $resArr;
+        }
+
         $isPartner = core_Packs::isInstalled('colab') && core_Users::isContractor();
-        if($isPartner) return $resArr;
+        if ($isPartner) return $resArr;
 
         $str = trim($str);
         $oStr = $str;

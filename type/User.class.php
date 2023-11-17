@@ -103,8 +103,8 @@ class type_User extends type_Key
                             $value = $userId;
                         }
                     }
-                    
-                    $uQuery->where("#state = 'active' OR #state = 'blocked' {$closedUsers} OR #id = {$value}");
+
+                    $uQuery->where(array("#state = 'active' OR #state = 'blocked' {$closedUsers} OR #id = [#1#]", $value));
                 } else {
                     $uQuery->where("#state = 'active' OR #state = 'blocked' {$closedUsers}");
                 }

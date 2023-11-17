@@ -97,6 +97,12 @@ class vislog_History extends core_Manager
      */
     public static function add($query, $returnCnt = false)
     {
+        // Да не се логва при OPTIONS заявки
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+
+            return ;
+        }
+
         vislog_Adwords::add();
         
         $rec = new stdClass();

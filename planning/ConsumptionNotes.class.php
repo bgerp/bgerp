@@ -36,7 +36,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, doc_SharablePlg, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,change_Plugin,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
@@ -44,8 +44,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'storeId,note';
-    
-    
+
+
     /**
      * Кой има право да чете?
      */
@@ -209,9 +209,39 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         if($showSenderAndReceiver){
             $mvc->setEmployeesOptions($form);
         }
+
+        if($jobRec = static::getJobFromThread($rec->threadId)){
+            $rec->_inputStores = keylist::toArray($jobRec->inputStores);
+            $selectableStores = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $rec->_inputStores);
+            if(countR($selectableStores) == 1){
+                $form->setDefault('storeId', key($selectableStores));
+            }
+        }
     }
-    
-    
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = &$form->rec;
+        if($form->isSubmitted()){
+            if($rec->state == 'draft' || empty($rec->state)){
+                if(is_array($rec->_inputStores) && countR($rec->_inputStores)){
+                    if(empty($rec->storeId)){
+                        if(countR($rec->_inputStores)){
+                            $form->setWarning('storeId', 'Не е избран склад при очакван такъв по Задание|*!');
+                        }
+                    } elseif(!in_array($rec->storeId, $rec->_inputStores)) {
+                        $form->setWarning('storeId', 'Избраният склад не е от очакваните по Задание|*!');
+                    }
+                }
+            }
+        }
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *

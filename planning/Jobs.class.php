@@ -240,7 +240,7 @@ class planning_Jobs extends core_Master
     public function  description()
     {
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|quantity|oldJobId');
-        $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none');
+        $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none,class=w100');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory,remember');
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,mandatory,input=hidden,before=packQuantity,silent,removeAndRefreshForm');
@@ -359,7 +359,7 @@ class planning_Jobs extends core_Master
             $form->setFieldType('productId', 'key(mvc=cat_Products)');
 
             // Дефолтния артикул е първия без задание към продажбата
-            $packsInDeal = array();
+            $packsInDeal = $packsInDealOrdered = array();
             $sQuery = sales_SalesDetails::getQuery();
             $sQuery->where("#saleId = {$rec->saleId}");
             $sQuery->in('productId', array_keys($products));
@@ -368,6 +368,14 @@ class planning_Jobs extends core_Master
                 $packsInDeal[$sRec->productId][$sRec->packagingId] = $sRec->packQuantity;
             }
 
+            // Подредба в реда на производимите
+            $pKeys = array_keys($products);
+            foreach ($pKeys as $pKey){
+                $packsInDealOrdered[$pKey] = $packsInDeal[$pKey];
+            }
+            $packsInDeal = $packsInDealOrdered;
+
+            $found = false;
             foreach ($products as $pId => $pName){
                 if(isset($rec->productId) && $rec->productId != $pId) continue;
 
@@ -377,9 +385,12 @@ class planning_Jobs extends core_Master
                         $defaultProductId = $pId;
                         $defaultProductPack = $packId;
                         $defaultQuantity = $packQuantity;
+                        $found = true;
                         break;
                     }
                 }
+
+                if($found) break;
             }
 
             $form->setDefault('productId', $defaultProductId);

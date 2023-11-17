@@ -16,7 +16,12 @@ function barcodeActions() {
         var frontCounter = 1;
         var backCounter = 1;
         // Добавяме бутони за всяка камера
+
         cameras.forEach((camera, index) => {
+            if (cameras.length == 1) {
+                switchCamera(camera.id, html5Qrcode);
+                return;
+            }
             const cameraButton = document.createElement("button");
             cameraButton.textContent = camera.label;
 
@@ -46,7 +51,6 @@ function barcodeActions() {
                 cameraButton.classList.add("active");
                 startScanning(cameraId, html5Qrcode);
             }
-
         });
 
         if( $('.cameraSource.active').length == 0 &&  $('.cameraSource.back').length) {

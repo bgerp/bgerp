@@ -672,12 +672,12 @@ class log_Browsers extends core_Master
      * 
      * @return boolean
      */
-    protected function isBotBrid($brid = '', $generate = true)
+    public static function isBotBrid($brid = '', $generate = true)
     {
         if (!$brid) {
             $brid = self::getBrid($generate);
         }
-        
+
         if ($brid && (stripos($brid, self::$botBridPrefix) === 0)) {
             
             return true;

@@ -38,7 +38,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
 
 
     /**
@@ -51,6 +51,12 @@ class planning_Tasks extends core_Master
      * Заглавие
      */
     public $title = 'Производствени операции';
+
+
+    /**
+     * Скриване на полето за споделени потребители
+     */
+    public $hideSharedUsersFld = true;
 
 
     /**
@@ -1067,7 +1073,7 @@ class planning_Tasks extends core_Master
         unset($row->labelPrintFromProgress);
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
+            if ($labelPrintFromProgress != 'no') {
                 $row->labelPrintFromProgress = $mvc->getFieldType('labelPrintFromProgress')->toVerbal($rec->labelPrintFromProgress);
             }
         }
@@ -1270,7 +1276,10 @@ class planning_Tasks extends core_Master
             core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
         }
 
-        return $this->save_($rec, $updateFields);
+        $res = $this->save_($rec, $updateFields);
+        plg_Search::forceUpdateKeywords($this, $rec);
+
+        return $res;
     }
 
 
@@ -1505,7 +1514,12 @@ class planning_Tasks extends core_Master
                                 $nRec->taskId = $rec->id;
                                 $nRec->packagingId = $p->packagingId;
                                 $nRec->quantityInPack = $p->quantityInPack;
-                                $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
+                                if($p->isPrevStep){
+                                    $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
+                                } else {
+                                    $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
+                                }
+
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
@@ -1569,7 +1583,7 @@ class planning_Tasks extends core_Master
 
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
+            if ($labelPrintFromProgress != 'no') {
                 $form->setField('labelPrintFromProgress', "input");
             }
         }
@@ -2322,8 +2336,13 @@ class planning_Tasks extends core_Master
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
-        if($jobSaleId = planning_Jobs::fetchField("#containerId = '{$rec->originId}'", 'saleId')){
-            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobSaleId));
+        if($jobRec = planning_Jobs::fetch("#containerId = '{$rec->originId}'", 'saleId,productId')){
+            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobRec->saleId));
+
+            // Добавяне на драйвера на артикула в ключовите думи
+            $productDriverClass = cat_Products::getVerbal($jobRec->productId, 'innerClass');
+            $res .= ' ' . plg_Search::normalizeText($productDriverClass);
+            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getHandle($jobRec->id));
         }
 
         // Добавяне на всички ключови думи от прогреса

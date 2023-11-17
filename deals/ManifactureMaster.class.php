@@ -53,6 +53,12 @@ abstract class deals_ManifactureMaster extends core_Master
 
 
     /**
+     * Скриване на полето за споделени потребители
+     */
+    public $hideSharedUsersFld = true;
+
+
+    /**
      * Кои са задължителните полета за модела
      */
     protected static function setDocumentFields($mvc)
@@ -318,5 +324,27 @@ abstract class deals_ManifactureMaster extends core_Master
             $form->setSuggestions('sender', $options);
             $form->setSuggestions('receiver', $options);
         }
+    }
+
+
+    /**
+     * Към кое задание е свързана нишката
+     *
+     * @param int $threadId
+     * @return stdClass|null $jobRec
+     */
+    public static function getJobFromThread($threadId)
+    {
+        $jobRec = null;
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if($firstDoc){
+            if ($firstDoc->isInstanceOf('planning_Tasks')) {
+                $jobRec = doc_Containers::getDocument($firstDoc->fetchField('originId'))->fetch();
+            } elseif($firstDoc->isInstanceOf('planning_Jobs')) {
+                $jobRec = $firstDoc->fetch();
+            }
+        }
+
+        return $jobRec;
     }
 }

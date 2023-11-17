@@ -56,7 +56,7 @@ class peripheral_DeviceWebPlg extends core_Plugin
         
         $dQuery->orderBy('time', 'DESC');
         
-        $bridAr = array();
+        $bridArr = array();
         $ipArr = array();
         while ($dRec = $dQuery->fetch()) {
             $nick = core_Users::getNick($dRec->objectId);

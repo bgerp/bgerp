@@ -385,12 +385,35 @@ class label_plg_Print extends core_Plugin
      */
     public function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        if ($invoker->_isSaveAndNew && ($prevSavedId = Mode::get("{$invoker->className}_PREV_SAVED_ID"))) {
-            if (label_Setup::get('AUTO_PRINT_AFTER_SAVE_AND_NEW') == 'yes') {
+        $labelAfterSaveAction = label_Setup::get('AUTO_PRINT_AFTER_SAVE_AND_NEW');
+        if($labelAfterSaveAction == 'no') return;
+
+        $prevSavedId = Mode::get("{$invoker->className}_PREV_SAVED_ID");
+        if($invoker->_isSaveAndNew && $prevSavedId){
+            if(in_array($labelAfterSaveAction, array('yes', 'both'))){
                 if ($invoker->haveRightFor('printperipherallabel', $prevSavedId)) {
                     $lUrl = toUrl(array($invoker, 'printperipherallabel', $prevSavedId, 'refreshUrl' => toUrl(getCurrentUrl())), 'local');
                     $lUrl = urlencode($lUrl);
+                    jquery_Jquery::run($tpl, "getEfae().process({url: '{$lUrl}'});", TRUE);
+                }
+            }
+        }
+    }
 
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        $prevSavedId = Mode::get("{$mvc->className}_PREV_SAVED_ID");
+        $labelAfterSaveAction = label_Setup::get('AUTO_PRINT_AFTER_SAVE_AND_NEW');
+
+        if(in_array($labelAfterSaveAction, array('afterSave', 'both'))){
+            if($prevSavedId && !$mvc->_isSaveAndNew){
+                if ($mvc->haveRightFor('printperipherallabel', $prevSavedId)) {
+                    $lUrl = toUrl(array($mvc, 'printperipherallabel', $prevSavedId, 'refreshUrl' => toUrl(getCurrentUrl())), 'local');
+                    $lUrl = urlencode($lUrl);
                     jquery_Jquery::run($tpl, "getEfae().process({url: '{$lUrl}'});", TRUE);
                 }
             }

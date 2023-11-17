@@ -35,7 +35,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
 
 
@@ -421,11 +421,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Попълване на склада за влагане
         $jobRec = static::getJobRec($rec);
-        $jobInputStores = keylist::toArray($jobRec->inputStores);
-        if(countR($jobInputStores) == 1){
-            $threadId = $rec->threadId ?? doc_Containers::fetchField($rec->originId, 'threadId');
-            if(!planning_ConsumptionNotes::existActivatedInThread($threadId)){
-                $form->setDefault('inputStoreId', key($jobInputStores));
+        $threadId = $rec->threadId ?? doc_Containers::fetchField($rec->originId, 'threadId');
+        if(!planning_ConsumptionNotes::existActivatedInThread($threadId)){
+            $selectableStore = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $jobRec->inputStores);
+            if(countR($selectableStore) == 1){
+                $form->setDefault('inputStoreId', key($selectableStore));
             }
         }
 
@@ -904,6 +904,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $uomRec = cat_UoM::fetch($dRec->packagingId, 'roundSignificant,round');
             $dRec->quantity = core_Math::roundNumber($roundQuantity, $uomRec->round, $uomRec->roundSignificant);
+            $dRec->quantity *= $dRec->quantityInPack;
             $dRec->quantityFromBom = $dRec->quantity;
 
             $pRec = cat_Products::fetch($resource->productId, 'measureId,canStore');
@@ -1084,6 +1085,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
         $form->setField('debitPrice', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+
         $form->input();
 
         if (!haveRole('seePrice,ceo')) {
@@ -1092,6 +1094,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->cmd = 'save';
             } else {
                 followRetUrl(null, 'Документът не може да бъде контиран, защото няма себестойност', 'error');
+            }
+        } else {
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('planning_Tasks')){
+                if(isset($form->rec->debitPrice)) {
+                    $form->info = "<div class='formCustomInfo'>Артикулът е към ПО и не може да му се променя очакваната сб-ст</div>";
+                    $form->setReadOnly('debitPrice');
+                }
             }
         }
 

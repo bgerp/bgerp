@@ -229,7 +229,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на Задание без нови контиращи документи->Повече от'),
         'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на Задание без нови контиращи документи->И Заскладено над,callOnChange=planning_Setup::setJobAutoClose'),
         'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
-        'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(secsPer10=Секунди за 10 (мярка),secsPer100=Секунди за 100 (мярка),secsPer1000=Секунди за 1000 (мярка),minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),minPer1000=Минути за 1000 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
+        'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(secsPer10=Секунди за 10 (мярка),secsPer100=Секунди за 100 (мярка),secsPer1000=Секунди за 1000 (мярка),minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),minPer1000=Минути за 1000 (мярка),hoursPer1=Часове за (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
         'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
@@ -304,6 +304,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::updateTasks1520',
         'migrate::updateMigratedTasks1620',
         'migrate::taskDetailsRepairSerchKeywords2341',
+        'migrate::tasksRepairSerchKeywords2346v4',
     );
 
 
@@ -682,5 +683,14 @@ class planning_Setup extends core_ProtoSetup
     public static function taskDetailsRepairSerchKeywords2341()
     {
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ProductionTaskDetails', dt::addSecs(120));
+    }
+
+
+    /**
+     * Форсира регенерирането на ключовите думи за planning_Tasks
+     */
+    public static function tasksRepairSerchKeywords2346v4()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_Tasks', dt::addSecs(120));
     }
 }

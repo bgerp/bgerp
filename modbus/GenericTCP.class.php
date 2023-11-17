@@ -138,7 +138,7 @@ class modbus_GenericTCP extends sens2_ProtoDriver
         
         
         /** @var float Unpacked float value. $value */
-        $value = NaN;
+        $value = "NaN";
         if (isset($vals[0])) {
             if (isset($vals[1])) {
                 $bin_data = pack($u, $vals[0], $vals[1]);

@@ -75,7 +75,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity';
+    public $listFields = 'productId, packagingId, packQuantity=К-во';
     
     
     /**

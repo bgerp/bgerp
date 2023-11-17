@@ -832,7 +832,7 @@ class doc_Threads extends core_Manager
         doc_Folders::requireRightFor('single', $folderRec);
         
         $mvc::applyFilter($data->listFilter->rec, $data->query, $data->rejQuery);
-        $data->rejQuery = clone($data->query);
+
         
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
@@ -845,9 +845,11 @@ class doc_Threads extends core_Manager
         }
         
         // Позволяваме на корицата да модифицира филтъра
+        $data->listFilterAddedFields = array();
         $Cover = doc_Folders::getCover($folderId);
-        $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query));
-        
+        $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query, &$data->listFilterAddedFields));
+        $data->rejQuery = clone $data->query;
+
         $data->query->useCacheForPager = true;
         
         // Ако има търсене, рефрешването да е след по-дълго време
@@ -2354,9 +2356,10 @@ class doc_Threads extends core_Manager
     public static function addBinBtnToToolbar(&$data)
     {
         $data->rejQuery->where("#folderId = {$data->folderId}");
-        
-        // Ако не се търси текст или документ, правим опит за по-бързо намиране на документите
-        if (!$data->listFilter->rec->search && !$data->listFilter->rec->documentClassId) {
+        $filterArr = (array)$data->listFilter->rec;
+
+        // Ако не се търси текст или документ или някое поле добавено от корицата, прави се опит за по-бързо намиране на документите
+        if (!$data->listFilter->rec->search && !$data->listFilter->rec->documentClassId && !array_intersect_key($filterArr, $data->listFilterAddedFields)) {
             $fStatistic = doc_Folders::getStatistic($data->folderId);
             
             $visType = '_all';
@@ -2369,11 +2372,12 @@ class doc_Threads extends core_Manager
             foreach ((array) $fStatistic[$visType]['rejected'] as $cnt) {
                 $rejCnt += $cnt;
             }
+
             $data->rejectedCnt = $rejCnt;
         } else {
             $data->rejectedCnt = $data->rejQuery->count();
         }
-        
+
         if ($data->rejectedCnt) {
             $curUrl = getCurrentUrl();
             $curUrl['Rejected'] = 1;

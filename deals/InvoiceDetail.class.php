@@ -47,7 +47,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, quantity=К-во, packPrice, discount=Отст., amount';
     
     
     /**
@@ -627,7 +627,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             // Проверка на цената
             $msg = null;
-            if (!deals_Helper::isPriceAllowed($rec->price, $rec->quantity, $autoPrice, $msg)) {
+            $quantityInBaseMeasureId = $rec->quantity * $rec->quantityInPack;
+            if (!deals_Helper::isPriceAllowed($rec->price, $quantityInBaseMeasureId, $autoPrice, $msg)) {
                 $form->setError('packPrice,quantity', $msg);
             }
             

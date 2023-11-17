@@ -28,6 +28,9 @@ class doc_SharablePlg extends core_Plugin
         // Поле за потребителите, с които е споделен документа (ако няма)
         if (!$mvc->getField('sharedUsers', false)) {
             $mvc->FLD('sharedUsers', 'userList(showClosedUsers=no)', 'caption=Споделяне->Потребители');
+            if($mvc->hideSharedUsersFld){
+                $mvc->setField('sharedUsers', 'input=hidden');
+            }
         }
         
         // Поле за потребителите, с които е споделен документа (ако няма)
@@ -98,12 +101,7 @@ class doc_SharablePlg extends core_Plugin
                 foreach ((array) $sharedUsersArrAll as $nick) {
                     $nick = strtolower($nick);
                     $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
-                    
-                    // Партнюрите да не са споделение
-                    if (core_Users::haveRole('partner', $id)) {
-                        continue;
-                    }
-                    
+
                     $rec->sharedUsers = type_Keylist::addKey($rec->sharedUsers, $id);
                 }
             }

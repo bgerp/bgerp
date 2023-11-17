@@ -6139,7 +6139,6 @@ dragToScroll = {
 
 
     'run': function () {
-        console.log(document.querySelectorAll('.ef-drag-scroll'));
         document.querySelectorAll('.ef-drag-scroll').forEach((el) => {
             this.mount(el);
         })
