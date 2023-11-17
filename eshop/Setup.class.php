@@ -146,7 +146,7 @@ defIfNot('ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES', 'yes');
 
 
 /**
- * Дефинира име на папка в която ще се съхраняват временните данни данните
+ * Дефинира име на папка в която ще се съхраняват временните данни
  */
 defIfNot('ESHOP_AUTO_EXPORT_SALE_CSV_DIR', '');
 
