@@ -136,9 +136,13 @@ abstract class deals_Helper
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
             $price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
-            
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
-            $discountVal = isset($rec->{$map['discount']}) ? $rec->{$map['discount']} : $rec->{$map['autoDiscount']};
+            $discountVal = $rec->{$map['discount']};
+            if(!empty($rec->{$map['autoDiscount']})){
+                if(in_array($masterRec->state, array('draft', 'pending'))){
+                    $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 4);
+                }
+            }
 
             $noVatAmountOriginal = $noVatAmount;
             if($testRound == 'yes') {

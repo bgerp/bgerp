@@ -36,7 +36,6 @@ class pwa_Setup extends core_ProtoSetup
     public $depends = 'cms=0.1';
 
 
-
     /**
      * Описание на конфигурационните константи
      */

@@ -28,7 +28,7 @@ abstract class deals_DealDetail extends doc_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'tolerance,term';
+    public $fieldsNotToClone = 'tolerance,term,autoDiscount';
     
     
     /**

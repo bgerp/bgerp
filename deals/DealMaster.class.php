@@ -1042,9 +1042,13 @@ abstract class deals_DealMaster extends deals_DealBase
                     $save = true;
                 }
             }
-            
-            if(!isset($dRec->discount) && isset($dRec->autoDiscount)){
-                $dRec->discount = $dRec->autoDiscount;
+
+            if(isset($dRec->autoDiscount)){
+                if(isset($dRec->discount)){
+                    $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4);
+                } else {
+                    $dRec->discount = $dRec->autoDiscount;
+                }
                 $save = true;
             }
             

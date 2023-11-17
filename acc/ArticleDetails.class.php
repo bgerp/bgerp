@@ -137,17 +137,8 @@ class acc_ArticleDetails extends doc_Detail
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
         $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума,remember=info');
-	
-	$this->FLD('reason', 'varchar', 'caption=Допълнителна информация->Забележка');
+        $this->FLD('reason', 'varchar', 'caption=Допълнителна информация->Забележка');
     }
-    
-    
-    /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'amount';
     
     
     /**
