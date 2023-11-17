@@ -248,7 +248,7 @@ class sales_SalesDetails extends deals_DealDetail
                     } else {
                         $row->discount = "<span style='color:blue'>{$row->discount}</span>";
                     }
-                    $hint .= "Изчислена обща|*: {$autoDiscountVerbal}";
+                    $hint .= "Разпределена отстъпка за документа|*: {$autoDiscountVerbal}";
                     $row->discount = ht::createHint($row->discount, $hint, 'notice', false);
                 }
             }
