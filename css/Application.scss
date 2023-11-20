@@ -4867,6 +4867,12 @@ table .eshop-btn {
 	.toolbar-btn{
 		max-width: 16px !important;
 	}
+	.formGroup a {
+		color: #98a2ab;
+		&:hover {
+			color: #637e98 !important;
+		}
+	}
 }
 .narrow .contractorExtHolder {
 	padding: 10px 0px;
