@@ -119,17 +119,16 @@ class cond_Parameters extends bgerp_ProtoParam
 
         // Всички условия групирани по държава (потребителските заместват системните)
         $allConditions = array();
-        $cQuery = cond_Countries::getQuery();
-        $cQuery->where("#conditionId = {$condId}");
-        $cQuery->orderBy('createdBy', 'ASC');
-        while($cRec = $cQuery->fetch()){
-            $allConditions[$cRec->country] = $cRec;
+        $condQuery = cond_Countries::getQuery();
+        $condQuery->where("#conditionId = {$condId}");
+        $condQuery->orderBy('createdBy', 'ASC');
+        while($condRec = $condQuery->fetch()){
+            $allConditions[$condRec->country] = $condRec;
         }
 
         // Ако има поле за държава
         $countryFieldName = $Class->countryFieldName;
-
-        if ($countryFieldName) {
+        if (isset($countryFieldName)) {
 
             // Търси се имали дефинирано търговско условие за държавата на контрагента
             $countryId = $cRec->{$countryFieldName};
