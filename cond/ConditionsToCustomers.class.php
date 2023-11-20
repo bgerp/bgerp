@@ -191,20 +191,18 @@ class cond_ConditionsToCustomers extends core_Manager
         $defQuery->where("#country = '{$cData->countryId}' OR #country IS NULL");
         $defQuery->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
         $defQuery->EXT('order', 'cond_Parameters', 'externalName=order,externalKey=conditionId');
-        $defQuery->show('conditionId,value,group,order');
-        $defQuery->orderBy('country', 'DESC');
-        
+        $defQuery->EXT('sysId', 'cond_Parameters', 'externalName=sysId,externalKey=conditionId');
+        $defQuery->show('conditionId,value,group,order,sysId,createdBy');
+        $defQuery->orderBy('createdBy', 'DESC');
         $conditionsArr = array_keys($data->recs);
         if (countR($conditionsArr)) {
             $defQuery->notIn('conditionId', $conditionsArr);
         }
-        
+
         while ($dRec = $defQuery->fetch()) {
             if (!array_key_exists($dRec->conditionId, $data->recs)) {
                 $data->recs[$dRec->conditionId] = $dRec;
                 $dRow = cond_Countries::recToVerbal($dRec);
-                
-                
                 $dRow->value = ht::createHint($dRow->value, "Стойност по подразбиране за контрагенти от|* \"{$cData->country}\"", 'notice', true, 'width=12px,height=12px');
                 unset($dRow->_rowTools);
                 
