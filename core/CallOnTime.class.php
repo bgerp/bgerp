@@ -324,7 +324,7 @@ class core_CallOnTime extends core_Manager
         $rec->period = 1;
         $rec->offset = 0;
         $rec->delay = 10;
-        $rec->timeLimit = 50;
+        $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
 
         //Данни за работата на cron
@@ -336,7 +336,7 @@ class core_CallOnTime extends core_Manager
         $rec->period = 1;
         $rec->offset = 0;
         $rec->delay = 20;
-        $rec->timeLimit = 50;
+        $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
     }
 }
