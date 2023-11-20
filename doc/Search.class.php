@@ -129,8 +129,8 @@ class doc_Search extends core_Manager
 
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        $tOptArr = tags_Tags::getTagsOptions();
-        $data->listFilter->setSuggestions('tags', $tOptArr['all']);
+        $tagsArr = tags_Tags::getTagsOptions();
+        $data->listFilter->setSuggestions('tags', $tagsArr['all']);
 
         $data->listFilter->input(null, 'silent');
 
@@ -339,7 +339,7 @@ class doc_Search extends core_Manager
                 }
             }
 
-            if ($filterRec->tags || ($filterRec->withMe == 'tag_from_me')) {
+            if ($filterRec->tags) {
                 $data->query->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
 
                 $tagsArr = type_Keylist::toArray($filterRec->tags);
@@ -347,11 +347,7 @@ class doc_Search extends core_Manager
                 $personalTags = tags_Tags::getPersonalTags();
 
                 if ($filterRec->withMe == 'tag_from_me') {
-                    if (empty($tagsArr)) {
-                        $pTags = array_keys($tOptArr['all']);
-                    } else {
-                        $pTags = $tagsArr;
-                    }
+                    $pTags = $tagsArr;
                     $cTags = array();
                 } else {
                     $cTags = array_diff($tagsArr, $personalTags);
