@@ -208,7 +208,8 @@ class core_CallOnTime extends core_Manager
         
         // Сортиране на записите по num
         $data->query->orderBy('state', 'DESC');
-        $data->query->orderBy('callOn', 'DESC');
+        $data->query->orderBy('callOn', 'ASC');
+        $data->query->orderBy('id', 'ASC');
     }
     
     
