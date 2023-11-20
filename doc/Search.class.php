@@ -568,6 +568,7 @@ class doc_Search extends core_Manager
         if (mb_strlen($docRow->title) > doc_Threads::maxLenTitle) {
             $attr['title'] = '|*' . $docRow->title;
         }
+
         $linkUrl = array($docProxy->className, 'single', $docProxy->that);
         
         $search = Request::get('search');
@@ -580,22 +581,18 @@ class doc_Search extends core_Manager
             $attr['class'] .= " tUnsighted";
         }
         
-        $row->title = ht::createLink(
-            
-            str::limitLen($docRow->title, doc_Threads::maxLenTitle),
-            $linkUrl,
-            null,
-            
-            $attr
-        
-        );
+        $row->title = ht::createLink(str::limitLen($docRow->title, doc_Threads::maxLenTitle), $linkUrl, null, $attr);
         
         if ($docRow->authorId > 0) {
             $row->author = crm_Profiles::createLink($docRow->authorId);
         } else {
             $row->author = $docRow->author;
         }
-        
+
+        if ($docRow->subTitle) {
+            $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
+        }
+
         $row->hnd = "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#{$handle}</div>";
     }
     
