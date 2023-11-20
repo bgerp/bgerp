@@ -100,7 +100,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
-        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
+        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен,tag_from_me=Тагнати от мен)', 'caption=Само, placeholder=Всички');
         $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
         $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички, silent');
@@ -346,8 +346,13 @@ class doc_Search extends core_Manager
 
                 $personalTags = tags_Tags::getPersonalTags();
 
-                $cTags = array_diff($tagsArr, $personalTags);
-                $pTags = array_intersect($tagsArr, $personalTags);
+                if ($filterRec->withMe == 'tag_from_me') {
+                    $pTags = $tagsArr;
+                    $cTags = array();
+                } else {
+                    $cTags = array_diff($tagsArr, $personalTags);
+                    $pTags = array_intersect($tagsArr, $personalTags);
+                }
 
                 $or = false;
                 if (!empty($cTags)) {
