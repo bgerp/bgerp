@@ -1800,7 +1800,12 @@ a.tUnsighted {
 	position: relative;
 	top:0px;
 }
-
+.threadSubTitle.onlyTags {
+	display: inline;
+	.documentTags {
+		top: -2px;
+	}
+}
 .portalHeaderTitle {
 	margin-right: 5px;
 }
@@ -2959,6 +2964,14 @@ ul{
        margin-left: 10px;
    }
 }
+
+.inlineRichtext {
+	.richtext, .endTooltip {
+		display: inline  !important;
+	}
+}
+
+
 .inner-text {
    padding-left: 30px;
 }

@@ -1561,6 +1561,11 @@ a.tUnsighted {
   position: relative;
   top: 0px; }
 
+.threadSubTitle.onlyTags {
+  display: inline; }
+  .threadSubTitle.onlyTags .documentTags {
+    top: -2px; }
+
 .portalHeaderTitle {
   margin-right: 5px; }
 
@@ -2533,6 +2538,9 @@ pre.document {
     line-height: 1.5em; }
     .dec-document .richtext ul {
       margin-left: 10px; }
+    .dec-document .inlineRichtext .richtext,
+    .dec-document .inlineRichtext .endTooltip {
+      display: inline !important; }
   .dec-document .inner-text {
     padding-left: 30px; }
   .dec-document table.signiture {
