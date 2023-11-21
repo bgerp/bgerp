@@ -212,7 +212,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         }
 
                         if (!empty($errArray)) {
-                            $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Партньорът не е споделен към папката|*!');
+                            $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Партньорът не е споделен към папката или няма достъп до нишката|*!');
                         } else {
                             $form->rec->visibleForPartners = 'yes';
                         }
