@@ -124,15 +124,18 @@ class rtac_Plugin extends core_Plugin
 
             $userIdsStr = '';
             $shareUsersRoles = str_replace('|', ',', $shareUsersRoles);
+            $threadId = null;
             $folderId = Request::get('folderId');
             if (!$folderId && ($originId = Request::get('originId'))) {
                 $oRec = doc_Containers::fetch($originId);
                 $folderId = $oRec->folderId;
+                $threadId = $oRec->threadId;
             }
 
             if (!$folderId && $threadId = Request::get('threadId')) {
                 $tRec = doc_Threads::fetch($threadId);
                 $folderId = $tRec->folderId;
+                $threadId = $tRec->id;
             }
 
             if (!$folderId && ($rId = Request::get('id')) && ($ctr = Request::get('Ctr'))) {
@@ -142,6 +145,7 @@ class rtac_Plugin extends core_Plugin
                         $cRec = $ctr->fetch($rId);
                         if ($cRec && $cRec->folderId) {
                             $folderId = $cRec->folderId;
+                            $threadId = $cRec->threadId;
                         }
                     }
                 }
@@ -150,7 +154,14 @@ class rtac_Plugin extends core_Plugin
             if ($folderId && core_Packs::isInstalled('colab')) {
                 $contractorIds = colab_FolderToPartners::getContractorsInFolder($folderId);
                 if (!empty($contractorIds)) {
-                    $userIdsStr = implode(',', $contractorIds);
+                    foreach ($contractorIds as $cId) {
+                        if ($threadId && !colab_Threads::haveRightFor('single', doc_Threads::fetch($threadId), $cId)) {
+                            unset($contractorIds[$cId]);
+                        }
+                    }
+                    if (!empty($contractorIds)) {
+                        $userIdsStr = implode(',', $contractorIds);
+                    }
                 }
             }
 
