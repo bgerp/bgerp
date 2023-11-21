@@ -130,6 +130,7 @@ class tags_plg_Add extends core_Plugin
 
             $sTitleStr = '';
             if (!empty($tagsArr)) {
+                $rowObj->_haveTags = true;
 
                 foreach ($tagsArr as $tArr) {
                     if ($mvc->showTagsName) {
@@ -148,8 +149,10 @@ class tags_plg_Add extends core_Plugin
 
             $sTitleStr = "<span class='{$mvc->tagsClassHolderName}'>" . $sTitleStr . "</span>";
 
+            $rowObj->_haveSubtitle = false;
             if ($rowObj->subTitle) {
                 $rowObj->subTitle = "<span class='otherSubtitleStr'>{$rowObj->subTitle}</span>";
+                $rowObj->_haveSubtitle = true;
             }
 
             if ($mvc->addTagsToSubtitle == 'after') {
