@@ -141,6 +141,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
             if ($form->isSubmitted()) {
 
                 // Ако има споделени партньори, добавя се предупреждение
+                $selectedPartners = array();
                 if(isset($rec->sharedUsers)){
                     $sharedUsers = keylist::toArray($rec->sharedUsers);
                     $partners = core_Users::getByRole('partner');
@@ -192,15 +193,26 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     if (!empty($allSharedUsersArr)) {
                         foreach ($allSharedUsersArr as $uId) {
                             unset($selectedPartners[$uId]);
-                            $cRec = colab_FolderToPartners::fetchField(array("#folderId = '[#1#]' AND #contractorId = '[#2#]'", $form->rec->folderId, $uId));
 
-                            if (!$cRec) {
-                                $errArray[$uId] = core_Users::getNick($uId);
+                            if(core_Users::isContractor($uId) && core_Packs::isInstalled('colab')){
+                                if(empty($rec->threadId)){
+                                    if(isset($rec->folderId)){
+                                        if(!colab_Folders::haveRightFor('list', (object) array('folderId' => $rec->folderId), $uId)){
+                                            $errArray[$uId] = core_Users::getNick($uId);
+                                        }
+                                    } else {
+                                        $errArray[$uId] = core_Users::getNick($uId);
+                                    }
+                                } else {
+                                    if(!colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId), $uId)){
+                                        $errArray[$uId] = core_Users::getNick($uId);
+                                    }
+                                }
                             }
                         }
 
                         if (!empty($errArray)) {
-                            $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Контракторът не е споделен към папката');
+                            $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Партньорът не е споделен към папката|*!');
                         } else {
                             $form->rec->visibleForPartners = 'yes';
                         }
