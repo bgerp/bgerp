@@ -84,7 +84,7 @@
     </div>
     <div style='clear: both;'></div>
     <!--ET_BEGIN body--> 
-    <div style='padding:6px 10px 10px;'>
+    <div class="innerDocument">
     <!--ET_BEGIN subject--><h3 class='richtext-title'>[#subject#]</h3><!--ET_END subject-->
         <div>[#body#]</div>
     </div>
