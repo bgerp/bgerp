@@ -3008,6 +3008,19 @@ padding: 5px 3px 2px !important;
 		vertical-align: middle;
 	}
 }
+.closedFrameUpdateTimeTitle {
+	font-weight: bold;
+	color: red !important;
+}
+.closedFrameUpdateTime {
+	font-weight: bold;
+	color: red !important;
+	border: 1px dotted red;
+	padding: 2px;
+	span {
+		color: red !important;
+	};
+}
 /*край на стилове за документи*/
 
 
