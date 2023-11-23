@@ -182,8 +182,14 @@ class frame2_Reports extends embed_Manager
      * Кеш на обновените справки
      */
     protected $setNewUpdateTimes = array();
-    
-    
+
+
+    /**
+     * Кеш на следващите времена за обновяване
+     */
+    protected static $nextRefreshTimesCache = array();
+
+
     /**
      * Дефолтен текст за нотификация
      */
@@ -590,7 +596,7 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         $rec = $data->rec;
-        
+
         // Рендиране на данните
         if ($Driver = $mvc->getDriver($rec)) {
             
@@ -611,7 +617,16 @@ class frame2_Reports extends embed_Manager
                 if(isset($lang)){
                     core_Lg::pop();
                 }
-                
+
+                if ($rec->state == 'closed') {
+                    if(!Mode::is('printing')){
+                        $nextUpdates = self::getNextRefreshDates($rec);
+                        if (countR($nextUpdates)) {
+                            $tpl->append("<div class='richtext-message richtext-warning'>" . tr('Справката няма да се актуализира докато е затворена') . "</div>", 'DRIVER_FIELDS');
+                        }
+                    }
+                }
+
                 if (Mode::is('saveJS')) {
                     $tpl->replace($tplData, 'DRIVER_DATA');
                 } else{
@@ -945,6 +960,9 @@ class frame2_Reports extends embed_Manager
             $nextUpdates = self::getNextRefreshDates($rec);
             if (countR($nextUpdates)) {
                 $updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', true, 'height=12px;width=12px');
+                if(!Mode::is('printing')){
+                    $row->lastRefreshed = "<span class='closedFrameUpdateTime'>{$row->lastRefreshed}</span>";
+                }
             }
         }
         
@@ -1121,11 +1139,10 @@ class frame2_Reports extends embed_Manager
     private static function getNextRefreshDates($rec)
     {
         // Ако няма зададени времена, няма да има дати за обновяване
-        if (empty($rec->updateDays) && empty($rec->updateTime)) {
-            
-            return array();
-        }
-        
+        if (empty($rec->updateDays) && empty($rec->updateTime)) return array();
+
+        if(isset(static::$nextRefreshTimesCache[$rec->id])) return static::$nextRefreshTimesCache[$rec->id];
+
         $fromDate = $rec->lastRefreshed;
         $dayKeys = array(1 => 'monday', 2 => 'tuesday', 3 => 'wednesday', 4 => 'thursday', 5 => 'friday', 6 => 'saturday', 7 => 'sunday');
         $date = new DateTime($fromDate);
@@ -1217,9 +1234,11 @@ class frame2_Reports extends embed_Manager
         
         // Сортират се
         sort($res);
-        
+
         // Връщат се най близките 3 дати
-        return array($res[0], $res[1], $res[2]);
+        static::$nextRefreshTimesCache[$rec->id] = array($res[0], $res[1], $res[2]);
+
+        return static::$nextRefreshTimesCache[$rec->id];
     }
     
     
