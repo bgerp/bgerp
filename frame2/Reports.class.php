@@ -622,7 +622,8 @@ class frame2_Reports extends embed_Manager
                     if(!Mode::is('printing')){
                         $nextUpdates = self::getNextRefreshDates($rec);
                         if (countR($nextUpdates)) {
-                            $tpl->append("<div class='richtext-message richtext-warning'>" . tr('Справката няма да се актуализира докато е затворена') . "</div>", 'DRIVER_FIELDS');
+                            $noticeMsg = (Mode::is('text', 'xhtml') || core_Users::isContractor()) ? tr('Данните не са актуални') : tr('Справката няма да се актуализира докато е затворена');
+                            $tpl->append("<div class='richtext-message richtext-warning'>{$noticeMsg}</div>", 'DRIVER_FIELDS');
                         }
                     }
                 }
