@@ -1247,10 +1247,18 @@ class bgerp_Notifications extends core_Manager
         $valsArr = array();
         
         // Настройки за папка
+        $cu = core_Users::getCurrent();
         if ($folderId) {
             $fKey = doc_Folders::getSettingsKey($folderId);
-            
-            $folderTitle = doc_Folders::getLinkForObject($folderId);
+
+            if(core_Users::isContractor($cu) && core_Packs::isInstalled('colab')){
+                $folderTitle = doc_Folders::getTitleById($folderId);
+                if(colab_Threads::haveRightFor('list', (object)array('folderId' => $folderId))){
+                    $folderTitle = ht::createLink($folderTitle, array('colab_Threads', 'list', 'folderId' => $folderId));
+                }
+            } else {
+                $folderTitle = doc_Folders::getLinkForObject($folderId);
+            }
             
             $fCaption = "Известяване в|* {$folderTitle} |при";
             
@@ -1286,8 +1294,17 @@ class bgerp_Notifications extends core_Manager
         // Настройки за нишка
         if ($containerId && $threadId) {
             $tKey = doc_Threads::getSettingsKey($threadId);
-            
-            $threadTitle = doc_Threads::getLinkForObject($threadId);
+
+            if(core_Users::isContractor($cu) && core_Packs::isInstalled('colab')){
+                $threadDoc = doc_Threads::getFirstDocument($threadId);
+                $threadTitle = $threadDoc->getDocumentRow()->title;
+                if(colab_Threads::haveRightFor('single', doc_Threads::fetch($threadId))){
+                    $threadTitle = ht::createLink($threadTitle, array('colab_Threads', 'single', 'threadId' => $threadId));
+                }
+            } else {
+                $threadTitle = doc_Threads::getLinkForObject($threadId);
+            }
+
             $tCaption = "Известяване в|* {$threadTitle} |при";
             $enumTypeArr['caption'] = $tCaption . '->Нов документ';
             

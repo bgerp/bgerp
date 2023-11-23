@@ -67,6 +67,23 @@ abstract class email_drivers_OutgoingEmails extends core_BaseClass
 
 
     /**
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     */
+    protected static function on_AfterDelete($Driver, $mvc, &$numRows, $query, $cond)
+    {
+        foreach ((array) $query->getDeletedRecs() as $rec) {
+            $uRec = array();
+            $fNameArr = arr::make($Driver->updateField);
+            foreach ($fNameArr as $addrFName) {
+                $uRec[$addrFName] = null;
+            }
+
+            email_AddressesInfo::updateRecFor($rec->email, $uRec);
+        }
+    }
+
+
+    /**
      * След рендиране на единичния изглед
      *
      * @param tremol_FiscPrinterDriverWeb $Driver

@@ -368,7 +368,7 @@ class tags_Logs extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
 
-        return $form->renderHtml();
+        return $this->renderWrapping($form->renderHtml());
     }
 
 

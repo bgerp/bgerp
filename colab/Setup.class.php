@@ -176,7 +176,9 @@ class colab_Setup extends core_ProtoSetup
         
         // Закачане към складове
         $html .= $Plugins->installPlugin('Споделяне складове с партньори', 'colab_plg_FolderToPartners', 'store_Stores', 'private');
-        
+
+        $html .= $Plugins->installPlugin('Споделяне на центрове на дейност с партньори', 'colab_plg_FolderToPartners', 'planning_Centers', 'private');
+
         // Закачаме плъгина към документи, които са видими за партньори
         $html .= $Plugins->installPlugin('Colab за приходни банкови документи', 'colab_plg_Document', 'bank_IncomeDocuments', 'private');
         $html .= $Plugins->installPlugin('Colab за разходни банкови документи', 'colab_plg_Document', 'bank_SpendingDocuments', 'private');

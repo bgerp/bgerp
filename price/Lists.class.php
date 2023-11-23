@@ -170,7 +170,7 @@ class price_Lists extends core_Master
         $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка / Отстъпка по подразбиране->Процент', "unit= |(със знак минус за Отстъпка)");
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
-        $this->FLD('discountClass', 'class(interface=price_SaleAutoDiscountIntf,select=title,allowEmpty)', 'caption=Клас за автоматични отстъпки->Избор,autohide');
+        $this->FLD('discountClass', 'class(interface=price_SaleAutoDiscountIntf,select=title,allowEmpty)', 'caption=Автоматични отстъпки->Избор,autohide');
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
     }
@@ -854,11 +854,9 @@ class price_Lists extends core_Master
         $query->show('maxModifiedOn');
         $keys[] = $query->fetch()->maxModifiedOn;
 
-
-
         $hash = md5(implode('|', $keys));
         $pricelistHash = core_Permanent::get("priceListHash");
-        //bp($keys, $hash, $pricelistHash);
+
         if($hash != $pricelistHash){
             core_Permanent::set('priceListHash', $hash, 60);
 
