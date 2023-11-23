@@ -955,12 +955,14 @@ class frame2_Reports extends embed_Manager
         
         $resArr['title'] = array('name' => tr('Заглавие'), 'val' => $titleObj);
         $updateHeaderName = tr('Актуализиране');
-        
+        $lastRefreshedHeaderName = tr('Актуален към');
+
         if ($rec->state == 'closed') {
             $nextUpdates = self::getNextRefreshDates($rec);
             if (countR($nextUpdates)) {
                 $updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', true, 'height=12px;width=12px');
                 if(!Mode::is('printing')){
+                    $lastRefreshedHeaderName = "<span class='closedFrameUpdateTime'>{$lastRefreshedHeaderName}</span>";
                     $row->lastRefreshed = "<span class='closedFrameUpdateTime'>{$row->lastRefreshed}</span>";
                 }
             }
@@ -972,7 +974,7 @@ class frame2_Reports extends embed_Manager
         }
         
         if (isset($rec->lastRefreshed)) {
-            $resArr['lastRefreshed'] = array('name' => tr('Актуален към'), 'val' => $row->lastRefreshed);
+            $resArr['lastRefreshed'] = array('name' => $lastRefreshedHeaderName, 'val' => $row->lastRefreshed);
         }
         
         if (isset($rec->sharedUsers)) {
