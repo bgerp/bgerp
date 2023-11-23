@@ -2541,9 +2541,6 @@ pre.document {
     line-height: 1.5em; }
     .dec-document .richtext ul {
       margin-left: 10px; }
-    .dec-document .inlineRichtext .richtext,
-    .dec-document .inlineRichtext .endTooltip {
-      display: inline !important; }
   .dec-document .inner-text {
     padding-left: 30px; }
   .dec-document table.signiture {
@@ -2566,6 +2563,11 @@ pre.document {
 
 .document table.listTable > tbody > tr > td {
   padding: 5px 3px 2px !important; }
+
+  .inlineRichtextCond .richtext,
+  .inlineRichtextCond .endTooltip {
+    display: inline !important;
+    vertical-align: middle; }
 
 /*
  * край на стилове за документи
