@@ -123,10 +123,6 @@ class price_interface_BasicDiscountImpl extends core_Manager
             }
             $this->calcedPercent =  round(($calcDiscountInListCurrency / $totalOld), 4);
 
-            if(haveRole('debug')){
-                core_Statuses::newStatus("PNT:{$this->calcedPercent}; DISC:{$calcDiscountInListCurrency}; TOTAL:{$totalOld}", 'warning');
-            }
-
             return $this->calcedPercent;
         }
     }
