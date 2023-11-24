@@ -133,6 +133,14 @@ class crm_Setup extends core_ProtoSetup
             'offset' => 70,
             'timeLimit' => 300
         ),
+        array(
+            'systemId' => 'syncContragentCards',
+            'description' => 'Синхронизиране на клиентските карти',
+            'controller' => 'crm_ext_Cards',
+            'action' => 'SyncContragentCards',
+            'period' => 1,
+            'timeLimit' => 20,
+        ),
     );
     
     
@@ -229,6 +237,8 @@ class crm_Setup extends core_ProtoSetup
         $rec->offset = 16;
         $rec->delay = 0;
         $html .= core_Cron::addOnce($rec);
+
+        core_Interfaces::add('crm_interface_CardSourceIntf');
 
         return $html;
     }
