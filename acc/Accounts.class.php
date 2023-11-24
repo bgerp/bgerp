@@ -128,7 +128,7 @@ class acc_Accounts extends core_Manager
      * Описание на модела (таблицата)
      */
     public function description()
-    {
+    {//hello world
         $this->FLD('num', 'varchar(5)', 'caption=№,mandatory,remember=info, export');
         $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info, export');
         $this->FLD(
