@@ -141,17 +141,17 @@ class batch_plg_DocumentMovement extends core_Plugin
         if(countR($productsWithoutBatchesArr) || countR($productsWithNotExistingBatchesArr) || countR($batchDiffArr)){
             if(countR($productsWithoutBatchesArr)){
                 $productMsg = implode(', ', $productsWithoutBatchesArr);
-                core_Statuses::newStatus("Следните артикули, не могат да са без партида|*: {$productMsg}", 'error');
+                core_Statuses::newStatus("Артикулите не могат да са без партида|*: {$productMsg}", 'error');
             }
             
             if(countR($productsWithNotExistingBatchesArr)){
                 $productMsg = implode(', ', $productsWithNotExistingBatchesArr);
-                core_Statuses::newStatus("Следните артикули, са с неналични партиди|*: {$productMsg}", 'error');
+                core_Statuses::newStatus("Артикули с неналични партиди|*: {$productMsg}", 'error');
             }
 
             if(countR($batchDiffArr)){
                 $productMsg = implode(', ', $batchDiffArr);
-                core_Statuses::newStatus("Следните артикули, разпределеното по партиди е повече от това на реда|*: {$productMsg}", 'error');
+                core_Statuses::newStatus("Разпределеното по партиди е повече от количеството на артикула|*: {$productMsg}", 'error');
             }
             
             $res = false;

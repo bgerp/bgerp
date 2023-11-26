@@ -50,7 +50,7 @@ class log_Debug extends core_Manager
     /**
      * Кой може да репортва грешките
      */
-    public $canReport = 'every_one';
+    public $canReport = 'user';
     
     
     /**

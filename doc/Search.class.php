@@ -100,7 +100,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
-        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
+        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен,tag_from_me=Тагнати от мен)', 'caption=Само, placeholder=Всички');
         $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
         $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички, silent');
@@ -129,8 +129,8 @@ class doc_Search extends core_Manager
 
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        $tagsArr = tags_Tags::getTagsOptions();
-        $data->listFilter->setSuggestions('tags', $tagsArr['all']);
+        $tOptArr = tags_Tags::getTagsOptions();
+        $data->listFilter->setSuggestions('tags', $tOptArr['all']);
 
         $data->listFilter->input(null, 'silent');
 
@@ -339,15 +339,24 @@ class doc_Search extends core_Manager
                 }
             }
 
-            if ($filterRec->tags) {
+            if ($filterRec->tags || ($filterRec->withMe == 'tag_from_me')) {
                 $data->query->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
 
                 $tagsArr = type_Keylist::toArray($filterRec->tags);
 
                 $personalTags = tags_Tags::getPersonalTags();
 
-                $cTags = array_diff($tagsArr, $personalTags);
-                $pTags = array_intersect($tagsArr, $personalTags);
+                if ($filterRec->withMe == 'tag_from_me') {
+                    if (empty($tagsArr)) {
+                        $pTags = array_keys($tOptArr['all']);
+                    } else {
+                        $pTags = $tagsArr;
+                    }
+                    $cTags = array();
+                } else {
+                    $cTags = array_diff($tagsArr, $personalTags);
+                    $pTags = array_intersect($tagsArr, $personalTags);
+                }
 
                 $or = false;
                 if (!empty($cTags)) {
@@ -568,6 +577,7 @@ class doc_Search extends core_Manager
         if (mb_strlen($docRow->title) > doc_Threads::maxLenTitle) {
             $attr['title'] = '|*' . $docRow->title;
         }
+
         $linkUrl = array($docProxy->className, 'single', $docProxy->that);
         
         $search = Request::get('search');
@@ -580,22 +590,18 @@ class doc_Search extends core_Manager
             $attr['class'] .= " tUnsighted";
         }
         
-        $row->title = ht::createLink(
-            
-            str::limitLen($docRow->title, doc_Threads::maxLenTitle),
-            $linkUrl,
-            null,
-            
-            $attr
-        
-        );
+        $row->title = ht::createLink(str::limitLen($docRow->title, doc_Threads::maxLenTitle), $linkUrl, null, $attr);
         
         if ($docRow->authorId > 0) {
             $row->author = crm_Profiles::createLink($docRow->authorId);
         } else {
             $row->author = $docRow->author;
         }
-        
+
+        if ($docRow->subTitle) {
+            $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
+        }
+
         $row->hnd = "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#{$handle}</div>";
     }
     

@@ -2,7 +2,7 @@
 use HeadlessChromium\BrowserFactory;
 
 /**
- * Дефинира име на папка в която ще се съхраняват временните данни данните
+ * Дефинира име на папка в която ще се съхраняват временните данни
  */
 defIfNot('CHROMEPHP_TEMP_DIR', EF_TEMP_PATH . '/chromephp');
 

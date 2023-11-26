@@ -110,7 +110,12 @@ class cond_Countries extends core_Manager
     {
         $where = "#id != '{$rec->id}' AND #conditionId = {$rec->conditionId}";
         $where .= (!empty($rec->country)) ? " AND #country = {$rec->country}" : " AND (#country IS NULL OR #country = 0 OR #country = '')";
-        
+
+        if(!core_Users::isSystemUser()){
+            $systemUserId = core_Users::SYSTEM_USER;
+            $where .= " AND #createdBy != '{$systemUserId}'";
+        }
+
         $res = $this->fetch($where);
         if ($res) {
             $exRec = $res;
@@ -209,6 +214,26 @@ class cond_Countries extends core_Manager
         // Подреждане по държава
         $data->query->XPR('orderCountry', 'int', '(CASE WHEN #country IS NULL THEN 0 ELSE 1 END)');
         $data->query->orderBy('#orderCountry', 'DESC');
+
+        // Ако има условия зададени от системата
+        $skipSystemRecs = array();
+        $prevRecs = $data->query->fetchAll();
+        $systemRecs = array_filter($prevRecs, function($a){return $a->createdBy == core_Users::SYSTEM_USER;});
+
+        // Проверява се дали са вече предефинирани от потребител
+        foreach ($systemRecs as $systemRec){
+            $userRecs = array_filter($prevRecs, function($a) use ($systemRec){
+                return ($a->country == $systemRec->country && $a->conditionId == $systemRec->conditionId && $a->createdBy != core_Users::SYSTEM_USER);
+            });
+            if(countR($userRecs)){
+                $skipSystemRecs[] = $systemRec->id;
+            }
+        }
+
+        // Ако има предефинирани системни условия - не се показват
+        if(countR($skipSystemRecs)){
+            $data->query->notIn("id", $skipSystemRecs);
+        }
     }
     
     

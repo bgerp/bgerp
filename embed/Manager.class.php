@@ -32,7 +32,7 @@ abstract class embed_Manager extends core_Master
      * Задължително ли е полето за избор на драйвер
      */
     public $mandatoryDriverField = true;
-    
+
     
     /**
      * След дефиниране на полетата на модела
@@ -50,14 +50,14 @@ abstract class embed_Manager extends core_Master
             $caption = $mvc->driverClassCaption ? $mvc->driverClassCaption : 'Вид';
             $mvc->FLD($mvc->driverClassField, "class(interface={$mvc->driverInterface}, allowEmpty, select=title)", "caption={$caption},mandatory,silent,refreshForm,after=id");
         }
-        
+
         if (!isset($mvc->fields['driverRec'])) {
             $mvc->FLD('driverRec', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,column=none,single=none');
         }
         
         // Кои полета да се помнят след изтриване
         $fieldsBeforeDelete = "id, {$mvc->driverClassField}, driverRec";
-        $mvc->fetchFieldsBeforeDelete = $fieldsBeforeDelete;
+        $mvc->fetchFieldsBeforeDelete = $mvc->fetchFieldsBeforeDelete ? $mvc->fetchFieldsBeforeDelete . ', ' . $fieldsBeforeDelete : $fieldsBeforeDelete;
         
         $mvc->setDbIndex($mvc->driverClassField);
     }
@@ -329,7 +329,7 @@ abstract class embed_Manager extends core_Master
         $status = parent::invoke($event, $args);
         
         $driverClass = null;
-        
+
         if ($status !== false) {
             switch (strtolower($event)) {
                 case 'aftercreate':
@@ -382,7 +382,6 @@ abstract class embed_Manager extends core_Master
                 case 'aftergethidearrforletterhead':
                 case 'beforesaveclonerec':
                 case 'beforesave':
-                case 'aftercreate':
                 case 'aftergetdetailstoclone':
                 case 'aftergetfieldforletterhead':
                 case 'aftergetfieldsnottoclone':
@@ -403,6 +402,13 @@ abstract class embed_Manager extends core_Master
                         $driverClass = $rec->driverClass;
                     }
                     
+                    break;
+                case 'afterdelete' :
+                    $rArr = $args[1]->getDeletedRecs();
+                    if (!empty($rArr)) {
+                        $rObj = array_shift($rArr);
+                        $driverClass = $rObj->{$this->driverClassField};
+                    }
                     break;
             }
             

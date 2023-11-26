@@ -1556,6 +1556,11 @@ a.tUnsighted {
   position: relative;
   top: -4px; }
 
+.threadSubTitle .documentTags .tags {
+  font-size: 0.9em;
+  position: relative;
+  top: 0px; }
+
 .portalHeaderTitle {
   margin-right: 5px; }
 
@@ -4162,6 +4167,10 @@ table .eshop-btn {
     text-shadow: none; }
   .contractorExtHolder .toolbar-btn {
     max-width: 16px !important; }
+  .contractorExtHolder .formGroup a {
+    color: #98a2ab; }
+    .contractorExtHolder .formGroup a:hover {
+      color: #637e98 !important; }
 
 .narrow .contractorExtHolder {
   padding: 10px 0px; }
@@ -5123,14 +5132,20 @@ div.location.public {
   float: none;
   text-align: center; }
 
+.flexBox {
+  display: flex;
+  align-content: baseline;
+  align-items: baseline; }
+  .flexBox div {
+    display: flex;
+    align-content: baseline;
+    align-items: baseline; }
+
   .barcodeSearch .noPadding {
     padding: 0px !important; }
   .barcodeSearch .listTable {
     width: 100%;
     margin-bottom: 0 !important; }
-
-.no-padding td {
-  padding: 0; }
 
 /*
  * шаблон за пускане в експлоатация на ДА

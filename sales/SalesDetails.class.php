@@ -233,10 +233,30 @@ class sales_SalesDetails extends deals_DealDetail
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             $pInfo = cat_Products::getProductInfo($rec->productId);
-            
+
+            if(isset($rec->autoDiscount)){
+                $hint = '';
+                if(in_array($masterRec->state, array('draft', 'pending'))){
+                    $autoDiscountVerbal = $mvc->getFieldType('discount')->toVerbal($rec->autoDiscount);
+                    if(isset($rec->discount)){
+                        $manualDiscount = $row->discount;
+                        $middleDiscount = round((1 - (1 - $rec->discount) * (1 - $rec->autoDiscount)), 4);
+                        $row->discount = $mvc->getFieldType('discount')->toVerbal($middleDiscount);
+                        $row->discount = "<span style='color:blue'>{$row->discount}</span>";
+                        $autoDiscountVerbal = $mvc->getFieldType('discount')->toVerbal($middleDiscount - $rec->discount);
+                        $hint .= "Зададена отстъпка|*: {$manualDiscount}; ";
+                    } else {
+                        $row->discount = "<span style='color:blue'>{$row->discount}</span>";
+                    }
+                    $hint .= "Разпределена отстъпка за документа|*: {$autoDiscountVerbal}";
+                    $row->discount = ht::createHint($row->discount, $hint, 'notice', false);
+                }
+            }
+
             if(!isset($rec->discount) && isset($rec->autoDiscount)){
                 $row->discount = $mvc->getFieldType('discount')->toVerbal($rec->autoDiscount);
-                $row->discount = ht::createHint($row->discount, 'Отстъпката е сметната автоматично');
+                $row->discount = "<span style='color:blue'>{$row->discount}</span>";
+                $row->discount = ht::createHint($row->discount, 'Автоматично изчислена отстъпка', 'notice', false);
             }
             
             if (isset($pInfo->meta['canStore'])) {

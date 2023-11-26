@@ -2,7 +2,7 @@
 
 
 /**
- * Клас за автоматични отстъпки автоматични отстъпки според сумата към политика
+ * Клас за Отстъпки от общата сума
  *
  *
  * @category  bgerp
@@ -13,14 +13,14 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Автоматични отстъпки според сумата
+ * @title     Отстъпки от общата сума
  */
 class price_interface_BasicDiscountImpl extends core_Manager
 {
     /**
      * Заглавие
      */
-    public $title = 'Автоматични отстъпки според сумата';
+    public $title = 'Отстъпки от общата сума';
 
 
     /**
@@ -84,11 +84,14 @@ class price_interface_BasicDiscountImpl extends core_Manager
         $dQuery = sales_SalesDetails::getQuery();
         $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $dQuery->where("#saleId = {$masterRec->id} AND #isPublic = 'yes'");
+
         while($dRec = $dQuery->fetch()){
-            $totalAmountWithoutVatAndDiscount += $dRec->amount;
+            $amount = isset($dRec->discount) ? ($dRec->amount * (1 - $dRec->discount)) : $dRec->amount;
+            $totalAmountWithoutVatAndDiscount += $amount;
             $vat = cat_Products::getVat($dRec->productId, $masterRec->valior);
-            $totalAmountWithVatAndWithoutDiscount += $dRec->amount * (1 + $vat);
+            $totalAmountWithVatAndWithoutDiscount += $amount * (1 + $vat);
         }
+
         $totalAmountWithoutVatAndDiscount = round($totalAmountWithoutVatAndDiscount, 2);
         $totalAmountWithVatAndWithoutDiscount = round($totalAmountWithVatAndWithoutDiscount, 2);
 
