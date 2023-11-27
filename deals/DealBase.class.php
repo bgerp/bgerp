@@ -408,9 +408,9 @@ abstract class deals_DealBase extends core_Master
                     foreach ($diffCountries as $diffDealId){
                         $dealList[] = "#" . $this->getHandle($diffDealId);
                     }
-                    $countryWarningMsg = "Следните договори са с различна държава на доставка от обединяващия договор|*: " . implode(',', $dealList);
+                    $countryWarningMsg = "Държавата на доставка в обединяващия договор е различна от държавата на доставка в|*: " . implode(',', $dealList);
                 } else {
-                    $countryWarningMsg = "Обединяващия договор няма посочена държава за доставка, а избраните за обединяване имат|*!";
+                    $countryWarningMsg = "Обединяват се договори с избрана държава на доставка в договор без посочена такава|*!";
                 }
             }
 
