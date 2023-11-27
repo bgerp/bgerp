@@ -405,10 +405,12 @@ abstract class deals_DealBase extends core_Master
                 if(isset($toCountryId)){
                     $dealList = array();
                     $diffCountries = array_diff_key($dealCountries, array($toCountryId => $toCountryId));
-                    foreach ($diffCountries as $diffDealId){
-                        $dealList[] = "#" . $this->getHandle($diffDealId);
+                    if(countR($diffCountries)){
+                        foreach ($diffCountries as $diffDealId){
+                            $dealList[] = "#" . $this->getHandle($diffDealId);
+                        }
+                        $countryWarningMsg = "Държавата на доставка в обединяващия договор е различна от държавата на доставка в|*: " . implode(',', $dealList);
                     }
-                    $countryWarningMsg = "Държавата на доставка в обединяващия договор е различна от държавата на доставка в|*: " . implode(',', $dealList);
                 } else {
                     $countryWarningMsg = "Обединяват се договори с избрана държава на доставка в договор без посочена такава|*!";
                 }
