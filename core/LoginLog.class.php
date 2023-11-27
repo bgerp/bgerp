@@ -218,11 +218,12 @@ class core_LoginLog extends core_Manager
     /**
      * Проверява дали от този `brid` е осъществено логване
      *
-     * @param IP $ip
+     * @param string $ip
+     * @param bool $or
      *
      * @return bool
      */
-    public static function isLoggedBefore($ip = null)
+    public static function isLoggedBefore($ip = null, $or = false)
     {
         $brid = log_Browsers::getBrid();
         
@@ -230,7 +231,7 @@ class core_LoginLog extends core_Manager
         $query->where(array("#brid = '[#1#]'", $brid));
         
         if ($ip) {
-            $query->where(array("#ip = '[#1#]'", $ip));
+            $query->where(array("#ip = '[#1#]'", $ip), $or);
         }
         
         $query->where("#status = 'success'");
