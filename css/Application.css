@@ -2016,6 +2016,12 @@ a.tUnsighted {
   float: left;
   display: inline-block; }
 
+.priority-high {
+  color: #882200; }
+
+.priority-critical {
+  color: #cc0033; }
+
 .docBgIcon {
   position: relative; }
 

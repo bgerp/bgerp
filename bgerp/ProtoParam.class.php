@@ -421,22 +421,24 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Ограничаване на символите на стойноста, ако е текст
      *
-     * @param mixed $driverClass
+     * @param mixed $rec
      * @param mixed $value
      *
      * @return mixed $value
      */
-    public static function limitValue($driverClass, $value)
+    public static function limitValue($rec, $value)
     {
-        $driverClass = cls::get($driverClass);
+        $rec = static::fetchRec($rec);
+        $driverClass = cls::get($rec->driverClass);
         if (($driverClass instanceof cond_type_Text) && mb_strlen($value) > 90) {
-            $bHtml = mb_strcut($value, 0, 90);
-            
-            $title = tr('Вижте още');
-            $id = md5($value);
-            $value = "{$bHtml} . <br><a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon nojs' style=\"font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\"
+            if($rec->richtext != 'yes'){
+                $bHtml = mb_strcut($value, 0, 90);
+                $title = tr('Вижте още');
+                $id = md5($value);
+                $value = "{$bHtml} . <br><a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon nojs' style=\"font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\"
                    >{$title}</a><div class='clearfix21 richtextHide' id='{$id}'>{$value}</div>";
-            $value = cls::get('type_Html')->toVerbal($value);
+                $value = cls::get('type_Html')->toVerbal($value);
+            }
         }
         
         return $value;

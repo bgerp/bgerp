@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
