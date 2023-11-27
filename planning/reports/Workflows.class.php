@@ -567,7 +567,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
             $fld->FLD('labelQuantity', 'double(decimals=2)', 'caption=Етикет->кол,tdClass=centered');
-            $fld->FLD('total', 'varchar', 'caption=@ТОТАЛ');
+           // $fld->FLD('total', 'varchar', 'caption=@ТОТАЛ');
         }
 
         return $fld;
