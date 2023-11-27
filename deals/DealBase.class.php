@@ -398,23 +398,24 @@ abstract class deals_DealBase extends core_Master
                 $threads[$dealRec->threadId] = $dealRec->threadId;
             }
 
+            $countryWarningMsg = array();
             $logisticData = $this->getLogisticData($rec->id);
-            if(isset($logisticData['toCountry'])){
+            if(countR($dealCountries)){
                 $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
-                $diffCountries = array_diff_key($dealCountries, array($toCountryId => $toCountryId));
-                if(countR($diffCountries)){
+                if(isset($toCountryId)){
                     $dealList = array();
+                    $diffCountries = array_diff_key($dealCountries, array($toCountryId => $toCountryId));
                     foreach ($diffCountries as $diffDealId){
                         $dealList[] = "#" . $this->getHandle($diffDealId);
                     }
-                    $msg = "Следните договори са с различна държава на доставка от обединяващия договор|*: " . implode(',', $dealList);
-                    $form->setWarning('closeWith', $msg);
+                    $countryWarningMsg = "Следните договори са с различна държава на доставка от обединяващия договор|*: " . implode(',', $dealList);
+                } else {
+                    $countryWarningMsg = "Обединяващия договор няма посочена държава за доставка, а избраните за обединяване имат|*!";
                 }
             }
 
-            if (countR($err)) {
-                $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
-                $form->setError('closeWith', $msg);
+            if(!empty($countryWarningMsg)){
+                $form->setWarning('closeWith', $countryWarningMsg);
             }
 
             if (countR($warning) != 1) {
