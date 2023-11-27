@@ -270,11 +270,6 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             if (!$form->gotErrors()) {
-                $idToCheck = ($form->cmd == 'save_new_row') ? null : $rec->id;
-
-                if(!$rec->_createProductForm && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $idToCheck, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
-                    $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
-                }
 
                 if (isset($masterRec->deliveryPlaceId)) {
                     if ($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}' AND #contragentCls = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}", 'id')) {

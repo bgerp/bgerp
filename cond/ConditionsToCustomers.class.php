@@ -183,7 +183,6 @@ class cond_ConditionsToCustomers extends core_Manager
             $data->recs[$rec->conditionId] = $rec;
             $row = static::recToVerbal($rec);
             core_RowToolbar::createIfNotExists($row->_rowTools);
-            
             $data->rows[$rec->conditionId] = $row;
         }
         
@@ -191,25 +190,31 @@ class cond_ConditionsToCustomers extends core_Manager
         $defQuery->where("#country = '{$cData->countryId}' OR #country IS NULL");
         $defQuery->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
         $defQuery->EXT('order', 'cond_Parameters', 'externalName=order,externalKey=conditionId');
-        $defQuery->show('conditionId,value,group,order');
-        $defQuery->orderBy('country', 'DESC');
-        
+        $defQuery->EXT('sysId', 'cond_Parameters', 'externalName=sysId,externalKey=conditionId');
+        $defQuery->orderBy('createdBy', 'ASC');
         $conditionsArr = array_keys($data->recs);
         if (countR($conditionsArr)) {
             $defQuery->notIn('conditionId', $conditionsArr);
         }
-        
+
+        $conditionIds = $countryRules = $allRules = array();
         while ($dRec = $defQuery->fetch()) {
-            if (!array_key_exists($dRec->conditionId, $data->recs)) {
-                $data->recs[$dRec->conditionId] = $dRec;
-                $dRow = cond_Countries::recToVerbal($dRec);
-                
-                
-                $dRow->value = ht::createHint($dRow->value, "Стойност по подразбиране за контрагенти от|* \"{$cData->country}\"", 'notice', true, 'width=12px,height=12px');
-                unset($dRow->_rowTools);
-                
-                $data->rows[$dRec->conditionId] = $dRow;
+            $conditionIds[$dRec->conditionId] = $dRec->conditionId;
+            if(!empty($dRec->country)){
+                $countryRules[$dRec->conditionId] = $dRec;
+            } else {
+                $allRules[$dRec->conditionId] = $dRec;
             }
+        }
+
+        foreach ($conditionIds as $condId){
+            $fRec = $countryRules[$condId] ?? $allRules[$condId];
+            $caption = isset($countryRules[$condId]) ? $cData->country : "Всички държави";
+            $data->recs[$condId] = $fRec;
+            $dRow = cond_Countries::recToVerbal($fRec);
+            $dRow->value = ht::createHint($dRow->value, "Стойност по подразбиране за контрагенти от|* \"{$caption}\"", 'notice', true, 'width=12px,height=12px');
+            unset($dRow->_rowTools);
+            $data->rows[$condId] = $dRow;
         }
         
         // Сортиране на записите

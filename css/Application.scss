@@ -1800,7 +1800,12 @@ a.tUnsighted {
 	position: relative;
 	top:0px;
 }
-
+.threadSubTitle.onlyTags {
+	display: inline;
+	.documentTags {
+		top: -2px;
+	}
+}
 .portalHeaderTitle {
 	margin-right: 5px;
 }
@@ -2492,6 +2497,11 @@ width: 14px !important;
 height: 14px !important;
 }
 
+.groupList .endTooltip img {
+	width: 12px !important;
+	height: 12px !important;
+}
+
 .sale-summary td .endTooltip img, .sale-summary td .frontTooltip img{
 	width: 16px !important;
 	height: 16px !important;
@@ -2715,6 +2725,10 @@ vertical-align: top !important;
 
 .document .paddingCells > tbody > tr > td{
 	padding: 5px;
+}
+
+.innerDocument {
+	padding:6px 10px 10px;
 }
 
 .doc_drivers_FolderPortal .threadSubTitle {
@@ -2959,6 +2973,9 @@ ul{
        margin-left: 10px;
    }
 }
+
+
+
 .inner-text {
    padding-left: 30px;
 }
@@ -2988,6 +3005,26 @@ color: #666;
 
 .document table.listTable > tbody > tr > td {
 padding: 5px 3px 2px !important;
+}
+
+.inlineRichtextCond {
+	.richtext, .endTooltip {
+		display: inline  !important;
+		vertical-align: middle;
+	}
+}
+.closedFrameUpdateTimeTitle {
+	font-weight: bold;
+	color: red !important;
+}
+.closedFrameUpdateTime {
+	font-weight: bold;
+	color: red !important;
+	border: 1px dotted red;
+	padding: 2px;
+	span {
+		color: red !important;
+	};
 }
 /*край на стилове за документи*/
 

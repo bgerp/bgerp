@@ -931,7 +931,7 @@ class log_Data extends core_Manager
 
         // Сингъла посещаван ли е
         $oRecs1 = log_Data::getObjectRecs($Class->className, $objectRec->id, 'read', null, 1, 'DESC');
-        $lastDate2 = $oRecs[key($oRecs1)]->time;
+        $lastDate2 = $oRecs1[key($oRecs1)]->time;
 
         // По-голямата дата от двете
         $maxDate = max($lastDate1, $lastDate2);

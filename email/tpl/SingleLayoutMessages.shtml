@@ -55,7 +55,7 @@
     <div style='clear: both;'></div>
 
    
-    <div style='padding:6px 10px 10px;'>
+    <div class="innerDocument">
         <!--ET_BEGIN subject-->          
         <h3 class='richtext-title'>|Относно|*: [#subject#]</h3>
         <!--ET_END subject-->

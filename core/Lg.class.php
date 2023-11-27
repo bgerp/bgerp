@@ -205,6 +205,7 @@ class core_Lg extends core_Manager
         
         // Когато се извършва начална инсталация - също не се превежда
         if (core_ProtoSetup::$dbInit) {
+            list($kstring) = explode('||', $kstring);
             $kstring = str_replace(array('|*', '|'), array('', ''), $kstring);
             
             return $kstring;

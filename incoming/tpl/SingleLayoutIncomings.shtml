@@ -1,6 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <!--ET_BEGIN body--> 
-    <div style='padding:6px 10px 10px;'>
+    <div class="innerDocument">
 	    <h3 class='richtext-title'>[#title#]</h3>
 	       
 	    <table class='top-table' cellspacing=3>

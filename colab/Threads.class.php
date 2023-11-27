@@ -195,7 +195,12 @@ class colab_Threads extends core_Manager
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
-        
+
+        if (!Request::get('ajax_mode')) {
+            // Записваме, че потребителя е разглеждал този списък
+            $this->Containers->logInAct('Листване', null, 'read');
+        }
+
         return $tpl;
     }
     
