@@ -383,13 +383,33 @@ abstract class deals_DealBase extends core_Master
             $warning[$rec->currencyRate] = $rec->currencyRate;
             $deals1 = keylist::toArray($form->rec->closeWith);
 
+            $dealCountries = array();
             foreach ($deals1 as $d1) {
                 $dealRec = $this->fetch($d1, 'threadId,currencyRate');
+                $logisticData = $this->getLogisticData($d1);
+                if(isset($logisticData['toCountry'])){
+                    $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+                    $dealCountries[$toCountryId] = $d1;
+                }
                 if (acc_plg_Contable::haveDocumentInThreadWithStates($dealRec->threadId, 'pending,draft')) {
                     $err[] = $this->getLink($d1, 0);
                 }
                 $warning[$dealRec->currencyRate] = $dealRec->currencyRate;
                 $threads[$dealRec->threadId] = $dealRec->threadId;
+            }
+
+            $logisticData = $this->getLogisticData($rec->id);
+            if(isset($logisticData['toCountry'])){
+                $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+                $diffCountries = array_diff_key($dealCountries, array($toCountryId => $toCountryId));
+                if(countR($diffCountries)){
+                    $dealList = array();
+                    foreach ($diffCountries as $diffDealId){
+                        $dealList[] = "#" . $this->getHandle($diffDealId);
+                    }
+                    $msg = "Следните договори са с различна държава на доставка от обединяващия договор|*: " . implode(',', $dealList);
+                    $form->setWarning('closeWith', $msg);
+                }
             }
 
             if (countR($err)) {
