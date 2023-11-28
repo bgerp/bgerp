@@ -1213,7 +1213,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 if(in_array($rec->state, array('pending', 'draft'))){
                     foreach($conditions as &$cArr){
                         if(!Mode::isReadOnly()){
-                            $cArr = "<span style='color:blue'>{$cArr}</span>";
+                            $cArr = "<span class='blueText'>{$cArr}</span>";
                         }
                         $cArr = ht::createHint($cArr, 'Условието, ще бъде записано при активиране');
                         $cArr->prepend("<span class='inlineRichtextCond'>");
