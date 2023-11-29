@@ -50,7 +50,7 @@ class log_Debug extends core_Manager
     /**
      * Кой може да репортва грешките
      */
-    public $canReport = 'user';
+    public $canReport = 'every_one';
     
     
     /**
@@ -1320,6 +1320,15 @@ class log_Debug extends core_Manager
                 $supportUrl = help_Setup::get('BGERP_SUPPORT_URL', true);
                 if (!$supportUrl || strpos($supportUrl, '//') === false) {
                     $requiredRoles = 'no_one';
+                }
+            }
+
+            // За да праща репорт от това устройство и/или това IP трябва да има поне едно логване
+            if ($requiredRoles != 'no_one') {
+                if (!haveRole('user', $userId)) {
+                    if (!core_LoginLog::isLoggedBefore(core_Users::getRealIpAddr(), true)) {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }

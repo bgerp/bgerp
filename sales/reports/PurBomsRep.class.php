@@ -223,10 +223,11 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
                         $jobState = planning_Jobs::fetchField("#id = {$jobId}", 'state');
                         $jobQuantity = planning_Jobs::fetchField("#id = {$jobId}", 'quantity');
                     }
-                    
+
                     if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') || $jobQuantity < $pRec->quantity * 0.90) {
                         $index = $sRec->id . '|' . $pId;
                         $d = (object) array('num' => $count,
+                            'reff' => $sRec->reff,
                             'containerId' => $sRec->containerId,
                             'pur' => $sRec->id,
                             'purDate' => $sRec->valior,
@@ -262,6 +263,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         $fld->FLD('pur', 'varchar', 'caption=Договор->№');
+        $fld->FLD('reff', 'varchar', 'caption=Договор->Ваш реф,tdClass=centered');
         $fld->FLD('purDate', 'date', 'caption=Договор->Дата');
         $fld->FLD('dealerId', 'key(mvc=core_Users,select=nick)', 'caption=Търговец,smartCenter');
         if ($export === true) {
@@ -326,6 +328,10 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
         
         if (isset($dRec->pur)) {
             $row->pur = sales_Sales::getLink($dRec->pur, 0);
+        }
+
+        if (isset($dRec->reff)) {
+            $row->reff = $dRec->reff;
         }
         
         if (isset($dRec->purDate)) {

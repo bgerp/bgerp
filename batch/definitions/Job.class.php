@@ -82,6 +82,12 @@ class batch_definitions_Job extends batch_definitions_Proto
      */
     public function isValid($value, $quantity, &$msg)
     {
+        // Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
+        if (batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))) {
+
+            return true;
+        }
+
         if (!preg_match("/^Job:[0-9]+\\//" , $value) && !preg_match("/^JOB[0-9]+\\//" , $value)) {
             $msg = "Формата трябва да започва с|* Job:XXX/";
             
