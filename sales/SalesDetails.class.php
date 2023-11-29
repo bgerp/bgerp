@@ -312,6 +312,18 @@ class sales_SalesDetails extends deals_DealDetail
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
+        $recalcPricesOnClone = sales_Setup::get('RECALC_PRICES_ON_CLONE');
+        if($recalcPricesOnClone == 'no'){
+
+            // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
+            $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+            if (isset($cRec->fee) && $cRec->fee > 0) {
+                $rec->price -= $cRec->fee / $rec->quantity;
+            }
+
+            return;
+        }
+
         $masterRec = sales_Sales::fetch($rec->saleId);
 
         // Прави се опит да се преизичсли наново цената
@@ -324,8 +336,6 @@ class sales_SalesDetails extends deals_DealDetail
             $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->discount = $policyInfo->discount;
         } else {
-
-            // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
             if (isset($cRec->fee) && $cRec->fee > 0) {
                 $rec->price -= $cRec->fee / $rec->quantity;
