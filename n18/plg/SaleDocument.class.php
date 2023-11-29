@@ -45,7 +45,7 @@ class n18_plg_SaleDocument extends core_Plugin
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if ($cashReg = n18_Register::getRec($firstDoc->getInstance(), $firstDoc->that)) {
             $urn = n18_Register::getUrlLink($cashReg->urn);
-            $row->{$mvc->notesFld} = phptr("|*<div><span class='quiet'>|УНП|*</span>: {$urn}</div>") . $row->{$mvc->notesFld};
+            $row->{$mvc->notesFld} = tr("|*<div><span class='quiet'>|УНП|*</span>: {$urn}</div>") . $row->{$mvc->notesFld};
         }
     }
     
