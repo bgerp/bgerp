@@ -20,56 +20,56 @@ class crm_ext_Cards extends core_Manager
      * Заглавие
      */
     public $title = 'Клиентски карти';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'crm_Wrapper, plg_Search, plg_Sorting, plg_State2, plg_RowTools2, plg_Created';
-    
-    
+
+
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Клиентска карта';
-    
-    
+
+
     /**
      * Кой може да пише?
      */
     public $canWrite = 'ceo, crm';
-    
-    
+
+
     /**
      * Кой може да въвежда картата
      */
     public $canCheckcard = 'every_one';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, crm';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'number=Карта,type,personId,companyId,source,createdOn,createdBy,state=Състояние';
-    
-    
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'number';
-    
-    
+
+
     /**
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
+
+
     /**
      * Константа за несъществуваща карта
      */
@@ -103,14 +103,13 @@ class crm_ext_Cards extends core_Manager
         $this->FLD('personId', 'key2(mvc=crm_Persons,select=name)', 'caption=Лице,silent,input=hidden');
         $this->FLD('type', 'enum(personal=Лична,company=Фирмена)', 'caption=Вид,notNull,value=personal,silent,removeAndRefreshForm=companyId');
         $this->FLD('companyId', 'key(mvc=crm_Companies,select=name)', 'input=hidden,silent,caption=Фирма,tdClass=leftCol');
-        $this->FLD('source', 'int', 'caption=Източник,input=none');
-
+        $this->FLD('source', 'class(interface=crm_interface_CardSourceIntf,select=title)', 'caption=Източник,input=none');
 
         $this->setDbUnique('number');
         $this->setDbIndex('personId');
     }
-    
-    
+
+
     /**
      * След подготовката на заглавието на формата
      */
@@ -133,11 +132,11 @@ class crm_ext_Cards extends core_Manager
 
         $userId = crm_Profiles::getUserByPerson($rec->personId);
         $companyOptions = array();
-        if($userId){
-            if(core_Packs::isInstalled('colab')){
-                if(core_Users::isContractor($userId)){
+        if ($userId) {
+            if (core_Packs::isInstalled('colab')) {
+                if (core_Users::isContractor($userId)) {
                     $sharedContragentFolders = colab_Folders::getSharedFolders($userId, true, 'crm_CompanyAccRegIntf');
-                    foreach ($sharedContragentFolders as $companyFolderId => $companyName){
+                    foreach ($sharedContragentFolders as $companyFolderId => $companyName) {
                         $companyId = crm_Companies::fetchField("#folderId = {$companyFolderId}");
                         $companyOptions[$companyId] = $companyName;
                     }
@@ -145,11 +144,11 @@ class crm_ext_Cards extends core_Manager
             }
         }
 
-        if(!countR($companyOptions)){
+        if (!countR($companyOptions)) {
             $form->setReadOnly('type', 'personal');
         }
 
-        if($rec->type == 'company'){
+        if ($rec->type == 'company') {
             $form->setField('companyId', 'input,mandatory');
             $form->setOptions('companyId', array('' => '') + $companyOptions);
         } else {
@@ -161,19 +160,19 @@ class crm_ext_Cards extends core_Manager
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc  $mvc
+     * @param core_Mvc $mvc
      * @param core_Form $form
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->isSubmitted()){
-            if(empty($form->rec->number)){
+        if ($form->isSubmitted()) {
+            if (empty($form->rec->number)) {
                 $form->rec->number = $mvc->getNewToken();
             }
         }
     }
-    
-    
+
+
     /**
      * Връща нов неизползван досега номер
      *
@@ -183,14 +182,14 @@ class crm_ext_Cards extends core_Manager
     {
         // Докато не се получи уникален номер, се генерира нов
         $number = self::generate();
-        while(self::fetch("#number = '{$number}'")){
+        while (self::fetch("#number = '{$number}'")) {
             $number = self::generate();
         }
-        
+
         return $number;
     }
-    
-    
+
+
     /**
      * Генериане на номер на карта
      *
@@ -201,30 +200,30 @@ class crm_ext_Cards extends core_Manager
         $number = str::getRand('dddddd');
         $checkSum = substr(strtolower(md5($number . EF_SALT)), 0, 2);
         $number .= $checkSum;
-        
+
         return $number;
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->personId = crm_Persons::getHyperLink($rec->personId, true);
-        if(isset($rec->companyId)){
+        if (isset($rec->companyId)) {
             $row->companyId = crm_Companies::getHyperLink($rec->companyId, true);
         }
         $row->created = tr("|* {$row->createdOn} |от|* {$row->createdBy}");
 
-        if($info = static::getInfo($rec->number)){
-            if($info['status'] == static::STATUS_NOT_ACTIVE){
+        if ($info = static::getInfo($rec->number)) {
+            if ($info['status'] == static::STATUS_NOT_ACTIVE) {
                 $row->number = ht::createHint($row->number, 'Картата е неактивна|*!', 'warning', false);
             }
         }
     }
-    
-    
+
+
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
@@ -238,14 +237,14 @@ class crm_ext_Cards extends core_Manager
         $data->listFilter->setDefault('typeFilter', 'all');
         $data->listFilter->input();
 
-        if($filter = $data->listFilter->rec){
-            if($filter->typeFilter != 'all'){
+        if ($filter = $data->listFilter->rec) {
+            if ($filter->typeFilter != 'all') {
                 $data->query->where("#type = '{$filter->typeFilter}'");
             }
         }
     }
-    
-    
+
+
     /**
      * Подготовка на клиентските карти на избраното лице
      */
@@ -255,7 +254,7 @@ class crm_ext_Cards extends core_Manager
 
         // Подготовка на клиентските карти
         $query = $this->getQuery();
-        if($data->masterMvc instanceof crm_Persons){
+        if ($data->masterMvc instanceof crm_Persons) {
             $data->listFields = arr::make('number=Карта,type=Вид,companyId=Фирма,source=Източник,state=Състояние', true);
             $query->where("#personId = '{$masterRec->id}'");
         } else {
@@ -268,17 +267,17 @@ class crm_ext_Cards extends core_Manager
             $row = $this->recToVerbal($rec);
             $data->rows[$rec->id] = $row;
         }
-        
+
         // Добавяне на бутон при нужда
-        if($data->masterMvc instanceof crm_Persons){
+        if ($data->masterMvc instanceof crm_Persons) {
             if ($this->haveRightFor('add', (object)array('personId' => $data->masterId))) {
                 $addUrl = array($this, 'add', 'personId' => $data->masterId, 'ret_url' => true);
                 $data->addBtn = ht::createLink('', $addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на нова клиентска карта'));
             }
         }
     }
-    
-    
+
+
     /**
      * Рендиране на клиентските карти на избрания клиент
      */
@@ -294,15 +293,15 @@ class crm_ext_Cards extends core_Manager
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'companyId');
         $details = $table->get($data->rows, $data->listFields);
         $tpl->append($details);
-        
+
         if (isset($data->addBtn)) {
             $tpl->append($data->addBtn, 'addCardBtn');
         }
-        
+
         return $tpl;
     }
-    
-    
+
+
     /**
      * Връща информация за картата с този номер
      *
@@ -320,19 +319,19 @@ class crm_ext_Cards extends core_Manager
         $query = static::getQuery();
         $query->where(array("#number = '[#1#]'", $number));
         $rec = $query->fetch();
-        if(!$rec) return $info;
+        if (!$rec) return $info;
 
         $info['type'] = $rec->type;
         $info['status'] = ($rec->state != 'closed') ? self::STATUS_ACTIVE : self::STATUS_NOT_ACTIVE;
-        if($rec->type == 'company'){
+        if ($rec->type == 'company') {
             $info['contragentClassId'] = crm_Companies::getClassId();
             $info['contragentId'] = $rec->companyId;
 
             // Ако потребителя е партньор и папката на фирмата е все още споделена - значи е активна
             $userId = crm_Profiles::getUserByPerson($rec->personId);
-            if(core_Packs::isInstalled('colab') && isset($userId) && core_Users::isContractor($userId)){
+            if (core_Packs::isInstalled('colab') && isset($userId) && core_Users::isContractor($userId)) {
                 $folderId = crm_Companies::fetchField($rec->companyId, 'folderId');
-                if(!colab_FolderToPartners::fetchField("#contractorId = {$userId} AND #folderId = {$folderId}")){
+                if (!colab_FolderToPartners::fetchField("#contractorId = {$userId} AND #folderId = {$folderId}")) {
                     $info['status'] = self::STATUS_NOT_ACTIVE;
                 }
             } else {
@@ -345,47 +344,53 @@ class crm_ext_Cards extends core_Manager
             $info['contragentId'] = $rec->personId;
         }
 
-        if($info['status'] == self::STATUS_ACTIVE){
+        if ($info['status'] == self::STATUS_ACTIVE) {
             $contragentState = cls::get($info['contragentClassId'])->fetchField($info['contragentId'], 'state');
-            if(in_array($contragentState, array('closed', 'rejected'))){
+            if (in_array($contragentState, array('closed', 'rejected'))) {
                 $info['status'] = self::STATUS_NOT_ACTIVE;
             }
         }
-        
+
         return $info;
     }
 
-    
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)) {
-            if(empty($rec->personId)){
+            if (empty($rec->personId)) {
                 $requiredRoles = 'no_one';
             } elseif (!crm_Persons::haveRightFor('edit', $rec->personId)) {
                 $requiredRoles = 'no_one';
             }
         }
-        
+
+        if(in_array($action, array('add', 'delete', 'edit', 'write', 'changestate')) & isset($rec)){
+            if(!empty($rec->source)){
+                $requiredRoles = 'no_one';
+            }
+        }
+
         if ($action == 'checkcard') {
             $domainId = isset($rec->domainId) ? $rec->domainId : cms_Domains::getPublicDomain()->id;
             $settings = cms_Domains::getSettings($domainId);
-            
-            if(isset($userId)){
+
+            if (isset($userId)) {
                 $requiredRoles = 'no_one';
-            } elseif($settings->canUseCards != 'yes'){
+            } elseif ($settings->canUseCards != 'yes') {
                 $requiredRoles = 'no_one';
-            } elseif(!crm_ext_Cards::count("#state = 'active'")){
+            } elseif (!crm_ext_Cards::count("#state = 'active'")) {
                 $requiredRoles = 'no_one';
-            } elseif(!core_Packs::isInstalled('colab')){
+            } elseif (!core_Packs::isInstalled('colab')) {
                 $requiredRoles = 'no_one';
             }
         }
     }
-    
-    
+
+
     /**
      * Екшън за въвеждане на клиентска карта
      */
@@ -395,63 +400,125 @@ class crm_ext_Cards extends core_Manager
         Mode::set('currentExternalTab', 'eshop_Carts');
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
-       
+
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = "Въвеждане на клиентска карта";
         $form->FLD('search', 'varchar', 'mandatory,caption=Номер,silent');
         $form->input(null, 'silent');
         $form->input();
-        
-        if($form->isSubmitted()){
+
+        if ($form->isSubmitted()) {
 
             // Извличане на иформацията за картата
             $info = crm_ext_Cards::getInfo($form->rec->search);
-            if($info['status'] == self::STATUS_NOT_FOUND){
+            if ($info['status'] == self::STATUS_NOT_FOUND) {
                 $form->setError('search', "Невалиден номер на карта");
-            } elseif($info['status'] == self::STATUS_NOT_ACTIVE){
+            } elseif ($info['status'] == self::STATUS_NOT_ACTIVE) {
                 $form->setError('search', "Картата вече не е активна");
             }
-            
-            if(!$form->gotErrors()){
+
+            if (!$form->gotErrors()) {
                 $var = Mode::get(cms_Domains::CMS_CURRENT_DOMAIN_REC);
                 $domainRec = &$var;
                 $domainRec->clientCardNumber = $form->rec->search;
-               
+
                 // Ако към папката на фирмата има свързани партньори, линк към формата за логване
                 $Contragent = new core_ObjectReference($info['contragentClassId'], $info['contragentId']);
                 $folderId = $Contragent->fetchField('folderId');
-                if(isset($folderId) && colab_FolderToPartners::count("#folderId = {$folderId}")){
-                   
-                   return new Redirect(array('core_Users', 'login'), 'Моля логнете се с вашия потребител');
-               }
-               
-               $retUrl = array($this, 'checkCard', 'ret_url' => true);
-               $redirectUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($Contragent->getInstance(), $Contragent->that, $retUrl);
-               expect(!empty($redirectUrl));
-                   
-               return new Redirect($redirectUrl);
+                if (isset($folderId) && colab_FolderToPartners::count("#folderId = {$folderId}")) {
+
+                    return new Redirect(array('core_Users', 'login'), 'Моля логнете се с вашия потребител');
+                }
+
+                $retUrl = array($this, 'checkCard', 'ret_url' => true);
+                $redirectUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($Contragent->getInstance(), $Contragent->that, $retUrl);
+                expect(!empty($redirectUrl));
+
+                return new Redirect($redirectUrl);
             }
         }
-        
+
         // Показване на бутон за сканиране ако се гледа от андроид устройство
         $userAgent = log_Browsers::getUserAgentOsName();
-        if($userAgent == 'Android'){
+        if ($userAgent == 'Android') {
             $scanUrl = toUrl(array($this, 'checkCard', 'search' => '__CODE__'), true);
             $form->toolbar->addBtn('Сканирай', barcode_Search::getScannerActivateUrl($scanUrl), 'id=scanBtn', 'ef_icon = img/16/scanner.png');
         }
-        
+
         // Подготовка на тулбара
         $form->toolbar->addSbBtn('Въведи', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
         $this->unloadPlugin('cms_Wrapper');
-        
+
         Mode::set('wrapper', 'cms_page_External');
         $tpl = $form->renderHtml();
         core_Form::preventDoubleSubmission($tpl, $form);
         core_Lg::pop();
         vislog_History::add("Въвеждане на клиентска карта");
-        
+
         return $tpl;
+    }
+
+
+    /**
+     * Синхронизиране на клиентските карти по крон
+     */
+    function cron_SyncContragentCards()
+    {
+        // Кои са класовете източник на клиентски карти
+        $sources = core_Classes::getOptionsByInterface('crm_interface_CardSourceIntf');
+        if(!countR($sources)) return;
+
+        // Извличане на всички карти от източници
+        $eRecs = array();
+        $query = static::getQuery();
+        $query->in('source', array_keys($sources));
+        while($eRec = $query->fetch()){
+            $eRecs[$eRec->source][$eRec->id] = $eRec;
+        }
+
+        // За всеки източник
+        $now = dt::now();
+        foreach ($sources as $src){
+            $Source = cls::get($src);
+            $sourceClassId = $Source->getClassId();
+
+            // Извличат се неговите данни за клиентски карти
+            $Interface = cls::getInterface('crm_interface_CardSourceIntf', $Source);
+            $cardsToSync = $Interface->getCards();
+
+            // Добавяне на статичните данни към записа
+            array_walk($cardsToSync, function($a) use ($sourceClassId, $now) {
+                $a->source = $sourceClassId;
+                $a->createdOn = $now;
+                $a->createdBy = core_Users::SYSTEM_USER;
+            });
+
+            // Синхронизиране на записите от източника с вече наличните
+            $synced = arr::syncArrays($cardsToSync, $eRecs[$sourceClassId], 'number', 'personId,companyId,type,state');
+
+            // Добавяне на новите номера, ако има дублиране с ръчно добавени се бие нотификация
+            if(countR($synced['insert'])){
+                foreach ($synced['insert'] as $iRec){
+                    $fields = array();
+                    $exRec = null;
+                    if (!$this->isUnique($iRec, $fields, $exRec)) {
+                        log_System::add($this, "Неуспешна синхронизация на карта: Дублиран номер '{$iRec->number}'", null, 'err');
+                        continue;
+                    }
+                    $this->save($iRec);
+                }
+            }
+
+            if(countR($synced['update'])){
+                $this->saveArray($synced['update'], 'id,personId,companyId,type,state');
+            }
+
+            if(countR($synced['delete'])){
+                $deleteIds = implode(',', $synced['delete']);
+                $this->delete("#id IN ({$deleteIds})");
+            }
+        }
     }
 }
