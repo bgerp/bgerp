@@ -466,7 +466,7 @@ class rack_Movements extends rack_MovementAbstract
                     $createdByNowQuantity = $createdByNowQuantity / $rec->quantityInPack;
                     $packName = cat_UoM::getSmartName($rec->packagingId, $createdByNowQuantity);
                     if(rack_Movements::haveRightFor('list')){
-                        $quantityStr = ht::createLinkRef($packName, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($fromDocumentId)->getHandle()));
+                        $packName = ht::createLinkRef($packName, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($fromDocumentId)->getHandle()));
                     }
                     $form->info = tr("Създадени движения от документа за сега|*: <b>{$packName}</b>");
 
