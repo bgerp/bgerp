@@ -87,7 +87,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
         } else {
             $pQuery->where("1=2");
         }
-        $pQuery->orderBy('valior,id', 'DESC');
+        $pQuery->orderBy('valior,requestId', 'DESC');
         
         // Връщаме намерените резултати
         return $pQuery->fetchAll();
