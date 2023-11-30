@@ -464,8 +464,7 @@ class rack_Movements extends rack_MovementAbstract
                     $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch, $fromDocumentId);
                     $createdByNowQuantity = isset($createdByNowQuantity) ? $createdByNowQuantity : 0;
                     $createdByNowQuantity = $createdByNowQuantity / $rec->quantityInPack;
-                    $packName = cat_UoM::getSmartName($rec->packagingId);
-                    $quantityStr = str::getPlural($createdByNowQuantity, $packName);
+                    $packName = cat_UoM::getSmartName($rec->packagingId, $createdByNowQuantity);
                     if(rack_Movements::haveRightFor('list')){
                         $quantityStr = ht::createLinkRef($quantityStr, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($fromDocumentId)->getHandle()));
                     }
