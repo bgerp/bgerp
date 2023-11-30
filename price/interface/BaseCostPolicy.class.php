@@ -73,10 +73,6 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
             $pQuery->where("#state = 'active' OR #state = 'closed'");
         }
         
-        // и тези които са затворени и са последно модифицирани до два часа
-        //$from = dt::addSecs(-2 * 60 * 60, dt::now());
-        $pQuery->orWhere("#state = 'closed'");// AND #modifiedOn >= '{$from}'
-        
         if ($withDelivery === true) {
             $pQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');
             $pQuery->where('#amountDelivered IS NOT NULL AND #amountDelivered != 0');

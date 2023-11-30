@@ -101,9 +101,10 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
         $pQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=requestId');
         $pQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
         $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
-        $pQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$datetime}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$datetime}')");
+        $pQuery->where("(#state = 'closed' AND #documentModifiedOn >= '{$datetime}') OR (#state = 'active' AND #activatedOn >= '{$datetime}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$datetime}')");
         $pQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
         $pQuery->show('productId');
+
         $affected = arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
         
         return $affected;
