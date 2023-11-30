@@ -1459,6 +1459,9 @@ table.listTable {
   table.listTable .rowNumColumn {
     width: 1%; }
 
+.formSection .listTable td {
+  vertical-align: top; }
+
   .listAction table.listTable > tbody > tr > td,
   table.listTable.listAction > tbody > tr > td {
     max-width: 400px; }
