@@ -223,7 +223,7 @@ class core_Detail extends core_Manager
         }
 
         if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => $data->masterId))){
-            $data->toolbar->addBtn(' ', array($this, 'selectRowsToDelete', $masterKey => $data->masterId, 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/delete.png,title=Избор на един или няколко реда за изтриване,order=500,class=selectDeleteRowsBtn');
+            $data->toolbar->addBtn('Изтриване', array($this, 'selectRowsToDelete', $masterKey => $data->masterId, 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/delete.png,title=Избор на един или няколко реда за изтриване,order=500,class=selectDeleteRowsBtn');
         }
 
         return $data;

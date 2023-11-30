@@ -447,7 +447,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
 
         if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true))){
-            $tpl->append(ht::createBtn(' ', array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Избор на един или няколко реда за изтриване', 'class' => 'selectDeleteRowsBtn')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Избор на един или няколко реда за изтриване', 'class' => 'selectDeleteRowsBtn')), 'planning_DirectProductNoteDetails');
         }
 
         // Рендиране на таблицата с отпадъците
