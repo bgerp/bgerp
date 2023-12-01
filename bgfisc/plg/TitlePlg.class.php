@@ -5,16 +5,22 @@
  * Добавяне на Н18 към името на приложението
  *
  * @category  bgerp
- * @package   n28
+ * @package   bgfisc
  *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class n18_plg_TitlePlg extends core_Plugin
+class bgfisc_plg_TitlePlg extends core_Plugin
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_plg_TitlePlg';
+
+
     /**
      * Променя стойността на константата.
      * Използва стойността от настройките на профила

@@ -2,11 +2,11 @@
 
 
 /**
- * Клас 'n18_plg_Rko' - за добавяне на функционалност от наредба 18 към РКО
+ * Клас 'bgfisc_plg_Rko' - за добавяне на функционалност от наредба 18 към РКО
  *
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2020 Experta OOD
@@ -14,8 +14,14 @@
  *
  * @since     v 0.1
  */
-class n18_plg_Rko extends core_Plugin
+class bgfisc_plg_Rko extends core_Plugin
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_plg_Rko';
+
+
     /**
      * След дефиниране на полетата на модела
      *
@@ -35,7 +41,7 @@ class n18_plg_Rko extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if (n18_plg_CashDocument::isApplicable($data->form->rec->threadId)) {
+        if (bgfisc_plg_CashDocument::isApplicable($data->form->rec->threadId)) {
             $remFields = $data->form->getFieldParam('peroCase', 'removeAndRefreshForm');
             $remFields .= "|stornoReason";
             $data->form->setField('peroCase', "removeAndRefreshForm={$remFields}");
@@ -50,8 +56,8 @@ class n18_plg_Rko extends core_Plugin
     {
         $rec = &$form->rec;
         
-        if (n18_plg_CashDocument::isApplicable($rec->threadId)) {
-            $registerRec = n18_Register::getFiscDevice($rec->peroCase);
+        if (bgfisc_plg_CashDocument::isApplicable($rec->threadId)) {
+            $registerRec = bgfisc_Register::getFiscDevice($rec->peroCase);
             
             if (!empty($registerRec)) {
                 $Driver = peripheral_Devices::getDriver($registerRec);
@@ -70,7 +76,7 @@ class n18_plg_Rko extends core_Plugin
     public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        if (!n18_plg_CashDocument::isApplicable($rec->threadId)) {
+        if (!bgfisc_plg_CashDocument::isApplicable($rec->threadId)) {
             
             return;
         }
@@ -99,7 +105,7 @@ class n18_plg_Rko extends core_Plugin
      */
     public static function on_AfterGetReasonContainerOptions($mvc, &$res, $rec)
     {
-        if (n18_plg_CashDocument::isApplicable($rec->threadId)) {
+        if (bgfisc_plg_CashDocument::isApplicable($rec->threadId)) {
             $res = is_array($res) ? $res : array();
             $rQuery = store_Receipts::getQuery();
             $rQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
@@ -135,7 +141,7 @@ class n18_plg_Rko extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (in_array($action, array('selectinvoice')) && isset($rec)) {
-            if (!n18_plg_CashDocument::isApplicable($rec->threadId)) {
+            if (!bgfisc_plg_CashDocument::isApplicable($rec->threadId)) {
                 
                 return;
             }

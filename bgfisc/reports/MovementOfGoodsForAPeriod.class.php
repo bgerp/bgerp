@@ -2,24 +2,30 @@
 
 
 /**
- * Мениджър на отчети относно: Детайлни данни за доставките
+ * Мениджър на отчети относно: Движение на стоки за период
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Angel Trifonov <angel.trifonoff@gmail.com>
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     НАП » Детайлни данни за доставките
+ * @title     НАП » Движение на стоки за период
  */
-class n18_reports_DetailedPurchasesData extends frame2_driver_TableData
+class bgfisc_reports_MovementOfGoodsForAPeriod extends frame2_driver_TableData
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_reports_MovementOfGoodsForAPeriod';
+
+
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'napodit,ceo';
+    public $canSelectDriver = 'acc,sales,purchase,ceo';
     
     
     /**
@@ -31,8 +37,6 @@ class n18_reports_DetailedPurchasesData extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none');
-        
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal),allowEmpty', 'caption=Търговци,after=to');
     }
     
     
@@ -82,66 +86,80 @@ class n18_reports_DetailedPurchasesData extends frame2_driver_TableData
     {
         $recs = array();
         
-        $query = purchase_PurchasesData::getQuery();
         
-        while ($purDetailRec = $query -> fetch()) {
-            $classesArr = array('purchase_Purchases');
+        $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '321', 'cacheBalance' => false, 'keepUnique' => true));
+        $bRecs = $Balance->getBalance('321');
+        
+        foreach ($bRecs as $item) {
+            $id = $item->ent2Id;
             
-            $firstDoc = doc_Threads::getFirstDocument($purDetailRec -> threadId);
-            
-            if (!in_array($firstDoc->className, $classesArr)) {
-                continue;
-            }
-            
-            $firstDocRec = $firstDoc->className::fetch($firstDoc->that);
-            $aaa[] = $firstDocRec->createdOn;
-            $cond = $firstDocRec->createdOn >= $rec->from. ' 00:00:00' && $firstDocRec->createdOn <= $rec->to. ' 23:59:59';
-            if (!$cond) {
-                continue;
-            }
-            
-            $prodRec = cat_Products::fetch($purDetailRec->productId);
-            
-            $id = $purDetailRec->id;
-            
-            //ID на записа
-            $recId = $firstDocRec->containerId;
+            $iRec = acc_Items::fetch($item->ent2Id);
             
             //Код на продукта
-            $productCode = $prodRec->code;
+            list($productCode) = explode(' ', $iRec->num);
             
             //Име на продукта
-            $productName = $prodRec->name;
-            
-            //Количество
-            $quantity = $purDetailRec->quantity;
-            
-            //Отстъпка
-            $discount = $purDetailRec->discount;
-            
-            //Единична цена
-            $price = $purDetailRec->price * $purDetailRec->currencyRate - $discount;
+            $productName = $iRec->title;
             
             
-            //ДДС - сума
-            $vatSum = $purDetailRec->amount * cat_Products::getVat($purDetailRec->productId);
+            //Количество в началото на периода
+            $baseQuantity = $item->baseQuantity;
             
-            //Обща сума на продажбата - без ДДС
-            $amountSum = $purDetailRec->amount;
+            //Стойност в началото на периода
+            $baseAmount = $item->baseAmount;
+            
+            //Дебит оборот количество
+            $debitQuantity = $item->debitQuantity;
+            
+            //Дебит оборот стойност
+            $debitAmount = $item->debitAmount;
+            
+            //Кредит оборот количество
+            $creditQuantity = $item->creditQuantity;
+            
+            //Кредит оборот стойност
+            $creditAmount = $item->creditAmount;
+            
+            //Количество в края на периода
+            $blQuantity = $item->blQuantity;
+            
+            //Стойност в края на периода
+            $blAmount = $item->blAmount;
             
             // добавя в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
                     
-                    'recId' => $recId,
                     'code' => $productCode,
                     'productName' => $productName,
-                    'quantity' => $quantity,
-                    'price' => $price,
-                    'amountSum' => $amountSum,
-                    'discount' => $discount,
-                    'vat' => $vatSum,
+                    
+                    'baseQuantity' => $baseQuantity,
+                    'baseAmount' => $baseAmount,
+                    
+                    'debitQuantity' => $debitQuantity,
+                    'debitAmount' => $debitAmount,
+                    
+                    'creditQuantity' => $creditQuantity,
+                    'creditAmount' => $creditAmount,
+                    
+                    'blQuantity' => $blQuantity,
+                    'blAmount' => $blAmount,
+                
                 );
+            } else {
+                $obj = &$recs[$id];
+                
+                $obj->baseQuantity += $baseQuantity;
+                $obj->baseAmount += $baseAmount;
+                
+                $obj->debitQuantity += $debitQuantity;
+                $obj->debitAmount += $debitAmount;
+                
+                $obj->creditQuantity += $creditQuantity;
+                $obj->creditAmount += $creditAmount;
+                
+                $obj->blQuantity += $blQuantity;
+                $obj->blAmount += $blAmount;
             }
         }
         
@@ -163,17 +181,20 @@ class n18_reports_DetailedPurchasesData extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        $fld->FLD('recId', 'int', 'caption=ID запис');
-        
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
         $fld->FLD('productName', 'varchar', 'caption=Име');
         
-        $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество,tdClass=centered');
+        $fld->FLD('baseQuantity', 'double(decimals=2)', 'caption=Начало на периода->Количество,tdClass=centered');
+        $fld->FLD('baseAmount', 'double(decimals=2)', 'caption=Начало на периода->Стойност,tdClass=centered');
         
-        $fld->FLD('price', 'double(decimals=2)', 'caption=Единична цена,tdClass=centered');
-        $fld->FLD('discount', 'double(decimals=2)', 'caption=Отстъпка');
-        $fld->FLD('vat', 'double(decimals=2)', 'caption=ДДС,tdClass=centered');
-        $fld->FLD('amountSum', 'double(decimals=2)', 'caption=Обща сума,tdClass=centered');
+        $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Обороти дебит->Количество,tdClass=centered');
+        $fld->FLD('debitAmount', 'double(decimals=2)', 'caption=Обороти дебит->Стойност,tdClass=centered');
+        
+        $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Обороти кредит->Количество,tdClass=centered');
+        $fld->FLD('creditAmount', 'double(decimals=2)', 'caption=Обороти кредит->Стойност,tdClass=centered');
+        
+        $fld->FLD('blQuantity', 'double(decimals=2)', 'caption=Край на периода->Количество,tdClass=centered');
+        $fld->FLD('blAmount', 'double(decimals=2)', 'caption=Край на периода->Стойност,tdClass=centered');
         
         return $fld;
     }
@@ -199,10 +220,6 @@ class n18_reports_DetailedPurchasesData extends frame2_driver_TableData
         
         $row = new stdClass();
         
-        if (isset($dRec->recId)) {
-            $row->recId = $dRec->recId;
-        }
-        
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
         }
@@ -211,24 +228,39 @@ class n18_reports_DetailedPurchasesData extends frame2_driver_TableData
             $row->productName = $dRec->productName;
         }
         
-        if (isset($dRec->quantity)) {
-            $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+        if (isset($dRec->baseQuantity)) {
+            $row->baseQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->baseQuantity);
         }
         
-        if (isset($dRec->price)) {
-            $row->price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
+        if (isset($dRec->baseAmount)) {
+            $row->baseAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->baseAmount);
         }
         
-        if (isset($dRec->discount)) {
-            $row->discount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->discount);
+        
+        if (isset($dRec->debitQuantity)) {
+            $row->debitQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity);
         }
         
-        if (isset($dRec->vat)) {
-            $row->vat = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->vat);
+        if (isset($dRec->debitAmount)) {
+            $row->debitAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitAmount);
         }
         
-        if (isset($dRec->amountSum)) {
-            $row->amountSum = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountSum);
+        
+        if (isset($dRec->creditQuantity)) {
+            $row->creditQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->creditQuantity);
+        }
+        
+        if (isset($dRec->creditAmount)) {
+            $row->creditAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->creditAmount);
+        }
+        
+        
+        if (isset($dRec->blQuantity)) {
+            $row->blQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->blQuantity);
+        }
+        
+        if (isset($dRec->creditAmount)) {
+            $row->blAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->blAmount);
         }
         
         return $row;

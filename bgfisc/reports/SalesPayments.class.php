@@ -4,8 +4,8 @@
 /**
  * Мениджър на отчети относно: Данни за плащанията по продажбите
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Angel Trifonov <angel.trifonoff@gmail.com>
  * @copyright 2006 - 2019 Experta OOD
@@ -14,12 +14,18 @@
  * @since     v 0.1
  * @title     НАП » Данни за плащанията по продажбите
  */
-class n18_reports_SalesPayments extends frame2_driver_TableData
+class bgfisc_reports_SalesPayments extends frame2_driver_TableData
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_reports_SalesPayments';
+
+
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'napodit,ceo';
+    public $canSelectDriver = 'acc,sales,ceo';
     
     
     /**
@@ -82,7 +88,7 @@ class n18_reports_SalesPayments extends frame2_driver_TableData
     {
         $recs = array();
         
-        $sQuery = n18_Register::getQuery();
+        $sQuery = bgfisc_Register::getQuery();
         
         if ($rec->from) {
             $sQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
@@ -118,7 +124,7 @@ class n18_reports_SalesPayments extends frame2_driver_TableData
                 $posRec = $className::fetch($regRec->objectId);
                 
                 //Ако по продажбата има сторниране
-                $prntQuery = n18_PrintedReceipts::getQuery();
+                $prntQuery = bgfisc_PrintedReceipts::getQuery();
                 $prntQuery->where("#urnId = {$regRec->id}");
                 
                 if (empty($prntQuery->fetchAll())) {
@@ -147,7 +153,7 @@ class n18_reports_SalesPayments extends frame2_driver_TableData
                 $stornoAmount = 0;
                 if (!empty($prntRcptRevArr)) {
                     foreach ($prntRcptRevArr as $val) {
-                        $prntRcptRev = n18_PrintedReceipts::fetch($val);
+                        $prntRcptRev = bgfisc_PrintedReceipts::fetch($val);
                         $objectClassName = cls::get($prntRcptRev->classId)->className;
                         $revRec = $objectClassName::fetch($prntRcptRev->objectId);
                         
@@ -227,7 +233,7 @@ class n18_reports_SalesPayments extends frame2_driver_TableData
                 }
                 
                 //Отпечатани бележки по тази продажба
-                $prntQuery = n18_PrintedReceipts::getQuery();
+                $prntQuery = bgfisc_PrintedReceipts::getQuery();
                 $prntQuery->where("#urnId = {$regRec->id}");
                 
                 $prntRcptArr = $prntRcptRevArr = array();
@@ -247,7 +253,7 @@ class n18_reports_SalesPayments extends frame2_driver_TableData
                 $stornoAmountArr = array();
                 if (!empty($prntRcptRevArr)) {
                     foreach ($prntRcptRevArr as $val) {
-                        $prntRcptRev = n18_PrintedReceipts::fetch($val);
+                        $prntRcptRev = bgfisc_PrintedReceipts::fetch($val);
                         $objectClassName = cls::get($prntRcptRev->classId)->className;
                         
                         //РКО към който е издаден ФБ
@@ -279,7 +285,7 @@ class n18_reports_SalesPayments extends frame2_driver_TableData
                 
                 
                 foreach ($prntRcptArr as $val) {
-                    $prntRcpt = n18_PrintedReceipts::fetch($val);
+                    $prntRcpt = bgfisc_PrintedReceipts::fetch($val);
                     $clsName = core_Classes::getName($prntRcpt->classId);
                     
                     $stornoAmount = 0;
