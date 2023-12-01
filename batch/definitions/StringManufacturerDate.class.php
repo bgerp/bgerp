@@ -190,18 +190,6 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_Varchar
 
 
     /**
-     * Връща масив с опции за лист филтъра на партидите
-     *
-     * @return array - масив с опции
-     *               [ключ_на_филтъра] => [име_на_филтъра]
-     */
-    public function getListFilterOptions()
-    {
-        return array('expiration' => 'Срок на годност');
-    }
-
-
-    /**
      * Подрежда подадените партиди
      *
      * @param array         $batches - наличните партиди
