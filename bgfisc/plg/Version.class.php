@@ -2,20 +2,26 @@
 
 
 /**
- * Клас 'n18_plg_Version' - за добавяне на версия от наредба 18
+ * Клас 'bgfisc_plg_Version' - за добавяне на версия от наредба 18
  *
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class n18_plg_Version extends core_Plugin
+class bgfisc_plg_Version extends core_Plugin
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_plg_Version';
+
+
     /**
      * Изпълнява се след подготовката на листовия изглед
      *

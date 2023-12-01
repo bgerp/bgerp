@@ -4,8 +4,8 @@
 /**
  * Мениджър на отчети относно: Обобщени данни за продажбите
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Angel Trifonov <angel.trifonoff@gmail.com>
  * @copyright 2006 - 2019 Experta OOD
@@ -14,12 +14,18 @@
  * @since     v 0.1
  * @title     НАП » Обобщени данни за продажбите
  */
-class n18_reports_AggregateSalesData extends frame2_driver_TableData
+class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_reports_AggregateSalesData';
+
+
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'napodit,ceo';
+    public $canSelectDriver = 'acc,sales,ceo';
     
     
     /**
@@ -105,7 +111,7 @@ class n18_reports_AggregateSalesData extends frame2_driver_TableData
     {
         $recs = array();
         
-        $sQuery = n18_Register::getQuery();
+        $sQuery = bgfisc_Register::getQuery();
         
         if ($rec->from) {
             $sQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
@@ -200,7 +206,7 @@ class n18_reports_AggregateSalesData extends frame2_driver_TableData
                 }
                 
                 //Отпечатани ФБ
-                $rcptPrint = n18_PrintedReceipts::fetch(array("#urnId = '[#1#]'", $regRec->id));
+                $rcptPrint = bgfisc_PrintedReceipts::fetch(array("#urnId = '[#1#]'", $regRec->id));
                 
                 //Ако към УНП няма касова бележка, записа не влиза в справката
                 if (!$rcptPrint) {
@@ -291,7 +297,7 @@ class n18_reports_AggregateSalesData extends frame2_driver_TableData
                     
                     //Ако по продажбата има сторниране
                     list($thisUrn) = (explode('|', $id));
-                    $prntQuery = n18_PrintedReceipts::getQuery();
+                    $prntQuery = bgfisc_PrintedReceipts::getQuery();
                     $prntQuery->where("#type = 'reverted' AND #urnId = ${thisUrn}");
                     $stornoVat = $stornoAmount = 0;
                     if (!empty($prntQuery->fetchAll())) {

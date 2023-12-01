@@ -4,8 +4,8 @@
 /**
  * Мениджър на отчети относно: Детайлни данни за продажбите
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Angel Trifonov <angel.trifonoff@gmail.com>
  * @copyright 2006 - 2019 Experta OOD
@@ -14,12 +14,18 @@
  * @since     v 0.1
  * @title     НАП » Детайлни данни за продажбите
  */
-class n18_reports_DetailedSalesData extends frame2_driver_TableData
+class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_reports_DetailedSalesDat';
+
+
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'napodit,ceo';
+    public $canSelectDriver = 'acc,sales,ceo';
     
     
     /**
@@ -131,7 +137,7 @@ class n18_reports_DetailedSalesData extends frame2_driver_TableData
         //Състояние на документите , които влизат в справката
         $stateArr = array('active', 'closed','waiting');
         
-        $sQuery = n18_Register::getQuery();
+        $sQuery = bgfisc_Register::getQuery();
         
         if ($rec->from) {
             $sQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));

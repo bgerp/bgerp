@@ -5,17 +5,23 @@
  * Издадени фисклани бонове към документи от системата
  *
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class n18_PrintedReceipts extends core_Manager
+class bgfisc_PrintedReceipts extends core_Manager
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_PrintedReceipts';
+
+
     /**
      * Заглавие
      */
@@ -25,7 +31,7 @@ class n18_PrintedReceipts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'n18_Wrapper,plg_Created,plg_SelectPeriod,plg_Search';
+    public $loadList = 'bgfisc_Wrapper,plg_Created,plg_SelectPeriod,plg_Search';
     
     
     /**
@@ -43,7 +49,7 @@ class n18_PrintedReceipts extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'sales,napodit,ceo';
+    public $canList = 'sales,ceo';
     
     
     /**
@@ -65,7 +71,7 @@ class n18_PrintedReceipts extends core_Manager
     {
         $this->FLD('classId', 'class', 'caption=Клас,mandatory');
         $this->FLD('objectId', 'int', 'caption=Източник,mandatory');
-        $this->FLD('urnId', 'key(mvc=n18_Register)', 'caption=УНП');
+        $this->FLD('urnId', 'key(mvc=bgfisc_Register)', 'caption=УНП');
         $this->FLD('string', 'varchar', 'caption=QR');
         $this->FLD('type', 'enum(normal=Обикновена,reverted=Сторно)', 'caption=Вид,mandatory');
         $this->FLD('state', 'enum(waiting=Чакащ,active=Отпечатано)', 'caption=Състояние,mandatory');
@@ -98,7 +104,7 @@ class n18_PrintedReceipts extends core_Manager
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $urn = n18_Register::fetchField($rec->urnId, 'urn');
+        $urn = bgfisc_Register::fetchField($rec->urnId, 'urn');
         
         $res .= ' ' . plg_Search::normalizeText($urn);
     }
@@ -150,12 +156,12 @@ class n18_PrintedReceipts extends core_Manager
         if ($Class instanceof pos_Receipts) {
             $revertId = $Class->fetchField($objectId, 'revertId');
             if (!empty($revertId) && $revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) {
-                $registerRec = n18_Register::forceRec($Class, $revertId);
+                $registerRec = bgfisc_Register::forceRec($Class, $revertId);
             }
         }
         
         if (empty($registerRec)) {
-            $registerRec = n18_Register::forceRec($Class, $objectId);
+            $registerRec = bgfisc_Register::forceRec($Class, $objectId);
         }
         expect($registerRec);
         
@@ -202,8 +208,8 @@ class n18_PrintedReceipts extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $urnRec = n18_Register::fetch($rec->urnId);
-        $row->urnId = n18_Register::getUrlLink($urnRec->urn);
+        $urnRec = bgfisc_Register::fetch($rec->urnId);
+        $row->urnId = bgfisc_Register::getUrlLink($urnRec->urn);
         
         try {
             $Class = cls::get($rec->classId);
@@ -322,7 +328,7 @@ class n18_PrintedReceipts extends core_Manager
         // Временно закоментиране
         return;
         
-        $query = n18_PrintedReceipts::getQuery();
+        $query = bgfisc_PrintedReceipts::getQuery();
         $query->where("#state = 'waiting' AND (#string = '' OR #string IS NULL)");
         
         while ($rec = $query->fetch()) {
@@ -338,7 +344,7 @@ class n18_PrintedReceipts extends core_Manager
                     }
                     
                     // Отмаркиране че е чакащо
-                    n18_PrintedReceipts::removeWaitingLog($rec->classId, $rec->objectId);
+                    bgfisc_PrintedReceipts::removeWaitingLog($rec->classId, $rec->objectId);
                 }
             }
         }

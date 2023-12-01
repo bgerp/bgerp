@@ -2,24 +2,30 @@
 
 
 /**
- * Мениджър на отчети относно: Обобщени данни за доставките
+ * Мениджър на отчети относно: Детайлни данни за доставките
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Angel Trifonov <angel.trifonoff@gmail.com>
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     НАП » Обобщени данни за доставките
+ * @title     НАП » Детайлни данни за доставките
  */
-class n18_reports_SummaryPurchasesData extends frame2_driver_TableData
+class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_reports_DetailedPurchasesData';
+
+
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'napodit,ceo';
+    public $canSelectDriver = 'acc,purchase,ceo';
     
     
     /**
@@ -82,105 +88,66 @@ class n18_reports_SummaryPurchasesData extends frame2_driver_TableData
     {
         $recs = array();
         
-        $query = purchase_Purchases::getQuery();
+        $query = purchase_PurchasesData::getQuery();
         
-        $stateArr = array('active','closed');
-        
-        $query->in('state', $stateArr);
-        
-        if ($rec->from) {
-            $query->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
-        }
-        
-        if ($rec->to) {
-            $query->where(array("#createdOn <= '[#1#]'",$rec->to . ' 23:59:59'));
-        }
-        
-        while ($purRec = $query -> fetch()) {
-            $id = $purRec->containerId;
+        while ($purDetailRec = $query -> fetch()) {
+            $classesArr = array('purchase_Purchases');
             
-            //ID на записа
-            $recId = $purRec->containerId;
+            $firstDoc = doc_Threads::getFirstDocument($purDetailRec -> threadId);
             
-            //Код на оператор
-            $userId = $purRec->createdBy;
-            
-            $userId = str_pad(substr($userId, -4), 4, '0', STR_PAD_LEFT);
-            
-            //Дата на доставката
-            $purDate = dt::mysql2verbal($purRec->createdOn, 'd.m.Y');
-            
-            //Време на доставката
-            $purTime = dt::mysql2verbal($purRec->createdOn, 'H:i:s');
-            
-            //Доставчик код
-            $contragentCode = $purRec->folderId;
-            
-            //Доставчик име
-            $contragentName = doc_Folders::getTitleById($purRec->folderId);
-            
-            $vatSum = $amountSum = 0;
-            
-            //Отстъпка
-            $discount = $purRec->amountDiscount;
-            
-            //ДДС - сума
-            $vatSum = $purRec->amountVat;
-            
-            //Сума на доставката - без ДДС
-            $amountSum = $purRec->amountDeal - $vatSum + $purRec->amountDiscount;
-            
-            //Обща сума на доставката с ДДС
-            $totalAmount = $purRec->amountDeal;
-            
-            //Метод на плащане
-            $paymentMethodId = $purRec->paymentMethodId;
-            
-            //Фактури по покупката
-            $invQuery = purchase_Invoices::getQuery();
-            $invQuery->where("#threadId = {$purRec->threadId} ");
-            
-            $invoicesArr = array();
-            while ($invoice = $invQuery->fetch()) {
-                $invoicesArr[] = (object) array(
-                    'data' => $invoice->date,
-                    'number' => $invoice->number
-                );
+            if (!in_array($firstDoc->className, $classesArr)) {
+                continue;
             }
             
-            $counter = count($invoicesArr) == 0 ? 1 :count($invoicesArr);
+            $firstDocRec = $firstDoc->className::fetch($firstDoc->that);
+            $aaa[] = $firstDocRec->createdOn;
+            $cond = $firstDocRec->createdOn >= $rec->from. ' 00:00:00' && $firstDocRec->createdOn <= $rec->to. ' 23:59:59';
+            if (!$cond) {
+                continue;
+            }
             
-            for ($i = 0; $i < $counter;$i++) {
-                if (empty($invoicesArr)) {
-                    $invoiceNumber = '';
-                    $invoiceDate = '';
-                } else {
-                    $invoiceNumber = $invoicesArr[$i]->number;
-                    $invoiceDate = $invoicesArr[$i]->data;
-                    $id .= '|'.$invoicesArr[$i]->number;
-                }
-                
-                
-                // добавя в масива
-                if (!array_key_exists($id, $recs)) {
-                    $recs[$id] = (object) array(
-                        
-                        'recId' => $recId,
-                        'purDate' => $purDate,
-                        'purTime' => $purTime,
-                        'userId' => $userId,
-                        'amountSum' => $amountSum,
-                        'totalAmount' => $totalAmount,
-                        'discount' => $discount,
-                        'vat' => $vatSum,
-                        'invoiceNumber' => $invoiceNumber,
-                        'invoiceDate' => $invoiceDate,
-                        'paymentMethodId' => $paymentMethodId,
-                        'contragentCode' => $contragentCode,
-                        'contragentName' => $contragentName,
+            $prodRec = cat_Products::fetch($purDetailRec->productId);
+            
+            $id = $purDetailRec->id;
+            
+            //ID на записа
+            $recId = $firstDocRec->containerId;
+            
+            //Код на продукта
+            $productCode = $prodRec->code;
+            
+            //Име на продукта
+            $productName = $prodRec->name;
+            
+            //Количество
+            $quantity = $purDetailRec->quantity;
+            
+            //Отстъпка
+            $discount = $purDetailRec->discount;
+            
+            //Единична цена
+            $price = $purDetailRec->price * $purDetailRec->currencyRate - $discount;
+            
+            
+            //ДДС - сума
+            $vatSum = $purDetailRec->amount * cat_Products::getVat($purDetailRec->productId);
+            
+            //Обща сума на продажбата - без ДДС
+            $amountSum = $purDetailRec->amount;
+            
+            // добавя в масива
+            if (!array_key_exists($id, $recs)) {
+                $recs[$id] = (object) array(
                     
-                    );
-                }
+                    'recId' => $recId,
+                    'code' => $productCode,
+                    'productName' => $productName,
+                    'quantity' => $quantity,
+                    'price' => $price,
+                    'amountSum' => $amountSum,
+                    'discount' => $discount,
+                    'vat' => $vatSum,
+                );
             }
         }
         
@@ -204,23 +171,15 @@ class n18_reports_SummaryPurchasesData extends frame2_driver_TableData
         
         $fld->FLD('recId', 'int', 'caption=ID запис');
         
-        $fld->FLD('purDate', 'varchar', 'caption=Доставка->дата,tdClass=centered');
-        $fld->FLD('purTime', 'varchar', 'caption=Доставка->време,tdClass=centered');
+        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
+        $fld->FLD('productName', 'varchar', 'caption=Име');
         
-        $fld->FLD('userId', 'varchar', 'caption=Код на оператор,tdClass=centered');
+        $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество,tdClass=centered');
         
-        $fld->FLD('contragentCode', 'int', 'caption=Доставчик->код,tdClass=centered');
-        $fld->FLD('contragentName', 'varchar', 'caption=Доставчик->име');
-        
-        $fld->FLD('invoiceNumber', 'int', 'caption=Фактура->Номер,tdClass=centered');
-        $fld->FLD('invoiceDate', 'varchar', 'caption=Фактура->Дата,tdClass=centered');
-        
-        $fld->FLD('amountSum', 'double(smartRound,decimals=2)', 'caption=Доставка->Стойност,tdClass=centered');
-        $fld->FLD('discount', 'double(smartRound,decimals=2)', 'caption=Доставка->Отстъпка,tdClass=centered');
-        $fld->FLD('vat', 'double(smartRound,decimals=2)', 'caption=Доставка->ДДС,tdClass=centered');
-        $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Доставка->Общо,tdClass=centered');
-        
-        $fld->FLD('paymentMethodId', 'varchar', 'caption=Вид на плащането,tdClass=centered');
+        $fld->FLD('price', 'double(decimals=2)', 'caption=Единична цена,tdClass=centered');
+        $fld->FLD('discount', 'double(decimals=2)', 'caption=Отстъпка');
+        $fld->FLD('vat', 'double(decimals=2)', 'caption=ДДС,tdClass=centered');
+        $fld->FLD('amountSum', 'double(decimals=2)', 'caption=Обща сума,tdClass=centered');
         
         return $fld;
     }
@@ -250,36 +209,20 @@ class n18_reports_SummaryPurchasesData extends frame2_driver_TableData
             $row->recId = $dRec->recId;
         }
         
-        if (isset($dRec->purDate)) {
-            $row->purDate = $dRec->purDate;
+        if (isset($dRec->code)) {
+            $row->code = $dRec->code;
         }
         
-        if (isset($dRec->purTime)) {
-            $row->purTime = $dRec->purTime;
+        if (isset($dRec->productName)) {
+            $row->productName = $dRec->productName;
         }
         
-        if (isset($dRec->userId)) {
-            $row->userId = $dRec->userId;
+        if (isset($dRec->quantity)) {
+            $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
         }
         
-        if (isset($dRec->contragentCode)) {
-            $row->contragentCode = $dRec->contragentCode;
-        }
-        
-        if (isset($dRec->contragentName)) {
-            $row->contragentName = $dRec->contragentName;
-        }
-        
-        if (isset($dRec->invoiceNumber)) {
-            $row->invoiceNumber = $Int->toVerbal($dRec->invoiceNumber);
-        }
-        
-        if (isset($dRec->invoiceDate)) {
-            $row->invoiceDate = $Date->toVerbal($dRec->invoiceDate);
-        }
-        
-        if (isset($dRec->amountSum)) {
-            $row->amountSum = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountSum);
+        if (isset($dRec->price)) {
+            $row->price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
         }
         
         if (isset($dRec->discount)) {
@@ -290,10 +233,8 @@ class n18_reports_SummaryPurchasesData extends frame2_driver_TableData
             $row->vat = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->vat);
         }
         
-        $row->totalAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountSum + $dRec->vat);
-        
-        if (isset($dRec->paymentMethodId)) {
-            $row->paymentMethodId = cond_PaymentMethods::getTitleById($dRec->paymentMethodId);
+        if (isset($dRec->amountSum)) {
+            $row->amountSum = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountSum);
         }
         
         return $row;
