@@ -98,7 +98,15 @@ class cat_products_VatGroups extends core_Detail
             $validFrom = ($rec->validFrom) ? $rec->validFrom : $today;
 
             if ($validFrom < $today) {
-                $form->setError('validFrom', 'Групата не може да се сменя с минала дата');
+
+                // Проверка дали вече артикула учавства в документи след тази дата
+                $interfaces = core_Classes::getOptionsByInterface('cat_interface_DocumentVatIntf');
+                foreach ($interfaces as $iFace){
+                    $Interface = cls::getInterface('cat_interface_DocumentVatIntf', $iFace);
+                    if($Interface->isUsedAfterInVatDocument($rec->productId, $validFrom)){
+                        $form->setError('validFrom', 'Групата не може да се сменя с минала дата, защото артикула вече участва в документи след нея');
+                    }
+                }
             } elseif($validFrom == $today){
                 $form->setWarning('validFrom', 'Ще се отрази на вече създадените документи с този и следващи вальори|*!');
             }

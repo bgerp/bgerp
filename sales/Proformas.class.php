@@ -56,7 +56,7 @@ class sales_Proformas extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, plg_Printing,doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords,change_Plugin, plg_Search';
+					doc_EmailCreatePlg, plg_Printing,doc_plg_HidePrices, doc_plg_TplManager, cat_plg_UsingProductVat, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords,change_Plugin, plg_Search';
 
 
     /**
