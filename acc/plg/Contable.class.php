@@ -127,6 +127,12 @@ class acc_plg_Contable extends core_Plugin
             $msgType = ($success) ? 'notice' : 'error';
             $mvc->logWrite('Ръчно реконтиране', $rec->id);
             if($success){
+                if(core_Packs::isInstalled('batch')){
+                    batch_Movements::removeMovement($mvc, $rec->id);
+                    batch_Movements::saveMovement($rec->containerId);
+                    $mvc->savedMovements[$rec->containerId] = true;
+                }
+
                 $mvc->invoke('AfterDebugReconto', array($rec, $rec));
             }
 
