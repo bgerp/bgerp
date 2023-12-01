@@ -106,6 +106,12 @@ abstract class deals_QuotationMaster extends core_Master
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $valiorFld = 'date';
+
+
+    /**
      * Задължителни полета на модела
      */
     protected static function setQuotationFields($mvc)

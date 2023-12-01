@@ -79,6 +79,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
     public function beforeRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
         if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
+        if($detail instanceof store_DocumentPackagingDetail) return;
 
         $columns = countR($data->listFields);
         $masterRec = $data->masterData->rec;
@@ -110,6 +111,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
 
             $weight = $detail->getWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->weight);
+
             if(empty($weight)){
                 $tariffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
             }

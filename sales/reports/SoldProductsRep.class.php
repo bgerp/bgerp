@@ -75,7 +75,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,removeAndRefreshForm,single=none,input=none,silent');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,removeAndRefreshForm,single=none,input=none,silent');
 
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,input=none,after=to,silent,mandatory');
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,silent,mandatory');
 
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealers');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
@@ -262,9 +262,9 @@ bp();
 
         $form->setDefault('primeCostType', 'standartPrimeCost');
 
-        if ($rec->quantityType != 'invoiced') {
+        if ($rec->quantityType == 'invoiced') {
 
-            $form->setField('dealers', 'input');
+            $form->setField('dealers', 'input=none');
         }
 
         if ($rec->seeByContragent == 'yes') {

@@ -72,6 +72,7 @@ class core_Detail extends core_Manager
         }
 
         setIfNot($mvc->requireMasterBeInstanceOfCoreMaster, true);
+        setIfNot($mvc->addDeleteSelectRows, true);
     }
     
     
@@ -218,23 +219,13 @@ class core_Detail extends core_Manager
         }
         
         if ($this->haveRightFor('add', $rec) && $data->masterId && $this->listAddBtn !== false) {
-            $data->toolbar->addBtn(
-                
-                'Нов запис',
-                
-                array(
-                    $this,
-                    'add',
-                    $masterKey => $data->masterId,
-                    'ret_url' => true,
-                ),
-                'id=btnAdd',
-                
-                'ef_icon = img/16/star_2.png,title=Създаване на нов запис'
-            
-            );
+            $data->toolbar->addBtn('Нов запис', array($this, 'add', $masterKey => $data->masterId, 'ret_url' => true),  'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
         }
-        
+
+        if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => $data->masterId))){
+            $data->toolbar->addBtn('Изтриване', array($this, 'selectRowsToDelete', $masterKey => $data->masterId, 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/delete.png,title=Избор на един или няколко реда за изтриване,order=500,class=selectDeleteRowsBtn');
+        }
+
         return $data;
     }
     
@@ -362,7 +353,46 @@ class core_Detail extends core_Manager
                 return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
             }
         }
-        
+
+        // За екшъна за изтриване на избрани редове, се изисква да има поне един запис, който може да се изтрива
+        if($action == 'selectrowstodelete'){
+            if(!$this->addDeleteSelectRows) return 'no_one';
+
+            $actionCast = 'delete';
+            $res = parent::getRequiredRoles_($actionCast, $rec, $userId);
+
+            if($res != 'no_one'){
+
+                if(isset($rec->{$this->masterKey})){
+                    $query = static::getQuery();
+                    $query->where("#{$this->masterKey} = {$rec->{$this->masterKey}}");
+
+                    // Ако има указани допълнителни полета за филтриране на детайлите
+                    if(isset($rec->_filterFld)){
+                        $sign = ($rec->_filterFldNot) ? '!=' : '=';
+                        $query->where("#{$rec->_filterFld} {$sign} '{$rec->{$rec->_filterFldVal}}'");
+                    }
+
+                    $haveDeletableRec = false;
+                    while ($dRec = $query->fetch()){
+                        if(static::haveRightFor('delete', $dRec)){
+                            $haveDeletableRec = true;
+                            break;
+                        }
+                    }
+
+                    if(!$haveDeletableRec){
+                        $res = 'no_one';
+                    }
+                } else {
+                    $res = 'no_one';
+                }
+            }
+
+            return $res;
+        }
+
+
         return parent::getRequiredRoles_($action, $rec, $userId);
     }
     
@@ -545,5 +575,73 @@ class core_Detail extends core_Manager
         }
         
         return $data;
+    }
+
+
+    /**
+     * Екшън за групово изтриване на детайлите
+     */
+    public function act_selectRowsToDelete()
+    {
+        expect($masterId = Request::get($this->masterKey, 'int'));
+        $this->requireRightFor('selectrowstodelete', (object)array($this->masterKey => $masterId));
+        $deleteAllUrl = toUrl(array($this, 'selectrowstodelete', "{$this->masterKey}" => $masterId));
+
+        $form = cls::get('core_Form');
+        $form->title = 'Изтриване на редове от|* <b>' . cls::get($this->Master)->getFormTitleLink($masterId) . '</b>';
+        $form->info = new core_ET("");
+        $form->FLD('selected', 'varchar', 'caption=Избрани', 'silent,input=hidden');
+        $form->input('selected', 'silent');
+
+        $query = $this->getQuery();
+        $query->where("#{$this->masterKey} = {$masterId}");
+        $filterFld = Request::get('_filterFld', 'varchar');
+        $filterNot = Request::get('_filterFldNot', 'varchar');
+        $filterFldVal = Request::get('_filterFldVal', 'varchar');
+        if(!empty($filterFld)){
+            $sign = ($filterNot) ? '!=' : '=';
+            $query->where("#{$filterFld} {$sign} '{$filterFldVal}'");
+        }
+
+        // Визуализиране на редовете за изтриване
+        $data = (object)array('masterMvc' => $this->Master, 'masterData' => (object)array('rec' => $this->Master->fetch($masterId)), 'recs' => array(), 'rows' => array(), 'masterId' => $masterId, 'query' => $query);
+
+        $this->prepareListFields($data);
+        $this->prepareListRecs($data);
+        $this->prepareListRows($data);
+        $data->listTableMvc = clone $this;
+        foreach ($data->rows as $id => $row){
+            unset($row->_rowTools);
+            if(!static::haveRightFor('delete', $data->recs[$id])) continue;
+            $row->btn = "<input type='checkbox' name='C[{$id}]' id='cb_{$id}' class='inline-checkbox defaultDeleteRowCheckbox' data-selectedId='{$id}' checked title='Маркиране на реда за изтриване'>";
+        }
+
+        $btnAll = "<input type='checkbox' name='checkAllRows' checked class='inline-checkbox' title='Маркиране/размаркирване на всички редове за изтриване'>";
+        $data->listFields = array('btn' => "|* {$btnAll}") + $data->listFields;
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
+
+        $docTableTpl = $this->renderListTable($data);
+        $form->info->append($docTableTpl);
+        $form->input();
+
+        // Ако има събмитнати редове за изтриване - да се изтрият
+        if($form->rec->selected){
+            $selectedArr = explode('|', $form->rec->selected);
+            if(countR($selectedArr)){
+                $str = implode(',', $selectedArr);
+                static::delete("#{$this->masterKey} = {$masterId} AND #id IN ({$str})");
+
+                $this->Master->logWrite('Изтриване на избрани редове', $masterId);
+                redirect($this->Master->getSingleUrlArray($masterId), 'Успешно са изтрити избраните редове|*!');
+            }
+        }
+
+        $form->toolbar->addFnBtn('Изтриване', '', array('class' => 'deleteAllCheckedRows', 'ef_icon' => 'img/16/delete.png', 'data-url' => $deleteAllUrl, 'data-errorMsg' => tr('Моля изберете редове за изтриване|*!')));
+        $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Назад към заданието');
+
+        $tpl = $this->renderWrapping($form->renderHtml());
+        jquery_Jquery::run($tpl, 'detailDeleteRowsAct();');
+
+        return $tpl;
     }
 }

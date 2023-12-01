@@ -90,7 +90,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $uQuery = core_Users::getQuery();
         $uQuery->in('id', array_keys($allUsers));
         while($uRec = $uQuery->fetch()){
-            if(core_Users::compareRangs($uRec->id, $cu) < 0){
+            if(core_Users::compareRangs($uRec->id, $cu) < 0 || $uRec->id == $cu){
                 if($uRec->state == 'active'){
                     $activeArr[$uRec->id] = "{$uRec->nick} ($uRec->names)";
                 } elseif($uRec->state == 'closed'){

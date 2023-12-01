@@ -53,7 +53,7 @@ class store_ConsignmentProtocols extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                        plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, store_plg_StockPlanning';
+                        plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,cat_plg_UsingProductVat, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, store_plg_StockPlanning';
     
     
     /**

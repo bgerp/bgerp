@@ -5959,6 +5959,34 @@ function focusOnHeader() {
 
 
 /**
+ * Екшън за групово изтриване на редовете
+ */
+function detailDeleteRowsAct() {
+    $(document.body).on('change', "input[name=checkAllRows]", function (e) {
+        $(".defaultDeleteRowCheckbox").prop('checked', $(this).prop("checked"));
+    });
+
+    $(document.body).on('click', ".deleteAllCheckedRows", function(e) {
+        var url = $(this).attr("data-url");
+        var chkArray = [];
+
+        // Look for all checkboxes that have a specific class and was checked
+        $(".defaultDeleteRowCheckbox:checked").each(function() {
+            var sysId = $(this).attr("data-selectedId");
+            chkArray.push(sysId);
+        });
+
+        if(!chkArray.length){
+            alert($(this).attr("data-errorMsg"));
+        } else {
+            var selected = chkArray.join('|');
+            window.location = url + "&selected=" + selected;
+        }
+    });
+}
+
+
+/**
  * Групово маркиране на чекбоксове при натиснат шрифт
  */
 function markSelectedChecboxes()
