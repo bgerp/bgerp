@@ -399,8 +399,8 @@ class bgfisc_Register extends core_Manager
         // Ако не е определено ФУ взима се някое от дефолтните
         if (empty($serialNum)) {
             $serialNum = null;
-            $serialNum1 = bgfisc_Setup::get('DEFAULT_FISC_DEVICE_1');
-            $serialNum2 = bgfisc_Setup::get('DEFAULT_FISC_DEVICE_2');
+            $serialNum1 = bgfisc_Setup::get('N18_DEFAULT_FISC_DEVICE_1', true);
+            $serialNum2 = bgfisc_Setup::get('N18_DEFAULT_FISC_DEVICE_2', true);
             setIfNot($serialNum, $serialNum1, $serialNum2);
         }
         
