@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Частично експедирани нестандартни артикули
+ * @title     Склад » Нестандартни артикули - количества за експедиране
  */
 class store_reports_NonPublicItems extends frame2_driver_TableData
 {
