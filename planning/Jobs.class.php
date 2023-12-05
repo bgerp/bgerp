@@ -1101,7 +1101,7 @@ class planning_Jobs extends core_Master
             // Ако се създава към продажба, тя трябва да е активна
             if (!empty($rec->saleId)) {
                 $saleState = sales_Sales::fetchField($rec->saleId, 'state');
-                if ($saleState != 'active' && $saleState != 'closed') {
+                if (!in_array($saleState, array('active', 'closed', 'pending'))) {
                     $res = 'no_one';
                 } else {
                     $products = sales_Sales::getManifacturableProducts($rec->saleId, true);
@@ -1111,7 +1111,16 @@ class planning_Jobs extends core_Master
                 }
             }
         }
-        
+
+        if ($action == 'add' && isset($rec)){
+            if (!empty($rec->saleId)) {
+                $saleState = sales_Sales::fetchField($rec->saleId, 'state');
+                if (!in_array($saleState, array('active', 'closed', 'pending'))) {
+                    $res = 'no_one';
+                }
+            }
+        }
+
         // Ако няма ид, не може да се активира
         if ($action == 'activate' && empty($rec->id)) {
             $res = 'no_one';

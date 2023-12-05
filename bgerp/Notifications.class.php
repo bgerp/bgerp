@@ -267,6 +267,15 @@ class bgerp_Notifications extends core_Manager
                 $r->activatedOn > bgerp_LastTouch::get('portal', $userId)) {
                 $rec->activatedOn = $r->activatedOn;
             }
+
+            // Запазваме по-високият приоритет в предишните неотворени известия
+            if ($r->state == 'active') {
+                if ($priority != $r->priority) {
+                    if (($r->priority != 'normal') && ($rec->priority != 'alert')) {
+                        $rec->priority = $r->priority;
+                    }
+                }
+            }
         } else {
             $rec->cnt = 1;
         }

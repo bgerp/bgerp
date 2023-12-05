@@ -2010,11 +2010,13 @@ class sales_Sales extends deals_DealMaster
                     $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
                 }
 
-                if($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}")){
-                    $rec->tel = $cartRec->tel;
-                    $rec->email = $cartRec->email;
-                    $rec->cartId = $cartRec->id;
-                    $rec->instruction = $cartRec->instruction;
+                if(core_Packs::isInstalled('eshop')){
+                    if($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}")){
+                        $rec->tel = $cartRec->tel;
+                        $rec->email = $cartRec->email;
+                        $rec->cartId = $cartRec->id;
+                        $rec->instruction = $cartRec->instruction;
+                    }
                 }
             }
         }

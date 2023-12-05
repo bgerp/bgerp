@@ -560,21 +560,4 @@ class ztm_Devices extends core_Master
             }
         }
     }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Първичния ключ на направения запис
-     * @param stdClass     $rec     Всички полета, които току-що са били записани
-     * @param string|array $fields  Имена на полетата, които sa записани
-     * @param string       $mode    Режим на записа: replace, ignore
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-        if (!is_null($rec->__update)) {
-            acs_Zones::update($rec->__oldName, $rec->__newName, $mvc->getClassId(), $rec->locationId, $rec->state, $rec->__update);
-        }
-    }
 }

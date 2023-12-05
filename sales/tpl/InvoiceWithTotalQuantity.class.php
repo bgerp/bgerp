@@ -61,7 +61,9 @@ class sales_tpl_InvoiceWithTotalQuantity extends doc_TplScript
             $round = cat_UoM::fetchField($baseMeasureId, 'round');
             $totalQuantityVerbal = core_Type::getByName("double(decimals={$round})")->toVerbal($totalQuantity);
             $totalQuantityVerbal = ht::styleNumber($totalQuantityVerbal, $totalQuantity);
+            $detail->Master->pushTemplateLg($data->masterData->rec->template);
             $data->totalQuantityData = (object)array('baseMeasureId' => tr(cat_UoM::getShortName($baseMeasureId)), 'totalQuantity' => $totalQuantityVerbal);
+            core_Lg::pop();
         }
     }
 

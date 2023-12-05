@@ -568,7 +568,7 @@ class doc_Search extends core_Manager
             
             return;
         }
-        
+
         $attr = array();
         $attr['ef_icon'] = $docProxy->getIcon();
         
@@ -599,7 +599,8 @@ class doc_Search extends core_Manager
         }
 
         if ($docRow->subTitle) {
-            $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
+            $noTagsClass = ($docRow->_haveTags && !$docRow->_haveSubtitle) ? ' onlyTags' : '';
+            $row->title .= "\n<div class='threadSubTitle{$noTagsClass}'>{$docRow->subTitle}</div>";
         }
 
         $row->hnd = "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#{$handle}</div>";

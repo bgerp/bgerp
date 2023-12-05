@@ -383,8 +383,14 @@ abstract class deals_DealBase extends core_Master
             $warning[$rec->currencyRate] = $rec->currencyRate;
             $deals1 = keylist::toArray($form->rec->closeWith);
 
+            $dealCountries = array();
             foreach ($deals1 as $d1) {
                 $dealRec = $this->fetch($d1, 'threadId,currencyRate');
+                $logisticData = $this->getLogisticData($d1);
+                if(isset($logisticData['toCountry'])){
+                    $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+                    $dealCountries[$toCountryId] = $d1;
+                }
                 if (acc_plg_Contable::haveDocumentInThreadWithStates($dealRec->threadId, 'pending,draft')) {
                     $err[] = $this->getLink($d1, 0);
                 }
@@ -392,9 +398,24 @@ abstract class deals_DealBase extends core_Master
                 $threads[$dealRec->threadId] = $dealRec->threadId;
             }
 
-            if (countR($err)) {
-                $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
-                $form->setError('closeWith', $msg);
+            $countryWarningMsg = array();
+            $logisticData = $this->getLogisticData($rec->id);
+            if(countR($dealCountries)){
+                $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+                if(isset($toCountryId)){
+                    $dealList = array();
+                    $diffCountries = array_diff_key($dealCountries, array($toCountryId => $toCountryId));
+                    foreach ($diffCountries as $diffDealId){
+                        $dealList[] = "#" . $this->getHandle($diffDealId);
+                    }
+                    $countryWarningMsg = "Държавата на доставка в обединяващия договор е различна от държавата на доставка в|*: " . implode(',', $dealList);
+                } else {
+                    $countryWarningMsg = "Обединяват се договори с избрана държава на доставка в договор без посочена такава|*!";
+                }
+            }
+
+            if(!empty($countryWarningMsg)){
+                $form->setWarning('closeWith', $countryWarningMsg);
             }
 
             if (countR($warning) != 1) {

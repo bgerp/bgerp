@@ -80,8 +80,14 @@ class store_Receipts extends store_DocumentMaster
      * Кой има право да променя?
      */
     public $canChangeline = 'ceo,store,trans';
-    
-    
+
+
+    /**
+     * Кои роли може да променят активно ЕН
+     */
+    public $canChangerec = 'ceo,store';
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -263,13 +269,6 @@ class store_Receipts extends store_DocumentMaster
                 $data->form->FNC('importProducts', 'enum(notshipped=Недоставени (Всички),notshippedstorable=Недоставени (Складируеми),notshippedservices=Недоставени (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
             }
         }
-    }
-
-
-    function act_Test()
-    {
-        $rec = static::fetch(483);
-        static::on_AfterCreate($this, $rec);
     }
 
 
