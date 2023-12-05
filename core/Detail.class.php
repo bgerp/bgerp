@@ -644,4 +644,22 @@ class core_Detail extends core_Manager
 
         return $tpl;
     }
+
+    /**
+     * След взимане на полетата, които да не се клонират
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+        $fieldsNotToClone = arr::make($mvc->fieldsNotToClone, true);
+
+        if (!is_array($res)) {
+            $res = $fieldsNotToClone;
+        } else {
+            $res += $fieldsNotToClone;
+        }
+    }
 }

@@ -361,16 +361,18 @@ class plg_Clone extends core_Plugin
                     $query->where("#{$Detail->masterKey} = {$oldMasterId}");
                     $query->orderBy('id', 'ASC');
                     $dRecs = $query->fetchAll();
-                    
-                    $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
-                    $dontCloneFields['modifiedOn'] = 'modifiedOn';
-                    $dontCloneFields['modifiedBy'] = 'modifiedBy';
-                    $dontCloneFields['createdOn'] = 'createdOn';
-                    $dontCloneFields['createdBy'] = 'createdBy';
 
                     if (is_array($dRecs)) {
                         foreach ($dRecs as $dRec) {
                             $oldRec = clone $dRec;
+
+                            $dontCloneFields = arr::make($Detail->getFieldsNotToClone($oldRec), true);
+                            $dontCloneFields['modifiedOn'] = 'modifiedOn';
+                            $dontCloneFields['modifiedBy'] = 'modifiedBy';
+                            $dontCloneFields['createdOn'] = 'createdOn';
+                            $dontCloneFields['createdBy'] = 'createdBy';
+                            bp($dontCloneFields);
+
                             $dRec->{$Detail->masterKey} = $newMasterId;
                             unset($dRec->id);
                             $dRec->_isClone = true;
