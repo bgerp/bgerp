@@ -131,7 +131,7 @@ class visualcrossing_Forecasts extends core_Manager
             $forecastday = $weather->days;
 
             if (is_array($forecastday)) {
-                foreach ($forecastday as $day => $data) {
+                foreach ($forecastday as $data) {
 
                     $date = dt::timestamp2mysql($data->datetimeEpoch);
 
