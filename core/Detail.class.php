@@ -619,7 +619,7 @@ class core_Detail extends core_Manager
         $btnAll = "<input type='checkbox' name='checkAllRows' checked class='inline-checkbox' title='Маркиране/размаркирване на всички редове за изтриване'>";
         $data->listFields = array('btn' => "|* {$btnAll}") + $data->listFields;
         $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
-        $data->listTableMvc->FLD('btn', 'varchar', 'tdClass=centered');
+        $data->listTableMvc->FLD('btn', 'varchar', 'tdClass=centered vtop');
         $docTableTpl = $this->renderListTable($data);
         $form->info->append($docTableTpl);
         $form->input();
