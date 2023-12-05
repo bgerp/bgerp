@@ -594,14 +594,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         if ($dRec->total) {
             $row->total = '';
-            $row->total .= 'Етикетирано ' . $dRec->production . " ; ";
-            $row->total .= 'Вложено ' . $dRec->input . " ; ";
+            $row->total .= 'Етикетирано ' . $dRec->production . "; ";
+            $row->total .= 'Вложено ' . $dRec->input . "; ";
             $row->total .= 'Отпадък ' . $dRec->waste;
             $row->total .= "</br>" . 'Произведено: ';
             if(is_array($dRec->quantitiesByMeasure)){
                 foreach ($dRec->quantitiesByMeasure as $meas => $q) {
 
-                    $row->total .= cat_UoM::fetch($meas)->name . ' - ' . $q . " ; ";
+                    $row->total .= cat_UoM::fetch($meas)->name . ' - ' . $q . "; ";
 
                 }
             }
