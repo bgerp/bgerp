@@ -636,7 +636,7 @@ class core_Detail extends core_Manager
             }
         }
 
-        $form->toolbar->addFnBtn('Изтриване', '', array('class' => 'deleteAllCheckedRows', 'ef_icon' => 'img/16/delete.png', 'data-url' => $deleteAllUrl, 'data-errorMsg' => tr('Моля изберете редове за изтриване|*!')));
+        $form->toolbar->addFnBtn('Изтриване', '', array('class' => 'deleteAllCheckedRows', 'ef_icon' => 'img/16/deletered.png', 'data-url' => $deleteAllUrl, 'data-errorMsg' => tr('Моля изберете редове за изтриване|*!')));
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Назад към заданието');
 
         $tpl = $this->renderWrapping($form->renderHtml());
