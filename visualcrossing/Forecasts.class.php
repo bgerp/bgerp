@@ -144,7 +144,7 @@ class visualcrossing_Forecasts extends core_Manager
 
                     $rec->low = $data->tempmin;
                     $rec->high = $data->tempmax;
-                    $rec->rh = $data->humidity;
+                    $rec->rh = $data->humidity ? $data->humidity/100 : 0;
                     $rec->wind = $data->windspeed;
                     $rec->icon = $data->icon;
 
