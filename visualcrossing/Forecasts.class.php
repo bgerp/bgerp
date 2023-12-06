@@ -150,6 +150,8 @@ class visualcrossing_Forecasts extends core_Manager
 
                     self::save($rec);
                 }
+
+                bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
             }
         }
     }
