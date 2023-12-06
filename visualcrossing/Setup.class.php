@@ -108,4 +108,22 @@ class visualcrossing_Setup extends core_ProtoSetup
         ),
     );
 
+
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = '';
+
+        // При инсталация, деинсталираме пакета darksky
+        if (core_Packs::isInstalled('darksky')) {
+            $html .= cls::get('core_Packs')->deinstall('darksky');
+        }
+
+        $html .= parent::install();
+
+        return $html;
+    }
+
 }
