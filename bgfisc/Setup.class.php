@@ -130,9 +130,7 @@ class bgfisc_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Печат на фискален бон от касовите документи', 'bgfisc_plg_PrintFiscReceipt', 'cash_Document', 'family');
         $html .= $Plugins->installPlugin('Печат на фискален бон от РКО', 'bgfisc_plg_Rko', 'cash_Rko', 'private');
         $html .= $Plugins->installPlugin('Печат на фискален бон от продажбите', 'bgfisc_plg_PrintFiscReceipt', 'sales_Sales', 'private');
-        $html .= $Plugins->installPlugin('Добавена на версия към системата', 'bgfisc_plg_Version', 'help_Info', 'private');
-        $html .= $Plugins->installPlugin('Име на системата', 'bgfisc_plg_TitlePlg', 'core_ObjectConfiguration', 'private');
-        
+
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към бележките към фактурите', 'bgfisc_plg_SaleDocument', 'sales_Invoices', 'private');
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към бележките към ЕН', 'bgfisc_plg_SaleDocument', 'store_ShipmentOrders', 'private');
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към бележките към СР', 'bgfisc_plg_SaleDocument', 'store_Receipts', 'private');
