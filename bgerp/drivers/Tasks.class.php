@@ -292,6 +292,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
         $data->form->setDefault('perPage', 20);
+        $data->form->setDefault('showCal', 'yes');
     }
     
     
