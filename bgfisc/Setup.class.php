@@ -142,7 +142,13 @@ class bgfisc_Setup extends core_ProtoSetup
         if(!bgfisc_Register::count()){
             pos_Receipts::delete("#state = 'draft'");
         }
-        
+
+        // Сетъпване на модели в които са се добавили нови полета
+        cls::get('cash_Cases')->setupMvc();
+        cls::get('pos_Receipts')->setupMvc();
+        cls::get('cash_Pko')->setupMvc();
+        cls::get('cash_Rko')->setupMvc();
+
         return $html;
     }
     
