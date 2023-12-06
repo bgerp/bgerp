@@ -70,7 +70,7 @@ class bgfisc_Setup extends core_ProtoSetup
      */
     public $managers = array('bgfisc_Register',
         'bgfisc_PrintedReceipts',
-        'migrate::removeOldPlugins',
+        'migrate::deletePlugins2449',
     );
     
     
@@ -149,8 +149,19 @@ class bgfisc_Setup extends core_ProtoSetup
 
         return $html;
     }
-    
-    
+
+
+    /**
+     * Изтриване на стар плъгин
+     */
+    public function deletePlugins2449()
+    {
+        $Plugins = cls::get('core_Plugins');
+        $Plugins->deinstallPlugin('bgfisc_plg_TitlePlg', 'core_ObjectConfiguration');
+        $Plugins->deinstallPlugin('bgfisc_plg_Version', 'help_Info');
+    }
+
+
     /**
      * Връща наличните за избор фискални устройства
      *
@@ -165,16 +176,6 @@ class bgfisc_Setup extends core_ProtoSetup
         }
         
         return array('' => '') + $options;
-    }
-    
-    
-    /**
-     * Изтриване на плъгин
-     */
-    public function removeOldPlugins()
-    {
-        $Plugins = cls::get('core_Plugins');
-        $Plugins->deinstallPlugin('bgfisc_plg_CashRegister', 'bank_OwnAccounts');
     }
 
 
