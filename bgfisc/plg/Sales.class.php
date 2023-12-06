@@ -2,11 +2,11 @@
 
 
 /**
- * Клас 'n18_plg_Sales' - за добавяне на функционалност от наредба 18 към Продажбите
+ * Клас 'bgfisc_plg_Sales' - за добавяне на функционалност от наредба 18 към Продажбите
  *
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2019 Experta OOD
@@ -14,8 +14,14 @@
  *
  * @since     v 0.1
  */
-class n18_plg_Sales extends core_Plugin
+class bgfisc_plg_Sales extends core_Plugin
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_plg_Sales';
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -28,7 +34,7 @@ class n18_plg_Sales extends core_Plugin
             $rec = $form->rec;
             
             if (!$form->gotErrors()) {
-                $registerRec = n18_Register::getFiscDevice($rec->caseId);
+                $registerRec = bgfisc_Register::getFiscDevice($rec->caseId);
                 if (empty($registerRec)) {
                     $form->setError('caseId', 'Не може да се генерира УНП, защото не може да се определи ФУ');
                 }
@@ -55,7 +61,7 @@ class n18_plg_Sales extends core_Plugin
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         if(empty($rec->id) && ($rec->_onlineSale === true || isset($rec->originId))){
-            if(!n18_Register::getFiscDevice($rec->caseId, $rec->bankAccountId)){
+            if(!bgfisc_Register::getFiscDevice($rec->caseId, $rec->bankAccountId)){
                 
                 throw new core_exception_Expect('Не може да се генерира УНП, защото не може да се определи ФУ', 'Несъответствие');
             }
@@ -68,7 +74,7 @@ class n18_plg_Sales extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        $regRec = n18_Register::createUrn($mvc, $rec->id, true);
+        $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
         core_Statuses::newStatus("Създаване на продажба с УНП|*: '<b>{$regRec->urn}<b>'");
         
         // Добавяне на УНП-то в ключовите думи
@@ -87,7 +93,7 @@ class n18_plg_Sales extends core_Plugin
     {
         // Думите за търсене са името на документа-основания
         if(isset($rec->id)){
-            if($urn = n18_Register::getRec($mvc, $rec->id)->urn){
+            if($urn = bgfisc_Register::getRec($mvc, $rec->id)->urn){
                 $res .= ' ' . plg_Search::normalizeText($urn);
             }
         }
@@ -99,8 +105,8 @@ class n18_plg_Sales extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if($urn = n18_Register::getRec($mvc, $rec->id)->urn){
-            $row->cashRegNum = n18_Register::getUrlLink($urn);
+        if($urn = bgfisc_Register::getRec($mvc, $rec->id)->urn){
+            $row->cashRegNum = bgfisc_Register::getUrlLink($urn);
         } else {
             $row->cashRegNum = ht::createHint('Стара продажба', 'Стара продажба, ще се генерира УНП, при издаване на фискален бон', 'warning', false);
         }
@@ -125,7 +131,7 @@ class n18_plg_Sales extends core_Plugin
             
             if (isset($action['pay'])) {
                 $error = null;
-                if (!n18_plg_PrintFiscReceipt::checkBeforeConto($rec->caseId, currency_Currencies::getIdByCode($rec->currencyId), $error)) {
+                if (!bgfisc_plg_PrintFiscReceipt::checkBeforeConto($rec->caseId, currency_Currencies::getIdByCode($rec->currencyId), $error)) {
                     $form->setError('action', $error);
                 }
             }
@@ -204,7 +210,7 @@ class n18_plg_Sales extends core_Plugin
     public static function on_AfterGetProducts4FiscReceipt($mvc, &$res, $rec, $Driver, $registerRec)
     {
         if (empty($res)) {
-            $res = n18_plg_PrintFiscReceipt::getProductsByOrigin($rec->containerId, $Driver, $registerRec);
+            $res = bgfisc_plg_PrintFiscReceipt::getProductsByOrigin($rec->containerId, $Driver, $registerRec);
         }
     }
     
@@ -243,7 +249,7 @@ class n18_plg_Sales extends core_Plugin
             expect($id = Request::get('id', 'int'));
             expect($rec = $mvc->fetch($id));
             
-            $exRec = n18_PrintedReceipts::get($mvc, $rec->id);
+            $exRec = bgfisc_PrintedReceipts::get($mvc, $rec->id);
             if(!empty($exRec->string)){
                 $mvc->logErr('Рефреш на екшъна за печат на касова бележка', $id);
                 
@@ -253,7 +259,7 @@ class n18_plg_Sales extends core_Plugin
             try {
                 // Ако има контировка, издава се фискален бон
                 if (acc_Journal::fetchByDoc($mvc, $id)) {
-                    $obj = n18_plg_PrintFiscReceipt::getFiscReceiptTpl($mvc, $rec);
+                    $obj = bgfisc_plg_PrintFiscReceipt::getFiscReceiptTpl($mvc, $rec);
                     Mode::set('wrapper', 'page_Empty');
                     $res = new core_ET('');
                     $res->append('<body><div class="fullScreenBg" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: block;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Отпечатва се фискален бон ...<br> Моля, изчакайте!</h3></div></body>');
@@ -278,7 +284,7 @@ class n18_plg_Sales extends core_Plugin
                 $mvc->logErr($errorMsg, $id);
                 
                 core_Statuses::newStatus($errorMsg, 'error');
-                n18_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
+                bgfisc_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
                 core_Locks::release("lock_{$mvc->className}_{$rec->id}");
                 
                 redirect($mvc->getSingleUrlArray($rec->id), 'false', $errorMsg, 'error');
@@ -301,7 +307,7 @@ class n18_plg_Sales extends core_Plugin
         if (in_array($action, array('reject', 'restore', 'correction', 'revert')) && isset($rec)) {
             
             // Ако има отпечатана бележка, сделката не може да се оттегля/възстановява
-            if (n18_PrintedReceipts::getQrCode($mvc, $rec->id)) {
+            if (bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -317,7 +323,7 @@ class n18_plg_Sales extends core_Plugin
         $rec = $mvc->fetch($id);
         $actions = type_Set::toArray($rec->contoActions);
         if (isset($actions['pay'])) {
-            n18_PrintedReceipts::logPrinted($mvc, $rec->id);
+            bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id);
             core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
         }
     }

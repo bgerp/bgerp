@@ -2,20 +2,26 @@
 
 
 /**
- * Клас 'n18_plg_Receipts' - за добавяне на функционалност от наредба 18 към ПОС бележките
+ * Клас 'bgfisc_plg_Receipts' - за добавяне на функционалност от наредба 18 към ПОС бележките
  *
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class n18_plg_Receipts extends core_Plugin
+class bgfisc_plg_Receipts extends core_Plugin
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_plg_Receipts';
+
+
     /**
      * След дефиниране на полетата на модела
      *
@@ -53,7 +59,7 @@ class n18_plg_Receipts extends core_Plugin
         $closeBtn = ht::createFnBtn('Фискален бон', '', $warning, $attr);
         $buttons["close"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
         
-        $deviceRec = n18_Register::getFiscDevice($caseId);
+        $deviceRec = bgfisc_Register::getFiscDevice($caseId);
         
         if (is_object($deviceRec)) {
             
@@ -74,8 +80,8 @@ class n18_plg_Receipts extends core_Plugin
             }
             
             if (haveRole($fiscDriver->canPrintDuplicate)) {
-                $rQuery = n18_PrintedReceipts::getQuery();
-                $rQuery->EXT("cashRegNum", 'n18_Register', 'externalName=cashRegNum,externalKey=urnId');
+                $rQuery = bgfisc_PrintedReceipts::getQuery();
+                $rQuery->EXT("cashRegNum", 'bgfisc_Register', 'externalName=cashRegNum,externalKey=urnId');
                 $rQuery->where("#string IS NOT NULL");
                 $rQuery->orderBy('id', 'DESC');
                 $lastReceipt = $rQuery->fetch();
@@ -108,8 +114,8 @@ class n18_plg_Receipts extends core_Plugin
     {
         // Ако изтриваме етап, изтриваме всичките редове от този етап
         foreach ($query->getDeletedRecs() as $rec) {
-            if ($regRec = n18_Register::getRec($mvc, $rec)) {
-                n18_Register::delete($regRec->id);
+            if ($regRec = bgfisc_Register::getRec($mvc, $rec)) {
+                bgfisc_Register::delete($regRec->id);
             }
         }
     }
@@ -132,7 +138,7 @@ class n18_plg_Receipts extends core_Plugin
         }
         
         if (in_array($action, array('delete', 'reject'))  && isset($rec)) {
-            if (n18_PrintedReceipts::get($mvc, $rec->id)) {
+            if (bgfisc_PrintedReceipts::get($mvc, $rec->id)) {
                 $res = 'no_one';
             }
         }
@@ -140,9 +146,9 @@ class n18_plg_Receipts extends core_Plugin
         if ($action == 'printfiscreceipt' && isset($rec)) {
             $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
             
-            if(n18_PrintedReceipts::getQrCode($mvc, $rec->id)){
+            if(bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)){
                 $res = 'no_one';
-            } elseif (!n18_Register::getFiscDevice($caseId)) {
+            } elseif (!bgfisc_Register::getFiscDevice($caseId)) {
                 $res = 'no_one';
             } elseif (!$mvc->haveRightFor('terminal', $rec)) {
                 $res = 'no_one';
@@ -187,7 +193,7 @@ class n18_plg_Receipts extends core_Plugin
             $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
             $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
             
-            $price = round($amount / $dRec->quantity, n18_Setup::get('PRICE_FU_ROUND'));
+            $price = round($amount / $dRec->quantity, bgfisc_Setup::get('N18_PRICE_FU_ROUND', true));
             $arr['BEFORE_PLU_TEXT'] = "{$dRec->quantity}x{$price}лв";
             
             $res[] = $arr;
@@ -248,7 +254,7 @@ class n18_plg_Receipts extends core_Plugin
             $urn = self::getReceiptUrn($rec);
             $tpl->replace($urn, 'SUB_TITLE');
         } catch(core_exception_Expect $e){
-            $regRec = n18_Register::createUrn($mvc, $rec->id, false);
+            $regRec = bgfisc_Register::createUrn($mvc, $rec->id, false);
             redirect(getCurrentUrl(), false, "Създаване УНП на стара бележка|* <b>{$regRec->urn}<b>");
         }
     }
@@ -265,7 +271,7 @@ class n18_plg_Receipts extends core_Plugin
     {
         // Добавяне на файл с допълнителен скрипт
         if (!Mode::is('printing')) {
-            $tpl->push('n18/js/Receipt.js', 'JS');
+            $tpl->push('bgfisc/js/Receipt.js', 'JS');
             jquery_Jquery::run($tpl, 'fiscActions();');
         }
     }
@@ -301,13 +307,13 @@ class n18_plg_Receipts extends core_Plugin
                 if (!$mvc->requireRightFor('printfiscreceipt', $rec)) {
                     throw new core_exception_Expect('Нямате права', 'Несъответствие');
                 }
-                
-                n18_PrintedReceipts::logPrinted($mvc, $rec->id);
+
+                bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id);
                 core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
                 
                 // Кое фискално устройство е свързано към компютъра
                 $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
-                if (!$lRec = n18_Register::getFiscDevice($caseId)) {
+                if (!$lRec = bgfisc_Register::getFiscDevice($caseId)) {
                     throw new core_exception_Expect('Няма закачено фискално устройство', 'Несъответствие');
                 }
                 
@@ -322,7 +328,7 @@ class n18_plg_Receipts extends core_Plugin
                 
                 if (isset($rec->revertId)) {
                     $revertId = ($rec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT) ? $rec->id : $rec->revertId;
-                    $receiptNumber = n18_Register::getSaleNumber($mvc, $revertId);
+                    $receiptNumber = bgfisc_Register::getSaleNumber($mvc, $revertId);
                    
                     $fiscalArr['IS_STORNO'] = true;
                     
@@ -337,14 +343,14 @@ class n18_plg_Receipts extends core_Plugin
                     
                     $fiscalArr['STORNO_REASON'] = $reasonCode;
                     $fiscalArr['RELATED_TO_URN'] = $receiptNumber;
-                    $fiscalArr['QR_CODE_DATA'] = n18_PrintedReceipts::getQrCode($mvc, $rec->revertId);
+                    $fiscalArr['QR_CODE_DATA'] = bgfisc_PrintedReceipts::getQrCode($mvc, $rec->revertId);
                     //$fiscalArr['QR_CODE_DATA'] = '99999999*999999*2019-12-14*11:35:00*8.18';
                     
                     if (empty($fiscalArr['QR_CODE_DATA'])) {
                         throw new core_exception_Expect('Към оригиналната бележка няма фискален бон', 'Несъответствие');
                     }
                 } else {
-                    $receiptNumber = n18_Register::getSaleNumber($mvc, $rec->id);
+                    $receiptNumber = bgfisc_Register::getSaleNumber($mvc, $rec->id);
                     $fiscalArr['RCP_NUM'] = $receiptNumber;
                 }
                 
@@ -469,7 +475,7 @@ class n18_plg_Receipts extends core_Plugin
         if (in_array($action, array('new', 'terminal'))) {
             if ($pointId = pos_Points::getCurrent('id', false)) {
                 $caseId = pos_Points::fetchField($pointId, 'caseId');
-                if (!n18_Register::getFiscDevice($caseId)) {
+                if (!bgfisc_Register::getFiscDevice($caseId)) {
                     $res = new Redirect(array('pos_Points', 'list'), 'Няма закачено фискално устройство|*!', 'error');
                     
                     return false;
@@ -491,7 +497,7 @@ class n18_plg_Receipts extends core_Plugin
                 $res = Request::get('res', 'varchar');
                 $fh = Request::get('fh', 'varchar');
                 
-                $url = array('n18_PrintedReceipts', 'log', 'docClassId' => $mvc->getClassId(), 'docId' => $id, 'hash' => $hash, 'res' => $res, 'fh' => $fh, 'ret_url' => array($mvc, 'new'));
+                $url = array('bgfisc_PrintedReceipts', 'log', 'docClassId' => $mvc->getClassId(), 'docId' => $id, 'hash' => $hash, 'res' => $res, 'fh' => $fh, 'ret_url' => array($mvc, 'new'));
                 
                 redirect($url);
             }
@@ -505,10 +511,10 @@ class n18_plg_Receipts extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         if (empty($rec->revertId)){
-            $regRec = n18_Register::createUrn($mvc, $rec->id, true);
+            $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
             core_Statuses::newStatus("Създаване на бележка с УНП|* <b>{$regRec->urn}<b>");
         } elseif(isset($rec->revertId) && $rec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
-            $regRec = n18_Register::createUrn($mvc, $rec->id, false);
+            $regRec = bgfisc_Register::createUrn($mvc, $rec->id, false);
             core_Statuses::newStatus("Създаване УНП на стара бележка|* <b>{$regRec->urn}<b>");
         }
     }
@@ -520,14 +526,14 @@ class n18_plg_Receipts extends core_Plugin
     public function on_AfterFindReceiptByNumber($mvc, &$res, $string, $forRevert = false)
     {
         $res = array();
-        $registerRec = n18_Register::getRecByUrn($string);
+        $registerRec = bgfisc_Register::getRecByUrn($string);
         
         if (is_object($registerRec) && cls::load($registerRec->classId, 'true')) {
             $RegisterClass = cls::get($registerRec->classId);
             if (!($RegisterClass instanceof pos_Receipts)) {
                 $res['rec'] = false;
                 $res['notFoundError'] = 'УНП-то не е на POS бележка';
-            } elseif (empty(n18_PrintedReceipts::getQrCode($registerRec->classId, $registerRec->objectId)) && $forRevert === true) {
+            } elseif (empty(bgfisc_PrintedReceipts::getQrCode($registerRec->classId, $registerRec->objectId)) && $forRevert === true) {
                 $res['rec'] = false;
                 $res['notFoundError'] = 'Бележката за сторниране е БЕЗ издаден фискален бон';
             } else {
@@ -549,7 +555,7 @@ class n18_plg_Receipts extends core_Plugin
     public function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent, $pointId, $quantity)
     {
         $caseId = pos_Points::fetchField($pointId, 'caseId');
-        if ($deviceRec = n18_Register::getFiscDevice($caseId)) {
+        if ($deviceRec = bgfisc_Register::getFiscDevice($caseId)) {
             $Driver = peripheral_Devices::getDriver($deviceRec);
             $price = $Driver->getDisplayPrice($priceWithoutVat, $vat, $discountPercent, $quantity ? $quantity : 1);
             if (!empty($price)) {
@@ -567,12 +573,12 @@ class n18_plg_Receipts extends core_Plugin
         try{
             $urn = self::getReceiptUrn($rec);
         } catch(core_exception_Expect $e){
-            $regRec = n18_Register::createUrn($mvc, $rec->id, false);
+            $regRec = bgfisc_Register::createUrn($mvc, $rec->id, false);
             redirect(getCurrentUrl(), false, "Създаване УНП на стара бележка|* <b>{$regRec->urn}<b>");
         }
         
         if(!empty($urn)){
-            $row->urn = n18_Register::getUrlLink($urn);
+            $row->urn = bgfisc_Register::getUrlLink($urn);
         } else {
             $row->urn = ht::createHint('Прехвърлено', 'УНП-то е прехвърлено на продажбата');
         }
@@ -597,9 +603,9 @@ class n18_plg_Receipts extends core_Plugin
     private static function getReceiptUrn($rec)
     {
         $rec = pos_Receipts::fetchRec($rec);
-        $cashReg = n18_Register::getRec('pos_Receipts', $rec->id);
+        $cashReg = bgfisc_Register::getRec('pos_Receipts', $rec->id);
         if(empty($cashReg)){
-            $cashReg = n18_Register::getRec('pos_Receipts', $rec->revertId);
+            $cashReg = bgfisc_Register::getRec('pos_Receipts', $rec->revertId);
         }
         
         return $cashReg->urn;
@@ -623,7 +629,7 @@ class n18_plg_Receipts extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
-        if ($deviceRec = n18_Register::getFiscDevice($caseId)) {
+        if ($deviceRec = bgfisc_Register::getFiscDevice($caseId)) {
             if (is_object($deviceRec)) {
                 
                 // Добавяне на бутони за зареждане на средства и генериране на отчети от ФУ
@@ -665,7 +671,7 @@ class n18_plg_Receipts extends core_Plugin
     {
         // Добавяне на използваните платежни методи към ключовите думи
         if(isset($rec->id)){
-            $cashReg = ($rec->revertId) ? n18_Register::getRec($mvc, $rec->revertId) : n18_Register::getRec($mvc, $rec->id);
+            $cashReg = ($rec->revertId) ? bgfisc_Register::getRec($mvc, $rec->revertId) : bgfisc_Register::getRec($mvc, $rec->id);
             
             $res = ' ' . $res . ' ' . plg_Search::normalizeText($cashReg->urn);
         }

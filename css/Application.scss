@@ -2418,7 +2418,9 @@ top: 0;
 .centered {
 text-align: center;
 }
-
+.vtop.centered .defaultDeleteRowCheckbox {
+	margin-top: 0 !important;
+}
 .lighterBold {
 color: #666;
 }

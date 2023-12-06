@@ -50,6 +50,7 @@ class planning_interface_ProductionNoteImpl extends label_ProtoSequencerImpl
     public function getLabelPlaceholders($objId = null, $series = 'label')
     {
         $placeholders = array();
+        $placeholders['ID'] = (object) array('type' => 'text');
         $placeholders['JOB'] = (object) array('type' => 'text');
         $placeholders['CODE'] = (object) array('type' => 'text');
         $placeholders['NAME'] = (object) array('type' => 'text');
@@ -234,7 +235,7 @@ class planning_interface_ProductionNoteImpl extends label_ProtoSequencerImpl
         $saleRec = isset($jobRec->saleId) ? sales_Sales::fetch($jobRec->saleId) : null;
 
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl);
+            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl, 'ID' => $rec->id);
             if(is_object($saleRec)){
                 $res["SALE_CONTRAGENT_NAME"] = cls::get($saleRec->contragentClassId)->getVerbal($saleRec->contragentId, 'name');
                 $res["SALE_HANDLER"] = "#" . sales_Sales::getHandle($saleRec->id);

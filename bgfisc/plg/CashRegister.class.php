@@ -2,20 +2,26 @@
 
 
 /**
- * Клас 'n18_plg_CashRegister' - за добавяне на функционалност от наредба 18 към ПОС бележките към касите
+ * Клас 'bgfisc_plg_CashRegister' - за добавяне на функционалност от наредба 18 към ПОС бележките към касите
  *
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class n18_plg_CashRegister extends core_Plugin
+class bgfisc_plg_CashRegister extends core_Plugin
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_plg_CashRegister';
+
+
     /**
      * След дефиниране на полетата на модела
      *
@@ -37,7 +43,7 @@ class n18_plg_CashRegister extends core_Plugin
     {
         $form = &$data->form;
         
-        $cashRegOptions = n18_Setup::getFiscDeviceOptins();
+        $cashRegOptions = bgfisc_Setup::getFiscDeviceOptins();
         if (count($cashRegOptions)) {
             $form->setOptions('cashRegNum', $cashRegOptions);
         } else {
@@ -51,7 +57,7 @@ class n18_plg_CashRegister extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->cashRegNum = n18_Register::getFuLinkBySerial($rec->cashRegNum, false);
+        $row->cashRegNum = bgfisc_Register::getFuLinkBySerial($rec->cashRegNum, false);
     }
     
     
@@ -74,7 +80,7 @@ class n18_plg_CashRegister extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if ($deviceRec = n18_Register::getFiscDevice($data->rec->id)) {
+        if ($deviceRec = bgfisc_Register::getFiscDevice($data->rec->id)) {
             if (is_object($deviceRec)) {
                 
                 // Добавяне на бутони за зареждане на средства и генериране на отчети от ФУ

@@ -4,8 +4,8 @@
 /**
  * Мениджър на отчети относно: Сторнирани продажби
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Angel Trifonov <angel.trifonoff@gmail.com>
  * @copyright 2006 - 2019 Experta OOD
@@ -14,12 +14,18 @@
  * @since     v 0.1
  * @title     НАП » Сторнирани продажби
  */
-class n18_reports_ReversedSales extends frame2_driver_TableData
+class bgfisc_reports_ReversedSales extends frame2_driver_TableData
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_reports_ReversedSales';
+
+
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'napodit,ceo';
+    public $canSelectDriver = 'acc,sales,ceo';
     
     
     /**
@@ -91,7 +97,7 @@ class n18_reports_ReversedSales extends frame2_driver_TableData
         //Състояние на документите , които влизат в справката
         $stateArr = array('active', 'closed','waiting');
         
-        $sQuery = n18_Register::getQuery();
+        $sQuery = bgfisc_Register::getQuery();
         
         if ($rec->from) {
             $sQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
@@ -103,7 +109,7 @@ class n18_reports_ReversedSales extends frame2_driver_TableData
         }
         
         //Всички сторниращи бележки $revReceiptArr
-        $revReceiptsQuery = n18_PrintedReceipts::getQuery();
+        $revReceiptsQuery = bgfisc_PrintedReceipts::getQuery();
         $revReceiptsQuery->where("#type = 'reverted'");
         
         $revReceiptArr = array();
@@ -202,15 +208,15 @@ class n18_reports_ReversedSales extends frame2_driver_TableData
                 foreach ($revReceiptArr as $key => $val) {
                     $valUrn = $val->urnId;
                     if ($regRec->id == $valUrn) {
-                        $revertReceptRec = n18_PrintedReceipts::fetch($key); // rec-a на касова бележка от това УНП
+                        $revertReceptRec = bgfisc_PrintedReceipts::fetch($key); // rec-a на касова бележка от това УНП
                         $revKey = $valUrn.'|'.$revertReceptRec->objectId;
                         $revertReceptRecArr[$revKey] = $revertReceptRec;
                         
                         //Дата на приключване на продажбата: датата на последната касова бележка
-                        $saleCloseDate = dt::mysql2verbal(max(n18_PrintedReceipts::fetch($key)->createdOn, $saleCloseDate), 'd.m.Y');
+                        $saleCloseDate = dt::mysql2verbal(max(bgfisc_PrintedReceipts::fetch($key)->createdOn, $saleCloseDate), 'd.m.Y');
                         
                         //Време на приключване на продажбата
-                        $saleCloseTime = dt::mysql2verbal(max(n18_PrintedReceipts::fetch($key)->createdOn, $saleCloseTime), 'H:i:s');
+                        $saleCloseTime = dt::mysql2verbal(max(bgfisc_PrintedReceipts::fetch($key)->createdOn, $saleCloseTime), 'H:i:s');
                     }
                 }
                 

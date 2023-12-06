@@ -226,7 +226,7 @@ class core_Master extends core_Manager
         $newDRec = new stdClass();
         foreach ((array) $dRec as $dRecKey => $dRecVal) {
             if (strpos($dRecKey, '__') === 0) {
-                if (!isset($oldRec->{$dRecKey})) {
+                if (!(property_exists($oldRec, $dRecKey))) {
 
                     continue;
                 }
@@ -251,8 +251,7 @@ class core_Master extends core_Manager
          * правим компромиса да изчислим $data->row втори път, ако се налага.
          */
         if (serialize($newDRec) != serialize($oldRec)) {
-
-            wp('Преизчисляване на полетата на мастера', $data->rec, $oldRec);
+            wp('Преизчисляване на полетата на мастера', $data->rec, $oldRec, serialize($newDRec), serialize($oldRec));
 
             // $data->rec се е променил в някой `prepare` метод - преизчисляваме $data->row.
             // подсигуряваме, че всички полета на $data->row които не са генерирани в

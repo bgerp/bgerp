@@ -2097,6 +2097,9 @@ a.tUnsighted {
 .centered {
   text-align: center; }
 
+.vtop.centered .defaultDeleteRowCheckbox {
+  margin-top: 0 !important; }
+
 .lighterBold {
   color: #666666; }
 

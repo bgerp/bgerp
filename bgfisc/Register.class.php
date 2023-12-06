@@ -5,17 +5,23 @@
  * Регистър на УНП-та по 'Наредба 18'
  *
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class n18_Register extends core_Manager
+class bgfisc_Register extends core_Manager
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_Register';
+
+
     /**
      * Заглавие
      */
@@ -25,7 +31,7 @@ class n18_Register extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, n18_Wrapper, plg_Search, plg_Sorting, plg_Created';
+    public $loadList = 'plg_RowTools2, bgfisc_Wrapper, plg_Search, plg_Sorting, plg_Created';
     
     
     /**
@@ -43,7 +49,7 @@ class n18_Register extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'sales,napodit,ceo';
+    public $canList = 'sales,ceo';
     
     
     /**
@@ -188,10 +194,10 @@ class n18_Register extends core_Manager
         $Class = cls::get($rec->classId);
         $row->objectId = $Class->getHyperlink($rec->objectId, true);
         
-        $receiptNum = n18_PrintedReceipts::count("#urnId = {$rec->id}");
+        $receiptNum = bgfisc_PrintedReceipts::count("#urnId = {$rec->id}");
         $row->receiptNums = core_Type::getByName('int')->toVerbal($receiptNum);
-        $row->urn = ht::createLink($row->urn, array('n18_PrintedReceipts', 'list', 'search' => $rec->urn));
-        $row->cashRegNum = ht::createLink($row->cashRegNum, array('n18_PrintedReceipts', 'list', 'search' => $rec->cashRegNum));
+        $row->urn = ht::createLink($row->urn, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->urn));
+        $row->cashRegNum = ht::createLink($row->cashRegNum, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->cashRegNum));
         
         $state = $Class->fetchField($rec->objectId, 'state');
         $row->objectId = "<span class='state-{$state} document-handler'>{$row->objectId}</span>";
@@ -265,10 +271,10 @@ class n18_Register extends core_Manager
         } else {
             if ($Class instanceof sales_Sales) {
                 $saleRec = $Class->fetch($objectId, 'bankAccountId,caseId');
-                $deviceRec = n18_Register::getFiscDevice($saleRec->caseId, $saleRec->bankAccountId);
+                $deviceRec = bgfisc_Register::getFiscDevice($saleRec->caseId, $saleRec->bankAccountId);
             } else {
                 $caseId = pos_Points::fetchField($Class->fetchField($objectId, 'pointId'), 'caseId');
-                $deviceRec = n18_Register::getFiscDevice($caseId);
+                $deviceRec = bgfisc_Register::getFiscDevice($caseId);
             }
             
             // Генериране на данните за УНП-то
@@ -393,8 +399,8 @@ class n18_Register extends core_Manager
         // Ако не е определено ФУ взима се някое от дефолтните
         if (empty($serialNum)) {
             $serialNum = null;
-            $serialNum1 = n18_Setup::get('DEFAULT_FISC_DEVICE_1');
-            $serialNum2 = n18_Setup::get('DEFAULT_FISC_DEVICE_2');
+            $serialNum1 = bgfisc_Setup::get('N18_DEFAULT_FISC_DEVICE_1', true);
+            $serialNum2 = bgfisc_Setup::get('N18_DEFAULT_FISC_DEVICE_2', true);
             setIfNot($serialNum, $serialNum1, $serialNum2);
         }
         
@@ -417,7 +423,7 @@ class n18_Register extends core_Manager
     {
         $makeHint = false;
         if (empty($serial)) {
-            if ($lRec = n18_Register::getFiscDevice(null)) {
+            if ($lRec = bgfisc_Register::getFiscDevice(null)) {
                 $serial = $lRec->serialNumber;
                 $makeHint = true;
             }
@@ -448,8 +454,8 @@ class n18_Register extends core_Manager
     public static function getUrlLink($urn)
     {
         $res = core_Type::getByName('varchar')->toVerbal($urn);
-        if (!Mode::isReadOnly() && n18_PrintedReceipts::haveRightFor('list')) {
-            $res = ht::createLink($res, array('n18_PrintedReceipts', 'list', 'search' => $urn));
+        if (!Mode::isReadOnly() && bgfisc_PrintedReceipts::haveRightFor('list')) {
+            $res = ht::createLink($res, array('bgfisc_PrintedReceipts', 'list', 'search' => $urn));
         }
         
         return $res;

@@ -2,11 +2,11 @@
 
 
 /**
- * Клас 'n18_plg_CashDocument' - за добавяне на функционалност от наредба 18 към ПОС бележките към ПКО-та и РКО-та
+ * Клас 'bgfisc_plg_CashDocument' - за добавяне на функционалност от наредба 18 към ПОС бележките към ПКО-та и РКО-та
  *
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2019 Experta OOD
@@ -14,8 +14,14 @@
  *
  * @since     v 0.1
  */
-class n18_plg_CashDocument extends core_Plugin
+class bgfisc_plg_CashDocument extends core_Plugin
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_plg_CashDocument';
+
+
     /**
      * След дефиниране на полетата на модела
      *
@@ -92,7 +98,7 @@ class n18_plg_CashDocument extends core_Plugin
             if (self::isApplicable($rec->threadId)) {
                 if ($rec->state == 'active') {
                     $requiredRoles = 'no_one';
-                } elseif (n18_PrintedReceipts::getQrCode($mvc, $rec->id)) {
+                } elseif (bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -103,7 +109,7 @@ class n18_plg_CashDocument extends core_Plugin
                 
                 return;
             }
-            if (n18_PrintedReceipts::getQrCode($mvc, $rec->id)) {
+            if (bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -150,7 +156,7 @@ class n18_plg_CashDocument extends core_Plugin
         // Проверка ще се контира ли
         $error = null;
         $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec));
-        if (!n18_plg_PrintFiscReceipt::checkBeforeConto($caseId, $rec->currencyId, $error)) {
+        if (!bgfisc_plg_PrintFiscReceipt::checkBeforeConto($caseId, $rec->currencyId, $error)) {
             
             throw new core_exception_Expect($error, 'Несъответствие');
         }
@@ -327,7 +333,7 @@ class n18_plg_CashDocument extends core_Plugin
         
         // Добавяне на файл с допълнителен скрипт
         if (!Mode::is('printing')) {
-            $tpl->push('n18/js/Receipt.js', 'JS');
+            $tpl->push('bgfisc/js/Receipt.js', 'JS');
             jquery_Jquery::run($tpl, 'fiscActions();', true);
         }
     }
@@ -365,8 +371,8 @@ class n18_plg_CashDocument extends core_Plugin
         }
         
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        if ($cashReg = n18_Register::getRec($firstDoc->getInstance(), $firstDoc->that)) {
-            $urn = n18_Register::getUrlLink($cashReg->urn);
+        if ($cashReg = bgfisc_Register::getRec($firstDoc->getInstance(), $firstDoc->that)) {
+            $urn = bgfisc_Register::getUrlLink($cashReg->urn);
             
             $row->otherCaption = tr('УНП');
             $row->otherText = $urn;
@@ -375,7 +381,7 @@ class n18_plg_CashDocument extends core_Plugin
         $peroCaseId = isset($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec);
         if ($peroCaseId) {
             $serial = !empty($rec->cashRegNum) ? $rec->cashRegNum : cash_Cases::fetchField($peroCaseId, 'cashRegNum');
-            $serialLink = n18_Register::getFuLinkBySerial($serial);
+            $serialLink = bgfisc_Register::getFuLinkBySerial($serial);
             $row->peroCase .= tr("|*<br><span style='font-weight:normal'>|ФУ|*: <b>{$serialLink}</b></span>");
         }
     }
@@ -571,7 +577,7 @@ class n18_plg_CashDocument extends core_Plugin
      */
     private static function getFiscProductsFromShipmentDocument($Driver, $registerRec, $mvc, $Origin, $originRec, $rec)
     {
-        $anotherRes = n18_plg_PrintFiscReceipt::getProductsByOrigin($originRec->containerId, $Driver, $registerRec);
+        $anotherRes = bgfisc_plg_PrintFiscReceipt::getProductsByOrigin($originRec->containerId, $Driver, $registerRec);
         
         if (round($originRec->amountDelivered, 2) == round($rec->amount * $rec->rate, 2)) {
             $res = $anotherRes;
@@ -625,11 +631,11 @@ class n18_plg_CashDocument extends core_Plugin
                 $mvc->conto($rec->id);
                 $rec = $mvc->fetch($rec->id, '*', false);
                 $rec->_lineId = $lineId;
-                n18_PrintedReceipts::logPrinted($mvc, $rec->id);
+                bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id);
                 
                 // Ако има контировка, печата се фискален бон
                 if (acc_Journal::fetchByDoc($mvc, $id)) {
-                    $obj = n18_plg_PrintFiscReceipt::getFiscReceiptTpl($mvc, $rec);
+                    $obj = bgfisc_plg_PrintFiscReceipt::getFiscReceiptTpl($mvc, $rec);
                     
                     $rec->cashRegNum = $obj->arr['SERIAL_NUMBER'];
                     $mvc->save_($rec, 'cashRegNum');
@@ -654,7 +660,7 @@ class n18_plg_CashDocument extends core_Plugin
                 $mvc->logErr($errorMsg, $id);
                 
                 core_Statuses::newStatus($errorMsg, 'error');
-                n18_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
+                bgfisc_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
                 
                 $rec->cashRegNum = null;
                 $mvc->save_($rec, 'cashRegNum');
@@ -717,7 +723,7 @@ class n18_plg_CashDocument extends core_Plugin
                 if(!$form->gotErrors()){
                     $qrCode = !empty($fRec->qr) ? $fRec->qr : implode('*', $nums);
 
-                    if(n18_PrintedReceipts::fetchField(array("#string = '[#1#]'", $qrCode))){
+                    if(bgfisc_PrintedReceipts::fetchField(array("#string = '[#1#]'", $qrCode))){
                         $errFld = !empty($fRec->qr) ? 'qr' : 'qrFN,qrNum,qrDate,qrTime,qrAmount';
                         $form->setError($errFld, "Има вече издадена бележка с код|*:<b>{$qrCode}</b>");
                     } else {
@@ -759,7 +765,7 @@ class n18_plg_CashDocument extends core_Plugin
                               core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
                               $mvc->logWrite('Ръчно контиране на документа', $rec);
                               $mvc->conto($rec);
-                              n18_PrintedReceipts::logPrinted($mvc, $rec->id, $qrCode);
+                              bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id, $qrCode);
                               core_Locks::release("lock_{$mvc->className}_{$rec->id}");
 
                               followRetUrl(null, 'Документа е контиран без издаване на ФБ');
@@ -864,7 +870,7 @@ class n18_plg_CashDocument extends core_Plugin
     public static function on_AfterPrepareNonCashPayments($mvc, &$data)
     {
         // Ако има дефинирано ФУ
-        $registerRec = n18_Register::getFiscDevice($data->masterData->rec->peroCase);
+        $registerRec = bgfisc_Register::getFiscDevice($data->masterData->rec->peroCase);
         if(!is_object($registerRec) || Mode::isReadOnly() || !count($data->rows)) {
             
             return;
@@ -928,7 +934,7 @@ class n18_plg_CashDocument extends core_Plugin
             $res['amountVerbal'] = str_replace('&nbsp;', ' ', $res['amountVerbal']);
             
             $btn = ht::createFnBtn($res['amountVerbal'], '', $warning, "class=document-conto-btn,ef_icon = img/16/tick-circle-frame.png,title=Контиране на документ,data-url={$contoUrl},id={$mvc->getHandle($rec->id)}");
-            $btn->push('n18/js/Receipt.js', 'JS');
+            $btn->push('bgfisc/js/Receipt.js', 'JS');
             jquery_Jquery::run($btn, 'fiscActions();', true);
             $res['amountVerbal'] = $btn;
         }
@@ -945,7 +951,7 @@ class n18_plg_CashDocument extends core_Plugin
                 
                 // Добавяне на УНП-то на основния документ
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                if ($urn = n18_Register::getRec($firstDoc->getInstance(), $firstDoc->that)->urn) {
+                if ($urn = bgfisc_Register::getRec($firstDoc->getInstance(), $firstDoc->that)->urn) {
                     $res .= ' ' . plg_Search::normalizeText($urn);
                 }
             }

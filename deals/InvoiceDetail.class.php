@@ -660,4 +660,29 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
         }
     }
+
+
+    /**
+     * Кои полета да се преизичслят при активиране
+     *
+     * @param stdClass $invoiceRec;
+     */
+    public function getFieldsToCalcOnActivation_($invoiceRec)
+    {
+        return array();
+    }
+
+
+    /**
+     * Дали да се обнови записа при активиране
+     *
+     * @param stdClass $dRec      - ид на запис
+     * @param stdClass $masterRec - ид на мастъра на записа
+     * @param array $params       - продуктовите параметри
+     * @return bool               - ще се обновява ли реда или не
+     */
+    public function calcFieldsOnActivation_(&$dRec, $masterRec, $params)
+    {
+        return false;
+    }
 }

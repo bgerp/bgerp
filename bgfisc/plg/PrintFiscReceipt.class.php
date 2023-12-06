@@ -2,11 +2,11 @@
 
 
 /**
- * Клас 'n18_plg_PrintFiscReceipt' - за добавяне на функционалност от наредба 18 към ПОС бележките към касите
+ * Клас 'bgfisc_plg_PrintFiscReceipt' - за добавяне на функционалност от наредба 18 към ПОС бележките към касите
  *
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2019 Experta OOD
@@ -14,8 +14,14 @@
  *
  * @since     v 0.1
  */
-class n18_plg_PrintFiscReceipt extends core_Plugin
+class bgfisc_plg_PrintFiscReceipt extends core_Plugin
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'n18_plg_PrintFiscReceipt';
+
+
     /**
      * След подготовка на тулбара на единичен изглед.
      *
@@ -68,7 +74,7 @@ class n18_plg_PrintFiscReceipt extends core_Plugin
             
             $id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
-            n18_PrintedReceipts::removeWaitingLog($mvc, $id);
+            bgfisc_PrintedReceipts::removeWaitingLog($mvc, $id);
             $mvc->rollbackConto($id);
             $mvc->logWrite('Ревъртване на контировката', $rec);
             $mvc->logErr($err, $id);
@@ -100,7 +106,7 @@ class n18_plg_PrintFiscReceipt extends core_Plugin
     {
         $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec));
 
-        $registerRec = n18_Register::getFiscDevice($caseId);
+        $registerRec = bgfisc_Register::getFiscDevice($caseId);
        
         if (empty($registerRec)) {
             throw new core_exception_Expect('Не е подадено ФУ', 'Несъответствие');
@@ -127,7 +133,7 @@ class n18_plg_PrintFiscReceipt extends core_Plugin
         $fiscalArr['SERIAL_NUMBER'] = $registerRec->serialNumber;
         $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
         
-        $receiptNumber = n18_Register::getSaleNumber($mvc, $rec->id);
+        $receiptNumber = bgfisc_Register::getSaleNumber($mvc, $rec->id);
         if ($rec->isReverse == 'yes') {
             $fiscalArr['RELATED_TO_URN'] = $receiptNumber;
             $Origin = doc_Containers::getDocument($rec->originId);
@@ -141,8 +147,8 @@ class n18_plg_PrintFiscReceipt extends core_Plugin
             }
             
             $fiscalArr['STORNO_REASON'] = $reasonCode;
-            $fiscalArr['QR_CODE_DATA'] = n18_PrintedReceipts::getQrCode($Origin->getInstance(), $Origin->that);
-            if (empty($fiscalArr['QR_CODE_DATA']) || $fiscalArr['QR_CODE_DATA'] == n18_PrintedReceipts::MISSING_QR_CODE) {
+            $fiscalArr['QR_CODE_DATA'] = bgfisc_PrintedReceipts::getQrCode($Origin->getInstance(), $Origin->that);
+            if (empty($fiscalArr['QR_CODE_DATA']) || $fiscalArr['QR_CODE_DATA'] == bgfisc_PrintedReceipts::MISSING_QR_CODE) {
                 throw new core_exception_Expect('Към оригиналната бележка няма фискален бон', 'Несъответствие');
             }
         } else {
@@ -176,7 +182,7 @@ class n18_plg_PrintFiscReceipt extends core_Plugin
             $retUrl = toUrl(array('doc_Containers', 'list', 'threadId' => $threadId, "#" => "ld{$detailRecId}"), 'local');
         }
         
-        $logUrl = toUrl(array('n18_PrintedReceipts', 'log', 'docClassId' => $mvc->getClassId(), 'docId' => $rec->id, 'ret_url' => $retUrl, 'hash' => $hash));
+        $logUrl = toUrl(array('bgfisc_PrintedReceipts', 'log', 'docClassId' => $mvc->getClassId(), 'docId' => $rec->id, 'ret_url' => $retUrl, 'hash' => $hash));
         $errorUrl = toUrl(array($mvc, 'printreceipterror', $rec->id, 'hash' => $hash));
         Request::removeProtected('hash');
         
@@ -272,7 +278,7 @@ class n18_plg_PrintFiscReceipt extends core_Plugin
             
             $amount = round($amount, 2);
             $arr = array('PLU_NAME' => cat_Products::getVerbal($dRec->productId, 'name'), 'QTY' => 1, 'PRICE' => $amount, 'VAT_CLASS' => $vatClass);
-            $price = round($amount / $dRec->packQuantity, n18_Setup::get('PRICE_FU_ROUND'));
+            $price = round($amount / $dRec->packQuantity, bgfisc_Setup::get('N18_PRICE_FU_ROUND', true));
             $arr['BEFORE_PLU_TEXT'] = "{$dRec->packQuantity}x{$price}лв";
             if (!empty($dRec->discount)) {
                 $arr['PERCENT'] = $dRec->discount * 100;
@@ -297,7 +303,7 @@ class n18_plg_PrintFiscReceipt extends core_Plugin
      */
     public static function checkBeforeConto($caseId, $currencyId, &$error)
     {
-        $registerRec = n18_Register::getFiscDevice($caseId);
+        $registerRec = bgfisc_Register::getFiscDevice($caseId);
         if (empty($registerRec)) {
             $error = 'Няма връзка с ФУ';
             
