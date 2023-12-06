@@ -282,8 +282,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         // Кои са получените чужди артикули
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
-            $row->ROW_ATTR['class'] = ($rec->type == 'pop') ? 'row-removed' : 'row-added';
-            
+            $row->ROW_ATTR['class'] = ($rec->type == 'pop') ? 'row-removed' : (($rec->type == 'allocated') ? 'state-active' : 'row-added');
+
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
@@ -443,7 +443,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
         
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'allocated'))) {
-            $tpl->append(ht::createBtn('Отнесени разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Влагане на отнесен разход')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/money.png', 'title' => 'Влагане на отнесен разход')), 'planning_DirectProductNoteDetails');
+        }
+
+        if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true))){
+            $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Избор на един или няколко реда за изтриване', 'class' => 'selectDeleteRowsBtn')), 'planning_DirectProductNoteDetails');
         }
         
         // Рендиране на таблицата с отпадъците

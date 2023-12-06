@@ -79,7 +79,7 @@ class csv_Lib
                 $pRowCnt = $cRowCnt;
             } else {
                 if ($cRowCnt != $pRowCnt) {
-                    wp($data, $cRowCnt, $pRowCnt, $fields);
+                    wp('Разминаване в броя на колоните в CSV файла',$data, $cRowCnt, $pRowCnt, $fields);
                 }
             }
             

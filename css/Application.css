@@ -2579,6 +2579,11 @@ pre.document {
     display: inline !important;
     vertical-align: middle; }
 
+.blueText {
+  color: blue !important; }
+  .blueText .richtext {
+    color: blue !important; }
+
 .closedFrameUpdateTimeTitle {
   font-weight: bold;
   color: red !important; }

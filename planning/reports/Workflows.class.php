@@ -567,7 +567,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
             $fld->FLD('labelQuantity', 'double(decimals=2)', 'caption=Етикет->кол,tdClass=centered');
-            $fld->FLD('total', 'varchar', 'caption=@ТОТАЛ');
+           // $fld->FLD('total', 'varchar', 'caption=@ТОТАЛ');
         }
 
         return $fld;
@@ -821,10 +821,11 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $res->jobs = $handle;
         }
-        $res->taskId = planning_Tasks::getTitleById($dRec->taskId);
-        $res->article = cat_Products::getTitleById($dRec->productId);
-        $res->measureId = cat_UoM::getShortName($dRec->measureId);
-
+        if(!$dRec->total) {
+            $res->taskId = planning_Tasks::getTitleById($dRec->taskId);
+            $res->article = cat_Products::getTitleById($dRec->productId);
+            $res->measureId = cat_UoM::getShortName($dRec->measureId);
+        }
         if (isset($dRec->employees)) {
             foreach (keylist::toArray($dRec->employees) as $key => $val) {
 

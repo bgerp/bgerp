@@ -71,6 +71,12 @@ class deals_QuotationDetails extends doc_Detail
 
 
     /**
+     * Кой може да маркира за изтриване всички редове
+     */
+    public $addDeleteSelectRows = false;
+
+
+    /**
      * Добавяне на нужните полета
      */
     protected function addDetailFields($mvc)

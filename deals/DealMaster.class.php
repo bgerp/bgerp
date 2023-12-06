@@ -1207,14 +1207,17 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Допълнителните условия
             $conditions = $rec->additionalConditions;
+
             if(empty($rec->additionalConditions)){
                 $conditions = $mvc->getConditionArr($rec, true);
                 if(in_array($rec->state, array('pending', 'draft'))){
                     foreach($conditions as &$cArr){
                         if(!Mode::isReadOnly()){
-                            $cArr = "<span style='color:blue'>{$cArr}</span>";
+                            $cArr = "<span class='blueText'>{$cArr}</span>";
                         }
                         $cArr = ht::createHint($cArr, 'Условието, ще бъде записано при активиране');
+                        $cArr->prepend("<span class='inlineRichtextCond'>");
+                        $cArr->append("</span>");
                     }
                 }
             }

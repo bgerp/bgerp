@@ -1539,6 +1539,10 @@ table.listTable {
 	}
 }
 
+.formSection .listTable td {
+	vertical-align: top;
+}
+
 .listAction table.listTable, table.listTable.listAction  {
 	> tbody > tr > td {
 		max-width: 400px ;

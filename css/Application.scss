@@ -3018,6 +3018,12 @@ padding: 5px 3px 2px !important;
 		vertical-align: middle;
 	}
 }
+.blueText {
+	color: blue !important;
+	.richtext {
+		color: blue !important;
+	}
+}
 .closedFrameUpdateTimeTitle {
 	font-weight: bold;
 	color: red !important;
