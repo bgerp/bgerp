@@ -99,12 +99,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=3,columns=3,after=availability,silent');
 
-       // $fieldset->FLD('seeByGroups', 'set(yes = )', 'caption=Филтри->"Общо" по групи,after=orderBy,input=none,single=none');
         $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
 
-        $fieldset->FLD('workingPdogresOn', 'enum(included=Включено,off=Изключено)', 'notNull,caption=Незавършено производство->Незавършено производство,removeAndRefreshForm,after=seeByGroups, single=none,silent');
-        $fieldset->FLD('workingPdogresOnly', 'set(yes=)', 'caption=Незавършено производство->Само незавършеното производство,after=workingPdogresOn, single=none');
-
+        $fieldset->FLD('workingPdogresOn', 'enum(included=Включено,off=Изключено, only=Само)', 'notNull,caption=Незавършено производство,removeAndRefreshForm,after=seeByGroups, single=none,silent');
 
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
         $fieldset->FNC('sumByGroup', 'blob', 'input=none,single=none');
@@ -149,12 +146,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $form->setDefault('orderBy', 'name');
         $form->setDefault('type', 'short');
         $form->setDefault('workingPdogresOn', 'off');
-        $form->setDefault('workingPdogresOnly', '');
 
-        if ($rec->workingPdogresOn == 'off') {
-            $form->setField('workingPdogresOnly', 'input=none');
-
-        }
 
 
         if ($rec->type == 'long') {
@@ -215,7 +207,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $accsArr = array(321);
 
         //За тестване на само незавършено производство
-        if($rec->workingPdogresOnly == 'yes' && $rec->workingPdogresOn == 'included'){
+        if($rec->workingPdogresOn == 'only'){
             $accsArr = array();
         }
 
@@ -755,7 +747,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         if ((isset($data->rec->workingPdogresOn))) {
 
             $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
-            if($data->rec->workingPdogresOn == 'included' && $data->rec->workingPdogresOnly == 'yes'){
+            if($data->rec->workingPdogresOn == 'only'){
                 $fieldTpl->append('<b>' . ' само незавършено'.'</b>', 'workingPdogresOn');
             }
         }else{
