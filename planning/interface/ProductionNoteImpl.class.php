@@ -238,8 +238,8 @@ class planning_interface_ProductionNoteImpl extends label_ProtoSequencerImpl
             $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl, 'ID' => planning_DirectProductionNote::getHandle($rec->id));
             if(is_object($saleRec)){
                 $res["SALE_CONTRAGENT_NAME"] = cls::get($saleRec->contragentClassId)->getVerbal($saleRec->contragentId, 'name');
-                $res["SALE_HANDLER"] = "#" . sales_Sales::getHandle($saleRec->id);
-                $res["SALE_ID"] = sales_Sales::getHandle($saleRec->id);
+                $res["SALE_HANDLER"] = sales_Sales::getHandle($saleRec->id);
+                $res["SALE_ID"] = $saleRec->id;
                 $res["SALE_VALIOR"] = dt::mysql2verbal($saleRec->valior, 'd.m.Y');
                 if(!empty($saleRec->reff)){
                     $res["SALE_REFF"] = core_Type::getByName('varchar')->toVerbal($saleRec->reff);
