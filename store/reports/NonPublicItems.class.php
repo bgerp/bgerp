@@ -396,7 +396,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         $msg = $msg->getContent();
 
         // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
-        foreach ($userArr as $userId) {//bp($userArr);
+        foreach ($userArr as $userId) {
             bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
         }
     }
