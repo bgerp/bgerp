@@ -29,6 +29,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         setIfNot($mvc->storeFieldName, 'storeId');
         setIfNot($mvc->batchMovementDocument, 'out');
         setIfNot($mvc->cantCreateNewBatch, false);
+        setIfNot($mvc->canSplitbatches, 'no_one');
+
         $mvc->declareInterface('batch_MovementSourceIntf');
     }
     
@@ -329,6 +331,14 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 core_Request::setProtected('detailClassId,detailRecId,storeId');
                 $url = array('batch_BatchesInDocuments', 'modify', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId, 'ret_url' => true);
                 $row->_rowTools->addLink('Партиди', $url, array('ef_icon' => 'img/16/wooden-box.png', 'title' => 'Избор на партиди'));
+                core_Request::removeProtected('detailClassId,detailRecId,storeId');
+            }
+
+            if (batch_BatchesInDocuments::haveRightFor('splitbatches', (object) array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId))) {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                core_Request::setProtected('detailClassId,detailRecId,storeId');
+                $url = array('batch_BatchesInDocuments', 'splitbatches', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId, 'ret_url' => true);
+                $row->_rowTools->addLink('Партиди на нов ред', $url, array('ef_icon' => 'img/16/wooden-box.png', 'title' => 'Избор на партиди'));
                 core_Request::removeProtected('detailClassId,detailRecId,storeId');
             }
         }

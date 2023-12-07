@@ -223,7 +223,7 @@ class core_Detail extends core_Manager
         }
 
         if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => $data->masterId))){
-            $data->toolbar->addBtn('Изтриване', array($this, 'selectRowsToDelete', $masterKey => $data->masterId, 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/delete.png,title=Избор на един или няколко реда за изтриване,order=500,class=selectDeleteRowsBtn');
+            $data->toolbar->addBtn('Изтриване', array($this, 'selectRowsToDelete', $masterKey => $data->masterId, 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/deletered.png,title=Избор на един или няколко реда за изтриване,order=500,class=selectDeleteRowsBtn');
         }
 
         return $data;
@@ -619,7 +619,7 @@ class core_Detail extends core_Manager
         $btnAll = "<input type='checkbox' name='checkAllRows' checked class='inline-checkbox' title='Маркиране/размаркирване на всички редове за изтриване'>";
         $data->listFields = array('btn' => "|* {$btnAll}") + $data->listFields;
         $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
-
+        $data->listTableMvc->FLD('btn', 'varchar', 'tdClass=centered vtop');
         $docTableTpl = $this->renderListTable($data);
         $form->info->append($docTableTpl);
         $form->input();
@@ -636,12 +636,30 @@ class core_Detail extends core_Manager
             }
         }
 
-        $form->toolbar->addFnBtn('Изтриване', '', array('class' => 'deleteAllCheckedRows', 'ef_icon' => 'img/16/delete.png', 'data-url' => $deleteAllUrl, 'data-errorMsg' => tr('Моля изберете редове за изтриване|*!')));
+        $form->toolbar->addFnBtn('Изтриване', '', array('class' => 'deleteAllCheckedRows', 'ef_icon' => 'img/16/deletered.png', 'data-url' => $deleteAllUrl, 'data-errorMsg' => tr('Моля изберете редове за изтриване|*!')));
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Назад към заданието');
 
         $tpl = $this->renderWrapping($form->renderHtml());
         jquery_Jquery::run($tpl, 'detailDeleteRowsAct();');
 
         return $tpl;
+    }
+
+    /**
+     * След взимане на полетата, които да не се клонират
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+        $fieldsNotToClone = arr::make($mvc->fieldsNotToClone, true);
+
+        if (!is_array($res)) {
+            $res = $fieldsNotToClone;
+        } else {
+            $res += $fieldsNotToClone;
+        }
     }
 }

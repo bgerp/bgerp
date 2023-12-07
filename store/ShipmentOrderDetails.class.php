@@ -62,6 +62,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
 
     /**
+     * Кой има право да разбива партидите?
+     */
+    public $canSplitbatches = 'ceo,store,sales,purchase';
+
+
+    /**
      * Да се показва ли вашия номер
      */
     public $showReffCode = true;

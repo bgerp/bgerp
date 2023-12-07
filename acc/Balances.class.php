@@ -1061,7 +1061,7 @@ class acc_Balances extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        if (haveRole('ceo,admin,debug')) {
+        if (haveRole('debug')) {
             $url = self::getRecalcCronUrl();
             $data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');
         }
