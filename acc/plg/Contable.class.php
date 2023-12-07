@@ -129,7 +129,9 @@ class acc_plg_Contable extends core_Plugin
             if($success){
                 if(core_Packs::isInstalled('batch')){
                     batch_Movements::removeMovement($mvc, $rec->id);
+                    Mode::push('recontoMovement', true);
                     batch_Movements::saveMovement($rec->containerId);
+                    Mode::pop('recontoMovement');
                     $mvc->savedMovements[$rec->containerId] = true;
                 }
 

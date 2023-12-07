@@ -250,9 +250,15 @@ class batch_Movements extends core_Detail
         $jQuery = batch_BatchesInDocuments::getQuery();
         $jQuery->where("#containerId = {$containerId}");
         $jQuery->orderBy('id', 'ASC');
-        
+        $docRec = $doc->fetch();
+
         // За всяка
         while ($jRec = $jQuery->fetch()) {
+            if(Mode::is('recontoMovement')){
+                if(isset($doc->valiorFld)){
+                    $jRec->date = $docRec->{$doc->valiorFld};
+                }
+            }
             $batches = batch_Defs::getBatchArray($jRec->productId, $jRec->batch);
             $quantity = (countR($batches) == 1) ? $jRec->quantity : $jRec->quantity / countR($batches);
             
