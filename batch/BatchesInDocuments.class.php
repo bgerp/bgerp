@@ -124,6 +124,11 @@ class batch_BatchesInDocuments extends core_Manager
             if (!isset($rec->detailClassId) || !isset($rec->detailRecId)) {
                 $requiredRoles = 'no_one';
             } else {
+                if(!$Detail->haveRightFor('edit', $Detail->fetchRec($rec->detailRecId))){
+                    $requiredRoles = 'no_one';
+
+                }
+
                 static::$cachedRows["{$rec->detailClassId}|{$rec->detailRecId}"] = cls::get($rec->detailClassId)->getRowInfo($rec->detailRecId);
                 $recInfo = cls::get($rec->detailClassId)->getRowInfo($rec->detailRecId);
                 if (cat_Products::fetchField($recInfo->productId, 'canStore') != 'yes') {
@@ -135,6 +140,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         if($action == 'splitbatches' && isset($rec)){
+
             if($requiredRoles != 'no_one'){
                 $recInfo = static::$cachedRows["{$rec->detailClassId}|{$rec->detailRecId}"] ?? cls::get($rec->detailClassId)->getRowInfo($rec->detailRecId);
                 $atLeastOneQuantity = batch_BatchesInDocuments::fetchField("#detailClassId = {$rec->detailClassId} AND #detailRecId = {$rec->detailRecId}", 'quantity');
