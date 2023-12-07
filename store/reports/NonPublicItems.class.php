@@ -75,7 +75,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('users', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales|store)', 'caption=Потребители->Търговец,mandatory,after=title,single=none');
+        $fieldset->FLD('users', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales|store)', 'caption=Потребители->Автор,mandatory,after=title,single=none');
     }
 
 
