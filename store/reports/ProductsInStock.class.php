@@ -77,7 +77,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     protected $changeableFields = 'type,date,storeId,selfPrices,group,products,availability,orderBy';
 
 
-
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -120,7 +119,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
 
-            if (isset($form->rec->workingPdogresOn) && $form->rec->workingPdogresOn == 'included'  && ($form->rec->type == 'long')) {
+            if (isset($form->rec->workingPdogresOn) && $form->rec->workingPdogresOn == 'included' && ($form->rec->type == 'long')) {
                 $form->setError('type', 'Незавършено производство може да се включи само при избран вариант "Кратка".');
             }
 
@@ -205,16 +204,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $accsArr = array(321);
 
         //За тестване на само незавършено производство
-        if($rec->workingPdogresOn == 'only'){
+        if ($rec->workingPdogresOn == 'only') {
             $accsArr = array();
         }
 
         //systemId на сметката "Незавършено производство" = 61101
         $workingPdogresAccRec = acc_Accounts::fetch("#systemId = 61101");
 
-        if ($rec->workingPdogresOn == 'included' || $rec->workingPdogresOn == 'only'){
+        if ($rec->workingPdogresOn == 'included' || $rec->workingPdogresOn == 'only') {
 
-            array_push($accsArr,$workingPdogresAccRec -> num);
+            array_push($accsArr, $workingPdogresAccRec->num);
         }
 
         $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => $accsArr, 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
@@ -224,7 +223,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         foreach ($bRecs as $item) {
 
             //Когато движението е в сметката на суровините и материалите можем да филтрираме по склад. Ако е избран.
-            if ($item -> accountId == acc_Accounts::fetch("#num = 321")->id) {
+            if ($item->accountId == acc_Accounts::fetch("#num = 321")->id) {
 
                 if (($rec->storeId && !in_array($item->ent1Id, $storeItemIdArr)) ||
                     ($rec->products && $item->ent2Id != $productItemId)
@@ -233,7 +232,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                 //река на перото
                 $iRec = acc_Items::fetch($item->ent2Id);
 
-            }elseif($item -> accountId == $workingPdogresAccRec->id){
+            } elseif ($item->accountId == $workingPdogresAccRec->id) {
                 $iRec = acc_Items::fetch($item->ent1Id);
             }
 
@@ -249,13 +248,13 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             if (isset($rec->group)) {
 
                 $subGroups = null;
-                if($rec->type == 'short' && $rec->seeByGroups == 'subGroups'){
+                if ($rec->type == 'short' && $rec->seeByGroups == 'subGroups') {
                     $checkGdroupsArr = array();
-                    foreach (keylist::toArray($rec->group) as $gr){
+                    foreach (keylist::toArray($rec->group) as $gr) {
                         $checkGdroupsArr += cat_Groups::getDescendantArray($gr);
                     }
 
-                }else{
+                } else {
                     $checkGdroupsArr = keylist::toArray($rec->group);
                 }
                 $subGroups = keylist::fromArray($checkGdroupsArr);
@@ -265,7 +264,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
 
             //Код на продукта
-            $productCode = cat_Products::getVerbal($prodRec->id,'code');
+            $productCode = cat_Products::getVerbal($prodRec->id, 'code');
 
             //Код на основна мярка
             $productMeasureId = $prodRec->measureId;
@@ -388,7 +387,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                         'freeQuantity' => $prodRERec->quantity - $prodRERec->reservedQuantity + $prodRERec->expectedQuantity,
 
                     );
-                }else{
+                } else {
                     $obj = &$reQuantitiesArr[$prodRERec->productId];
 
                     $obj->reservedQuantity += $prodRERec->reservedQuantity;
@@ -409,7 +408,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                     $prodToFillRec = cat_Products::fetch($key);
 
 
-                    $productRECode = cat_Products::getVerbal($prodToFillRec->id,'code');
+                    $productRECode = cat_Products::getVerbal($prodToFillRec->id, 'code');
 
                     if (!array_key_exists($key, $recs)) {
                         $recs[$key] = (object)array(
@@ -425,7 +424,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
 
                         );
-                    }else{
+                    } else {
                         $obj = &$recs[$key];
 
                         $obj->reservedQuantity += $val->reservedQuantity;
@@ -462,7 +461,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
 
         //Разпределение по групи
-        if ($rec->seeByGroups!= 'no' && $rec->type == 'short') {
+        if ($rec->seeByGroups != 'no' && $rec->type == 'short') {
 
             $sumByGroup = $quantityByMeasureGroup = array();
 
@@ -477,19 +476,19 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                     if (!array_key_exists($gr, $sumByGroup)) {
 
                         //филтър по групи
-                        if(isset($rec->group)){
-                            if(!in_array($gr,keylist::toArray($subGroups)))continue;
+                        if (isset($rec->group)) {
+                            if (!in_array($gr, keylist::toArray($subGroups))) continue;
                         }
 
                         $sumByGroup[$gr] = (object)array(
                             'amount' => $cln->amount,
                         );
-                    }else{
+                    } else {
                         $obj = &$sumByGroup[$gr];
                         $obj->amount += $cln->amount;
                     }
 
-                    $mgrkey = $gr.'|'.$cln->measureId;
+                    $mgrkey = $gr . '|' . $cln->measureId;
 
                     if (!array_key_exists($mgrkey, $quantityByMeasureGroup)) {
                         $quantityByMeasureGroup[$mgrkey] = (object)array(
@@ -499,16 +498,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                             'gr' => $gr,
 
                         );
-                    }else{
+                    } else {
                         $obj = &$quantityByMeasureGroup[$mgrkey];
 
                         $obj->quantity += $cln->blQuantity;
                     }
 
                     $id = $key . '|' . $gr;
-                    if (is_numeric($gr)){
+                    if (is_numeric($gr)) {
                         $grName = cat_Groups::getVerbal($gr, 'name');
-                    }else{
+                    } else {
                         $grName = 'яяя';
                     }
 
@@ -526,7 +525,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             $this->groupByField = 'groupOne';
 
             if (!is_null($recs)) {
-                arr::sortObjects($recs, 'groupName', 'asc','stri');
+                arr::sortObjects($recs, 'groupName', 'asc', 'stri');
 
             }
 
@@ -594,21 +593,21 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $row = new stdClass();
 
 
-        if (is_numeric($dRec->groupOne)){
+        if (is_numeric($dRec->groupOne)) {
 
-            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name').' :: стойност: '.$Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount).' '.acc_Periods::getBaseCurrencyCode($rec->date).
-                             ';  количества: ';
-	    $bm = 0;
-            foreach ($rec->sumByGroup['quantities'] as $val){
-                if($val->gr == $dRec->groupOne) {
-		    if($bm > 0) {
-			    $row->groupOne .= ' + ';
-		    }
-                    $row->groupOne .= $Double->toVerbal($val->quantity).' '.cat_UoM::fetchField($val->measureId,'shortName');
-		    $bm = $bm + 1;
+            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name') . ' :: стойност: ' . $Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount) . ' ' . acc_Periods::getBaseCurrencyCode($rec->date) .
+                ';  количества: ';
+            $bm = 0;
+            foreach ($rec->sumByGroup['quantities'] as $val) {
+                if ($val->gr == $dRec->groupOne) {
+                    if ($bm > 0) {
+                        $row->groupOne .= ' + ';
+                    }
+                    $row->groupOne .= $Double->toVerbal($val->quantity) . ' ' . cat_UoM::fetchField($val->measureId, 'shortName');
+                    $bm = $bm + 1;
                 }
             }
-        }else{
+        } else {
             $row->groupOne = 'Без група';
         }
 
@@ -681,8 +680,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено','off' => 'Изключено', 'only' => 'Само')));
-
+        $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено', 'off' => 'Изключено', 'only' => 'Само')));
 
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -746,7 +744,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
 
-        }else{
+        } else {
             $fieldTpl->append('<b>' . 'Не е включено' . '</b>', 'workingPdogresOn');
         }
 
