@@ -180,7 +180,7 @@ class ztm_RegisterValues extends core_Manager
             expect($rRec->state == 'active', 'Няма такъв активен регистър');
         }
         if ($time > $now) {
-            if (dt::secsBetween('2023-12-07 11:12:42', dt::now()) <= 3600) {
+            if (dt::secsBetween($time, dt::now()) <= 3600) {
                 ztm_Devices::logWarning("Устройството израща време в бъдещето '{$time}' ({$now}). Задаваме текущото.", $deviceId);
                 $time = $now;
             } else {
