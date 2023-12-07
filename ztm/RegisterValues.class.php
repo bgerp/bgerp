@@ -181,7 +181,7 @@ class ztm_RegisterValues extends core_Manager
         }
         if ($time > $now) {
             if (dt::secsBetween($time, dt::now()) <= 3600) {
-                ztm_Devices::logWarning("Устройството израща време в бъдещето '{$time}' ({$now}). Задаваме текущото за {$rRec->name}", $deviceId);
+                ztm_Devices::logWarning("Устройството изпраща време в бъдещето '{$time}' ({$now}). Задаваме текущото за {$rRec->name}", $deviceId);
                 $time = $now;
             } else {
                 expect($time <= $now, "Не може да се зададе бъдеще време '{$time}' ({$now})");
