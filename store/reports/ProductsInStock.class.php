@@ -101,7 +101,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
 
-        $fieldset->FLD('workingPdogresOn', 'enum(included=Включено,off=Изключено, only=Само)', 'notNull,caption=Незавършено производство,removeAndRefreshForm,after=seeByGroups, single=none,silent');
+        $fieldset->FLD('workingPdogresOn', 'enum(included=Включено,off=Изключено,only=Само)', 'notNull,caption=Незавършено производство->Незавършено производство,removeAndRefreshForm,after=seeByGroups, single=none,silent');
 
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
         $fieldset->FNC('sumByGroup', 'blob', 'input=none,single=none');
@@ -146,8 +146,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $form->setDefault('orderBy', 'name');
         $form->setDefault('type', 'short');
         $form->setDefault('workingPdogresOn', 'off');
-
-
 
         if ($rec->type == 'long') {
             $today = dt::today();
@@ -214,7 +212,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         //systemId на сметката "Незавършено производство" = 61101
         $workingPdogresAccRec = acc_Accounts::fetch("#systemId = 61101");
 
-        if ($rec->workingPdogresOn == 'included'){
+        if ($rec->workingPdogresOn == 'included' || $rec->workingPdogresOn == 'only'){
 
             array_push($accsArr,$workingPdogresAccRec -> num);
         }
@@ -683,7 +681,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено','off' => 'Изключено')));
+        $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено','off' => 'Изключено', 'only' => 'Само')));
 
 
 
@@ -747,9 +745,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         if ((isset($data->rec->workingPdogresOn))) {
 
             $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
-            if($data->rec->workingPdogresOn == 'only'){
-                $fieldTpl->append('<b>' . ' само незавършено'.'</b>', 'workingPdogresOn');
-            }
+
         }else{
             $fieldTpl->append('<b>' . 'Не е включено' . '</b>', 'workingPdogresOn');
         }
