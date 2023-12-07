@@ -372,9 +372,13 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         // Ако няма избрани потребители за нотифициране, не се прави нищо
         $userArr = keylist::toArray($rec->sharedUsers);
-        if (!countR($userArr)) {
 
-            return;
+        if(!in_array($rec->createdBy,$userArr)){
+            array_push($userArr,$rec->createdBy);
+        }
+
+        if (!countR($userArr)) {
+            $userArr = array($rec->createdBy=>$rec->createdBy,$rec->modifiedBy=>$rec->modifiedBy);
         }
 
         $text = self::$defaultNotificationText . $art;
@@ -392,7 +396,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         $msg = $msg->getContent();
 
         // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
-        foreach ($userArr as $userId) {
+        foreach ($userArr as $userId) {//bp($userArr);
             bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
         }
     }
