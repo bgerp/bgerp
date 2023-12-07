@@ -27,7 +27,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planning,purchase';
+    public $canSelectDriver = 'ceo,manager,store,sales';
 
 
     /**
