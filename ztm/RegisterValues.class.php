@@ -179,7 +179,14 @@ class ztm_RegisterValues extends core_Manager
         if ($checkState) {
             expect($rRec->state == 'active', 'Няма такъв активен регистър');
         }
-        expect($time <= $now, "Не може да се зададе бъдеще време '{$time}' ({$now})");
+        if ($time > $now) {
+            if (dt::secsBetween('2023-12-07 11:12:42', dt::now()) <= 3600) {
+                ztm_Devices::logWarning("Устройството израща време в бъдещето '{$time}' ({$now}). Задаваме текущото.", $deviceId);
+                $time = $now;
+            } else {
+                expect($time <= $now, "Не може да се зададе бъдеще време '{$time}' ({$now})");
+            }
+        }
         $rec = (object) array('deviceId' => $deviceId, 'registerId' => $registerId, 'updatedOn' => $time, 'value' => $value);
         $exRec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
         if (is_object($exRec)) {
@@ -247,7 +254,7 @@ class ztm_RegisterValues extends core_Manager
                 ztm_RegisterValues::set($deviceId, $obj->registerId, $obj->value, $lastSync);
             } catch (core_exception_Expect $e) {
                 $dump = $e->getDump();
-                $this->logErr("'{$obj->name}': {$dump[0]}");
+                ztm_Devices::logErr("'{$obj->name}': {$dump[0]}", $deviceId);
             }
         }
 
@@ -256,7 +263,7 @@ class ztm_RegisterValues extends core_Manager
             if (!is_string($value)) {
                 $value = core_Type::mixedToString($value);
             }
-            $this->logErr("Неразпознат ZTM регистър: '{$unknownRegisterObj->name}' : '{$value}'");
+            ztm_Devices::logErr("Неразпознат ZTM регистър: '{$unknownRegisterObj->name}' : '{$value}'", $deviceId);
         }
         
         // Отключване на синхронизацията
@@ -286,7 +293,7 @@ class ztm_RegisterValues extends core_Manager
                     if ($registerRec->scope != 'system') {
                         $expandedRegArr[$registerRec->id] = (object) array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'scope' => $registerRec->scope);
                     } else {
-                        self::logErr("Получен регистър {$name} с приоритет {$registerRec->scope}");
+                        ztm_Devices::logErr("Получен регистър {$name} с приоритет {$registerRec->scope}", $deviceId);
                     }
                 } else {
                     $unknownRegisters[] = (object) array('name' => $name, 'value' => $value);
@@ -350,7 +357,7 @@ class ztm_RegisterValues extends core_Manager
                         ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now, false, false);
                     } catch (core_exception_Expect $e) {
                         $dump = $e->getDump();
-                        $this->logErr("register: {$dRegKey} - {$dump[0]}");
+                        ztm_Devices::logErr("register: {$dRegKey} - {$dump[0]}", $deviceRec->id);
                     }
                 }
             }
@@ -365,7 +372,7 @@ class ztm_RegisterValues extends core_Manager
                     if (str::isJson($registers)) {
                         $regArr = (array) json_decode($registers);
                     } else {
-                        $this->logErr("Невалидни стойности на 'registers': '{$registers}'");
+                        ztm_Devices::logErr("Невалидни стойности на 'registers': '{$registers}'", $deviceRec->id);
                     }
                 }
             }
