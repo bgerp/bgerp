@@ -117,7 +117,7 @@ class bgerp_C extends core_Mvc
                         top: 50%; left: 50%;
                         transform: translate(-50%,-50%);
                         width:170px;
-                        height:120px;
+                        height:130px;
                         background-color:rgba(255,255,255, 0.6);
                         border-radius:10px;
                         writing-mode: vertical-lr;
@@ -139,7 +139,7 @@ class bgerp_C extends core_Mvc
                         position:absolute;
                         right:-5px;
                         font-weight: 400;
-                        top:9px;
+                        top:14px;
                         font-size:0.8em;
 
                     }
@@ -167,7 +167,7 @@ class bgerp_C extends core_Mvc
             </html>');
 
     
-        for($i = 0; $i < 10; $i++) {
+        for($i = 0; $i < 20; $i++) {
             $code = base_convert(random_int(1000000000, 4000000000), 10, 36);
             $qrUrl = barcode_Qr::getUrl("https://bcvt.eu/C/{$code}", false, 4, 0, array('bgOpacity' => 1));
 
