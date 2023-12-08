@@ -337,7 +337,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
             if ($rec->type == 'production' && $masterRec->labelType == 'scan') {
                 $form->setField('serial', 'mandatory');
-            } elseif($rec->type == 'production' && $masterRec->labelType == 'print'){
+            } elseif($rec->type == 'production' && in_array($masterRec->labelType, array('autoPrint', 'print'))){
                 $form->setField('serial', 'caption=Допълнително->Производ. №,formOrder=6,placeholder=Автоматично генериране');
                 unset($form->fields['serial']->focus);
             } elseif ($rec->type == 'input') {
@@ -1558,22 +1558,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         if($action == 'printperipherallabel' && isset($rec)){
-            if($rec->type != 'production' || $rec->state == 'rejected'){
+            if($rec->type != 'production' || $rec->state == 'rejected' || !core_Packs::isInstalled('label')){
                 $requiredRoles = 'no_one';
-            } else {
-                if($requiredRoles != 'no_one'){
-
-                    // Дали да се печата бърз етикет
-                    if(core_Packs::isInstalled('label')) {
-                        $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-                        if ($labelPrintFromProgress != 'no') {
-                            $taskPrintLabelFromTask = planning_Tasks::fetchField("#id = {$rec->taskId}", 'labelPrintFromProgress');
-                            if ($taskPrintLabelFromTask != 'yes') {
-                                $requiredRoles = 'no_one';
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -2061,5 +2047,21 @@ class planning_ProductionTaskDetails extends doc_Detail
         ");
 
         return $listLayout;
+    }
+
+
+    /**
+     * Дали автоматично да се разпечатва етикет след запис или запис и нов
+     *
+     * @param stdClass $rec
+     * @return string  кога да се разпечатва автоматично етикет (no, afterSaveAndNew, afterSave, both)
+     */
+    public function getModeAutoLabelPrint_($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $labelType = planning_Tasks::fetchField($rec->taskId, 'labelType');
+        if($labelType == 'autoPrint') return 'both';
+
+        return 'no';
     }
 }
