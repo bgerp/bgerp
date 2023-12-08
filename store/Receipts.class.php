@@ -48,7 +48,7 @@ class store_Receipts extends store_DocumentMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, change_Plugin, deals_plg_SaveValiorOnActivation, store_Wrapper, sales_plg_CalcPriceDelta,store_plg_Request, plg_Sorting,purchase_plg_ExtractPurchasesData,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoicesToDocument, acc_plg_DocumentSummary, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin,cat_plg_UsingProductVat, doc_plg_HidePrices, doc_SharablePlg,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
     /**
@@ -80,8 +80,14 @@ class store_Receipts extends store_DocumentMaster
      * Кой има право да променя?
      */
     public $canChangeline = 'ceo,store,trans';
-    
-    
+
+
+    /**
+     * Кои роли може да променят активно ЕН
+     */
+    public $canChangerec = 'ceo,store';
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -263,13 +269,6 @@ class store_Receipts extends store_DocumentMaster
                 $data->form->FNC('importProducts', 'enum(notshipped=Недоставени (Всички),notshippedstorable=Недоставени (Складируеми),notshippedservices=Недоставени (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
             }
         }
-    }
-
-
-    function act_Test()
-    {
-        $rec = static::fetch(483);
-        static::on_AfterCreate($this, $rec);
     }
 
 

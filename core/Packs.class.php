@@ -609,7 +609,9 @@ class core_Packs extends core_Manager
             $setup = cls::get($setupName);
             $canDeinstall = $setup->canDeinstall();
         }
-        
+        $cls = $rec->name . '_Setup';
+        $setup = cls::get($cls);
+
         if ($rec->state == 'active') {
             if ($canDeinstall) {
                 $row->deinstall = ht::createLink('', array($mvc, 'deinstall', 'pack' => $rec->name, 'ret_url' => true), 'Наистина ли искате да деактивирате пакета?', array('id' => $rec->name.'-deinstall', 'class' => 'deinstall-pack', 'ef_icon' => 'img/16/reject.png', 'title' => 'Деактивиране на пакета'));
@@ -625,17 +627,26 @@ class core_Packs extends core_Manager
             $installUrl['status'] = 'activate';
             $row->install = ht::createLink(tr('Активирай'), $installUrl, 'Наистина ли искате да активирате пакета?', array('id' => $rec->name.'-install', 'title' => 'Активиране и инициализиране на пакета'));
         }
-        
+
+        if (in_array($rec->state, array('closed', 'draft'))) {
+            $installErr = null;
+            if (method_exists($setup, 'checkManualInstall')){
+                $installErr = $setup->checkManualInstall();
+            }
+
+            if(!empty($installErr)){
+                $btnName = ($rec->state == 'draft') ? 'Инсталирай' : 'Активирай';
+                $row->install = ht::createHint("<span style='color:red;'>{$btnName}</b>", $installErr, 'noicon');
+            }
+        }
+
         if ($rec->state == 'active' || $rec->state == 'hidden') {
-            $cls = $rec->name . '_Setup';
             $row->config = '';
-            
             if ($conf->getConstCnt()) {
                 $row->config = ht::createLink(tr('Настройки'), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => true), null, array('id' => $rec->name.'-config', 'title' => 'Конфигуриране на пакета'));
             }
             
             if (cls::load($cls, true)) {
-                $setup = cls::get($cls);
                 if (method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
                     $row->config = ht::createLink(tr('Настройки'), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => true), null, array('id' => $rec->name.'-config', 'style' => 'background:red;color:white'));
                     $row->config = ht::createHint("<span style='color:red;'>" . $row->config . "</b>", $errMsg, 'noicon');

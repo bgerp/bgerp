@@ -31,10 +31,26 @@ class cond_type_Text extends cond_type_abstract_Proto
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('rows', 'int(min=1)', 'caption=Конкретизиране->Редове,before=default');
-        $fieldset->FLD('parser', 'class(interface=cond_ParseStringIntf,select=title,allowEmpty)', 'caption=Конкретизиране->Парсатор,after=rows');
+        $fieldset->FLD('richtext', 'enum(no=Не,yes=Да)', 'caption=Конкретизиране->Ричтекст,before=default,silent,removeAndRefreshForm=parser');
+        $fieldset->FLD('parser', 'class(interface=cond_ParseStringIntf,select=title,allowEmpty)', 'caption=Конкретизиране->Парсатор,after=richtext');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param cond_type_abstract_Proto $Driver
+     * @param embed_Manager     $Embedder
+     * @param stdClass          $data
+     */
+    protected static function on_AfterPrepareEditForm(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$data)
+    {
+        if($data->form->rec->richtext == 'yes'){
+            $data->form->setField('parser', 'input=none');
+        }
+    }
+
+
     /**
      * Връща инстанция на типа
      *
@@ -48,7 +64,10 @@ class cond_type_Text extends cond_type_abstract_Proto
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
         $Type = parent::getType($rec, $domainClass, $domainId, $value);
-        
+        if($rec->richtext == 'yes'){
+            $Type = cls::get('type_Richtext');
+        }
+
         if (isset($rec->rows)) {
             $Type = cls::get($Type, array('params' => array('rows' => $rec->rows)));
         }
@@ -69,20 +88,23 @@ class cond_type_Text extends cond_type_abstract_Proto
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
-        if(Mode::is('dontVerbalizeText')) return $value;
-        $Type = cls::get('type_Text');
+        if(Mode::is('dontVerbalizeText') || Mode::is('printLabel')) return $value;
+        if($rec->richtext == 'yes'){
+            $Type = cls::get('type_RichText');
+        } else {
+            // Ако има посочен парсатор
+            $Type = cls::get('type_Text');
+            if(isset($rec->parser)){
+                if(cls::load($rec->parser, true)){
 
-        // Ако има посочен парсатор
-        if(isset($rec->parser)){
-            if(cls::load($rec->parser, true)){
+                    // Парсира се стойноста
+                    $Iface = cls::getInterface('cond_ParseStringIntf',$rec->parser);
+                    $value = $Iface->parse($rec, $value);
 
-                // Парсира се стойноста
-                $Iface = cls::getInterface('cond_ParseStringIntf',$rec->parser);
-                $value = $Iface->parse($rec, $value);
-
-                // Ако се ще се парсира като Html - ще се рендира като такъв тип
-                if($Iface->isParsedAsHtml($rec)){
-                    $Type = cls::get('type_Html');
+                    // Ако се ще се парсира като Html - ще се рендира като такъв тип
+                    if($Iface->isParsedAsHtml($rec)){
+                        $Type = cls::get('type_Html');
+                    }
                 }
             }
         }

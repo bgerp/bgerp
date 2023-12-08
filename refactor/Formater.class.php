@@ -400,6 +400,62 @@ class refactor_Formater extends core_Manager
         $functionArr = array();
         $fArr = array();
         
+        $pttr ="/->FLD\\('[^']+', *('[^']+'), * ('[^']+') *\\)/is";
+        $res = [];
+ 
+        foreach ($files as $f) {
+            $fileStr = getFileContent($f);
+
+            preg_match_all($pttr, $fileStr, $matches);
+            
+            $s += substr_count($fileStr, "\n" ); 
+
+            if(strpos($fileStr, '->FLD')) $j++;
+
+            if(count($matches[1])) {
+                $i++;
+                foreach($matches[1] as $id => $type) {
+                    $type = trim($type, "'");
+                    list($tName, $tParams) = explode('(', $type);
+                    $tParams = trim($tParams === NULL ? '' : $tParams, ')');
+ 
+                    if($tName != 'enum' && $tName != 'set') {
+                        if(!isset($res[$tName])) {
+                            $res[$tName] = [];
+                        }
+                        $params = arr::make($tParams, true);
+
+                        foreach($params as $pName => $pValue) {
+
+                            $pName = trim($pName);
+                            $pValue = trim($pValue);
+                            
+                            if(ctype_digit($pName) && $pName == $pValue) {
+                                $pName = 'size';
+                            }
+ 
+                            if(!isset($res[$tName][$pName][$pValue])) {
+                                $res[$tName][$pName][$pValue] = 0;
+                            }
+
+                            $res[$tName][$pName][$pValue]++;
+                        }
+
+                        
+                    }
+                } 
+            } 
+        }
+        
+        bp($s, $j, $i, $res);
+
+      
+
+
+
+
+
+
         foreach ($files as $f) {
             $fileStr = getFileContent($f);
             

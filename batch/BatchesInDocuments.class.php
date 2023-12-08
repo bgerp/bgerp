@@ -53,9 +53,15 @@ class batch_BatchesInDocuments extends core_Manager
 
 
     /**
-     * Описание на модела (таблицата)
+     * Работен кеш
      */
     public static $cache = array();
+
+
+    /**
+     * Работен кеш
+     */
+    public static $cachedRows = array();
 
 
     /**
@@ -107,12 +113,23 @@ class batch_BatchesInDocuments extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'modify' && isset($rec)) {
-            $requiredRoles = cls::get($rec->detailClassId)->getRolesToModifyBatches($rec->detailRecId);
+        if (in_array($action, array('modify', 'splitbatches')) && isset($rec)) {
+            $Detail = cls::get($rec->detailClassId);
+            if($action == 'modify'){
+                $requiredRoles = $Detail->getRolesToModifyBatches($rec->detailRecId);
+            } else {
+                $requiredRoles = $Detail->canSplitbatches;
+            }
 
             if (!isset($rec->detailClassId) || !isset($rec->detailRecId)) {
                 $requiredRoles = 'no_one';
             } else {
+                if(!$Detail->haveRightFor('edit', $Detail->fetchRec($rec->detailRecId))){
+                    $requiredRoles = 'no_one';
+
+                }
+
+                static::$cachedRows["{$rec->detailClassId}|{$rec->detailRecId}"] = cls::get($rec->detailClassId)->getRowInfo($rec->detailRecId);
                 $recInfo = cls::get($rec->detailClassId)->getRowInfo($rec->detailRecId);
                 if (cat_Products::fetchField($recInfo->productId, 'canStore') != 'yes') {
                     $requiredRoles = 'no_one';
@@ -120,6 +137,18 @@ class batch_BatchesInDocuments extends core_Manager
                     $requiredRoles = 'no_one';
                 }
             }
+        }
+
+        if($action == 'splitbatches' && isset($rec)){
+
+            if($requiredRoles != 'no_one'){
+                $recInfo = static::$cachedRows["{$rec->detailClassId}|{$rec->detailRecId}"] ?? cls::get($rec->detailClassId)->getRowInfo($rec->detailRecId);
+                $atLeastOneQuantity = batch_BatchesInDocuments::fetchField("#detailClassId = {$rec->detailClassId} AND #detailRecId = {$rec->detailRecId}", 'quantity');
+                if($atLeastOneQuantity == $recInfo->quantity){
+                    $requiredRoles = 'no_one';
+                }
+            }
+
         }
     }
 
@@ -508,11 +537,12 @@ class batch_BatchesInDocuments extends core_Manager
             $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди->{$caption},placeholder={$Def->placeholder}");
 
             if (is_array($bOptions)) {
+                $bOptions = array_combine(array_values($bOptions), array_values($bOptions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $bOptions));
             }
 
             // Ако има опции от типа добавят се с възможност за избор
-            $BatchType = $Def->getBatchClassType();
+            $BatchType = $Def->getBatchClassType($Detail, $detailRecId);
             if ($BatchType instanceof type_Enum) {
                 $bOptions = $BatchType->options;
                 $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;
@@ -762,7 +792,7 @@ class batch_BatchesInDocuments extends core_Manager
             
             return;
         }
-        
+
         $bArray = array();
         foreach ($batches as $key => $batch) {
             if (!empty($batch)) {
@@ -780,8 +810,8 @@ class batch_BatchesInDocuments extends core_Manager
                 }
                 
                 if (array_key_exists($batch, $bArray)) {
-                    $error[] = 'Повтаряща се партида';
-                    $errorFields['batch'][$key] = 'Повтаряща се партида';
+                    $error[] = "Повтаряща се партида|*: <b>{$batch}</b> ";
+                    $errorFields['batch'][$key] = "Повтаряща се партида|*: '$batch'";
                 } else {
                     $bArray[$batch] = $batch;
                 }
@@ -998,5 +1028,66 @@ class batch_BatchesInDocuments extends core_Manager
         $res = $bQuery->fetchAll();
         
         return $res;
+    }
+
+
+    /**
+     * Екшън за разбиване на редовете по ред за всяка партида
+     */
+    public function act_splitbatches()
+    {
+        expect($detailClassId = Request::get('detailClassId', 'class'));
+        expect($detailRecId = Request::get('detailRecId', 'int'));
+
+        // Проверка на права
+        $this->requireRightFor('splitbatches', (object)array('detailClassId' => $detailClassId, 'detailRecId' => $detailRecId));
+
+        $Detail = cls::get($detailClassId);
+        $recInfo = $Detail->getRowInfo($detailRecId);
+
+        $toSave = array();
+        $detailRec = $Detail->fetch($detailRecId);
+        $withoutBatch = $recInfo->quantity;
+        $query = static::getQuery();
+        $query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
+
+        // Всеки партиден ред ще е на отделен ред
+        while($rec = $query->fetch()){
+            $clone = clone $detailRec;
+            unset($clone->id, $clone->createdOn, $clone->createdBy, $clone->modifiedOn, $clone->modifiedBy);
+            $clone->quantity = $clone->requestedQuantity = $rec->quantity;
+
+            unset($rec->containerId, $rec->id, $rec->detailRecId);
+            $clone->_batches[$rec->batch] = $rec->quantity;
+            $toSave[] = $clone;
+            $withoutBatch -= $rec->quantity;
+            $withoutBatch = round($withoutBatch, 5);
+        }
+
+        // Ако има без партида - добавя се и той
+        $withoutBatch = round($withoutBatch, 5);
+        if($withoutBatch){
+            $clone = clone $detailRec;
+            unset($clone->id, $clone->createdOn, $clone->createdBy, $clone->modifiedOn, $clone->modifiedBy);
+            $clone->quantity = $clone->requestedQuantity = $withoutBatch;
+            $toSave[] = $clone;
+        }
+
+        foreach ($toSave as $saveRec){
+            $saveRec->_clonedWithBatches = true;
+            $Detail::save($saveRec);
+            if(is_array($saveRec->_batches) && core_Packs::isInstalled('batch')){
+                batch_BatchesInDocuments::saveBatches($Detail, $saveRec->id, $saveRec->_batches);
+            }
+        }
+
+        $Detail->delete($detailRecId);
+        if ($Detail instanceof core_Detail) {
+            $Detail->Master->logWrite('Разбиване на партидите на нов ред', $detailRec->{$Detail->masterKey});
+        } else {
+            $Detail->logWrite('Разбиване на партидите на нов ред', $detailRecId);
+        }
+
+        followRetUrl(null, 'Всяка партида е прехвърлена на нов ред');
     }
 }

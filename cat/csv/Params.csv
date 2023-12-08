@@ -6,7 +6,7 @@
 Обем,cond_type_Double,л,volumel,,no,active,"min=0",yes
 Плътност,cond_type_Double,кг/м3,density,,no,active,,no
 Цвят,cond_type_Varchar,,color,,yes,active,,yes
-Тарифен код,cond_type_Varchar,,customsTariffNumber,,no,active,,no
+Митнически код,cond_type_Varchar,,customsTariffNumber,,no,active,,no
 Транспортен обем,cond_type_Double,л,transportVolume,,no,active,"min=0",no
 Транспортно тегло,cond_type_Double,кг,transportWeight,,no,active,"min=0",no
 Толеранс,cond_type_Percent,,tolerance,,no,active,,no
@@ -27,3 +27,7 @@
 Твърдения в ДС,cond_type_Keylist,,decStatements,,no,active,"class=dec_Statements,select=title",no
 Оборудване,cond_type_Keylist,,planningAssets,,no,active,"class=planning_AssetResources,select=name",no
 Грамаж,cond_type_Double,г/м2,densityGm2,,no,active,,yes
+Алергени,cond_type_Keylist,,allergens,,yes,active,"class=cond_Allergens,select=titleNum,selectLabel=num",no
+Енергийна стойност,cond_type_Double,kcal,energyKcal,,yes,active,,no
+Вегетарианско,cond_type_Enum,,vegetarian,"vegetarian=Вегетарианско,vegan=Веган",yes,active,,no
+Люто,cond_type_Enum,,spicy,"littleSpicy=Малко люто,mediumSpicy=Средно люто,verySpice=Много люто",yes,active,,no

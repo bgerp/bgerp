@@ -50,7 +50,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, cond_plg_DefaultValues, doc_DocumentPlg, bgerp_plg_Export,
-					doc_EmailCreatePlg, recently_Plugin,deals_plg_DpInvoice,doc_plg_Sequencer2,
+					doc_EmailCreatePlg, recently_Plugin,deals_plg_DpInvoice,doc_plg_Sequencer2,cat_plg_UsingProductVat,
                     doc_plg_HidePrices, doc_plg_TplManager, drdata_plg_Canonize, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search,plg_LastUsedKeys';
     
     
@@ -897,7 +897,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if (empty($rec->additionalConditions)) {
             if(!empty($rec->accountId)) {
                 $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
-                $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+                $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
                 $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
                 $rec->additionalConditions = array($condition);
                 $mvc->save_($rec, 'additionalConditions');
@@ -921,29 +921,6 @@ class sales_Invoices extends deals_InvoiceMaster
                     deals_InvoicesToDocuments::save($dRec);
                     doc_DocumentCache::cacheInvalidation($sRec->containerId);
                 }
-            }
-        }
-
-        // Има ли полета, чиито стойности да се преизчислят при активиране
-        $Detail = cls::get('sales_InvoiceDetails');
-        $cacheFields = $Detail->getFieldsToCalcOnActivation($rec);
-
-        if(countR($cacheFields)){
-            $saveDetails = array();
-            $updateFields = implode(',', $cacheFields);
-
-            // Извличат се детайлите
-            $dQuery = $Detail->getQuery();
-            $dQuery->where("#invoiceId = {$rec->id}");
-            while($dRec = $dQuery->fetch()){
-                $params = cat_Products::getParams($dRec->productId);
-                if($Detail->calcFieldsOnActivation($dRec, $rec, $params)){
-                    $saveDetails[] = $dRec;
-                }
-            }
-
-            if(countR($saveDetails)){
-                $Detail->saveArray($saveDetails, "id,{$updateFields}");
             }
         }
     }

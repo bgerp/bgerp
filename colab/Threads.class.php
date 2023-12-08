@@ -148,6 +148,7 @@ class colab_Threads extends core_Manager
         // Ако има папка записва се като активна
         colab_Folders::setLastActiveContragentFolder($data->folderId);
 
+        $data->threadRec->partnerDocLast = (empty($data->threadRec->partnerDocLast)) ? '0000-00-00' : $data->threadRec->partnerDocLast;
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         $otherDocChanges = doc_Threads::fetch(array("#id != '[#1#]' AND #folderId = '[#2#]' AND #state != 'rejected' AND #partnerDocLast > '[#3#]'",
             $data->threadRec->id, $data->threadRec->folderId, $data->threadRec->partnerDocLast));
@@ -194,7 +195,12 @@ class colab_Threads extends core_Manager
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
-        
+
+        if (!Request::get('ajax_mode')) {
+            // Записваме, че потребителя е разглеждал този списък
+            $this->Containers->logInAct('Листване', null, 'read');
+        }
+
         return $tpl;
     }
     
@@ -372,6 +378,9 @@ class colab_Threads extends core_Manager
         $data->listFilter->rec->LastFieldName = 'partnerDocLast';
         
         doc_Threads::applyFilter($data->listFilter->rec, $data->query);
+        $data->listFilterAddedFields = array();
+        $Cover = doc_Folders::getCover($data->listFilter->rec->folderId);
+        $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query, &$data->listFilterAddedFields));
         $data->rejQuery = clone($data->query);
         
         if(core_Users::isContractor() && !haveRole('powerPartner')){
@@ -535,6 +544,9 @@ class colab_Threads extends core_Manager
     protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         $mvc->prepareTitle($data);
+
+        $url = array('colab_Threads', 'list', 'folderId' => Request::get('folderId', 'int'));
+        bgerp_Notifications::clear($url);
     }
     
     

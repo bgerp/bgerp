@@ -666,6 +666,10 @@ class doc_DocumentPlg extends core_Plugin
             if (!$row->singleTitle) {
                 $row->singleTitle = tr($invoker->singleTitle);
             }
+
+            if ($rec->priority) {
+                $row->DOCUMENT_PRIORITY_CLASS = 'priority-' . $rec->priority;
+            }
             
             // Ако документа е скрит и е оттеглен, показваме от кого
             if (doc_HiddenContainers::isHidden($rec->containerId)) {

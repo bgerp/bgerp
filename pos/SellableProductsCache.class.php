@@ -55,7 +55,7 @@ class pos_SellableProductsCache extends core_Master
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $this->FLD('string', 'varchar', 'caption=Код');
         $this->FLD('searchKeywords', 'text', 'caption=Ключови думи');
-        $this->FLD('priceListId', 'key(mvc=cat_Products,select=name)', 'caption=Ценова политика');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика');
         
         $this->setDbIndex('productId,priceListId');
         $this->setDbIndex('priceListId');
@@ -81,11 +81,18 @@ class pos_SellableProductsCache extends core_Master
     /**
      * Подготовка на филтър формата
      */
-    public static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'search,priceListId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+
+        if($filter = $data->listFilter->rec){
+            if(isset($filter->priceListId)){
+                $data->query->where("#priceListId = {$filter->priceListId}");
+            }
+        }
     }
     
     
@@ -95,38 +102,25 @@ class pos_SellableProductsCache extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('sync')) {
-            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
+            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'warning=Наистина ли искате да синхронизирате продаваемите артикули в POS-а,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
         }
     }
-    
-    
-    /**
-     * Екшън за ръчно обновяване на кешираните артикули
-     */
-    function act_sync()
-    {
-        $this->requireRightFor('sync');
-        $this->cron_CacheSellablePosProducts();
-        
-        followRetUrl();
-    }
-    
-    
-    /**
-     * Крон процес обновяващ продаваемите в ПОС-а артикули
-     */
-    public function cron_CacheSellablePosProducts()
-    {
-        if(!pos_Points::count()) {
-            $this->logInfo("Няма налични точки на продажба");
-            return;
-        }
 
-        // Ако има промяна в ценовите политики - ще се преизчислява кеша
+
+    /**
+     * Синхронизиране на продаваемите пос артикули
+     *
+     * @param bool $force - дали да се форсира преизчисляването
+     * @return string
+     */
+    private function sync($force = false)
+    {
+        if(!pos_Points::count()) return "Няма налични точки на продажба";
+
+        // Ако има промяна в ценовите политики - ще се синхронизира (освен ако не се форсира синхронизирането)
         $datetime = dt::now();
-        if(!price_Lists::areListUpdated($datetime)) {
-            $this->logInfo("Няма промяна в ценовите политики");
-            return;
+        if(!$force){
+            if(!price_Lists::areListUpdated($datetime)) return "Няма промяна в ценовите политики";
         }
 
         // Кои ценови политики участват в ПОС-а
@@ -142,7 +136,7 @@ class pos_SellableProductsCache extends core_Master
         $pQuery = cat_Products::getQuery();
         $pQuery->where("#state = 'active' AND #isPublic = 'yes'");
         $pQuery->show('name,nameEn,code,measureId,searchKeywords');
-        
+
         $count = $pQuery->count();
         core_App::setTimeLimit($count * 0.5, false, 100);
 
@@ -157,10 +151,12 @@ class pos_SellableProductsCache extends core_Master
                 }
             }
         }
-        
+
         // Синхронизиране на таблицата
         $exRecs = self::getQuery()->fetchAll();
+
         $res = arr::syncArrays($toSave, $exRecs, 'productId,priceListId', 'productId,string,searchKeywords,priceListId');
+
         $iCount = countR($res['insert']);
         $uCount = countR($res['update']);
         $dCount = countR($res['delete']);
@@ -168,17 +164,39 @@ class pos_SellableProductsCache extends core_Master
         if($iCount){
             $this->saveArray($res['insert']);
         }
-        
+
         if($uCount){
             $this->saveArray($res['update'], 'id,string,searchKeywords');
         }
-        
+
         if($dCount){
             foreach ($res['delete'] as $id){
                 $this->delete($id);
             }
         }
 
-        $this->logInfo("Обновени продаваеми: I:{$iCount}/U:{$uCount}/D:{$dCount}");
+        return "Резултат|*: Добавени:{$iCount}, Обновени:{$uCount}, Изтрити:{$dCount}";
+    }
+
+
+    /**
+     * Крон процес обновяващ продаваемите в ПОС-а артикули
+     */
+    public function cron_CacheSellablePosProducts()
+    {
+        $res = $this->sync();
+        $this->logDebug($res);
+    }
+
+
+    /**
+     * Екшън за ръчно обновяване на кешираните артикули
+     */
+    function act_sync()
+    {
+        $this->requireRightFor('sync');
+        $res = $this->sync(true);
+
+        followRetUrl(null, $res);
     }
 }

@@ -22,7 +22,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
      *
      * @param string
      */
-    public $fieldCaption = 'Ср. год.';
+    public $fieldCaption = 'Годен до';
     
     
     /**

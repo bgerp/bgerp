@@ -937,8 +937,9 @@ class cat_BomDetails extends doc_Detail
                 $rec->propQuantity = "({$rec->propQuantity}) / ${coefficient}";
             }
         }
-        
+
         $rec->rowQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $rec->params);
+
         $row->propQuantity = static::highlightExpr($propQuantity, $rec->params, $coefficient);
 
         if(!is_numeric($propQuantity)){
@@ -956,7 +957,7 @@ class cat_BomDetails extends doc_Detail
             $row->primeCost = "<span class='red'>???</span>";
             $row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойността', 'warning', false);
         } else {
-            $row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
+            $row->rowQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->rowQuantity);
         }
         
         if (!isset($rec->primeCost) && $rec->type != 'stage') {
@@ -1273,7 +1274,9 @@ class cat_BomDetails extends doc_Detail
         $bomId = static::fetchField($detailId, 'bomId');
         $orderedDetails = self::getOrderedBomDetails($bomId);
         foreach ($orderedDetails as $rec){
-            $res[] = $rec->id;
+            if($DetailMvc->haveRightFor('edit', $rec)){
+                $res[] = $rec->id;
+            }
         }
     }
 
@@ -1287,10 +1290,7 @@ class cat_BomDetails extends doc_Detail
         if (is_array($data->rows)) {
 
             // Колко е най-голямото закръгляне на използваните мерки
-            $usedMeasures = arr::extractValuesFromArray($data->recs, 'packagingId');
-            $maxDecimals = cat_UoM::getMaxRound($usedMeasures);
-            $Double = core_Type::getByName("double(decimals={$maxDecimals})");
-
+            $Double = core_Type::getByName("double(smartRound)");
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
                 if ($rec->parentId) {

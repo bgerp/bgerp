@@ -126,4 +126,16 @@ class label_SequenceIntf
     {
         return $this->class->getDefaultLabelTemplateId($id, $series);
     }
+
+
+    /**
+     * Кога е отпечатан етикет от източника
+     *
+     * @param int $id
+     * @return void
+     */
+    public function onLabelIsPrinted($id)
+    {
+        return $this->class->onLabelIsPrinted($id);
+    }
 }

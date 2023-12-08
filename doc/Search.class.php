@@ -100,7 +100,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
-        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
+        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен,tag_from_me=Тагнати от мен)', 'caption=Само, placeholder=Всички');
         $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
         $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички, silent');
@@ -110,11 +110,27 @@ class doc_Search extends core_Manager
         
         $data->listFilter->setDefault('author', 'all_users');
 
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, tags, state, fromDate, toDate';
+        $colabIsInstalled = core_Packs::isInstalled('colab');
+        if(Mode::is('colabSearch') && $colabIsInstalled){
+            $data->listFilter->class = 'simpleForm';
+            $data->listFilter->showFields = 'search, docClass, state, fromDate, toDate';
+            $data->listFilter->setField('state', 'input=hidden');
+            // Ако се филтрира от партньор да се виждат само видимите от него документи в посочените папки
+            $docClassesOption = array();
+            $cloneQuery = clone $data->query;
+            $visibleColabDocClasses = arr::extractValuesFromArray($cloneQuery->fetchAll(), 'docClass');
+            foreach ($visibleColabDocClasses as $visibleDocClass){
+                $docClassesOption[$visibleDocClass] = core_Classes::getTitleById($visibleDocClass);
+            }
+            $data->listFilter->setOptions('docClass', $docClassesOption);
+        } else {
+            $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, tags, state, fromDate, toDate';
+        }
+
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        $tagsArr = tags_Tags::getTagsOptions();
-        $data->listFilter->setSuggestions('tags', $tagsArr['all']);
+        $tOptArr = tags_Tags::getTagsOptions();
+        $data->listFilter->setSuggestions('tags', $tOptArr['all']);
 
         $data->listFilter->input(null, 'silent');
 
@@ -133,14 +149,14 @@ class doc_Search extends core_Manager
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate) ||
-        $filterRec->author != 'all_users';
-        
+        $filterRec->author != 'all_users' || (Mode::is('colabSearch') && $colabIsInstalled);
+
         // Флаг, указващ дали се филтрира
         $mvc->isFiltered = $isFiltered;
         
         // Ако формата е субмитната
         if ($isFiltered && ($filterRec->fromDate || $filterRec->toDate)) {
-            
+
             // Ако са попълнени полетата От и До
             if ($filterRec->fromDate && $filterRec->toDate) {
                 
@@ -184,9 +200,7 @@ class doc_Search extends core_Manager
                 }
             }
         }
-        
 
-        
         if ($data->query->isSlowQuery && !$data->listFilter->ignore && !$useIndex) {
             if (!$filterRec->fromDate && !$filterRec->toDate) {
                 $data->listFilter->setWarning('search, fromDate, toDate', 'Заявката за търсене е много обща и вероятно ще се изпълни бавно. Добавете още думи или я ограничете по дати');
@@ -198,7 +212,7 @@ class doc_Search extends core_Manager
         
         // Има зададен условия за търсене - генерираме SQL заявка.
         if ($isFiltered && !$data->listFilter->gotErrors()) {
-            
+
             // Ако някой ще направи обработки преди вземането на резултата
             $mvc->invoke('BeforePrepareSearchQuery', array($data, $filterRec));
             
@@ -274,7 +288,7 @@ class doc_Search extends core_Manager
             
             // Ако е избран автор или не са избрани всичките
             if (!empty($filterRec->author) && $filterRec->author != 'all_users' && (strpos($filterRec->author, '|-1|') === false)) {
-                
+
                 // Масив с всички избрани автори
                 $authorArr = keylist::toArray($filterRec->author);
                 
@@ -311,7 +325,7 @@ class doc_Search extends core_Manager
             $currUserId = core_Users::getCurrent();
             
             if ($filterRec->withMe && ($currUserId > 0)) {
-                
+
                 // Ако ще се показват само харесаните от текущия потребител
                 if ($filterRec->withMe == 'liked_from_me') {
                     // Всички харесвания
@@ -325,15 +339,24 @@ class doc_Search extends core_Manager
                 }
             }
 
-            if ($filterRec->tags) {
+            if ($filterRec->tags || ($filterRec->withMe == 'tag_from_me')) {
                 $data->query->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
 
                 $tagsArr = type_Keylist::toArray($filterRec->tags);
 
                 $personalTags = tags_Tags::getPersonalTags();
 
-                $cTags = array_diff($tagsArr, $personalTags);
-                $pTags = array_intersect($tagsArr, $personalTags);
+                if ($filterRec->withMe == 'tag_from_me') {
+                    if (empty($tagsArr)) {
+                        $pTags = array_keys($tOptArr['all']);
+                    } else {
+                        $pTags = $tagsArr;
+                    }
+                    $cTags = array();
+                } else {
+                    $cTags = array_diff($tagsArr, $personalTags);
+                    $pTags = array_intersect($tagsArr, $personalTags);
+                }
 
                 $or = false;
                 if (!empty($cTags)) {
@@ -346,15 +369,17 @@ class doc_Search extends core_Manager
                     $data->query->where(array('#tags IN (' . implode(',', $pTags) . ') AND #tagsCreatedBy = "[#1#]"', core_Users::getCurrent()), $or);
                 }
             }
-            
-            if ($restrictAccess) {
+
+            // Ако ще се търси по достъпа, но не се прави партньорско търсене да се ограничи допълнително заявката
+            if ($restrictAccess && !Mode::is('colabSearch')) {
+
                 // Ограничаване на заявката само до достъпните нишки
                 doc_Threads::restrictAccess($data->query, $currUserId);
                 
                 // Създател
                 $data->query->orWhere("#createdBy = '{$currUserId}'");
             }
-            
+
             // Експеримент за оптимизиране на бързодействието
             $data->query->orderBy('#modifiedOn=DESC');
             
@@ -366,7 +391,7 @@ class doc_Search extends core_Manager
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
              */
-            
+
             // Ако ще се филтира по състояни и текущия потребител (автор)
             if ($filterRec->state) {
                 $url = array($mvc, 'state' => $filterRec->state);
@@ -393,7 +418,8 @@ class doc_Search extends core_Manager
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
 
-                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDateHorizon' => Request::get('toDateHorizon', 'time'));
+                $url3 = array($mvc, 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDateHorizon' => Request::get('toDateHorizon', 'time'));
+
                 bgerp_Notifications::clear($url3);
             }
         } else {
@@ -412,7 +438,7 @@ class doc_Search extends core_Manager
      * @param object     $data
      * @param object     $filtreRec
      */
-    public function on_BeforePrepareSearchQuery($mvc, $data, $filtreRec)
+    public static function on_BeforePrepareSearchQuery($mvc, $data, $filtreRec)
     {
         // Тримваме търсенето
         $search = trim($filtreRec->search);
@@ -455,7 +481,7 @@ class doc_Search extends core_Manager
     /**
      * След извличане на записите от базата данни
      */
-    public function on_AfterPrepareListRecs($mvc, $data)
+    public static function on_AfterPrepareListRecs($mvc, $data)
     {
         if (countR($data->recs) == 0) {
             
@@ -476,7 +502,7 @@ class doc_Search extends core_Manager
     /**
      * След подготовка на записите
      */
-    public function on_AfterPrepareListRows($mvc, $data)
+    public static function on_AfterPrepareListRows($mvc, $data)
     {
         if (countR($data->recs) == 0) {
             
@@ -503,7 +529,7 @@ class doc_Search extends core_Manager
     /**
      * Преди рендиране на лист таблицата
      */
-    public function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if(Mode::get('screenMode') == 'narrow') {
             $data->listTableMvc->FLD('title', 'varchar', 'tdClass=largeNarrowCell');
@@ -542,7 +568,7 @@ class doc_Search extends core_Manager
             
             return;
         }
-        
+
         $attr = array();
         $attr['ef_icon'] = $docProxy->getIcon();
         
@@ -551,6 +577,7 @@ class doc_Search extends core_Manager
         if (mb_strlen($docRow->title) > doc_Threads::maxLenTitle) {
             $attr['title'] = '|*' . $docRow->title;
         }
+
         $linkUrl = array($docProxy->className, 'single', $docProxy->that);
         
         $search = Request::get('search');
@@ -563,22 +590,19 @@ class doc_Search extends core_Manager
             $attr['class'] .= " tUnsighted";
         }
         
-        $row->title = ht::createLink(
-            
-            str::limitLen($docRow->title, doc_Threads::maxLenTitle),
-            $linkUrl,
-            null,
-            
-            $attr
-        
-        );
+        $row->title = ht::createLink(str::limitLen($docRow->title, doc_Threads::maxLenTitle), $linkUrl, null, $attr);
         
         if ($docRow->authorId > 0) {
             $row->author = crm_Profiles::createLink($docRow->authorId);
         } else {
             $row->author = $docRow->author;
         }
-        
+
+        if ($docRow->subTitle) {
+            $noTagsClass = ($docRow->_haveTags && !$docRow->_haveSubtitle) ? ' onlyTags' : '';
+            $row->title .= "\n<div class='threadSubTitle{$noTagsClass}'>{$docRow->subTitle}</div>";
+        }
+
         $row->hnd = "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#{$handle}</div>";
     }
     

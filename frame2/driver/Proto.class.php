@@ -26,8 +26,14 @@ abstract class frame2_driver_Proto extends core_BaseClass
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = '*';
-    
-    
+
+
+    /**
+     * Дали да се изпраща нотификация САМО ако са променени данните от справката
+     */
+    public $sendNotificationOnlyAfterDataIsChanged = true;
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *

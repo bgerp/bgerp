@@ -100,8 +100,12 @@ function posActions() {
 		if($(this).hasClass('reload')) return;
 		if($(this).hasClass('deleteRow')) return;
 		if($(this).hasClass('printReceiptBtn')) return;
-		
-		if(Date.now() - oldTime > 400) {	
+
+		var timeOffset = Date.now() - oldTime;
+
+		// при double click да изпраща веднъж
+		// или при touch устройства
+		if(timeOffset > 400 || isTouchDevice()) {
 			pressNavigable(this);
 			e.preventDefault();
 		}
@@ -561,6 +565,7 @@ function openPayment() {
 function calculateWidth(){
 	var winWidth = parseInt($(window).outerWidth());
 	var winHeight = parseInt($(window).outerHeight());
+
 	if (winWidth >= 1200) {
 		//задаване на ширина на двете колони
 		$('#result-holder').css('width', winWidth - $('#single-receipt-holder').width());
@@ -594,16 +599,8 @@ function calculateWidth(){
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
 
 		$('.tools-content').css('height',460);
-
-		if(!isTouchDevice()) {
-			$('#keyboard-num').css('display','block');
-			$('.buttons').removeClass('oneRow');
-		} else {
-			$('#tools-holder').css('height', 330);
-			$('#keyboard-num').css('display','none');
-			$('.buttons').addClass('oneRow');
-		}
-
+		$('#keyboard-num').css('display','block');
+		$('.buttons').removeClass('oneRow');
 	} else {
 		$('#keyboard-num').css('display','none');
 
@@ -881,7 +878,7 @@ function pressNavigable(element)
 		doPayment(url, type);
 		return;
 		
-	} else if(element.hasClass('contragentLinkBtns') || element.hasClass('posResultContragent')){
+	} else if(element.hasClass('contragentRedirectBtn')){
 		
 		clearTimeout(timeout);
 		if(element.hasClass("openInNewTab")){

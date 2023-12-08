@@ -82,7 +82,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=Количество->Въведено,quantityFromBom=Количество->Рецепта,quantityExpected=Количество->Очаквано,storeId';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=К-во->Въведено,quantityFromBom=К-во->Рецепта,quantityExpected=К-во->Очаквано,storeId';
     
     
     /**
@@ -202,12 +202,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
         
         if ($rec->type == 'pop') {
-
-            // Артикула, по която е ПО да може винаги да се избира, ако е складируем
-            $noteProductId = planning_DirectProductionNote::fetchField($rec->noteId, 'productId');
-            if(cat_Products::fetchField($noteProductId, 'canStore') == 'yes'){
-                $form->setFieldTypeParams('productId', array('alwaysShow' => array($noteProductId)));
-            }
+            $form->setFieldTypeParams('productId', array('groups' => cat_Groups::getKeylistBySysIds('waste')));
             $form->setField('storeId', 'input=none');
         } elseif($rec->type == 'input'){
 
@@ -287,7 +282,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         // Кои са получените чужди артикули
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
-            $row->ROW_ATTR['class'] = ($rec->type == 'pop') ? 'row-removed' : 'row-added';
+            $row->ROW_ATTR['class'] = ($rec->type == 'pop') ? 'row-removed' : (($rec->type == 'allocated') ? 'state-active' : 'row-added');
 
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
@@ -424,15 +419,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
         if(empty($iData->listFields['quantityFromBom']) && empty($iData->listFields['quantityExpected'])){
-            $iData->listFields['packQuantity'] = 'Количество';
+            $iData->listFields['packQuantity'] = 'К-во';
         }
 
         if(isset($iData->listFields['quantityFromBom'])){
-            $iData->listFields['quantityFromBom'] = 'Количество->|*<small>|Рецепта|*</small>';
+            $iData->listFields['quantityFromBom'] = 'К-во->|*<small>|Рецепта|*</small>';
         }
 
         if(isset($iData->listFields['quantityExpected'])){
-            $iData->listFields['quantityExpected'] = 'Количество->|*<small>|Очаквано|*</small>';
+            $iData->listFields['quantityExpected'] = 'К-во->|*<small>|Очаквано|*</small>';
         }
 
         $this->modifyRows($iData);
@@ -448,7 +443,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
 
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'allocated'))) {
-            $tpl->append(ht::createBtn('Отнесени разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Влагане на отнесен разход')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/money.png', 'title' => 'Влагане на отнесен разход')), 'planning_DirectProductNoteDetails');
+        }
+
+        if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true))){
+            $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Избор на един или няколко реда за изтриване', 'class' => 'selectDeleteRowsBtn')), 'planning_DirectProductNoteDetails');
         }
 
         // Рендиране на таблицата с отпадъците

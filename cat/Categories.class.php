@@ -483,8 +483,9 @@ class cat_Categories extends core_Master
      * @param core_mvc   $mvc
      * @param core_Form  $threadFilter
      * @param core_Query $threadQuery
+     * @param array $listFilterAddedFields
      */
-    protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery)
+    protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery, &$listFilterAddedFields)
     {
         // Добавяме поле за избор на групи
         $threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група');

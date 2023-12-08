@@ -1915,6 +1915,28 @@ abstract class deals_InvoiceMaster extends core_Master
                 $Detail->saveArray($saveRecs, 'id,notes');
             }
         }
+
+        // Има ли полета, чиито стойности да се преизчислят при активиране
+        $cacheFields = $Detail->getFieldsToCalcOnActivation($rec);
+
+        if(countR($cacheFields)){
+            $saveDetails = array();
+            $updateFields = implode(',', $cacheFields);
+
+            // Извличат се детайлите
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $params = cat_Products::getParams($dRec->productId);
+                if($Detail->calcFieldsOnActivation($dRec, $rec, $params)){
+                    $saveDetails[] = $dRec;
+                }
+            }
+
+            if(countR($saveDetails)){
+                $Detail->saveArray($saveDetails, "id,{$updateFields}");
+            }
+        }
     }
 
 

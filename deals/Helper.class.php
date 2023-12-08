@@ -136,9 +136,13 @@ abstract class deals_Helper
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
             $price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
-            
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
-            $discountVal = isset($rec->{$map['discount']}) ? $rec->{$map['discount']} : $rec->{$map['autoDiscount']};
+            $discountVal = $rec->{$map['discount']};
+            if(!empty($rec->{$map['autoDiscount']})){
+                if(in_array($masterRec->state, array('draft', 'pending'))){
+                    $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 4);
+                }
+            }
 
             $noVatAmountOriginal = $noVatAmount;
             if($testRound == 'yes') {
@@ -483,14 +487,13 @@ abstract class deals_Helper
         }
         
         $info = tr($text);
-        $obj = (object) array('formInfo' => $info);
+        $obj = (object) array('formInfo' => "<div class='formCustomInfo'>{$info}</div>");
         $quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
         
         // Показваме предупреждение ако наличното в склада е по-голямо от експедираното
         if ($packQuantity > ($quantity / $quantityInPack)) {
             $obj->warning = "Въведеното количество е по-голямо от разполагаемо|* <b>{$verbalQuantity}</b> |в склада|*";
         }
-
 
         return $obj;
     }
@@ -2100,7 +2103,7 @@ abstract class deals_Helper
             $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
             if ($canStore != 'yes') continue;
 
-            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
+            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, $obj->{$quantityFld});
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
             }
@@ -2291,9 +2294,6 @@ abstract class deals_Helper
      */
     public static function getContoRedirectError($productArr, $haveMetas, $haveNotMetas = null, $metaError = null)
     {
-        // При ръчно реконтиране се подтискат всякакви грешки
-        if(Mode::is('recontoTransaction')) return;
-
         $productCheck = deals_Helper::checkProductForErrors($productArr, $haveMetas, $haveNotMetas);
         if ($productCheck['notActive']) {
             return 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |са затворени|*!';
@@ -2764,5 +2764,46 @@ abstract class deals_Helper
         } else {
             $expandedRecs[] = clone $masterRec;
         }
+    }
+
+
+    /**
+     * Помощна ф-я за парсиране на цена дали е въведена за подаденото к-во
+     *
+     * @param $priceInput
+     * @param $quantity
+     * @param $error
+     * @return float|int|void|null
+     */
+    public static function isPrice4Quantity(&$priceInput, $quantity, &$error)
+    {
+        $price4Quantity = null;
+        if(!empty($priceInput)){
+
+            // Ако цената започва с "=" значи ще е цена за к-то
+            $isPrice4Quantity = false;
+            $packPrice = $priceInput;
+
+            if(strpos($priceInput, '/') === strlen($priceInput) - 1){
+                $isPrice4Quantity = true;
+                $packPrice = rtrim($packPrice, '/');
+            }
+
+            // Проверка дали цената е валидна
+            $Double = core_Type::getByName('double');
+            $packPrice = $Double->fromVerbal($packPrice);
+            if(!empty($Double->error)){
+                $error = $Double->error;
+                return;
+            }
+
+            // Ако е цената ще е за к-то
+            $priceInput = $packPrice;
+            if($isPrice4Quantity && !empty($quantity)){
+                $price4Quantity = $packPrice / $quantity;
+            }
+        }
+
+        return $price4Quantity;
     }
 }

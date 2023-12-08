@@ -235,6 +235,12 @@ class cat_Boms extends core_Master
 
 
     /**
+     * Кой може да синхронизира параметрите?
+     */
+    public $canSyncparams = 'cat,ceo';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -667,6 +673,18 @@ class cat_Boms extends core_Master
                 $res = 'no_one';
             }
         }
+
+        // Само на активните производими артикули с универсален драйвер, може да им се агрегират параметрите
+        if($action == 'syncparams' && isset($rec)){
+            if(!cat_Products::haveDriver($rec->productId, 'cat_GeneralProductDriver')){
+                $res = 'no_one';
+            } else{
+                $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
+                if($productRec->canManifacture != 'yes' || $productRec->state != 'active'){
+                    $res = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -819,7 +837,7 @@ class cat_Boms extends core_Master
         }
 
         $resources['resources'] = array_values($materials);
-        
+
         if (is_array($materials)) {
             foreach ($materials as &$m) {
                 if ($m->propQuantity != cat_BomDetails::CALC_ERROR) {
@@ -827,7 +845,7 @@ class cat_Boms extends core_Master
                 }
             }
         }
-        
+
         if ($rec->expenses) {
             $resources['expenses'] = $rec->expenses;
         }
@@ -1378,7 +1396,7 @@ class cat_Boms extends core_Master
             // Искаме количеството да е за единица, не за опаковка
             $rQuantity *= $rec->quantityInPack;
         }
-        
+
         // Сумираме какви количества ще вложим към материалите
         if ($rec->type != 'stage') {
             $index = "{$rec->resourceId}|{$rec->type}";
@@ -1391,7 +1409,7 @@ class cat_Boms extends core_Master
                 );
 
                 if ($rQuantity != cat_BomDetails::CALC_ERROR) {
-                    $materials[$index]->propQuantity = $t * $rQuantity * $rec->quantityInPack;
+                    $materials[$index]->propQuantity = $t * $rQuantity;
                 } else {
                     $materials[$index]->propQuantity = $rQuantity;
                 }
@@ -1532,7 +1550,7 @@ class cat_Boms extends core_Master
         }
         
         self::popParams($params, $rec->resourceId);
-        
+
         // Връщаме намерената цена
         return $price;
     }
@@ -1582,7 +1600,7 @@ class cat_Boms extends core_Master
         }
         
         $quantity /= $rec->quantity;
-        
+
         // Количеството за което изчисляваме е 1-ца
         $q = 1;
         
@@ -1609,7 +1627,7 @@ class cat_Boms extends core_Master
                 $pushParams = static::getProductParams($rec->productId);
                 $pushParams[$rec->productId]['$T'] = $quantity;
                 self::pushParams($params, $pushParams);
-                
+
                 // Опитваме се да намерим себестойността за основното количество
                 $rowCost1 = self::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
 
@@ -1836,7 +1854,7 @@ class cat_Boms extends core_Master
                         $foundStepTask = $foundStepArr[key($foundStepArr)];
                         if($foundStepTask){
                             if($defTask->_inputPreviousSteps == 'yes'){
-                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack, 'isPrevStep' => true);
                             }
                         }
                     }
@@ -2006,6 +2024,10 @@ class cat_Boms extends core_Master
         if ($mvc->haveRightFor('regenerate', $data->rec)) {
             $data->toolbar->addBtn('Подновяване', array($mvc, 'regenerate', $data->rec->id, 'ret_url' => true), 'title=Създаване на нова подновена рецепта,ef_icon=img/16/arrow_refresh.png,row=2');
         }
+
+        if ($mvc->haveRightFor('syncparams', $data->rec)) {
+            $data->toolbar->addBtn('Синх. параметри', array($mvc, 'syncparams', $data->rec->id, 'ret_url' => true), 'title=Обновяване на параметрите на крайния артикул на база материалите в рецептата,ef_icon=img/16/arrow_refresh.png');
+        }
     }
 
 
@@ -2145,5 +2167,38 @@ class cat_Boms extends core_Master
                 <!--ET_BEGIN clonedFromId--><tr><td style='font-weight:normal'>|Клонирано от|*:</td><td>[#clonedFromId#]</td></tr><!--ET_END clonedFromId-->
                 <!--ET_BEGIN regeneratedFromId--><tr><td style='font-weight:normal'>|Регенерирано от|*:</td><td>[#regeneratedFromId#]</td></tr><!--ET_END regeneratedFromId-->
                 </table>"));
+    }
+
+
+    /**
+     * Синхронизиране на параметрите на артикула от рецептата
+     */
+    public function act_Syncparams()
+    {
+        $this->requireRightFor('syncparams');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetchRec($id));
+        $this->requireRightFor('syncparams', $rec);
+
+        $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales');
+        if(isset($bomRec)){
+            $params = array();
+            $materials = cat_Boms::getBomMaterials($bomRec, 1);
+            $classes = core_Classes::getOptionsByInterface('cat_ParamAggregateIntf');
+
+            foreach ($classes as $classId){
+                $Interface = cls::getInterface('cat_ParamAggregateIntf', $classId);
+                $paramArr = $Interface->getAggregatedParams($rec->productId, $materials);
+                foreach($paramArr as $k => $v){
+                    $params[$k] = $v;
+                }
+            }
+
+            if(countR($params)){
+                cat_products_Params::syncParams('cat_Products', $rec->productId, $params);
+            }
+        }
+
+        followRetUrl(null, 'Параметрите на артикула са синхронизирани от рецептата');
     }
 }

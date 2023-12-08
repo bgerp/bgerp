@@ -1042,9 +1042,13 @@ abstract class deals_DealMaster extends deals_DealBase
                     $save = true;
                 }
             }
-            
-            if(!isset($dRec->discount) && isset($dRec->autoDiscount)){
-                $dRec->discount = $dRec->autoDiscount;
+
+            if(isset($dRec->autoDiscount)){
+                if(isset($dRec->discount)){
+                    $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4);
+                } else {
+                    $dRec->discount = $dRec->autoDiscount;
+                }
                 $save = true;
             }
             
@@ -1203,14 +1207,17 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Допълнителните условия
             $conditions = $rec->additionalConditions;
+
             if(empty($rec->additionalConditions)){
                 $conditions = $mvc->getConditionArr($rec, true);
                 if(in_array($rec->state, array('pending', 'draft'))){
                     foreach($conditions as &$cArr){
                         if(!Mode::isReadOnly()){
-                            $cArr = "<span style='color:blue'>{$cArr}</span>";
+                            $cArr = "<span class='blueText'>{$cArr}</span>";
                         }
                         $cArr = ht::createHint($cArr, 'Условието, ще бъде записано при активиране');
+                        $cArr->prepend("<span class='inlineRichtextCond'>");
+                        $cArr->append("</span>");
                     }
                 }
             }
@@ -1430,6 +1437,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterClosureWithDeal($mvc, $id)
     {
+        core_Debug::startTimer('AFTER_CLOSURE_WITH_DEAL');
         $rec = $mvc->fetchRec($id);
 
         // Намираме всички продажби които са приключени с тази
@@ -1483,6 +1491,8 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         $mvc->save($rec, 'closedDocuments');
+        core_Debug::stopTimer('AFTER_CLOSURE_WITH_DEAL');
+        core_Debug::log("CLOSE AFTER_CLOSURE_WITH_DEAL " . round(core_Debug::$timers["AFTER_CLOSURE_WITH_DEAL"]->workingTime, 6));
     }
     
     
@@ -2320,22 +2330,10 @@ abstract class deals_DealMaster extends deals_DealBase
 
         if (!countR($products)) return $details;
 
-        // Ако сделката е обединяваща
-        $invoicedAll = array();
-        $invoicedAll[] = arr::make($info->get('invoicedProducts'));
-        if(!empty($rec->closedDocuments)){
-            $closedDocuments = keylist::toArray($rec->closedDocuments);
-            foreach ($closedDocuments as $closedDealId){
-
-                // Сумира всичко фактурирано от договорите по нея
-                $closedAggregator = $this->getAggregateDealInfo($closedDealId);
-                $invoicedAll[] = arr::make($closedAggregator->get('invoicedProducts'));
-            }
-        }
-
         $invoiced = array();
-        foreach ($invoicedAll as $invArr){
-            foreach ($invArr as $iProduct){
+        $invoicedArr = $info->get('invoicedProducts');
+        if(is_array($invoicedArr)){
+            foreach ($invoicedArr as $iProduct){
                 if(!array_key_exists($iProduct->productId, $invoiced)){
                     $invoiced[$iProduct->productId] = 0;
                 }

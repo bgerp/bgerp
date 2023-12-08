@@ -87,8 +87,14 @@ class price_ListRules extends core_Detail
      * Поле - ключ към мастера
      */
     public $masterKey = 'listId';
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    public static $alreadyReplaced = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -301,8 +307,8 @@ class price_ListRules extends core_Detail
             }
         }
     }
-    
-    
+
+
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
@@ -310,10 +316,17 @@ class price_ListRules extends core_Detail
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
-        $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
-        $listId = $variationId ?? $listId;
+
+        if(!static::$alreadyReplaced["{$listId}|{$productId}"]){
+            $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
+            if(!empty($variationId)){
+                static::$alreadyReplaced["{$listId}|{$productId}"] = true;
+                $listId = $variationId;
+            }
+        }
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
+
             $query = self::getQuery();
             $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
@@ -359,7 +372,7 @@ class price_ListRules extends core_Detail
                 }
             } else {
                 $defaultSurcharge = $listRec->defaultSurcharge;
-                
+
                 // Ако има дефолтна надценка и има наследена политика
                 if (isset($defaultSurcharge)) {
                     if ($parent = $listRec->parent) {
@@ -507,8 +520,11 @@ class price_ListRules extends core_Detail
         }
         
         if (!$rec->id) {
+            $defaultUntil = Mode::get('PRICE_VALID_UNTIL');
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
-            $rec->validUntil = Mode::get('PRICE_VALID_UNTIL');
+            if($defaultUntil > $rec->validFrom){
+                $rec->validUntil = $defaultUntil;
+            }
         }
     }
     
@@ -819,6 +835,9 @@ class price_ListRules extends core_Detail
      */
     public function prepareDetail_($data)
     {
+        $data->TabCaption = 'Правила';
+        $data->Tab = 'top';
+
         setIfNot($data->masterKey, $this->masterKey);
         setIfNot($data->masterMvc, $this->Master);
         

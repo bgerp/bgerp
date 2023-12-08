@@ -1556,6 +1556,16 @@ a.tUnsighted {
   position: relative;
   top: -4px; }
 
+.threadSubTitle .documentTags .tags {
+  font-size: 0.9em;
+  position: relative;
+  top: 0px; }
+
+.threadSubTitle.onlyTags {
+  display: inline; }
+  .threadSubTitle.onlyTags .documentTags {
+    top: -2px; }
+
 .portalHeaderTitle {
   margin-right: 5px; }
 
@@ -2006,6 +2016,12 @@ a.tUnsighted {
   float: left;
   display: inline-block; }
 
+.priority-high {
+  color: #882200; }
+
+.priority-critical {
+  color: #cc0033; }
+
 .docBgIcon {
   position: relative; }
 
@@ -2081,6 +2097,9 @@ a.tUnsighted {
 .centered {
   text-align: center; }
 
+.vtop.centered .defaultDeleteRowCheckbox {
+  margin-top: 0 !important; }
+
 .lighterBold {
   color: #666666; }
 
@@ -2146,6 +2165,10 @@ td.rowtools-column {
 .listTable td .frontTooltip img {
   width: 14px !important;
   height: 14px !important; }
+
+.groupList .endTooltip img {
+  width: 12px !important;
+  height: 12px !important; }
 
 .sale-summary td .endTooltip img,
 .sale-summary td .frontTooltip img {
@@ -2329,6 +2352,9 @@ pre.document {
 
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }
+
+.innerDocument {
+  padding: 6px 10px 10px; }
 
 .doc_drivers_FolderPortal .threadSubTitle {
   display: inline; }
@@ -2550,6 +2576,28 @@ pre.document {
 
 .document table.listTable > tbody > tr > td {
   padding: 5px 3px 2px !important; }
+
+  .inlineRichtextCond .richtext,
+  .inlineRichtextCond .endTooltip {
+    display: inline !important;
+    vertical-align: middle; }
+
+.blueText {
+  color: blue !important; }
+  .blueText .richtext {
+    color: blue !important; }
+
+.closedFrameUpdateTimeTitle {
+  font-weight: bold;
+  color: red !important; }
+
+.closedFrameUpdateTime {
+  font-weight: bold;
+  color: red !important;
+  border: 1px dotted red;
+  padding: 2px; }
+  .closedFrameUpdateTime span {
+    color: red !important; }
 
 /*
  * край на стилове за документи
@@ -3360,8 +3408,6 @@ span.sharing-history-title {
   max-width: 80em;
   display: block;
   margin: 0 auto; }
-  #all #searchform {
-    margin-bottom: 20px; }
 
 #all .filemanSingle {
   padding: 20px; }
@@ -3904,13 +3950,16 @@ table .eshop-btn {
   .productBtn:hover {
     background-color: #eeeeee !important; }
 
+.narrow .productBtn {
+  margin-right: 5px !important; }
+
 .narrow .eshop-btn.addToCard,
 .narrow .productBtn.addToCard {
   background-image: url("../img/32/cart_go.png") !important;
   background-size: 16px;
   background-position: 3px center;
   background-repeat: no-repeat;
-  margin-bottom: 5px !important;
+  margin: 0 0px 5px 5px !important;
   padding: 4px 8px 5px 25px !important;
   top: -1px !important;
   position: relative;
@@ -4049,6 +4098,8 @@ table .eshop-btn {
 .logoutBlock {
   padding: 0 3px; }
 
+#notificationCountStatus {
+  margin-right: 5px; }
   #notificationCountStatus.noNtf {
     display: none; }
   #notificationCountStatus a.selected-external-tab {
@@ -4085,16 +4136,15 @@ table .eshop-btn {
     font-size: 0.8em;
     padding-right: 1px;
     padding-left: 1px; }
-  .contractorExtHolder input[type=text],
-  .contractorExtHolder input[type=submit] {
-    height: 26px;
-    line-height: 1; }
+  .contractorExtHolder .select2-container .select2-selection--single .select2-selection__rendered,
+  .contractorExtHolder .select2-container .select2-selection--single {
+    height: 32px;
+    line-height: 30px; }
   .contractorExtHolder a.button,
   .contractorExtHolder input[type="button"],
   .contractorExtHolder input[type="submit"],
   .contractorExtHolder button {
     background-position: 4px center !important;
-    padding: 0.34em 5px 0.34em 23px !important;
     background-repeat: no-repeat !important;
     background-color: #dddddd;
     border: 1px solid #bbbbbb !important;
@@ -4110,7 +4160,9 @@ table .eshop-btn {
     border-right: 1px solid #dfdfdf;
     -webkit-box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
     box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
-    text-shadow: 0 1px 0px #f1f1f1; }
+    text-shadow: 0 1px 0px #f1f1f1;
+    height: 31px;
+    box-sizing: border-box; }
     .contractorExtHolder a.button:hover,
     .contractorExtHolder input[type="button"]:hover,
     .contractorExtHolder input[type="submit"]:hover,
@@ -4158,6 +4210,10 @@ table .eshop-btn {
     text-shadow: none; }
   .contractorExtHolder .toolbar-btn {
     max-width: 16px !important; }
+  .contractorExtHolder .formGroup a {
+    color: #98a2ab; }
+    .contractorExtHolder .formGroup a:hover {
+      color: #637e98 !important; }
 
 .narrow .contractorExtHolder {
   padding: 10px 0px; }
@@ -4209,9 +4265,19 @@ table .eshop-btn {
 #cmsNavigation a.linkWithIcon {
   display: inline-block;
   height: 21px;
-  float: left;
   margin-left: 5px;
   background-position: center !important; }
+
+#cmsNavigation .navWithIcon.lastOrderedLink a.linkWithIcon {
+  height: auto !important;
+  background-position: 5px 5px !important; }
+
+.narrow #cmsNavigation a.linkWithIcon {
+  float: right; }
+
+#cmsNavigation form {
+  display: inline-block;
+  float: left; }
 
 #cmsNavigation .level1 {
   font-size: 16px;
@@ -4957,6 +5023,9 @@ table .eshop-btn {
 /*
  * стилове за автор в документ
  */
+.hiddenBtn {
+  display: none !important; }
+
 /*
  * стилове за custom таблица
  */
@@ -4991,7 +5060,7 @@ table .eshop-btn {
     padding: 5px 6px 4px 5px;
     max-width: 160px; }
   .rowtoolsGroup a,
-  .rowtoolsGroup span {
+  .rowtoolsGroup span:not(.highlight) {
     text-align: left;
     display: block;
     font-size: 0.95em;
@@ -4999,7 +5068,7 @@ table .eshop-btn {
     padding-left: 22px !important;
     color: #333333 !important; }
     .rowtoolsGroup a:hover,
-    .rowtoolsGroup span:hover {
+    .rowtoolsGroup span:not(.highlight):hover {
       color: black !important;
       background-color: #e1e1e1;
       cursor: pointer; }
@@ -5105,6 +5174,15 @@ div.location.public {
 .narrow .imgPreview img {
   float: none;
   text-align: center; }
+
+.flexBox {
+  display: flex;
+  align-content: baseline;
+  align-items: baseline; }
+  .flexBox div {
+    display: flex;
+    align-content: baseline;
+    align-items: baseline; }
 
   .barcodeSearch .noPadding {
     padding: 0px !important; }
@@ -5294,6 +5372,10 @@ div.location.public {
   min-width: 20px;
   float: left; }
 
+.portal .linkWithIcon,
+.portal .ajaxContext {
+  overflow-wrap: anywhere; }
+
 .portal-filter .hFormField {
   width: 7.5em;
   border: solid 1px #cccccc;
@@ -5312,6 +5394,9 @@ div.location.public {
   height: auto;
   position: relative;
   top: -1px; }
+
+.narrow .details .portal {
+  display: table-cell; }
 
 .portal-filter .hFormField input {
   height: 1.4em;
@@ -5728,6 +5813,9 @@ div.location.public {
 .narrow .eshop-group-button {
   margin-bottom: 10px;
   height: auto; }
+
+.narrow .eshop-group-button-title {
+  margin-bottom: 0 !important; }
 
 .eshop-group-button:hover  .eshop-group-button-title a {
   color: #cc6600; }
@@ -6455,8 +6543,7 @@ only screen and (max-width: 480px) {
 
   .narrow .eshop-group-button {
     width: 46%;
-    margin-right: 2%;
-    margin-left: 2%;
+    margin: 0 2%;
     font-size: 0.9em; }
 
     :not(.modern-theme) .narrow .main-container .chzn-container,
@@ -7589,7 +7676,9 @@ only screen and (max-width: 320px) {
   font-weight: normal;
   color: #555555;
   border: 1px solid #cdcdcd;
-  padding: 3px; }
+  padding: 2px 3px;
+  position: relative;
+  top: -2px; }
 
 table.bomProductionStepTable td {
   border: 0px !important; }

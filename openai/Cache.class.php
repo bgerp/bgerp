@@ -169,7 +169,7 @@ class openai_Cache extends core_Manager
             $fRecClone = $mvc->fetch($fRecClone->id);
         }
 
-        $form->FLD('_pModel', 'enum(GPT 3.5 TURBO, TEXT DAVINCI 003)', 'caption=Параметри->Модел, removeAndRefreshForm=__prompt|__mContentRole|__mContentSystem|__mContentAssistant');
+        $form->FLD('_pModel', 'class(interface=openai_GPTIntf,select=title)', 'caption=Параметри->Модел, removeAndRefreshForm=__prompt|__mContentRole|__mContentSystem|__mContentAssistant');
         $form->FLD('__temperature', 'double', 'caption=Параметри->temperature');
         $form->FLD('__max_tokens', 'double', 'caption=Параметри->max_tokens');
         $form->FLD('__top_p', 'double', 'caption=Параметри->top_p');
@@ -177,8 +177,10 @@ class openai_Cache extends core_Manager
         $form->FLD('__presence_penalty', 'double', 'caption=Параметри->presence_penalty');
 
         if (isset($rec->id)) {
+
             if ($fRecClone->promptParams) {
-                $defModel = 'TEXT DAVINCI 003';
+                $defModel = core_Classes::getId('openai_TextDavinci003');
+                $isMessage = false;
 
                 foreach ($fRecClone->promptParams as $fName => $prompt) {
                     if (strpos($fName, '__') === 0) {
@@ -186,13 +188,34 @@ class openai_Cache extends core_Manager
                     }
                     if ($fName == 'model') {
                         if ($prompt == 'gpt-3.5-turbo') {
-                            $defModel = 'GPT 3.5 TURBO';
+                            $defModel = core_Classes::getId('openai_GPT35Turbo');
+                            $isMessage = true;
+                        }
+
+                        if ($prompt == 'gpt-4-1106-preview') {
+                            $defModel = core_Classes::getId('openai_GPT4Turbo');
+                            $isMessage = true;
+                        }
+
+                        if ($prompt == 'gpt-4') {
+                            $defModel = core_Classes::getId('openai_GPT4');
+                            $isMessage = true;
                         }
 
                         continue;
                     }
+                }
 
-                    if (is_array($prompt) && $fName == 'messages' && ($defModel = 'GPT 3.5 TURBO')) {
+                foreach ($fRecClone->promptParams as $fName => $prompt) {
+                    if (strpos($fName, '__') === 0) {
+                        continue;
+                    }
+                    if ($fName == 'model') {
+
+                        continue;
+                    }
+
+                    if (is_array($prompt) && $fName == 'messages' && ($isMessage)) {
                         foreach ($prompt as $p) {
                             if ($p['role'] == 'user') {
                                 $form->setDefault('__mContentRole', $p['content']);
@@ -225,7 +248,7 @@ class openai_Cache extends core_Manager
 
         $form->input('_pModel');
 
-        if ($form->rec->_pModel == 'TEXT DAVINCI 003') {
+        if ($form->rec->_pModel == core_Classes::getId('openai_TextDavinci003')) {
             $form->FLD('__prompt', 'text', 'caption=Параметри->prompt (Текст), mandatory');
 
             if (isset($fRecClone->promptParams['messages'][0]['content'])) {
@@ -254,7 +277,7 @@ class openai_Cache extends core_Manager
         $rec = $form->rec;
 
         if ($form->isSubmitted()) {
-            if ($rec->_pModel == 'GPT 3.5 TURBO') {
+            if ($rec->_pModel != core_Classes::getId('openai_TextDavinci003')) {
                 $prompt = null;
 
                 if ($rec->__prompt) {
@@ -284,11 +307,8 @@ class openai_Cache extends core_Manager
             $cKey = null;
 
             try {
-                if ($rec->_pModel == 'GPT 3.5 TURBO') {
-                    $res = openai_Api::getChatRes($prompt, $pArr, true, 0, $cKey);
-                } else {
-                    $res = openai_Api::getRes($prompt, $pArr, true, 0, $cKey);
-                }
+                $pArr['__convertRes'] = true;
+                $res = cls::getInterface('openai_GPTIntf', $rec->_pModel )->getRes($prompt, $pArr, true, 0, $cKey);
 
                 if ($cKey) {
 

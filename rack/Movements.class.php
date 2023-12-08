@@ -378,7 +378,9 @@ class rack_Movements extends rack_MovementAbstract
                 reportException($e);
                 
                 // Ако има проблем ревърт на предното движение
-                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity, $transaction->batch);
+                if($transaction->from != rack_PositionType::FLOOR){
+                    rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity, $transaction->batch);
+                }
                 
                 return false;
             }
@@ -462,12 +464,11 @@ class rack_Movements extends rack_MovementAbstract
                     $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch, $fromDocumentId);
                     $createdByNowQuantity = isset($createdByNowQuantity) ? $createdByNowQuantity : 0;
                     $createdByNowQuantity = $createdByNowQuantity / $rec->quantityInPack;
-                    $packName = cat_UoM::getSmartName($rec->packagingId);
-                    $quantityStr = str::getPlural($createdByNowQuantity, $packName);
+                    $packName = cat_UoM::getSmartName($rec->packagingId, $createdByNowQuantity);
                     if(rack_Movements::haveRightFor('list')){
-                        $quantityStr = ht::createLinkRef($quantityStr, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($fromDocumentId)->getHandle()));
+                        $packName = ht::createLinkRef($packName, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($fromDocumentId)->getHandle()));
                     }
-                    $form->info = tr("Създадени движения от документа за сега|*: <b>{$quantityStr}</b>");
+                    $form->info = tr("Създадени движения от документа за сега|*: <b>{$packName}</b>");
 
                     // Приспадане на създаденото досега от документа
                     $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;
@@ -1145,7 +1146,7 @@ class rack_Movements extends rack_MovementAbstract
         // Проверяване и на движенията по зоните
         $zoneErrors = $zoneWarnings = array();
         foreach ($transaction->zonesQuantityArr as $zone) {
-            $zRec = rack_ZoneDetails::fetch("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId} AND #batch = '{$transaction->batch}'");
+            $zRec = rack_ZoneDetails::fetch(array("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId} AND #batch = '[#1#]'", $transaction->batch));
             $movementQuantity = is_object($zRec) ? $zRec->movementQuantity : null;
             $documentQuantity = is_object($zRec) ? $zRec->documentQuantity : null;
             $diff = round($movementQuantity, 4) + round($zone->quantity, 4);

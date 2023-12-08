@@ -41,17 +41,51 @@ class colab_plg_VisibleForPartners extends core_Plugin
     {
         $rec = $data->form->rec;
         if ($rec->folderId) {
-            
+
+            $folderId = $rec->folderId;
+            if(empty($rec->id) && ($mvc instanceof planning_Tasks)){
+                if($requestFolderId = Request::get('folderId', 'int')){
+                    $folderId = $requestFolderId;
+                }
+            }
+
             // Полето се показва ако е в папката, споделена до колаборатор
             // Ако няма originId или ако originId е към документ, който е видим от колаборатор
-            if (colab_FolderToPartners::fetch(array("#folderId = '[#1#]'", $rec->folderId))) {
-                if (!$rec->originId || ($doc = doc_Containers::getDocument($rec->originId)) && ($dIsVisible = $doc->isVisibleForPartners())) {
+            if (colab_FolderToPartners::fetch(array("#folderId = '[#1#]'", $folderId))) {
+                $doc = $dIsVisible = null;
+                $showVisibleField = true;
+                if(isset($rec->originId)){
+                    $doc = doc_Containers::getDocument($rec->originId);
+                    if(!$mvc->onlyFirstInThread){
+                        $dIsVisible = $doc->isVisibleForPartners();
+                        if(!$dIsVisible){
+                            $showVisibleField = false;
+                        }
+                    } else{
+                        $dIsVisible = true;
+                    }
+                }
+
+                if ($showVisibleField) {
+
                     if (core_Users::haveRole('partner')) {
                         // Ако текущия потребител е контрактор, полето да е скрито
                         $data->form->setField('visibleForPartners', 'input=hidden');
                         $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
-                        $data->form->setField('visibleForPartners', 'input=input');
+                        $showField = true;
+                        if(isset($rec->threadId) && !($mvc instanceof planning_Tasks)){
+                            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                            if($rec->containerId != $firstDoc->fetchField('containerId')){
+                                if(!$firstDoc->isVisibleForPartners()){
+                                    $showField = false;
+                                }
+                            }
+                        }
+
+                        if($showField){
+                            $data->form->setField('visibleForPartners', 'input=input');
+                        }
                     }
                     
                     if ($rec->originId) {
@@ -107,17 +141,11 @@ class colab_plg_VisibleForPartners extends core_Plugin
             if ($form->isSubmitted()) {
 
                 // Ако има споделени партньори, добавя се предупреждение
+                $selectedPartners = array();
                 if(isset($rec->sharedUsers)){
                     $sharedUsers = keylist::toArray($rec->sharedUsers);
                     $partners = core_Users::getByRole('partner');
                     $selectedPartners = array_intersect_key($sharedUsers, $partners);
-
-                    if(countR($selectedPartners)){
-                        $nicks = array();
-                        array_walk($selectedPartners, function($a) use (&$nicks) {$nicks[] = core_Users::getNick($a);});
-                        $partnerWarningMsg = "При забранено споделяне с партньори, ще бъде заличено споделянето с|* " . implode(',', $nicks);
-                        $form->setWarning('sharedUsers', $partnerWarningMsg);
-                    }
                 }
 
                 if(!$form->gotErrors()){
@@ -162,22 +190,40 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     }
 
                     $errArray = array();
-
                     if (!empty($allSharedUsersArr)) {
                         foreach ($allSharedUsersArr as $uId) {
-                            $cRec = colab_FolderToPartners::fetchField(array("#folderId = '[#1#]' AND #contractorId = '[#2#]'", $form->rec->folderId, $uId));
+                            unset($selectedPartners[$uId]);
 
-                            if (!$cRec) {
-                                $errArray[$uId] = core_Users::getNick($uId);
+                            if(core_Users::isContractor($uId) && core_Packs::isInstalled('colab')){
+                                if(empty($rec->threadId)){
+                                    if(isset($rec->folderId)){
+                                        if(!colab_Folders::haveRightFor('list', (object) array('folderId' => $rec->folderId), $uId)){
+                                            $errArray[$uId] = core_Users::getNick($uId);
+                                        }
+                                    } else {
+                                        $errArray[$uId] = core_Users::getNick($uId);
+                                    }
+                                } else {
+                                    if(!colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId), $uId)){
+                                        $errArray[$uId] = core_Users::getNick($uId);
+                                    }
+                                }
                             }
                         }
 
                         if (!empty($errArray)) {
-                            $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Контракторът не е споделен към папката');
+                            $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Партньорът не е споделен към папката или няма достъп до нишката|*!');
                         } else {
                             $form->rec->visibleForPartners = 'yes';
                         }
                     }
+                }
+
+                if (countR($selectedPartners)) {
+                    $nicks = array();
+                    array_walk($selectedPartners, function($a) use (&$nicks) {$nicks[] = core_Users::getNick($a);});
+                    $partnerWarningMsg = "При забранено споделяне с партньори, ще бъде заличено споделянето с|* " . implode(',', $nicks);
+                    $form->setWarning('sharedUsers', $partnerWarningMsg);
                 }
             }
         }

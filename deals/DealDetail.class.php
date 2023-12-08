@@ -28,7 +28,7 @@ abstract class deals_DealDetail extends doc_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'tolerance,term';
+    public $fieldsNotToClone = 'tolerance,term,autoDiscount';
     
     
     /**
@@ -117,6 +117,7 @@ abstract class deals_DealDetail extends doc_Detail
         // За по-бързо преброяване на Usage
         $mvc->setDbIndex('productId');
         setIfNot($mvc->quantityFld, 'quantity');
+        setIfNot($mvc->allowInputPriceForQuantity, false);
     }
     
     
@@ -213,6 +214,12 @@ abstract class deals_DealDetail extends doc_Detail
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
 
+        // Ако ще се позволява въвеждането на цена за к-то - полето за цена става varchar
+        if($mvc->allowInputPriceForQuantity){
+            $form->setFieldType('packPrice', 'varchar(nullIfEmpty)');
+            $form->setField('packPrice', 'class=w25');
+        }
+
         // Добавяне да се показва ценовата информация за стандартните артикули
         $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'listId' => $masterRec->priceListId, 'currencyId' => $masterRec->currencyId);
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic', 'priceData' => $priceData));
@@ -297,7 +304,7 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
-            
+
             // Ако е партньор се маха вече изчислената цена за да се изчисли наново
             if (core_Users::haveRole('partner')) {
                 unset($form->rec->packPrice);
@@ -326,7 +333,7 @@ abstract class deals_DealDetail extends doc_Detail
             // Проверка дали к-то е под МКП
             $action = ($mvc instanceof sales_SalesDetails) ? 'sell' : 'buy';
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack, 'packQuantity', $action);
-            
+
             if (!isset($rec->packPrice)) {
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                 
@@ -347,8 +354,17 @@ abstract class deals_DealDetail extends doc_Detail
                     }
                 }
             } else {
-                $price = $rec->packPrice / $rec->quantityInPack;
-                
+                $error = $price4Quantity = null;
+                if($mvc->allowInputPriceForQuantity){
+                    $price4Quantity = deals_Helper::isPrice4Quantity($rec->packPrice, $rec->quantity, $error);
+                    if(!empty($error)){
+                        $form->setError('packPrice', $error);
+                        return;
+                    }
+                }
+
+                $price = $price4Quantity ?? ($rec->packPrice / $rec->quantityInPack);
+
                 if (!$form->gotErrors() || ($form->gotErrors() && Request::get('Ignore'))) {
                     $rec->packPrice = deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
                 }
@@ -362,16 +378,7 @@ abstract class deals_DealDetail extends doc_Detail
             
             $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->price = $price;
-            
-            if (Request::get('Act') != 'CreateProduct') {
-                // Ако има такъв запис, сетваме грешка
-                $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes);
-                if ($exRec) {
-                    $form->setError('productId,packagingId,packPrice,discount,tolerance,term,notes', 'Вече съществува запис със същите данни');
-                    unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
-                }
-            }
-            
+
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if ($rec->id) {
                 $oldRec = $mvc->fetch($rec->id);

@@ -113,7 +113,7 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'colab_drivers_FoldersTabBlock,colab_drivers_ProfileTabBlock,colab_drivers_SingleThreadTabBlock,colab_drivers_ThreadTabBlock,colab_drivers_NotificationTabBlock';
+    public $defClasses = 'colab_drivers_FoldersTabBlock,colab_drivers_ProfileTabBlock,colab_drivers_SingleThreadTabBlock,colab_drivers_ThreadTabBlock,colab_drivers_NotificationTabBlock,colab_drivers_SearchTabBlock';
 
 
     /**
@@ -176,7 +176,9 @@ class colab_Setup extends core_ProtoSetup
         
         // Закачане към складове
         $html .= $Plugins->installPlugin('Споделяне складове с партньори', 'colab_plg_FolderToPartners', 'store_Stores', 'private');
-        
+
+        $html .= $Plugins->installPlugin('Споделяне на центрове на дейност с партньори', 'colab_plg_FolderToPartners', 'planning_Centers', 'private');
+
         // Закачаме плъгина към документи, които са видими за партньори
         $html .= $Plugins->installPlugin('Colab за приходни банкови документи', 'colab_plg_Document', 'bank_IncomeDocuments', 'private');
         $html .= $Plugins->installPlugin('Colab за разходни банкови документи', 'colab_plg_Document', 'bank_SpendingDocuments', 'private');
@@ -210,10 +212,23 @@ class colab_Setup extends core_ProtoSetup
         $defaultCreatableDocuments = arr::make(self::$defaultCreatableDocuments);
         $html .= $Plugins->installPlugin('Colab за справки', 'colab_plg_Document', 'frame2_Reports', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на справки', 'colab_plg_VisibleForPartners', 'frame2_Reports', 'private');
+
+        $html .= $Plugins->installPlugin('Colab за ПО', 'colab_plg_Document', 'planning_Tasks', 'private');
+        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПО', 'colab_plg_VisibleForPartners', 'planning_Tasks', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на напомняния', 'colab_plg_VisibleForPartners', 'cal_Reminders', 'private');
+        $html .= $Plugins->installPlugin('Colab за ПП', 'colab_plg_Document', 'planning_DirectProductionNote', 'private');
+        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПП', 'colab_plg_VisibleForPartners', 'planning_DirectProductionNote', 'private');
+        $html .= $Plugins->installPlugin('Colab за ПВ', 'colab_plg_Document', 'planning_ConsumptionNotes', 'private');
+        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПВ', 'colab_plg_VisibleForPartners', 'planning_ConsumptionNotes', 'private');
+        $html .= $Plugins->installPlugin('Colab за ПВР', 'colab_plg_Document', 'planning_ReturnNotes', 'private');
+        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на ПВР', 'colab_plg_VisibleForPartners', 'planning_ReturnNotes', 'private');
 
         cls::get('cal_Tasks')->setupMvc();
         cls::get('cal_Reminders')->setupMvc();
+        cls::get('planning_Tasks')->setupMvc();
+        cls::get('planning_ReturnNotes')->setupMvc();
+        cls::get('planning_ConsumptionNotes')->setupMvc();
+        cls::get('planning_DirectProductionNote')->setupMvc();
 
         foreach ($defaultCreatableDocuments as $docName) {
             $Doc = cls::get($docName);

@@ -87,7 +87,7 @@ class ztm_DeviceCardReadersDetail extends core_Detail
      * 
      * @var string
      */
-    public $interfaces = 'acs_ZoneIntf';
+//    public $interfaces = 'acs_ZoneIntf';
     
     
     /**

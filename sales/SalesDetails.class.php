@@ -65,7 +65,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * Полета за скриване/показване от шаблоните
      */
-    public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума';
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=К-во,packPrice=Цена,discount=Отст.,amount=Сума';
 
 
     /**
@@ -137,7 +137,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount';
     
     
     /**
@@ -233,10 +233,30 @@ class sales_SalesDetails extends deals_DealDetail
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             $pInfo = cat_Products::getProductInfo($rec->productId);
-            
+
+            if(isset($rec->autoDiscount)){
+                $hint = '';
+                if(in_array($masterRec->state, array('draft', 'pending'))){
+                    $autoDiscountVerbal = $mvc->getFieldType('discount')->toVerbal($rec->autoDiscount);
+                    if(isset($rec->discount)){
+                        $manualDiscount = $row->discount;
+                        $middleDiscount = round((1 - (1 - $rec->discount) * (1 - $rec->autoDiscount)), 4);
+                        $row->discount = $mvc->getFieldType('discount')->toVerbal($middleDiscount);
+                        $row->discount = "<span style='color:blue'>{$row->discount}</span>";
+                        $autoDiscountVerbal = $mvc->getFieldType('discount')->toVerbal($middleDiscount - $rec->discount);
+                        $hint .= "Зададена отстъпка|*: {$manualDiscount}; ";
+                    } else {
+                        $row->discount = "<span style='color:blue'>{$row->discount}</span>";
+                    }
+                    $hint .= "Разпределена отстъпка за документа|*: {$autoDiscountVerbal}";
+                    $row->discount = ht::createHint($row->discount, $hint, 'notice', false);
+                }
+            }
+
             if(!isset($rec->discount) && isset($rec->autoDiscount)){
                 $row->discount = $mvc->getFieldType('discount')->toVerbal($rec->autoDiscount);
-                $row->discount = ht::createHint($row->discount, 'Отстъпката е сметната автоматично');
+                $row->discount = "<span style='color:blue'>{$row->discount}</span>";
+                $row->discount = ht::createHint($row->discount, 'Автоматично изчислена отстъпка', 'notice', false);
             }
             
             if (isset($pInfo->meta['canStore'])) {
@@ -292,6 +312,18 @@ class sales_SalesDetails extends deals_DealDetail
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
+        $recalcPricesOnClone = sales_Setup::get('RECALC_PRICES_ON_CLONE');
+        if($recalcPricesOnClone == 'no'){
+
+            // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
+            $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+            if (isset($cRec->fee) && $cRec->fee > 0) {
+                $rec->price -= $cRec->fee / $rec->quantity;
+            }
+
+            return;
+        }
+
         $masterRec = sales_Sales::fetch($rec->saleId);
 
         // Прави се опит да се преизичсли наново цената
@@ -304,8 +336,6 @@ class sales_SalesDetails extends deals_DealDetail
             $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->discount = $policyInfo->discount;
         } else {
-
-            // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
             if (isset($cRec->fee) && $cRec->fee > 0) {
                 $rec->price -= $cRec->fee / $rec->quantity;

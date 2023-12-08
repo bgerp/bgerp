@@ -78,10 +78,6 @@ class bgerp_drivers_Notifications extends core_BaseClass
         $resData->cacheType = $this->getCacheTypeName($userId);
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
 
-        //TODO да върнем кеширането после
-        $resData->tpl = null;
-        //TODO
-
         if (!$resData->tpl) {
             
             $modifiedBefore = dt::subtractSecs($this->showOpenTopTime);

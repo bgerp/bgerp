@@ -82,7 +82,7 @@ class type_Varchar extends core_Type
         
         // За някои случаи вместо празен стринг е по-добре да получаваме NULL
         if ($this->params['nullIfEmpty'] || $this->nullIfEmpty) {
-            if (!$value) {
+            if (!strlen($value)) {
                 $value = null;
             }
         }

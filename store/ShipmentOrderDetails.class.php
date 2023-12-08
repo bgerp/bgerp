@@ -62,6 +62,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
 
     /**
+     * Кой има право да разбива партидите?
+     */
+    public $canSplitbatches = 'ceo,store,sales,purchase';
+
+
+    /**
      * Да се показва ли вашия номер
      */
     public $showReffCode = true;
@@ -109,7 +115,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем, transUnitId = ЛЕ';
+    public $listFields = 'info=@Колети, productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount, weight=Тегло, volume=Обем, transUnitId = ЛЕ';
     
     
     /**
@@ -127,7 +133,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета за скриване/показване от шаблоните
      */
-    public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума,weight=Обем,volume=Тегло,info=Инфо';
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=К-во,packPrice=Цена,discount=Отст.,amount=Сума,weight=Обем,volume=Тегло,info=Инфо';
     
     
     /**

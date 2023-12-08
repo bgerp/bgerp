@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg,cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
     /**
@@ -338,6 +338,14 @@ class sales_Sales extends deals_DealMaster
      * Възможност за експортиране на детайлите в csv експорта от лист изгледа
      */
     public $allowDetailCsvExportFromList = true;
+
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'expectedTransportCost,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
 
 
     /**
@@ -1317,7 +1325,7 @@ class sales_Sales extends deals_DealMaster
         $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
         $saleQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $saleQuery->where("#canManifacture = 'yes'");
-        $saleQuery->orderBy('productId', 'ASC');
+        $saleQuery->orderBy('id', 'ASC');
         $saleQuery->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
         $saleQuery->show('productId,codeExp');
 
@@ -1338,6 +1346,7 @@ class sales_Sales extends deals_DealMaster
 
         // Сортиране на артикулите, както сa подредени в продажбата
         $detailOrderBy = $rec->detailOrderBy;
+
         if($detailOrderBy == 'code'){
             arr::sortObjects($productArr, 'code', 'ASC', 'natural');
         } elseif($detailOrderBy == 'reff' && isset($listId)){
@@ -2002,11 +2011,13 @@ class sales_Sales extends deals_DealMaster
                     $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
                 }
 
-                if($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}")){
-                    $rec->tel = $cartRec->tel;
-                    $rec->email = $cartRec->email;
-                    $rec->cartId = $cartRec->id;
-                    $rec->instruction = $cartRec->instruction;
+                if(core_Packs::isInstalled('eshop')){
+                    if($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}")){
+                        $rec->tel = $cartRec->tel;
+                        $rec->email = $cartRec->email;
+                        $rec->cartId = $cartRec->id;
+                        $rec->instruction = $cartRec->instruction;
+                    }
                 }
             }
         }

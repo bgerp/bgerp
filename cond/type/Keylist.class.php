@@ -26,6 +26,7 @@ class cond_type_Keylist extends cond_type_abstract_Proto
     {
         $fieldset->FLD('class', 'varchar', 'caption=Конкретизиране->Клас,after=default,mandatory,silent,removeAndRefreshForm=select');
         $fieldset->FLD('select', 'varchar', 'caption=Конкретизиране->Поле за избор,after=mvc');
+        $fieldset->FLD('selectLabel', 'varchar', 'caption=Конкретизиране->Поле за избор(Етикетиране),after=select');
     }
 
 
@@ -50,7 +51,14 @@ class cond_type_Keylist extends cond_type_abstract_Proto
      */
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
-        $select = !empty($rec->select) ? $rec->select : 'id';
+        $select = $rec->select;
+        if(Mode::is('printLabel')){
+            if(!empty($rec->selectLabel)){
+                $select = $rec->selectLabel;
+            }
+        }
+
+        $select = !empty($select) ? $select : 'id';
         $Type = core_Type::getByName("keylist(mvc={$rec->class},select={$select})");
 
         return $Type;

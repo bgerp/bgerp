@@ -116,12 +116,6 @@ defIfNot('ESHOP_DEFAULT_DELIVERY_TERMS', '');
 
 
 /**
- * Условия на доставка
- */
-defIfNot('ESHOP_SHOW_PRODUCTS_WITHOUT_PRICES', '');
-
-
-/**
  * Методи на плащане
  */
 defIfNot('ESHOP_DEFAULT_PAYMENTS', '');
@@ -152,7 +146,7 @@ defIfNot('ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES', 'yes');
 
 
 /**
- * Дефинира име на папка в която ще се съхраняват временните данни данните
+ * Дефинира име на папка в която ще се съхраняват временните данни
  */
 defIfNot('ESHOP_AUTO_EXPORT_SALE_CSV_DIR', '');
 
@@ -260,7 +254,6 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_MANDATORY_EGN' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕГН'),
         'ESHOP_MANDATORY_UIC_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕИК'),
         'ESHOP_MANDATORY_VAT_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ДДС №'),
-
         'ESHOP_DEFAULT_POLICY_ID' => array('key(mvc=price_Lists,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Политика'),
         'ESHOP_DEFAULT_DELIVERY_TERMS' => array('keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Дефолти в настройките а онлайн магазина->Условия на доставка'),
         'ESHOP_DEFAULT_PAYMENTS' => array('keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Методи на плащане'),

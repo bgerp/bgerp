@@ -1795,10 +1795,20 @@ a.tUnsighted {
 	position: relative;
 	top: -4px;
 }
+.threadSubTitle .documentTags .tags {
+	font-size: 0.9em;
+	position: relative;
+	top:0px;
+}
+.threadSubTitle.onlyTags {
+	display: inline;
+	.documentTags {
+		top: -2px;
+	}
+}
 .portalHeaderTitle {
 	margin-right: 5px;
 }
-
 
 .documentTags .tags{
 	font-size: 0.7em;
@@ -2317,7 +2327,12 @@ top: 3px;
 float: left;
 display: inline-block;
 }
-
+.priority-high {
+	color:#882200;
+}
+.priority-critical {
+	color: #cc0033;
+}
 .docBgIcon {
 position: relative;
 }
@@ -2403,7 +2418,9 @@ top: 0;
 .centered {
 text-align: center;
 }
-
+.vtop.centered .defaultDeleteRowCheckbox {
+	margin-top: 0 !important;
+}
 .lighterBold {
 color: #666;
 }
@@ -2485,6 +2502,11 @@ font-size: 15px;
 .listTable td .endTooltip img, .listTable td .frontTooltip img{
 width: 14px !important;
 height: 14px !important;
+}
+
+.groupList .endTooltip img {
+	width: 12px !important;
+	height: 12px !important;
 }
 
 .sale-summary td .endTooltip img, .sale-summary td .frontTooltip img{
@@ -2710,6 +2732,10 @@ vertical-align: top !important;
 
 .document .paddingCells > tbody > tr > td{
 	padding: 5px;
+}
+
+.innerDocument {
+	padding:6px 10px 10px;
 }
 
 .doc_drivers_FolderPortal .threadSubTitle {
@@ -2954,6 +2980,9 @@ ul{
        margin-left: 10px;
    }
 }
+
+
+
 .inner-text {
    padding-left: 30px;
 }
@@ -2983,6 +3012,32 @@ color: #666;
 
 .document table.listTable > tbody > tr > td {
 padding: 5px 3px 2px !important;
+}
+
+.inlineRichtextCond {
+	.richtext, .endTooltip {
+		display: inline  !important;
+		vertical-align: middle;
+	}
+}
+.blueText {
+	color: blue !important;
+	.richtext {
+		color: blue !important;
+	}
+}
+.closedFrameUpdateTimeTitle {
+	font-weight: bold;
+	color: red !important;
+}
+.closedFrameUpdateTime {
+	font-weight: bold;
+	color: red !important;
+	border: 1px dotted red;
+	padding: 2px;
+	span {
+		color: red !important;
+	};
 }
 /*край на стилове за документи*/
 
@@ -3928,9 +3983,6 @@ fieldset.sharing-history {
 	max-width: 80em;
 	display: block;
 	margin: 0 auto;
-	#searchform {
-		margin-bottom: 20px;
-	}
 }
 
 #all .filemanSingle {
@@ -4584,13 +4636,16 @@ table .eshop-btn {
 		background-color: #eee !important;
 	}
 }
+.narrow .productBtn {
+	margin-right: 5px !important;
+}
 
 .narrow .eshop-btn.addToCard, .narrow .productBtn.addToCard {
 	background-image: url("../img/32/cart_go.png") !important;
 	background-size: 16px;
 	background-position: 3px center;
 	background-repeat: no-repeat;
-	margin-bottom: 5px !important;
+	margin: 0 0px 5px 5px !important;
 	padding: 4px 8px 5px 25px !important;
 	top: -1px !important;
 	position: relative;
@@ -4762,6 +4817,7 @@ table .eshop-btn {
 	padding: 0 3px;
 }
 #notificationCountStatus {
+	margin-right: 5px;
 	&.noNtf {
 		display: none;
 	}
@@ -4807,13 +4863,12 @@ table .eshop-btn {
 		padding-right: 1px;
 		padding-left: 1px;
 	}
-	input[type=text], input[type=submit] {
-		height: 26px;
-		line-height: 1;
+	.select2-container .select2-selection--single .select2-selection__rendered,.select2-container .select2-selection--single {
+		height: 32px;
+		line-height: 30px;
 	}
 	a.button, input[type="button"], input[type="submit"], button {
 		background-position: 4px center !important;
-		padding: 0.34em 5px 0.34em 23px !important;
 		background-repeat: no-repeat !important;
 		background-color: #dddddd;
 		border: 1px solid #bbbbbb !important;
@@ -4830,6 +4885,8 @@ table .eshop-btn {
 		-webkit-box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.8);
 		box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.8);
 		text-shadow: 0 1px 0px #f1f1f1;
+		height: 31px;
+		box-sizing: border-box;
 		&:hover {
 			background-color: #e5e5e5;
 			&.btn-disabled {
@@ -4864,6 +4921,12 @@ table .eshop-btn {
 	}
 	.toolbar-btn{
 		max-width: 16px !important;
+	}
+	.formGroup a {
+		color: #98a2ab;
+		&:hover {
+			color: #637e98 !important;
+		}
 	}
 }
 .narrow .contractorExtHolder {
@@ -4920,9 +4983,21 @@ table .eshop-btn {
 #cmsNavigation a.linkWithIcon {
     display: inline-block;
     height: 21px;
-    float: left;
     margin-left: 5px;
     background-position: center !important;
+}
+
+#cmsNavigation .navWithIcon.lastOrderedLink a.linkWithIcon {
+	height: auto !important;
+	background-position: 5px 5px !important;
+}
+.narrow #cmsNavigation a.linkWithIcon {
+	float: right;
+}
+
+#cmsNavigation form {
+	display: inline-block;;
+	float: left;
 }
 
 #cmsNavigation .level1 {
@@ -5703,6 +5778,9 @@ table .eshop-btn {
 }
 /*стилове за автор в документ*/
 
+.hiddenBtn {
+	display: none !important;
+}
 
 /*стилове за custom таблица*/
 .styled-table {
@@ -5745,7 +5823,7 @@ table .eshop-btn {
 		padding: 5px 6px 4px 5px;
 		max-width: 160px;
 	}
-	a, span {
+	a, span:not(.highlight) {
 		text-align: left;
 		display: block;
 		font-size: 0.95em;
@@ -5880,7 +5958,16 @@ div.location.public {
 	float: none;
 	text-align: center;
 }
-
+.flexBox {
+	display: flex;
+	align-content: baseline;
+	align-items: baseline;
+	div {
+		display: flex;
+		align-content: baseline;
+		align-items: baseline;
+	}
+}
 .barcodeSearch {
 	.noPadding {
 		padding: 0px !important;
@@ -5892,6 +5979,7 @@ div.location.public {
 	}
 
 }
+
 /*шаблон за пускане в експлоатация на ДА*/
 .sign-holder {
 	display: inline-block;
@@ -6093,6 +6181,10 @@ div.location.public {
 	float: left;
 }
 
+.portal .linkWithIcon, .portal .ajaxContext {
+	overflow-wrap:anywhere;
+}
+
 .portal-filter .hFormField {
 	width: 7.5em;
 	border: solid 1px #ccc;
@@ -6109,6 +6201,10 @@ div.location.public {
 	height: auto;
 	position: relative;
 	top: -1px;
+}
+
+.narrow .details .portal {
+	display: table-cell;
 }
 
 .portal-filter .hFormField input {
@@ -6544,7 +6640,9 @@ div.location.public {
 	margin-bottom:10px;
 	height:auto;
 }
-
+.narrow .eshop-group-button-title {
+	margin-bottom: 0 !important;
+}
 .eshop-group-button:hover  .eshop-group-button-title a {
 	color: #c60;
 }
@@ -7330,9 +7428,9 @@ body.narrow {
 	}
 	.narrow .eshop-group-button {
        width: 46%;
-       margin-right: 2%;
-       margin-left: 2%;
+       margin: 0 2%;
        font-size: 0.9em;
+
     }
     :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
@@ -8639,7 +8737,9 @@ body.narrow {
 	font-weight:normal;
 	color:#555;
 	border:1px solid #cdcdcd;
-	padding:3px;
+	padding:2px 3px;
+	position: relative;
+	top: -2px;
 }
 
 table.bomProductionStepTable td{

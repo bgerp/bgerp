@@ -108,15 +108,6 @@
             [#tracking#]
         </fieldset>
         <!--ET_END tracking-->
-
-        <div class="scrolling-holder">
-            <fieldset class="detail-info" style="margin-top: 20px;">
-                <legend class="groupTitle">|Действия и Норми|*</legend>
-                <div class="scrolling-holder">
-                    [#planning_AssetResourcesNorms#]
-                </div>
-            </fieldset>
-        </div>
         [#DETAILS#]
     </div>
 </div>

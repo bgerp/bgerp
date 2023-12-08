@@ -280,7 +280,7 @@ en,Вид,Type
 en,Видимост,Visibility
 en,Видове дейности,Types of activities
 en,Видове палети,Types of pallets
-en,Видян документ,Read document
+en,Видян документ,Seen document
 en,Видян на,Seen at
 en,Виждане,Seeing
 en,Виждания,Views
@@ -2831,6 +2831,7 @@ en,Връзка между ЕН-то и палетния склад,Link between
 en,Модел,Model
 en,Въведете IP адреса на устройството,Please input IP address of device
 en,До два месеца след фактуриране,Until 2 months after invoicing
+en,До 2 месеца след фактуриране,Until 2 months after invoicing
 en,Направете поръчка,Place order
 en,"Печелите безплатна доставка, защото поръчката ви надвишава","You win free shipping, because your order is above"
 en,"Безплатна доставка, съгласно ""Общите условия""","Free shipping under the ""Terms of Service"""
@@ -3017,9 +3018,9 @@ en,Нов ред,New line
 en,Ограждане,Enclosure
 en,Цена без ДДС,Price without VAT
 en,Напишете поне две имена разделени с интервал,Write at least two names separated by a space
-en,Продадени с фактура,Sold with invoice,
+en,Продадени с фактура,Sold with invoice
 en,До 45 дни след фактуриране,Until 45 days after invoicing
-en,"Имате създадени, но неактивирани документи", "There are created documents, which haven't been activated",
+en,"Имате създадени, но неактивирани документи", "There are created documents, which haven't been activated"
 en,Днес,Today
 en,Вчера,Yesterday
 en,Утре,Tomorrow
@@ -3037,5 +3038,10 @@ en,Следващата година,Next year
 en,Последните,Last
 en,Следващите,Next
 en,Друг период,Custom period
-en,Place before,Постави преди
-en,Place after,Постави след
+en,Постави преди,Place before
+en,Постави след,Place after
+en,Алергени,Allergens
+en,Актуален към,Up to date
+en,Вземи списък от,List of
+en,Закрит,Closed
+en,Данните не са актуални,The data is not up to date

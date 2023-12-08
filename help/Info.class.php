@@ -88,7 +88,35 @@ class help_Info extends core_Master
         
         $this->setDbUnique('class,lg');
     }
-    
+
+
+    /**
+     * Връща линк за репортване на грешка
+     *
+     * @param boolean $isForFooter
+     *
+     * @return void
+     */
+    public static function prepareSupportLink($isForFooter = false)
+    {
+        $btnName = tr('Сигнал');
+        $class = '';
+        $efIcon = "img/16/headset.png";
+
+        if ($isForFooter) {
+            $btnName = ht::createElement('img', array('src' => sbf('img/24/headset.png', '')));
+            $class = 'soc-following noSelect';
+            $efIcon = "";
+        }
+
+        $signal = '';
+        if (log_Debug::haveRightFor('report')) {
+            $signal = log_Debug::getReportLink('', $btnName, $efIcon, $class, true);
+        }
+
+        return $signal;
+    }
+
     
     /**
      * Изчисляване на полето 'titla'

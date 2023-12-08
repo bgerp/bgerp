@@ -60,9 +60,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         $length = store_Setup::get('TARIFF_NUMBER_LENGTH');
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
-            
+
             $tariffNumber = cat_Products::getParams($rec->productId, 'customsTariffNumber', true);
-            $tariffNumber = !empty($tariffNumber) ? substr($tariffNumber, 0, $length) : self::EMPTY_TARIFF_NUMBER;
+
+
+            $tariffNumber = !empty($tariffNumber) ? mb_substr($tariffNumber, 0, $length) : self::EMPTY_TARIFF_NUMBER;
             $rec->tariffNumber = $tariffNumber;
             $row->tariffNumber = $tariffNumber;
         }
@@ -79,6 +81,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
     public function beforeRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
         if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
+        if($detail instanceof store_DocumentPackagingDetail) return;
 
         $columns = countR($data->listFields);
         $masterRec = $data->masterData->rec;
@@ -110,6 +113,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
 
             $weight = $detail->getWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->weight);
+
             if(empty($weight)){
                 $tariffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
             }

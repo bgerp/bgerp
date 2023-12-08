@@ -36,16 +36,16 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, doc_SharablePlg, store_plg_Request, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+                    doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,change_Plugin,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'storeId,note';
-    
-    
+
+
     /**
      * Кой има право да чете?
      */
@@ -56,8 +56,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,consumption,store';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -144,16 +144,19 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn,valior,deadline,modifiedOn';
-    
-    
+
+
     /**
      * Описание на модела
      */
     public function description()
     {
         parent::setDocumentFields($this);
-        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
-        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане,notNull,default=yes,maxRadio=2,before=note');
+        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Допълнително->Ц-р на дейност,after=receiver');
+        $this->FLD('description', 'richtext(bucket=Notes,rows=2)', 'caption=Информация за ремонта->Извършени дейности,after=departmentId,input=none');
+        $this->FLD('sender', 'varchar', 'caption=Допълнително->Предал');
+        $this->FLD('receiver', 'varchar', 'caption=Допълнително->Получил');
+        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Детайлно влагане,notNull,default=yes,maxRadio=2');
         $this->setField('storeId', 'placeholder=Само услуги');
     }
     
@@ -165,8 +168,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
-        
+
         $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
             $form->setDefault('departmentId', $folderCover->that);
@@ -177,9 +179,70 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                 $form->setField('storeId', 'mandatory');
             }
         }
+
+        if(empty($rec->id)){
+            $showSenderAndReceiver = planning_Setup::get('SHOW_SENDER_AND_RECEIVER_SETTINGS');
+            if($showSenderAndReceiver == 'yesDefault'){
+                $form->setDefault('sender', core_Users::getCurrent('names'));
+            }
+        }
+
+        $showSenderAndReceiver = true;
+        $showSenderAndReceiverSetting = planning_Setup::get('SHOW_SENDER_AND_RECEIVER_SETTINGS');
+        if($showSenderAndReceiverSetting == 'no'){
+            $form->setField('sender', 'input=none');
+            $form->setField('receiver', 'input=none');
+            $showSenderAndReceiver = false;
+        }
+
+        if(isset($rec->originId)){
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('cal_Tasks')){
+                $form->setField('description', "input,mandatory,changable");
+                $form->setField('sender', 'caption=Информация за ремонта->Извършил,input');
+                $form->setField('receiver', 'caption=Информация за ремонта->Приел,input');
+                $form->setDefault('useResourceAccounts', "no");
+                $form->setField('useResourceAccounts', 'input=hidden');
+                $showSenderAndReceiver = true;
+            }
+        }
+        $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
+        if($showSenderAndReceiver){
+            $mvc->setEmployeesOptions($form);
+        }
+
+        if($jobRec = static::getJobFromThread($rec->threadId)){
+            $rec->_inputStores = keylist::toArray($jobRec->inputStores);
+            $selectableStores = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $rec->_inputStores);
+            if(countR($selectableStores) == 1){
+                $form->setDefault('storeId', key($selectableStores));
+            }
+        }
     }
-    
-    
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = &$form->rec;
+        if($form->isSubmitted()){
+            if($rec->state == 'draft' || empty($rec->state)){
+                if(is_array($rec->_inputStores) && countR($rec->_inputStores)){
+                    if(empty($rec->storeId)){
+                        if(countR($rec->_inputStores)){
+                            $form->setWarning('storeId', 'Не е избран склад при очакван такъв по Задание|*!');
+                        }
+                    } elseif(!in_array($rec->storeId, $rec->_inputStores)) {
+                        $form->setWarning('storeId', 'Избраният склад не е от очакваните по Задание|*!');
+                    }
+                }
+            }
+        }
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -198,6 +261,18 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 
         if(empty($rec->storeId)){
             $row->storeId = ht::createHint("<i style='color:blue'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
+        }
+
+        $row->protocolTitle = tr("протокол за влагане в производство");
+        $row->receiverCaption = tr("Получил");
+        $row->senderCaption = tr("Предал");
+        if($rec->originId){
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('cal_Tasks')){
+                $row->protocolTitle = tr("Протокол за извършен ремонт");
+                $row->receiverCaption = tr("Приел ремонта");
+                $row->senderCaption = tr("Извършил ремонта");
+            }
         }
     }
     
@@ -255,6 +330,16 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
 
             return true;
+        }
+
+        // Може да добавяме или към нишка в която има сигнал
+        $originId = Request::get('originId', 'int');
+        if(isset($originId)){
+            $taskSupportClassId = support_TaskType::getClassId();
+            if (cal_Tasks::fetchField("#containerId = {$originId} AND #driverClass = {$taskSupportClassId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
+
+                return true;
+            }
         }
 
         return false;

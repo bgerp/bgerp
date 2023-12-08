@@ -86,7 +86,7 @@ class price_ListVariations extends core_Detail
         $this->FLD('variationId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Вариация,mandatory,silent');
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила от,mandatory');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила до,mandatory');
-        $this->FLD('repeatInterval', 'time', 'caption=Повторение');
+        $this->FLD('repeatInterval', 'time', 'caption=Повторение,mandatory');
 
         $this->setDbIndex('validFrom');
     }
@@ -105,7 +105,7 @@ class price_ListVariations extends core_Detail
         if (!isset($rec->id)) {
             $listRec = price_Lists::fetch($rec->listId);
             if (price_Lists::haveRightFor('add', (object)array('folderId' => $rec->folderId))) {
-                $data->form->toolbar->addBtn('Нова вариация', array('price_Lists', 'add', 'folderId' => $listRec->folderId, 'variationOf' => $listRec->id, 'ret_url' => true), null, 'order=10.00015,ef_icon=img/16/page_white_star.png');
+                $data->form->toolbar->addBtn('Нова вариация', array('price_Lists', 'add', 'folderId' => $listRec->folderId, 'variationOf' => $listRec->id, 'ret_url' => true), null, 'order=10.00015,ef_icon=img/16/page_white_star.png,title=Създаване на нова вариация на ценовата политика');
             }
         }
     }
@@ -162,6 +162,7 @@ class price_ListVariations extends core_Detail
         if (isset($data->masterMvc)) {
             unset($data->listFields['listId']);
         }
+        $data->query->orderBy('validFrom', 'DESC');
     }
 
 
@@ -216,6 +217,38 @@ class price_ListVariations extends core_Detail
         while($rec = $query->fetch()){
             $res[$rec->id] = $rec->variationId;
         }
+
+        return $res;
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->TabCaption = tr('Вариация');
+        $activeVariations = static::getActiveVariations($data->masterId);
+        foreach ($data->rows as $id => &$row){
+            if(array_key_exists($id, $activeVariations)){
+                $row->ROW_ATTR['class'] .= ' state-active';
+                $row->variationId = ht::createHint($row->variationId, 'Активна е към момента');
+            } else {
+                $row->ROW_ATTR['class'] .= ' state-closed';
+            }
+        }
+    }
+
+
+    /**
+     * Подготовка на Детайлите
+     */
+    public function prepareDetail_($data)
+    {
+        $res = parent::prepareDetail_($data);
+        $count = countR($data->recs);
+        $data->TabCaption = "Вариации|* ({$count})";
+        $data->Tab = 'top';
 
         return $res;
     }

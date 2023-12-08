@@ -47,7 +47,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, quantity=К-во, packPrice, discount=Отст., amount';
     
     
     /**
@@ -627,20 +627,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             // Проверка на цената
             $msg = null;
-            if (!deals_Helper::isPriceAllowed($rec->price, $rec->quantity, $autoPrice, $msg)) {
+            $quantityInBaseMeasureId = $rec->quantity * $rec->quantityInPack;
+            if (!deals_Helper::isPriceAllowed($rec->price, $quantityInBaseMeasureId, $autoPrice, $msg)) {
                 $form->setError('packPrice,quantity', $msg);
             }
             
             $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
-            
-            // Ако има такъв запис, сетваме грешка
-            $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, null, null, $rec->notes);
-            if ($exRec) {
-                if($masterRec->type != 'dc_note'){
-                    $form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
-                    unset($rec->packPrice, $rec->price, $rec->quantityInPack);
-                }
-            }
+
 
             if(!$form->gotErrors()){
                 // Записваме основната мярка на продукта
@@ -666,5 +659,30 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
             }
         }
+    }
+
+
+    /**
+     * Кои полета да се преизичслят при активиране
+     *
+     * @param stdClass $invoiceRec;
+     */
+    public function getFieldsToCalcOnActivation_($invoiceRec)
+    {
+        return array();
+    }
+
+
+    /**
+     * Дали да се обнови записа при активиране
+     *
+     * @param stdClass $dRec      - ид на запис
+     * @param stdClass $masterRec - ид на мастъра на записа
+     * @param array $params       - продуктовите параметри
+     * @return bool               - ще се обновява ли реда или не
+     */
+    public function calcFieldsOnActivation_(&$dRec, $masterRec, $params)
+    {
+        return false;
     }
 }

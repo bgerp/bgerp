@@ -1438,7 +1438,13 @@ class label_Prints extends core_Master
         $rec->printHistory[] = array('from' => $form->rec->from, 'to' => $form->rec->to, 'printedBy' => core_Users::getCurrent(), 'printedOn' => dt::now());
         
         $this->save($rec, 'printedCnt, printHistory');
-        
+
+        // Ако се печата етикет от източник да се нотифицира източника
+        if ($rec->objectId && $rec->classId) {
+            $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+            $intfInst->onLabelIsPrinted($rec->objectId);
+        }
+
         $this->logRead('Отпечатване', $rec->id);
         
         return $tpl;
@@ -1459,7 +1465,15 @@ class label_Prints extends core_Master
     public function searchByCode($str)
     {
         $resArr = array();
-        
+
+        if (!is_numeric($str)) {
+
+            return $resArr;
+        }
+
+        $isPartner = core_Packs::isInstalled('colab') && core_Users::isContractor();
+        if ($isPartner) return $resArr;
+
         $str = trim($str);
         $oStr = $str;
         $str = ltrim($str, 0);

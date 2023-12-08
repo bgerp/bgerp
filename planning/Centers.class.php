@@ -16,12 +16,6 @@
 class planning_Centers extends core_Master
 {
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'planning_ActivityCenters';
-    
-    
-    /**
      * Ид на Неопределения център на дейност
      */
     const UNDEFINED_ACTIVITY_CENTER_ID = 1;

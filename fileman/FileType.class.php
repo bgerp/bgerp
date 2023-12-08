@@ -35,7 +35,9 @@ class fileman_FileType extends type_Varchar
             
             return '';
         }
-        
+
+        if(Mode::is('printLabel')) return $fh;
+
         return fileman_Files::getLink($fh);
     }
     

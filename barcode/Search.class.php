@@ -9,15 +9,13 @@
  * @package barcode
  *         
  * @author Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license GPL 3
  *         
  * @since v 0.1
  */
 class barcode_Search extends core_Manager
 {
-
-
     /**
      * Заглавие
      */
@@ -39,30 +37,28 @@ class barcode_Search extends core_Manager
     /**
      * Кой има достъп до списъчния изглед
      */
-    public $canList = 'powerUser';
+    public $canList = 'user';
 
 
     /**
      * Действие по подразбиране
      */
-    public function act_Default() {
+    public function act_Default()
+    {
         $useHtml5Camera = TRUE;
         $this->requireRightFor('list');
         
         $form = cls::get('core_Form');
-        
+        $isColab = core_Packs::isInstalled('colab') && core_Users::isContractor();
         $this->currentTab = 'Търсене';
+
         
         $form->title = 'Търсене по баркод';
-        
         $form->FNC('search', 'varchar', 'caption=Баркод...,silent,input,recently,elementId=barcodeSearch');
-        
         $form->name = 'barcode_search';
-        
         $form->show = 'search';
         
         $form->input(null, true);
-        
         $form->view = 'horizontal';
         
         $form->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -70,7 +66,7 @@ class barcode_Search extends core_Manager
         if (!$useHtml5Camera) {
             $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод');
         } else {
-            $form->toolbar->addFnBtn('Сканирай', "openCamera();", 'id=scanBtn', "ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод");
+            $form->toolbar->addFnBtn('Сканирай', "openCamera();", 'id=scanBtn', "ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод, class=hiddenBtn");
         }
         
         $form->formAttr['id'] = 'barcodeForm';
@@ -88,7 +84,7 @@ class barcode_Search extends core_Manager
                         continue;
                     }
 
-                    if (strpos($form->rec->search, '://' . $dName) || strpos($form->rec->search, $dName === 0)) {
+                    if (strpos($form->rec->search, '://' . $dName) || strpos($form->rec->search, $dName)  === 0) {
                         if ($cDomain && ($cDomain != $dName)) {
                             $form->rec->search = preg_replace('/' . preg_quote($dName, '/') . '/', $cDomain, $form->rec->search, 1);
                         }
@@ -165,8 +161,9 @@ class barcode_Search extends core_Manager
             $tpl->push('barcode/js/html5-qrcode.min.js', 'JS');
 
             $h =  $form->rec->search ? ' class="hidden" ' : '';
+            $img = sbf("img/32/camera.png", "");
 
-            $a = "<style> .cameraSource {min-width: 60px;} .cameraSource.active {background-color: #bbb;}</style> 
+            $a = "<style> .cameraSource { min-width: 40px;padding-left: 24px !important; padding-right: 7px !important; background: #ddd url({$img}) left center; background-size: 16px; } .narrow .cameraSource { min-width: 50px;padding-left: 25px !important;}.cameraSource.active {background-color: #bbb;}</style> 
             <div id='cameraHolder' {$h}>
                 <div style='margin: 0 0 10px;' id='camera-buttons'></div>
                 <div style= 'max-width: 500px; width: 100%' id='reader'></div>
@@ -200,7 +197,11 @@ class barcode_Search extends core_Manager
         } else {
             $tpl->append($tableTpl);
         }
-        
+
+        if($isColab){
+            plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
+        }
+
         return $this->renderWrapping($tpl);
     }
 
@@ -212,7 +213,8 @@ class barcode_Search extends core_Manager
      *
      * @return string
      */
-    public static function getScannerActivateUrl($retUrl = null) {
+    public static function getScannerActivateUrl($retUrl = null)
+    {
         if (! $retUrl) {
             $retUrl = toUrl(array (
                     'barcode_Search',
@@ -221,9 +223,7 @@ class barcode_Search extends core_Manager
         }
         
         $retUrl = str_replace('__CODE__', '{CODE}', $retUrl);
-        
         $retUrl = urlencode($retUrl);
-        
         $scanUrl = 'https://zxing.appspot.com/scan?ret=' . $retUrl;
         
         return $scanUrl;
@@ -233,16 +233,12 @@ class barcode_Search extends core_Manager
     /**
      * Действие по подразбиране
      */
-    public function act_List() {
+    public function act_List()
+    {
         $this->requireRightFor('list');
-        
         $search = Request::get('search');
         
-        $retUrl = array (
-                $this,
-                'search' => $search 
-        );
-        
+        $retUrl = array ($this, 'search' => $search);
         $userAgent = log_Browsers::getUserAgentOsName();
         
         if (! trim($search) && ($userAgent == 'Android')) {
@@ -250,5 +246,20 @@ class barcode_Search extends core_Manager
         }
         
         return new Redirect($retUrl);
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'list'){
+            if(!core_Packs::isInstalled('colab')){
+                if(!haveRole('powerUser', $userId)){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
 }

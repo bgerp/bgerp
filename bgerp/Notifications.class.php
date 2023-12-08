@@ -267,6 +267,15 @@ class bgerp_Notifications extends core_Manager
                 $r->activatedOn > bgerp_LastTouch::get('portal', $userId)) {
                 $rec->activatedOn = $r->activatedOn;
             }
+
+            // Запазваме по-високият приоритет в предишните неотворени известия
+            if ($r->state == 'active') {
+                if ($priority != $r->priority) {
+                    if (($r->priority != 'normal') && ($rec->priority != 'alert')) {
+                        $rec->priority = $r->priority;
+                    }
+                }
+            }
         } else {
             $rec->cnt = 1;
         }
@@ -1247,10 +1256,18 @@ class bgerp_Notifications extends core_Manager
         $valsArr = array();
         
         // Настройки за папка
+        $cu = core_Users::getCurrent();
         if ($folderId) {
             $fKey = doc_Folders::getSettingsKey($folderId);
-            
-            $folderTitle = doc_Folders::getLinkForObject($folderId);
+
+            if(core_Users::isContractor($cu) && core_Packs::isInstalled('colab')){
+                $folderTitle = doc_Folders::getTitleById($folderId);
+                if(colab_Threads::haveRightFor('list', (object)array('folderId' => $folderId))){
+                    $folderTitle = ht::createLink($folderTitle, array('colab_Threads', 'list', 'folderId' => $folderId));
+                }
+            } else {
+                $folderTitle = doc_Folders::getLinkForObject($folderId);
+            }
             
             $fCaption = "Известяване в|* {$folderTitle} |при";
             
@@ -1286,8 +1303,17 @@ class bgerp_Notifications extends core_Manager
         // Настройки за нишка
         if ($containerId && $threadId) {
             $tKey = doc_Threads::getSettingsKey($threadId);
-            
-            $threadTitle = doc_Threads::getLinkForObject($threadId);
+
+            if(core_Users::isContractor($cu) && core_Packs::isInstalled('colab')){
+                $threadDoc = doc_Threads::getFirstDocument($threadId);
+                $threadTitle = $threadDoc->getDocumentRow()->title;
+                if(colab_Threads::haveRightFor('single', doc_Threads::fetch($threadId))){
+                    $threadTitle = ht::createLink($threadTitle, array('colab_Threads', 'single', 'threadId' => $threadId));
+                }
+            } else {
+                $threadTitle = doc_Threads::getLinkForObject($threadId);
+            }
+
             $tCaption = "Известяване в|* {$threadTitle} |при";
             $enumTypeArr['caption'] = $tCaption . '->Нов документ';
             
@@ -1899,15 +1925,14 @@ class bgerp_Notifications extends core_Manager
     public function cron_HideInaccesable()
     {
         $query = self::getQuery();
-        
         $before = dt::subtractSecs(180000); // преди 50 часа
         $query->setUnion(array("#modifiedOn >= '[#1#]'", $before));
         $query->setUnion(array("#closedOn >= '[#1#]'", $before));
         $query->setUnion(array("#lastTime >= '[#1#]'", $before));
         $query->setUnion(array("#activatedOn >= '[#1#]'", $before));
-        
         $query->orderBy('modifiedOn', 'DESC');
-        
+
+        $isColabInstalled = core_Packs::isInstalled('colab');
         while ($rec = $query->fetch()) {
             $urlArr = self::getUrl($rec);
 
@@ -1920,7 +1945,8 @@ class bgerp_Notifications extends core_Manager
             if (($act != 'single') && ($act != 'list')) {
                 continue;
             }
-            
+
+            $isPartner = core_Users::isContractor($rec->userId);
             try {
                 $ctr = $urlArr['Ctr'];
                 
@@ -1932,10 +1958,29 @@ class bgerp_Notifications extends core_Manager
                     self::delete($rec->id);
                     self::logInfo('Изтрита нотификация за премахнат ресурс', $rec->id);
                 } else {
+
                     if ($ctr == 'doc_Threads' && $urlArr['folderId'] && $act == 'list') {
                         $haveRight = doc_Folders::haveRightFor('single', $urlArr['folderId'], $rec->userId);
                     } else {
                         $haveRight = $ctr::haveRightFor($act, $urlArr['id'], $rec->userId);
+
+                        // Ако е инсталиран пакета `colab` и потребителя е партньор и екшъна е сингъл и няма достъп до него
+                        if($isColabInstalled && $act == 'single' && $isPartner && !$haveRight){
+
+                            // Ако сингъла е към документ, който е видим за партньори и нишката му е видима от този партньор
+                            if(cls::haveInterface('doc_DocumentIntf', $ctr)){
+                                $docRec = $ctr::fetch($urlArr['id'], 'threadId,containerId');
+                                $haveRight = colab_Threads::haveRightFor('single', doc_Threads::fetch($docRec->threadId), $rec->userId);
+
+                                // Ако няма достъп до него, да не го вижда
+                                if($haveRight){
+                                    $visibleForPartners = doc_Containers::fetchField($docRec->containerId, 'visibleForPartners');
+                                    if($visibleForPartners != 'yes'){
+                                        $haveRight = false;
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     if (!$haveRight && ($rec->hidden == 'no')) {

@@ -264,6 +264,12 @@ defIfNot('SALES_SHOW_CODE_IN_SEPARATE_COLUMN', 'no');
 
 
 /**
+ * Да се рекалкулират ли цените при клониране на договор за продажба
+ */
+defIfNot('SALES_RECALC_PRICES_ON_CLONE', 'yes');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -441,6 +447,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS' => array('enum(no=Без фактуриране,yes=Фактуриране)', 'caption=Аванси от чуждестранни клиенти->Избор'),
         'SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE' => array('enum(no=Да не се избира,yes=Автоматичен избор)', 'caption=Автоматичен избор на наша сметка в продажбите ако е само една достъпна->Избор'),
         'SALES_SHOW_CODE_IN_SEPARATE_COLUMN' => array('enum(no=Не,yes=Да)', 'caption=Показване на кода на артикула в продажбите в отделна колонка->Избор'),
+        'SALES_RECALC_PRICES_ON_CLONE' => array('enum(no=Не,yes=Да)', 'caption=Преизчисление на цените в продажбата при клониране->Избор'),
     );
     
     
@@ -494,7 +501,7 @@ class sales_Setup extends core_ProtoSetup
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,
                        sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_reports_SalesByCreators,sales_interface_FreeRegularDelivery,
                        sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_InvoiceAccView,sales_reports_PassiveCustomers,
-                       sales_reports_OffersSentWithoutReply,sales_tpl_InvoiceWithTotalQuantity';
+                       sales_reports_OffersSentWithoutReply,sales_tpl_InvoiceWithTotalQuantity,sales_reports_MostFrequentlySoldQuantities';
     
     
     /**

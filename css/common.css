@@ -454,6 +454,7 @@ textarea:hover {
   display: block;
   position: relative;
   height: 1.5em;
+  margin-bottom: 20px;
   border-radius: 5px;
   box-shadow: 1px 1px 0 rgba(60, 60, 60, 0.1); }
 
@@ -1458,6 +1459,9 @@ table.listTable {
   table.listTable .rowNumColumn {
     width: 1%; }
 
+.formSection .listTable td {
+  vertical-align: top; }
+
   .listAction table.listTable > tbody > tr > td,
   table.listTable.listAction > tbody > tr > td {
     max-width: 400px; }
@@ -1549,7 +1553,8 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
  */
 .formError,
 .formNotice,
-.formWarning {
+.formWarning,
+.formCustomInfo {
   font-size: 0.9em;
   padding: 10px;
   margin-bottom: 10px;
@@ -1557,6 +1562,11 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
   border-radius: 5px; }
+
+.formCustomInfo {
+  background-color: #fdfdc0;
+  border: solid 1px #cccccc;
+  color: #666666; }
 
 .formNotice {
   background-color: #ffff66;

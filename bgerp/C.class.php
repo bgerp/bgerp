@@ -93,16 +93,15 @@ class bgerp_C extends core_Mvc
                       content="width=device-width, initial-scale=1.0" />
                 <link rel="preconnect" href="https://fonts.googleapis.com">
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300&display=swap" rel="stylesheet"> 
+                <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet"> 
                 <title>
                     Access Cards for bgERP
                 </title>
                 <style>
                     .container {
                         position: relative;
-                        width: 500px;
-                        height: 312px;
-                        display: table-cell;
+                        width: 85mm;
+                        height: 54mm;
                         text-align: center;
                         vertical-align: middle;
                         border: 0;
@@ -110,40 +109,43 @@ class bgerp_C extends core_Mvc
                         display:block;
                         background-position: center; 
                         background-size:cover;
-                        border-radius:20px;
+                        border-radius:10px;
                         page-break-after: always;
                     }
                     .qr {
-                        border:solid 1px black;
                         position: absolute;
                         top: 50%; left: 50%;
                         transform: translate(-50%,-50%);
-                        width:250px;
-                        height:160px;
-                        background-color:rgba(255,255,255, 0.8);
-                        border-radius:15px;
+                        width:170px;
+                        height:130px;
+                        background-color:rgba(255,255,255, 0.6);
+                        border-radius:10px;
                         writing-mode: vertical-lr;
                         text-orientation: mixed;
-                        font-size:0.95em;
                         font-family: \'Oswald\', sans-serif;
                     }
 
+                    .qr .link {
+                        font-size:0.73em;
+                    }
                     .qr img {
-                        position: absolute;
-                        top: 50%; left: 50%;
-                        transform: translate(-50%,-50%);
+                        max-width: 100px;
+                        transform: rotate(90deg);
+                        position:relative;
+                        right:5px;
                     }
 
                     .info {
                         position:absolute;
-                        right:5px;
-                        top:20px;
-                        font-size:0.85em;
+                        right:-5px;
+                        font-weight: 400;
+                        top:14px;
+                        font-size:0.8em;
 
                     }
  
                     @page  {
-                      size: 500px 312px;
+                      size: 85mm 54mm;
                       margin:0;
                       padding:0;
                     }
@@ -165,11 +167,11 @@ class bgerp_C extends core_Mvc
             </html>');
 
     
-        for($i = 0; $i < 10; $i++) {
+        for($i = 0; $i < 20; $i++) {
             $code = base_convert(random_int(1000000000, 4000000000), 10, 36);
-            $qrUrl = barcode_Qr::getUrl("https://bcvt.eu/C/{$code}", false, 5);
+            $qrUrl = barcode_Qr::getUrl("https://bcvt.eu/C/{$code}", false, 4, 0, array('bgOpacity' => 1));
 
-            $card = "<div class='container' style=' background-image: url(\"/C/Img/?code={$code}\")'><div class='qr'><p>www.bcvt.eu/C/{$code}</p><img src='{$qrUrl}'><p class='info'>Регистрирайте се на адрес:</p></div></div>";
+            $card = "<div class='container' style=' background-image: url(\"/C/Img/?code={$code}\")'><div class='qr'><p class='link'>www.bcvt.eu/C/{$code}</p><img src='{$qrUrl}'><p class='info'>Регистрирайте се тук:</p></div></div>";
             
 
             $tpl->append($card, 'content');

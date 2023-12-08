@@ -38,7 +38,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
 
 
     /**
@@ -51,6 +51,12 @@ class planning_Tasks extends core_Master
      * Заглавие
      */
     public $title = 'Производствени операции';
+
+
+    /**
+     * Скриване на полето за споделени потребители
+     */
+    public $hideSharedUsersFld = true;
 
 
     /**
@@ -555,7 +561,14 @@ class planning_Tasks extends core_Master
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(isset($rec->assetId)){
             if(isset($fields['-single'])) {
-                $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+                $row->assetId = new core_ET(planning_AssetResources::getTitleById($rec->assetId));
+                $assetSingleUrlArray = planning_AssetResources::getSingleUrlArray($rec->assetId);
+                if(!Mode::isReadOnly()){
+                    if(countR($assetSingleUrlArray)){
+                        $assetSingleUrlArray['Tab'] = 'Tasks';
+                    }
+                    $row->assetId = ht::createLink($row->assetId, $assetSingleUrlArray, false, 'ef_icon=img/16/equipment.png');
+                }
             }
             if(planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
                 if(isset($fields['-single'])) {
@@ -1060,7 +1073,7 @@ class planning_Tasks extends core_Master
         unset($row->labelPrintFromProgress);
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
+            if ($labelPrintFromProgress != 'no') {
                 $row->labelPrintFromProgress = $mvc->getFieldType('labelPrintFromProgress')->toVerbal($rec->labelPrintFromProgress);
             }
         }
@@ -1263,7 +1276,10 @@ class planning_Tasks extends core_Master
             core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
         }
 
-        return $this->save_($rec, $updateFields);
+        $res = $this->save_($rec, $updateFields);
+        plg_Search::forceUpdateKeywords($this, $rec);
+
+        return $res;
     }
 
 
@@ -1498,7 +1514,12 @@ class planning_Tasks extends core_Master
                                 $nRec->taskId = $rec->id;
                                 $nRec->packagingId = $p->packagingId;
                                 $nRec->quantityInPack = $p->quantityInPack;
-                                $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
+                                if($p->isPrevStep){
+                                    $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
+                                } else {
+                                    $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
+                                }
+
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
@@ -1562,7 +1583,7 @@ class planning_Tasks extends core_Master
 
         if (core_Packs::isInstalled('label')) {
             $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
+            if ($labelPrintFromProgress != 'no') {
                 $form->setField('labelPrintFromProgress', "input");
             }
         }
@@ -2073,10 +2094,13 @@ class planning_Tasks extends core_Master
         $query = $this->getQuery();
         $query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $query->where("#state != 'rejected'");
-        $query->orderBy('saoOrder', 'ASC');
+
         if ($data->masterMvc instanceof planning_AssetResources) {
+            $query->orderBy('orderByDate', 'ASC');
             $query->where("#assetId = {$data->masterId}");
+            $query->in("state", array('pending', 'active', 'wakeup', 'stopped'));
         } else {
+            $query->orderBy('saoOrder', 'ASC');
             $query->where("#originId = {$data->masterData->rec->containerId}");
         }
         $data->pager->setLimit($query);
@@ -2186,7 +2210,7 @@ class planning_Tasks extends core_Master
         }
 
         if ($data->masterMvc instanceof planning_AssetResources) {
-            $tpl->append(tr('Производствени операции'), 'title');
+            $tpl->append("Производствени операции (заявки, активни, събудени, спрени)", 'title');
             $tpl->append($contentTpl, 'content');
         } else {
             $tpl = $contentTpl;
@@ -2313,8 +2337,13 @@ class planning_Tasks extends core_Master
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
-        if($jobSaleId = planning_Jobs::fetchField("#containerId = '{$rec->originId}'", 'saleId')){
-            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobSaleId));
+        if($jobRec = planning_Jobs::fetch("#containerId = '{$rec->originId}'", 'saleId,productId')){
+            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobRec->saleId));
+
+            // Добавяне на драйвера на артикула в ключовите думи
+            $productDriverClass = cat_Products::getVerbal($jobRec->productId, 'innerClass');
+            $res .= ' ' . plg_Search::normalizeText($productDriverClass);
+            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getHandle($jobRec->id));
         }
 
         // Добавяне на всички ключови думи от прогреса
@@ -2422,7 +2451,14 @@ class planning_Tasks extends core_Master
         $str = str_pad($str, 13, '0', STR_PAD_LEFT);
         $taskDetailQuery->where(array("#serial = '[#1#]'", $str));
 
+        $isPartner = core_Packs::isInstalled('colab') && core_Users::isContractor();
+        $taskDetailQuery->EXT('threadId', 'planning_Tasks', "externalName=threadId,externalKey=taskId");
         while ($dRec = $taskDetailQuery->fetch()) {
+
+            if($isPartner){
+                $threadRec = doc_Threads::fetch($dRec->threadId);
+                if(!colab_Threads::haveRightFor('single', $threadRec)) continue;
+            }
 
             $res = new stdClass();
             $tRec = $this->fetch($dRec->taskId);
@@ -2438,7 +2474,6 @@ class planning_Tasks extends core_Master
 
                 $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
                 $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;
-
                 if ($tRec->progress) {
                     $progress = $this->getVerbal($tRec, 'progress');
                     $res->title .= ' (' . $progress . ')';
@@ -3799,7 +3834,7 @@ class planning_Tasks extends core_Master
         $this->requireRightFor('editprevioustask', $rec);
 
         $form = cls::get('core_Form');
-        $form->title = 'Избор на предходна операция|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
+        $form->title = 'Избор на предходна операция|* <b>' . planning_Tasks::getHyperlink($id, true) . '</b>';
         $form->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=name,allowEmpty)', 'caption=Пр. операция');
 
         $options = array();

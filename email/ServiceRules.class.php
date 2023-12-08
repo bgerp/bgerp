@@ -104,8 +104,14 @@ class email_ServiceRules extends embed_Manager
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'createdOn, createdBy, state, systemId';
-    
-    
+
+
+    /**
+     * Полета, които да се извлекат преди изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'email, systemId, emailTo, subject, body';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -402,7 +408,7 @@ class email_ServiceRules extends embed_Manager
 
         $pattern = str_ireplace('\\*', '.{0,10000}', $pattern);
 
-        $pattern = '/^\s*' . $pattern . '\s*$/iu';
+        $pattern = '/\s*' . $pattern . '\s*/iu';
 
         $filtersArr[$str] = $pattern;
 

@@ -1186,6 +1186,25 @@ function prepareContextMenu() {
 }
 
 /**
+ * Създава бисквитка
+ */
+function setCookie(key, value) {
+    var expires = new Date();
+    expires.setTime(expires.getTime() + (1 * 24 * 60 * 60 * 1000));
+    document.cookie = key + '=' + value + ';expires=' + expires.toUTCString() + "; path=/";
+}
+
+
+/**
+ * Чете информацията от дадена бисквитка
+ */
+function getCookie(key) {
+    var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
+    return keyValue ? keyValue[2] : null;
+}
+
+
+/**
  * Запазване на текущия таб
  * @param lastNotifyTime
  */
@@ -5534,10 +5553,18 @@ function getEfae() {
 function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 {
 	var url = document.URL;
+    var dTitle = document.title;
 	var width = $(window).width();
 	var height = $(window).height();
 	var browser = getUserAgent();
-	var title = sysDomain + '/' + ctr + '/' + act;
+    if (!dTitle) {
+        dTitle = ctr + '/' + act;
+    }
+    if (dTitle && (dTitle.length > 495)) {
+        dTitle = dTitle.substring(0, 495);
+        dTitle += '...';
+    }
+	var title = sysDomain + '/' + dTitle;
 
 	if (url && (url.length > 495)) {
 		url = url.substring(0, 495);
@@ -5932,6 +5959,34 @@ function focusOnHeader() {
 
 
 /**
+ * Екшън за групово изтриване на редовете
+ */
+function detailDeleteRowsAct() {
+    $(document.body).on('change', "input[name=checkAllRows]", function (e) {
+        $(".defaultDeleteRowCheckbox").prop('checked', $(this).prop("checked"));
+    });
+
+    $(document.body).on('click', ".deleteAllCheckedRows", function(e) {
+        var url = $(this).attr("data-url");
+        var chkArray = [];
+
+        // Look for all checkboxes that have a specific class and was checked
+        $(".defaultDeleteRowCheckbox:checked").each(function() {
+            var sysId = $(this).attr("data-selectedId");
+            chkArray.push(sysId);
+        });
+
+        if(!chkArray.length){
+            alert($(this).attr("data-errorMsg"));
+        } else {
+            var selected = chkArray.join('|');
+            window.location = url + "&selected=" + selected;
+        }
+    });
+}
+
+
+/**
  * Групово маркиране на чекбоксове при натиснат шрифт
  */
 function markSelectedChecboxes()
@@ -6112,7 +6167,6 @@ dragToScroll = {
 
 
     'run': function () {
-        console.log(document.querySelectorAll('.ef-drag-scroll'));
         document.querySelectorAll('.ef-drag-scroll').forEach((el) => {
             this.mount(el);
         })

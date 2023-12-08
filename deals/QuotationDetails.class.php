@@ -67,7 +67,13 @@ class deals_QuotationDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, weight,optional, amount, discAmount,quantity';
+    public $listFields = 'productId, packagingId, quantityInPack, packQuantity=К-во, packPrice, discount=Отст., tolerance, term, weight,optional, amount, discAmount,quantity';
+
+
+    /**
+     * Кой може да маркира за изтриване всички редове
+     */
+    public $addDeleteSelectRows = false;
 
 
     /**
@@ -270,11 +276,6 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             if (!$form->gotErrors()) {
-                $idToCheck = ($form->cmd == 'save_new_row') ? null : $rec->id;
-
-                if(!$rec->_createProductForm && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $idToCheck, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
-                    $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
-                }
 
                 if (isset($masterRec->deliveryPlaceId)) {
                     if ($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}' AND #contragentCls = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}", 'id')) {

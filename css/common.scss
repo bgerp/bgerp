@@ -465,6 +465,7 @@ input, textarea, select,input:focus, textarea:focus, select:focus, input:hover, 
 	display:block;
 	position:relative;
 	height:1.5em;
+	margin-bottom: 20px;
 	border-radius: 5px;
 	box-shadow: 1px 1px 0 rgba(60,60,60,0.1);
 }
@@ -1538,6 +1539,10 @@ table.listTable {
 	}
 }
 
+.formSection .listTable td {
+	vertical-align: top;
+}
+
 .listAction table.listTable, table.listTable.listAction  {
 	> tbody > tr > td {
 		max-width: 400px ;
@@ -1634,11 +1639,16 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError, .formNotice, .formWarning {
+.formError, .formNotice, .formWarning, .formCustomInfo {
     font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
+}
+.formCustomInfo {
+	background-color: #fdfdc0;
+	border: solid 1px #ccc;
+	color:#666;
 }
 
 .formNotice {

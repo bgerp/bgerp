@@ -29,7 +29,7 @@ class colab_drivers_NotificationTabBlock extends core_BaseClass
      */
     public function getTabOrder()
     {
-        return 1;
+        return 8;
     }
 
 

@@ -616,7 +616,7 @@ class bgerp_Setup extends core_ProtoSetup
 
         $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500, 'color' => 'lightblue'),
             'bgerp_drivers_Calendar' => array('column' => 'center', 'order' => 700, 'fTasksPerPage' => 5, 'fTasksDays' => 2629746, 'color' => 'yellow'),
-            'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink'),
+            'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink', 'showCal' => 'yes'),
             'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500, 'color' => 'darkgray'),
         );
 
@@ -674,7 +674,7 @@ class bgerp_Setup extends core_ProtoSetup
 
             $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500, 'color' => 'lightblue'),
                 'bgerp_drivers_Calendar' => array('column' => 'center', 'order' => 700, 'fTasksPerPage' => 5, 'fTasksDays' => 2629746, 'color' => 'yellow'),
-                'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink'),
+                'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink', 'showCal' => 'yes'),
                 'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500, 'color' => 'darkgray'),
             );
 
