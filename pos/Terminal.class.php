@@ -215,7 +215,7 @@ class pos_Terminal extends peripheral_Terminal
         }
 
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? null : cls::get($rec->contragentClass)->getHyperlink($rec->contragentObjectId);
+        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? null : cls::get($rec->contragentClass)->getHyperlink($rec->contragentObjectId, false, false, array('target' => '_blank'));
         $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : $contragentName;
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
