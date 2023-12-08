@@ -73,7 +73,7 @@ class pwa_SubscribePlg extends core_Plugin
             $enumOpt['yesSet'] = 'Да, искам да ги настроя';
             $enumOpt['no'] = 'Не, не желая';
 
-            $form->FNC('subscribe', 'enum', 'caption=Желаете ли да получавате известия на това устройство->Избор,silent,input,maxRadio=4,mandatory, columns=1');
+            $form->FNC('subscribe', 'enum', 'caption=Желаете ли да получавате известия на това устройство?->Избор,silent,input,maxRadio=4,mandatory, columns=1');
             $form->FNC('force', 'enum(no,yes)', 'input=hidden, silent');
 
             $form->setOptions('subscribe', $enumOpt);
