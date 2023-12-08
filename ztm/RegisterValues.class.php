@@ -520,7 +520,7 @@ class ztm_RegisterValues extends core_Manager
                 $warning = 'Искате ли да изчистите таблицата';
             }
             $showButton = true;
-            if (!$deviceId || !$registerId) {
+            if (!$deviceId && !$registerId) {
                 if (!haveRole('admin')) {
                     $showButton = false;
                 }
