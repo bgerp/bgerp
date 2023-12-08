@@ -71,7 +71,7 @@ class ztm_RegisterValues extends core_Manager
      */
     public function description()
     {
-        $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)', 'caption=Устройство,mandatory');
+        $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)', 'caption=Устройство,mandatory, refreshForm');
         $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name,allowEmpty)', 'caption=Регистър,mandatory,removeAndRefreshForm=value|extValue,silent, refreshForm');
         $this->FLD('value', 'varchar(32)', 'caption=Стойност,input=none');
         $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,input=none');
@@ -499,9 +499,38 @@ class ztm_RegisterValues extends core_Manager
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Бутон за изчистване на всички
-//         if (haveRole('debug')) {
-        if (haveRole('admin')) {
-            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+        if (haveRole('ztm, admin')) {
+            $warning = '';
+            $urlArr = array($mvc, 'truncate');
+            $btnName = 'Изчистване';
+
+            if ($deviceId = Request::get('deviceId', 'int')) {
+                $urlArr['deviceId'] = $deviceId;
+                $warning .= 'Изтриване на запив в регистър|* "' . ztm_Devices::fetchField($deviceId, 'name') . '". |';
+                $btnName = 'Изтриване';
+            }
+
+            if ($registerId = Request::get('registerId', 'int')) {
+                $urlArr['registerId'] = $registerId;
+                $warning .= 'Изтриване на регистър|* "' . ztm_Registers::fetchField($registerId, 'name') . '". |';
+                $btnName = 'Изтриване';
+            }
+
+            if (!trim($warning)) {
+                $warning = 'Искате ли да изчистите таблицата';
+            }
+            $showButton = true;
+            if (!$deviceId || !$registerId) {
+                if (!haveRole('admin')) {
+                    $showButton = false;
+                }
+            }
+
+            $urlArr['ret_url'] = true;
+
+            if ($showButton) {
+                $data->toolbar->addBtn($btnName, $urlArr, "warning={$warning}, ef_icon=img/16/sport_shuttlecock.png");
+            }
         }
     }
     
@@ -511,13 +540,35 @@ class ztm_RegisterValues extends core_Manager
      */
     public function act_Truncate()
     {
-//         requireRole('debug');
-        requireRole('admin');
-        
-        // Изчистваме записите от моделите
-        self::truncate();
-        ztm_LongValues::truncate();
-        
-        return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
+        requireRole('ztm, admin');
+        $deviceId = Request::get('deviceId', 'int');
+        $registerId = Request::get('registerId', 'int');
+
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'list');
+        }
+
+        if ($deviceId || $registerId) {
+            $query = $this->getQuery();
+            if ($deviceId) {
+                $query->where(array("#deviceId = '[#1#]'", $deviceId));
+            }
+            if ($registerId) {
+                $query->where(array("#registerId = '[#1#]'", $registerId));
+            }
+
+            while ($rec = $query->fetch()) {
+                $this->delete($rec->id);
+            }
+        } else {
+            requireRole('admin');
+
+            // Изчистваме записите от моделите
+            self::truncate();
+            ztm_LongValues::truncate();
+        }
+
+        return new Redirect($retUrl, '|Избраните записи са изчистени успешно');
     }
 }
