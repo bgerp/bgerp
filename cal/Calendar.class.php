@@ -670,8 +670,8 @@ class cal_Calendar extends core_Master
         
         return $html;
     }
-    
-    
+ 
+
     /**
      * Рендира блока за портала на текущия потребител
      * @deprecated
@@ -696,9 +696,9 @@ class cal_Calendar extends core_Master
         // като линковете ще са един месец напред и назад в зависимост от избраната стойност в селекта
         $header = "<table class='mc-header' style='width:100%'>
         <tr>
-        <td class='aleft'><a href='{$monthOpt->prevtLink}'>{$monthOpt->prevMonth}</a></td>
+        <td class='aleft'><a href='{$monthOpt->prevtLink}'>&lt;&lt;</a></td>
         <td class='centered'><span class='metro-dropdown-portal'>{$select}</span>
-        <td class='aright'><a href='{$monthOpt->nextLink}'>{$monthOpt->nextMonth}</a></td>
+        <td class='aright'><a href='{$monthOpt->nextLink}'>&gt;&gt;</a></td>
         </tr>
         </table>";
         

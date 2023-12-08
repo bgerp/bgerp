@@ -27,7 +27,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planning,purchase';
+    public $canSelectDriver = 'ceo,manager,store,sales';
 
 
     /**
@@ -75,7 +75,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('users', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Потребители->Търговец,mandatory,after=title,single=none');
+        $fieldset->FLD('users', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales|store)', 'caption=Експедиционни нареждания създадени от->Потребители,mandatory,after=title,single=none');
     }
 
 
@@ -372,9 +372,13 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         // Ако няма избрани потребители за нотифициране, не се прави нищо
         $userArr = keylist::toArray($rec->sharedUsers);
-        if (!countR($userArr)) {
 
-            return;
+        if(!in_array($rec->createdBy,$userArr)){
+            array_push($userArr,$rec->createdBy);
+        }
+
+        if (!countR($userArr)) {
+            $userArr = array($rec->createdBy=>$rec->createdBy,$rec->modifiedBy=>$rec->modifiedBy);
         }
 
         $text = self::$defaultNotificationText . $art;

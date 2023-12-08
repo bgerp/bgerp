@@ -94,8 +94,8 @@ class visualcrossing_Setup extends core_ProtoSetup
             'description' => 'Извличане на прогнози от visualcrossing.com',
             'controller' => 'visualcrossing_Forecasts',
             'action' => 'Update',
-            'period' => 180,
-            'offset' => 73,
+            'period' => 30,
+            'offset' => 0,
             'delay' => 0,
             'timeLimit' => 50,
         ), array(

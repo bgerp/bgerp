@@ -38,6 +38,9 @@ class visualcrossing_Forecasts extends core_Manager
         // Дата на прогнозата
         $this->FLD('date', 'date', array('caption' => 'Дата'));
 
+        // Час на прогнозата
+        $this->FLD('time', 'hour', array('caption' => 'Час'));
+
         // Място
         $this->FLD('location', 'varchar(ci)', 'caption=Място,hint=Град');
 
@@ -56,14 +59,14 @@ class visualcrossing_Forecasts extends core_Manager
         // Икона
         $this->FLD('icon', 'varchar(64)', 'caption=Икона');
 
-        $this->setDbUnique('date,location');
+        $this->setDbUnique('date,time,location');
     }
 
 
     /**
      * Връща прогнозата за времето
      */
-    public static function getForecast($date, $location = null)
+    public static function getForecast($date, $time = null,  $location = null)
     {
         if (!$location) {
             $pSettings = core_Settings::fetchKey(crm_Profiles::getSettingsKey());
@@ -80,7 +83,11 @@ class visualcrossing_Forecasts extends core_Manager
             return false;
         }
 
-        $rec = self::fetch(array("#date = '[#1#]' && #location = '[#2#]'", $date, $location));
+        if (!isset($time)) {
+            $rec = self::fetch(array("#date = '[#1#]' && #time IS NULL && #location = '[#2#]'", $date, $location));
+        } else {
+            $rec = self::fetch(array("#date = '[#1#]' && #time = '[#2#]' && #location = '[#3#]'", $date, $time, $location));
+        }
 
         return $rec;
     }
@@ -128,6 +135,7 @@ class visualcrossing_Forecasts extends core_Manager
             }
 
             $weather = json_decode($jsonRes);
+
             $forecastday = $weather->days;
 
             if (is_array($forecastday)) {
@@ -135,20 +143,25 @@ class visualcrossing_Forecasts extends core_Manager
 
                     $date = dt::timestamp2mysql($data->datetimeEpoch);
 
-                    $rec = self::fetch(array("#date = '[#1#]' && #location = '[#2#]'", $date, $location));
-                    if (!$rec) {
-                        $rec = new stdClass();
-                        $rec->date = $date;
-                        $rec->location = $location;
+                    foreach ($data->hours as $hour) {
+
+                        $rec = self::fetch(array("#date = '[#1#]' && #time = '[#2#]' && #location = '[#3#]'", $date, $hour->datetime, $location));
+
+                        if (!$rec) {
+                            $rec = new stdClass();
+                            $rec->date = $date;
+                            $rec->time = $hour->datetime;
+                            $rec->location = $location;
+                        }
+
+                        $rec->low = $data->tempmin;
+                        $rec->high = $data->tempmax;
+                        $rec->rh = $data->humidity ? $data->humidity / 100 : 0;
+                        $rec->wind = $data->windspeed;
+                        $rec->icon = $data->icon;
+
+                        self::save($rec);
                     }
-
-                    $rec->low = $data->tempmin;
-                    $rec->high = $data->tempmax;
-                    $rec->rh = $data->humidity ? $data->humidity/100 : 0;
-                    $rec->wind = $data->windspeed;
-                    $rec->icon = $data->icon;
-
-                    self::save($rec);
                 }
 
                 bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');

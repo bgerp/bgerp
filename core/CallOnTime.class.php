@@ -324,7 +324,7 @@ class core_CallOnTime extends core_Manager
         $rec->action = 'start';
         $rec->period = 1;
         $rec->offset = 0;
-        $rec->delay = 10;
+        $rec->delay = 20;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
 
@@ -336,7 +336,7 @@ class core_CallOnTime extends core_Manager
         $rec->action = 'start';
         $rec->period = 1;
         $rec->offset = 0;
-        $rec->delay = 20;
+        $rec->delay = 40;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
     }

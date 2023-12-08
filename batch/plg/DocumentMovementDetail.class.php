@@ -338,7 +338,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 core_Request::setProtected('detailClassId,detailRecId,storeId');
                 $url = array('batch_BatchesInDocuments', 'splitbatches', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId, 'ret_url' => true);
-                $row->_rowTools->addLink('Партиди на нов ред', $url, array('ef_icon' => 'img/16/wooden-box.png', 'title' => 'Избор на партиди'));
+                $row->_rowTools->addLink('Партиди|*->|Ред|*', $url, array('ef_icon' => 'img/16/wooden-box.png', 'title' => 'Избор на партиди'));
                 core_Request::removeProtected('detailClassId,detailRecId,storeId');
             }
         }

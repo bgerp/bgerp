@@ -4,19 +4,19 @@
 /**
  * Дефолтно устройство за касов апарат (1)
  */
-defIfNot('N18_DEFAULT_FISC_DEVICE_1', '');
+defIfNot('BGFISC_DEFAULT_FISC_DEVICE_1', '');
 
 
 /**
  * Дефолтно устройство за касов апарат (1)
  */
-defIfNot('N18_DEFAULT_FISC_DEVICE_2', '');
+defIfNot('BGFISC_DEFAULT_FISC_DEVICE_2', '');
 
 
 /**
  * До колкото числа след запетаята да се показва цената в коментара на ФУ
  */
-defIfNot('N18_PRICE_FU_ROUND', '2');
+defIfNot('BGFISC_PRICE_FU_ROUND', '2');
 
 
 /**
@@ -70,7 +70,8 @@ class bgfisc_Setup extends core_ProtoSetup
      */
     public $managers = array('bgfisc_Register',
         'bgfisc_PrintedReceipts',
-        'migrate::removeOldPlugins',
+        'migrate::deletePlugins2449',
+        'migrate::updateWebConstants2349',
     );
     
     
@@ -108,9 +109,9 @@ class bgfisc_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     public $configDescription = array(
-        'N18_DEFAULT_FISC_DEVICE_1' => array('varchar', 'caption=Фискално устройство по подразбиране->Първо,optionsFunc=bgfisc_Setup::getFiscDeviceOptins'),
-        'N18_DEFAULT_FISC_DEVICE_2' => array('varchar', 'caption=Фискално устройство по подразбиране->Второ,optionsFunc=bgfisc_Setup::getFiscDeviceOptins'),
-        'N18_PRICE_FU_ROUND' => array('int', 'caption=Разпечатване на фискален бон от ФУ->Закръгляне (Цена)'),
+        'BGFISC_DEFAULT_FISC_DEVICE_1' => array('varchar', 'caption=Фискално устройство по подразбиране->Първо,optionsFunc=bgfisc_Setup::getFiscDeviceOptins'),
+        'BGFISC_DEFAULT_FISC_DEVICE_2' => array('varchar', 'caption=Фискално устройство по подразбиране->Второ,optionsFunc=bgfisc_Setup::getFiscDeviceOptins'),
+        'BGFISC_PRICE_FU_ROUND' => array('int', 'caption=Разпечатване на фискален бон от ФУ->Закръгляне (Цена)'),
     );
     
     
@@ -119,7 +120,11 @@ class bgfisc_Setup extends core_ProtoSetup
      */
     public function install()
     {
-        $html = parent::install();
+        $html = '';
+        if (core_Packs::isInstalled('n18')) {
+            $html .= cls::get('core_Packs')->deinstall('n18');
+        }
+        $html .= parent::install();
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към бележките', 'bgfisc_plg_Receipts', 'pos_Receipts', 'private');
@@ -130,9 +135,7 @@ class bgfisc_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Печат на фискален бон от касовите документи', 'bgfisc_plg_PrintFiscReceipt', 'cash_Document', 'family');
         $html .= $Plugins->installPlugin('Печат на фискален бон от РКО', 'bgfisc_plg_Rko', 'cash_Rko', 'private');
         $html .= $Plugins->installPlugin('Печат на фискален бон от продажбите', 'bgfisc_plg_PrintFiscReceipt', 'sales_Sales', 'private');
-        $html .= $Plugins->installPlugin('Добавена на версия към системата', 'bgfisc_plg_Version', 'help_Info', 'private');
-        $html .= $Plugins->installPlugin('Име на системата', 'bgfisc_plg_TitlePlg', 'core_ObjectConfiguration', 'private');
-        
+
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към бележките към фактурите', 'bgfisc_plg_SaleDocument', 'sales_Invoices', 'private');
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към бележките към ЕН', 'bgfisc_plg_SaleDocument', 'store_ShipmentOrders', 'private');
         $html .= $Plugins->installPlugin('Добавена функционалност от bgfisc към бележките към СР', 'bgfisc_plg_SaleDocument', 'store_Receipts', 'private');
@@ -142,11 +145,46 @@ class bgfisc_Setup extends core_ProtoSetup
         if(!bgfisc_Register::count()){
             pos_Receipts::delete("#state = 'draft'");
         }
-        
+
+        // Сетъпване на модели в които са се добавили нови полета
+        cls::get('cash_Cases')->setupMvc();
+        cls::get('pos_Receipts')->setupMvc();
+        cls::get('cash_Pko')->setupMvc();
+        cls::get('cash_Rko')->setupMvc();
+
         return $html;
     }
-    
-    
+
+
+    /**
+     * Миграция на уеб константите
+     */
+    public function updateWebConstants2349()
+    {
+        if(core_Packs::fetch("#name = 'n18'")){
+            if(cls::load('n18_Setup', true)){
+                foreach (array('DEFAULT_FISC_DEVICE_1', 'DEFAULT_FISC_DEVICE_2', 'PRICE_FU_ROUND') as $name){
+                    $val = n18_Setup::get($name);
+                    if(!empty($val)){
+                        core_Packs::setConfig('bgfisc', array("BGFISC_{$name}" => $val));
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Изтриване на стар плъгин
+     */
+    public function deletePlugins2449()
+    {
+        $Plugins = cls::get('core_Plugins');
+        $Plugins->deinstallPlugin('bgfisc_plg_TitlePlg', 'core_ObjectConfiguration');
+        $Plugins->deinstallPlugin('bgfisc_plg_Version', 'help_Info');
+    }
+
+
     /**
      * Връща наличните за избор фискални устройства
      *
@@ -161,40 +199,5 @@ class bgfisc_Setup extends core_ProtoSetup
         }
         
         return array('' => '') + $options;
-    }
-    
-    
-    /**
-     * Изтриване на плъгин
-     */
-    public function removeOldPlugins()
-    {
-        $Plugins = cls::get('core_Plugins');
-        $Plugins->deinstallPlugin('bgfisc_plg_CashRegister', 'bank_OwnAccounts');
-    }
-
-
-    /**
-     * Проверка дали може ръчно да се инсталира пакета
-     *
-     * @return string|void
-     */
-    public function checkManualInstall()
-    {
-        if (defined('EF_PRIVATE_PATH')) {
-            $privateRepos = array();
-            $privatePath = explode(';', EF_PRIVATE_PATH);
-            foreach ($privatePath as $path){
-                $baseName = basename($path);
-                $privateRepos[$baseName] = $baseName;
-            }
-
-            if(isset($privateRepos['bgplus'])){
-                if(core_Packs::isInstalled('n18')){
-
-                    return "Не може да се инсталира пакета, докато е инсталиран пакета \"n18\"";
-                }
-            }
-        }
     }
 }
