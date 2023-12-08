@@ -8551,6 +8551,8 @@ body.narrow {
 	color: red;
 	animation: blink 1s linear infinite;
 	-webkit-animation: blink 1s linear infinite;
+	outline: red 2px solid;
+    outline-offset: 2px;
 }
 
 @keyframes blink {
