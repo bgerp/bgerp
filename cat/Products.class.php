@@ -3470,11 +3470,19 @@ class cat_Products extends embed_Manager
                 
                 if ($obj->parent) {
                     if ($res[$obj->parent]->quantity != cat_BomDetails::CALC_ERROR) {
-                        $obj->quantity *= $res[$obj->parent]->quantity;
+                        if(is_numeric($res[$obj->parent]->quantity)){
+                            $obj->quantity *= $res[$obj->parent]->quantity;
+                        } else {
+                            wp($obj, $res[$obj->parent]);
+                        }
                     }
                 } else {
                     if ($obj->quantity != cat_BomDetails::CALC_ERROR) {
-                        $obj->quantity *= $qQuantity;
+                        if(is_numeric($res[$obj->parent]->quantity)) {
+                            $obj->quantity *= $qQuantity;
+                        } else {
+                            wp($obj, $qQuantity);
+                        }
                     }
                 }
                 
