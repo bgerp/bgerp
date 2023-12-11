@@ -3474,7 +3474,7 @@ class cat_Products extends embed_Manager
                 
                 if ($obj->parent) {
                     if ($res[$obj->parent]->quantity != cat_BomDetails::CALC_ERROR) {
-                        if(is_numeric($res[$obj->parent]->quantity)){
+                        if(is_numeric($res[$obj->parent]->quantity) && is_numeric($obj->quantity)){
                             $obj->quantity *= $res[$obj->parent]->quantity;
                         } else {
                             wp($obj, $res[$obj->parent]);
@@ -3482,7 +3482,7 @@ class cat_Products extends embed_Manager
                     }
                 } else {
                     if ($obj->quantity != cat_BomDetails::CALC_ERROR) {
-                        if(is_numeric($res[$obj->parent]->quantity)) {
+                        if(is_numeric($res[$obj->parent]->quantity) && is_numeric($obj->quantity)) {
                             $obj->quantity *= $qQuantity;
                         } else {
                             wp($obj, $qQuantity);
