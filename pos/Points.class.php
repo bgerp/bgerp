@@ -135,7 +135,7 @@ class pos_Points extends core_Master
         $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory');
         $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика, mandatory');
-        $this->FLD('discountPolicyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика за отстъпки, mandatory');
+        $this->FLD('discountPolicyId', 'key(mvc=price_Lists, select=title, allowEmpty)', 'caption=Настройки->Политика за отстъпки, mandatory');
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=default,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
