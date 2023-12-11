@@ -874,15 +874,11 @@ class pos_ReceiptDetails extends core_Detail
         
         $rec->productId = $product->productId;
         $receiptRec = pos_Receipts::fetch($rec->receiptId, 'pointId,contragentClass,contragentObjectId,valior,createdOn');
-        
-        $listId = null;
-        $defaultContragentId = pos_Points::defaultContragent($receiptRec->pointId);
-        if($receiptRec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $receiptRec->contragentObjectId){
-            $listId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
-        }
 
+        $listId = pos_Receipts::isForDefaultContragent($receiptRec) ? pos_Points::getSettings($receiptRec->pointId, 'policyId') : null;
+        $discountPolicyId = pos_Points::getSettings($receiptRec->pointId, 'discountPolicyId');
         $Policy = cls::get('price_ListToCustomers');
-        $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, dt::now(), 1, 'no', $listId);
+        $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, dt::now(), 1, 'no', $listId, false, $discountPolicyId);
         $rec->discountPercent = $price->discount;
         $rec->price = $price->price * $perPack;
         $rec->amount = $rec->price * $rec->quantity;

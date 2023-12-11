@@ -1869,6 +1869,11 @@ a.tUnsighted {
 	right: 0;
 	top: 50%;
 	margin-top: -8px;
+	display: none;
+}
+
+.doc_drivers_LatestDocPortal .tagsHolder {
+	display: block;
 }
 
 .narrow .tagsHolder {
@@ -2327,12 +2332,19 @@ top: 3px;
 float: left;
 display: inline-block;
 }
+
 .priority-high {
 	color:#882200;
 }
+
 .priority-critical {
 	color: #cc0033;
 }
+
+.priority-low {
+	color: #48C;
+}
+
 .docBgIcon {
 position: relative;
 }
@@ -2744,6 +2756,10 @@ vertical-align: top !important;
 
 #invoice-info {
 	border-left: 1px solid $gray4;
+}
+
+#inv-holder > tbody >  tr > td {
+	padding: 0 !important;
 }
 
 .invoiceNoteWarning {

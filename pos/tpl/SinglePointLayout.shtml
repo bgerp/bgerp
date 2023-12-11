@@ -31,6 +31,10 @@
 								<td>[#policyId#]</td>
 							</tr>
 							<tr>
+								<td class='dt'>|Политика за отстъпки|*:</td>
+								<td>[#discountPolicyId#]</td>
+							</tr>
+							<tr>
 								<td class='dt'>|Контрагент|*:</td>
 								<td>[#contragent#]</td>
 							</tr>

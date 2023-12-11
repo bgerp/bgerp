@@ -963,31 +963,61 @@ class pos_Receipts extends core_Master
         expect($rec->contragentClass = Request::get('contragentClassId', 'int'));
         expect($rec->contragentObjectId = Request::get('contragentId', 'int'));
         $locationId = Request::get('locationId', 'int');
-        
+
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
         $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
+        $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
 
         // Ако има детайли
         $Policy = cls::get('price_ListToCustomers');
         $dQuery = pos_ReceiptDetails::getQuery();
         $dQuery->where("#action = 'sale|code' AND #receiptId = {$rec->id}");
+        $discountPolicyId = pos_Points::getSettings($rec->pointId, 'discountPolicyId');
+        $listId = $isDefaultContragent ? pos_Points::getSettings($rec->pointId, 'policyId') : null;
+        $now = dt::now();
+
         while($dRec = $dQuery->fetch()){
-           
+
             // Обновява им се цената по текущата политика, ако може
             $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);
             $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
-            $price = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, dt::now(), 1, 'no');
-            if(!empty($price->price)){
-               
-                $dRec->price = $price->price * $perPack;
+
+            $price = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $now, 1, 'no', $listId, false);
+            if(empty($price->price)) continue;
+            $oldPrice = (!empty($dRec->discountPercent)) ? ($dRec->price * (1 - $dRec->discountPercent)) : $dRec->price;
+            $finalPrice = (!empty($price->discount)) ? ($price->price * (1 - $price->discount)) : $price->price;
+            $finalPrice *= $perPack;
+
+            if($isDefaultContragent || round($oldPrice, 5) > round($finalPrice, 5)){
+                $discount = $price->discount;
+                $price = $price->price / $perPack;
+
+                if(isset($discountPolicyId)){
+                    $priceOnDiscountListRec = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $now, 1, 'no', $discountPolicyId, false);
+
+                    if(isset($priceOnDiscountListRec->price)){
+                        $comparePrice = (!empty($priceOnDiscountListRec->discount)) ? ($priceOnDiscountListRec->price * (1 - $priceOnDiscountListRec->discount)) : $priceOnDiscountListRec->price;
+                        $comparePrice *= $perPack;
+
+                        $disc = ($finalPrice - $comparePrice) / $comparePrice;
+                        $discount = round(-1 * $disc, 3);
+                        if ($discount > 0.01) {
+                            // Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
+                            $discount = round(-1 * $disc, 3);
+                            $price = $comparePrice;
+                        }
+                    }
+                }
+
+                $dRec->price = $price * $perPack;
                 $dRec->amount = $dRec->price * $dRec->quantity;
-                $dRec->discountPercent = $price->discount;
+                $dRec->discountPercent = $discount;
                 pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent');
             }
         }
         
-        $this->logWrite('Задаване на контрагент', $id);
+        $this->logWrite('Избиране на контрагент', $id);
 
         if(Request::get('autoSelect')){
             if($rec->contragentClass == crm_Persons::getClassId()){
@@ -1235,5 +1265,21 @@ class pos_Receipts extends core_Master
         arsort($storeArr);
 
         return $storeArr[key($storeArr)];
+    }
+
+
+    /**
+     * Дали бележката е за дефолтния контрагент за ПОС-а
+     *
+     * @param $rec
+     * @return bool
+     */
+    public static function isForDefaultContragent($rec)
+    {
+        $rec = static::fetchRec($rec);
+        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+        if($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) return true;
+
+        return false;
     }
 }

@@ -3469,11 +3469,11 @@ class cat_Products extends embed_Manager
                 }
                 
                 if ($obj->parent) {
-                    if ($res[$obj->parent]->quantity != cat_BomDetails::CALC_ERROR) {
+                    if ($res[$obj->parent]->quantity != cat_BomDetails::CALC_ERROR && $obj->quantity != cat_BomDetails::CALC_ERROR) {
                         $obj->quantity *= $res[$obj->parent]->quantity;
                     }
                 } else {
-                    if ($obj->quantity != cat_BomDetails::CALC_ERROR) {
+                    if ($obj->quantity != cat_BomDetails::CALC_ERROR && $qQuantity != cat_BomDetails::CALC_ERROR) {
                         $obj->quantity *= $qQuantity;
                     }
                 }
