@@ -381,16 +381,29 @@ class label_plg_Print extends core_Plugin
 
 
     /**
+     * Метод по подразбиране за автоматичния печат на бързи етикети
+     *
+     * @param core_Mvc $mvc
+     * @param array $res    - стойност по подразбиране, ако не е върнато от модела
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetModeAutoLabelPrint($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res = 'no';
+        }
+    }
+
+
+    /**
      * След рендиране на обвивката
      */
     public function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $labelAfterSaveAction = label_Setup::get('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-        if($labelAfterSaveAction == 'no') return;
-
         $prevSavedId = Mode::get("{$invoker->className}_PREV_SAVED_ID");
-        if($invoker->_isSaveAndNew && $prevSavedId){
-            if(in_array($labelAfterSaveAction, array('yes', 'both'))){
+        if($invoker->_isSaveAndNew && isset($prevSavedId)){
+            $autoLabelMode = $invoker->getModeAutoLabelPrint($prevSavedId);
+            if(in_array($autoLabelMode, array('afterSaveAndNew', 'both'))){
                 if ($invoker->haveRightFor('printperipherallabel', $prevSavedId)) {
                     $lUrl = toUrl(array($invoker, 'printperipherallabel', $prevSavedId, 'refreshUrl' => toUrl(getCurrentUrl())), 'local');
                     $lUrl = urlencode($lUrl);
@@ -406,11 +419,13 @@ class label_plg_Print extends core_Plugin
      */
     public static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
+        // Ако се рендира таблицата на детайла веднага след добавянето на запис
         $prevSavedId = Mode::get("{$mvc->className}_PREV_SAVED_ID");
-        $labelAfterSaveAction = label_Setup::get('AUTO_PRINT_AFTER_SAVE_AND_NEW');
+        if(isset($prevSavedId) && !$mvc->_isSaveAndNew){
 
-        if(in_array($labelAfterSaveAction, array('afterSave', 'both'))){
-            if($prevSavedId && !$mvc->_isSaveAndNew){
+            // Ако е оказано да се печата след Запис или след Запис и Запис и нов да се разпечата автоматично етикет
+            $autoLabelMode = $mvc->getModeAutoLabelPrint($prevSavedId);
+            if(in_array($autoLabelMode, array('afterSave', 'both'))){
                 if ($mvc->haveRightFor('printperipherallabel', $prevSavedId)) {
                     $lUrl = toUrl(array($mvc, 'printperipherallabel', $prevSavedId, 'refreshUrl' => toUrl(getCurrentUrl())), 'local');
                     $lUrl = urlencode($lUrl);
