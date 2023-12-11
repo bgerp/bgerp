@@ -427,8 +427,8 @@ class price_ListToCustomers extends core_Manager
         $isFirstCall = true;
         $validFrom = null;
         $discountIncluded = null;
+
         $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, $validFrom, $isFirstCall, $rate, $chargeVat, $discountIncluded);
-        unset(price_ListRules::$alreadyReplaced["{$listId}|{$productId}"]);
 
         $listRec = price_Lists::fetch($listId);
         if(isset($discountIncluded)){
