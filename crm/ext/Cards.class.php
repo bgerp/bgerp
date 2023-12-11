@@ -99,7 +99,7 @@ class crm_ext_Cards extends core_Manager
      */
     public function description()
     {
-        $this->FLD('number', 'varchar(32)', 'caption=Номер,placeholder=Автоматично генериране');
+        $this->FLD('number', 'varchar(32,ci)', 'caption=Номер,placeholder=Автоматично генериране');
         $this->FLD('personId', 'key2(mvc=crm_Persons,select=name)', 'caption=Лице,silent,input=hidden');
         $this->FLD('type', 'enum(personal=Лична,company=Фирмена)', 'caption=Вид,notNull,value=personal,silent,removeAndRefreshForm=companyId');
         $this->FLD('companyId', 'key(mvc=crm_Companies,select=name)', 'input=hidden,silent,caption=Фирма,tdClass=leftCol');
