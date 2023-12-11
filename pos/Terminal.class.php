@@ -207,15 +207,11 @@ class pos_Terminal extends peripheral_Terminal
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
 
         // Ако контрагента е лице и е потребител да се показва и аватара му
-        if($rec->contragentClass == crm_Persons::getClassId()){
-            $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-            if($rec->contragentObjectId != $defaultContragentId){
-                $headerData->contragentAvatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 26, 26);
-            }
+        $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
+        if(!$isDefaultContragent){
+            $headerData->contragentAvatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 26, 26);
         }
-
-        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? null : cls::get($rec->contragentClass)->getHyperlink($rec->contragentObjectId, false, false, array('target' => '_blank'));
+        $contragentName = $isDefaultContragent ? null : cls::get($rec->contragentClass)->getHyperlink($rec->contragentObjectId, false, false, array('target' => '_blank'));
         $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : $contragentName;
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
@@ -2184,7 +2180,7 @@ class pos_Terminal extends peripheral_Terminal
         $color = dt::getColorByTime($rec->createdOn);
         $date = "<span class='timeSpan' style=\"color:#{$color}\">{$date}</span>";
 
-
+        $amountVerbalInner = '';
         if($rec->change < 0 && $rec->paid){
             $changedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal(abs($rec->change));
             $amountVerbalInner = "<span class='prices'><span class='receiptResultAmount'>" .core_Type::getByName('double(decimals=2)')->toVerbal($rec->total) . "</span>";
@@ -2204,9 +2200,7 @@ class pos_Terminal extends peripheral_Terminal
         }
 
         $num = pos_Receipts::getReceiptShortNum($rec->id);
-
-        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? pos_Points::getVerbal($rec->pointId, 'name') : cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
+        $contragentName = pos_Receipts::isForDefaultContragent($rec) ? pos_Points::getVerbal($rec->pointId, 'name') : cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $contragentName = str::limitLen($contragentName, 18);
         $num .= " / {$contragentName}";
 

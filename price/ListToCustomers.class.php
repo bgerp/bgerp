@@ -303,11 +303,12 @@ class price_ListToCustomers extends core_Manager
      * @param string       $chargeVat           - начин на начисляване на ддс
      * @param int|NULL     $listId              - ценова политика
      * @param bool         $quotationPriceFirst - дали първо да търси цена от последна оферта
+     * @param int|null     $discountListId      - политика спрямо която да се изчислява отстъпката
      *
      * @return stdClass $rec->price  - цена
      *                  $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true)
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true, $discountListId = null)
     {
         $rec = (object) array('price' => null);
         $productRec = cat_Products::fetch($productId, 'isPublic,proto');
@@ -320,7 +321,7 @@ class price_ListToCustomers extends core_Manager
         // Ако няма цена по оферта или не се изисква
         if (empty($rec->price)) {
             $listId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
-            
+
             // Проверяваме дали артикула е частен или стандартен
             if ($productRec->isPublic == 'no') {
                 $rec = (object) array('price' => null);
@@ -349,9 +350,9 @@ class price_ListToCustomers extends core_Manager
                     }
                 }
             } else {
-                
+
                 // За стандартните артикули се търси себестойността в ценовите политики
-                $rec = $this->getPriceByList($listId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+                $rec = $this->getPriceByList($listId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat, $discountListId);
                 $rec->listId = $listId;
             }
         }
@@ -364,10 +365,8 @@ class price_ListToCustomers extends core_Manager
 
         // Ако все още няма цена, но има прототип проверява се има ли цена по политика за прототипа, използва се тя
         if(is_null($rec->price) && isset($productRec->proto)){
-            $rec = $this->getPriceByList($listId, $productRec->proto, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+            $rec = $this->getPriceByList($listId, $productRec->proto, $packagingId, $quantity, $datetime, $rate, $chargeVat, $discountListId);
         }
-
-
 
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
         if (!is_null($rec->price)) {
@@ -421,7 +420,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Опит за намиране на цената според политиката за клиента (ако има такава)
      */
-    public function getPriceByList($listId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no')
+    public function getPriceByList($listId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $discountListId = null)
     {
         $rec = new stdClass();
         $isFirstCall = true;
@@ -431,14 +430,15 @@ class price_ListToCustomers extends core_Manager
         $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, $validFrom, $isFirstCall, $rate, $chargeVat, $discountIncluded);
 
         $listRec = price_Lists::fetch($listId);
+        $discountListId = $discountListId ?? $listRec->discountCompared;
         if(isset($discountIncluded)){
             // Начислява се отстъпката към цената за да може после обратно да се сметне правилно
             $rec->price /= (1 - $discountIncluded);
             $rec->discount = $discountIncluded;
-        } elseif (!empty($listRec->discountCompared)) {
+        } elseif (!empty($discountListId)) {
 
             // Намираме цената по тази политика и намираме колко % е отстъпката/надценката
-            $comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime, $isFirstCall, $rate, $chargeVat);
+            $comparePrice = price_ListRules::getPrice($discountListId, $productId, $packagingId, $datetime, $isFirstCall, $rate, $chargeVat);
 
             if ($comparePrice && isset($rec->price)) {
                 $disc = ($rec->price - $comparePrice) / $comparePrice;
@@ -456,7 +456,7 @@ class price_ListToCustomers extends core_Manager
                 }
             }
         }
-       // bp($rec, $discountIncluded);
+
         return $rec;
     }
     
