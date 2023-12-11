@@ -1869,6 +1869,11 @@ a.tUnsighted {
 	right: 0;
 	top: 50%;
 	margin-top: -8px;
+	display: none;
+}
+
+.doc_drivers_LatestDocPortal .tagsHolder {
+	display: block;
 }
 
 .narrow .tagsHolder {
