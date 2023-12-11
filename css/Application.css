@@ -2369,6 +2369,9 @@ pre.document {
 #invoice-info {
   border-left: 1px solid #bbbbbb; }
 
+#inv-holder > tbody >  tr > td {
+  padding: 0 !important; }
+
 .invoiceNoteWarning {
   color: #c51818;
   border: 1px dashed #910404;
