@@ -36,13 +36,13 @@ class visualcrossing_Forecasts extends core_Manager
     public function description()
     {
         // Дата на прогнозата
-        $this->FLD('date', 'varchar', array('caption' => 'Дата'));
+        $this->FLD('date', 'varchar(16)', array('caption' => 'Дата'));
 
         // Час на прогнозата
-        $this->FLD('time', 'varchar', array('caption' => 'Час'));
+        $this->FLD('time', 'varchar(2)', array('caption' => 'Час'));
 
         // Място
-        $this->FLD('location', 'varchar(ci)', 'caption=Място,hint=Град');
+        $this->FLD('location', 'varchar(64, ci)', 'caption=Място,hint=Град');
 
         // Минимална температура
         $this->FLD('low', 'double', 'caption=Температура->Мин.,unit=C');
