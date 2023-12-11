@@ -84,7 +84,6 @@ class visualcrossing_Forecasts extends core_Manager
         }
 
         $rec = self::fetch(array("#date = '[#1#]' && #time = '[#2#]' && #location = '[#3#]'", $date, $time, $location));
-        $query = self::getQuery();
 
         return $rec;
     }
