@@ -111,7 +111,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode,discountPolicyId';
       
     
     /**
@@ -123,6 +123,7 @@ class pos_Points extends core_Master
                                      'maxSearchProductRelations' => 'TERMINAL_MAX_SEARCH_PRODUCT_RELATIONS',
                                      'maxSearchProductInLastSales' => 'TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE',
                                      'searchDelayTerminal' => 'TERMINAL_SEARCH_SECONDS',
+                                     'discountPolicyId' => 'SHOW_DISCOUNT_COMPARED_TO_LIST_ID',
                                      'maxSearchReceipts' => 'TERMINAL_MAX_SEARCH_RECEIPTS');
     
     
@@ -134,6 +135,7 @@ class pos_Points extends core_Master
         $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory');
         $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика, mandatory');
+        $this->FLD('discountPolicyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика за отстъпки, mandatory');
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=default,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
