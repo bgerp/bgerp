@@ -1977,6 +1977,7 @@ class pos_Terminal extends peripheral_Terminal
         $Policy = cls::get('price_ListToCustomers');
         $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
 
+        $listId = $settings->policyId;
         if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
             $listId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
@@ -1991,7 +1992,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $packQuantity = cat_products_Packagings::getPack($id, $packId, 'quantity');
             $perPack = (!empty($packQuantity)) ? $packQuantity : 1;
-            $price = $Policy->getPriceByList($settings->policyId, $id, $packId, 1, dt::now(), 1, 'no');
+            $price = $Policy->getPriceByList($listId, $id, $packId, 1, dt::now(), 1, 'no');
 
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
