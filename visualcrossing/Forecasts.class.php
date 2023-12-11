@@ -178,11 +178,11 @@ class visualcrossing_Forecasts extends core_Manager
                             $rec->location = $location;
                         }
 
-                        $rec->low = $data->tempmin;
-                        $rec->high = $data->tempmax;
-                        $rec->rh = $data->humidity ? $data->humidity / 100 : 0;
-                        $rec->wind = $data->windspeed;
-                        $rec->icon = $data->icon;
+                        $rec->low = isset($hour->tempmin) ? $hour->tempmin : $hour->temp;
+                        $rec->high = isset($hour->tempmax) ? $hour->tempmax : $hour->temp;
+                        $rec->rh = $hour->humidity ? $hour->humidity / 100 : 0;
+                        $rec->wind = $hour->windspeed;
+                        $rec->icon = $hour->icon;
 
                         self::save($rec);
                     }
