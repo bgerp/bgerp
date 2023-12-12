@@ -1469,8 +1469,6 @@ table.listTable > tbody > tr {
 	table.listTable {
 		width: 100% !important;
 		border: none;
-		font-size: 0.95em;
-		line-height: 1.1em !important;
 		margin-bottom: 0;
 		td {
 			border: none !important;
@@ -1492,6 +1490,12 @@ table.listTable > tbody > tr {
     }
 
 }
+
+.wide .portal table.listTable {
+	font-size: 0.95em;
+	line-height: 1.1em !important;
+}
+
 .planning_ProductionTaskDetails {
 	table.listTable>tbody>tr>td {
 		border-top: 1px none !important;

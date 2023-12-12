@@ -1290,8 +1290,6 @@ div.acc-detail {
   .portal table.listTable {
     width: 100% !important;
     border: none;
-    font-size: 0.95em;
-    line-height: 1.1em !important;
     margin-bottom: 0; }
     .portal table.listTable td {
       border: none !important;
@@ -1306,6 +1304,10 @@ div.acc-detail {
       vertical-align: top !important; }
     .portal table.listTable .portal-date {
       width: 1%; }
+
+.wide .portal table.listTable {
+  font-size: 0.95em;
+  line-height: 1.1em !important; }
 
   .planning_ProductionTaskDetails table.listTable>tbody>tr>td {
     border-top: 1px none !important; }
