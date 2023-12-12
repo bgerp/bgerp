@@ -6855,6 +6855,9 @@ only screen and (max-width: 320px) {
 .labelBreak:last-child {
   margin-bottom: 0mm; }
 
+.qrcode {
+  height: 87px; }
+
 /*
  * стилове за принтиране
  */
