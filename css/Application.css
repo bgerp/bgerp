@@ -5188,7 +5188,8 @@ div.location.public {
 .flexBox {
   display: flex;
   align-content: baseline;
-  align-items: baseline; }
+  align-items: baseline;
+  margin-bottom: 5px; }
   .flexBox div {
     display: flex;
     align-content: baseline;
