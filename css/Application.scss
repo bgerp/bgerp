@@ -1869,6 +1869,11 @@ a.tUnsighted {
 	right: 0;
 	top: 50%;
 	margin-top: -8px;
+	display: none;
+}
+
+.doc_drivers_LatestDocPortal .tagsHolder {
+	display: block;
 }
 
 .narrow .tagsHolder {
@@ -2751,6 +2756,10 @@ vertical-align: top !important;
 
 #invoice-info {
 	border-left: 1px solid $gray4;
+}
+
+#inv-holder > tbody >  tr > td {
+	padding: 0 !important;
 }
 
 .invoiceNoteWarning {
