@@ -302,16 +302,6 @@ class crm_ext_Cards extends core_Manager
     }
 
 
-    function act_Test()
-    {
-        requireRole('debug');
-
-        //$number = 'xHama10R';
-        $number = 'ьHama10R';
-        static::getInfo($number);
-
-        return;
-    }
     /**
      * Връща информация за картата с този номер
      *
