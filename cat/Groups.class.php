@@ -139,7 +139,7 @@ class cat_Groups extends core_Master
     /**
      * Детайла, на модела
      */
-    public $changedParentId = array();
+    protected $changedParentId = array();
 
 
     /**
