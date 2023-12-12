@@ -209,7 +209,9 @@ class pos_Terminal extends peripheral_Terminal
         // Ако контрагента е лице и е потребител да се показва и аватара му
         $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
         if(!$isDefaultContragent){
-            $headerData->contragentAvatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 26, 26);
+            if($rec->contragentClass == crm_Persons::getClassId()){
+                $headerData->contragentAvatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 26, 26);
+            }
         }
         $contragentName = $isDefaultContragent ? null : cls::get($rec->contragentClass)->getHyperlink($rec->contragentObjectId, false, false, array('target' => '_blank'));
         $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : $contragentName;
