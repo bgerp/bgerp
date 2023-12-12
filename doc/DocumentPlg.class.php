@@ -4225,7 +4225,14 @@ class doc_DocumentPlg extends core_Plugin
         $lang = core_Lg::getCurrent();
         
         $cacheStr = $userId . '|' . $containerId . '|' . $modifiedOn . '|' . $pages . '|' . $screenMode . '|' . $tabTop  . '|' . $tabTop2 . '|' . $tab . '|' . $lang . '|' . $rejected;
-        
+
+        // Ако има странициране в детайлите и ги добавяме към ключа
+        foreach ((array)Request::$vars['_GET'] as $key => $val) {
+            if (strpos($key, 'P_') === 0) {
+                $cacheStr .= '|' . $val;
+            }
+        }
+
         // Добавка за да работи сортирането на детайли
         $dHnd = $mvc->getHandle($id);
         if (Request::get('docId') == $dHnd) {
