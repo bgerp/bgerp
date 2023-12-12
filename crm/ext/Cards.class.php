@@ -302,25 +302,63 @@ class crm_ext_Cards extends core_Manager
     }
 
 
+    function act_Test()
+    {
+        requireRole('debug');
+
+        //$number = 'xHama10R';
+        $number = 'ьHama10R';
+        static::getInfo($number);
+
+        return;
+    }
     /**
      * Връща информация за картата с този номер
      *
      * @param string $number - номер на карта
-     *
+     * @param bool $strict - дали стриктно да проверява за номера на картата
      * @return array $info - информация за картата
-     *             ['contragentClassId'] - Клас на контрагента
-     *             ['contragentId']      - Ид на контрагента
-     *             ['type']              - Тип на картата
-     *             ['status']            - Статус на картата активна/несъществуваща/изтекла
+     *             ['number']            - номер на картата
+     *             ['contragentClassId'] - клас на контрагента
+     *             ['contragentId']      - ид на контрагента
+     *             ['type']              - тип на картата
+     *             ['status']            - статус на картата активна/несъществуваща/изтекла
      */
-    public static function getInfo($number)
+    public static function getInfo($number, $strict = false)
     {
+        $number = mb_strtolower($number);
         $info = array('status' => self::STATUS_NOT_FOUND);
+
+        // Опит за намиране на карта с този номер
         $query = static::getQuery();
         $query->where(array("#number = '[#1#]'", $number));
         $rec = $query->fetch();
+        if (!$rec && $strict) return $info;
+
+        // Ако не е намерена и не търсим "стрикно"
+        if(!$rec){
+            $rec = null;
+            foreach (array('ь,ф,ъ,а,е,о', 'а,б,ц,д,е,ф') as $map){
+                $replaceArr = arr::make($map);
+
+                // Мапват се определени букви и се подменят с латински
+                $count = 0;
+                $replaced = str_replace($replaceArr, array('a', 'b', 'c', 'd', 'e', 'f'), $number, $count);
+                if($count){
+
+                    // Ако има намерена карта - това е
+                    $query = static::getQuery();
+                    $query->where(array("#number = '[#1#]'", $replaced));
+                    $rec = $query->fetch();
+                    if(is_object($rec)) break;
+                }
+            }
+        }
+
+        // Ако няма намерена карта и с магическото търсене - значи няма
         if (!$rec) return $info;
 
+        $info['number'] = $rec->number;
         $info['type'] = $rec->type;
         $info['status'] = ($rec->state != 'closed') ? self::STATUS_ACTIVE : self::STATUS_NOT_ACTIVE;
         if ($rec->type == 'company') {
