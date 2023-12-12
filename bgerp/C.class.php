@@ -15,10 +15,43 @@
  */
 class bgerp_C extends core_Mvc
 {
-    
- 
 
 
+    /**
+     * Списък с екшъните, които се изпълняват по подразбиране
+     */
+    public $defActArr = array('img', 'cards');
+
+
+    /**
+     * Извиква се преди изпълняването на екшън
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+        $defActArr = arr::make($mvc->defActArr, true);
+
+        if ($defActArr[$action]) {
+
+            return ;
+        }
+
+        $id = $action;
+
+        $mvc->logNotice("{$id} - Under construction...");
+
+        echo "{$id}";
+        echo "<br>";
+        echo "Under construction...";
+
+        Mode::set('wrapper', 'page_Empty');
+
+        return false;
+    }
+
+
+    /**
+     * @return void
+     */
     public function act_Img()
     {
 
@@ -77,6 +110,10 @@ class bgerp_C extends core_Mvc
     }
 
 
+    /**
+     * @return void
+     * @throws Exception
+     */
     public function act_Cards()
     {
         requireRole('admin');
