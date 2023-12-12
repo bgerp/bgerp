@@ -1322,9 +1322,6 @@ div.acc-detail {
   .portal.planning table.listTable th:last-child {
     border-right: none; }
 
-.narrow .portal .listRows {
-  font-size: 0.9em; }
-
 .narrow .portal .legend .addTask {
   top: 2px; }
 
