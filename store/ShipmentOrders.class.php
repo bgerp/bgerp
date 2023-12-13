@@ -300,7 +300,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         if (isset($fields['-single'])) {
             $logisticData = $mvc->getLogisticData($rec);
-            $logisticData['toCountry'] = ($rec->tplLang == 'bg') ? drdata_Countries::fetchField("#commonName = '{$logisticData['toCountry']}'", 'commonNameBg') : $logisticData['toCountry'];
+            $logisticData['toCountry'] = ($rec->tplLang == 'bg') ? drdata_Countries::fetchField(array("#commonName = '[#1#]'", $logisticData['toCountry']), 'commonNameBg') : $logisticData['toCountry'];
             $logisticData['toPCode'] = core_Lg::transliterate($logisticData['toPCode']);
             $logisticData['toPlace'] = core_Lg::transliterate($logisticData['toPlace']);
             $logisticData['toAddress'] = core_Lg::transliterate($logisticData['toAddress']);
