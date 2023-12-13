@@ -110,6 +110,12 @@ defIfNot('POS_SHOW_EXACT_QUANTITIES', 'no');
 
 
 /**
+ *  Към кой ценоразпис да се показват отстъпките в ПОС-а
+ */
+defIfNot('POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID', '');
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -176,6 +182,7 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
         'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
         'POS_SHOW_EXACT_QUANTITIES' => array('enum(no=Не,yes=Да)', 'caption=Показване на наличните к-ва в терминала->Избор'),
+        'POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценоразпис спрямо който да се показват отстъпките в POS-а->Избор'),
     );
     
     

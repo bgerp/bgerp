@@ -36,10 +36,13 @@ class visualcrossing_Forecasts extends core_Manager
     public function description()
     {
         // Дата на прогнозата
-        $this->FLD('date', 'date', array('caption' => 'Дата'));
+        $this->FLD('date', 'varchar(16)', array('caption' => 'Дата'));
+
+        // Час на прогнозата
+        $this->FLD('time', 'varchar(2)', array('caption' => 'Час'));
 
         // Място
-        $this->FLD('location', 'varchar(ci)', 'caption=Място,hint=Град');
+        $this->FLD('location', 'varchar(64, ci)', 'caption=Място,hint=Град');
 
         // Минимална температура
         $this->FLD('low', 'double', 'caption=Температура->Мин.,unit=C');
@@ -56,14 +59,14 @@ class visualcrossing_Forecasts extends core_Manager
         // Икона
         $this->FLD('icon', 'varchar(64)', 'caption=Икона');
 
-        $this->setDbUnique('date,location');
+        $this->setDbUnique('date,time,location');
     }
 
 
     /**
      * Връща прогнозата за времето
      */
-    public static function getForecast($date, $location = null)
+    public static function getForecast($date, $time = '', $location = null)
     {
         if (!$location) {
             $pSettings = core_Settings::fetchKey(crm_Profiles::getSettingsKey());
@@ -80,7 +83,7 @@ class visualcrossing_Forecasts extends core_Manager
             return false;
         }
 
-        $rec = self::fetch(array("#date = '[#1#]' && #location = '[#2#]'", $date, $location));
+        $rec = self::fetch(array("#date = '[#1#]' && #time = '[#2#]' && #location = '[#3#]'", $date, $time, $location));
 
         return $rec;
     }
@@ -128,30 +131,61 @@ class visualcrossing_Forecasts extends core_Manager
             }
 
             $weather = json_decode($jsonRes);
+
             $forecastday = $weather->days;
 
             if (is_array($forecastday)) {
                 foreach ($forecastday as $data) {
 
-                    $date = dt::timestamp2mysql($data->datetimeEpoch);
+                    $date = $data->datetime;
+                    //$date = dt::timestamp2mysql($data->datetime);
+                    $time = '';
 
-                    $rec = self::fetch(array("#date = '[#1#]' && #location = '[#2#]'", $date, $location));
+                    $rec = self::fetch(array("#date = '[#1#]' && #time = '[#2#]' && #location = '[#3#]'", $date, $time, $location));
+
                     if (!$rec) {
                         $rec = new stdClass();
                         $rec->date = $date;
+                        $rec->time = $time;
                         $rec->location = $location;
                     }
 
                     $rec->low = $data->tempmin;
                     $rec->high = $data->tempmax;
-                    $rec->rh = $data->humidity ? $data->humidity/100 : 0;
+                    $rec->rh = $data->humidity ? $data->humidity / 100 : 0;
                     $rec->wind = $data->windspeed;
                     $rec->icon = $data->icon;
 
                     self::save($rec);
-                }
 
-                bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
+                    unset($time);
+
+                    foreach ($data->hours as $hour) {
+
+                        if (substr($hour->datetime, 0, 1) != 0) {
+                            $time = substr($hour->datetime, 0, 2);
+                        } else {
+                            $time = substr($hour->datetime, 1, 1);
+                        }
+
+                        $rec = self::fetch(array("#date = '[#1#]' && #time = '[#2#]' && #location = '[#3#]'", $date, $time, $location));
+
+                        if (!$rec) {
+                            $rec = new stdClass();
+                            $rec->date = $date;
+                            $rec->time = $time;
+                            $rec->location = $location;
+                        }
+
+                        $rec->low = isset($hour->tempmin) ? $hour->tempmin : $hour->temp;
+                        $rec->high = isset($hour->tempmax) ? $hour->tempmax : $hour->temp;
+                        $rec->rh = $hour->humidity ? $hour->humidity / 100 : 0;
+                        $rec->wind = $hour->windspeed;
+                        $rec->icon = $hour->icon;
+
+                        self::save($rec);
+                    }
+                }
             }
         }
     }

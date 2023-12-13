@@ -60,9 +60,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         $length = store_Setup::get('TARIFF_NUMBER_LENGTH');
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
-            
+
             $tariffNumber = cat_Products::getParams($rec->productId, 'customsTariffNumber', true);
-            $tariffNumber = !empty($tariffNumber) ? substr($tariffNumber, 0, $length) : self::EMPTY_TARIFF_NUMBER;
+
+
+            $tariffNumber = !empty($tariffNumber) ? mb_substr($tariffNumber, 0, $length) : self::EMPTY_TARIFF_NUMBER;
             $rec->tariffNumber = $tariffNumber;
             $row->tariffNumber = $tariffNumber;
         }

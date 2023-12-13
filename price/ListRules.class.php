@@ -314,6 +314,10 @@ class price_ListRules extends core_Detail
      */
     public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true, $rate = 1, $chargeVat = 'no', &$discountIncluded = null)
     {
+        if($isFirstCall){
+            unset(price_ListRules::$alreadyReplaced["{$listId}|{$productId}"]);
+        }
+
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
 
@@ -835,8 +839,10 @@ class price_ListRules extends core_Detail
      */
     public function prepareDetail_($data)
     {
-        $data->TabCaption = 'Правила';
-        $data->Tab = 'top';
+        if(!($data->masterId == price_ListRules::PRICE_LIST_COST && !isset($data->masterData->rec->discountClass))){
+            $data->TabCaption = 'Правила';
+            $data->Tab = 'top';
+        }
 
         setIfNot($data->masterKey, $this->masterKey);
         setIfNot($data->masterMvc, $this->Master);

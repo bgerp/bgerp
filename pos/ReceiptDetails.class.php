@@ -436,8 +436,35 @@ class pos_ReceiptDetails extends core_Detail
        
         return $res;
     }
-    
-    
+
+
+    /**
+     * Диспечер на контрагентските операции
+     */
+    public function act_dispatchContragentSearch()
+    {
+        $this->requireRightFor('edit');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        $receiptRec = pos_Receipts::fetch($receiptId);
+        $this->requireRightFor('edit', $receiptId);
+        $string = Request::get('string', 'varchar');
+
+        $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $string, 'operation' => 'contragent', 'receiptId' => $receiptId, 'refreshPanel' => 'true');
+
+        // Ако е засечена клиентска карта - редирект към избора на контрагента ѝ
+        if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
+            $cardInfo = crm_ext_Cards::getInfo($string);
+            if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
+                $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $receiptId, 'ajax_mode' =>1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
+            } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
+                core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
+            }
+        }
+
+        return core_Request::forward($forwardUrl);
+    }
+
+
     /**
      * Екшън добавящ продукт в бележката
      */
@@ -874,15 +901,11 @@ class pos_ReceiptDetails extends core_Detail
         
         $rec->productId = $product->productId;
         $receiptRec = pos_Receipts::fetch($rec->receiptId, 'pointId,contragentClass,contragentObjectId,valior,createdOn');
-        
-        $listId = null;
-        $defaultContragentId = pos_Points::defaultContragent($receiptRec->pointId);
-        if($receiptRec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $receiptRec->contragentObjectId){
-            $listId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
-        }
 
+        $listId = pos_Receipts::isForDefaultContragent($receiptRec) ? pos_Points::getSettings($receiptRec->pointId, 'policyId') : null;
+        $discountPolicyId = pos_Points::getSettings($receiptRec->pointId, 'discountPolicyId');
         $Policy = cls::get('price_ListToCustomers');
-        $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, dt::now(), 1, 'no', $listId);
+        $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, dt::now(), 1, 'no', $listId, false, $discountPolicyId);
         $rec->discountPercent = $price->discount;
         $rec->price = $price->price * $perPack;
         $rec->amount = $rec->price * $rec->quantity;

@@ -278,7 +278,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             
             $amount = round($amount, 2);
             $arr = array('PLU_NAME' => cat_Products::getVerbal($dRec->productId, 'name'), 'QTY' => 1, 'PRICE' => $amount, 'VAT_CLASS' => $vatClass);
-            $price = round($amount / $dRec->packQuantity, bgfisc_Setup::get('N18_PRICE_FU_ROUND', true));
+            $price = round($amount / $dRec->packQuantity, bgfisc_Setup::get('PRICE_FU_ROUND'));
             $arr['BEFORE_PLU_TEXT'] = "{$dRec->packQuantity}x{$price}лв";
             if (!empty($dRec->discount)) {
                 $arr['PERCENT'] = $dRec->discount * 100;
