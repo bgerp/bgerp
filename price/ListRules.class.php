@@ -814,7 +814,7 @@ class price_ListRules extends core_Detail
         }
 
         // По подразбиране задаваме в текуща валута
-        $currencyCode = isset($currencyCode) ? $currencyCode : acc_Periods::getBaseCurrencyCode();
+        $currencyCode = !empty($currencyCode) ? $currencyCode : acc_Periods::getBaseCurrencyCode();
         
         // Във всяка API функция проверките за входните параметри са задължителни
         expect(!empty($productId) && !empty($validFrom) && !empty($primeCost), $productId, $primeCost, $validFrom, $currencyCode, $vat);

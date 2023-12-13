@@ -212,7 +212,7 @@ class price_ListVariations extends core_Detail
 
         $query->orderBy("diff,id", 'ASC');
         if(isset($limit)){
-            $query->limit(1);
+            $query->limit($limit);
         }
         while($rec = $query->fetch()){
             $res[$rec->id] = $rec->variationId;
