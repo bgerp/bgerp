@@ -161,6 +161,8 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         while ($shDetRec = $shDetQuery->fetch()) {
 
+            $color = '';
+
             //Количество от артикула в склада от ЕН
             if (!in_array($shDetRec->storeId, $activeStateArr)) continue;
             $storeQuantity = store_Products::getQuantities($shDetRec->productId, $shDetRec->storeId);
@@ -169,11 +171,16 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
             //Експедирано количество общо от всички опаковки
             $shipmentQuantity = $shDetRec->quantityInPack * $shDetRec->packQuantity;
 
-            if (!$rec->id) {
+            if (!$rec->data) {
                 $stopNot = false;
             } else {
                 $stopNot = $rec->data->recs[$shDetRec->productId]->stopNot;
 
+            }
+
+            if (($shipmentQuantity < $storeQuantity->quantity) ||
+            (($shipmentQuantity >= $storeQuantity->quantity) && ($allStoriesQuantity->quantity > $shipmentQuantity))){
+                $color = 'red';
             }
 
             if (!array_key_exists($shDetRec->productId, $recs)) {
@@ -189,6 +196,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
                         'allStoriesQuantity' => $allStoriesQuantity->quantity,
                         'measure' => cat_Products::fetchField($shDetRec->productId, 'measureId'),
                         'stopNot' => $stopNot,
+                        'color' => $color,
                     );
             } else {
                 $obj = &$recs[$shDetRec->productId];
@@ -202,6 +210,8 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         if (countR($recs)) {
             self::sendNotificationOnThisReport($rec);
         }
+
+        arr::sortObjects($recs, 'color', 'desc');
 
         return $recs;
 
@@ -270,7 +280,6 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         $row->shipmentQuantity = $Double->toVerbal($dRec->shipmentQuantity);
         $row->storeQuantity = $Double->toVerbal($dRec->storeQuantity);
         $row->allStoriesQuantity = $Double->toVerbal($dRec->allStoriesQuantity);
-
 
         if ($dRec->shipmentQuantity < $dRec->storeQuantity) {
             $row->shipmentQuantity = "<span class= 'red'>" . $Double->toVerbal($dRec->shipmentQuantity);
