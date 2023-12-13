@@ -382,7 +382,7 @@ class price_ListRules extends core_Detail
                     if ($parent = $listRec->parent) {
 
                         // Питаме бащата за цената
-                        $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, true, 1, 'no', $discountIncluded);
+                        $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false, 1, 'no', $discountIncluded);
                         
                         // Ако има цена добавяме и дефолтната надценка
                         if (isset($price)) {
