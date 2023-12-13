@@ -116,7 +116,7 @@ class bgerp_C extends core_Mvc
      */
     public function act_Cards()
     {
-        requireRole('admin');
+        requireRole('admin, cards');
 
         $tpl = new ET('
         <!DOCTYPE html>
