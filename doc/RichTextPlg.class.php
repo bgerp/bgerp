@@ -98,7 +98,7 @@ class doc_RichTextPlg extends core_Plugin
         $cHtml = mb_strcut($html, $hideLen);
 
         // Да не се прекъсва цитата и други елементи по средата по средата
-        foreach (array('bQuote') as $eName) {
+        foreach (array('bQuote', 'bQuestion', 'bWarn', 'bInfo', 'bTip', 'bOk', 'bError', 'code') as $eName) {
             $cHtmlBegin = mb_strcut($html, 0, $hideLen);
             $bQuoteOpen = mb_strrpos($cHtmlBegin, "[{$eName}");
             if ($bQuoteOpen !== false) {

@@ -279,7 +279,7 @@ class pos_Terminal extends peripheral_Terminal
                 Mode::pop();
                 
                 $Policy = cls::get('price_ListToCustomers');
-                $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $productRec->id, $productRec->measureId, 1, $receiptRec->createdOn, 1, 'yes');
+                $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $productRec->id, $productRec->measureId, 1, dt::now(), 1, 'yes');
                 $Double = core_Type::getByName('double(decimals=2)');
                 
                 $row = new stdClass();
@@ -497,7 +497,8 @@ class pos_Terminal extends peripheral_Terminal
         $operation = Mode::get("currentOperation{$rec->id}");
         $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
         $buttons = array();
-        
+        $inputUrl = null;
+
         switch($operation){
             case 'add':
                 $inputUrl = array('pos_ReceiptDetails', 'dispatch', 'receiptId' => $rec->id);
@@ -517,6 +518,7 @@ class pos_Terminal extends peripheral_Terminal
                 $keyupUrl = null;
                 break;
             case 'contragent':
+                $inputUrl = array('pos_ReceiptDetails', 'dispatchContragentSearch', 'receiptId' => $rec->id, 'action' => 'settext');
                 break;
             case 'receipts':
                 break;
@@ -1035,14 +1037,14 @@ class pos_Terminal extends peripheral_Terminal
                 $maxContragents = pos_Points::getSettings($rec->pointId, 'maxSearchContragent');
                 
                 // Ако има клиентска карта с посочения номер, намира се контрагента ѝ
-                if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
+                if($cardRec = crm_ext_Cards::fetch(array("#number = '[#1#]'", $stringInput))){
                     $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec->contragentClassId)->getTitleById($cardRec->contragentId));
                     $count++;
                 }
                 
                 // Ако има фирма с такъв данъчен или национален номер
                 $cQuery = crm_Companies::getQuery();
-                $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}' AND #id != {$ownCompany->id}");
+                $cQuery->fetch(array("#vatId = '[#1#]' OR #uicId = '[#1#]' AND #id != {$ownCompany->id}", $stringInput));
                 $cQuery->show('id,folderId,vatId,uicId');
                 while($cRec = $cQuery->fetch()){
                     $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id), 'vatId' => $Varchar->toVerbal($cRec->vatId), 'uicId' => $Varchar->toVerbal($cRec->uicId));
@@ -1051,7 +1053,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 // Ако има лице с такова егн или данъчен номер
                 $pQuery = crm_Persons::getQuery();
-                $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
+                $pQuery->fetch(array("#egn = '[#1#]' OR #vatId = '[#1#]'", $stringInput));
                 $pQuery->show('id,folderId,egn,vatId');
                 while($pRec = $pQuery->fetch()){
                     $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id), 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId));
@@ -1062,7 +1064,7 @@ class pos_Terminal extends peripheral_Terminal
                     
                     // Ако има фирма чийто данъчен или национален номер започва с числото
                     $cQuery = crm_Companies::getQuery();
-                    $cQuery->where("#vatId LIKE '{$searchString}%' OR #uicId LIKE '{$searchString}%'");
+                    $cQuery->where(array("#vatId LIKE '[#1#]%' OR #uicId LIKE '[#1#]%'", $searchString));
                     $cQuery->show('id,folderId,vatId,uicId');
                     while($cRec = $cQuery->fetch()){
                         $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id), 'vatId' => $Varchar->toVerbal($cRec->vatId), 'uicId' => $Varchar->toVerbal($cRec->uicId));
@@ -1071,7 +1073,7 @@ class pos_Terminal extends peripheral_Terminal
                     
                     // Ако има лице чието егн или национален номер започва с числото
                     $pQuery = crm_Persons::getQuery();
-                    $pQuery->where("#vatId LIKE '{$searchString}%' OR #egn LIKE '{$searchString}%'");
+                    $pQuery->where(array("#vatId LIKE '[#1#]%' OR #egn LIKE '[#1#]%'", $searchString));
                     $pQuery->show('id,folderId,egn,vatId');
                     while($pRec = $pQuery->fetch()){
                         $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id), 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId));

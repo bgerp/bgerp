@@ -814,7 +814,7 @@ class price_ListRules extends core_Detail
         }
 
         // По подразбиране задаваме в текуща валута
-        $currencyCode = isset($currencyCode) ? $currencyCode : acc_Periods::getBaseCurrencyCode();
+        $currencyCode = !empty($currencyCode) ? $currencyCode : acc_Periods::getBaseCurrencyCode();
         
         // Във всяка API функция проверките за входните параметри са задължителни
         expect(!empty($productId) && !empty($validFrom) && !empty($primeCost), $productId, $primeCost, $validFrom, $currencyCode, $vat);
@@ -839,8 +839,10 @@ class price_ListRules extends core_Detail
      */
     public function prepareDetail_($data)
     {
-        $data->TabCaption = 'Правила';
-        $data->Tab = 'top';
+        if(!($data->masterId == price_ListRules::PRICE_LIST_COST && !isset($data->masterData->rec->discountClass))){
+            $data->TabCaption = 'Правила';
+            $data->Tab = 'top';
+        }
 
         setIfNot($data->masterKey, $this->masterKey);
         setIfNot($data->masterMvc, $this->Master);
