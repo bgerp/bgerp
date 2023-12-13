@@ -92,8 +92,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-
-
+        $form->setField('sharedUsers', 'mandatory');
     }
 
 
@@ -228,7 +227,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
             $fld->FLD('shipmentQuantity', 'double', 'caption=Количество -> по ЕН');
             $fld->FLD('storeQuantity', 'double', 'caption=Количество -> в склада');
             $fld->FLD('allStoriesQuantity', 'double', 'caption=Количество -> общо');
-            $fld->FLD('stopNot', 'text', 'caption=Stop');
+            $fld->FLD('stopNot', 'text', 'caption=Стоп->нотиф.');
         } else {
             $fld->FLD('shipmentId', 'key(mvc=store_ShipmentOrders,select=id)', 'caption=ЕН');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
@@ -361,7 +360,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
      */
     public function sendNotificationOnThisReport($rec)
     {
-        $art = null;
+        $art = array();
         $cond = false;
         $me = cls::get(get_called_class());
 
@@ -392,16 +391,8 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         if ($cond === false) return;
 
-        // Ако няма избрани потребители за нотифициране, не се прави нищо
+        // Нотифицират се избраните потребители
         $userArr = keylist::toArray($rec->sharedUsers);
-
-        if (!in_array($rec->createdBy, $userArr)) {
-            array_push($userArr, $rec->createdBy);
-        }
-
-        if (!countR($userArr)) {
-            $userArr = array($rec->createdBy => $rec->createdBy, $rec->modifiedBy => $rec->modifiedBy);
-        }
 
         $text = self::$defaultNotificationText . $art;
         $msg = new core_ET($text);
@@ -417,7 +408,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         $url = array('frame2_Reports', 'single', $rec->id);
         $msg = $msg->getContent();
 
-        // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
+        // На всеки от абонираните потребители се изпраща нотификацията за наличие на неекспедирани количества
         foreach ($userArr as $userId) {
             bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
         }
