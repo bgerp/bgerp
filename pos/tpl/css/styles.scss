@@ -560,8 +560,8 @@ select.tabHolder {
 }
 .grid.pictureAndText .element {
 	display: flex;
-	padding: 3px  0 0 !important;
-	height: 166px;
+	padding: 3px !important;
+	height: 164px;
 	box-sizing: border-box;
 	overflow: hidden;
 	flex-direction: column;
@@ -578,7 +578,7 @@ select.tabHolder {
 	}
 	.short-title {
 		height: 20px;
-		padding: 2px;
+		padding: 2px 0;
 		overflow: hidden;
 		font-size: 0.95em;
 		box-sizing: border-box;
