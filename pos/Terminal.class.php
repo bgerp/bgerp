@@ -279,7 +279,7 @@ class pos_Terminal extends peripheral_Terminal
                 Mode::pop();
                 
                 $Policy = cls::get('price_ListToCustomers');
-                $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $productRec->id, $productRec->measureId, 1, $receiptRec->createdOn, 1, 'yes');
+                $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $productRec->id, $productRec->measureId, 1, dt::now(), 1, 'yes');
                 $Double = core_Type::getByName('double(decimals=2)');
                 
                 $row = new stdClass();
