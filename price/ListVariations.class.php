@@ -241,15 +241,49 @@ class price_ListVariations extends core_Detail
 
 
     /**
+     * Рендиране на детайла
+     *
+     * @param stdClass $data
+     * @return core_ET $resTpl
+     */
+    public function renderDetail_($data)
+    {
+        if($data->hide) return new core_ET("");
+
+        $tpl = parent::renderDetail_($data);
+
+        return $tpl;
+    }
+
+
+    /**
      * Подготовка на Детайлите
      */
     public function prepareDetail_($data)
     {
+        if($data->masterId == price_ListRules::PRICE_LIST_COST){
+            $data->hide = true;
+            return;
+        }
+
         $res = parent::prepareDetail_($data);
         $count = countR($data->recs);
         $data->TabCaption = "Вариации|* ({$count})";
         $data->Tab = 'top';
 
         return $res;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'add' && isset($rec)){
+            if($rec->listId == price_ListRules::PRICE_LIST_COST){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

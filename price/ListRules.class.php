@@ -839,8 +839,10 @@ class price_ListRules extends core_Detail
      */
     public function prepareDetail_($data)
     {
-        $data->TabCaption = 'Правила';
-        $data->Tab = 'top';
+        if(!($data->masterId == price_ListRules::PRICE_LIST_COST && !isset($data->masterData->rec->discountClass))){
+            $data->TabCaption = 'Правила';
+            $data->Tab = 'top';
+        }
 
         setIfNot($data->masterKey, $this->masterKey);
         setIfNot($data->masterMvc, $this->Master);
