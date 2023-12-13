@@ -170,9 +170,10 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
             $shipmentQuantity = $shDetRec->quantityInPack * $shDetRec->packQuantity;
 
             if (!$rec->id) {
-                $stopNot = '';
+                $stopNot = false;
             } else {
                 $stopNot = $rec->data->recs[$shDetRec->productId]->stopNot;
+
             }
 
             if (!array_key_exists($shDetRec->productId, $recs)) {
@@ -281,10 +282,10 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         }
 
-        if ($dRec->stopNot == 'stop') {
+        if ($dRec->stopNot === true) {
             $icon = "ef_icon=img/16/checkbox_yes.png";
         }
-        if ($dRec->stopNot == '') {
+        if ($dRec->stopNot === false) {
             $icon = "ef_icon=img/16/checkbox_no.png";
         }
         $row->stopNot .= ht::createLink('', array('store_reports_NonPublicItems', 'SetStop', 'productId' => $dRec->productId, 'recId' => $rec->id, 'ret_url' => true), null, $icon);
@@ -360,7 +361,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
      */
     public function sendNotificationOnThisReport($rec)
     {
-        $art = array();
+        $artArr = array();
         $cond = false;
         $me = cls::get(get_called_class());
 
@@ -368,21 +369,19 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         foreach ($rec->data->recs as $r) {
 
-            $selRec = true;
-            if ($r->stopNot == '') {
-                $selRec = false;
-            }
-
-            if (($r->shipmentQuantity < $r->storeQuantity) && ($selRec === false)) {
+            if (($r->shipmentQuantity < $r->storeQuantity) && ($r->stopNot === false)) {
 
                 $rec->priority = 'alert';
+                array_push($artArr,$r->productId);
 
                 $cond = true;
             }
 
             if (($r->shipmentQuantity >= $r->storeQuantity) &&
                 ($r->shipmentQuantity < $r->allStoriesQuantity) &&
-                ($selRec === false)) {
+                ($r->stopNot === false)) {
+
+                array_push($artArr,$r->productId);
 
                 $cond = true;
 
@@ -393,8 +392,17 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         // Нотифицират се избраните потребители
         $userArr = keylist::toArray($rec->sharedUsers);
+        $arts = '';
+        $mark = 1;
+        foreach ($artArr as $v){
+            $arts .= 'Art'.$v;
+            if($mark < countR($artArr)){
+                $arts .= ', ';
+                $mark++;
+            }
+        }
 
-        $text = self::$defaultNotificationText . $art;
+        $text = self::$defaultNotificationText .' '. $arts;
         $msg = new core_ET($text);
 
         // Заместване на параметрите в текста на нотификацията
@@ -452,13 +460,13 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         $stopNot = $rec->data->recs[$productId]->stopNot;
 
-        if ($stopNot == '') {
+        if ($stopNot === false) {
 
-            $rec->data->recs[$productId]->stopNot = 'stop';
+            $rec->data->recs[$productId]->stopNot = true;
 
-        } elseif ($stopNot == 'stop') {
+        } elseif ($stopNot === true) {
 
-            $rec->data->recs[$productId]->stopNot = '';
+            $rec->data->recs[$productId]->stopNot = false;
         }
 
         cls::get('frame2_Reports')->save_($rec);
