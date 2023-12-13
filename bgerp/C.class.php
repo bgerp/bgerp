@@ -54,8 +54,7 @@ class bgerp_C extends core_Mvc
      */
     public function act_Img()
     {
-
-        requireRole('admin');
+        requireRole('admin, cards');
         // Ensure you have the GD library installed in PHP
 
         $width = 2000;
@@ -116,7 +115,7 @@ class bgerp_C extends core_Mvc
      */
     public function act_Cards()
     {
-        requireRole('admin');
+        requireRole('admin, cards');
 
         $tpl = new ET('
         <!DOCTYPE html>
