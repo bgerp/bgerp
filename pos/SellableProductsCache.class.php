@@ -113,7 +113,7 @@ class pos_SellableProductsCache extends core_Master
      * @param bool $force - дали да се форсира преизчисляването
      * @return string
      */
-    private function sync($force = false)
+    public function sync($force = false)
     {
         if(!pos_Points::count()) return "Няма налични точки на продажба";
 
@@ -145,7 +145,7 @@ class pos_SellableProductsCache extends core_Master
             foreach ($priceLists as $listId){
                 if(price_ListRules::getPrice($listId, $pRec->id, null, $datetime)){
                     $newRec = (object)array('productId' => $pRec->id, 'searchKeywords' => $pRec->searchKeywords);
-                    $newRec->string = plg_Search::normalizeText($pRec->name) . " " . plg_Search::normalizeText($pRec->code);
+                    $newRec->string = " " . plg_Search::normalizeText($pRec->name) . " " . plg_Search::normalizeText($pRec->code);
                     $newRec->priceListId = $listId;
                     $toSave[] = $newRec;
                 }

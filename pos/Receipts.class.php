@@ -547,13 +547,14 @@ class pos_Receipts extends core_Master
         
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
-            if(empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || !in_array($rec->state, array('draft', 'closed', 'waiting'))){
+
+            if(empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || $rec->state != 'draft'){
                 $res = 'no_one';
             }
         }
         
         if($action == 'setcontragent' && isset($rec)){
-            if(!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn)){
+            if(!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn) || $rec->state != 'draft'){
                 $res = 'no_one';
             }
         }
@@ -1001,8 +1002,8 @@ class pos_Receipts extends core_Master
                         $comparePrice *= $perPack;
 
                         $disc = ($finalPrice - $comparePrice) / $comparePrice;
-                        $discount = round(-1 * $disc, 3);
-                        if ($discount > 0.01) {
+                        $discountCalced = round(-1 * $disc, 3);
+                        if ($discountCalced > 0.01) {
                             // Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
                             $discount = round(-1 * $disc, 3);
                             $price = $comparePrice;

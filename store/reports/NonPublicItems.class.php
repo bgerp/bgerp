@@ -92,7 +92,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        $form->setField('sharedUsers', 'mandatory');
+        $form->setField('sharedUsers', 'mandatory,autohide=none');
     }
 
 
@@ -238,7 +238,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
             $fld->FLD('shipmentQuantity', 'double', 'caption=Количество -> по ЕН');
             $fld->FLD('storeQuantity', 'double', 'caption=Количество -> в склада');
             $fld->FLD('allStoriesQuantity', 'double', 'caption=Количество -> общо');
-            $fld->FLD('stopNot', 'text', 'caption=Стоп->нотиф.');
+            $fld->FLD('stopNot', 'text', 'caption=Стоп->нотиф.,tdClass=centered');
         } else {
             $fld->FLD('shipmentId', 'key(mvc=store_ShipmentOrders,select=id)', 'caption=ЕН');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
