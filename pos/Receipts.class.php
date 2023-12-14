@@ -547,13 +547,14 @@ class pos_Receipts extends core_Master
         
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
-            if(empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || !in_array($rec->state, array('draft', 'closed', 'waiting'))){
+
+            if(empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || $rec->state != 'draft'){
                 $res = 'no_one';
             }
         }
         
         if($action == 'setcontragent' && isset($rec)){
-            if(!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn)){
+            if(!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn) || $rec->state != 'draft'){
                 $res = 'no_one';
             }
         }
