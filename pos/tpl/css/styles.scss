@@ -566,6 +566,7 @@ select.tabHolder {
 	overflow: hidden;
 	flex-direction: column;
 	align-content: center;
+	background: #fff !important;
 	&.selected {
 		padding: 1px !important;
 	}
@@ -578,10 +579,12 @@ select.tabHolder {
 	}
 	.short-title {
 		height: 20px;
+		text-align: center;
 		padding: 2px 0;
 		overflow: hidden;
 		font-size: 0.95em;
 		box-sizing: border-box;
+		margin-bottom: 2px;
 	}
 }
 .grid.short {
