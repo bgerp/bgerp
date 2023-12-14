@@ -216,10 +216,10 @@ class core_Detail extends core_Manager
         if ($data->masterId) {
             $rec = new stdClass();
             $rec->{$masterKey} = $data->masterId;
-        }
-        
-        if ($this->haveRightFor('add', $rec) && $data->masterId && $this->listAddBtn !== false) {
-            $data->toolbar->addBtn('Нов запис', array($this, 'add', $masterKey => $data->masterId, 'ret_url' => true),  'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+
+            if ($this->haveRightFor('add', $rec) && $data->masterId && $this->listAddBtn !== false) {
+                $data->toolbar->addBtn('Нов запис', array($this, 'add', $masterKey => $data->masterId, 'ret_url' => true),  'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+            }
         }
 
         if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => $data->masterId))){
@@ -373,15 +373,19 @@ class core_Detail extends core_Manager
                         $query->where("#{$rec->_filterFld} {$sign} '{$rec->{$rec->_filterFldVal}}'");
                     }
 
-                    $haveDeletableRec = false;
+                    $canDeleteCount = 0;
+                    $haveDeletableMoreThanOneRec = false;
                     while ($dRec = $query->fetch()){
                         if(static::haveRightFor('delete', $dRec)){
-                            $haveDeletableRec = true;
-                            break;
+                            $canDeleteCount++;
+                            if($canDeleteCount >= 2) {
+                                $haveDeletableMoreThanOneRec = true;
+                                break;
+                            }
                         }
                     }
 
-                    if(!$haveDeletableRec){
+                    if(!$haveDeletableMoreThanOneRec){
                         $res = 'no_one';
                     }
                 } else {
