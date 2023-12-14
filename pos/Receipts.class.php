@@ -1002,8 +1002,8 @@ class pos_Receipts extends core_Master
                         $comparePrice *= $perPack;
 
                         $disc = ($finalPrice - $comparePrice) / $comparePrice;
-                        $discount = round(-1 * $disc, 3);
-                        if ($discount > 0.01) {
+                        $discountCalced = round(-1 * $disc, 3);
+                        if ($discountCalced > 0.01) {
                             // Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
                             $discount = round(-1 * $disc, 3);
                             $price = $comparePrice;
