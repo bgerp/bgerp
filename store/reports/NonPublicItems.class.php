@@ -92,7 +92,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        $form->setField('sharedUsers', 'mandatory');
+        $form->setField('sharedUsers', 'mandatory,autohide=none');
     }
 
 
