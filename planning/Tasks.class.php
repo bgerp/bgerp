@@ -2323,7 +2323,6 @@ class planning_Tasks extends core_Master
             // Добавяне на драйвера на артикула в ключовите думи
             $productDriverClass = cat_Products::getVerbal($jobRec->productId, 'innerClass');
             $res .= ' ' . plg_Search::normalizeText($productDriverClass);
-            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getHandle($jobRec->id));
             $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getTitleById($jobRec->id));
         }
 
