@@ -484,6 +484,7 @@ select.tabHolder {
   background: white !important; }
   .grid.pictureAndText .element.selected {
     padding: 1px !important; }
+
   .grid.pictureAndText .element .photo {
     display: flex;
     width: 100%;
@@ -499,6 +500,10 @@ select.tabHolder {
     font-size: 0.95em;
     box-sizing: border-box;
     margin-bottom: 2px; }
+    .grid.pictureAndText .element.noPhoto .short-title {
+      height: 100%; }
+    .grid.pictureAndText .element.noPhoto .photo {
+      display: none; }
 
 .grid.short {
   font-size: 15px; }

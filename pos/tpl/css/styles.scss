@@ -570,6 +570,9 @@ select.tabHolder {
 	&.selected {
 		padding: 1px !important;
 	}
+	&.noPhoto {
+
+	}
 	.photo {
 		display: flex;
 		width: 100%;
@@ -585,6 +588,14 @@ select.tabHolder {
 		font-size: 0.95em;
 		box-sizing: border-box;
 		margin-bottom: 2px;
+	}
+	&.noPhoto {
+		.short-title {
+			height: 100%;
+		}
+		.photo {
+			display: none;
+		}
 	}
 }
 .grid.short {
