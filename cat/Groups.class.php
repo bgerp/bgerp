@@ -799,11 +799,12 @@ class cat_Groups extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         // Ако има нови записи в групите, ще се преизчисляват тези на всички артикули
         if(countR($mvc->changedParentId)){
-            cls::get('cat_Products')->recalcExpandedInput();
+            $callOn = dt::addSecs(30);
+            core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpandInput', 'cat_Products', $callOn);
         }
     }
 }
