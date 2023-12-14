@@ -252,15 +252,15 @@ class pos_Terminal extends peripheral_Terminal
     {
         $enlargeClassId = Request::get('enlargeClassId', 'int');
         $enlargeObjectId = Request::get('enlargeObjectId', 'int');
-        $receitpId = Request::get('id', 'int');
-        
+        $receiptId = Request::get('id', 'int');
+
         if(empty($enlargeClassId) || empty($enlargeObjectId)) {
             
             return array();
         }
         
         $EnlargeClass = cls::get($enlargeClassId);
-        $receiptRec = pos_Receipts::fetch($receitpId);
+        $receiptRec = pos_Receipts::fetch($receiptId);
         
         switch ($enlargeClassId){
             case cat_Products::getClassId():
@@ -278,13 +278,16 @@ class pos_Terminal extends peripheral_Terminal
                 $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($packData);
                 $modalTpl->append($packagingTpl, 'Packagings');
                 Mode::pop();
-                
+                $settings = pos_Points::getSettings($receiptRec->pointId);
+                $listId = pos_Receipts::isForDefaultContragent($receiptRec) ? $settings->policyId : null;
+
                 $Policy = cls::get('price_ListToCustomers');
-                $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $productRec->id, $productRec->measureId, 1, dt::now(), 1, 'yes');
+                $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $productRec->id, $productRec->measureId, 1, dt::now(), 1, 'yes', $listId);
+                $calcedPrice = !empty($price->discount) ? $price->price * (1 - $price->discount) : $price->price;
                 $Double = core_Type::getByName('double(decimals=2)');
                 
                 $row = new stdClass();
-                $row->price = currency_Currencies::decorate($Double->toVerbal($price->price));
+                $row->price = currency_Currencies::decorate($Double->toVerbal($calcedPrice));
                 $row->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
                 $row->info = cat_Products::getVerbal($productRec, 'info');
                 
@@ -344,7 +347,7 @@ class pos_Terminal extends peripheral_Terminal
                 $btnTitle = ($productRec->canSell == 'yes') ? 'Спиране' : 'Пускане';
                 $className = ($productRec->canSell == 'yes') ? 'offBtn' : 'onBtn';
                 Request::setProtected('Selected');
-                $changeMetaUrl = (cat_Products::haveRightFor('edit', $productRec->id)) ? array('cat_Products', 'changemeta', 'Selected' => $productRec->id, 'toggle' => 'canSell', 'ret_url' => array('pos_Terminal', 'open', 'receiptId' => $receitpId)) : array();
+                $changeMetaUrl = (cat_Products::haveRightFor('edit', $productRec->id)) ? array('cat_Products', 'changemeta', 'Selected' => $productRec->id, 'toggle' => 'canSell', 'ret_url' => array('pos_Terminal', 'open', 'receiptId' => $receiptId)) : array();
                 $warning = ($productRec->canSell == 'yes') ? 'Наистина ли желаете да спрете артикула от продажба|*?' : 'Наистина ли желаете да пуснете артикула в продажба|*?';
                 $warning = countR($changeMetaUrl) ? $warning : false;
 
