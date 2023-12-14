@@ -195,6 +195,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_ReceiptDetails',
         'pos_Reports',
         'pos_SellableProductsCache',
+        'migrate::resyncSearchStrings2350',
     );
 
 
@@ -275,5 +276,14 @@ class pos_Setup extends core_ProtoSetup
     public function cron_UpdateStatistic()
     {
         pos_ReceiptDetails::getMostUsedTexts(24, true);
+    }
+
+
+    /**
+     * Ресинхронизира ключовите думи
+     */
+    public function resyncSearchStrings2350()
+    {
+        cls::get('pos_SellableProductsCache')->sync(true);
     }
 }

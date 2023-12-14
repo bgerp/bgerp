@@ -1891,13 +1891,13 @@ class pos_Terminal extends peripheral_Terminal
                 if(isset($foundRec->productId)){
                     $pQuery1->where("#productId != {$foundRec->productId}");
                 }
-                
+
                 $searchString = plg_Search::normalizeText($searchString);
-                $pQuery1->where("LOCATE ('{$searchString}', #string)");
+                $pQuery1->where("LOCATE (' {$searchString}', #string)");
                 plg_Search::applySearch($searchString, $pQuery1);
-                
+
                 if($rec->_selectedGroupId == 'similar'){
-                    if(countR($cloneQuery)){
+                    if(countR($similarProducts)){
                         $pQuery1->in('productId', $similarProducts);
                     } else {
                         $pQuery1->where("1=2");
@@ -1913,13 +1913,12 @@ class pos_Terminal extends peripheral_Terminal
                     $maxCount--;
                     if($count == $settings->maxSearchProducts) break;
                 }
-                
+
                 // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
                 if($count < $settings->maxSearchProducts){
                     $notInKeys = array_keys($sellable);
                     $pQuery2 = clone $pQuery;
                     $pQuery2->limit($settings->maxSearchProducts);
-                    
                     if($rec->_selectedGroupId == 'similar'){
                         if(countR($similarProducts)){
                             $pQuery2->in('productId', $similarProducts);
@@ -1939,7 +1938,7 @@ class pos_Terminal extends peripheral_Terminal
                     if(countR($notInKeys)){
                         $pQuery2->notIn('productId', $notInKeys);
                     }
-                   
+
                     while($pRec2 = $pQuery2->fetch()){
                         $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
                         $count++;
