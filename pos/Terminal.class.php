@@ -316,8 +316,9 @@ class pos_Terminal extends peripheral_Terminal
                         $row->INSTOCK .= $block->getContent();
                     }
                 }
-                
-                $row->preview = $this->getPosProductPreview($productRec->id, 400, 400);
+
+                $settings = pos_Points::getSettings($receiptRec->pointId);
+                $row->preview = $this->getPosProductPreview($productRec->id, 400, 400, $settings);
                 $name = cat_Products::getTitleById($productRec->id);
                 if(mb_strlen($name) > 60) {
                     $row->name = cat_Products::getTitleById($productRec->id);
@@ -2024,9 +2025,12 @@ class pos_Terminal extends peripheral_Terminal
             if($settings->showProductCode == 'yes'){
                 $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
             }
-            
-            $res[$id]->photo = $this->getPosProductPreview($obj->productId, 140, 140);
+
+            $res[$id]->photo = $this->getPosProductPreview($obj->productId, 140, 140, $settings);
             $res[$id]->CLASS = ' pos-add-res-btn navigable enlargable';
+            if($settings->productBtnTpl == 'pictureAndText' && !$res[$id]->photo){
+                $res[$id]->CLASS .= " noPhoto";
+            }
             $res[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;
             $res[$id]->DATA_ENLARGE_CLASS_ID = $productClassId;
@@ -2069,12 +2073,14 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET|NULL
      */
-    private function getPosProductPreview($productId, $width, $height)
+    private function getPosProductPreview($productId, $width, $height, $settings = array())
     {
         $photo = cat_Products::getParams($productId, 'preview');
+        if($settings->productBtnTpl == 'pictureAndText' && empty($photo)) return;
+
         $arr = array();
         $thumb = (!empty($photo)) ? new thumb_Img(array($photo, $height, $width, 'fileman')) : new thumb_Img(getFullPath('pos/img/default-image.jpg'), $width, $height, 'path');
-        
+
         return $thumb->createImg($arr);
     }
     
