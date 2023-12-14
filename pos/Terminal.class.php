@@ -123,8 +123,9 @@ class pos_Terminal extends peripheral_Terminal
         $Receipts = cls::get('pos_Receipts');
         $Receipts->requireRightFor('terminal');
         expect($id = Request::get('receiptId', 'int'));
-        expect($rec = $Receipts->fetch($id));
-        
+        $rec = $Receipts->fetch($id);
+        if(empty($rec)) return new Redirect(array($Receipts, 'new'), 'Несъществуваща бележка', 'warning');
+
         // Ако се отваря нова бележка нулира се в сесията запомненото
         if(Request::get('opened', 'int')){
             $redirectUrl = getCurrentUrl();
@@ -653,7 +654,9 @@ class pos_Terminal extends peripheral_Terminal
     function act_displayOperation()
     {
         expect($id = Request::get('receiptId', 'int'));
-        expect($rec = pos_Receipts::fetch($id));
+        $rec = pos_Receipts::fetch($id);
+        if(!$rec) return new Redirect(array(cls::get('pos_Receipts'), 'new'), 'Несъществуваща бележка', 'warning');
+
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
         $refreshPanel = Request::get('refreshPanel', 'varchar');
         $keyupTriggered = Request::get('keyupTriggered', 'varchar');
