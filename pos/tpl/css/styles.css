@@ -987,12 +987,15 @@ table.total {
 table.total th {
   font-weight: normal;
   text-align: right;
-  padding: 2px 15px; }
+  padding: 0px 15px; }
 
 table.total td {
   text-align: right;
   font-weight: bold;
-  padding: 2px 15px; }
+  padding: 0px 15px; }
+
+hr {
+  margin: 5px 0 1px; }
 
 td.totalLabel {
   font-size: 1.9em;
