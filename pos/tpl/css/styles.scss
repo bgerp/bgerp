@@ -605,8 +605,9 @@ select.tabHolder {
 		background: rgba(0,0,0,0.6);
 		color: #fff;
 		text-align: center;
-		padding: 2px;
+		padding: 3px 0 2px;
 		width: 100%;
+		text-shadow: 1px 1px 2px #000;
 		font-weight: bold;
 	}
 }
