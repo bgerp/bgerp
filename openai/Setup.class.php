@@ -131,7 +131,7 @@ class openai_Setup extends core_ProtoSetup
         'migrate::promptTruncate2313',
         'migrate::promptAddIgnoreWords2314',
         'migrate::promptAddIgnoreWordsFromEmail2314',
-        'migrate::fixDefaultPromptClass2346',
+        'migrate::fixDefaultPromptClass2350',
     );
 
 
@@ -210,7 +210,7 @@ class openai_Setup extends core_ProtoSetup
     /**
      * Оправя старите настройки за модела
      */
-    public static function fixDefaultPromptClass2346()
+    public static function fixDefaultPromptClass2350()
     {
         $conf = core_Packs::getConfig('openai');
 
