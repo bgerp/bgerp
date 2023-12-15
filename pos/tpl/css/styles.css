@@ -645,6 +645,10 @@ select.tabHolder {
   .pos-notes.revertReceipt {
     color: #a00000 !important; }
 
+.notActiveHint {
+  color: #999999;
+  opacity: 0.4; }
+
 .resultPack {
   background: #feff6b;
   color: #333333 !important; }
