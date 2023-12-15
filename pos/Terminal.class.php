@@ -395,9 +395,19 @@ class pos_Terminal extends peripheral_Terminal
         
         $tpl = getTplFromFile('pos/tpl/terminal/Help.shtml');
         $rejectAction = Request::get('rejectAction', 'enum(revert,delete,reject)');
-        
+        $pointId = Request::get('pointId', 'int');
+
         for($i = 1; $i<=11; $i++) {
             $tpl->replace( ht::createElement('img', array('src' => sbf("pos/img/btn{$i}.png", ''))), "img{$i}");
+        }
+
+        $settings = pos_Points::getSettings($pointId);
+        if($settings->setDiscounts != 'yes'){
+            $tpl->append('notActiveHint', 'discountHintTrClass');
+        }
+
+        if($settings->setPrices != 'yes'){
+            $tpl->append('notActiveHint', 'priceHintTrClass');
         }
 
         $rejectIconNumber = ($rejectAction == 'reject') ? '12' : (($rejectAction == 'revert') ? '13' : '14'); 
@@ -607,7 +617,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Бутон за увеличение на избрания артикул
         $img = ht::createImg(array('path' => self::$operationImgs["help"]));
-        $buttons["help"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на прозорец с информация', 'data-url' => toUrl(array('pos_Terminal', 'Help'), 'local'), 'class' => "helpBtn", 'data-modal-title' => tr('Информация')));
+        $buttons["help"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на прозорец с информация', 'data-url' => toUrl(array('pos_Terminal', 'Help',  'pointId' => $rec->pointId), 'local'), 'class' => "helpBtn", 'data-modal-title' => tr('Информация')));
         
         $logoutImg = ht::createImg(array('path' => 'pos/img/exit.png'));
         $buttons["exit"] = (object)array('body' => $logoutImg, 'attr' => array('class' => 'logout', 'title' => 'Излизане от системата'), 'linkUrl' => array('core_Users', 'logout', 'ret_url' => true));
