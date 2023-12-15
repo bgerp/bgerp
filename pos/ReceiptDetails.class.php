@@ -904,8 +904,11 @@ class pos_ReceiptDetails extends core_Detail
 
         $listId = pos_Receipts::isForDefaultContragent($receiptRec) ? pos_Points::getSettings($receiptRec->pointId, 'policyId') : null;
         $discountPolicyId = pos_Points::getSettings($receiptRec->pointId, 'discountPolicyId');
-        $Policy = cls::get('price_ListToCustomers');
-        $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, dt::now(), 1, 'no', $listId, false, $discountPolicyId);
+
+        $posPolicyId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
+        $contragentPolicyId = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+        $price = static::getLowerPriceObj($posPolicyId, $contragentPolicyId, $product->productId, $rec->value, 1, dt::now(), $discountPolicyId);
+
         $rec->discountPercent = $price->discount;
         $rec->price = $price->price * $perPack;
         $rec->amount = $rec->price * $rec->quantity;
@@ -1236,5 +1239,43 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         return $textArr;
+    }
+
+
+    /**
+     * Помощна ф-я намираща по-малката цена от клиентската и от тази на пос-а
+     *
+     * @param int $posPolicyId           - ЦП на поса
+     * @param int $contragentPolicyId    - ЦП на клиента
+     * @param int $productId             - ид на артикул
+     * @param int $packagingId           - ид на опаковка
+     * @param double $quantity           - за какво количество
+     * @param datetime $date             - за какво количество
+     * @param int|null $discountPolicyId - политика за отстъпка
+     *
+     * @return stdClass $priceRes
+     */
+    public static function getLowerPriceObj($posPolicyId, $contragentPolicyId, $productId, $packagingId, $quantity, $date, $discountPolicyId = null)
+    {
+        $Policy = cls::get('price_ListToCustomers');
+        $contragentPrice = (object)array('price' => null, 'discount' => null);
+        $price = $Policy->getPriceByList($posPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no');
+        if(isset($contragentPriceListId)){
+            $contragentPrice = $Policy->getPriceByList($contragentPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no');
+        }
+
+        // Ще се взима по-малката крайна цена от тази на клиента и на пос-а
+        if(!empty($price->price) && !empty($contragentPrice->price)){
+            $priceRes = $price;
+            $withoutDiscount1 = $price->price * (1 - $price->discount);
+            $withoutDiscount2 = $contragentPrice->price * (1 - $contragentPrice->discount);
+            if(round($withoutDiscount1, 5) > round($withoutDiscount2, 5)){
+                $priceRes = $contragentPrice;
+            }
+        } else {
+            $priceRes = !empty($contragentPrice->price) ? $contragentPrice : $price;
+        }
+
+        return $priceRes;
     }
 }

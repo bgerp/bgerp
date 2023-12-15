@@ -231,8 +231,10 @@ class plg_ExpandInput extends core_Plugin
                 $query->where("#id = {$id}");
             }
 
+            $count = 0;
             $updateRecs = array();
             while($rec = $query->fetch()){
+                $count++;
 
                 // За всеки запис се гледа има ли промени при разпънатите полета
                 $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
@@ -251,7 +253,21 @@ class plg_ExpandInput extends core_Plugin
                 $mvc->saveArray($updateRecs, "id,{$mvc->expandFieldName},{$mvc->expandInputFieldName}}");
             }
             core_Debug::stopTimer('recalcExpandedInputs');
-            core_Debug::log("{$mvc->className}: REGEN FIELDS: " . round(core_Debug::$timers['recalcExpandedInputs']->workingTime, 2));
+            core_Debug::log("{$mvc->className} Total {$count} : REGEN FIELDS: " . round(core_Debug::$timers['recalcExpandedInputs']->workingTime, 2));
         }
+    }
+
+
+    /**
+     * Извиква се от core_CallOnTime
+     *
+     * @see core_CallOnTime
+     *
+     * @param int $userId
+     */
+    public static function callback_recalcExpandInput($mvc)
+    {
+        $mvc = cls::get($mvc);
+        $mvc->recalcExpandedInput();
     }
 }

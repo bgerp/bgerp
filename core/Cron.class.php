@@ -418,7 +418,7 @@ class core_Cron extends core_Manager
             if ($rec->delay > 0) {
                 sleep($rec->delay);
                 Debug::log("Sleep (locked) {$rec->delay} sec. in " . __CLASS__);
-                $rec = $this->fetch($id);
+                $rec = $this->fetch($id, '*', false);
                 $delayed = true;
             }
 
