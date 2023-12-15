@@ -605,8 +605,9 @@ select.tabHolder {
 		background: rgba(0,0,0,0.6);
 		color: #fff;
 		text-align: center;
-		padding: 2px;
+		padding: 3px 0 2px;
 		width: 100%;
+		text-shadow: 1px 1px 2px #000;
 		font-weight: bold;
 	}
 }
@@ -769,6 +770,11 @@ select.tabHolder {
 	&.revertReceipt {
 		color: #a00000 !important;
 	}
+}
+
+.notActiveHint {
+	color: #999;
+	opacity: 0.4;
 }
 
 .resultPack {
@@ -1159,13 +1165,17 @@ table.total {
 table.total th{
 	font-weight:normal;
 	text-align: right;
-	padding: 2px 15px;
+	padding: 0px 15px;
 }
 
 table.total td{
 	text-align:right;
 	font-weight:bold;
-	padding: 2px 15px;
+	padding: 0px 15px;
+}
+
+hr {
+	margin: 5px 0 1px;
 }
 
 td.totalLabel {
