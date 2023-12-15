@@ -455,7 +455,7 @@ class pos_ReceiptDetails extends core_Detail
         if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
             $cardInfo = crm_ext_Cards::getInfo($string);
             if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
-                $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $receiptId, 'ajax_mode' =>1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
+                $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $receiptId, 'ajax_mode' =>1, 'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
             } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
                 core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
             }
@@ -505,7 +505,7 @@ class pos_ReceiptDetails extends core_Detail
                
                 // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
                 // ако да то приемаме числото преди '*' за количество а след '*' за код
-                preg_match('/([\-]?[0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
+                preg_match('/(\-?[0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
 
                 // Ако има намерени к-во и код от регулярния израз
                 if (!empty($matches[1]) && !empty($matches[3])) {
@@ -549,7 +549,7 @@ class pos_ReceiptDetails extends core_Detail
                 if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
                     $cardInfo = crm_ext_Cards::getInfo($rec->ean);
                     if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
-                        $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' =>1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
+                        $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' => 1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
                     } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
                         core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
                     }

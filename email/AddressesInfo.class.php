@@ -566,9 +566,12 @@ class email_AddressesInfo extends core_Manager
         $domain = mb_strtolower($domain);
         
         if (!isset($validatedDomainsArr[$domain])) {
-            $DrData = cls::get('drdata_Emails');
-            
             $validatedDomainsArr[$domain] = drdata_Emails::mxAndARecordsValidate($domain);
+            if ($validatedDomainsArr[$domain] === false) {
+                if (checkdnsrr($domain, 'MX') || checkdnsrr($domain, 'A')) {
+                    $validatedDomainsArr[$domain] = true;
+                }
+            }
         }
         
         if ($validatedDomainsArr[$domain] === false) {

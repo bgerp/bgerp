@@ -950,21 +950,21 @@ class pos_Receipts extends core_Master
             $res = round($res, 2);
         }
     }
-    
-    
-    /**
-     * Екшън задаващ контрагент на бележката
-     */
-    public function act_setcontragent()
-    {
-        $this->requireRightFor('setcontragent');
-        expect($id = Request::get('id'));
-        expect($rec = $this->fetch($id));
-        $this->requireRightFor('setcontragent', $rec);
-        expect($rec->contragentClass = Request::get('contragentClassId', 'int'));
-        expect($rec->contragentObjectId = Request::get('contragentId', 'int'));
-        $locationId = Request::get('locationId', 'int');
 
+
+    /**
+     * Сменя контрагента на бележката и преизчислява цените
+     *
+     * @param stdClass $rec
+     * @param int $contragentClassId
+     * @param int $contragentId
+     * @param int|null $locationId
+     * @return void
+     */
+    private function setContragent(&$rec, $contragentClassId, $contragentId, $locationId = null)
+    {
+        $rec->contragentClass = $contragentClassId;
+        $rec->contragentObjectId = $contragentId;
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
         $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
@@ -1018,10 +1018,36 @@ class pos_Receipts extends core_Master
                 pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent');
             }
         }
-        
-        $this->logWrite('Избиране на контрагент', $id);
+    }
 
-        if(Request::get('autoSelect')){
+
+    /**
+     * Екшън задаващ контрагент на бележката
+     */
+    public function act_setcontragent()
+    {
+        $this->requireRightFor('setcontragent');
+        expect($id = Request::get('id'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('setcontragent', $rec);
+        expect($contragentClassId = Request::get('contragentClassId', 'int'));
+        expect($contragentId = Request::get('contragentId', 'int'));
+        $locationId = Request::get('locationId', 'int');
+        $autoSelect = Request::get('autoSelect');
+        $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
+
+        // Ако бележката е на клиент и е сканирана нова карта и тя не е на този клиент ще се върне на анонимния за да се преизчислят цените
+        if(!$isDefaultContragent && $autoSelect && ($rec->contragentClass != $contragentClassId || $rec->contragentObjectId != $contragentId)){
+            $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+            $this->setContragent($rec, crm_Persons::getClassId(), $defaultContragentId);
+        }
+
+        // Задаване на новия контрагент
+        $this->setContragent($rec, $contragentClassId, $contragentId, $locationId);
+        $this->logWrite('Избир на контрагент в бележка', $id);
+
+        // Ако е сканирана клиентска карта на лице - в статуса се показва аватара му
+        if($autoSelect){
             if($rec->contragentClass == crm_Persons::getClassId()){
                 $avatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 130, 130);
                 if(!empty($avatar)){
