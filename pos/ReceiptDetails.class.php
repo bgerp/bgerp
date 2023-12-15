@@ -902,9 +902,7 @@ class pos_ReceiptDetails extends core_Detail
         $rec->productId = $product->productId;
         $receiptRec = pos_Receipts::fetch($rec->receiptId, 'pointId,contragentClass,contragentObjectId,valior,createdOn');
 
-        $listId = pos_Receipts::isForDefaultContragent($receiptRec) ? pos_Points::getSettings($receiptRec->pointId, 'policyId') : null;
         $discountPolicyId = pos_Points::getSettings($receiptRec->pointId, 'discountPolicyId');
-
         $posPolicyId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
         $contragentPolicyId = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
         $price = static::getLowerPriceObj($posPolicyId, $contragentPolicyId, $product->productId, $rec->value, 1, dt::now(), $discountPolicyId);
@@ -1260,7 +1258,7 @@ class pos_ReceiptDetails extends core_Detail
         $Policy = cls::get('price_ListToCustomers');
         $contragentPrice = (object)array('price' => null, 'discount' => null);
         $price = $Policy->getPriceByList($posPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no');
-        if(isset($contragentPriceListId)){
+        if(isset($contragentPolicyId)){
             $contragentPrice = $Policy->getPriceByList($contragentPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no');
         }
 
