@@ -652,7 +652,13 @@ class price_Lists extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-        
+
+        if ($action == 'edit' && isset($rec->threadId)) {
+            if(!doc_Threads::haveRightFor('single', $rec->threadId)){
+                $requiredRoles = 'no_one';
+            }
+        }
+
         if($action == 'changepublic' && isset($rec)){
             if($rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
