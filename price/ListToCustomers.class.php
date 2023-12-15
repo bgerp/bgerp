@@ -459,8 +459,6 @@ class price_ListToCustomers extends core_Manager
             }
         }
 
-        price_ListRules::$alreadyReplaced = array();
-
         return $rec;
     }
     

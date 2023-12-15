@@ -279,11 +279,10 @@ class pos_Terminal extends peripheral_Terminal
                 $modalTpl->append($packagingTpl, 'Packagings');
                 Mode::pop();
                 $settings = pos_Points::getSettings($receiptRec->pointId);
-                $listId = pos_Receipts::isForDefaultContragent($receiptRec) ? $settings->policyId : null;
-
-                $Policy = cls::get('price_ListToCustomers');
-                $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $productRec->id, $productRec->measureId, 1, dt::now(), 1, 'yes', $listId);
+                $contragentPriceListId = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+                $price = pos_ReceiptDetails::getLowerPriceObj($settings->policyId, $contragentPriceListId, $productRec->id, $productRec->measureId, 1, dt::now());
                 $calcedPrice = !empty($price->discount) ? $price->price * (1 - $price->discount) : $price->price;
+                $calcedPrice *= 1 + cat_Products::getVat($productRec->id);
                 $Double = core_Type::getByName('double(decimals=2)');
                 
                 $row = new stdClass();
@@ -1957,8 +1956,8 @@ class pos_Terminal extends peripheral_Terminal
         
         return $result;
     }
-    
-    
+
+
     /**
      * Подготивка на редовете на търсените артикули
      * 
@@ -1980,14 +1979,14 @@ class pos_Terminal extends peripheral_Terminal
         $defaultContragentClassId = crm_Persons::getClassId();
         $productClassId = cat_Products::getClassId();
         
-        $Policy = cls::get('price_ListToCustomers');
-        $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
 
-        $listId = $settings->policyId;
+        $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
+        $contragentPriceListId = null;
         if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
-            $listId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+            $contragentPriceListId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
 
+        $now = dt::now();
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
                 $packId = $pRec->packId;
@@ -1998,22 +1997,22 @@ class pos_Terminal extends peripheral_Terminal
             
             $packQuantity = cat_products_Packagings::getPack($id, $packId, 'quantity');
             $perPack = (!empty($packQuantity)) ? $packQuantity : 1;
-            $price = $Policy->getPriceByList($listId, $id, $packId, 1, dt::now(), 1, 'no');
+            $priceRes = pos_ReceiptDetails::getLowerPriceObj($settings->policyId, $contragentPriceListId, $id, $packId, 1, $now);
 
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
             $Double = core_Type::getByName('double(decimals=2)');
             
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'packagingId' => $packId);
-            if (empty($price->price)){
+            if (empty($priceRes->price)){
                 $res[$id]->price = "<b class='red'>n/a</b>";
             } else {
-                if(!empty($price->discount)){
-                    $price->price *= (1 - $price->discount);
+                if(!empty($priceRes->discount)){
+                    $priceRes->price *= (1 - $priceRes->discount);
                 }
                 
                 $vat = cat_Products::getVat($id);
-                $price = $price->price * $perPack;
+                $price = $priceRes->price * $perPack;
                 $price *= 1 + $vat;
                 $obj->price = $price;
                 $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
