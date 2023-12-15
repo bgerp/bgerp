@@ -123,6 +123,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
 
             $form->setField('batchNew', $autohide);
+            $form->setField('batchNew', 'class=w50');
         }
     }
     
