@@ -481,7 +481,8 @@ select.tabHolder {
   overflow: hidden;
   flex-direction: column;
   align-content: center;
-  background: white !important; }
+  background: white !important;
+  position: relative; }
   .grid.pictureAndText .element.selected {
     padding: 1px !important; }
 
@@ -504,6 +505,16 @@ select.tabHolder {
       height: 100%; }
     .grid.pictureAndText .element.noPhoto .photo {
       display: none; }
+  .grid.pictureAndText .element .pos-price {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    text-align: center;
+    padding: 2px;
+    width: 100%;
+    font-weight: bold; }
 
 .grid.short {
   font-size: 15px; }

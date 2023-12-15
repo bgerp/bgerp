@@ -567,6 +567,7 @@ select.tabHolder {
 	flex-direction: column;
 	align-content: center;
 	background: #fff !important;
+	position: relative;
 	&.selected {
 		padding: 1px !important;
 	}
@@ -596,6 +597,17 @@ select.tabHolder {
 		.photo {
 			display: none;
 		}
+	}
+	.pos-price {
+		position: absolute;
+		bottom: 0px;
+		left: 0px;
+		background: rgba(0,0,0,0.6);
+		color: #fff;
+		text-align: center;
+		padding: 2px;
+		width: 100%;
+		font-weight: bold;
 	}
 }
 .grid.short {
