@@ -993,7 +993,7 @@ class pos_Receipts extends core_Master
 
             if($isDefaultContragent || round($oldPrice, 5) > round($finalPrice, 5)){
                 $discount = $price->discount;
-                $price = $price->price / $perPack;
+                $price = $price->price;
 
                 if(isset($discountPolicyId)){
                     $priceOnDiscountListRec = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $now, 1, 'no', $discountPolicyId, false);
