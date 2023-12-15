@@ -3629,6 +3629,14 @@ class doc_DocumentPlg extends core_Plugin
                 $searchKeywords .= ' ' . $handleNormalized;
             }
         }
+
+        $lKeywords = doc_Linked::getKeywordsForLinked($rec->containerId);
+        if (strlen(trim($lKeywords))) {
+            $lKeywords = plg_Search::normalizeText($lKeywords);
+            if (strpos($searchKeywords, $lKeywords) === false) {
+                $searchKeywords .= ' ' . $lKeywords;
+            }
+        }
     }
     
     
