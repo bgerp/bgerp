@@ -428,6 +428,7 @@ class price_ListToCustomers extends core_Manager
         $discountIncluded = null;
 
         $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, $validFrom, $isFirstCall, $rate, $chargeVat, $discountIncluded);
+
         $listRec = price_Lists::fetch($listId);
         $discountListId = $discountListId ?? $listRec->discountCompared;
 
@@ -457,6 +458,8 @@ class price_ListToCustomers extends core_Manager
                 }
             }
         }
+
+        price_ListRules::$alreadyReplaced = array();
 
         return $rec;
     }
