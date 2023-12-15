@@ -145,8 +145,9 @@ class pos_Terminal extends peripheral_Terminal
         // Автоматично избиране на касата на бележката за текуща
         pos_Points::selectCurrent($rec->pointId);
         $tpl = getTplFromFile('pos/tpl/terminal/Layout.shtml');
-        $tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
-        $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/cash-register.png', '"', true) . '>', 'HEAD');
+        $titleDelimiter = Mode::is('printing') ? ' « ' : '';
+        $tpl->replace(pos_Points::getTitleById($rec->pointId) . "{$titleDelimiter}", 'PAGE_TITLE');
+        $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/cash-register.png', '"', true) . '> ', 'HEAD');
         $tpl->replace($this->renderHeader($rec), 'HEADER_BAR');
         
         // Добавяме бележката в изгледа
