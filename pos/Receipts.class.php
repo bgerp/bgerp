@@ -991,7 +991,6 @@ class pos_Receipts extends core_Master
             $finalPrice = (!empty($price->discount)) ? ($price->price * (1 - $price->discount)) : $price->price;
             $finalPrice *= $perPack;
 
-            core_Statuses::newStatus("OLD:{$oldPrice} - NEW: {$finalPrice}", 'warning');
             if($isDefaultContragent || round($oldPrice, 5) > round($finalPrice, 5)){
                 $discount = $price->discount;
                 $price = $price->price / $perPack;
