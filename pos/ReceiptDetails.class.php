@@ -1257,9 +1257,9 @@ class pos_ReceiptDetails extends core_Detail
     {
         $Policy = cls::get('price_ListToCustomers');
         $contragentPrice = (object)array('price' => null, 'discount' => null);
-        $price = $Policy->getPriceByList($posPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no');
+        $price = $Policy->getPriceByList($posPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
         if(isset($contragentPolicyId)){
-            $contragentPrice = $Policy->getPriceByList($contragentPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no');
+            $contragentPrice = $Policy->getPriceByList($contragentPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
         }
 
         // Ще се взима по-малката крайна цена от тази на клиента и на пос-а
