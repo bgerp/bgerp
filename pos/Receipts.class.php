@@ -987,6 +987,7 @@ class pos_Receipts extends core_Master
             $price = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $now, 1, 'no', $listId, false);
             if(empty($price->price)) continue;
             $oldPrice = (!empty($dRec->discountPercent)) ? ($dRec->price * (1 - $dRec->discountPercent)) : $dRec->price;
+
             $finalPrice = (!empty($price->discount)) ? ($price->price * (1 - $price->discount)) : $price->price;
             $finalPrice *= $perPack;
 
@@ -1006,7 +1007,7 @@ class pos_Receipts extends core_Master
                         if ($discountCalced > 0.01) {
                             // Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
                             $discount = round(-1 * $disc, 3);
-                            $price = $comparePrice;
+                            $price = $comparePrice / $perPack;
                         }
                     }
                 }

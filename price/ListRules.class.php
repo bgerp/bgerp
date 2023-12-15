@@ -315,7 +315,7 @@ class price_ListRules extends core_Detail
     public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true, $rate = 1, $chargeVat = 'no', &$discountIncluded = null)
     {
         if($isFirstCall){
-            unset(price_ListRules::$alreadyReplaced["{$listId}|{$productId}"]);
+            price_ListRules::$alreadyReplaced = array();
         }
 
         $datetime = price_ListToCustomers::canonizeTime($datetime);
