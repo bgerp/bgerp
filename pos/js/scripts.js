@@ -1136,8 +1136,8 @@ function isInViewport(el){
 
 
 function scrollToHighlight(){
-	if ($(".highlighted").length && !isInViewport($(".highlighted")[0])) {
-		$(".highlighted")[0].scrollIntoView({block: "end", inline: "end"});
+	if ($(".highlighted").length) {
+		$(".highlighted")[0].scrollIntoView(false);
 	}
 }
 
