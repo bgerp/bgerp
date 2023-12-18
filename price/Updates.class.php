@@ -385,8 +385,6 @@ class price_Updates extends core_Manager
             $products = $this->getProductsToUpdatePrimeCost($rec);
         }
 
-        $products = array(4740 => 4740);
-
         // Подготвяме датата от която ще е валиден записа
         $validFrom = $this->getValidFromDate($rec->updateMode);
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($validFrom);
@@ -420,9 +418,10 @@ class price_Updates extends core_Manager
                 $oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
                 $oldPrimeCost = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $oldPrimeCost);
 
+
                 // Ако старата себестойност е различна от новата
                 if (empty($oldPrimeCost) || abs(round($primeCost / $oldPrimeCost - 1, 2)) >= $minChange) {
-                    
+
                     // Кеширане на себестойността, ако правилото не е за категория
                     if ($rec->type != 'category') {
                         $rec->costValue = $primeCost;
