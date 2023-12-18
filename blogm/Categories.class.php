@@ -250,4 +250,24 @@ class blogm_Categories extends core_Manager
 
         return $res;
     }
+
+
+    /**
+     * Помощна ф-я връщаща категориите като линкове във външната част
+     * @param mixed $categoryArr
+     * @param int $menuId
+     * @return string
+     */
+    public static function getCategoryLinks($categoryArr, $menuId)
+    {
+        $linkArr = array();
+        $categories = keylist::isKeylist($categoryArr) ? keylist::toArray($categoryArr) : arr::make($categoryArr, true);
+        foreach ($categories as $categoryId){
+            $categoryName = blogm_Categories::getTitleById($categoryId);
+            $title = ht::createLink($categoryName, array('blogm_Articles', 'browse', 'cMenuId' => $menuId, 'category' => $categoryId));
+            $linkArr[] = ht::createElement('span', array('class' => 'blogArticleCategoryLink'), $title);
+        }
+
+        return implode(', ', $linkArr);
+    }
 }

@@ -16,8 +16,10 @@
         <!--ET_BEGIN articleBrowse-->
         [#articleBrowse#]
         <div class='blogm-article-info'>
+            <!--ET_BEGIN commentsCnt-->
             <span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
-            [#publishedOn#], [#author#] |в|* [#categories#] 
+            <!--ET_END commentsCnt-->
+            [#publishedOn#], [#author#] |в|* [#categories#]
         </div>
         <!--ET_END articleBrowse-->
         <div class='blogm-article-title'>
