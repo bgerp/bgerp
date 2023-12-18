@@ -1034,6 +1034,14 @@ class pos_Receipts extends core_Master
         expect($contragentId = Request::get('contragentId', 'int'));
         $locationId = Request::get('locationId', 'int');
         $autoSelect = Request::get('autoSelect');
+
+        // Ако се прави опит за избор на същия контрагент не се прави нищо
+        if($rec->contragentClass == $contragentClassId && $rec->contragentObjectId == $contragentId){
+            core_Statuses::newStatus('Контрагента е вече избран');
+
+            return pos_Terminal::returnAjaxResponse($id, null, true, false, false, false, 'add', false);
+        }
+
         $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
 
         // Ако бележката е на клиент и е сканирана нова карта и тя не е на този клиент ще се върне на анонимния за да се преизчислят цените
@@ -1052,7 +1060,7 @@ class pos_Receipts extends core_Master
                 $avatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 130, 130);
                 if(!empty($avatar)){
                     $personName = crm_Persons::fetchField($rec->contragentObjectId, 'name');
-                    core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'notice', null, 120);
+                    core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'no-icon', null, 120);
                 }
             }
         }
