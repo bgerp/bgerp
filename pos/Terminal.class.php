@@ -678,9 +678,10 @@ class pos_Terminal extends peripheral_Terminal
         $selectedProductGroupId = Request::get('selectedProductGroupId', 'varchar');
         $selectedReceiptFilter = Request::get('selectedReceiptFilter', 'varchar');
         
-        $refreshPanel = ($refreshPanel == 'no') ? false : true;
+        $refreshPanel = !(($refreshPanel == 'no'));
         pos_Receipts::requireRightFor('terminal', $rec);
-        
+
+        $selectedRec = null;
         if($selectedRecId = Request::get('recId', 'int')){
             $selectedRec = pos_ReceiptDetails::fetch($selectedRecId, '*', false);
         }
@@ -769,16 +770,14 @@ class pos_Terminal extends peripheral_Terminal
         
         return new core_ET($res);
     }
-    
-    
+
+
     /**
      * Рендира редовете на бележката, която ще се сторнира
-     * 
-     * @param stdClass $rec
-     * @param string $currOperation
-     * @param string $string
-     * @param int|null $selectedRecId
-     * 
+     *
+     * @param $rec
+     * @param $string
+     * @param $selectedRec
      * @return core_ET
      */
     private function renderRevertReceiptRows($rec, $string, $selectedRec)
@@ -806,7 +805,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $warning = tr('Наистина ли желаете да заредите всички редове от оригиналната бележка|*?');
             $reloadUrl = toUrl($reloadUrl);
-            $reloadAttr['onclick'] = "confirmAndRefirect('{$warning}', '{$reloadUrl}')";
+            $reloadAttr['onclick'] = "confirmAndRedirect('{$warning}', '{$reloadUrl}')";
             $link = ht::createElement('a', $reloadAttr, "Всички", false);
             $tpl->append($link, 'details');
         }
