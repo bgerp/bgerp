@@ -1849,7 +1849,7 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->where("#priceListId = {$settings->policyId}");
             $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords');
-            
+
             // Ако не е посочен стринг се показват най-продаваните артикули
             if(empty($searchString)){
                 if($rec->_selectedGroupId == 'similar'){
@@ -1867,14 +1867,12 @@ class pos_Terminal extends peripheral_Terminal
                 $pQuery->limit($settings->maxSearchProducts);
                 $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords,rating');
                 $pQuery->orderBy('rating', 'DESC');
-                
+
                 // Добавят се към резултатите
                 while ($pRec = $pQuery->fetch()){
                     $sellable[$pRec->productId] = $pRec;
                 }
             } else {
-                $maxCount = $settings->maxSearchProducts;
-                
                 // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
                 $foundRec = cat_Products::getByCode($searchString);
                 if(isset($foundRec->productId)){
@@ -1922,7 +1920,6 @@ class pos_Terminal extends peripheral_Terminal
                 while($pRec1 = $pQuery1->fetch()){
                     $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
                     $count++;
-                    $maxCount--;
                     if($count == $settings->maxSearchProducts) break;
                 }
 
@@ -1954,7 +1951,6 @@ class pos_Terminal extends peripheral_Terminal
                     while($pRec2 = $pQuery2->fetch()){
                         $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
                         $count++;
-                        $maxCount--;
                         if($count == $settings->maxSearchProducts) break;
                     }
                 }

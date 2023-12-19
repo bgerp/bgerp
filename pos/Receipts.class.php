@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, productCount, total, paid, change, state, revertId, returnedTotal';
+    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, revertId, returnedTotal';
     
     
     /**
@@ -164,6 +164,12 @@ class pos_Receipts extends core_Master
      *  При преминаването в кои състояния ще се обновяват планираните складови наличностти
      */
     public $updatePlannedStockOnChangeStates = array('waiting');
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'revertId,returnedTotal';
 
 
     /**
@@ -294,9 +300,8 @@ class pos_Receipts extends core_Master
         }
         
         $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
-        $contragentFolderId = $Contragent->fetchField('folderId');
-        $row->contragentId = (isset($contragentFolderId)) ? doc_Folders::recToVerbal($contragentFolderId)->title : $Contragent->getHyperlink(true);
-        
+        $row->contragentId = $Contragent->getHyperlink(true);
+
         if ($fields['-list']) {
             $row->title = $mvc->getHyperlink($rec->id, true);
         } elseif ($fields['-single']) {
@@ -327,6 +332,7 @@ class pos_Receipts extends core_Master
             $row->PAID_CAPTION = (isset($rec->revertId)) ? tr('Върнато') : tr('Платено');
             $rec->paid = abs($rec->paid);
             $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
+            $row->paidCurrency = $row->currency;
             if(!empty($rec->change)){
                 $row->CHANGE_CLASS = ($rec->change < 0 || isset($rec->revertId)) ? 'changeNegative' : 'changePositive';
                 $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
