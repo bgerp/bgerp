@@ -2059,7 +2059,8 @@ class pos_Terminal extends peripheral_Terminal
                     $res[$id]->measureId = $stockInPackVerbal . " <i>" . cat_UoM::getSmartName($packId, $stockInPack) . "</i>";
                     $res[$id]->measureId = ht::styleNumber($res[$id]->measureId, $stockInPack);
                 } elseif($stock <= 0) {
-                    $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
+                    $measureId = cat_UoM::getSmartName($packId, 0);
+                    $res[$id]->measureId = "<span class='notInStock'>0 {$measureId}</span>";
                 }
             }
             
