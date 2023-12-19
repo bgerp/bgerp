@@ -411,6 +411,12 @@ class core_Cron extends core_Manager
             core_App::setTimeLimit(30 + $rec->delay);
         }
 
+        // Дали този процес не е стартиран след началото на текущата минута
+        $nowMinute = date('Y-m-d H:i:00', time());
+        if ($nowMinute <= $rec->lastStart && !$forced) {
+            $this->logThenStop('Процесът е стартиран повторно по крон в една и съща минута', $id, 'notice');
+        }
+
         $delayed = false;
         // Дали процесът не е заключен?
         if ($rec->state == 'locked' && !$forced) {
@@ -425,12 +431,6 @@ class core_Cron extends core_Manager
             if ($rec->state == 'locked') {
                 $this->logThenStop('Процесът е заключен', $id, 'warning');
             }
-        }
-        
-        // Дали този процес не е стартиран след началото на текущата минута
-        $nowMinute = date('Y-m-d H:i:00', time());
-        if ($nowMinute <= $rec->lastStart && !$forced) {
-            $this->logThenStop('Процесът е стартиран повторно по крон в една и съща минута', $id, 'notice');
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
