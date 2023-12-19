@@ -223,7 +223,6 @@ class pos_Receipts extends core_Master
         } else {
             
             // Коя е последната чернова бележка от ПОС-а
-            $today = dt::today();
             $query = $this->getQuery();
             $query->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
             $query->show('valior,contragentClass,contragentObjectId,total');
@@ -234,8 +233,7 @@ class pos_Receipts extends core_Master
             if(is_object($lastDraft)){
                 
                 // Ако има такава и тя е без контрагент и е празна
-                $defaultContragentId = pos_Points::defaultContragent($pointId);
-                if(empty($lastDraft->total) && $lastDraft->contragentClass == crm_Persons::getClassId() && $lastDraft->contragentObjectId == $defaultContragentId){
+                if(empty($lastDraft->total) && pos_Receipts::isForDefaultContragent($lastDraft)){
                     $today = dt::today();
                     
                     // Ако е със стара дата, подменя се
