@@ -93,7 +93,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             }
             
             if (haveRole($fiscDriver->canMakeReport)) {
-                $reportBtn = ht::createBtn("Отчет", array($fiscDriver, 'Reports', 'pId' => $deviceRec->id, 'ret_url' => true, 'rand' => str::getRand()), false, false, "class=printReceiptBtn posBtns navigable,title=Отпечатване на отчети");
+                $reportBtn = ht::createBtn("Отчет ФУ", array($fiscDriver, 'Reports', 'pId' => $deviceRec->id, 'ret_url' => true, 'rand' => str::getRand()), false, false, "class=printReceiptBtn posBtns navigable,title=Отпечатване на отчет на фискалното устройство|*!");
                 $buttons["report"] = (object)array('body' => $reportBtn, 'placeholder' => 'CLOSE_BTNS');
             }
             
