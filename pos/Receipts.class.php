@@ -868,6 +868,8 @@ class pos_Receipts extends core_Master
     protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
+            self::logDebug("Изтриване на бележка: {$rec->id}");
+            wp($rec);
             pos_ReceiptDetails::delete("#receiptId = {$rec->id}");
         }
     }
