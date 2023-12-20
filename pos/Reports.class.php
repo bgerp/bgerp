@@ -53,12 +53,6 @@ class pos_Reports extends core_Master
     
     
     /**
-     * Брой продажби на страница
-     */
-    public $listDetailsPerPage = '50';
-    
-    
-    /**
      * Абревиатура
      */
     public $abbr = 'Otc';
@@ -131,8 +125,14 @@ class pos_Reports extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
+
+
+    /**
+     * Детайли
+     */
+    public $details = 'total=pos_ReportDetails,receipts=pos_ReportDetails';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -262,22 +262,24 @@ class pos_Reports extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        // Рендираме продажбите
-        $data->rec->details->listTableMvc = new core_FieldSet();
-        $data->rec->details->listTableMvc->FLD('value', 'varchar', 'tdClass=largeCell');
-        $tpl->append($mvc->renderListTable($data->rec->details), 'SALES');
-        if ($data->rec->details->pager) {
-            $tpl->append($data->rec->details->pager->getHtml(), 'SALE_PAGINATOR');
-        }
-        
         // Рендираме обобщената информация за касиерите
         if (countR($data->row->statisticArr)) {
             $block = $tpl->getBlock('ROW');
-            
+
             foreach ($data->row->statisticArr as $statRow) {
                 $rowTpl = clone $block;
                 $rowTpl->placeObject($statRow);
-                
+                $rowTpl->removeBlocks();
+                $rowTpl->append2master();
+            }
+        }
+
+        if (countR($data->row->paymentSummary)) {
+            $block = $tpl->getBlock('PAYMENTS');
+
+            foreach ($data->row->paymentSummary as $payRow) {
+                $rowTpl = clone $block;
+                $rowTpl->placeObject($payRow);
                 $rowTpl->removeBlocks();
                 $rowTpl->append2master();
             }
@@ -294,31 +296,9 @@ class pos_Reports extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$data)
     {
         $detail = (object) $data->rec->details;
-        arr::sortObjects($detail->receiptDetails, 'action');
-        
-        // Табличната информация и пейджъра на плащанията
-        $detail->listFields = "value=Действие, pack=Мярка, quantity=К-во, amount=|*{$data->row->baseCurrency}, storeId=Склад,contragentId=Клиент";
-        $detail->rows = $detail->receiptDetails;
-        $detail->masterRec = $data->rec;
-        $mvc->prepareDetail($detail);
-        $data->rec->details = $detail;
-        
-        $receiptIds = arr::extractValuesFromArray($detail->receipts, 'id');
-        $data->row->receiptIds = array();
-        foreach ($receiptIds as $receiptId){
-            $data->row->receiptIds[$receiptId] = pos_Receipts::getHyperlink($receiptId)->getContent();
-        }
 
-        if(countR($data->row->receiptIds)){
-            $data->row->receiptIds = implode(' <span class="quiet small" style="display: inline-block;margin: 0 3px;"> | </span> ', $data->row->receiptIds);
-        }
-        
-        /*
-    	 * Обработваме статистиката за това всеки касиер, колко е продал
-    	 */
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        $data->row->statisticArr = array();
+        // Сумиране по плащания на клиентите
+        $data->row->statisticArr = $data->row->paymentSummary = array();
         foreach ($detail->receipts as $receiptRec) {
             if (!array_key_exists($receiptRec->createdBy, $data->row->statisticArr)) {
                 $data->row->statisticArr[$receiptRec->createdBy] = (object) array('receiptBy' => crm_Profiles::createLink($receiptRec->createdBy),
@@ -327,65 +307,24 @@ class pos_Reports extends core_Master
                 $data->row->statisticArr[$receiptRec->createdBy]->receiptTotal += $receiptRec->total;
             }
         }
-        
+
+        // Сумиране по видове плащания
+        $paymentsRecs = array_filter($data->rec->details['receiptDetails'], function($a) {return $a->action == 'payment';});
+        foreach ($paymentsRecs as $paymentRec){
+            if (!array_key_exists($paymentRec->value, $data->row->paymentSummary)) {
+                $value = ($paymentRec->value != -1) ? cond_Payments::getTitleById($paymentRec->value) : tr('В брой');
+                $data->row->paymentSummary[$paymentRec->value] = (object) array('paymentType' => $value, 'paymentTotal' => 0);
+            }
+            $data->row->paymentSummary[$paymentRec->value]->paymentTotal += $paymentRec->amount;
+        }
+
+        $Double = core_Type::getByName('double(decimals=2)');
         foreach ($data->row->statisticArr as &$rRec) {
             $rRec->receiptTotal = $Double->toVerbal($rRec->receiptTotal);
         }
-    }
-    
-    
-    /**
-     * Инстанциране на пейджъра и модификации по данните спрямо него
-     *
-     * @param stdClass $detail - Масив с детайли на отчета (плащания или продажби)
-     */
-    public function prepareDetail(&$detail)
-    {
-        $newRows = array();
-        
-        // Инстанцираме пейджър-а
-        $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
-        $Pager->itemsCount = countR($detail->rows);
-        $Pager->calc();
-
-        // Добавяме всеки елемент отговарящ на условието на пейджъра в нов масив
-        if ($detail->rows) {
-             
-             // Подготвяме поле по което да сортираме
-            foreach ($detail->rows as &$value) {
-                if ($value->action == 'sale') {
-                    $value->sortString = mb_strtolower(cat_Products::fetchField($value->value, 'name'));
-                }
-            }
-
-            usort($detail->rows, array($this, 'sortResults'));
-            
-            // Обръщаме във вербален вид
-            $start = $Pager->rangeStart;
-            $end = $Pager->rangeEnd - 1;
-            $rowsCnt = countR($detail->rows);
-            for ($i = 0; $i < $rowsCnt; $i++) {
-                if ($i >= $start && $i <= $end) {
-                    $keys = array_keys($detail->rows);
-                    $newRows[] = $this->getVerbalDetail($detail->masterRec, $detail->rows[$keys[$i]]);
-                }
-            }
-            
-            // Заместваме стария масив с новия филтриран
-            $detail->rows = $newRows;
-            
-            // Добавяме пейджъра
-            $detail->pager = $Pager;
+        foreach ($data->row->paymentSummary as &$pRec) {
+            $pRec->paymentTotal = $Double->toVerbal($pRec->paymentTotal);
         }
-    }
-    
-    
-    /**
-     * Сортира масива първо по код после по сума (ако кодовете съвпадат)
-     */
-    private function sortResults($a, $b)
-    {
-        return strcmp($a->sortString, $b->sortString);
     }
     
     
@@ -398,75 +337,6 @@ class pos_Reports extends core_Master
             $data->form->toolbar->removeBtn('save');
             $data->form->toolbar->addSbBtn('Контиране', 'save', 'warning=Наистина ли желаете да контирате отчета|*?,ef_icon = img/16/disk.png,order=9.99985, title = Контиране на документа');
         }
-    }
-    
-    
-    /**
-     * Функция обработваща детайл на репорта във вербален вид
-     *
-     * @param stdClass $rec-> запис на продажба или плащане
-     *
-     * @return stdClass $row-> вербалния вид на записа
-     */
-    private function getVerbalDetail($rec, $obj)
-    {
-        $row = new stdClass();
-        
-        $Double = core_Type::getByName('double(decimals=2)');
-        $currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
-        $row->quantity = "<span style='float:right'>{$Double->toVerbal($obj->quantity)}</span>";
-        if ($obj->action == 'sale') {
-            
-            // Ако детайла е продажба
-            $row->ROW_ATTR['class'] = 'report-sale';
-            if(isset($obj->storeId)){
-                $row->storeId = store_Stores::getHyperlink($obj->storeId, true);
-            }
-            
-            $row->pack = cat_UoM::getShortName($obj->pack);
-            deals_Helper::getPackInfo($row->pack, $obj->value, $obj->pack, $obj->quantityInPack);
-            
-            $row->value = cat_Products::getHyperlink($obj->value, true);
-            $obj->amount *= 1 + $obj->param;
-
-            if(core_Packs::isInstalled('batch')){
-                $batchDef = batch_Defs::getBatchDef($obj->value);
-                if(is_object($batchDef)){
-                    if(!empty($obj->batch)){
-                        $batch = batch_Movements::getLinkArr($obj->value, $obj->batch);
-                        $row->value .= "<br><span class='richtext'>" . $batch[$obj->batch] . "</span>";
-                    } else {
-                        $row->value .= "<br><span class='richtext quiet'>" . tr("Без партида") . "</span>";
-                    }
-                }
-            }
-
-            deals_Helper::getQuantityHint($row->quantity, $this, $obj->value, $obj->storeId, $obj->quantity, $rec->state, $rec->valior);
-
-        } else {
-            
-            // Ако детайла е плащане
-            $row->pack = $currencyCode;
-            $value = ($obj->value != -1) ? cond_Payments::getTitleById($obj->value) : tr('В брой');
-            $row->value = "<b>" . tr('Плащане') . "</b>: &nbsp;<i>{$value}</i>";
-            $row->ROW_ATTR['class'] = 'report-payment';
-            unset($row->quantity);
-            
-            if($obj->value != '-1'){
-                $obj->amount = cond_Payments::toBaseCurrency($obj->value, $obj->amount, $obj->date);
-            }
-        }
-        
-        $amount = $Double->toVerbal($obj->amount);
-        if(isset($obj->param)){
-            $amountHint = tr('ДДС') . ": " . core_Type::getByName('percent')->toVerbal($obj->param);
-            $amount = ht::createHint($amount, $amountHint);
-        }
-        
-        $row->amount = "<span style='float:right'>{$amount}</span>";
-        $row->contragentId = cls::get($obj->contragentClassId)->getHyperlink($obj->contragentId, true);
-        
-        return $row;
     }
     
     
@@ -642,7 +512,7 @@ class pos_Reports extends core_Master
     /**
      * Оттегля всички празни чернови бележки в дадена точка от даден касиер
      *
-     * @param int $pointId - ид на точка
+     * @param stdClass $rec - ид на точка
      */
     private function rejectEmptyReceipts($rec)
     {

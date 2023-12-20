@@ -1,11 +1,12 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 <div class="sale-summary">
+	<div>|Бележки от|*: [#from#] - [#to#]</div>
                 <table class='paddingCells' style='width:100%;margin-bottom:10px'>
                     <tr>
                     	<td class = 'sum-th' style="width: 25%">
                             |Информация|*
                         </td>
-                        <td class = 'sum-th'>
+                        <td class = 'sum-th' colspan="2">
                             |Обобщение|*
                         </td>
                     </tr>
@@ -22,19 +23,25 @@
                             <!--ET_END baseAccountId-->
 							<hr>
                             <div style="font-size: 1.2em;">|Продадено|*, [#baseCurrency#]: <b>[#total#]</b>
-                                <br>|Платено|*, [#baseCurrency#]: <b>[#paid#]</b> </div>
-
+                                <br>|Платено|*, [#baseCurrency#]: <b>[#paid#]</b>
+							</div>
+							<hr>
+							<div style="font-size: 1.2em;"></div>
                         </td>
                         <td style='font-size:0.8em;vertical-align:top;text-align:left'>
+							<div>|Оператори|*</div>
                        		<!--ET_BEGIN ROW-->
 								[#ROW#]
-						     	<span style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></span>
+						     	<div style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></div>
 						     <!--ET_END ROW-->
-						     <div style='font-weight:normal'><hr>
-						      <div>|Бележки от|*: [#from#] - [#to#]</div>
-						     </div>
-						     <div style='font-weight:normal;font-size: 0.9em;'>[#receiptIds#]</div>
                         </td>
+						<td style='font-size:0.8em;vertical-align:top;text-align:left'>
+							<div>|Плащания|*</div>
+							<!--ET_BEGIN PAYMENTS-->
+							[#PAYMENTS#]
+							<div style='font-weight:normal'>[#paymentType#]: [#paymentTotal#] <span class='cCode'>[#baseCurrency#]</span></div>
+							<!--ET_END PAYMENTS-->
+						</td>
                     </tr>
                 </table>
             </div>
