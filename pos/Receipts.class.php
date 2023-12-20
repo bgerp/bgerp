@@ -455,7 +455,9 @@ class pos_Receipts extends core_Master
      */
     public function updateMaster_($id)
     {
-        expect($rec = $this->fetchRec($id));
+        $rec = $this->fetchRec($id);
+        if(empty($rec)) return;
+
         $rec->change = $rec->total = $rec->paid = 0;
         
         $dQuery = $this->pos_ReceiptDetails->getQuery();
