@@ -263,6 +263,8 @@ class pos_Reports extends core_Master
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         // Рендираме продажбите
+        $data->rec->details->listTableMvc = new core_FieldSet();
+        $data->rec->details->listTableMvc->FLD('value', 'varchar', 'tdClass=largeCell');
         $tpl->append($mvc->renderListTable($data->rec->details), 'SALES');
         if ($data->rec->details->pager) {
             $tpl->append($data->rec->details->pager->getHtml(), 'SALE_PAGINATOR');
