@@ -581,7 +581,7 @@ class pos_ReceiptDetails extends core_Detail
             
             // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
             $defaultStoreId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
-            
+
             if(isset($defaultStoreId)){
                 if(core_Packs::isInstalled('batch')){
                     $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId);
@@ -628,7 +628,7 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             if($rec->_canStore == 'yes'){
-                $rec->storeId = isset($rec->storeId) ? $rec->storeId : $defaultStoreId;
+                $rec->storeId = $rec->storeId ?? $defaultStoreId;
                 if(empty($rec->storeId)){
                     $pName = cat_Products::getTitleById($rec->productId);
                     expect(false,  "|*{$pName}: |не е наличен в нито един склад свързан с POS-а|*");
@@ -636,8 +636,13 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             $error = $warningQuantity = null;
-            if ($rec->_canStore == 'yes' && !pos_Receipts::checkQuantity($rec, $error, $warningQuantity)) {
-                expect(false, $error);
+            if ($rec->_canStore == 'yes') {
+                $instantBomRec = cat_Products::getLastActiveBom($rec->productId, 'instant');
+                if(!$instantBomRec){
+                    if(!pos_Receipts::checkQuantity($rec, $error, $warningQuantity)){
+                        expect(false, $error);
+                    }
+                }
             }
 
             if(!empty($warningQuantity)){
@@ -1165,7 +1170,10 @@ class pos_ReceiptDetails extends core_Detail
         // Ако е забранена продажбата на неналични артикули
         $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
         if($notInStockChosen != 'yes'){
-            
+            $instantBomRec = cat_Products::getLastActiveBom($productId, 'instant');
+
+            if(is_object($instantBomRec)) return $firstStoreId;
+
             // Изчисляване на нужното количество в основната мярка
             $quantityInPack = 1;
             if(isset($packagingId)){
