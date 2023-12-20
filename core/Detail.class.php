@@ -356,10 +356,11 @@ class core_Detail extends core_Manager
 
         // За екшъна за изтриване на избрани редове, се изисква да има поне един запис, който може да се изтрива
         if($action == 'selectrowstodelete'){
-            if(!$this->addDeleteSelectRows) return 'no_one';
+            if(!$this->addDeleteSelectRows || (!$this->hasPlugin('plg_RowTools') && !$this->hasPlugin('plg_RowTools2'))) return 'no_one';
 
             $actionCast = 'delete';
             $res = parent::getRequiredRoles_($actionCast, $rec, $userId);
+
 
             if($res != 'no_one'){
 

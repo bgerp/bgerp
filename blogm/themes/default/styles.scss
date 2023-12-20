@@ -173,3 +173,10 @@
 .blogm-browse-article {
 	margin-bottom:20px;
 }
+.blogArticleCategoryLink a {
+	color: #333 !important;
+	&:hover {
+		text-decoration: underline;
+		color: #333 !important;
+	}
+}

@@ -932,7 +932,7 @@ function pressNavigable(element)
 /**
  * Извикване на урл-то след потвърждение на предупреждението
  */
-function confirmAndRefirect(warning, url)
+function confirmAndRedirect(warning, url)
 {
 	if (!confirm(warning)){
 		
