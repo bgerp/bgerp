@@ -297,7 +297,7 @@ class pos_Reports extends core_Master
         arr::sortObjects($detail->receiptDetails, 'action');
         
         // Табличната информация и пейджъра на плащанията
-        $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency}), storeId=Склад,contragentId=Клиент";
+        $detail->listFields = "value=Действие, pack=Мярка, quantity=К-во, amount=|*{$data->row->baseCurrency}, storeId=Склад,contragentId=Клиент";
         $detail->rows = $detail->receiptDetails;
         $detail->masterRec = $data->rec;
         $mvc->prepareDetail($detail);
