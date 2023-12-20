@@ -5,6 +5,9 @@
   #receipt-table .rejected-receipt {
     background-color: rgba(204, 102, 102, 0.8); }
 
+.sale-summary table td {
+  font-weight: normal; }
+
 #single-receipt-holder {
   float: left;
   font-family: 'Source Sans Pro', sans-serif;
