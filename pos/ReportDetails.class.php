@@ -188,7 +188,10 @@ class pos_ReportDetails extends core_Manager
      */
     function prepareReceipts($data)
     {
-        $data->TabCaption = 'Бележки';
+        $detail = (object) $data->masterData->rec->details;
+        $receiptIds = arr::extractValuesFromArray($detail->receipts, 'id');
+
+        $data->TabCaption = "Бележки|* (" . countR($receiptIds) . ")";
         $data->Tab = 'top';
 
         $tabParam = $data->masterData->tabTopParam;
@@ -197,9 +200,6 @@ class pos_ReportDetails extends core_Manager
             $data->hide = true;
             return;
         }
-
-        $detail = (object) $data->masterData->rec->details;
-        $receiptIds = arr::extractValuesFromArray($detail->receipts, 'id');
 
         $query = pos_Receipts::getQuery();
         $query->in('id', $receiptIds);
@@ -238,11 +238,10 @@ class pos_ReportDetails extends core_Manager
 
         // Рендиране на таблицата с резултатите
         $dTpl = $table->get($data->receiptRows, $fields);
+        $tpl->append($dTpl);
         if ($data->pager) {
             $tpl->append($data->pager->getHtml());
         }
-
-        $tpl->append($dTpl);
 
         return $tpl;
     }
