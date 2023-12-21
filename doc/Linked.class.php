@@ -1768,30 +1768,37 @@ class doc_Linked extends core_Manager
         $rArr = array_reverse($rArr, true);
 
         foreach ((array)$rArr as $rRec) {
-            if ($rRec->inType == 'doc') {
-                $doc = doc_Containers::getDocument($rRec->inVal);
-                $dRow = $doc->getDocumentRow();
-                if ($dRow) {
-                    $sKeywords .= $dRow->recTitle ? $dRow->recTitle : $dRow->title;
-                    $sKeywords .= ' ';
-                }
-                if ($dRow->subTitle) {
-                    $sKeywords .= strip_tags($dRow->subTitle) . ' ';
+            foreach (array('inType' => 'inVal', 'outType' => 'outVal') as $item => $itemVal) {
+                if ($rRec->{$item} == 'doc') {
+                    // Прескачаме, когато е за същият документ
+                    if ($rRec->{$itemVal} == $id) {
+
+                        continue;
+                    }
+                    $doc = doc_Containers::getDocument($rRec->{$itemVal});
+                    $dRow = $doc->getDocumentRow();
+                    if ($dRow) {
+                        $sKeywords .= $dRow->recTitle ? $dRow->recTitle : $dRow->title;
+                        $sKeywords .= ' ';
+                    }
+                    if ($dRow->subTitle) {
+                        $sKeywords .= strip_tags($dRow->subTitle) . ' ';
+                    }
+
+                    $handler = $doc->getHandle();
+                    if ($handler) {
+                        $sKeywords .= $handler . ' ';
+                    }
                 }
 
-                $handler = $doc->getHandle();
-                if ($handler) {
-                    $sKeywords .= $handler . ' ';
+                if ($rRec->{$item} == 'file') {
+                    $fRec = fileman_Files::fetch($rRec->{$itemVal});
+                    $sKeywords .= $fRec->name . ' ';
                 }
-            }
 
-            if ($rRec->inType == 'file') {
-                $fRec = fileman_Files::fetch($rRec->inVal);
-                $sKeywords .= $fRec->name . ' ';
-            }
-
-            if ($rRec->comment) {
-                $sKeywords .= $rRec->comment . ' ';
+                if ($rRec->comment) {
+                    $sKeywords .= $rRec->comment . ' ';
+                }
             }
         }
 
