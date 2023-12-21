@@ -182,8 +182,22 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,mandatory');
         $mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
-
         $mvc->setDbIndex('dueDate');
+    }
+
+
+    /**
+     * Извиква се след описанието на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+        // Ако е указано да се кешират допълни данни
+        setIfNot($mvc->cacheAdditionalConditions, false);
+        if($mvc->cacheAdditionalConditions){
+            $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
+        }
     }
 
 
@@ -1390,6 +1404,32 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             core_Lg::pop();
+
+            // Показване на допълнителните условия от банковата сметка
+            if($mvc->cacheAdditionalConditions){
+                $conditions = $rec->additionalConditions;
+                if (empty($conditions)) {
+                    if (in_array($rec->state, array('pending', 'draft'))) {
+                        if(!empty($rec->accountId)){
+                            $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                            $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $rec->tplLang);
+                            if (!empty($condition)) {
+                                if (!Mode::isReadOnly()) {
+                                    $condition = "<span style='color:blue'>{$condition}</span>";
+                                }
+                                $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
+                                $conditions = array($condition);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (is_array($conditions)) {
+                foreach ($conditions as $cond) {
+                    $row->additionalInfo .= "\n" . $cond;
+                }
+            }
         }
     }
     
@@ -1884,15 +1924,31 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = $mvc->fetchRec($rec);
 
+        $saveFields = array();
+        if($mvc->cacheAdditionalConditions){
+            if (empty($rec->additionalConditions)) {
+                if(!empty($rec->accountId)) {
+                    $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                    $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
+                    $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
+                    $rec->additionalConditions = array($condition);
+                    $saveFields[] = 'additionalConditions';
+                }
+            }
+        }
+
         if(!in_array($rec->vatRate, array('yes', 'separate'))) {
             if (empty($rec->vatReason)) {
                 $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);
                 if(!empty($vatReason)){
                     $rec->vatReason = $vatReason;
-                    $mvc->save_($rec, 'vatReason');
+                    $saveFields[] = 'vatReason';
+                    $mvc->save_($rec, $saveFields);
                 }
             }
         }
+
+        $mvc->save_($rec, $saveFields);
 
         // Ако има посочен параметър за информация към фактурата от артикула
         $Detail = cls::get($mvc->mainDetail);

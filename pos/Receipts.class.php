@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing, plg_State, pos_Wrapper, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_Modified,plg_RowTools2,store_plg_StockPlanning';
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing, plg_State, pos_Wrapper, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_Modified,plg_RowTools2,store_plg_StockPlanning,plg_Select';
     
     
     /**
@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, productCount, total, paid, change, state, revertId, returnedTotal';
+    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, revertId, returnedTotal';
     
     
     /**
@@ -167,6 +167,12 @@ class pos_Receipts extends core_Master
 
 
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'revertId,returnedTotal';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -217,7 +223,6 @@ class pos_Receipts extends core_Master
         } else {
             
             // Коя е последната чернова бележка от ПОС-а
-            $today = dt::today();
             $query = $this->getQuery();
             $query->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
             $query->show('valior,contragentClass,contragentObjectId,total');
@@ -228,8 +233,7 @@ class pos_Receipts extends core_Master
             if(is_object($lastDraft)){
                 
                 // Ако има такава и тя е без контрагент и е празна
-                $defaultContragentId = pos_Points::defaultContragent($pointId);
-                if(empty($lastDraft->total) && $lastDraft->contragentClass == crm_Persons::getClassId() && $lastDraft->contragentObjectId == $defaultContragentId){
+                if(empty($lastDraft->total) && pos_Receipts::isForDefaultContragent($lastDraft)){
                     $today = dt::today();
                     
                     // Ако е със стара дата, подменя се
@@ -294,9 +298,8 @@ class pos_Receipts extends core_Master
         }
         
         $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
-        $contragentFolderId = $Contragent->fetchField('folderId');
-        $row->contragentId = (isset($contragentFolderId)) ? doc_Folders::recToVerbal($contragentFolderId)->title : $Contragent->getHyperlink(true);
-        
+        $row->contragentId = $Contragent->getHyperlink(true);
+
         if ($fields['-list']) {
             $row->title = $mvc->getHyperlink($rec->id, true);
         } elseif ($fields['-single']) {
@@ -327,6 +330,7 @@ class pos_Receipts extends core_Master
             $row->PAID_CAPTION = (isset($rec->revertId)) ? tr('Върнато') : tr('Платено');
             $rec->paid = abs($rec->paid);
             $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
+            $row->paidCurrency = $row->currency;
             if(!empty($rec->change)){
                 $row->CHANGE_CLASS = ($rec->change < 0 || isset($rec->revertId)) ? 'changeNegative' : 'changePositive';
                 $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
@@ -451,7 +455,9 @@ class pos_Receipts extends core_Master
      */
     public function updateMaster_($id)
     {
-        expect($rec = $this->fetchRec($id));
+        $rec = $this->fetchRec($id);
+        if(empty($rec)) return;
+
         $rec->change = $rec->total = $rec->paid = 0;
         
         $dQuery = $this->pos_ReceiptDetails->getQuery();
@@ -547,13 +553,14 @@ class pos_Receipts extends core_Master
         
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
-            if(empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || !in_array($rec->state, array('draft', 'closed', 'waiting'))){
+
+            if(empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || $rec->state != 'draft'){
                 $res = 'no_one';
             }
         }
         
         if($action == 'setcontragent' && isset($rec)){
-            if(!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn)){
+            if(!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn) || $rec->state != 'draft'){
                 $res = 'no_one';
             }
         }
@@ -863,6 +870,8 @@ class pos_Receipts extends core_Master
     protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
+            self::logDebug("Изтриване на бележка: {$rec->id}");
+            wp('Изтриване на бележка', $rec);
             pos_ReceiptDetails::delete("#receiptId = {$rec->id}");
         }
     }
@@ -949,21 +958,21 @@ class pos_Receipts extends core_Master
             $res = round($res, 2);
         }
     }
-    
-    
-    /**
-     * Екшън задаващ контрагент на бележката
-     */
-    public function act_setcontragent()
-    {
-        $this->requireRightFor('setcontragent');
-        expect($id = Request::get('id'));
-        expect($rec = $this->fetch($id));
-        $this->requireRightFor('setcontragent', $rec);
-        expect($rec->contragentClass = Request::get('contragentClassId', 'int'));
-        expect($rec->contragentObjectId = Request::get('contragentId', 'int'));
-        $locationId = Request::get('locationId', 'int');
 
+
+    /**
+     * Сменя контрагента на бележката и преизчислява цените
+     *
+     * @param stdClass $rec
+     * @param int $contragentClassId
+     * @param int $contragentId
+     * @param int|null $locationId
+     * @return void
+     */
+    private function setContragent(&$rec, $contragentClassId, $contragentId, $locationId = null)
+    {
+        $rec->contragentClass = $contragentClassId;
+        $rec->contragentObjectId = $contragentId;
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
         $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
@@ -986,12 +995,13 @@ class pos_Receipts extends core_Master
             $price = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $now, 1, 'no', $listId, false);
             if(empty($price->price)) continue;
             $oldPrice = (!empty($dRec->discountPercent)) ? ($dRec->price * (1 - $dRec->discountPercent)) : $dRec->price;
+
             $finalPrice = (!empty($price->discount)) ? ($price->price * (1 - $price->discount)) : $price->price;
             $finalPrice *= $perPack;
 
             if($isDefaultContragent || round($oldPrice, 5) > round($finalPrice, 5)){
                 $discount = $price->discount;
-                $price = $price->price / $perPack;
+                $price = $price->price;
 
                 if(isset($discountPolicyId)){
                     $priceOnDiscountListRec = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $now, 1, 'no', $discountPolicyId, false);
@@ -1001,11 +1011,11 @@ class pos_Receipts extends core_Master
                         $comparePrice *= $perPack;
 
                         $disc = ($finalPrice - $comparePrice) / $comparePrice;
-                        $discount = round(-1 * $disc, 3);
-                        if ($discount > 0.01) {
+                        $discountCalced = round(-1 * $disc, 3);
+                        if ($discountCalced > 0.01) {
                             // Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
                             $discount = round(-1 * $disc, 3);
-                            $price = $comparePrice;
+                            $price = $comparePrice / $perPack;
                         }
                     }
                 }
@@ -1016,15 +1026,49 @@ class pos_Receipts extends core_Master
                 pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent');
             }
         }
-        
-        $this->logWrite('Избиране на контрагент', $id);
+    }
 
-        if(Request::get('autoSelect')){
+
+    /**
+     * Екшън задаващ контрагент на бележката
+     */
+    public function act_setcontragent()
+    {
+        $this->requireRightFor('setcontragent');
+        expect($id = Request::get('id'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('setcontragent', $rec);
+        expect($contragentClassId = Request::get('contragentClassId', 'int'));
+        expect($contragentId = Request::get('contragentId', 'int'));
+        $locationId = Request::get('locationId', 'int');
+        $autoSelect = Request::get('autoSelect');
+
+        // Ако се прави опит за избор на същия контрагент не се прави нищо
+        if($rec->contragentClass == $contragentClassId && $rec->contragentObjectId == $contragentId){
+            core_Statuses::newStatus('Контрагента е вече избран');
+
+            return pos_Terminal::returnAjaxResponse($id, null, true, false, false, false, 'add', false);
+        }
+
+        $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
+
+        // Ако бележката е на клиент и е сканирана нова карта и тя не е на този клиент ще се върне на анонимния за да се преизчислят цените
+        if(!$isDefaultContragent && $autoSelect && ($rec->contragentClass != $contragentClassId || $rec->contragentObjectId != $contragentId)){
+            $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+            $this->setContragent($rec, crm_Persons::getClassId(), $defaultContragentId);
+        }
+
+        // Задаване на новия контрагент
+        $this->setContragent($rec, $contragentClassId, $contragentId, $locationId);
+        $this->logWrite('Избир на контрагент в бележка', $id);
+
+        // Ако е сканирана клиентска карта на лице - в статуса се показва аватара му
+        if($autoSelect){
             if($rec->contragentClass == crm_Persons::getClassId()){
                 $avatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 130, 130);
                 if(!empty($avatar)){
                     $personName = crm_Persons::fetchField($rec->contragentObjectId, 'name');
-                    core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'notice', null, 120);
+                    core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'no-icon', null, 120);
                 }
             }
         }

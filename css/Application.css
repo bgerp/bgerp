@@ -1290,8 +1290,6 @@ div.acc-detail {
   .portal table.listTable {
     width: 100% !important;
     border: none;
-    font-size: 0.95em;
-    line-height: 1.1em !important;
     margin-bottom: 0; }
     .portal table.listTable td {
       border: none !important;
@@ -1307,6 +1305,10 @@ div.acc-detail {
     .portal table.listTable .portal-date {
       width: 1%; }
 
+.wide .portal table.listTable {
+  font-size: 0.95em;
+  line-height: 1.1em !important; }
+
   .planning_ProductionTaskDetails table.listTable>tbody>tr>td {
     border-top: 1px none !important; }
   .planning_ProductionTaskDetails table.listTable>tbody>tr:first-child>td {
@@ -1319,9 +1321,6 @@ div.acc-detail {
     border-left: none; }
   .portal.planning table.listTable th:last-child {
     border-right: none; }
-
-.narrow .portal .listRows {
-  font-size: 0.9em; }
 
 .narrow .portal .legend .addTask {
   top: 2px; }
@@ -2775,9 +2774,11 @@ table.mc-calendar {
   table.mc-calendar td.mc-holiday {
     color: red; }
 
+.wide .portal-cal-day {
+  font-size: 0.95em; }
+
 .portal-cal-day {
   color: #5f1f3e;
-  font-size: 0.95em;
   padding-top: 3px;
   padding-left: 3px;
   border-top: 1px solid #cccccc; }
@@ -3394,7 +3395,7 @@ span.sharing-history-title {
 
 .foorterAdd {
   color: #cccccc;
-  font-size: 0.7em !important; }
+  font-size: 0.65em !important; }
 
 .wide .foorterAdd {
   position: absolute;
@@ -5188,7 +5189,8 @@ div.location.public {
 .flexBox {
   display: flex;
   align-content: baseline;
-  align-items: baseline; }
+  align-items: baseline;
+  margin-bottom: 5px; }
   .flexBox div {
     display: flex;
     align-content: baseline;
@@ -6852,6 +6854,9 @@ only screen and (max-width: 320px) {
 
 .labelBreak:last-child {
   margin-bottom: 0mm; }
+
+.qrcode {
+  height: 87px; }
 
 /*
  * стилове за принтиране

@@ -1723,22 +1723,7 @@ class doc_Linked extends core_Manager
             $data->form->setField('inVal', 'input=none');
         }
     }
-    
-    
-    /**
-     * Извиква се преди запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int      $id  първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec)
-    {
-        if (!trim($rec->comment)) {
-            
-        }
-    }
-    
+
     
     /**
      * Извиква се след успешен запис в модела
@@ -1752,12 +1737,65 @@ class doc_Linked extends core_Manager
         if ($rec->outType == 'doc') {
             $doc = doc_Containers::getDocument($rec->outVal);
             $doc->touchRec();
+            $dRec = $doc->fetch();
+            if ($dRec) {
+                plg_Search::forceUpdateKeywords($doc, $dRec);
+            }
         }
         
         if ($rec->inType == 'doc') {
             $doc = doc_Containers::getDocument($rec->inVal);
             $doc->touchRec();
+            $dRec = $doc->fetch();
+            if ($dRec) {
+                plg_Search::forceUpdateKeywords($doc, $dRec);
+            }
         }
+    }
+
+
+    /**
+     * Връща ключовите думи на свързаните документи
+     *
+     * @param integer $id
+     *
+     * @return string
+     */
+    public static function getKeywordsForLinked($id)
+    {
+        $sKeywords = '';
+        $rArr = self::getRecsForType('doc', $id, false, 100000);
+        $rArr = array_reverse($rArr, true);
+
+        foreach ((array)$rArr as $rRec) {
+            if ($rRec->inType == 'doc') {
+                $doc = doc_Containers::getDocument($rRec->inVal);
+                $dRow = $doc->getDocumentRow();
+                if ($dRow) {
+                    $sKeywords .= $dRow->recTitle ? $dRow->recTitle : $dRow->title;
+                    $sKeywords .= ' ';
+                }
+                if ($dRow->subTitle) {
+                    $sKeywords .= strip_tags($dRow->subTitle) . ' ';
+                }
+
+                $handler = $doc->getHandle();
+                if ($handler) {
+                    $sKeywords .= $handler . ' ';
+                }
+            }
+
+            if ($rRec->inType == 'file') {
+                $fRec = fileman_Files::fetch($rRec->inVal);
+                $sKeywords .= $fRec->name . ' ';
+            }
+
+            if ($rRec->comment) {
+                $sKeywords .= $rRec->comment . ' ';
+            }
+        }
+
+        return $sKeywords;
     }
     
     

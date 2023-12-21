@@ -304,7 +304,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::updateTasks1520',
         'migrate::updateMigratedTasks1620',
         'migrate::taskDetailsRepairSerchKeywords2341',
-        'migrate::tasksRepairSerchKeywords2346v4',
+        'migrate::tasksRepairSerchKeywords2346v5',
     );
 
 
@@ -689,7 +689,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Форсира регенерирането на ключовите думи за planning_Tasks
      */
-    public static function tasksRepairSerchKeywords2346v4()
+    public static function tasksRepairSerchKeywords2346v5()
     {
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_Tasks', dt::addSecs(120));
     }

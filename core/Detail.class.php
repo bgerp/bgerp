@@ -216,10 +216,10 @@ class core_Detail extends core_Manager
         if ($data->masterId) {
             $rec = new stdClass();
             $rec->{$masterKey} = $data->masterId;
-        }
-        
-        if ($this->haveRightFor('add', $rec) && $data->masterId && $this->listAddBtn !== false) {
-            $data->toolbar->addBtn('Нов запис', array($this, 'add', $masterKey => $data->masterId, 'ret_url' => true),  'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+
+            if ($this->haveRightFor('add', $rec) && $data->masterId && $this->listAddBtn !== false) {
+                $data->toolbar->addBtn('Нов запис', array($this, 'add', $masterKey => $data->masterId, 'ret_url' => true),  'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+            }
         }
 
         if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => $data->masterId))){
@@ -356,10 +356,11 @@ class core_Detail extends core_Manager
 
         // За екшъна за изтриване на избрани редове, се изисква да има поне един запис, който може да се изтрива
         if($action == 'selectrowstodelete'){
-            if(!$this->addDeleteSelectRows) return 'no_one';
+            if(!$this->addDeleteSelectRows || (!$this->hasPlugin('plg_RowTools') && !$this->hasPlugin('plg_RowTools2'))) return 'no_one';
 
             $actionCast = 'delete';
             $res = parent::getRequiredRoles_($actionCast, $rec, $userId);
+
 
             if($res != 'no_one'){
 
@@ -373,15 +374,19 @@ class core_Detail extends core_Manager
                         $query->where("#{$rec->_filterFld} {$sign} '{$rec->{$rec->_filterFldVal}}'");
                     }
 
-                    $haveDeletableRec = false;
+                    $canDeleteCount = 0;
+                    $haveDeletableMoreThanOneRec = false;
                     while ($dRec = $query->fetch()){
                         if(static::haveRightFor('delete', $dRec)){
-                            $haveDeletableRec = true;
-                            break;
+                            $canDeleteCount++;
+                            if($canDeleteCount >= 2) {
+                                $haveDeletableMoreThanOneRec = true;
+                                break;
+                            }
                         }
                     }
 
-                    if(!$haveDeletableRec){
+                    if(!$haveDeletableMoreThanOneRec){
                         $res = 'no_one';
                     }
                 } else {

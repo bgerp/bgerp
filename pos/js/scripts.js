@@ -932,7 +932,7 @@ function pressNavigable(element)
 /**
  * Извикване на урл-то след потвърждение на предупреждението
  */
-function confirmAndRefirect(warning, url)
+function confirmAndRedirect(warning, url)
 {
 	if (!confirm(warning)){
 		
@@ -1136,8 +1136,8 @@ function isInViewport(el){
 
 
 function scrollToHighlight(){
-	if ($(".highlighted").length && !isInViewport($(".highlighted")[0])) {
-		$(".highlighted")[0].scrollIntoView({block: "end", inline: "end"});
+	if ($(".highlighted").length) {
+		$(".highlighted")[0].scrollIntoView(false);
 	}
 }
 

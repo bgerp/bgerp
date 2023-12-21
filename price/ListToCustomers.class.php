@@ -149,6 +149,10 @@ class price_ListToCustomers extends core_Manager
             $folderId = cls::get($rec->cClass)->forceCoverAndFolder($rec->cId);
             $data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass, 'cId' => $rec->cId, 'folderId' => $folderId, 'ret_url' => true), null, 'order=10.00015,ef_icon=img/16/page_white_star.png');
         }
+
+        if(isset($rec->id)){
+            $data->form->setReadOnly('listId');
+        }
     }
     
     
@@ -431,6 +435,7 @@ class price_ListToCustomers extends core_Manager
 
         $listRec = price_Lists::fetch($listId);
         $discountListId = $discountListId ?? $listRec->discountCompared;
+
         if(isset($discountIncluded)){
             // Начислява се отстъпката към цената за да може после обратно да се сметне правилно
             $rec->price /= (1 - $discountIncluded);
@@ -438,7 +443,8 @@ class price_ListToCustomers extends core_Manager
         } elseif (!empty($discountListId)) {
 
             // Намираме цената по тази политика и намираме колко % е отстъпката/надценката
-            $comparePrice = price_ListRules::getPrice($discountListId, $productId, $packagingId, $datetime, $isFirstCall, $rate, $chargeVat);
+            $validFrom = null;
+            $comparePrice = price_ListRules::getPrice($discountListId, $productId, $packagingId, $datetime, $validFrom, true, $rate, $chargeVat);
 
             if ($comparePrice && isset($rec->price)) {
                 $disc = ($rec->price - $comparePrice) / $comparePrice;

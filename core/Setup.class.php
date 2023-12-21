@@ -421,7 +421,7 @@ class core_Setup extends core_ProtoSetup
         'core_Updates',
         'core_Permanent',
         'migrate::clearCallOnTimeBadData2212',
-        'migrate::repairSearchKeywords2333',
+        'migrate::repairSearchKeywords2350',
         'migrate::setBGERPUNIQId3020'
     );
     
@@ -467,7 +467,7 @@ class core_Setup extends core_ProtoSetup
         // Спираме SQL лога, ако има такъв
         core_Db::$sqlLogEnebled = false;
         
-        $html .= parent::install();
+        $html = parent::install();
         
         if (CORE_OVERWRITE_HTAACCESS) {
             $filesToCopy = array(
@@ -616,9 +616,8 @@ class core_Setup extends core_ProtoSetup
         $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 120;
-        $res .= core_Cron::addOnce($rec);
-        
-        return $res;
+
+        return core_Cron::addOnce($rec);
     }
     
     
@@ -646,7 +645,8 @@ class core_Setup extends core_ProtoSetup
      */
     public function getCommonCss()
     {
-        return $res;
+
+        return null;
     }
     
     
@@ -718,7 +718,7 @@ class core_Setup extends core_ProtoSetup
     /**
      * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
      */
-    public static function repairSearchKeywords2333()
+    public static function repairSearchKeywords2350()
     {
         // Вземаме инстанция на core_Interfaces
         $Interfaces = cls::get('core_Interfaces');

@@ -436,8 +436,35 @@ class pos_ReceiptDetails extends core_Detail
        
         return $res;
     }
-    
-    
+
+
+    /**
+     * Диспечер на контрагентските операции
+     */
+    public function act_dispatchContragentSearch()
+    {
+        $this->requireRightFor('edit');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        $receiptRec = pos_Receipts::fetch($receiptId);
+        $this->requireRightFor('edit', $receiptId);
+        $string = Request::get('string', 'varchar');
+
+        $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $string, 'operation' => 'contragent', 'receiptId' => $receiptId, 'refreshPanel' => 'true');
+
+        // Ако е засечена клиентска карта - редирект към избора на контрагента ѝ
+        if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
+            $cardInfo = crm_ext_Cards::getInfo($string);
+            if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
+                $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $receiptId, 'ajax_mode' =>1, 'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
+            } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
+                core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
+            }
+        }
+
+        return core_Request::forward($forwardUrl);
+    }
+
+
     /**
      * Екшън добавящ продукт в бележката
      */
@@ -478,7 +505,7 @@ class pos_ReceiptDetails extends core_Detail
                
                 // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
                 // ако да то приемаме числото преди '*' за количество а след '*' за код
-                preg_match('/([\-]?[0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
+                preg_match('/(\-?[0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
 
                 // Ако има намерени к-во и код от регулярния израз
                 if (!empty($matches[1]) && !empty($matches[3])) {
@@ -522,7 +549,7 @@ class pos_ReceiptDetails extends core_Detail
                 if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
                     $cardInfo = crm_ext_Cards::getInfo($rec->ean);
                     if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
-                        $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' =>1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
+                        $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' => 1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
                     } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
                         core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
                     }
@@ -554,7 +581,7 @@ class pos_ReceiptDetails extends core_Detail
             
             // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
             $defaultStoreId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
-            
+
             if(isset($defaultStoreId)){
                 if(core_Packs::isInstalled('batch')){
                     $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId);
@@ -601,7 +628,7 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             if($rec->_canStore == 'yes'){
-                $rec->storeId = isset($rec->storeId) ? $rec->storeId : $defaultStoreId;
+                $rec->storeId = $rec->storeId ?? $defaultStoreId;
                 if(empty($rec->storeId)){
                     $pName = cat_Products::getTitleById($rec->productId);
                     expect(false,  "|*{$pName}: |не е наличен в нито един склад свързан с POS-а|*");
@@ -609,8 +636,13 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             $error = $warningQuantity = null;
-            if ($rec->_canStore == 'yes' && !pos_Receipts::checkQuantity($rec, $error, $warningQuantity)) {
-                expect(false, $error);
+            if ($rec->_canStore == 'yes') {
+                $instantBomRec = cat_Products::getLastActiveBom($rec->productId, 'instant');
+                if(!$instantBomRec){
+                    if(!pos_Receipts::checkQuantity($rec, $error, $warningQuantity)){
+                        expect(false, $error);
+                    }
+                }
             }
 
             if(!empty($warningQuantity)){
@@ -875,10 +907,11 @@ class pos_ReceiptDetails extends core_Detail
         $rec->productId = $product->productId;
         $receiptRec = pos_Receipts::fetch($rec->receiptId, 'pointId,contragentClass,contragentObjectId,valior,createdOn');
 
-        $listId = pos_Receipts::isForDefaultContragent($receiptRec) ? pos_Points::getSettings($receiptRec->pointId, 'policyId') : null;
         $discountPolicyId = pos_Points::getSettings($receiptRec->pointId, 'discountPolicyId');
-        $Policy = cls::get('price_ListToCustomers');
-        $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, dt::now(), 1, 'no', $listId, false, $discountPolicyId);
+        $posPolicyId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
+        $contragentPolicyId = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+        $price = static::getLowerPriceObj($posPolicyId, $contragentPolicyId, $product->productId, $rec->value, 1, dt::now(), $discountPolicyId);
+
         $rec->discountPercent = $price->discount;
         $rec->price = $price->price * $perPack;
         $rec->amount = $rec->price * $rec->quantity;
@@ -1137,7 +1170,10 @@ class pos_ReceiptDetails extends core_Detail
         // Ако е забранена продажбата на неналични артикули
         $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
         if($notInStockChosen != 'yes'){
-            
+            $instantBomRec = cat_Products::getLastActiveBom($productId, 'instant');
+
+            if(is_object($instantBomRec)) return $firstStoreId;
+
             // Изчисляване на нужното количество в основната мярка
             $quantityInPack = 1;
             if(isset($packagingId)){
@@ -1209,5 +1245,43 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         return $textArr;
+    }
+
+
+    /**
+     * Помощна ф-я намираща по-малката цена от клиентската и от тази на пос-а
+     *
+     * @param int $posPolicyId           - ЦП на поса
+     * @param int $contragentPolicyId    - ЦП на клиента
+     * @param int $productId             - ид на артикул
+     * @param int $packagingId           - ид на опаковка
+     * @param double $quantity           - за какво количество
+     * @param datetime $date             - за какво количество
+     * @param int|null $discountPolicyId - политика за отстъпка
+     *
+     * @return stdClass $priceRes
+     */
+    public static function getLowerPriceObj($posPolicyId, $contragentPolicyId, $productId, $packagingId, $quantity, $date, $discountPolicyId = null)
+    {
+        $Policy = cls::get('price_ListToCustomers');
+        $contragentPrice = (object)array('price' => null, 'discount' => null);
+        $price = $Policy->getPriceByList($posPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
+        if(isset($contragentPolicyId)){
+            $contragentPrice = $Policy->getPriceByList($contragentPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
+        }
+
+        // Ще се взима по-малката крайна цена от тази на клиента и на пос-а
+        if(!empty($price->price) && !empty($contragentPrice->price)){
+            $priceRes = $price;
+            $withoutDiscount1 = $price->price * (1 - $price->discount);
+            $withoutDiscount2 = $contragentPrice->price * (1 - $contragentPrice->discount);
+            if(round($withoutDiscount1, 5) > round($withoutDiscount2, 5)){
+                $priceRes = $contragentPrice;
+            }
+        } else {
+            $priceRes = !empty($contragentPrice->price) ? $contragentPrice : $price;
+        }
+
+        return $priceRes;
     }
 }

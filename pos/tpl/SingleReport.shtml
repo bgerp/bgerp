@@ -1,17 +1,18 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 <div class="sale-summary">
-                <table class='paddingCells' style='width:100%;margin-bottom:10px'>
+	                <table class='paddingCells' style='width:100%;margin-bottom:10px'>
                     <tr>
                     	<td class = 'sum-th' style="width: 25%">
                             |Информация|*
                         </td>
-                        <td class = 'sum-th'>
+                        <td class = 'sum-th' colspan="2">
                             |Обобщение|*
                         </td>
                     </tr>
                     <tr>
-                    	<td class = 'nowrap vtop' style='font-size:0.9em;text-align:left;font-weight: normal'>
-                        	|Вальор|*: [#valior#]
+                    	<td class = 'nowrap vtop' style='font-size:0.9em;text-align:left;'>
+                        	|Вальор|*: [#valior#] <br>
+							|Бележки от|*: [#from#] - [#to#]
                         	<br>|Точка|*: [#pointId#]
                         	<br>|Каса|*: [#caseId#]
                         	<br>|Търговец|*: [#dealerId#]
@@ -20,21 +21,25 @@
                         	<br>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span>
 		        			<br>|От|*: [#baseAccountId#]
                             <!--ET_END baseAccountId-->
-							<hr>
-                            <div style="font-size: 1.2em;">|Продадено|*, [#baseCurrency#]: <b>[#total#]</b>
-                                <br>|Платено|*, [#baseCurrency#]: <b>[#paid#]</b> </div>
-
                         </td>
-                        <td style='font-size:0.8em;vertical-align:top;text-align:left'>
+                        <td style='font-size:0.8em;text-align:left' class="vtop">
+							<div>|Оператори|*</div>
                        		<!--ET_BEGIN ROW-->
 								[#ROW#]
-						     	<span style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></span>
+						     	<div>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></div>
 						     <!--ET_END ROW-->
-						     <div style='font-weight:normal'><hr>
-						      <div>|Бележки от|*: [#from#] - [#to#]</div>
-						     </div>
-						     <div style='font-weight:normal;font-size: 0.9em;'>[#receiptIds#]</div>
                         </td>
+						<td style='font-size:0.8em;text-align:left' class="vtop">
+							<div>|Плащания|*</div>
+							<!--ET_BEGIN PAYMENTS-->
+							[#PAYMENTS#]
+							<div>[#paymentType#]: [#paymentTotal#] <span class='cCode'>[#baseCurrency#]</span></div>
+							<!--ET_END PAYMENTS-->
+							<hr>
+							<div style="font-size: 1.2em;">|Продадено|*, [#baseCurrency#]: <b>[#total#]</b>
+								<br>|Платено|*, [#baseCurrency#]: <b>[#paid#]</b>
+							</div>
+						</td>
                     </tr>
                 </table>
             </div>
