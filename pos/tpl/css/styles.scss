@@ -367,6 +367,30 @@
 		transition-duration: 1s;
 	}
 }
+.no-border {
+	font-size: 0.9em;
+	tr td.border-bottom {
+		border-bottom: 1px dashed #aaa !important;
+	}
+	tr:last-child td.border-bottom {
+		border: none !important;
+	}
+	td {
+		padding: 2px !important;
+
+	}
+	.title-info {
+		font-weight: bold !important;
+		background: #ddd;
+
+	}
+	.aleft {
+		text-align: left !important;
+	}
+	.aright {
+		text-align: right !important;
+	}
+}
 
 .updatedDiv {
 	color: red !important;

@@ -308,6 +308,22 @@
     transition: all linear;
     transition-duration: 1s; }
 
+.no-border {
+  font-size: 0.9em; }
+  .no-border tr td.border-bottom {
+    border-bottom: 1px dashed #aaaaaa !important; }
+  .no-border tr:last-child td.border-bottom {
+    border: none !important; }
+  .no-border td {
+    padding: 2px !important; }
+  .no-border .title-info {
+    font-weight: bold !important;
+    background: #dddddd; }
+  .no-border .aleft {
+    text-align: left !important; }
+  .no-border .aright {
+    text-align: right !important; }
+
 .updatedDiv {
   color: red !important; }
   .updatedDiv span {
