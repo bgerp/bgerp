@@ -479,7 +479,8 @@ class pos_ReceiptDetails extends core_Detail
         if($recId = request::get('recId', 'int')){
             $selectedRec = $this->fetch($recId);
         }
-        
+
+        $refreshHeader = false;
         try{
             expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
             $increment = false;
@@ -651,13 +652,21 @@ class pos_ReceiptDetails extends core_Detail
 
             expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
             $rec->param = cat_Products::getVat($rec->productId, dt::now());
-            
+
+            $productsByNow = pos_ReceiptDetails::count("#receiptId = {$rec->receiptId}");
+
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
             Mode::setPermanent("currentOperation{$rec->receiptId}", 'add');
             $selectedRecId = $rec;
-            
+            if(empty($productsByNow)){
+                $receiptRec->createdBy = core_Users::getCurrent();
+                $receiptRec->createdOn = dt::now();
+                $receiptRec->valior = dt::today();
+                pos_Receipts::save($receiptRec, 'createdBy,createdOn,valior');
+                $refreshHeader = true;
+            }
         } catch(core_exception_Expect $e){
             $selectedRecId = null;
             $dump = $e->dump;
@@ -674,7 +683,7 @@ class pos_ReceiptDetails extends core_Detail
         Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId);
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         
-        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add');
+        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add', $refreshHeader);
     }
     
     
@@ -1067,7 +1076,6 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $id = Request::get('loadRecId', 'int');
-        
         $this->requireRightFor('load', (object)array('receiptId' => $receiptId, 'loadRecId' => $id));
         
         $query = $this->getQuery();

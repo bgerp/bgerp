@@ -286,6 +286,8 @@ class pos_ReportDetails extends core_Manager
 
             $row = pos_Receipts::recToVerbal($receiptRec);
             $row->created = $row->createdOn . " " . tr('от') . " " . crm_Profiles::createLink($receiptRec->createdBy);
+            $row->waiting = $row->waitingOn . " " . tr('от') . " " . crm_Profiles::createLink($receiptRec->waitingBy);
+
             $row->receiptId = pos_Receipts::getHyperlink($receiptRec->id, true);
             $data->receiptRows[$receiptRec->id] = $row;
         }
@@ -305,8 +307,9 @@ class pos_ReportDetails extends core_Manager
 
         $fieldset = clone cls::get('pos_Receipts');
         $fieldset->FLD('created', 'varchar', 'smartCenter');
+        $fieldset->FLD('waiting', 'varchar', 'smartCenter');
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
-        $fields = arr::make("receiptId=Бележка,total=|*{$data->masterData->row->baseCurrency},created=Създаване,waitingOn=Чакащо", true);
+        $fields = arr::make("receiptId=Бележка,total=|*{$data->masterData->row->baseCurrency},created=Създаване,waiting=Чакащо", true);
 
         // Рендиране на таблицата с резултатите
         $dTpl = $table->get($data->receiptRows, $fields);

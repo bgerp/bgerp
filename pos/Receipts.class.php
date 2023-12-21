@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, revertId, returnedTotal';
+    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, revertId, returnedTotal, createdOn, createdBy, waitingOn, waitingBy';
     
     
     /**
@@ -145,7 +145,7 @@ class pos_Receipts extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, valior, modifiedOn';
+    public $filterDateField = 'createdOn, valior, waitingOn';
     
     
     /**
@@ -169,7 +169,7 @@ class pos_Receipts extends core_Master
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'revertId,returnedTotal';
+    public $hideListFieldsIfEmpty = 'revertId,returnedTotal,waitingOn,waitingBy';
 
 
     /**
@@ -177,7 +177,7 @@ class pos_Receipts extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date', 'caption=Дата,input=none');
+        $this->FLD('valior', 'date', 'caption=Вальор,input=none');
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
         $this->FLD('contragentObjectId', 'int', 'input=none');
@@ -192,7 +192,9 @@ class pos_Receipts extends core_Master
         $this->FLD('revertId', 'int', 'input=none,caption=Сторнира');
         $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторнирано, input=none');
         $this->FNC('productCount', 'int', 'caption=Артикули');
-        
+        $this->FLD('waitingOn', 'datetime(format=smartTime)', 'caption=Чакаща->На,input=none');
+        $this->FLD('waitingBy', 'key(mvc=core_Users,select=nick)', 'caption=Чакаща->От,input=none');
+
         $this->setDbIndex('valior');
         $this->setDbIndex('revertId');
     }
@@ -231,18 +233,13 @@ class pos_Receipts extends core_Master
             
             $id = null;
             if(is_object($lastDraft)){
-                
                 // Ако има такава и тя е без контрагент и е празна
                 if(empty($lastDraft->total) && pos_Receipts::isForDefaultContragent($lastDraft)){
                     $today = dt::today();
-                    
-                    // Ако е със стара дата, подменя се
                     if($lastDraft->valior != $today){
                         $lastDraft->valior = $today;
                         $this->save_($lastDraft, 'valior');
                     }
-                    
-                    // Ще се редиректне към нея
                     $id = $lastDraft->id;
                 }
             }
@@ -753,6 +750,8 @@ class pos_Receipts extends core_Master
         }
 
         $rec->state = 'waiting';
+        $rec->waitingOn = dt::now();
+        $rec->waitingBy = core_Users::getCurrent();
         $rec->__closed = true;
 
         if ($this->save($rec)) {

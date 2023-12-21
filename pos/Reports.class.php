@@ -305,22 +305,22 @@ class pos_Reports extends core_Master
         $receiptIds = arr::extractValuesFromArray($detail->receipts, 'id');
         $rQuery = pos_ReceiptDetails::getQuery();
         $rQuery->EXT('createdReceiptBy', 'pos_Receipts', 'externalName=createdBy,externalKey=receiptId');
+        $rQuery->EXT('waitingReceiptBy', 'pos_Receipts', 'externalName=waitingBy,externalKey=receiptId');
+        $rQuery->XPR('calcedUser', 'int', "COALESCE(#waitingReceiptBy, #createdReceiptBy)");
         $rQuery->where("#action LIKE '%payment%'");
         $rQuery->in('receiptId', $receiptIds);
-        $rQuery->show('createdReceiptBy,amount,action');
+        $rQuery->show('createdReceiptBy,waitingReceiptBy,calcedUser,amount,action');
 
         while($rRec = $rQuery->fetch()){
             $action = explode('|', $rRec->action);
-            if (!array_key_exists($rRec->createdReceiptBy, $data->statisticArr)) {
-                $data->statisticArr[$rRec->createdReceiptBy] = (object) array('receiptBy' => crm_Profiles::createLink($rRec->createdReceiptBy), 'receiptTotal' => 0, 'payments' => array());
+            if (!array_key_exists($rRec->calcedUser, $data->statisticArr)) {
+                $data->statisticArr[$rRec->calcedUser] = (object) array('receiptBy' => crm_Profiles::createLink($rRec->calcedUser), 'receiptTotal' => 0, 'payments' => array());
             }
-
-            if (!array_key_exists($action[1], $data->statisticArr[$rRec->createdReceiptBy]->payments)) {
-                $data->statisticArr[$rRec->createdReceiptBy]->payments[$action[1]] = (object)array('value' => $action[1], 'amount' => 0);
+            if (!array_key_exists($action[1], $data->statisticArr[$rRec->calcedUser]->payments)) {
+                $data->statisticArr[$rRec->calcedUser]->payments[$action[1]] = (object)array('value' => $action[1], 'amount' => 0);
             }
-
-            $data->statisticArr[$rRec->createdReceiptBy]->receiptTotal += $rRec->amount;
-            $data->statisticArr[$rRec->createdReceiptBy]->payments[$action[1]]->amount += $rRec->amount;
+            $data->statisticArr[$rRec->calcedUser]->receiptTotal += $rRec->amount;
+            $data->statisticArr[$rRec->calcedUser]->payments[$action[1]]->amount += $rRec->amount;
         }
     }
     
@@ -383,7 +383,7 @@ class pos_Reports extends core_Master
         $query->where("#pointId = {$pointId}");
         $query->where("#state = 'waiting'");
         
-        // извличаме нужната информация за продажбите и плащанията
+        // Извличане на нужната информация за продажбите и плащанията
         $this->fetchReceiptData($query, $details, $receipts);
         
         return array('receipts' => $receipts, 'receiptDetails' => $details);
@@ -401,10 +401,10 @@ class pos_Reports extends core_Master
     {
         while ($rec = $query->fetch()) {
             
-            // запомняме кои бележки сме обиколили
-            $receipts[] = (object) array('id' => $rec->id, 'createdOn' => $rec->createdOn, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
+            // Запомняне на бележките
+            $receipts[] = (object) array('id' => $rec->id, 'createdOn' => $rec->createdOn, 'createdBy' => $rec->createdBy, 'waitingOn' => $rec->waitingOn, 'waitingBy' => $rec->waitingBy, 'total' => $rec->total);
             
-            // Добавяме детайлите на бележката
+            // Добавяне на детайлите на бележките
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
             
             foreach ($data as $obj) {
@@ -796,8 +796,7 @@ class pos_Reports extends core_Master
                 if($productRec->canStore == 'yes'){
                     $r->storeId = $dRec->storeId;
                 }
-                
-                
+
                 $res[] = $r;
             }
         }
