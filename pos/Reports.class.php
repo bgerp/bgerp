@@ -130,7 +130,7 @@ class pos_Reports extends core_Master
     /**
      * Детайли
      */
-    public $details = 'total=pos_ReportDetails,receipts=pos_ReportDetails';
+    public $details = 'shipped=pos_ReportDetails,payments=pos_ReportDetails,receipts=pos_ReportDetails';
 
 
     /**
@@ -263,25 +263,28 @@ class pos_Reports extends core_Master
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         // Рендираме обобщената информация за касиерите
-        if (countR($data->row->statisticArr)) {
-            $block = $tpl->getBlock('ROW');
+        if (countR($data->statisticArr)) {
+            foreach ($data->statisticArr as $statRow) {
+                $operatorBlock = clone $tpl->getBlock('OPERATOR');
+                $operatorBlock->append($statRow->receiptBy, 'operatorId');
+                $statRow->receiptTotal = core_Type::getByName('double(decimals=2)')->toVerbal($statRow->receiptTotal);
+                $operatorBlock->append($statRow->receiptTotal, 'operatorTotal');
+                $operatorBlock->append($data->row->baseCurrency, 'operatorCurrencyId');
 
-            foreach ($data->row->statisticArr as $statRow) {
-                $rowTpl = clone $block;
-                $rowTpl->placeObject($statRow);
-                $rowTpl->removeBlocks();
-                $rowTpl->append2master();
-            }
-        }
+                foreach ($statRow->payments as $paymentRec){
+                    $paymentBlocks = clone $operatorBlock->getBlock('PAYMENT_ROW');
 
-        if (countR($data->row->paymentSummary)) {
-            $block = $tpl->getBlock('PAYMENTS');
+                    $paymentName = ($paymentRec->value == '-1') ? 'В брой' : cond_Payments::getTitleById($paymentRec->value);
+                    $paymentBlocks->append(tr($paymentName), 'paymentId');
+                    $paymentAmountRow = core_Type::getByName('double(decimals=2)')->toVerbal($paymentRec->amount);
+                    $paymentBlocks->append($paymentAmountRow, 'paymentAmount');
+                    $paymentBlocks->append($data->row->baseCurrency, 'paymentCurrencyId');
+                    $paymentBlocks->removeBlocksAndPlaces();
+                    $operatorBlock->append($paymentBlocks, 'PAYMENT');
+                }
 
-            foreach ($data->row->paymentSummary as $payRow) {
-                $rowTpl = clone $block;
-                $rowTpl->placeObject($payRow);
-                $rowTpl->removeBlocks();
-                $rowTpl->append2master();
+                $operatorBlock->removeBlocksAndPlaces();
+                $tpl->append($operatorBlock, 'OPERATOR_DATA');
             }
         }
         
@@ -298,32 +301,26 @@ class pos_Reports extends core_Master
         $detail = (object) $data->rec->details;
 
         // Сумиране по плащания на клиентите
-        $data->row->statisticArr = $data->row->paymentSummary = array();
-        foreach ($detail->receipts as $receiptRec) {
-            if (!array_key_exists($receiptRec->createdBy, $data->row->statisticArr)) {
-                $data->row->statisticArr[$receiptRec->createdBy] = (object) array('receiptBy' => crm_Profiles::createLink($receiptRec->createdBy),
-                    'receiptTotal' => $receiptRec->total);
-            } else {
-                $data->row->statisticArr[$receiptRec->createdBy]->receiptTotal += $receiptRec->total;
-            }
-        }
+        $data->statisticArr = array();
+        $receiptIds = arr::extractValuesFromArray($detail->receipts, 'id');
+        $rQuery = pos_ReceiptDetails::getQuery();
+        $rQuery->EXT('createdReceiptBy', 'pos_Receipts', 'externalName=createdBy,externalKey=receiptId');
+        $rQuery->where("#action LIKE '%payment%'");
+        $rQuery->in('receiptId', $receiptIds);
+        $rQuery->show('createdReceiptBy,amount,action');
 
-        // Сумиране по видове плащания
-        $paymentsRecs = array_filter($data->rec->details['receiptDetails'], function($a) {return $a->action == 'payment';});
-        foreach ($paymentsRecs as $paymentRec){
-            if (!array_key_exists($paymentRec->value, $data->row->paymentSummary)) {
-                $value = ($paymentRec->value != -1) ? cond_Payments::getTitleById($paymentRec->value) : tr('В брой');
-                $data->row->paymentSummary[$paymentRec->value] = (object) array('paymentType' => $value, 'paymentTotal' => 0);
+        while($rRec = $rQuery->fetch()){
+            $action = explode('|', $rRec->action);
+            if (!array_key_exists($rRec->createdReceiptBy, $data->statisticArr)) {
+                $data->statisticArr[$rRec->createdReceiptBy] = (object) array('receiptBy' => crm_Profiles::createLink($rRec->createdReceiptBy), 'receiptTotal' => 0, 'payments' => array());
             }
-            $data->row->paymentSummary[$paymentRec->value]->paymentTotal += $paymentRec->amount;
-        }
 
-        $Double = core_Type::getByName('double(decimals=2)');
-        foreach ($data->row->statisticArr as &$rRec) {
-            $rRec->receiptTotal = $Double->toVerbal($rRec->receiptTotal);
-        }
-        foreach ($data->row->paymentSummary as &$pRec) {
-            $pRec->paymentTotal = $Double->toVerbal($pRec->paymentTotal);
+            if (!array_key_exists($action[1], $data->statisticArr[$rRec->createdReceiptBy]->payments)) {
+                $data->statisticArr[$rRec->createdReceiptBy]->payments[$action[1]] = (object)array('value' => $action[1], 'amount' => 0);
+            }
+
+            $data->statisticArr[$rRec->createdReceiptBy]->receiptTotal += $rRec->amount;
+            $data->statisticArr[$rRec->createdReceiptBy]->payments[$action[1]]->amount += $rRec->amount;
         }
     }
     

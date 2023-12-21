@@ -24,22 +24,25 @@
                         </td>
                         <td style='font-size:0.8em;text-align:left' class="vtop">
 							<div>|Оператори|*</div>
-                       		<!--ET_BEGIN ROW-->
-								[#ROW#]
-						     	<div>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></div>
-						     <!--ET_END ROW-->
+							<table>
+								[#OPERATOR_DATA#]
+								<!--ET_BEGIN OPERATOR-->
+								[#OPERATOR#]
+								<tr>
+									<td>[#operatorId#]</td>
+									<td>[#operatorTotal#] [#operatorCurrencyId#]</td>
+								</tr>
+								[#PAYMENT#]
+								<!--ET_BEGIN PAYMENT_ROW-->
+								[#PAYMENT_ROW#]
+								<tr>
+									<td>[#paymentId#]</td>
+									<td>[#paymentAmount#] [#paymentCurrencyId#]</td>
+								</tr>
+								<!--ET_END PAYMENT_ROW-->
+								<!--ET_END OPERATOR-->
+							</table>
                         </td>
-						<td style='font-size:0.8em;text-align:left' class="vtop">
-							<div>|Плащания|*</div>
-							<!--ET_BEGIN PAYMENTS-->
-							[#PAYMENTS#]
-							<div>[#paymentType#]: [#paymentTotal#] <span class='cCode'>[#baseCurrency#]</span></div>
-							<!--ET_END PAYMENTS-->
-							<hr>
-							<div style="font-size: 1.2em;">|Продадено|*, [#baseCurrency#]: <b>[#total#]</b>
-								<br>|Платено|*, [#baseCurrency#]: <b>[#paid#]</b>
-							</div>
-						</td>
                     </tr>
                 </table>
             </div>
