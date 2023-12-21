@@ -149,7 +149,8 @@ class pos_ReportDetails extends core_Manager
 
         $Double = core_Type::getByName('double(decimals=2)');
         $currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
-        $row->quantity = "<span style='float:right'>{$Double->toVerbal($obj->quantity)}</span>";
+        $quantityVerbal = $Double->toVerbal($obj->quantity);
+        $row->quantity = ht::styleNumber($quantityVerbal, $obj->amount);
         if ($obj->action == 'sale') {
 
             // Ако детайла е продажба
@@ -193,6 +194,7 @@ class pos_ReportDetails extends core_Manager
         }
 
         $amount = $Double->toVerbal($obj->amount);
+        $amount = ht::styleNumber($amount, $obj->amount);
         if(isset($obj->param)){
             $amountHint = tr('ДДС') . ": " . core_Type::getByName('percent')->toVerbal($obj->param);
             $amount = ht::createHint($amount, $amountHint);
@@ -218,6 +220,7 @@ class pos_ReportDetails extends core_Manager
 
         $data->details->listTableMvc = new core_FieldSet();
         $data->details->listTableMvc->FLD('value', 'varchar', 'tdClass=largeCell');
+        $data->details->listTableMvc->FLD('quantity', 'double');
         $tpl->append(cls::get('pos_Reports')->renderListTable($data->details));
         if ($data->pager) {
             $tpl->append($data->pager->getHtml());
