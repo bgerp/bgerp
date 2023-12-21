@@ -1848,10 +1848,10 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery->EXT('nameEn', 'cat_Products', 'externalName=nameEn,externalKey=productId');
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->where("#priceListId = {$settings->policyId}");
-            $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords');
 
             // Ако не е посочен стринг се показват най-продаваните артикули
             if(empty($searchString)){
+                $defaultOrder = true;
                 if($rec->_selectedGroupId == 'similar'){
                     if(countR($similarProducts)){
                         $pQuery->in('productId', $similarProducts);
@@ -1860,13 +1860,26 @@ class pos_Terminal extends peripheral_Terminal
                     }
                 } elseif(is_numeric($rec->_selectedGroupId)){
                     $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                } else {
+                    $groupsTable = type_Table::toArray($settings->productGroups);
+                    $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
+                    if(countR($groups)){
+                        $i = 1;
+                        $orderByGroup = "(CASE ";
+                        foreach ($groups as $groupId){
+                            $orderByGroup .= " WHEN LOCATE('|$groupId|', #groups) THEN {$i}";
+                            $i++;
+                        }
+                        $orderByGroup .= " ELSE {$i} END)";
+                        $pQuery->XPR('orderByGroup', 'int', $orderByGroup);
+                        $defaultOrder = false;
+                        $pQuery->orderBy('orderByGroup=ASC,code=ASC');
+                    }
                 }
-                
-                $receiptClassId = pos_Receipts::getClassId();
-                $pQuery->EXT('rating', 'sales_ProductRatings', array('externalName' => 'value', 'onCond' => "#sales_ProductRatings.classId = {$receiptClassId} AND #sales_ProductRatings.objectId = #productId", 'join' => 'right'));
-                $pQuery->limit($settings->maxSearchProducts);
-                $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords,rating');
-                $pQuery->orderBy('rating', 'DESC');
+
+                if($defaultOrder){
+                    $pQuery->orderBy('code', 'ASC');
+                }
 
                 // Добавят се към резултатите
                 while ($pRec = $pQuery->fetch()){
