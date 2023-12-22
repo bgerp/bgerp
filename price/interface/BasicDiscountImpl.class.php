@@ -38,15 +38,22 @@ class price_interface_BasicDiscountImpl extends core_Manager
     /**
      * Колко е базовата отстъпка
      *
+     * @param mixed $Master
      * @param stdClass $masterRec
      * @return null|double
      */
-    private function getBasicDiscount($masterRec)
+    private function getBasicDiscount($Master, $masterRec)
     {
         if(isset($this->calcedPercent)) return $this->calcedPercent;
 
         // Коя е ЦП на продажбата
-        $listId = $masterRec->priceListId ?? price_ListToCustomers::getListForCustomer($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior);
+        $Master = cls::get($Master);
+        if($Master instanceof sales_Sales){
+            $listId = $masterRec->priceListId ?? price_ListToCustomers::getListForCustomer($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior);
+        } else {
+            $listId = pos_Receipts::isForDefaultContragent($masterRec) ? pos_Points::getSettings($masterRec->pointId)->policyId : price_ListToCustomers::getListForCustomer($masterRec->contragentClass, $masterRec->contragentObjectId);
+        }
+
         $listPaths = $basicArr = array();
         $parent = $listId;
 
@@ -81,15 +88,25 @@ class price_interface_BasicDiscountImpl extends core_Manager
 
         // Колко е сумата на продажбата без ддс и приложена ТО
         $totalAmountWithoutVatAndDiscount = $totalAmountWithVatAndWithoutDiscount = 0;
-        $dQuery = sales_SalesDetails::getQuery();
-        $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $dQuery->where("#saleId = {$masterRec->id} AND #isPublic = 'yes'");
+        if($Master instanceof sales_Sales){
+            $dQuery = sales_SalesDetails::getQuery();
+            $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+            $dQuery->where("#saleId = {$masterRec->id} AND #isPublic = 'yes'");
 
-        while($dRec = $dQuery->fetch()){
-            $amount = isset($dRec->discount) ? ($dRec->amount * (1 - $dRec->discount)) : $dRec->amount;
-            $totalAmountWithoutVatAndDiscount += $amount;
-            $vat = cat_Products::getVat($dRec->productId, $masterRec->valior);
-            $totalAmountWithVatAndWithoutDiscount += $amount * (1 + $vat);
+            while($dRec = $dQuery->fetch()){
+                $amount = isset($dRec->discount) ? ($dRec->amount * (1 - $dRec->discount)) : $dRec->amount;
+                $totalAmountWithoutVatAndDiscount += $amount;
+                $vat = cat_Products::getVat($dRec->productId, $masterRec->valior);
+                $totalAmountWithVatAndWithoutDiscount += $amount * (1 + $vat);
+            }
+        } else {
+            $dQuery = pos_ReceiptDetails::getQuery();
+            $dQuery->where("#receiptId = {$masterRec->id} AND #action LIKE '%sale%'");
+            while($dRec = $dQuery->fetch()) {
+                $amount = isset($dRec->discountPercent) ? ($dRec->amount * (1 - $dRec->discountPercent)) : $dRec->amount;
+                $totalAmountWithoutVatAndDiscount += $amount;
+                $totalAmountWithVatAndWithoutDiscount += $amount * (1 + $dRec->param);
+            }
         }
 
         $totalAmountWithoutVatAndDiscount = round($totalAmountWithoutVatAndDiscount, 2);
@@ -140,7 +157,7 @@ class price_interface_BasicDiscountImpl extends core_Manager
      */
     public function calcAutoSaleDiscount($Detail, $dRec, $Master, $masterRec)
     {
-        $percent = $this->getBasicDiscount($masterRec);
+        $percent = $this->getBasicDiscount($Master, $masterRec);
         $isPublic = cat_Products::fetchField($dRec->productId, 'isPublic');
         if($isPublic == 'yes') return $percent;
 

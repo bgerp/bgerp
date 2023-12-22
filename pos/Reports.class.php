@@ -828,4 +828,10 @@ class pos_Reports extends core_Master
             if ($found) return $rRec->id;
         }
     }
+
+
+    function act_Test()
+    {
+        cls::get('pos_Receipts')->updateMaster(1118);
+    }
 }

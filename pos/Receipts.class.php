@@ -436,9 +436,7 @@ class pos_Receipts extends core_Master
                                          'discount'    => $rec->discountPercent,
                                          'quantity'    => $rec->quantity);
         }
-        
-        
-        
+
         return $products;
     }
     
@@ -459,11 +457,18 @@ class pos_Receipts extends core_Master
         
         $dQuery = $this->pos_ReceiptDetails->getQuery();
         $dQuery->where("#receiptId = {$id}");
+
         while ($dRec = $dQuery->fetch()) {
             $action = explode('|', $dRec->action);
             switch ($action[0]) {
                 case 'sale':
-                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent, $rec->pointId, $dRec->quantity);
+                    $discount = $dRec->discountPercent;
+                    if($rec->state == 'draft'){
+                        if(isset($dRec->autoDiscount)){
+                            $discount = round((1 - (1 - $dRec->discountPercent ) * (1 - $dRec->autoDiscount)), 4);
+                        }
+                    }
+                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $discount, $rec->pointId, $dRec->quantity);
                     $rec->total += round($dRec->quantity * $price, 2);
                     break;
                 case 'payment':
@@ -477,15 +482,47 @@ class pos_Receipts extends core_Master
                     break;
             }
         }
-        
+
         $diff = round($rec->paid - $rec->total, 2);
         $rec->change = $diff;
         $rec->total = $rec->total;
-        
         $this->save($rec);
     }
-    
-    
+
+
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if ($rec->state != 'draft') return;
+
+        // Изчисляване на автоматичната отстъпка
+        $settings = pos_Points::getSettings($rec->pointId);
+        $contragentPriceListId = pos_Receipts::isForDefaultContragent($rec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+        if($discountClass = price_Lists::fetchField($contragentPriceListId, 'discountClass')) {
+            if (cls::load($discountClass, true)) {
+                $Interface = cls::getInterface('price_SaleAutoDiscountIntf', $discountClass);
+                $update = array();
+                $dQuery = pos_ReceiptDetails::getQuery();
+                $dQuery->where("#receiptId = {$id} AND #action LIKE '%sale%'");
+                while ($dRec = $dQuery->fetch()) {
+                    $dRec->autoDiscount = $Interface->calcAutoSaleDiscount('pos_ReceiptDetails', $dRec, $mvc, $rec);
+                    $update[$dRec->id] = $dRec;
+                }
+
+                // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
+                cls::get('pos_ReceiptDetails')->saveArray($update, 'id,autoDiscount');
+
+                $mvc->updateMaster_($id);
+            }
+        }
+    }
+
+
     /**
      *  Филтрираме бележката
      */
@@ -759,6 +796,19 @@ class pos_Receipts extends core_Master
                 $this->calcRevertedTotal($rec->revertId);
             }
 
+            $dRecs = array();
+            $dQuery = pos_ReceiptDetails::getQuery();
+            $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%' AND #autoDiscount IS NOT NULL");
+            while($dRec = $dQuery->fetch()){
+                if(isset($dRec->discountPercent)){
+                    $dRec->discountPercent = round((1 - (1 - $dRec->discountPercent) * (1 - $dRec->autoDiscount)), 4);
+                } else {
+                    $dRec->discountPercent = $dRec->autoDiscount;
+                }
+                $dRecs[] = $dRec;
+            }
+
+            cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent');
             $this->logInAct('Приключване на бележка', $rec->id);
         }
         

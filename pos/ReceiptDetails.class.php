@@ -67,7 +67,7 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Полета за листов изглед
      */
-    public $listFields = 'id,productId,value,quantity,storeId,price,discountPercent,amount';
+    public $listFields = 'id,productId,value,quantity,storeId,price,discountPercent=Отстъпка->Ръчна,autoDiscount=Отстъпка->Авт.,amount';
     
     
     /**
@@ -114,6 +114,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');
         $this->FLD('value', 'varchar(32)', 'caption=Мярка, input=hidden,smartCenter');
         $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка,input=none');
+        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'input=none');
         $this->FLD('text', 'varchar', 'caption=Пояснение,input=none');
         $this->FLD('batch', 'varchar', 'caption=Партида,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,input=none');
@@ -734,13 +735,13 @@ class pos_ReceiptDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $receiptRec = $mvc->Master->fetch($rec->receiptId, 'createdOn,revertId,paid');
+        $receiptRec = $mvc->Master->fetch($rec->receiptId);
         $row->currency = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
         
         $action = $mvc->getAction($rec->action);
         switch ($action->type) {
             case 'sale':
-                $mvc->renderSale($rec, $row, $receiptRec->createdOn, $fields);
+                $mvc->renderSale($rec, $row, $receiptRec, $fields);
                 if ($fields['-list']) {
                     $row->quantity = ($rec->value) ? $row->quantity : $row->quantity;
                 }
@@ -762,14 +763,26 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Рендира информацията за направената продажба
      */
-    public function renderSale($rec, &$row, $receiptDate, $fields = array())
+    public function renderSale($rec, &$row, $receiptRec, $fields = array())
     {
+        $receiptDate = $receiptRec->valior;
         $Varchar = cls::get('type_Varchar');
         $Double = core_Type::getByName('double(decimals=2)');
         $productRec = cat_Products::fetch($rec->productId, 'code,measureId');
         $defaultStoreId = pos_Points::fetchField(pos_Receipts::fetchField($rec->receiptId, 'pointId'), 'storeId');
-        
-        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'), $rec->quantity);
+
+        $discountPercent = $rec->discountPercent;
+        if($receiptRec->state == 'draft'){
+            if(isset($discountPercent)){
+                if(isset($rec->autoDiscount)){
+                    $discountPercent = round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4);
+                }
+            } elseif(isset($rec->autoDiscount)) {
+                $discountPercent = $rec->autoDiscount;
+            }
+        }
+
+        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'), $rec->quantity);
         $row->price = $Double->toVerbal($rec->price * (1 + $rec->param));
         $row->amount = $Double->toVerbal($price * $rec->quantity);
         $row->amount = ht::styleNumber($row->amount, $price * $rec->quantity);
@@ -781,13 +794,16 @@ class pos_ReceiptDetails extends core_Detail
                $row->{$operationPlaceholder} = 'updatedDiv flash';
             }
         }
-        
-        if ($rec->discountPercent < 0) {
-            $row->discountPercent = "<span class='surchargeText'>+" . trim($row->discountPercent, '-') . "</span>";
-        } else {
-            $row->discountPercent = "<span class='discountText'>-" . $row->discountPercent . "</span>";
+
+        if(!$fields['-list']){
+            $row->discountPercent = core_Type::getByName('percent')->toVerbal($discountPercent);
+            if ($discountPercent < 0) {
+                $row->discountPercent = "<span class='surchargeText'>+" . trim($row->discountPercent, '-') . "</span>";
+            } else {
+                $row->discountPercent = "<span class='discountText'>-" . $row->discountPercent . "</span>";
+            }
         }
-        
+
         if(cat_Products::fetchField($rec->productId, 'canSell') != 'yes'){
             $row->STOPPED_PRODUCT = tr("спрян");
         }
@@ -834,7 +850,7 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         // Ако отстъпката е нула да не се показва
-        if ($rec->discountPercent == 0) {
+        if ($discountPercent == 0) {
             unset($row->discountPercent);
         }
 

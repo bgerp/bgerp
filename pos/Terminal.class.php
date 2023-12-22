@@ -703,7 +703,7 @@ class pos_Terminal extends peripheral_Terminal
             $refreshResults = false;
         }
         
-        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, $refreshResults, null, true);
+        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, $refreshResults, null, true, false);
     }
     
     
@@ -2251,18 +2251,20 @@ class pos_Terminal extends peripheral_Terminal
      * @param boolean $success
      * @param boolean $refreshTable
      * @param boolean $refreshPanel
+     * @param boolean $autoFlush
      * 
      * @return array $res
      */
-    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null, $refreshHeader = false)
+    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null, $refreshHeader = false, $autoFlush = true)
     {
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
         
         // Форсиране на обновяването на мастъра, за да е сигурно че данните в бележката са актуални
-        $Receipts->flushUpdateQueue($receiptId);
+        if($autoFlush){
+            $Receipts->flushUpdateQueue($receiptId);
+        }
         $rec = $Receipts->fetch($receiptId, '*', false);
-        
         $operation = Mode::get("currentOperation{$rec->id}");
         $string = Mode::get("currentSearchString{$rec->id}");
         
@@ -2336,7 +2338,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $resObj = new stdClass();
         $resObj->func = 'toggleAddedProductFlag';
-        $resObj->arg = array('flag' => !empty($addedProduct) ? true : false);
+        $resObj->arg = array('flag' => !empty($addedProduct));
         $res[] = $resObj;
         
         Mode::setPermanent("productAdded{$receiptId}", null);
