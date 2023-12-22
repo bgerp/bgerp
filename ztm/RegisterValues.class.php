@@ -219,12 +219,16 @@ class ztm_RegisterValues extends core_Manager
      * @param array    $regArr   - масив върнат от устройството
      * @param stdClass $deviceId - ид на устройство
      * @param datetime $lastSync - обновени след, коя дата
+     * @param null|stdClass $grabDeviceRec - старо устройство, което ще се използва като източник
      *
      * @return stdClass $syncedArray
      */
-    public function sync($regArr, $deviceId, $lastSync)
+    public function sync($regArr, $deviceId, $lastSync, $grabDeviceRec = null)
     {
         expect($deviceRec = ztm_Devices::fetchRec($deviceId));
+        if (isset($grabDeviceRec)) {
+            expect($grabDeviceRec = ztm_Devices::fetchRec($grabDeviceRec));
+        }
         
         // Заключване на синхронизацията
         //if(!core_Locks::get("ZTM_SYNC_DEVICE_{$deviceRec->id}")){
@@ -233,14 +237,33 @@ class ztm_RegisterValues extends core_Manager
         
         // След кое, време ще обновяваме записите
         $lastSyncMin = min($lastSync, $deviceRec->lastSync);
-        
+
+        // Добавяме регистрите от старото устройсво към новото
+        if (isset($grabDeviceRec)) {
+            // Извлича нашите регистри обновени от предишното устройство
+            $ourRegisters = self::grab($grabDeviceRec);
+            foreach ($ourRegisters as $regObj) {
+                if (array_key_exists($regObj->name, $regArr)) {
+
+                    continue;
+                }
+
+                if ($regObj->score == 'system') {
+
+                    continue;
+                }
+
+                $regArr[$regObj->name] = $regObj->value;
+            }
+        } else {
+            // Извлича нашите регистри обновени след $lastSyncMin, махайки тези, които са приоритетно от устройството
+            $ourRegisters = self::grab($deviceRec, $lastSyncMin);
+        }
+
         // Обработка на входящия масив
         $expandedRegArr = $unknownRegisters = array();
         self::processRegArr($regArr, $deviceRec->id, $expandedRegArr, $unknownRegisters);
-        
-        // Извлича нашите регистри обновени след $lastSyncMin, махайки тези, които са приоритетно от устройството
-        $ourRegisters = self::grab($deviceRec, $lastSyncMin);
-        
+
         $resultArr = array();
         foreach ($ourRegisters as $ourReg) {
             if ($ourReg->scope != 'device') {
@@ -339,16 +362,49 @@ class ztm_RegisterValues extends core_Manager
         $lastSync = Request::get('last_sync');
         
         // Кое е устройството
-        expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
-        
-        ztm_Devices::logDebug('Registers: ' . Request::get('registers'), $deviceRec);
+        $deviceRec = ztm_Devices::getRecForToken($token);
+
+        $oDeviceRec = null;
+        if (!$deviceRec) {
+            $deviceRec = ztm_Devices::getRecForToken($token, 'draft');
+
+            expect($deviceRec, $token);
+
+            // Намира старото устройство със същото име
+            if ($deviceRec->name) {
+                $dQuery = ztm_Devices::getQuery();
+                $dQuery->where(array("#name = '[#1#]'", $deviceRec->name));
+                $dQuery->where(array("#token != '[#1#]'", $deviceRec->token));
+
+                $dQuery->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'draft' THEN 2 ELSE 3 END)");
+                $dQuery->orderBy('#orderByState=ASC');
+
+                $dQuery->orderBy('lastSync', 'DESC');
+                $dQuery->orderBy('modifiedOn', 'DESC');
+                $dQuery->orderBy('id', 'DESC');
+
+                $dQuery->limit(1);
+
+                $oDeviceRec = $dQuery->fetch();
+
+                expect($oDeviceRec, $token, $deviceRec->name);
+            }
+        }
+
+        $registers = Request::get('registers');
+
+        ztm_Devices::logDebug('Registers: ' . $registers, $deviceRec);
         
         ztm_Devices::updateSyncTime($token);
         
         // Добавяне на дефолтните стойностти към таблицата с регистрите, ако няма за тях
         $now = dt::now();
-        $ourRegisters = self::grab($deviceRec);
-        
+        if (isset($oDeviceRec)) {
+            $ourRegisters = self::grab($oDeviceRec);
+        } else {
+            $ourRegisters = self::grab($deviceRec);
+        }
+
         if ($deviceRec->profileId) {
             $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec->profileId);
             foreach ($defaultArr as $dRegKey => $dRegValue) {
@@ -365,7 +421,6 @@ class ztm_RegisterValues extends core_Manager
         
         try {
             $regArr = array();
-            $registers = Request::get('registers');
 
             if (!empty($registers)) {
                 if (is_scalar($registers)) {
@@ -379,9 +434,9 @@ class ztm_RegisterValues extends core_Manager
             
             // Синхронизране на данните от устройството с тези от системата
             $lastSync = (empty($lastSync)) ? null : dt::timestamp2Mysql($lastSync);
-            $result = $this->sync($regArr, $deviceRec->id, $lastSync);
+            $result = $this->sync($regArr, $deviceRec->id, $lastSync, $oDeviceRec);
         } catch (core_exception_Expect $e) {
-            $result = Request::get('registers');
+            $result = $registers;
             reportException($e);
         }
         
