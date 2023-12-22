@@ -129,14 +129,16 @@ class price_interface_BasicDiscountImpl extends core_Manager
 
 
     /**
-     * Изчислява очакваната отстъпка на реда от продажбата
+     * Изчислява автоматичната отстъпка на ред от детайл
      *
-     * @param stdClass $dRec         - ред от детайл на продажба
-     * @param stdClass $masterRec    - запис на продажба
+     * @param string|core_Detail $Detail - клас на детайла
+     * @param int|stdclass $dRec         - ид или запис на детайла
+     * @param string|core_Master $Master - клас на мастъра
+     * @param int|stdclass $masterRec    - ид или запис на мастъра
      *
-     * @return double|null $discount
+     * @return double|null
      */
-    public function calcAutoSaleDiscount($dRec, $masterRec)
+    public function calcAutoSaleDiscount($Detail, $dRec, $Master, $masterRec)
     {
         $percent = $this->getBasicDiscount($masterRec);
         $isPublic = cat_Products::fetchField($dRec->productId, 'isPublic');
