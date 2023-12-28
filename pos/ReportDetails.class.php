@@ -71,10 +71,10 @@ class pos_ReportDetails extends core_Manager
 
         if ($type == 'shipped') {
             $actionVal = 'sale';
-            $detail->listFields = "value=Артикул, pack=Мярка, quantity=К-во, amount=|*{$data->masterData->row->baseCurrency}, storeId=Склад,contragentId=Клиент";
+            $detail->listFields = "value=Артикул, pack=Мярка, quantity=К-во, amount=|*{$data->masterData->row->baseCurrency}, storeId=Склад,contragentId=Клиент,userId=Оператор";
         } else {
             $actionVal = 'payment';
-            $detail->listFields = "value=Плащане, pack=Валута, amount=|*{$data->masterData->row->baseCurrency},contragentId=Клиент";
+            $detail->listFields = "value=Плащане, pack=Валута, amount=|*{$data->masterData->row->baseCurrency},contragentId=Клиент,userId=Оператор";
         }
 
         $detail->rows = array_filter($detail->receiptDetails, function($a) use ($actionVal){ return $a->action == $actionVal;});
@@ -202,6 +202,9 @@ class pos_ReportDetails extends core_Manager
 
         $row->amount = "<span style='float:right'>{$amount}</span>";
         $row->contragentId = cls::get($obj->contragentClassId)->getHyperlink($obj->contragentId, true);
+        if(isset($obj->userId)){
+            $row->userId  = crm_Profiles::createLink($obj->userId);
+        }
 
         return $row;
     }
@@ -218,6 +221,7 @@ class pos_ReportDetails extends core_Manager
         $tpl = new core_ET('');
         if($data->hide) return $tpl;
 
+        $data->details->listFields = core_TableView::filterEmptyColumns($data->details->rows, $data->details->listFields, 'userId');
         $data->details->listTableMvc = new core_FieldSet();
         $data->details->listTableMvc->FLD('value', 'varchar', 'tdClass=largeCell');
         $data->details->listTableMvc->FLD('quantity', 'double');

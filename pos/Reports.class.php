@@ -98,7 +98,7 @@ class pos_Reports extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'dealerId' => 'lastDocUser|lastDoc',
+        'operators' => 'lastDocUser|lastDoc',
         'chargeVat' => 'lastDocUser|lastDoc',
     );
     
@@ -145,7 +145,7 @@ class pos_Reports extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена,closed=Приключен,stopped=Спряно)', 'caption=Състояние,input=none,width=8em');
         $this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
         $this->FLD('closedOn', 'datetime', 'input=none');
-        $this->FLD('dealerId', "user(roles=ceo|sales|pos,allowEmpty)", 'caption=Търговец,mandatory');
+        $this->FLD('operators', "keylist(mvc=core_Users,select=nick,allowEmpty)", 'caption=Оператори');
         $this->FLD('chargeVat', 'enum(yes=Начисляване,no=Без начисляване)', 'caption=Допълнително->ДДС,notNull,value=yes');
     }
     
@@ -155,12 +155,16 @@ class pos_Reports extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $data->form->setReadOnly('pointId');
-        $data->form->setField('valior', "placeholder=" . dt::mysql2verbal(dt::today(), 'd.m.Y'));
-        
+        $form = &$data->form;
+        $form->setReadOnly('pointId');
+        $form->setField('valior', "placeholder=" . dt::mysql2verbal(dt::today(), 'd.m.Y'));
+
         if(haveRole('pos,sales')){
-            $data->form->setDefault('dealerId', core_Users::getCurrent());
+            $form->setDefault('dealerId', core_Users::getCurrent());
         }
+
+        $operatorOptions = core_Users::getUsersByRoles('powerUser');
+        $form->setSuggestions('operators', $operatorOptions);
     }
     
     
@@ -201,6 +205,10 @@ class pos_Reports extends core_Master
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
             setIfNot($row->dealerId, $row->createdBy);
+
+            if(empty($rec->operators)){
+                $row->operators = "<i>" . tr("Всички") . "</i>";
+            }
         }
     }
     
@@ -211,15 +219,17 @@ class pos_Reports extends core_Master
     protected static function on_AfterInputEditForm($mvc, core_Form &$form)
     {
         if ($form->isSubmitted()) {
-            
+            $rec = $form->rec;
+
             // Можем ли да създадем отчет за този касиер или точка
-            if (!self::canMakeReport($form->rec->pointId)) {
-                $form->setError('pointId', 'Не може да създадете отчет за тази точка');
+            $errorMsg = null;
+            if (!self::canMakeReport($rec->pointId, $rec->operators, $errorMsg)) {
+                $form->setError('pointId', $errorMsg);
             }
             
             // Ако няма грешки, форсираме отчета да се създаде в папката на точката
             if (!$form->gotErrors()) {
-                $form->rec->folderId = pos_Points::forceCoverAndFolder($form->rec->pointId);
+                $rec->folderId = pos_Points::forceCoverAndFolder($rec->pointId);
             }
         }
     }
@@ -235,7 +245,7 @@ class pos_Reports extends core_Master
     public function extractData(&$rec)
     {
         // Извличаме информацията от бележките
-        $reportData = $this->fetchData($rec->pointId);
+        $reportData = $this->fetchData($rec);
         
         $rec->details = $reportData;
         $rec->total = $rec->paid = 0;
@@ -372,17 +382,21 @@ class pos_Reports extends core_Master
      * от всички бележки за даден период от време на даден потребител
      * на дадена точка
      *
-     * @param int $pointId - Ид на точката на продажба
+     * @param stdClass $rec - Ид на точката на продажба
      *
      * @return array $result - масив с резултати
      * */
-    private function fetchData($pointId)
+    private function fetchData($rec)
     {
         $details = $receipts = array();
         $query = pos_Receipts::getQuery();
-        $query->where("#pointId = {$pointId}");
+        $query->where("#pointId = {$rec->pointId}");
         $query->where("#state = 'waiting'");
-        
+        if(!empty($rec->operators)){
+            $operatorStr = implode(',', keylist::toArray($rec->operators));
+            $query->where("#waitingBy IN ($operatorStr) OR (#waitingBy IS NULL AND #createdBy IN ($operatorStr))");
+        }
+
         // Извличане на нужната информация за продажбите и плащанията
         $this->fetchReceiptData($query, $details, $receipts);
         
@@ -406,9 +420,9 @@ class pos_Reports extends core_Master
             
             // Добавяне на детайлите на бележките
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
-            
+
             foreach ($data as $obj) {
-                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value, $obj->param, $obj->storeId);
+                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value, $obj->param, $obj->storeId, $obj->userId);
                 if(core_Packs::isInstalled('batch')){
                     $indexArr[] = str_replace('|', '>', $obj->batch);
                 }
@@ -563,7 +577,7 @@ class pos_Reports extends core_Master
             }
             
             if ($count) {
-                core_Statuses::newStatus("|{$msg} са|* '{$count}' |бележки за продажба|*");
+                core_Statuses::newStatus("|{$msg} бележки за продажба|*: {$count}");
             }
         }
     }
@@ -664,21 +678,36 @@ class pos_Reports extends core_Master
      * 	1. Да има поне една активна (приключена) бележка за касиера и точката
      *  2. Да няма нито една започната, но неприключена бележка
      *
-     * @param int $pointId - ид на точка
+     * @param int $pointId           - ид на точка
+     * @param null|string $operators - списък с оператори
+     * @param null|string $msg       - съобщение за грешка
      *
      * @return bool
      */
-    public static function canMakeReport($pointId)
+    public static function canMakeReport($pointId, $operators = null, &$msg = null)
     {
         // Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
-        if (!pos_Receipts::fetchField("#pointId = {$pointId} AND #state = 'waiting'")) {
-            
+        $operatorArr = keylist::toArray($operators);
+        $pQuery = pos_Receipts::getQuery();
+        $pQuery->where("#pointId = {$pointId} AND #state = 'waiting'");
+        if(countR($operatorArr)){
+            $operatorStr = implode(',', $operatorArr);
+            $pQuery->where("#waitingBy IN ($operatorStr) OR (#waitingBy IS NULL AND #createdBy IN ($operatorStr))");
+        }
+        if (!$pQuery->count()) {
+            $msg = "Няма чакащи бележки от посочените оператори";
             return false;
         }
-        
-        // Ако има неприключена започната бележка в тачката от касиера, също не може да се направи отчет
-        if (pos_Receipts::fetchField("#pointId = {$pointId} AND #total != 0 AND #state = 'draft'")) {
-            
+
+        // Ако има неприключена започната бележка в точката от касиера, също не може да се направи отчет
+        $pQuery2 = pos_Receipts::getQuery();
+        $pQuery2->where("#pointId = {$pointId} AND #total != 0 AND #state = 'draft'");
+        if(countR($operatorArr)){
+            $pQuery2->in('createdBy', $operatorArr);
+        }
+
+        if ($pQuery2->count()) {
+            $msg = "Има започнати но неприключени бележки";
             return false;
         }
         
@@ -737,8 +766,8 @@ class pos_Reports extends core_Master
             $this->logWrite('Автоматично затваряне на отчет', $rec->id);
         }
     }
-    
-    
+
+
     /**
      * Какви записи ще се направят в делтите
      *
@@ -756,6 +785,8 @@ class pos_Reports extends core_Master
         $classId = pos_Reports::getClassId();
         
         // Обхождат се продадените артикули
+        $inCharge = array();
+        $dealers = core_Users::getUsersByRoles('sales');
         if(is_array($rec->details['receiptDetails'])){
             foreach ($rec->details['receiptDetails'] as $dRec){
                 if($dRec->action != 'sale') continue;
@@ -769,7 +800,17 @@ class pos_Reports extends core_Master
                     'isPublic' => cat_Products::fetchField($dRec->value, 'isPublic'),
                     'contragentId' => $dRec->contragentId,
                     'contragentClassId' => $dRec->contragentClassId,);
-                
+
+                if(!isset($inCharge[$dRec->contragentClassId][$dRec->contragentId])){
+                    $inCharge[$dRec->contragentClassId][$dRec->contragentId] = cls::get($dRec->contragentClassId)->fetchField($dRec->contragentId, 'inCharge');
+                }
+                $userId = $inCharge[$dRec->contragentClassId][$dRec->contragentId];
+                if(!array_key_exists($userId, $dealers)){
+                    if(isset($dRec->userId)){
+                        $userId = $dRec->userId;
+                    }
+                }
+
                 if($r->quantity){
                     if($rec->chargeVat == 'no'){
                         $dRec->amount *= (1 + $dRec->param);
@@ -781,9 +822,8 @@ class pos_Reports extends core_Master
                     wp($r, $rec);
                 }
                 
-                $dealerId = $rec->dealerId;
-                setIfNot($dealerId, $rec->createdBy);
-                $r->dealerId = $dealerId;
+                setIfNot($userId, $rec->createdBy);
+                $r->dealerId = $userId;
                 
                 // Изчисляване на себестойността на артикула
                 $productRec = cat_Products::fetch($dRec->value, 'isPublic,code,canStore');

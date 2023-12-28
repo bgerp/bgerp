@@ -1036,6 +1036,8 @@ class pos_ReceiptDetails extends core_Detail
         $query->EXT('revertId', 'pos_Receipts', 'externalName=revertId,externalKey=receiptId');
         $query->EXT('contragentClsId', 'pos_Receipts', 'externalName=contragentClass,externalKey=receiptId');
         $query->EXT('contragentId', 'pos_Receipts', 'externalName=contragentObjectId,externalKey=receiptId');
+        $query->EXT('waitingBy', 'pos_Receipts', 'externalName=waitingBy,externalKey=receiptId');
+        $query->EXT('receiptCreatedBy', 'pos_Receipts', 'externalName=createdBy,externalKey=receiptId');
         $query->where("#receiptId = {$receiptId}");
         $query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
         
@@ -1069,6 +1071,8 @@ class pos_ReceiptDetails extends core_Detail
                     $rec->amount -= $masterRec->change;
                 }
             }
+
+            setIfNot($obj->userId, $rec->waitingBy, $rec->receiptCreatedBy);
             $obj->contragentClassId = $rec->contragentClsId;
             $obj->contragentId = $rec->contragentId;
             $obj->quantity = $rec->quantity;
