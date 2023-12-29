@@ -510,7 +510,7 @@ class batch_Items extends core_Master
         arr::sortObjects($data->recs, 'storeId', 'ASC');
 
         // Подготвяме страницирането
-        $pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        $pager = cls::get('core_Pager', array('itemsPerPage' => 20));
         $pager->setPageVar($data->masterMvc->className, $data->masterId);
         $pager->itemsCount = countR($data->recs);
         $data->pager = $pager;

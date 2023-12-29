@@ -420,10 +420,18 @@ class rack_Products extends store_Products
                                           'quantity' => $pRec->quantityOnZones,);
         }
 
+        // Подготвяме страницирането
+        $pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $pager->setPageVar($data->masterMvc->className, $data->masterId);
+        $pager->itemsCount = countR($data->recs);
+        $data->pager = $pager;
+
         $batchDef = batch_Defs::getBatchDef($data->masterId);
 
         // Всяка позиция се вербализира
         foreach ($data->recs as $id => $rec){
+            if (!$data->pager->isOnPage()) continue;
+
             $row = (object)array('storeId' => store_Stores::getHyperlink($rec->storeId, true), 'measureId' => $measureId);
             $rec->quantity = empty($rec->quantity) ? 0 : $rec->quantity;
             $row->quantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantity);
@@ -494,6 +502,10 @@ class rack_Products extends store_Products
         // Рендиране на таблицата с резултатите
         $dTpl = $table->get($data->rows, $data->listFields);
         $tpl->append($dTpl, 'content');
+
+        if (isset($data->pager)) {
+            $tpl->append($data->pager->getHtml(), 'content');
+        }
 
         return $tpl;
     }
