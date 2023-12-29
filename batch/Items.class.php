@@ -487,22 +487,23 @@ class batch_Items extends core_Master
             }
         }
         $data->recs = $query->fetchAll();
-        $storeIds = arr::extractValuesFromArray($data->recs, 'storeId');
 
-        foreach ($storeIds as $storeId){
-            $storeRec = store_Products::fetch("#productId = {$data->masterId} AND #storeId = {$storeId}");
+        // Добавяне на наличните к-ва без партида
+        $storeQuery = store_Products::getQuery();
+        $storeQuery->where("#productId = {$data->masterId} AND #quantity != 0");
+        while ($storeRec = $storeQuery->fetch()){
             $onBatches = 0;
-            array_walk($data->recs, function($a) use(&$onBatches, $storeId) {
-                if(!empty($a->batch) && $a->storeId == $storeId) {$onBatches += $a->quantity;}
+            array_walk($data->recs, function($a) use(&$onBatches, $storeRec) {
+                if(!empty($a->batch) && $a->storeId == $storeRec->storeId) {$onBatches += $a->quantity;}
             });
 
             $withoutBatch = round($storeRec->quantity - $onBatches, 4);
             if(!empty($withoutBatch)){
-                $data->recs["-{$storeId}"] = (object)array('storeId' => $storeId,
-                                              'productId' => $data->masterId,
-                                              'quantity' => $withoutBatch,
-                                              'state' => 'active',
-                                              'batch' => null);
+                $data->recs["-{$storeRec->storeId}"] = (object)array('storeId' => $storeRec->storeId,
+                                                                     'productId' => $data->masterId,
+                                                                     'quantity' => $withoutBatch,
+                                                                     'state' => 'active',
+                                                                     'batch' => null);
             }
         }
 
