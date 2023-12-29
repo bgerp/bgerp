@@ -114,6 +114,7 @@ class price_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(array('priceDealer'),
+        array('noPrice'),
         array('price', 'priceDealer'),
         array('priceMaster', 'price'),
     );
