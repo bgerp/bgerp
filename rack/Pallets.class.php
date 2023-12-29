@@ -1081,6 +1081,15 @@ class rack_Pallets extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'forceopen'){
+            $requiredRoles = $mvc->getRequiredRoles('list', $rec, $userId);
+            if(isset($rec->storeId)){
+                if(!store_Stores::haveRightFor('select', $rec->storeId)){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -1287,5 +1296,22 @@ class rack_Pallets extends core_Manager
         foreach ($query->getDeletedRecs() as $rec) {
             rack_Pallets::recalc($rec->productId, $rec->storeId);
         }
+    }
+
+
+    /**
+     * Екшън форсиращ избор на склад и отваряне на позиция
+     */
+    public function act_forceOpen()
+    {
+        $this->requireRightFor('forceopen');
+        expect($storeId = Request::get('storeId', 'int'));
+        $this->requireRightFor('forceopen', (object)array('storeId' => $storeId));
+
+        $productId = Request::get('productId', 'int');
+        $position = Request::get('position', 'varchar');
+        store_Stores::selectCurrent($storeId);
+
+        redirect(array('rack_Pallets', 'list', 'productId' => $productId, 'search' => $position));
     }
 }
