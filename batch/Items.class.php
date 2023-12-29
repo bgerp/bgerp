@@ -492,18 +492,26 @@ class batch_Items extends core_Master
         $storeQuery = store_Products::getQuery();
         $storeQuery->where("#productId = {$data->masterId} AND #quantity != 0");
         while ($storeRec = $storeQuery->fetch()){
-            $onBatches = 0;
-            array_walk($data->recs, function($a) use(&$onBatches, $storeRec) {
-                if(!empty($a->batch) && $a->storeId == $storeRec->storeId) {$onBatches += $a->quantity;}
+            $onBatches = $count = 0;
+            array_walk($data->recs, function($a) use(&$onBatches, &$count, $storeRec) {
+                if(!empty($a->batch) && $a->storeId == $storeRec->storeId) {$onBatches += $a->quantity; $count++;}
             });
+
+            if($count > 1){
+                $data->recs["-{$storeRec->storeId}batches"] = (object)array('storeId' => $storeRec->storeId,
+                                                                     'productId' => $data->masterId,
+                                                                     'quantity' => $onBatches,
+                                                                     'state' => 'active',
+                                                                     'batch' => -1);
+            }
 
             $withoutBatch = round($storeRec->quantity - $onBatches, 4);
             if(!empty($withoutBatch)){
-                $data->recs["-{$storeRec->storeId}"] = (object)array('storeId' => $storeRec->storeId,
-                                                                     'productId' => $data->masterId,
-                                                                     'quantity' => $withoutBatch,
-                                                                     'state' => 'active',
-                                                                     'batch' => null);
+                $data->recs["-{$storeRec->storeId}nobatch"] = (object)array('storeId' => $storeRec->storeId,
+                                                                            'productId' => $data->masterId,
+                                                                            'quantity' => $withoutBatch,
+                                                                            'state' => 'active',
+                                                                            'batch' => -2);
             }
         }
 
@@ -525,16 +533,18 @@ class batch_Items extends core_Master
             
             // Вербално представяне на записа
             $row = $this->recToVerbal($rec);
-            if(!empty($rec->batch)){
-                $row->batch = "<span style='float:left'>{$row->batch}</span>";
+            if($rec->batch == -1){
+                $row->batch = "<i style='float:left;color:green'>" . tr('Общо по партиди') . "</i>";
+            } elseif($rec->batch == -2){
+                $row->batch = "<i style='float:left;color:green'>" . tr('Без партида') . "</i>";
+            } else {
 
                 // Линк към историята защитена
+                $row->batch = "<span style='float:left'>{$row->batch}</span>";
                 Request::setProtected('batch,productId,storeId');
                 $histUrl = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $rec->productId, 'storeId' => $rec->storeId);
                 $row->icon = ht::createLink('', $histUrl, null, $attr);
                 Request::removeProtected('batch,productId,storeId');
-            } else {
-                $row->batch = "<i style='float:left'>" . tr('Без партида') . "</i>";
             }
 
             $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
