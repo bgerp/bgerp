@@ -486,17 +486,36 @@ class batch_Items extends core_Master
                 $query->where("#state = '{$data->form->rec->{"state{$data->masterId}"}}'");
             }
         }
-        
         $data->recs = $query->fetchAll();
-        
+        $storeIds = arr::extractValuesFromArray($data->recs, 'storeId');
+
+        foreach ($storeIds as $storeId){
+            $storeRec = store_Products::fetch("#productId = {$data->masterId} AND #storeId = {$storeId}");
+            $onBatches = 0;
+            array_walk($data->recs, function($a) use(&$onBatches, $storeId) {
+                if(!empty($a->batch) && $a->storeId == $storeId) {$onBatches += $a->quantity;}
+            });
+
+            $withoutBatch = round($storeRec->quantity - $onBatches, 4);
+            if(!empty($withoutBatch)){
+                $data->recs["-{$storeId}"] = (object)array('storeId' => $storeId,
+                                              'productId' => $data->masterId,
+                                              'quantity' => $withoutBatch,
+                                              'state' => 'active',
+                                              'batch' => null);
+            }
+        }
+
+        arr::sortObjects($data->recs, 'storeId', 'ASC');
+
         // Подготвяме страницирането
         $pager = cls::get('core_Pager', array('itemsPerPage' => 10));
         $pager->setPageVar($data->masterMvc->className, $data->masterId);
         $pager->itemsCount = countR($data->recs);
         $data->pager = $pager;
-        
+
         // Обръщаме записите във вербален вид
-        foreach ($data->recs as $rec) {
+        foreach ($data->recs as $index => $rec) {
             
             // Пропускане на записите, които не трябва да са на тази страница
             if (!$pager->isOnPage()) {
@@ -505,16 +524,21 @@ class batch_Items extends core_Master
             
             // Вербално представяне на записа
             $row = $this->recToVerbal($rec);
-            $row->batch = "<span style='float:left'>{$row->batch}</span>";
+            if(!empty($rec->batch)){
+                $row->batch = "<span style='float:left'>{$row->batch}</span>";
+
+                // Линк към историята защитена
+                Request::setProtected('batch,productId,storeId');
+                $histUrl = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $rec->productId, 'storeId' => $rec->storeId);
+                $row->icon = ht::createLink('', $histUrl, null, $attr);
+                Request::removeProtected('batch,productId,storeId');
+            } else {
+                $row->batch = "<i style='float:left'>" . tr('Без партида') . "</i>";
+            }
+
             $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
-            
-            // Линк към историята защитена
-            Request::setProtected('batch,productId,storeId');
-            $histUrl = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $rec->productId, 'storeId' => $rec->storeId);
-            $row->icon = ht::createLink('', $histUrl, null, $attr);
-            Request::removeProtected('batch,productId,storeId');
              
-            $data->rows[$rec->id] = $row;
+            $data->rows[$index] = $row;
         }
     }
     
@@ -561,7 +585,7 @@ class batch_Items extends core_Master
         
         // Подготвяме таблицата за рендиране
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
-        $fields = arr::make('batch=Партида,storeId=Склад,measureId=Мярка,quantity=Количество', true);
+        $fields = arr::make('storeId=Склад,batch=Партида,measureId=Мярка,quantity=Количество', true);
         if (countR($data->rows)) {
             $fields = array('icon' => ' ') + $fields;
         }
