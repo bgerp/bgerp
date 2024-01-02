@@ -1848,6 +1848,7 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery->EXT('nameEn', 'cat_Products', 'externalName=nameEn,externalKey=productId');
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->where("#priceListId = {$settings->policyId}");
+            $pQuery->limit($settings->maxSearchProducts);
 
             // Ако не е посочен стринг се показват най-продаваните артикули
             if(empty($searchString)){
@@ -1907,7 +1908,7 @@ class pos_Terminal extends peripheral_Terminal
                         $count++;
                     }
                 }
-               
+
                 // След това се добавят артикулите, които съдържат стринга в името и/или кода си
                 $pQuery1 = clone $pQuery;
                 $pQuery1->orderBy('code,name', 'ASC');
