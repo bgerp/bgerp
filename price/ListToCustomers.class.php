@@ -149,6 +149,10 @@ class price_ListToCustomers extends core_Manager
             $folderId = cls::get($rec->cClass)->forceCoverAndFolder($rec->cId);
             $data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass, 'cId' => $rec->cId, 'folderId' => $folderId, 'ret_url' => true), null, 'order=10.00015,ef_icon=img/16/page_white_star.png');
         }
+
+        if(isset($rec->id)){
+            $data->form->setReadOnly('listId');
+        }
     }
     
     

@@ -93,7 +93,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             }
             
             if (haveRole($fiscDriver->canMakeReport)) {
-                $reportBtn = ht::createBtn("Отчет", array($fiscDriver, 'Reports', 'pId' => $deviceRec->id, 'ret_url' => true, 'rand' => str::getRand()), false, false, "class=printReceiptBtn posBtns navigable,title=Отпечатване на отчети");
+                $reportBtn = ht::createBtn("Отчет ФУ", array($fiscDriver, 'Reports', 'pId' => $deviceRec->id, 'ret_url' => true, 'rand' => str::getRand()), false, false, "class=printReceiptBtn posBtns navigable,title=Отпечатване на отчет на фискалното устройство|*!");
                 $buttons["report"] = (object)array('body' => $reportBtn, 'placeholder' => 'CLOSE_BTNS');
             }
             
@@ -448,8 +448,8 @@ class bgfisc_plg_Receipts extends core_Plugin
                 reportException($e);
                 
                 // Ако е по AJAX премахва се блъра и се показват статусите с грешката
+                $errorMsg = $e->getMessage();
                 if (Request::get('ajax_mode')) {
-                    $errorMsg = $e->getMessage();
                     core_Statuses::newStatus($errorMsg, 'error');
                     
                     // Првмахване на замъгляването
@@ -513,7 +513,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         if (empty($rec->revertId)){
             $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
             core_Statuses::newStatus("Създаване на бележка с УНП|* <b>{$regRec->urn}<b>");
-        } elseif(isset($rec->revertId) && $rec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
+        } elseif($rec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
             $regRec = bgfisc_Register::createUrn($mvc, $rec->id, false);
             core_Statuses::newStatus("Създаване УНП на стара бележка|* <b>{$regRec->urn}<b>");
         }

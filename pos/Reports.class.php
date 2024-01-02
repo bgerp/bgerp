@@ -455,7 +455,6 @@ class pos_Reports extends core_Master
             }
         }
         
-        $row->value = "<span style='white-space:nowrap;'>{$row->value}</span>";
         $amount = $Double->toVerbal($obj->amount);
         if(isset($obj->param)){
             $amountHint = tr('ДДС') . ": " . core_Type::getByName('percent')->toVerbal($obj->param);

@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, productCount, total, paid, change, state, revertId, returnedTotal';
+    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, revertId, returnedTotal';
     
     
     /**
@@ -167,6 +167,12 @@ class pos_Receipts extends core_Master
 
 
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'revertId,returnedTotal';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -217,7 +223,6 @@ class pos_Receipts extends core_Master
         } else {
             
             // Коя е последната чернова бележка от ПОС-а
-            $today = dt::today();
             $query = $this->getQuery();
             $query->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
             $query->show('valior,contragentClass,contragentObjectId,total');
@@ -228,8 +233,7 @@ class pos_Receipts extends core_Master
             if(is_object($lastDraft)){
                 
                 // Ако има такава и тя е без контрагент и е празна
-                $defaultContragentId = pos_Points::defaultContragent($pointId);
-                if(empty($lastDraft->total) && $lastDraft->contragentClass == crm_Persons::getClassId() && $lastDraft->contragentObjectId == $defaultContragentId){
+                if(empty($lastDraft->total) && pos_Receipts::isForDefaultContragent($lastDraft)){
                     $today = dt::today();
                     
                     // Ако е със стара дата, подменя се
@@ -294,9 +298,8 @@ class pos_Receipts extends core_Master
         }
         
         $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
-        $contragentFolderId = $Contragent->fetchField('folderId');
-        $row->contragentId = (isset($contragentFolderId)) ? doc_Folders::recToVerbal($contragentFolderId)->title : $Contragent->getHyperlink(true);
-        
+        $row->contragentId = $Contragent->getHyperlink(true);
+
         if ($fields['-list']) {
             $row->title = $mvc->getHyperlink($rec->id, true);
         } elseif ($fields['-single']) {
@@ -327,6 +330,7 @@ class pos_Receipts extends core_Master
             $row->PAID_CAPTION = (isset($rec->revertId)) ? tr('Върнато') : tr('Платено');
             $rec->paid = abs($rec->paid);
             $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
+            $row->paidCurrency = $row->currency;
             if(!empty($rec->change)){
                 $row->CHANGE_CLASS = ($rec->change < 0 || isset($rec->revertId)) ? 'changeNegative' : 'changePositive';
                 $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
@@ -864,6 +868,8 @@ class pos_Receipts extends core_Master
     protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
+            self::logDebug("Изтриване на бележка: {$rec->id}");
+            wp('Изтриване на бележка', $rec);
             pos_ReceiptDetails::delete("#receiptId = {$rec->id}");
         }
     }
@@ -1034,6 +1040,14 @@ class pos_Receipts extends core_Master
         expect($contragentId = Request::get('contragentId', 'int'));
         $locationId = Request::get('locationId', 'int');
         $autoSelect = Request::get('autoSelect');
+
+        // Ако се прави опит за избор на същия контрагент не се прави нищо
+        if($rec->contragentClass == $contragentClassId && $rec->contragentObjectId == $contragentId){
+            core_Statuses::newStatus('Контрагента е вече избран');
+
+            return pos_Terminal::returnAjaxResponse($id, null, true, false, false, false, 'add', false);
+        }
+
         $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
 
         // Ако бележката е на клиент и е сканирана нова карта и тя не е на този клиент ще се върне на анонимния за да се преизчислят цените
@@ -1052,7 +1066,7 @@ class pos_Receipts extends core_Master
                 $avatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 130, 130);
                 if(!empty($avatar)){
                     $personName = crm_Persons::fetchField($rec->contragentObjectId, 'name');
-                    core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'notice', null, 120);
+                    core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'no-icon', null, 120);
                 }
             }
         }

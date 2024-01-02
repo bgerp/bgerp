@@ -68,11 +68,12 @@
 				<td>|Продадено|*:</td>
 				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span> <b>[#total#]</b></td>
 			</tr>
+			<!--ET_BEGIN paid-->
 			<tr>
 				<td>|Платено|*:</td>
-				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span> <b>[#paid#]</b></td>
+				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#paidCurrency#]</span> <b>[#paid#]</b></td>
 			</tr>
-			
+			<!--ET_END paid-->
 			<!--ET_BEGIN change-->
 			<tr>
 				<td>|Ресто|*:</td>
