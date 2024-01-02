@@ -67,7 +67,7 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Полета за листов изглед
      */
-    public $listFields = 'id,productId,value,quantity,storeId,price,discountPercent,amount';
+    public $listFields = 'id,productId,value,quantity,storeId,price,discountPercent=Отстъпка->Ръчна,autoDiscount=Отстъпка->Авт.,amount';
     
     
     /**
@@ -114,6 +114,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');
         $this->FLD('value', 'varchar(32)', 'caption=Мярка, input=hidden,smartCenter');
         $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка,input=none');
+        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'input=none');
         $this->FLD('text', 'varchar', 'caption=Пояснение,input=none');
         $this->FLD('batch', 'varchar', 'caption=Партида,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,input=none');
@@ -479,7 +480,8 @@ class pos_ReceiptDetails extends core_Detail
         if($recId = request::get('recId', 'int')){
             $selectedRec = $this->fetch($recId);
         }
-        
+
+        $refreshHeader = false;
         try{
             expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
             $increment = false;
@@ -581,7 +583,7 @@ class pos_ReceiptDetails extends core_Detail
             
             // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
             $defaultStoreId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
-            
+
             if(isset($defaultStoreId)){
                 if(core_Packs::isInstalled('batch')){
                     $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId);
@@ -628,7 +630,7 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             if($rec->_canStore == 'yes'){
-                $rec->storeId = isset($rec->storeId) ? $rec->storeId : $defaultStoreId;
+                $rec->storeId = $rec->storeId ?? $defaultStoreId;
                 if(empty($rec->storeId)){
                     $pName = cat_Products::getTitleById($rec->productId);
                     expect(false,  "|*{$pName}: |не е наличен в нито един склад свързан с POS-а|*");
@@ -636,8 +638,13 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             $error = $warningQuantity = null;
-            if ($rec->_canStore == 'yes' && !pos_Receipts::checkQuantity($rec, $error, $warningQuantity)) {
-                expect(false, $error);
+            if ($rec->_canStore == 'yes') {
+                $instantBomRec = cat_Products::getLastActiveBom($rec->productId, 'instant');
+                if(!$instantBomRec){
+                    if(!pos_Receipts::checkQuantity($rec, $error, $warningQuantity)){
+                        expect(false, $error);
+                    }
+                }
             }
 
             if(!empty($warningQuantity)){
@@ -646,13 +653,21 @@ class pos_ReceiptDetails extends core_Detail
 
             expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
             $rec->param = cat_Products::getVat($rec->productId, dt::now());
-            
+
+            $productsByNow = pos_ReceiptDetails::count("#receiptId = {$rec->receiptId}");
+
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
             Mode::setPermanent("currentOperation{$rec->receiptId}", 'add');
             $selectedRecId = $rec;
-            
+            if(empty($productsByNow)){
+                $receiptRec->createdBy = core_Users::getCurrent();
+                $receiptRec->createdOn = dt::now();
+                $receiptRec->valior = dt::today();
+                pos_Receipts::save($receiptRec, 'createdBy,createdOn,valior');
+                $refreshHeader = true;
+            }
         } catch(core_exception_Expect $e){
             $selectedRecId = null;
             $dump = $e->dump;
@@ -669,7 +684,7 @@ class pos_ReceiptDetails extends core_Detail
         Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId);
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         
-        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add');
+        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add', $refreshHeader);
     }
     
     
@@ -720,13 +735,13 @@ class pos_ReceiptDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $receiptRec = $mvc->Master->fetch($rec->receiptId, 'createdOn,revertId,paid');
+        $receiptRec = $mvc->Master->fetch($rec->receiptId);
         $row->currency = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
         
         $action = $mvc->getAction($rec->action);
         switch ($action->type) {
             case 'sale':
-                $mvc->renderSale($rec, $row, $receiptRec->createdOn, $fields);
+                $mvc->renderSale($rec, $row, $receiptRec, $fields);
                 if ($fields['-list']) {
                     $row->quantity = ($rec->value) ? $row->quantity : $row->quantity;
                 }
@@ -748,14 +763,26 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Рендира информацията за направената продажба
      */
-    public function renderSale($rec, &$row, $receiptDate, $fields = array())
+    public function renderSale($rec, &$row, $receiptRec, $fields = array())
     {
+        $receiptDate = $receiptRec->valior;
         $Varchar = cls::get('type_Varchar');
         $Double = core_Type::getByName('double(decimals=2)');
         $productRec = cat_Products::fetch($rec->productId, 'code,measureId');
         $defaultStoreId = pos_Points::fetchField(pos_Receipts::fetchField($rec->receiptId, 'pointId'), 'storeId');
-        
-        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'), $rec->quantity);
+
+        $discountPercent = $rec->discountPercent;
+        if($receiptRec->state == 'draft'){
+            if(isset($discountPercent)){
+                if(isset($rec->autoDiscount)){
+                    $discountPercent = round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4);
+                }
+            } elseif(isset($rec->autoDiscount)) {
+                $discountPercent = $rec->autoDiscount;
+            }
+        }
+
+        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'), $rec->quantity);
         $row->price = $Double->toVerbal($rec->price * (1 + $rec->param));
         $row->amount = $Double->toVerbal($price * $rec->quantity);
         $row->amount = ht::styleNumber($row->amount, $price * $rec->quantity);
@@ -767,13 +794,16 @@ class pos_ReceiptDetails extends core_Detail
                $row->{$operationPlaceholder} = 'updatedDiv flash';
             }
         }
-        
-        if ($rec->discountPercent < 0) {
-            $row->discountPercent = "<span class='surchargeText'>+" . trim($row->discountPercent, '-') . "</span>";
-        } else {
-            $row->discountPercent = "<span class='discountText'>-" . $row->discountPercent . "</span>";
+
+        if(!$fields['-list']){
+            $row->discountPercent = core_Type::getByName('percent')->toVerbal($discountPercent);
+            if ($discountPercent < 0) {
+                $row->discountPercent = "<span class='surchargeText'>+" . trim($row->discountPercent, '-') . "</span>";
+            } else {
+                $row->discountPercent = "<span class='discountText'>-" . $row->discountPercent . "</span>";
+            }
         }
-        
+
         if(cat_Products::fetchField($rec->productId, 'canSell') != 'yes'){
             $row->STOPPED_PRODUCT = tr("спрян");
         }
@@ -820,7 +850,7 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         // Ако отстъпката е нула да не се показва
-        if ($rec->discountPercent == 0) {
+        if ($discountPercent == 0) {
             unset($row->discountPercent);
         }
 
@@ -1006,6 +1036,8 @@ class pos_ReceiptDetails extends core_Detail
         $query->EXT('revertId', 'pos_Receipts', 'externalName=revertId,externalKey=receiptId');
         $query->EXT('contragentClsId', 'pos_Receipts', 'externalName=contragentClass,externalKey=receiptId');
         $query->EXT('contragentId', 'pos_Receipts', 'externalName=contragentObjectId,externalKey=receiptId');
+        $query->EXT('waitingBy', 'pos_Receipts', 'externalName=waitingBy,externalKey=receiptId');
+        $query->EXT('receiptCreatedBy', 'pos_Receipts', 'externalName=createdBy,externalKey=receiptId');
         $query->where("#receiptId = {$receiptId}");
         $query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
         
@@ -1039,6 +1071,8 @@ class pos_ReceiptDetails extends core_Detail
                     $rec->amount -= $masterRec->change;
                 }
             }
+
+            setIfNot($obj->userId, $rec->waitingBy, $rec->receiptCreatedBy);
             $obj->contragentClassId = $rec->contragentClsId;
             $obj->contragentId = $rec->contragentId;
             $obj->quantity = $rec->quantity;
@@ -1062,7 +1096,6 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $id = Request::get('loadRecId', 'int');
-        
         $this->requireRightFor('load', (object)array('receiptId' => $receiptId, 'loadRecId' => $id));
         
         $query = $this->getQuery();
@@ -1165,7 +1198,10 @@ class pos_ReceiptDetails extends core_Detail
         // Ако е забранена продажбата на неналични артикули
         $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
         if($notInStockChosen != 'yes'){
-            
+            $instantBomRec = cat_Products::getLastActiveBom($productId, 'instant');
+
+            if(is_object($instantBomRec)) return $firstStoreId;
+
             // Изчисляване на нужното количество в основната мярка
             $quantityInPack = 1;
             if(isset($packagingId)){

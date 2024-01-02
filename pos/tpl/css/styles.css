@@ -5,6 +5,9 @@
   #receipt-table .rejected-receipt {
     background-color: rgba(204, 102, 102, 0.8); }
 
+.sale-summary table td {
+  font-weight: normal; }
+
 #single-receipt-holder {
   float: left;
   font-family: 'Source Sans Pro', sans-serif;
@@ -304,6 +307,22 @@
   .flash span {
     transition: all linear;
     transition-duration: 1s; }
+
+.no-border {
+  font-size: 0.9em; }
+  .no-border tr td.border-bottom {
+    border-bottom: 1px dashed #aaaaaa !important; }
+  .no-border tr:last-child td.border-bottom {
+    border: none !important; }
+  .no-border td {
+    padding: 2px !important; }
+  .no-border .title-info {
+    font-weight: bold !important;
+    background: #dddddd; }
+  .no-border .aleft {
+    text-align: left !important; }
+  .no-border .aright {
+    text-align: right !important; }
 
 .updatedDiv {
   color: red !important; }
@@ -995,7 +1014,7 @@ table.total td {
   padding: 0px 15px; }
 
 .largeCell {
-  width: 50% !important; }
+  min-width: 350px !important; }
 
 hr {
   margin: 5px 0 1px; }

@@ -146,12 +146,6 @@ defIfNot('ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES', 'yes');
 
 
 /**
- * Дефинира име на папка в която ще се съхраняват временните данни
- */
-defIfNot('ESHOP_AUTO_EXPORT_SALE_CSV_DIR', '');
-
-
-/**
  * Показване на основната илюстрация в онлайн магазина
  */
 defIfNot('ESHOP_PRODUCT_IMG_LOGIC', 'rotation');

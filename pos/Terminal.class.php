@@ -703,7 +703,7 @@ class pos_Terminal extends peripheral_Terminal
             $refreshResults = false;
         }
         
-        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, $refreshResults, null, true);
+        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, $refreshResults, null, true, false);
     }
     
     
@@ -1848,10 +1848,10 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery->EXT('nameEn', 'cat_Products', 'externalName=nameEn,externalKey=productId');
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->where("#priceListId = {$settings->policyId}");
-            $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords');
 
             // Ако не е посочен стринг се показват най-продаваните артикули
             if(empty($searchString)){
+                $defaultOrder = true;
                 if($rec->_selectedGroupId == 'similar'){
                     if(countR($similarProducts)){
                         $pQuery->in('productId', $similarProducts);
@@ -1860,13 +1860,26 @@ class pos_Terminal extends peripheral_Terminal
                     }
                 } elseif(is_numeric($rec->_selectedGroupId)){
                     $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                } else {
+                    $groupsTable = type_Table::toArray($settings->productGroups);
+                    $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
+                    if(countR($groups)){
+                        $i = 1;
+                        $orderByGroup = "(CASE ";
+                        foreach ($groups as $groupId){
+                            $orderByGroup .= " WHEN LOCATE('|$groupId|', #groups) THEN {$i}";
+                            $i++;
+                        }
+                        $orderByGroup .= " ELSE {$i} END)";
+                        $pQuery->XPR('orderByGroup', 'int', $orderByGroup);
+                        $defaultOrder = false;
+                        $pQuery->orderBy('orderByGroup=ASC,code=ASC');
+                    }
                 }
-                
-                $receiptClassId = pos_Receipts::getClassId();
-                $pQuery->EXT('rating', 'sales_ProductRatings', array('externalName' => 'value', 'onCond' => "#sales_ProductRatings.classId = {$receiptClassId} AND #sales_ProductRatings.objectId = #productId", 'join' => 'right'));
-                $pQuery->limit($settings->maxSearchProducts);
-                $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords,rating');
-                $pQuery->orderBy('rating', 'DESC');
+
+                if($defaultOrder){
+                    $pQuery->orderBy('code', 'ASC');
+                }
 
                 // Добавят се към резултатите
                 while ($pRec = $pQuery->fetch()){
@@ -2238,18 +2251,20 @@ class pos_Terminal extends peripheral_Terminal
      * @param boolean $success
      * @param boolean $refreshTable
      * @param boolean $refreshPanel
+     * @param boolean $autoFlush
      * 
      * @return array $res
      */
-    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null, $refreshHeader = false)
+    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null, $refreshHeader = false, $autoFlush = true)
     {
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
         
         // Форсиране на обновяването на мастъра, за да е сигурно че данните в бележката са актуални
-        $Receipts->flushUpdateQueue($receiptId);
+        if($autoFlush){
+            $Receipts->flushUpdateQueue($receiptId);
+        }
         $rec = $Receipts->fetch($receiptId, '*', false);
-        
         $operation = Mode::get("currentOperation{$rec->id}");
         $string = Mode::get("currentSearchString{$rec->id}");
         
@@ -2323,7 +2338,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $resObj = new stdClass();
         $resObj->func = 'toggleAddedProductFlag';
-        $resObj->arg = array('flag' => !empty($addedProduct) ? true : false);
+        $resObj->arg = array('flag' => !empty($addedProduct));
         $res[] = $resObj;
         
         Mode::setPermanent("productAdded{$receiptId}", null);

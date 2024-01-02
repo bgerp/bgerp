@@ -186,8 +186,18 @@ class bgfisc_plg_Receipts extends core_Plugin
             $amount = $price * $dRec->quantity;
             
             $arr = array('PLU_NAME' => $name, 'QTY' => 1, 'PRICE' => round($amount, 2));
-            if (!empty($dRec->discountPercent)) {
-                $arr['DISC_ADD_V'] = -1 * round($dRec->discountPercent * $amount, 2);
+
+            $discountPercent = $dRec->discountPercent;
+            if(isset($discountPercent)){
+                if(isset($dRec->autoDiscount)){
+                    $discountPercent = round((1 - (1 - $dRec->discountPercent) * (1 - $dRec->autoDiscount)), 4);
+                }
+            } elseif(isset($dRec->autoDiscount)) {
+                $discountPercent = $dRec->autoDiscount;
+            }
+
+            if (!empty($discountPercent)) {
+                $arr['DISC_ADD_V'] = -1 * round($discountPercent * $amount, 2);
             }
             
             $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
