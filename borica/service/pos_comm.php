@@ -2,13 +2,6 @@
 
 
 
-header('Access-Control-Allow-Origin: *');
-
-if ($_SERVER["REQUEST_METHOD"] != 'GET') {
-    
-    exit;
-}
-
 
 /**
  * Изпраща команда към ПОС терминала
@@ -77,7 +70,27 @@ function parityCheck(array $arr)
 	return ([$PCheck]);
 }
 
-define ('DEVICE', 'COM1');
+
+header('Access-Control-Allow-Origin: *');
+
+if ($_SERVER["REQUEST_METHOD"] != 'GET') {
+    
+    exit;
+}
+
+
+// Опитва се да вземе входните данни от GET заявка. Ако няма такива използва дефинираните константи.
+if (($data = unserialize(gzuncompress(base64_decode($_GET['DATA'])))) === FALSE || empty((array)$data)) {
+    $res = "err: Непарсируеми или липсващи данни.";
+    echo $res;
+    
+    exit;
+}
+
+if ($data->PORT == 'COM1' || $data->PORT == 'COM2' || $data->PORT == 'COM3') {
+    define ('DEVICE', $data->PORT);
+} else define ('DEVICE', 'COM1');
+
 clearstatcache();
 $fp = fopen(DEVICE,'r+');
 //stream_set_blocking($fp, 0);
@@ -95,7 +108,6 @@ if (!cmdWrite($fp,$rApproval)) {
 }
 $res = cmdRead($fp);
 
-//die;
 //------------ Пращаме сума 12 байта
 $amount = '423.78';
 $amount = intval((100*floatval($amount)));
@@ -120,7 +132,7 @@ if (count($res) == 60) {
 	die("OK");
 }
 
-echo ("err: Неопределена грешка.")
+echo ("err: Неопределена грешка.");
 
 // При отказ:           array(8) {[0]=>  int(6)  [1]=>  int(2)  [2]=>  int(50)  [3]=>  int(48)  [4]=>  int(49)  [5]=>  int(49)  [6]=>  int(55)  [7]=>  int(3)}
 // При грешен ПИН:      array(8) {[0]=>  int(6)  [1]=>  int(2)  [2]=>  int(50)  [3]=>  int(48)  [4]=>  int(49)  [5]=>  int(48)  [6]=>  int(56)  [7]=>  int(3)}

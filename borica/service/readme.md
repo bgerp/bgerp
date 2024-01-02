@@ -30,9 +30,13 @@
 
 
     <?php
-    $amount = '1.03';
+    
+    $DATA = new stdClass();
+    
+    $DATA->PORT = 'COM1';
+    $DATA->AMOUNT = '1.04'; // Сума 12 байта максимум без десетичната точка
 
-    $DATA = urlencode(serialize($amount));
+    $DATA = urlencode(gzcompress(serialize($DATA)));
     
     
     echo file_get_contents("http://localhost:8081?DATA=$DATA");
