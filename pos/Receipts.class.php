@@ -1052,7 +1052,7 @@ class pos_Receipts extends core_Master
                 $discount = $price->discount;
                 $price = $price->price;
 
-                if(isset($discountPolicyId)){
+                if(!empty($discountPolicyId)){
                     $priceOnDiscountListRec = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $now, 1, 'no', $discountPolicyId, false);
 
                     if(isset($priceOnDiscountListRec->price)){

@@ -206,7 +206,7 @@ class price_ListVariations extends core_Detail
         $query->XPR('validFromTo', 'datetime', "DATE_ADD((DATE_ADD(#validFrom, INTERVAL (COALESCE(#repeatInterval, 0) * (FLOOR(TIMESTAMPDIFF(SECOND, #validFrom, '{$datetime}') / COALESCE(#repeatInterval, 0)))) SECOND)), INTERVAL TIME_TO_SEC(TIMEDIFF(#validUntil , #validFrom)) SECOND)");
         $query->where("#validFrom <= '{$datetime}' && (#validFromNew <= '{$datetime}' && '{$datetime}' <= #validFromTo)");
         $query->where("#variationState != 'rejected'");
-        if(isset($listId)){
+        if(!empty($listId)){
             $query->where("#listId = {$listId}");
         }
 
