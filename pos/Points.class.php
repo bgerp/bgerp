@@ -513,4 +513,14 @@ class pos_Points extends core_Master
             }
         }
     }
+
+
+    function act_Test()
+    {
+        $deviceRec = peripheral_Devices::getDevice('borica_intf_POS');
+
+
+        $intf = cls::getInterface('borica_intf_POS', 'borica_POS');
+        bp($deviceRec, $intf->sendAmount($deviceRec, 1.22));
+    }
 }

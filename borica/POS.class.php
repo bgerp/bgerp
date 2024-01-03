@@ -83,8 +83,7 @@ class borica_POS extends peripheral_DeviceDriver
         $data = new stdClass();
         $data->port = $port;
         $data->amount = $amount;
-        $data = urlencode(gzcompress(serialize($data)));
-
+        $data = base64_encode(gzcompress(serialize($data)));
         $url = $pRec->protocol . '://' . $pRec->hostName . ':' . $pRec->port . '/?DATA=' . $data;
 
         $ctx = stream_context_create(array('http' => array('timeout' => 120)));
