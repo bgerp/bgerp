@@ -504,6 +504,8 @@ select.tabHolder {
   position: relative; }
   .grid.pictureAndText .element.selected {
     padding: 1px !important; }
+    .grid.pictureAndText .element.selected .pos-price {
+      padding-bottom: 0px !important; }
   .grid.pictureAndText .element .photo {
     display: flex;
     width: 100%;
