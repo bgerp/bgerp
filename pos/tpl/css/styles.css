@@ -521,7 +521,7 @@ select.tabHolder {
     margin-bottom: 2px; }
     .grid.pictureAndText .element.noPhoto .short-title {
       height: 100%;
-      font-size: 1.3em;
+      font-size: 1.25em;
       max-height: 133px;
       overflow: hidden; }
     .grid.pictureAndText .element.noPhoto .photo {
