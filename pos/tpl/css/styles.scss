@@ -597,9 +597,6 @@ select.tabHolder {
 	&.selected {
 		padding: 1px !important;
 	}
-	&.noPhoto {
-
-	}
 	.photo {
 		display: flex;
 		width: 100%;
@@ -619,6 +616,9 @@ select.tabHolder {
 	&.noPhoto {
 		.short-title {
 			height: 100%;
+			font-size: 1.3em;
+			max-height: 133px;
+			overflow: hidden;
 		}
 		.photo {
 			display: none;

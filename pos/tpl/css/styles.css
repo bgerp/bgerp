@@ -504,7 +504,6 @@ select.tabHolder {
   position: relative; }
   .grid.pictureAndText .element.selected {
     padding: 1px !important; }
-
   .grid.pictureAndText .element .photo {
     display: flex;
     width: 100%;
@@ -521,7 +520,10 @@ select.tabHolder {
     box-sizing: border-box;
     margin-bottom: 2px; }
     .grid.pictureAndText .element.noPhoto .short-title {
-      height: 100%; }
+      height: 100%;
+      font-size: 1.3em;
+      max-height: 133px;
+      overflow: hidden; }
     .grid.pictureAndText .element.noPhoto .photo {
       display: none; }
   .grid.pictureAndText .element .pos-price {
