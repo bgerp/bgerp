@@ -993,14 +993,6 @@ class pos_ReceiptDetails extends core_Detail
             
             if ($masterRec->state != 'draft') {
                 $res = 'no_one';
-            } else {
-                
-                // Ако редактираме/добавяме/изтриваме ред с продукт, проверяваме имали направено плащане
-                if ($action == 'delete' && $rec->productId) {
-                    if ($masterRec->paid) {
-                       // $res = 'no_one';
-                    }
-                }
             }
         }
         
