@@ -88,7 +88,7 @@ class borica_POS extends peripheral_DeviceDriver
 
         $ctx = stream_context_create(array('http' => array('timeout' => 120)));
 
-        $res = @file_get_contents($url, fasel, $ctx);
+        $res = @file_get_contents($url, false, $ctx);
 
         return $res;
     }
