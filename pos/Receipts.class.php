@@ -128,8 +128,15 @@ class pos_Receipts extends core_Master
      * Кой може да променя?
      */
     public $canEdit = 'pos,ceo';
-    
-    
+
+
+    /**
+     * Кой може да променя?
+     */
+    public $canPaywithcardterminal = 'pos,ceo';
+
+
+
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -584,7 +591,17 @@ class pos_Receipts extends core_Master
                 $res = 'no_one';
             }
         }
-        
+
+        // Ако ще се плаща чрез връзка с банков терминал - проверява се има ли такъв настроен
+        if ($action == 'paywithcardterminal' && isset($rec->id)) {
+            $deviceRec = peripheral_Devices::getDevice('borica_intf_POS');
+            if(!is_object($deviceRec)){
+                $res = 'no_one';
+            } elseif(!$mvc->haveRightFor('pay', $rec, $userId)){
+                $res = 'no_one';
+            }
+        }
+
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
 

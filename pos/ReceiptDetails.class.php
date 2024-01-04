@@ -182,7 +182,7 @@ class pos_ReceiptDetails extends core_Detail
        return pos_Terminal::returnAjaxResponse($receiptId, null, $success, true, true, true, 'add');
     }
     
-    
+
     /**
      * Екшън модифициращ бележката
      */
@@ -1311,5 +1311,64 @@ class pos_ReceiptDetails extends core_Detail
         }
 
         return $priceRes;
+    }
+
+
+    /**
+     * Добавяне на плащане към бележка
+     */
+    public function act_paywithcardterminal()
+    {
+        pos_Receipts::requireRightFor('paywithcardterminal');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        expect($receiptRec = pos_Receipts::fetch($receiptId));
+        pos_Receipts::requireRightFor('paywithcardterminal', $receiptRec);
+
+        try{
+            $amount = Request::get('amount', 'varchar');
+            $amount = core_Type::getByName('double')->fromVerbal($amount);
+            expect($amount, 'Невалидна сума за плащане');
+            expect($amount > 0, 'Сумата трябва да е положителна');
+            $diff = abs($receiptRec->paid - $receiptRec->total);
+
+            $type = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+            $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receiptRec->valior);
+            $paidAmount = number_format($paidAmount, 2);
+            $deviceRec = peripheral_Devices::getDevice('borica_intf_POS');
+            expect(!(!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff), 'Платежния метод не позволява да се плати по-голяма сума от общата|*!');
+
+            $intf = cls::getInterface('borica_intf_POS', 'borica_POS');
+            $res = $intf->sendAmount($deviceRec, $paidAmount);
+            expect($res == 'OK', 'Неуспешно плащане!');
+
+            if($receiptRec->revertId){
+                $paidAmount *= -1;
+            }
+
+            // Подготвяме записа на плащането
+            $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $paidAmount);
+
+            if($this->save($rec)){
+                $this->Master->logInAct('Направено плащане', $receiptRec->id);
+                $success = true;
+                core_Statuses::newStatus('Плащането е успешно', 'error');
+            } else {
+                $success = false;
+            }
+        } catch(core_exception_Expect $e){
+            $dump = $e->dump;
+            $dump1 = $dump[0];
+
+            if (!Request::get('ajax_mode')) {
+                throw new core_exception_Expect('', 'Изключение', $dump);
+            } else {
+                core_Statuses::newStatus($dump1, 'error');
+                $success = false;
+            }
+        }
+
+        $res = pos_Terminal::returnAjaxResponse($receiptId, null, $success, true, true, true, 'add', false, true, 'fullScreenCardPayment');
+
+        return $res;
     }
 }

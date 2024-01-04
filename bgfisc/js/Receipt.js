@@ -7,7 +7,7 @@ function fiscActions() {
 		var url = $(this).attr("data-url");
 		
 		if(!url) return;
-		blurScreen();
+		blurScreen('fullScreenBg');
 		// Бутона се дезактивира при натискане, след получаване на резултат ще се активира
 		$(this).addClass( "disabledBtn");
 		$(this).prop("disabled", true);
@@ -31,25 +31,6 @@ function render_fiscresult(data)
 	if(data.js){
 		eval(data.js);
 	}
-}
-
-
-/**
- * Рендиране на резултата от отпечатването на фискалната бележка
- */
-function render_removeBlurScreen(data)
-{
-	removeBlurScreen();
-}
-
-
-function blurScreen() {
-	$('.fullScreenBg').css('display', 'block');
-}
-
-
-function removeBlurScreen() {
-	$('.fullScreenBg').css('display', 'none');
 }
 
 function removeDisabledBtn() {

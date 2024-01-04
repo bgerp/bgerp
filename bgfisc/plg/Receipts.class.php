@@ -382,19 +382,17 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $interface = core_Cls::getInterface('peripheral_FiscPrinterWeb', $lRec->driverClass);
                     
                     $js = $interface->getJS($lRec, $fiscalArr);
-                    $js .= 'blurScreen();
+                    $js .= 'blurScreen("fullScreenBg");
                     function fpOnSuccess(res)
                         {
                             $(".printReceiptBtn").removeClass( "disabledBtn");
         		            $(".printReceiptBtn").prop("disabled", false);
-                                
                             document.location = " ' . $successUrl . '&res=" + res;
                         }
                                 
                         function fpOnError(err) {
-                            removeBlurScreen();
+                            removeBlurScreen("fullScreenBg");
                             removeDisabledBtn();
-                                
                             render_showToast({timeOut: 800, text: err, isSticky: true, stayTime: 8000, type: "error"});
                         }
                                 
@@ -452,7 +450,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 }
                 
                 $res = new Redirect(array('pos_Terminal', 'open', "receiptId" => $rec->id));
-                
+
                 return false;
             } catch (core_exception_Expect $e) {
                 reportException($e);
@@ -464,6 +462,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     
                     // Првмахване на замъгляването
                     $resObj = new stdClass();
+                    $resObj->arg = (object)array('elementClass' => 'fullScreenBg');
                     $resObj->func = 'removeBlurScreen';
                     
                     $resObj2 = new stdClass();
