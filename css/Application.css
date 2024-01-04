@@ -5750,6 +5750,8 @@ div.location.public {
   color: white;
   line-height: 24px;
   text-indent: 5px; }
+  .pricelist-group-label:hover td {
+    background-color: #636363 !important; }
 
 .pricelist-report-pack-table {
   width: 100%; }
