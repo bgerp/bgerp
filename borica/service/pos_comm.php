@@ -80,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] != 'GET') {
 
 
 // Опитва се да вземе входните данни от GET заявка. Ако няма такива използва дефинираните константи.
-if (($data = unserialize(gzuncompress(base64_decode($_GET['DATA'])))) === FALSE || empty((array)$data)) {
+if (($data = unserialize(base64_decode(urldecode($_GET['DATA'])))) === FALSE || empty((array)$data)) {
     $res = "err: Непарсируеми или липсващи данни.";
     echo $res;
     
