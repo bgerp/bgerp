@@ -411,10 +411,9 @@ class pos_Points extends core_Master
             }
             
             $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
-            if(isset($rec->discountPolicyId)){
+            if(!empty($rec->discountPolicyId)){
                 $row->discountPolicyId = price_Lists::getHyperlink($rec->discountPolicyId, true);
             }
-
 
             if ($defaultContragent = self::defaultContragent($rec->id)) {
                 $row->contragent = crm_Persons::getHyperlink($defaultContragent, true);

@@ -19,6 +19,12 @@
 				<td>|Създаване|*</td>
 				<td>[#createdOn#] |от|* [#createdBy#]</td>
 			</tr>
+			<!--ET_BEGIN waitingOn-->
+			<tr>
+				<td>|Чакащо|*</td>
+				<td>[#waitingOn#] |от|* [#waitingBy#]</td>
+			</tr>
+			<!--ET_END waitingOn-->
 			<tr>
 				<td>|Точка на продажба|*:</td>
 				<td>[#pointId#]</td>

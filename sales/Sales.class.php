@@ -2043,7 +2043,7 @@ class sales_Sales extends deals_DealMaster
             $dQuery = cls::get('sales_SalesDetails')->getQuery();
             $dQuery->where("#saleId = {$rec->id}");
             while ($dRec = $dQuery->fetch()) {
-                $dRec->autoDiscount = $DiscountInterface->calcAutoSaleDiscount($dRec, $rec);
+                $dRec->autoDiscount = $DiscountInterface->calcAutoSaleDiscount('sales_SalesDetails', $dRec, 'sales_Sales', $rec);
                 $update[$dRec->id] = $dRec;
             }
             

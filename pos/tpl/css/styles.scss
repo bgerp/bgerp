@@ -8,7 +8,9 @@
 		background-color:rgba(204,102,102,.8);
 	}
 }
-
+.sale-summary table td {
+	font-weight: normal;
+}
 #single-receipt-holder {
 	float: left;
 	font-family: 'Source Sans Pro', sans-serif;
@@ -363,6 +365,30 @@
 	span {
 		transition: all  linear;
 		transition-duration: 1s;
+	}
+}
+.no-border {
+	font-size: 0.9em;
+	tr td.border-bottom {
+		border-bottom: 1px dashed #aaa !important;
+	}
+	tr:last-child td.border-bottom {
+		border: none !important;
+	}
+	td {
+		padding: 2px !important;
+
+	}
+	.title-info {
+		font-weight: bold !important;
+		background: #ddd;
+
+	}
+	.aleft {
+		text-align: left !important;
+	}
+	.aright {
+		text-align: right !important;
 	}
 }
 
@@ -1174,7 +1200,7 @@ table.total td{
 	padding: 0px 15px;
 }
 .largeCell {
-	width: 50% !important;
+	min-width: 350px !important;
 }
 hr {
 	margin: 5px 0 1px;

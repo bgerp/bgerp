@@ -67,6 +67,8 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function canSeePriceFields($mvc, $rec)
     {
+        if(haveRole('noPrice')) return false;
+
         // Ако има изброените роли, може да вижда цените
         $mvc = cls::get($mvc);
         if(($mvc instanceof deals_PaymentDocument) || ($mvc instanceof crm_Persons)){

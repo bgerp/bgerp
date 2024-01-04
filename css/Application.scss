@@ -1600,6 +1600,10 @@ a.tUnsighted {
 	background-color: #ff8;
 }
 /*край на стилове при тредове*/
+.narrow .folder-cover .typeTable {
+	min-width: 200px !important;
+	max-width: 300px;
+}
 
 .typeTable {
 	border:none !important;
