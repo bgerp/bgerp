@@ -203,6 +203,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = getTplFromFile('pos/tpl/terminal/Header.shtml');
         
         $headerData = (object)array('pointId' => pos_Points::getHyperlink($rec->pointId, false),
+                                    'createdBy' => core_Users::getVerbal($rec->createdBy, 'nick'),
                                     'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
