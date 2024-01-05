@@ -184,8 +184,9 @@ class bgfisc_plg_Receipts extends core_Plugin
             $price = $dRec->price * (1 + $dRec->param);
             $dRec->quantity = abs($dRec->quantity);
             $amount = $price * $dRec->quantity;
-            
-            $arr = array('PLU_NAME' => $name, 'QTY' => 1, 'PRICE' => round($amount, 2));
+
+            $price = round($amount, 2);
+            $arr = array('PLU_NAME' => $name, 'QTY' => 1, 'PRICE' => $price);
 
             $discountPercent = $dRec->discountPercent;
             if(isset($discountPercent)){
@@ -202,8 +203,10 @@ class bgfisc_plg_Receipts extends core_Plugin
             
             $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
             $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
-            
-            $price = round($amount / $dRec->quantity, bgfisc_Setup::get('PRICE_FU_ROUND'));
+
+            $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
+            $price = round($amount / $dRec->quantity, $fiscFuRound);
+            $price = number_format($price, $fiscFuRound, '.', '');
             $arr['BEFORE_PLU_TEXT'] = "{$dRec->quantity}x{$price}лв";
             
             $res[] = $arr;
