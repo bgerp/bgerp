@@ -515,7 +515,11 @@ class price_reports_PriceList extends frame2_driver_TableData
         $vatRow = core_Type::getByName('enum(yes=с включено ДДС,no=без ДДС)')->toVerbal($rec->vat);
         $beforeRow = tr("Всички цени са в|* {$rec->currencyId}, |{$vatRow}|*");
         $tpl->prepend($beforeRow, 'TABLE_BEFORE');
-        
+
+        if($rec->displayDetailed == 'yes'){
+            Mode::set('saveJS', true);
+        }
+
         return $tpl;
     }
     

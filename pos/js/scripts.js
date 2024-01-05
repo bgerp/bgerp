@@ -7,6 +7,7 @@ var searchTimeout;
 var addedProduct;
 
 function posActions() {
+	$('body').append('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Плащане с банковия терминал ...<br> Моля, изчакайте!</h3></div>');
 	calculateWidth();
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
@@ -623,14 +624,21 @@ function calculateWidth(){
 }
 
 // Направа на плащане
-function doPayment(url, type){
+function doPayment(url, type, warning){
+
 	if(!url || !type) return;
+	if(warning){
+		if (!confirm(warning)) return false;
+		$(".fullScreenCardPayment").css("display", "block");
+	}
+
 	var amount = $("input[name=ean]").val();
 	if(!amount){
 		amount = $("input[name=ean]").attr('data-defaultpayment');
 	}
 	
 	var data = {amount:amount, type:type};
+
 	processUrl(url, data);
 }
 
@@ -874,8 +882,9 @@ function pressNavigable(element)
 		params = {string:string,recId:getSelectedRowId()};
 	} else if(element.hasClass('payment')){
 		var type = element.attr("data-type");
+		var warning = element.attr("data-warning");
 		type = (!type) ? '-1' : type;
-		doPayment(url, type);
+		doPayment(url, type, warning);
 		return;
 		
 	} else if(element.hasClass('contragentRedirectBtn')){
