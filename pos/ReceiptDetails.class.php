@@ -1092,15 +1092,21 @@ class pos_ReceiptDetails extends core_Detail
         
         $query = $this->getQuery();
         $query->where("#receiptId = {$receiptRec->revertId}");
+
         if(isset($id)){
             $this->delete("#receiptId = {$receiptId} AND #revertRecId = {$id}");
             $query->where("#id = {$id}");
         } else {
             $this->delete("#receiptId = {$receiptId}");
+            $query->orderBy('id', 'asc');
         }
-        $query->orderBy('id', 'asc');
-        
-        while($exRec = $query->fetch()){
+        $recs = $query->fetchAll();
+        foreach ($recs as $exRec) {
+            // Заредените плащания за сторниране ще са само в брой
+            if(strpos($exRec->action, 'payment') !== false){
+                $exRec->action = "payment|-1";
+            }
+
             if(!empty($exRec->amount)) {
                 $exRec->amount *= -1;
             }

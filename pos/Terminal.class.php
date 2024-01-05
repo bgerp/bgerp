@@ -1337,22 +1337,24 @@ class pos_Terminal extends peripheral_Terminal
         $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
         $payments = pos_Points::fetchSelected($rec->pointId);
 
-        $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
-        foreach ($payments as $paymentId => $paymentTitle){
-            $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl);
-            $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
-            if(!empty($currencyCode)){
-                $attr['class'] .= ' currencyBtn disabledBtn'; 
-            }
-
-            if($paymentId == $cardPaymentId){
-                if(pos_Receipts::haveRightFor('paywithcardterminal', $rec)){
-                    $attr['data-url'] = toUrl(array('pos_ReceiptDetails', 'paywithcardterminal', 'receiptId' => $rec->id), 'local');
-                    $attr['data-warning'] = tr('Искате ли да се плати с карта от банковия терминал|*?');
+        if(!isset($rec->revertId)){
+            $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+            foreach ($payments as $paymentId => $paymentTitle){
+                $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl);
+                $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
+                if(!empty($currencyCode)){
+                    $attr['class'] .= ' currencyBtn disabledBtn';
                 }
-            }
 
-            $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
+                if($paymentId == $cardPaymentId){
+                    if(pos_Receipts::haveRightFor('paywithcardterminal', $rec)){
+                        $attr['data-url'] = toUrl(array('pos_ReceiptDetails', 'paywithcardterminal', 'receiptId' => $rec->id), 'local');
+                        $attr['data-warning'] = tr('Искате ли да се плати с карта от банковия терминал|*?');
+                    }
+                }
+
+                $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
+            }
         }
         
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
