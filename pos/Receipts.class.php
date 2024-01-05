@@ -232,8 +232,9 @@ class pos_Receipts extends core_Master
         } else {
             
             // Коя е последната чернова бележка от ПОС-а
+            $cu = core_Users::getCurrent();
             $query = $this->getQuery();
-            $query->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
+            $query->where("#pointId = {$pointId} AND #createdBy = {$cu} AND #state = 'draft' AND #revertId IS NULL");
             $query->show('valior,contragentClass,contragentObjectId,total');
             $query->orderBy('id', 'DESC');
             $lastDraft = $query->fetch();
@@ -587,7 +588,7 @@ class pos_Receipts extends core_Master
         
         // Може ли да бъде направено плащане по бележката
         if ($action == 'pay' && isset($rec)) {
-            if ($rec->state != 'draft' || !$rec->total || ($rec->total && abs($rec->paid) >= abs($rec->total))) {
+            if ($rec->state != 'draft' || !$rec->total || (abs($rec->paid) >= abs($rec->total))) {
                 $res = 'no_one';
             }
         }
