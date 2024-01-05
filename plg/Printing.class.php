@@ -150,7 +150,7 @@ class plg_Printing extends core_Plugin
                 Mode::push('printsinglesfromlist', true);
                 $print = core_Request::forward(array('Ctr' => $mvc->className, 'Act' => 'single', 'id' => $selectedId, 'Printing' => true));
                 $tpl->append($print);
-                $tpl->append('<hr>');
+                $tpl->append('<hr class="printing-page-break"></hr>');
                 Mode::pop('printsinglesfromlist');
             }
 
