@@ -629,7 +629,7 @@ function doPayment(url, type, warning){
 	if(!url || !type) return;
 	if(warning){
 		if (!confirm(warning)) return false;
-		blurScreen('fullScreenCardPayment');
+		$(".fullScreenCardPayment").css("display", "block");
 	}
 
 	var amount = $("input[name=ean]").val();
@@ -1452,24 +1452,4 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 		processUrl(url, params);
 
 	}, timeoutTime);
-}
-
-
-/**
- * Рендиране на резултата от отпечатването на фискалната бележка
- */
-function render_removeBlurScreen(data)
-{
-	var elementClass = data.elementClass;
-	removeBlurScreen(elementClass);
-}
-
-
-function blurScreen(elementClass) {
-	$('.' + elementClass).css('display', 'block');
-}
-
-
-function removeBlurScreen(elementClass) {
-	$('.' + elementClass).css('display', 'none');
 }

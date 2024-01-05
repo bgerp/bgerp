@@ -383,9 +383,9 @@ class bgfisc_plg_Receipts extends core_Plugin
                 
                 if (cls::haveInterface('peripheral_FiscPrinterWeb', $Driver)) {
                     $interface = core_Cls::getInterface('peripheral_FiscPrinterWeb', $lRec->driverClass);
-                    
+
                     $js = $interface->getJS($lRec, $fiscalArr);
-                    $js .= 'blurScreen("fullScreenBg");
+                    $js .= '$(".fullScreenBg").css("display", "block");
                     function fpOnSuccess(res)
                         {
                             $(".printReceiptBtn").removeClass( "disabledBtn");
@@ -394,7 +394,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                         }
                                 
                         function fpOnError(err) {
-                            removeBlurScreen("fullScreenBg");
+                            $(".fullScreenBg").css("display", "none");
                             removeDisabledBtn();
                             render_showToast({timeOut: 800, text: err, isSticky: true, stayTime: 8000, type: "error"});
                         }
