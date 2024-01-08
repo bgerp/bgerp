@@ -447,8 +447,8 @@ select:hover,
 textarea:hover {
   outline: none; }
 
-
 #simpleSearch {
+  width: 100%;
   border: solid 1px #cccccc;
   display: block;
   position: relative;
@@ -492,7 +492,7 @@ textarea:hover {
   margin-right: 0px;
   padding: 0;
   height: 1.8em;
-  right: 0px;
+  right: 0;
   position: absolute;
   border: none;
   background-color: rgba(0, 0, 0, 0);
