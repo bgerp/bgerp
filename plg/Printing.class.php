@@ -146,12 +146,19 @@ class plg_Printing extends core_Plugin
             $tpl = new core_ET("");
 
             // Генериране на изгледа за печат на потребителя
+            $count = countR($selArr);
+            $currentCnt = 0;
             foreach ($selArr as $selectedId){
+                $currentCnt++;
+                Mode::push('preventChangeTemplateOnPrint', true);
                 Mode::push('printsinglesfromlist', true);
                 $print = core_Request::forward(array('Ctr' => $mvc->className, 'Act' => 'single', 'id' => $selectedId, 'Printing' => true));
                 $tpl->append($print);
-                $tpl->append('<hr class="printing-page-break">');
+                if($currentCnt != $count){
+                    $tpl->append('<hr class="printing-page-break">');
+                }
                 Mode::pop('printsinglesfromlist');
+                Mode::pop('preventChangeTemplateOnPrint');
             }
 
             $res = $tpl;
