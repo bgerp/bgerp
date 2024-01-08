@@ -595,7 +595,8 @@ class pos_Receipts extends core_Master
 
         // Ако ще се плаща чрез връзка с банков терминал - проверява се има ли такъв настроен
         if ($action == 'paywithcardterminal' && isset($rec->id)) {
-            $deviceRec = peripheral_Devices::getDevice('borica_intf_POS');
+            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+
             if(!is_object($deviceRec)){
                 $res = 'no_one';
             } elseif(!$mvc->haveRightFor('pay', $rec, $userId)){

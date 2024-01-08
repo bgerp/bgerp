@@ -1341,10 +1341,11 @@ class pos_ReceiptDetails extends core_Detail
             $type = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
             $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receiptRec->valior);
             $paidAmount = number_format($paidAmount, 2);
-            $deviceRec = peripheral_Devices::getDevice('borica_intf_POS');
+
+            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
             expect(!(!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff), 'Платежния метод не позволява да се плати по-голяма сума от общата|*!');
 
-            $intf = cls::getInterface('borica_intf_POS', 'borica_POS');
+            $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
             $res = $intf->sendAmount($deviceRec, $paidAmount);
             expect($res == 'OK', 'Неуспешно плащане!');
 
@@ -1358,7 +1359,7 @@ class pos_ReceiptDetails extends core_Detail
             if($this->save($rec)){
                 $this->Master->logInAct('Направено плащане', $receiptRec->id);
                 $success = true;
-                core_Statuses::newStatus('Плащането е успешно', 'error');
+                core_Statuses::newStatus('Плащането е успешно', 'notice');
             } else {
                 $success = false;
             }
