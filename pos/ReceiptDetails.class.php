@@ -997,7 +997,7 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         if($action == 'load' && isset($rec)){
-            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state');
+            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state,total');
             if(empty($masterRec->revertId) || $masterRec->state != 'draft' || $masterRec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
                 $res = 'no_one';
             }
@@ -1005,6 +1005,12 @@ class pos_ReceiptDetails extends core_Detail
             if(isset($rec->loadRecId)){
                 if($mvc->fetchField("#receiptId = {$rec->receiptId} AND #revertRecId = {$rec->loadRecId}")){
                     $res = 'no_one';
+                }
+                $loadRec = $mvc->fetch($rec->loadRecId);
+                if(strpos($loadRec->action, 'payment') !== false){
+                    if(empty($masterRec->total)){
+                        $res = 'no_one';
+                    }
                 }
             }
         }
@@ -1105,6 +1111,9 @@ class pos_ReceiptDetails extends core_Detail
             // Заредените плащания за сторниране ще са само в брой
             if(strpos($exRec->action, 'payment') !== false){
                 $exRec->action = "payment|-1";
+                if(isset($id)){
+                    $exRec->amount = min($exRec->amount, abs($receiptRec->total - $receiptRec->paid));
+                }
             }
 
             if(!empty($exRec->amount)) {
