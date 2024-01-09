@@ -465,6 +465,7 @@ textarea:hover {
 
 .narrow #cmsNavigation #simpleSearch {
   height: 1.5em;
+  min-width: 300px;
   margin-top: 15px !important; }
 
 .narrow #searchform {
