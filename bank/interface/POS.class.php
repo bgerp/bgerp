@@ -2,12 +2,12 @@
 
 
 /**
- * Интерфейс за връзка с Банков терминал
+ * Интерфейс за връзка с банков терминал
  *
  * @category  bgerp
  * @package   bank
  *
- * @author    Ivelin Dimov
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
@@ -23,15 +23,18 @@ class bank_interface_POS extends peripheral_DeviceIntf
 
 
     /**
-     * Изпраща сумата към POS
+     * Връща JS за изпращане на стойност
      *
      * @param stdClass $pRec
-     * @param double $amount
-     * @param string|null $port
-     * @return null|string
+     * @param string $funcName
+     * @param string $resFuncName
+     * @param string $errorFuncName
+     *
+     * @return core_ET
      */
-    public function sendAmount($pRec, $amount, $port = null)
+    public function getJs($pRec, $funcName = 'getAmount', $resFuncName = 'getAmountRes', $errorFuncName = 'getAmountError')
     {
-        return $this->class->sendAmount($pRec, $amount, $port);
+
+        return $this->class->getJs($pRec, $funcName, $resFuncName, $errorFuncName);
     }
 }
