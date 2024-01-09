@@ -624,13 +624,9 @@ function calculateWidth(){
 }
 
 // Направа на плащане
-function doPayment(url, type, warning){
+function doPayment(url, type){
 
 	if(!url || !type) return;
-	if(warning){
-		if (!confirm(warning)) return false;
-		$(".fullScreenCardPayment").css("display", "block");
-	}
 
 	var amount = $("input[name=ean]").val();
 	if(!amount){
@@ -883,10 +879,35 @@ function pressNavigable(element)
 	} else if(element.hasClass('payment')){
 		var type = element.attr("data-type");
 		var warning = element.attr("data-warning");
-		type = (!type) ? '-1' : type;
-		doPayment(url, type, warning);
-		return;
-		
+
+		var sendAmount = element.attr("data-sendamount");
+		if(sendAmount == 'yes'){
+			if(warning){
+				if (!confirm(warning)) return false;
+			}
+
+			var maxamount = parseInt(element.attr("data-maxamount"));
+			var amount = $("input[name=ean]").val();
+			if(!amount){
+				amount = $("input[name=ean]").attr('data-defaultpayment');
+			}
+			amount = parseInt(amount);
+
+			if(amount > maxamount){
+				var msg = element.attr("data-amountoverallowed");
+				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+				return;
+			}
+
+			console.log('SEND:' + amount);
+			$(".fullScreenCardPayment").css("display", "block");
+			getAmount(amount);
+			return;
+		} else {
+			type = (!type) ? '-1' : type;
+			doPayment(url, type);
+			return;
+		}
 	} else if(element.hasClass('contragentRedirectBtn')){
 		
 		clearTimeout(timeout);
@@ -935,6 +956,40 @@ function pressNavigable(element)
 	}, 1000);
 	
 	processUrl(url, params);
+}
+
+
+/**
+ * Връща резултат при успешно свързване с банковия терминал
+ *
+ * @param res
+ */
+function getAmountRes(res)
+{
+	var element = $("#card-payment");
+	if(res == 'OK'){
+		var type = element.attr("data-type");
+		var url = element.attr("data-url");
+		console.log(url);
+		doPayment(url, type);
+	} else {
+		var error = element.attr("data-onerror");
+		render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+		console.log(error);
+	}
+
+	$(".fullScreenCardPayment").css("display", "none");
+}
+
+
+/**
+ * Връща резултат при грешка със свързването с банковия терминал
+ *
+ * @param res
+ */
+function getAmountError(err)
+{
+	$(".fullScreenCardPayment").css("display", "none");
 }
 
 
