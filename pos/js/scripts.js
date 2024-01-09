@@ -886,12 +886,12 @@ function pressNavigable(element)
 				if (!confirm(warning)) return false;
 			}
 
-			var maxamount = parseInt(element.attr("data-maxamount"));
+			var maxamount = parseFloat(element.attr("data-maxamount")).toFixed(2);
 			var amount = $("input[name=ean]").val();
 			if(!amount){
 				amount = $("input[name=ean]").attr('data-defaultpayment');
 			}
-			amount = parseInt(amount);
+			amount = parseFloat(amount).toFixed(2);
 
 			if(amount > maxamount){
 				var msg = element.attr("data-amountoverallowed");
