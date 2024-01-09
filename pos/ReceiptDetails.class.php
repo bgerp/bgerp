@@ -1347,7 +1347,7 @@ class pos_ReceiptDetails extends core_Detail
 
             $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
             $res = $intf->sendAmount($deviceRec, $paidAmount);
-            expect($res == 'OK', 'Неуспешно плащане!');
+            expect($res == 'OK', "Неуспешно плащане!:{$res}");
 
             if($receiptRec->revertId){
                 $paidAmount *= -1;
