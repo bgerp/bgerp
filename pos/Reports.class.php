@@ -277,9 +277,10 @@ class pos_Reports extends core_Master
             foreach ($data->statisticArr as $statRow) {
                 $operatorBlock = clone $tpl->getBlock('OPERATOR');
                 $operatorBlock->append($statRow->receiptBy, 'operatorId');
-                $statRow->receiptTotal = core_Type::getByName('double(decimals=2)')->toVerbal($statRow->receiptTotal);
-                $operatorBlock->append($statRow->receiptTotal, 'operatorTotal');
-                $operatorBlock->append($data->row->baseCurrency, 'operatorCurrencyId');
+                $statRow->receiptTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($statRow->receiptTotal);
+                $statRow->receiptTotalVerbal = ht::styleNumber($statRow->receiptTotalVerbal, $statRow->receiptTotal);
+                $statRow->receiptTotalVerbal = currency_Currencies::decorate($statRow->receiptTotalVerbal, $data->row->baseCurrency);
+                $operatorBlock->append($statRow->receiptTotalVerbal, 'operatorTotal');
 
                 foreach ($statRow->payments as $paymentRec){
                     $paymentBlocks = clone $operatorBlock->getBlock('PAYMENT_ROW');
@@ -287,8 +288,9 @@ class pos_Reports extends core_Master
                     $paymentName = ($paymentRec->value == '-1') ? 'В брой' : cond_Payments::getTitleById($paymentRec->value);
                     $paymentBlocks->append(tr($paymentName), 'paymentId');
                     $paymentAmountRow = core_Type::getByName('double(decimals=2)')->toVerbal($paymentRec->amount);
+                    $paymentAmountRow = ht::styleNumber($paymentAmountRow, $paymentRec->amount);
+                    $paymentAmountRow = currency_Currencies::decorate($paymentAmountRow, $data->row->baseCurrency);
                     $paymentBlocks->append($paymentAmountRow, 'paymentAmount');
-                    $paymentBlocks->append($data->row->baseCurrency, 'paymentCurrencyId');
                     $paymentBlocks->removeBlocksAndPlaces();
                     $operatorBlock->append($paymentBlocks, 'PAYMENT');
                 }
@@ -316,13 +318,16 @@ class pos_Reports extends core_Master
         $rQuery = pos_ReceiptDetails::getQuery();
         $rQuery->EXT('createdReceiptBy', 'pos_Receipts', 'externalName=createdBy,externalKey=receiptId');
         $rQuery->EXT('waitingReceiptBy', 'pos_Receipts', 'externalName=waitingBy,externalKey=receiptId');
+        $rQuery->EXT('change', 'pos_Receipts', 'externalName=change,externalKey=receiptId');
         $rQuery->XPR('calcedUser', 'int', "COALESCE(#waitingReceiptBy, #createdReceiptBy)");
         $rQuery->where("#action LIKE '%payment%'");
         $rQuery->in('receiptId', $receiptIds);
-        $rQuery->show('createdReceiptBy,waitingReceiptBy,calcedUser,amount,action');
 
         while($rRec = $rQuery->fetch()){
             $action = explode('|', $rRec->action);
+            if($action[1] == -1){
+                $rRec->amount -= $rRec->change;
+            }
             if (!array_key_exists($rRec->calcedUser, $data->statisticArr)) {
                 $data->statisticArr[$rRec->calcedUser] = (object) array('receiptBy' => crm_Profiles::createLink($rRec->calcedUser), 'receiptTotal' => 0, 'payments' => array());
             }
