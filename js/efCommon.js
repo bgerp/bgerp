@@ -6237,6 +6237,16 @@ dragToScroll = {
 }
 
 
+/**
+ * Скрива елемент на екран
+ */
+function render_removeBlurScreen(data)
+{
+    var elementClass = data.elementClass;
+    $("." + elementClass).css("display", "none");
+}
+
+
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
