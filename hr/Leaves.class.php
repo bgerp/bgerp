@@ -215,7 +215,7 @@ class hr_Leaves extends core_Master
         $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
-        $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместници, oldFieldName=alternatePerson');
+        $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)', 'caption=По време на отсъствието->Заместници, oldFieldName=alternatePerson');
 
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
@@ -297,7 +297,11 @@ class hr_Leaves extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
+        $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
+        unset($employees[$rec->personId]);
+        $form->setSuggestions('alternatePersons', $employees);
+
         $nowYear = dt::mysql2Verbal(dt::now(), 'Y');
         for ($i = 0; $i <= 1; $i++) {
             $years[$nowYear - $i] = $nowYear - $i;
