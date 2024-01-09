@@ -67,6 +67,10 @@ abstract class deals_QuotationMaster extends core_Master
         'pCode' => 'clientData',
         'place' => 'clientData',
         'address' => 'clientData',
+        'person' => 'clientData',
+        'email' => 'clientData',
+        'tel' => 'clientData',
+        'fax' => 'clientData',
         'contragentCountryId' => 'clientData',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );

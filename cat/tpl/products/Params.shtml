@@ -18,7 +18,7 @@
     	<tr>
     		<td>&nbsp;-&nbsp;</td>
     		<td class="nowrap">[#paramId#]:</td>
-    		<td style='padding-left:5px;'><span style='font-weight:bold;' class="paramVal">[#paramValue#]</span></td>
+    		<td style='padding-left:5px;'><span class="paramVal">[#paramValue#]</span></td>
     		<td>[#tools#]</td>
     	</tr>
     	<!--ET_END PARAM_GROUP_ROW-->

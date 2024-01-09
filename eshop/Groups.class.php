@@ -674,7 +674,7 @@ class eshop_Groups extends core_Master
         } else {
             $groupId = $data->groupId;
         }
-        //bp($groupId);
+
         if ($groupId && $groupId > 0) {
             $fRec = self::fetch($groupId);
             

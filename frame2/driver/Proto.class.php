@@ -29,6 +29,12 @@ abstract class frame2_driver_Proto extends core_BaseClass
 
 
     /**
+     * Да се показва ли антектката при изпращане и при печат
+     */
+    protected $hideLetterHeadWhenSendingOrPrinting = false;
+
+
+    /**
      * Дали да се изпраща нотификация САМО ако са променени данните от справката
      */
     public $sendNotificationOnlyAfterDataIsChanged = true;
@@ -140,6 +146,12 @@ abstract class frame2_driver_Proto extends core_BaseClass
                 $captionArr = explode('->', $fld->caption);
                 $caption = (countR($captionArr) == 1) ? $captionArr[0] : $captionArr[1];
                 $resArr[$name] = array('name' => tr($caption), 'val' => $row->{$name});
+            }
+        }
+
+        if(Mode::is('text', 'xhtml') || Mode::is('printing')){
+            if($Driver->hideLetterHeadWhenSendingOrPrinting){
+                $resArr = array();
             }
         }
     }

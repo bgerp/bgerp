@@ -40,6 +40,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('perPage', 'int(min=1, max=50)', 'caption=Редове, mandatory');
+        $fieldset->FLD('showClosed', 'enum(no=Не, yes=Да)', 'caption=Показване на затворените известия в мобилен режим->Избор');
     }
     
     
@@ -102,7 +103,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             
             $data->query->orderBy('modifiedOn=DESC');
 
-            if (Mode::is('screenMode', 'narrow') && !Request::get($Notifications->searchInputField)) {
+            if (Mode::is('screenMode', 'narrow') && !Request::get($Notifications->searchInputField) && ($dRec->showClosed != 'yes')) {
                 $data->query->where("#state = 'active'");
                 
                 // Нотификациите, модифицирани в скоро време да се показват

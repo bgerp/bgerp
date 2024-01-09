@@ -148,7 +148,8 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->requireDetailForPending, true);
         setIfNot($mvc->mustUpdateUsed, false);
         setIfNot($mvc->canMovelast, 'powerUser');
-        
+        setIfNot($mvc->pendingUpdateModifiedArr, array());
+
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
@@ -1033,6 +1034,33 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 }
             }
+        }
+
+        if (countR($mvc->pendingUpdateModifiedArr)) {
+            foreach ($mvc->pendingUpdateModifiedArr as $pArr) {
+                $pId = $pArr['id'];
+                $m = $pArr['mvc'];
+                $pRec = $m->fetchRec($pId);
+                $pRec->modifiedBy = $pArr['modifiedBy'];
+                $pRec->modifiedOn = $pArr['modifiedOn'];
+                $m->save_($pRec, 'modifiedOn, modifiedBy', 'LOW_PRIORITY');
+
+                if ($pRec->containerId) {
+                    $cRec = new stdClass();
+                    $cRec->id = $pRec->containerId;
+                    $cRec->modifiedOn = $pRec->modifiedOn;
+                    $cRec->modifiedBy = $pRec->modifiedBy;
+
+                    $containersInst = cls::get('doc_Containers');
+                    $containersInst->save_($cRec, 'modifiedOn, modifiedBy', 'LOW_PRIORITY');
+                }
+
+                if ($pRec->threadId) {
+                    doc_Threads::updateThread($pRec->threadId);
+                }
+            }
+
+            $mvc->pendingUpdateModifiedArr = array();
         }
     }
     
@@ -4292,13 +4320,13 @@ class doc_DocumentPlg extends core_Plugin
     {
         if (!$res) {
             $rec = $mvc->fetchRec($id);
-            if (is_object($rec)) {
-                $rec->modifiedOn = dt::now();
-                $mvc->save_($rec, 'modifiedOn', 'LOW_PRIORITY');
+            if ($rec) {
+                $dKey = $mvc->className . '|' . $rec->id;
+                $mvc->pendingUpdateModifiedArr[$dKey] = array('id' => $rec->id, 'mvc' => $mvc, 'modifiedOn' => dt::now(), 'modifiedBy' => core_Users::getCurrent());
             }
         }
     }
-    
+
     
     /**
      * Обновява modified стойностите
@@ -4310,30 +4338,11 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterTouchRec($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
         if ($rec) {
-            $cu = Users::getCurrent();
-
             // Задаваме стойностите на полетата за последно модифициране
             if (!$rec->_notModified) {
-                $rec->modifiedBy = $cu ? $cu : 0;
-                $rec->modifiedOn = dt::verbal2Mysql();
-
-                $mvc->save_($rec, 'modifiedOn, modifiedBy');
-
-                if ($rec->containerId) {
-                    $cRec = new stdClass();
-                    $cRec->id = $rec->containerId;
-                    $cRec->modifiedOn = $rec->modifiedOn;
-                    $cRec->modifiedBy = $rec->modifiedBy;
-
-                    $containersInst = cls::get('doc_Containers');
-                    $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
-                }
-            }
-
-            if ($rec->threadId) {
-                doc_Threads::updateThread($rec->threadId);
+                $dKey = $mvc->className . '|' . $rec->id;
+                $mvc->pendingUpdateModifiedArr[$dKey] = array('id' => $rec->id, 'mvc' => $mvc, 'modifiedOn' => dt::now(), 'modifiedBy' => core_Users::getCurrent());
             }
         }
     }

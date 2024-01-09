@@ -173,7 +173,7 @@ class openai_Prompt extends core_Manager
             $recBg->prompt .= "От: [#fromEmail#] ([#from#])";
             $recBg->prompt .= "\n";
             $recBg->prompt .= "[#email#]";
-            $recBg->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*', '*не е посочен*', '*липсва информация*', 'няма информация'));
+            $recBg->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*', 'not mentioned', '*не е посочен*', '*липсва информация*', 'няма информация'));
 
             self::save($recBg);
         }
@@ -202,7 +202,7 @@ class openai_Prompt extends core_Manager
             $recEn->prompt .= "From: [#fromEmail#] ([#from#])";
             $recEn->prompt .= "\n";
             $recEn->prompt .= "[#email#]";
-            $recEn->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*'));
+            $recEn->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*', 'not mentioned'));
 
             self::save($recEn);
         }

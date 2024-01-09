@@ -7688,6 +7688,12 @@ only screen and (max-width: 320px) {
 .selectTaskOptions tr.createAllTasksForJob {
   font-style: italic; }
 
+.paramVal {
+  font-weight: bold; }
+
+.price_reports_PriceList .paramVal {
+  font-weight: normal; }
+
 .wide .operationTable .paramVal {
   word-break: break-word; }
 

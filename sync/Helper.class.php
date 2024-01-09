@@ -142,7 +142,11 @@ class sync_Helper extends core_Manager
         $url = sync_Setup::get('EXPORT_URL');
         expect($url);
         $url = rtrim($url, '/') . '/' . $expAdd . '/export';
-        $res = file_get_contents($url);
+        $res = @file_get_contents($url);
+        if ($res === false) {
+            self::logErr('Грешка при синхронизиране с ' . $url);
+            wp('Грешка при синхронизиране', $url);
+        }
         $resArr = unserialize(gzuncompress($res), array('allowed_classes' => array('stdClass')));
         
         if (Request::get('_bp') && haveRole('admin')) {
