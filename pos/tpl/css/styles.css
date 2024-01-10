@@ -992,7 +992,7 @@ select.tabHolder {
     display: none; }
 
 #card-payment {
-  background-color: #7bcae9; }
+  background-color: #7bcae9 !important; }
 
 .imagePreview {
   box-shadow: 0 0 5px #333333;
