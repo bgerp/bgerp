@@ -970,7 +970,7 @@ function getAmountRes(res)
 	if(res == 'OK'){
 		var type = element.attr("data-type");
 		var url = element.attr("data-url");
-		console.log(url);
+		console.log("ASK URL" + url);
 		doPayment(url, type);
 	} else {
 		var error = element.attr("data-onerror");
