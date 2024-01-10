@@ -894,7 +894,6 @@ function pressNavigable(element)
 			if(!amount){
 				amount = $("input[name=ean]").attr('data-defaultpayment');
 			}
-			amount = parseFloat(amount).toFixed(2);
 
 			if(!$.isNumeric(amount) || amount == 0){
 				var msg = element.attr("data-notnumericmsg");
@@ -902,6 +901,7 @@ function pressNavigable(element)
 				return;
 			}
 
+			amount = parseFloat(amount).toFixed(2);
 			if(amount > maxamount){
 				var msg = element.attr("data-amountoverallowed");
 				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
