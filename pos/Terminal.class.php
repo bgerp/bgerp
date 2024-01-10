@@ -1353,7 +1353,7 @@ class pos_Terminal extends peripheral_Terminal
                     $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
                     if(is_object($deviceRec)){
                         $attr['id'] = 'card-payment';
-                        $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал');
+                        $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
                         $diff = abs($rec->paid - $rec->total);
                         $attr['data-maxamount'] = $diff;
                         $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');
