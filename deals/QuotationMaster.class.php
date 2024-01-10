@@ -67,6 +67,10 @@ abstract class deals_QuotationMaster extends core_Master
         'pCode' => 'clientData',
         'place' => 'clientData',
         'address' => 'clientData',
+        'person' => 'clientData',
+        'email' => 'clientData',
+        'tel' => 'clientData',
+        'fax' => 'clientData',
         'contragentCountryId' => 'clientData',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
@@ -112,6 +116,12 @@ abstract class deals_QuotationMaster extends core_Master
 
 
     /**
+     * Кое поле ще се оказва за подредбата на детайла
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
+    /**
      * Задължителни полета на модела
      */
     protected static function setQuotationFields($mvc)
@@ -144,6 +154,7 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData,input=hidden');
 
         $mvc->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Допълнително->Подреждане по,notNull,value=auto');
     }
 
 

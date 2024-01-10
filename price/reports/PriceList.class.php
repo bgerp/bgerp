@@ -55,8 +55,14 @@ class price_reports_PriceList extends frame2_driver_TableData
      * Какъв да е класа на групирания ред
      */
     protected $groupByFieldClass = 'pricelist-group-label';
-    
-    
+
+
+    /**
+     * Да се показва ли антектката при изпращане и при печат
+     */
+    protected $hideLetterHeadWhenSendingOrPrinting = true;
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -515,7 +521,11 @@ class price_reports_PriceList extends frame2_driver_TableData
         $vatRow = core_Type::getByName('enum(yes=с включено ДДС,no=без ДДС)')->toVerbal($rec->vat);
         $beforeRow = tr("Всички цени са в|* {$rec->currencyId}, |{$vatRow}|*");
         $tpl->prepend($beforeRow, 'TABLE_BEFORE');
-        
+
+        if($rec->displayDetailed == 'yes'){
+            Mode::set('saveJS', true);
+        }
+
         return $tpl;
     }
     
@@ -578,7 +588,7 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-        if (Mode::is('printing')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml')) return;
 
         $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                             <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>

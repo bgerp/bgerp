@@ -1218,7 +1218,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         if (isset($fields['-list'])) {
-            $row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), null, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0);
+            $row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), null, "ef_icon={$mvc->getIcon()}") : $mvc->getLink($rec->id, 0);
             $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
             $noVat = $rec->dealValue - $rec->discountAmount;
 
@@ -1250,7 +1250,8 @@ abstract class deals_InvoiceMaster extends core_Master
                         $row->vatReason = $vatReason;
 
                         if($rec->state == 'draft'){
-                            if(!Mode::isReadOnly()){$row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
+                            if(!Mode::isReadOnly()){
+                                $row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
                             }
 
                             $row->vatReason = ht::createHint($row->vatReason, 'Основанието е определено автоматично. Ще бъде записано при активиране|*!', 'notice', false);

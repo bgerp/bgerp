@@ -128,8 +128,8 @@ class pos_Receipts extends core_Master
      * Кой може да променя?
      */
     public $canEdit = 'pos,ceo';
-    
-    
+
+
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -225,8 +225,9 @@ class pos_Receipts extends core_Master
         } else {
             
             // Коя е последната чернова бележка от ПОС-а
+            $cu = core_Users::getCurrent();
             $query = $this->getQuery();
-            $query->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
+            $query->where("#pointId = {$pointId} AND #createdBy = {$cu} AND #state = 'draft' AND #revertId IS NULL");
             $query->show('valior,contragentClass,contragentObjectId,total');
             $query->orderBy('id', 'DESC');
             $lastDraft = $query->fetch();
@@ -569,7 +570,17 @@ class pos_Receipts extends core_Master
                 $res = 'no_one';
             }
         }
-        
+
+        if(in_array($action, array('delete', 'reject', 'revert')) && isset($rec)){
+            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+            if(is_object($deviceRec)){
+                $paidWithCards = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}' AND #param IS NOT NULL AND #param != ''");
+                if($paidWithCards){
+                    $res = 'no_one';
+                }
+            }
+        }
+
         // Можем да контираме бележки само когато те са чернови и платената
         // сума е по-голяма или равна на общата или общата сума е <= 0
         if ($action == 'close' && isset($rec->id)) {
@@ -580,11 +591,11 @@ class pos_Receipts extends core_Master
         
         // Може ли да бъде направено плащане по бележката
         if ($action == 'pay' && isset($rec)) {
-            if ($rec->state != 'draft' || !$rec->total || ($rec->total && abs($rec->paid) >= abs($rec->total))) {
+            if ($rec->state != 'draft' || !$rec->total || (abs($rec->paid) >= abs($rec->total))) {
                 $res = 'no_one';
             }
         }
-        
+
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
 
@@ -1052,7 +1063,7 @@ class pos_Receipts extends core_Master
                 $discount = $price->discount;
                 $price = $price->price;
 
-                if(isset($discountPolicyId)){
+                if(!empty($discountPolicyId)){
                     $priceOnDiscountListRec = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $now, 1, 'no', $discountPolicyId, false);
 
                     if(isset($priceOnDiscountListRec->price)){

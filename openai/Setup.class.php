@@ -129,7 +129,7 @@ class openai_Setup extends core_ProtoSetup
         'openai_Cache',
         'openai_Prompt',
         'migrate::promptTruncate2313',
-        'migrate::promptAddIgnoreWords2314',
+        'migrate::promptAddIgnoreWords2401',
         'migrate::promptAddIgnoreWordsFromEmail2314',
         'migrate::fixDefaultPromptClass2350',
     );
@@ -150,12 +150,12 @@ class openai_Setup extends core_ProtoSetup
     /**
      * Миграция за попълване на данните за игнориране от данните на компанията в резултата при парсиране на имейла
      */
-    public static function promptAddIgnoreWords2314()
+    public static function promptAddIgnoreWords2401()
     {
         $query = openai_Prompt::getQuery();
         while ($rec = $query->fetch()) {
             if (!$rec->ignoreWords) {
-                $rec->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*'));
+                $rec->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*', 'not mentioned', '*не е посочен*', '*липсва информация*', 'няма информация'));
                 openai_Prompt::save($rec, 'ignoreWords');
             }
         }

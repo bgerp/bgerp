@@ -318,7 +318,24 @@ class doc_SharablePlg extends core_Plugin
                 $firstDoc = doc_Threads::getFirstDocument($threadId);
                 if(!$firstDoc->isVisibleForPartners() && $data->action != 'changefields'){
                     $showPartners = false;
+                } else {
+                    $createdBy = $firstDoc->fetchField('createdBy');
+                    foreach ($contractorIds as $contractorId) {
+                        if($createdBy != $contractorId) {
+                            if(!haveRole('powerPartner', $contractorId)) {
+                                unset($contractorIds[$contractorId]);
+                            }
+                        }
+                    }
+                    $showPartners = countR($contractorIds);
                 }
+            } else {
+                foreach ($contractorIds as $contractorId) {
+                    if(!haveRole('powerPartner', $contractorId)) {
+                        unset($contractorIds[$contractorId]);
+                    }
+                }
+                $showPartners = countR($contractorIds);
             }
 
             if($showPartners){

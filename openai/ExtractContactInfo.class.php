@@ -253,12 +253,13 @@ class openai_ExtractContactInfo
             $newResArr[] = $prompt . ': ' . $r;
         }
 
-        if ($cData->country == 'CN') {
-            $cData->country = 'China';
-        }
-
-        if ($cData->country == 'China CN') {
-            $cData->country = 'China';
+        if ($cData->country) {
+            $cData->countryId = drdata_Countries::getIdByName($cData->country);
+            if (!$cData->countryId) {
+                unset($cData->country);
+            } else {
+                $cData->country = drdata_Countries::getCountryName($cData->countryId, $lg);
+            }
         }
 
         return implode("\n", $newResArr);

@@ -7,6 +7,7 @@ var searchTimeout;
 var addedProduct;
 
 function posActions() {
+	$('body').append('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Плащане с банковия терминал ...<br> Моля, изчакайте!</h3></div>');
 	calculateWidth();
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
@@ -623,14 +624,20 @@ function calculateWidth(){
 }
 
 // Направа на плащане
-function doPayment(url, type){
+function doPayment(url, type, value){
+
 	if(!url || !type) return;
+
 	var amount = $("input[name=ean]").val();
 	if(!amount){
 		amount = $("input[name=ean]").attr('data-defaultpayment');
 	}
 	
 	var data = {amount:amount, type:type};
+	if(value){
+		data.param = value;
+	}
+
 	processUrl(url, data);
 }
 
@@ -874,10 +881,42 @@ function pressNavigable(element)
 		params = {string:string,recId:getSelectedRowId()};
 	} else if(element.hasClass('payment')){
 		var type = element.attr("data-type");
-		type = (!type) ? '-1' : type;
-		doPayment(url, type);
-		return;
-		
+		var warning = element.attr("data-warning");
+
+		var sendAmount = element.attr("data-sendamount");
+		if(sendAmount == 'yes'){
+			if(warning){
+				if (!confirm(warning)) return false;
+			}
+
+			var maxamount = parseFloat(element.attr("data-maxamount")).toFixed(2);
+			var amount = $("input[name=ean]").val();
+			if(!amount){
+				amount = $("input[name=ean]").attr('data-defaultpayment');
+			}
+
+			if(!$.isNumeric(amount) || amount == 0){
+				var msg = element.attr("data-notnumericmsg");
+				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+				return;
+			}
+
+			amount = parseFloat(amount).toFixed(2);
+			if(amount > maxamount){
+				var msg = element.attr("data-amountoverallowed");
+				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+				return;
+			}
+
+			console.log('SEND:' + amount);
+			$(".fullScreenCardPayment").css("display", "block");
+			getAmount(amount);
+			return;
+		} else {
+			type = (!type) ? '-1' : type;
+			doPayment(url, type, null);
+			return;
+		}
 	} else if(element.hasClass('contragentRedirectBtn')){
 		
 		clearTimeout(timeout);
@@ -926,6 +965,50 @@ function pressNavigable(element)
 	}, 1000);
 	
 	processUrl(url, params);
+}
+
+
+function showPaymentErrorStatus()
+{
+	var error = $("#card-payment").attr("data-onerror");
+	render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+}
+
+/**
+ * Връща резултат при успешно свързване с банковия терминал
+ *
+ * @param res
+ */
+function getAmountRes(res)
+{
+	var element = $("#card-payment");
+	var url = element.attr("data-url");
+	console.log("ANSWER FROM: " + url);
+
+	if(res == 'OK'){
+		var type = element.attr("data-type");
+		console.log("RES IS OK");
+		doPayment(url, type, 'card');
+	} else {
+		showPaymentErrorStatus();
+		console.log("RES ERROR/" + res + "/");
+	}
+
+	$(".fullScreenCardPayment").css("display", "none");
+}
+
+
+/**
+ * Връща резултат при грешка със свързването с банковия терминал
+ *
+ * @param res
+ */
+function getAmountError(err)
+{
+	$(".fullScreenCardPayment").css("display", "none");
+
+	showPaymentErrorStatus();
+	console.log("ERR:" + err);
 }
 
 

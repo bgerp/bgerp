@@ -7114,7 +7114,6 @@ body.narrow {
 
 @media handheld , only screen and (max-width: 1024px) {
     .document{
-        max-width: 40em;
 		min-width: 30em;
     }
     .wide .app-name {
@@ -8749,6 +8748,14 @@ body.narrow {
 
 .selectTaskOptions tr.createAllTasksForJob {
 	font-style:italic;
+}
+
+.paramVal {
+	font-weight: bold;
+}
+
+.price_reports_PriceList .paramVal {
+	font-weight: normal;
 }
 
 .wide .operationTable .paramVal {

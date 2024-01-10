@@ -134,9 +134,11 @@ class pos_ReceiptDetails extends core_Detail
         $this->requireRightFor('add');
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
+        $param = Request::get('param', 'varchar');
         pos_Receipts::requireRightFor('pay', $receiptRec);
         $success = true;
-        
+        $rec = null;
+
         try{
             $type = Request::get('type', 'int');
             if($type != -1){
@@ -149,8 +151,7 @@ class pos_ReceiptDetails extends core_Detail
             expect($amount > 0, 'Сумата трябва да е положителна');
             
             $diff = abs($receiptRec->paid - $receiptRec->total);
-            
-            $paidAmount = $amount;
+
             if ($type != -1) {
                 $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receiptRec->valior);
                 expect(!(!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff), 'Платежния метод не позволява да се плати по-голяма сума от общата|*!');
@@ -162,11 +163,17 @@ class pos_ReceiptDetails extends core_Detail
             
             // Подготвяме записа на плащането
             $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
-            
+
+            if(!empty($param)){
+                $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+                if($type == $cardPaymentId){
+                    $rec->param = 'card';
+                }
+            }
+
             if($this->save($rec)){
                 $this->Master->logInAct('Направено плащане', $receiptRec->id);
             }
-            
        } catch(core_exception_Expect $e){
            $dump = $e->dump;
            $dump1 = $dump[0];
@@ -179,10 +186,10 @@ class pos_ReceiptDetails extends core_Detail
            }
        }
        
-       return pos_Terminal::returnAjaxResponse($receiptId, null, $success, true, true, true, 'add');
+       return pos_Terminal::returnAjaxResponse($receiptId, $rec, $success, true, true, true, 'add');
     }
     
-    
+
     /**
      * Екшън модифициращ бележката
      */
@@ -993,25 +1000,31 @@ class pos_ReceiptDetails extends core_Detail
             
             if ($masterRec->state != 'draft') {
                 $res = 'no_one';
-            } else {
-                
-                // Ако редактираме/добавяме/изтриваме ред с продукт, проверяваме имали направено плащане
-                if ($action == 'delete' && $rec->productId) {
-                    if ($masterRec->paid) {
-                       // $res = 'no_one';
-                    }
-                }
             }
         }
         
         if($action == 'load' && isset($rec)){
-            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state');
+            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state,total');
             if(empty($masterRec->revertId) || $masterRec->state != 'draft' || $masterRec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
                 $res = 'no_one';
             }
             
             if(isset($rec->loadRecId)){
                 if($mvc->fetchField("#receiptId = {$rec->receiptId} AND #revertRecId = {$rec->loadRecId}")){
+                    $res = 'no_one';
+                }
+                $loadRec = $mvc->fetch($rec->loadRecId);
+                if(strpos($loadRec->action, 'payment') !== false){
+                    if(empty($masterRec->total)){
+                        $res = 'no_one';
+                    }
+                }
+            }
+        }
+
+        if ($action == 'delete' && isset($rec->receiptId)) {
+            if(strpos($rec->action, 'payment') !== false){
+                if(!empty($rec->param)){
                     $res = 'no_one';
                 }
             }
@@ -1100,15 +1113,24 @@ class pos_ReceiptDetails extends core_Detail
         
         $query = $this->getQuery();
         $query->where("#receiptId = {$receiptRec->revertId}");
+
         if(isset($id)){
             $this->delete("#receiptId = {$receiptId} AND #revertRecId = {$id}");
             $query->where("#id = {$id}");
         } else {
             $this->delete("#receiptId = {$receiptId}");
+            $query->orderBy('id', 'asc');
         }
-        $query->orderBy('id', 'asc');
-        
-        while($exRec = $query->fetch()){
+        $recs = $query->fetchAll();
+        foreach ($recs as $exRec) {
+            // Заредените плащания за сторниране ще са само в брой
+            if(strpos($exRec->action, 'payment') !== false){
+                $exRec->action = "payment|-1";
+                if(isset($id)){
+                    $exRec->amount = min($exRec->amount, abs($receiptRec->total - $receiptRec->paid));
+                }
+            }
+
             if(!empty($exRec->amount)) {
                 $exRec->amount *= -1;
             }

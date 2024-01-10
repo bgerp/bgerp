@@ -137,89 +137,91 @@ class colab_plg_VisibleForPartners extends core_Plugin
     {
         // Ако е споделен към колаборатор, който има достъп до папката, да може да вижда документа
         $rec = &$form->rec;
-        if ($rec->visibleForPartners == 'no') {
-            if ($form->isSubmitted()) {
 
-                // Ако има споделени партньори, добавя се предупреждение
-                $selectedPartners = array();
-                if(isset($rec->sharedUsers)){
-                    $sharedUsers = keylist::toArray($rec->sharedUsers);
-                    $partners = core_Users::getByRole('partner');
-                    $selectedPartners = array_intersect_key($sharedUsers, $partners);
+        if ($form->isSubmitted()) {
+
+            // Ако има споделени партньори, добавя се предупреждение
+            $selectedPartners = array();
+            if(isset($rec->sharedUsers)){
+                $sharedUsers = keylist::toArray($rec->sharedUsers);
+                $partners = core_Users::getByRole('partner');
+                $selectedPartners = array_intersect_key($sharedUsers, $partners);
+            }
+
+            if(!$form->gotErrors()){
+                $allSharedUsersArr = array();
+                $sharedUsersArrAll = array();
+                $fName = '';
+
+                // Обхождаме всички полета от модела, за да разберем кои са ричтекст
+                foreach ((array) $mvc->fields as $name => $field) {
+                    if ($field->type instanceof type_Richtext) {
+                        if ($field->type->params['nickToLink'] == 'no') {
+                            continue;
+                        }
+
+                        // Вземаме споделените потребители
+                        $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
+                        if (empty($sharedUsersArr)) {
+                            continue;
+                        }
+
+                        // Обединяваме всички потребители от споделянията
+                        $sharedUsersArrAll = array_merge($sharedUsersArrAll, $sharedUsersArr);
+                        if (!empty($sharedUsersArrAll)) {
+                            $fName = $fName? $fName : $field->name;
+                        }
+                    }
                 }
 
-                if(!$form->gotErrors()){
-                    $allSharedUsersArr = array();
-                    $sharedUsersArrAll = array();
-                    $fName = '';
+                // Ако има споделяния
+                if (!empty($sharedUsersArrAll)) {
+                    // Добавяме id-тата на споделените потребители
+                    foreach ((array) $sharedUsersArrAll as $nick) {
+                        $nick = strtolower($nick);
+                        $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
 
-                    // Обхождаме всички полета от модела, за да разберем кои са ричтекст
-                    foreach ((array) $mvc->fields as $name => $field) {
-                        if ($field->type instanceof type_Richtext) {
-                            if ($field->type->params['nickToLink'] == 'no') {
-                                continue;
-                            }
-
-                            // Вземаме споделените потребители
-                            $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
-                            if (empty($sharedUsersArr)) {
-                                continue;
-                            }
-
-                            // Обединяваме всички потребители от споделянията
-                            $sharedUsersArrAll = array_merge($sharedUsersArrAll, $sharedUsersArr);
-                            if (!empty($sharedUsersArrAll)) {
-                                $fName = $fName? $fName : $field->name;
-                            }
+                        if (!core_Users::haveRole('partner', $id)) {
+                            continue;
                         }
+
+                        $allSharedUsersArr[$id] = $id;
                     }
+                }
 
-                    // Ако има споделяния
-                    if (!empty($sharedUsersArrAll)) {
-                        // Добавяме id-тата на споделените потребители
-                        foreach ((array) $sharedUsersArrAll as $nick) {
-                            $nick = strtolower($nick);
-                            $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
+                $errArray = array();
+                if (!empty($allSharedUsersArr)) {
+                    foreach ($allSharedUsersArr as $uId) {
+                        unset($selectedPartners[$uId]);
 
-                            if (!core_Users::haveRole('partner', $id)) {
-                                continue;
-                            }
+                        if(core_Users::isContractor($uId) && core_Packs::isInstalled('colab')){
 
-                            $allSharedUsersArr[$id] = $id;
-                        }
-                    }
-
-                    $errArray = array();
-                    if (!empty($allSharedUsersArr)) {
-                        foreach ($allSharedUsersArr as $uId) {
-                            unset($selectedPartners[$uId]);
-
-                            if(core_Users::isContractor($uId) && core_Packs::isInstalled('colab')){
-                                if(empty($rec->threadId)){
-                                    if(isset($rec->folderId)){
-                                        if(!colab_Folders::haveRightFor('list', (object) array('folderId' => $rec->folderId), $uId)){
-                                            $errArray[$uId] = core_Users::getNick($uId);
-                                        }
-                                    } else {
+                            if(empty($rec->threadId)){
+                                if(isset($rec->folderId)){
+                                    if(!colab_Folders::haveRightFor('list', (object) array('folderId' => $rec->folderId), $uId)){
                                         $errArray[$uId] = core_Users::getNick($uId);
                                     }
                                 } else {
-                                    if(!colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId), $uId)){
-                                        $errArray[$uId] = core_Users::getNick($uId);
-                                    }
+                                    $errArray[$uId] = core_Users::getNick($uId);
+                                }
+                            } else {
+                                if(!colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId), $uId)){
+                                    $errArray[$uId] = core_Users::getNick($uId);
                                 }
                             }
                         }
+                    }
 
-                        if (!empty($errArray)) {
-                            $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Партньорът не е споделен към папката или няма достъп до нишката|*!');
-                        } else {
-                            $form->rec->visibleForPartners = 'yes';
-                        }
+                    if (!empty($errArray)) {
+                        $form->setError($fName, '|Документът не може да бъде споделен към|*: ' . implode(', ', $errArray) . '<br>|*Партньорът не е споделен към папката или няма достъп до нишката|*!');
+                    } else {
+                        $form->rec->visibleForPartners = 'yes';
                     }
                 }
+            }
 
-                if (countR($selectedPartners)) {
+            if (countR($selectedPartners)) {
+                if($rec->visibleForPartners != 'yes'){
                     $nicks = array();
                     array_walk($selectedPartners, function($a) use (&$nicks) {$nicks[] = core_Users::getNick($a);});
                     $partnerWarningMsg = "При забранено споделяне с партньори, ще бъде заличено споделянето с|* " . implode(',', $nicks);

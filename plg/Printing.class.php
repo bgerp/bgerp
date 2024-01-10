@@ -27,8 +27,18 @@ class plg_Printing extends core_Plugin
         $Plugins->setPlugin('core_Toolbar', 'plg_Printing');
         $Plugins->setPlugin('core_Form', 'plg_Printing');
     }
-    
-    
+
+
+    /**
+     * Извиква се след описанието на модела
+     */
+    public function on_AfterDescription(&$mvc)
+    {
+        // Възможност за групов печат на документи
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('printsinglesfromlist' => 'Печат');
+    }
+
+
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -129,6 +139,41 @@ class plg_Printing extends core_Plugin
         if (Request::get('Printing')) {
             Mode::set('wrapper', 'page_Print');
             Mode::set('printing');
+        }
+
+        if($act == 'printsinglesfromlist'){
+            $selArr = arr::make(Request::get('Selected'));
+            $tpl = new core_ET("");
+
+            // Генериране на изгледа за печат на потребителя
+            $count = countR($selArr);
+            $currentCnt = 0;
+            foreach ($selArr as $selectedId){
+                $currentCnt++;
+                Mode::push('preventChangeTemplateOnPrint', true);
+                Mode::push('printsinglesfromlist', true);
+                $print = core_Request::forward(array('Ctr' => $mvc->className, 'Act' => 'single', 'id' => $selectedId, 'Printing' => true));
+                $tpl->append($print);
+                if($currentCnt != $count){
+                    $tpl->append('<hr class="printing-page-break">');
+                }
+                Mode::pop('printsinglesfromlist');
+                Mode::pop('preventChangeTemplateOnPrint');
+            }
+
+            $res = $tpl;
+            return false;
+        }
+    }
+
+
+    /**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $user = null)
+    {
+        if($action == 'printsinglesfromlist'){
+            $requiredRoles = $mvc->getRequiredRoles('single', $rec, $user);
         }
     }
     

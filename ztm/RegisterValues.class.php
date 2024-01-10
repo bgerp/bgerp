@@ -427,6 +427,8 @@ class ztm_RegisterValues extends core_Manager
                     if (str::isJson($registers)) {
                         $regArr = (array) json_decode($registers);
                     } else {
+                        wp("Невалидни стойности на 'registers'", $registers, $deviceRec);
+                        $registers = str::limitLen($registers, 200);
                         ztm_Devices::logErr("Невалидни стойности на 'registers': '{$registers}'", $deviceRec->id);
                     }
                 }

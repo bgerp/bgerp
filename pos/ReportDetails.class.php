@@ -290,7 +290,9 @@ class pos_ReportDetails extends core_Manager
 
             $row = pos_Receipts::recToVerbal($receiptRec);
             $row->created = $row->createdOn . " " . tr('от') . " " . crm_Profiles::createLink($receiptRec->createdBy);
-            $row->waiting = $row->waitingOn . " " . tr('от') . " " . crm_Profiles::createLink($receiptRec->waitingBy);
+            $waitingOn = $receiptRec->waitingOn ?? $receiptRec->modifiedOn;
+            $waitingBy = $receiptRec->waitingBy ?? $receiptRec->modifiedBy;
+            $row->waiting = core_Type::getByName('datetime(format=smartTime)')->toVerbal($waitingOn) . " " . tr('от') . " " . crm_Profiles::createLink($waitingBy);
 
             $row->receiptId = pos_Receipts::getHyperlink($receiptRec->id, true);
             $data->receiptRows[$receiptRec->id] = $row;

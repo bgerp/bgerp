@@ -30,14 +30,14 @@
 								<tbody>
 								<tr>
 									<td class="title-info aleft">[#operatorId#]</td>
-									<td class="title-info aright">[#operatorTotal#] [#operatorCurrencyId#]</td>
+									<td class="title-info aright">[#operatorTotal#]</td>
 								</tr>
 								[#PAYMENT#]
 								<!--ET_BEGIN PAYMENT_ROW-->
 								[#PAYMENT_ROW#]
 								<tr>
 									<td class="aleft indent border-bottom">[#paymentId#]</td>
-									<td class="aright  border-bottom">[#paymentAmount#] [#paymentCurrencyId#]</td>
+									<td class="aright  border-bottom">[#paymentAmount#]</td>
 								</tr>
 								<!--ET_END PAYMENT_ROW-->
 								</tbody>

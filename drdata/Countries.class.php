@@ -449,6 +449,8 @@ class drdata_Countries extends core_Manager
                 'great britain' => 'united kingdom',
                 'great britan' => 'united kingdom',
                 'britan' => 'united kingdom',
+                'cn' => 'china',
+                'china cn' => 'china',
             );
             
             foreach ($mis as $w => $c) {

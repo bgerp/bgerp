@@ -112,12 +112,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Поле за единичния изглед
-     */
-    public $rowToolsSingleField = 'number';
-    
-    
-    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales';

@@ -641,11 +641,6 @@ class frame2_Reports extends embed_Manager
         } else {
              $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
         }
-        
-        // Връщане на оригиналния рек ако е пушнат
-        if (isset($data->originalRec)) {
-            $rec = $data->originalRec;
-        }
     }
     
     
