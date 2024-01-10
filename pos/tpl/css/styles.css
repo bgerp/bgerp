@@ -991,7 +991,7 @@ select.tabHolder {
   .modalReceipt .pos-del-btn {
     display: none; }
 
-#card-payment {
+#card-payment:not(.disabledBtn) {
   background-color: #7bcae9 !important; }
 
 .imagePreview {
