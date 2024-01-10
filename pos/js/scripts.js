@@ -967,15 +967,17 @@ function pressNavigable(element)
 function getAmountRes(res)
 {
 	var element = $("#card-payment");
+	var url = element.attr("data-url");
+	console.log("URL: " + url);
+
 	if(res == 'OK'){
 		var type = element.attr("data-type");
-		var url = element.attr("data-url");
-		console.log("ASK URL" + url);
+		console.log("IS OK");
 		doPayment(url, type);
 	} else {
 		var error = element.attr("data-onerror");
 		render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
-		console.log(error);
+		console.log("RES /" + res + "/" + error);
 	}
 
 	$(".fullScreenCardPayment").css("display", "none");
@@ -990,6 +992,7 @@ function getAmountRes(res)
 function getAmountError(err)
 {
 	$(".fullScreenCardPayment").css("display", "none");
+	console.log("ERR:" + err);
 }
 
 
