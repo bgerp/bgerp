@@ -3164,7 +3164,8 @@ class doc_DocumentPlg extends core_Plugin
                 $clone = clone($originalTpl);
                 
                 // Контейнер в който ще вкараме документа + шаблона с параметрите му
-                $container = new ET("<div class='print-break'>[#clone#]</div>");
+                $clsName = ($i != $copiesNum) ? 'print-break' : 'print-break-last';
+                $container = new ET("<div class='{$clsName}'>[#clone#]</div>");
                 $container->replace($clone, 'clone');
                 
                 // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието

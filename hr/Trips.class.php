@@ -251,18 +251,10 @@ class hr_Trips extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
-        // Намират се всички служители
-        $employees = crm_Persons::getEmployeesOptions();
+
+        $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
         unset($employees[$rec->personId]);
-        
-        if (countR($employees)) {
-            $form->setOptions('personId', $employees);
-            $form->setSuggestions('alternatePersons', $employees);
-        } else {
-            redirect(array('crm_Persons', 'list'), false, '|Липсва избор за служители|*');
-        }
-        
+        $form->setSuggestions('alternatePersons', $employees);
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
         
         if ($rec->folderId && $folderClass == 'crm_Persons') {

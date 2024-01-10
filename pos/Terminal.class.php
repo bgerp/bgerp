@@ -1346,9 +1346,18 @@ class pos_Terminal extends peripheral_Terminal
                     $attr['class'] .= ' currencyBtn disabledBtn';
                 }
 
+                $attr['data-sendamount'] = null;
+
+                // Ако е плащане с карта и има периферия подменя се с връзка с касовия апарат
                 if($paymentId == $cardPaymentId){
-                    if(pos_Receipts::haveRightFor('paywithcardterminal', $rec)){
-                        $attr['data-url'] = toUrl(array('pos_ReceiptDetails', 'paywithcardterminal', 'receiptId' => $rec->id), 'local');
+                    $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+                    if(is_object($deviceRec)){
+                        $attr['id'] = 'card-payment';
+                        $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал');
+                        $diff = abs($rec->paid - $rec->total);
+                        $attr['data-maxamount'] = $diff;
+                        $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');
+                        $attr['data-sendamount'] = 'yes';
                         $attr['data-warning'] = tr('Искате ли да се плати с карта от банковия терминал|*?');
                     }
                 }
@@ -1664,6 +1673,12 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('pos/tpl/css/no-sass.css', 'CSS');
         
         if (!Mode::is('printing')) {
+            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+            if(is_object($deviceRec)){
+                $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
+                $tpl->append($intf->getJS($deviceRec), 'SCRIPTS');
+            }
+
             $tpl->push('pos/js/scripts.js', 'JS');
             $tpl->push('pos/js/jquery.keynav.js', 'JS');
             $tpl->push('pos/js/shortcutkeys.js', 'JS');
@@ -1674,7 +1689,6 @@ class pos_Terminal extends peripheral_Terminal
             
             $searchDelayTerminal = pos_Points::getSettings($rec->pointId, 'searchDelayTerminal');
             jquery_Jquery::run($tpl, "setSearchTimeout({$searchDelayTerminal});");
-            
             jqueryui_Ui::enable($tpl);
         }
         

@@ -43,13 +43,3 @@ function render_removeDisabledBtn() {
 	removeDisabledBtn();
 }
 
-
-/**
- * Рендиране на резултата от отпечатването на фискалната бележка
- */
-function render_removeBlurScreen(data)
-{
-	var elementClass = data.elementClass;
-	$("." + elementClass).css("display", "none");
-}
-
