@@ -570,7 +570,17 @@ class pos_Receipts extends core_Master
                 $res = 'no_one';
             }
         }
-        
+
+        if(in_array($action, array('delete', 'reject', 'revert')) && isset($rec)){
+            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+            if(is_object($deviceRec)){
+                $paidWithCards = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}' AND #param IS NOT NULL AND #param != ''");
+                if($paidWithCards){
+                    $res = 'no_one';
+                }
+            }
+        }
+
         // Можем да контираме бележки само когато те са чернови и платената
         // сума е по-голяма или равна на общата или общата сума е <= 0
         if ($action == 'close' && isset($rec->id)) {
