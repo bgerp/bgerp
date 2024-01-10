@@ -634,12 +634,12 @@ class sales_Sales extends deals_DealMaster
 
             $paymentType = isset($rec->paymentMethodId) ? cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type') : 'cash';
             if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'originId' => $rec->containerId))) {
-                $btnRow = ($paymentType != 'cash') ? 2 : 1;
+                $btnRow = ($paymentType == 'cash' || (isset($rec->caseId) && empty($rec->bankAccountId)) || (!empty($rec->caseId) && !empty($rec->bankAccountId)) || (empty($rec->caseId) && empty($rec->bankAccountId))) ? 1 : 2;
                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер,row={$btnRow}");
             }
             
             if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
-                $btnRow = ($paymentType == 'cash') ? 2 : 1;
+                $btnRow = ($paymentType == 'bank' || (isset($rec->bankAccountId) && empty($rec->caseId)) || (!empty($rec->caseId) && !empty($rec->bankAccountId)) || (empty($rec->caseId) && empty($rec->bankAccountId))) ? 1 : 2;
                 $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ,row={$btnRow}");
             }
 
