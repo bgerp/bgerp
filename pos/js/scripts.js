@@ -624,7 +624,7 @@ function calculateWidth(){
 }
 
 // Направа на плащане
-function doPayment(url, type){
+function doPayment(url, type, value){
 
 	if(!url || !type) return;
 
@@ -634,6 +634,9 @@ function doPayment(url, type){
 	}
 	
 	var data = {amount:amount, type:type};
+	if(value){
+		data.param = value;
+	}
 
 	processUrl(url, data);
 }
@@ -905,7 +908,7 @@ function pressNavigable(element)
 			return;
 		} else {
 			type = (!type) ? '-1' : type;
-			doPayment(url, type);
+			doPayment(url, type, null);
 			return;
 		}
 	} else if(element.hasClass('contragentRedirectBtn')){
@@ -979,7 +982,7 @@ function getAmountRes(res)
 	if(res == 'OK'){
 		var type = element.attr("data-type");
 		console.log("RES IS OK");
-		doPayment(url, type);
+		doPayment(url, type, 'card');
 	} else {
 		showPaymentErrorStatus();
 		console.log("RES ERROR/" + res + "/");

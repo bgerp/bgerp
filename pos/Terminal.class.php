@@ -2326,9 +2326,9 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'scrollToHighlight';
                 $res[] = $resObj;
             }
-            
+
             if($refreshResult === true){
-                
+
                 // Ще се реплейсват резултатите
                 $resultTpl = $me->renderResult($rec, $operation, $string, $selectedRecId);
                 $resObj = new stdClass();
