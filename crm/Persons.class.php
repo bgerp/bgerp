@@ -3025,7 +3025,7 @@ class crm_Persons extends core_Master
                 $query->notIn('id', $hrIds);
             }
         }
-        
+
         while ($rec = $query->fetch()) {
             if ($withAccess === true && !crm_Persons::haveRightFor('edit', $rec->id)) {
                 continue;
@@ -3043,7 +3043,7 @@ class crm_Persons extends core_Master
         if (countR($options)) {
             $options = array('e' => (object) array('group' => true, 'title' => tr('Служители'))) + $options;
         }
-        
+
         return $options;
     }
     

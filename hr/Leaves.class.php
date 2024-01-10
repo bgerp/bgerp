@@ -298,21 +298,16 @@ class hr_Leaves extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
-        $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
-        unset($employees[$rec->personId]);
-        $form->setSuggestions('alternatePersons', $employees);
-
         $nowYear = dt::mysql2Verbal(dt::now(), 'Y');
         for ($i = 0; $i <= 1; $i++) {
             $years[$nowYear - $i] = $nowYear - $i;
         }
         $form->setSuggestions('useDaysFromYear', $years);
         
-        //$form->setDefault('useDaysFromYear', $years[$nowYear]);
-        
         // Намират се всички служители
-        $employees = crm_Persons::getEmployeesOptions();
+        $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
         unset($employees[$rec->personId]);
+        $form->setSuggestions('alternatePersons', $employees);
         
         if (countR($employees)) {
             $form->setOptions('personId', $employees);

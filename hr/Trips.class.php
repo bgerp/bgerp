@@ -255,7 +255,6 @@ class hr_Trips extends core_Master
         $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
         unset($employees[$rec->personId]);
         $form->setSuggestions('alternatePersons', $employees);
-
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
         
         if ($rec->folderId && $folderClass == 'crm_Persons') {
