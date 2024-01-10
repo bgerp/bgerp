@@ -632,14 +632,14 @@ class sales_Sales extends deals_DealMaster
                 $data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/invoice.png,title=Създаване на нова фактура,order=9.9993');
             }
 
-            $paymentType = isset($rec->paymentMethodId) ? cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type') : 'cash';
+            $paymentType = $rec->paymentType ?? (isset($rec->paymentMethodId) ? cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type') : null);
             if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'originId' => $rec->containerId))) {
-                $btnRow = ($paymentType == 'cash' || (isset($rec->caseId) && empty($rec->bankAccountId)) || (!empty($rec->caseId) && !empty($rec->bankAccountId)) || (empty($rec->caseId) && empty($rec->bankAccountId))) ? 1 : 2;
+                $btnRow = $paymentType == 'cash' || (!isset($paymentType) && ((isset($rec->caseId) && !isset($rec->bankAccountId)) || (isset($rec->caseId, $rec->bankAccountId)) || (!isset($rec->caseId) && !isset($rec->bankAccountId)))) ? 1 : 2;
                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер,row={$btnRow}");
             }
             
             if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
-                $btnRow = ($paymentType == 'bank' || (isset($rec->bankAccountId) && empty($rec->caseId)) || (!empty($rec->caseId) && !empty($rec->bankAccountId)) || (empty($rec->caseId) && empty($rec->bankAccountId))) ? 1 : 2;
+                $btnRow = $paymentType == 'bank' || (!isset($paymentType) && ((!isset($rec->caseId) && isset($rec->bankAccountId)) || (isset($rec->caseId, $rec->bankAccountId)) || (!isset($rec->caseId) && !isset($rec->bankAccountId)))) ? 1 : 2;
                 $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ,row={$btnRow}");
             }
 
