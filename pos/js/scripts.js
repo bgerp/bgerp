@@ -959,6 +959,12 @@ function pressNavigable(element)
 }
 
 
+function showPaymentErrorStatus()
+{
+	var error = $("#card-payment").attr("data-onerror");
+	render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+}
+
 /**
  * Връща резултат при успешно свързване с банковия терминал
  *
@@ -968,16 +974,15 @@ function getAmountRes(res)
 {
 	var element = $("#card-payment");
 	var url = element.attr("data-url");
-	console.log("URL: " + url);
+	console.log("ANSWER FROM: " + url);
 
 	if(res == 'OK'){
 		var type = element.attr("data-type");
-		console.log("IS OK");
+		console.log("RES IS OK");
 		doPayment(url, type);
 	} else {
-		var error = element.attr("data-onerror");
-		render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
-		console.log("RES /" + res + "/" + error);
+		showPaymentErrorStatus();
+		console.log("RES ERROR/" + res + "/");
 	}
 
 	$(".fullScreenCardPayment").css("display", "none");
@@ -992,6 +997,8 @@ function getAmountRes(res)
 function getAmountError(err)
 {
 	$(".fullScreenCardPayment").css("display", "none");
+
+	showPaymentErrorStatus();
 	console.log("ERR:" + err);
 }
 
