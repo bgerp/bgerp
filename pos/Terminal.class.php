@@ -1357,6 +1357,7 @@ class pos_Terminal extends peripheral_Terminal
                         $diff = abs($rec->paid - $rec->total);
                         $attr['data-maxamount'] = $diff;
                         $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');
+                        $attr['data-notnumericmsg'] = tr('Не е въведена валидна сума|*!');
                         $attr['data-sendamount'] = 'yes';
                         $attr['data-warning'] = tr('Искате ли да се плати с карта от банковия терминал|*?');
                     }

@@ -896,6 +896,12 @@ function pressNavigable(element)
 			}
 			amount = parseFloat(amount).toFixed(2);
 
+			if(!$.isNumeric(amount) || amount == 0){
+				var msg = element.attr("data-notnumericmsg");
+				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+				return;
+			}
+
 			if(amount > maxamount){
 				var msg = element.attr("data-amountoverallowed");
 				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
