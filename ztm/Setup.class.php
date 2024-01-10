@@ -25,7 +25,7 @@ class ztm_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'acs=0.1';
+    public $depends = 'acs=0.1,sens2=0.1';
     
     
     /**
@@ -60,6 +60,12 @@ class ztm_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.4, 'Мониторинг', 'ZTM', 'ztm_Devices', 'default', 'ztm, ceo'),
     );
+
+
+    /**
+     * @var string
+     */
+    public $defClasses = 'ztm_SensMonitoring';
     
     
     /**
@@ -73,5 +79,19 @@ class ztm_Setup extends core_ProtoSetup
         'ztm_LongValues',
         'ztm_Profiles',
         'ztm_ProfileDetails',
+        'migrate::addZtmSens2402'
     );
+
+
+    /**
+     * Миграция за добавяне на драйвер за ZTM
+     */
+    function addZtmSens2402()
+    {
+        $zQuery = ztm_Devices::getQuery();
+        $zQuery->where("#state = 'active'");
+        while ($zRec = $zQuery->fetch()) {
+            ztm_SensMonitoring::addSens($zRec->name);
+        }
+    }
 }
