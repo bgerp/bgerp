@@ -431,6 +431,8 @@ class ztm_Devices extends core_Master
             if (!empty($saveArr)) {
                 $mvc->save($rec, implode(', ', $saveArr));
             }
+
+            ztm_SensMonitoring::addSens($rec->name);
         }
     }
     

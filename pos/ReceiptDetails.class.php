@@ -134,9 +134,11 @@ class pos_ReceiptDetails extends core_Detail
         $this->requireRightFor('add');
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
+        $param = Request::get('param', 'varchar');
         pos_Receipts::requireRightFor('pay', $receiptRec);
         $success = true;
-        
+        $rec = null;
+
         try{
             $type = Request::get('type', 'int');
             if($type != -1){
@@ -149,8 +151,7 @@ class pos_ReceiptDetails extends core_Detail
             expect($amount > 0, 'Сумата трябва да е положителна');
             
             $diff = abs($receiptRec->paid - $receiptRec->total);
-            
-            $paidAmount = $amount;
+
             if ($type != -1) {
                 $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receiptRec->valior);
                 expect(!(!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff), 'Платежния метод не позволява да се плати по-голяма сума от общата|*!');
@@ -162,11 +163,17 @@ class pos_ReceiptDetails extends core_Detail
             
             // Подготвяме записа на плащането
             $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
-            
+
+            if(!empty($param)){
+                $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+                if($type == $cardPaymentId){
+                    $rec->param = 'card';
+                }
+            }
+
             if($this->save($rec)){
                 $this->Master->logInAct('Направено плащане', $receiptRec->id);
             }
-            
        } catch(core_exception_Expect $e){
            $dump = $e->dump;
            $dump1 = $dump[0];
@@ -179,7 +186,7 @@ class pos_ReceiptDetails extends core_Detail
            }
        }
        
-       return pos_Terminal::returnAjaxResponse($receiptId, null, $success, true, true, true, 'add');
+       return pos_Terminal::returnAjaxResponse($receiptId, $rec, $success, true, true, true, 'add');
     }
     
 
@@ -1011,6 +1018,14 @@ class pos_ReceiptDetails extends core_Detail
                     if(empty($masterRec->total)){
                         $res = 'no_one';
                     }
+                }
+            }
+        }
+
+        if ($action == 'delete' && isset($rec->receiptId)) {
+            if(strpos($rec->action, 'payment') !== false){
+                if(!empty($rec->param)){
+                    $res = 'no_one';
                 }
             }
         }
