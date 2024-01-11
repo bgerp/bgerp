@@ -2305,18 +2305,26 @@ class pos_Terminal extends peripheral_Terminal
                 $toolsTpl = $me->getCommandPanel($rec);
                 
                 // Ще се реплейсва и пулта
+                core_Debug::startTimer('RES_RENDER_COMMAND_PANEL');
                 $resObj = new stdClass();
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'tools-holder', 'html' => $toolsTpl->getContent(), 'replace' => true);
+                core_Debug::stopTimer('RES_RENDER_COMMAND_PANEL');
+                core_Debug::log("END RES_RENDER_COMMAND_PANEL " . round(core_Debug::$timers["RES_RENDER_COMMAND_PANEL"]->workingTime, 6));
+
                 $res[] = $resObj;
             }
             
             if($refreshTable === true){
                 $receiptTpl = $me->getReceipt($rec);
-                
+
+                core_Debug::startTimer('RES_RENDER_RECEIPT');
                 $resObj = new stdClass();
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
+                core_Debug::stopTimer('RES_RENDER_RECEIPT');
+                core_Debug::log("END RES_RENDER_RECEIPT " . round(core_Debug::$timers["RES_RENDER_RECEIPT"]->workingTime, 6));
+
                 $res[] = $resObj;
 
                 $resObj = new stdClass();
@@ -2331,10 +2339,14 @@ class pos_Terminal extends peripheral_Terminal
             if($refreshResult === true){
 
                 // Ще се реплейсват резултатите
+                core_Debug::startTimer('RES_RENDER_RESULT');
                 $resultTpl = $me->renderResult($rec, $operation, $string, $selectedRecId);
                 $resObj = new stdClass();
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
+                core_Debug::stopTimer('RES_RENDER_RESULT');
+                core_Debug::log("END RES_RENDER_RESULT " . round(core_Debug::$timers["RES_RENDER_RESULT"]->workingTime, 6));
+
                 $res[] = $resObj;
             }
 
