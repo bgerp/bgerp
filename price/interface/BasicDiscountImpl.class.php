@@ -159,6 +159,10 @@ class price_interface_BasicDiscountImpl extends core_Manager
     {
         $percent = $this->getBasicDiscount($Master, $masterRec);
         $isPublic = cat_Products::fetchField($dRec->productId, 'isPublic');
+        if(isset($percent)){
+            $percent = min($percent, 1);
+        }
+
         if($isPublic == 'yes') return $percent;
 
         return null;

@@ -478,6 +478,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_addProduct()
     {
+        core_Debug::startTimer('ADD_PRODUCT');
         $this->requireRightFor('add');
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
@@ -550,7 +551,10 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             // Намираме нужната информация за продукта
+            core_Debug::stopTimer('ADD_PRODUCT_GET_PRODUCT_INFO');
             $this->getProductInfo($rec);
+            core_Debug::stopTimer('ADD_PRODUCT_GET_PRODUCT_INFO');
+            core_Debug::log("END ADD_PRODUCT_GET_PRODUCT_INFO " . round(core_Debug::$timers["ADD_PRODUCT_GET_PRODUCT_INFO"]->workingTime, 6));
 
             if($rec->ean && empty($rec->productId)){
                 $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => 'add', 'refreshPanel' => 'no');
@@ -689,8 +693,15 @@ class pos_ReceiptDetails extends core_Detail
 
         Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId);
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
-        
-        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add', $refreshHeader);
+        core_Debug::stopTimer('ADD_PRODUCT');
+        core_Debug::log("END ADD_PRODUCT " . round(core_Debug::$timers["ADD_PRODUCT"]->workingTime, 6));
+
+        core_Debug::startTimer('ADD_PRODUCT_RESULT');
+        $res = pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add', $refreshHeader);
+        core_Debug::stopTimer('ADD_PRODUCT_RESULT');
+        core_Debug::log("END ADD_PRODUCT_RESULT " . round(core_Debug::$timers["ADD_PRODUCT_RESULT"]->workingTime, 6));
+
+        return $res;
     }
     
     
