@@ -77,7 +77,9 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
         $me = get_called_class();
 
         $dInst = cls::get($me);
-        $dId = $dInst->getClassId('sens2_ProtoDriver');
+        expect($dInst);
+        $dId = $dInst->getClassId();
+        expect($dId);
 
         $nRec = new stdClass();
         $nRec->name = $name;
