@@ -2024,13 +2024,13 @@ a.tUnsighted {
   display: inline-block; }
 
 .priority-high {
-  color: #882200; }
+  color: #882200 !important; }
 
 .priority-critical {
-  color: #cc0033; }
+  color: #cc0033 !important; }
 
 .priority-low {
-  color: #4488cc; }
+  color: #4488cc !important; }
 
 .docBgIcon {
   position: relative; }

@@ -393,7 +393,7 @@ class ztm_RegisterValues extends core_Manager
 
         $registers = Request::get('registers');
 
-        ztm_Devices::logDebug('Registers: ' . $registers, $deviceRec);
+//        ztm_Devices::logDebug('Registers: ' . $registers, $deviceRec);
         
         ztm_Devices::updateSyncTime($token);
         
@@ -443,7 +443,7 @@ class ztm_RegisterValues extends core_Manager
         }
         
         if ((array) $result) {
-            ztm_Devices::logDebug('Results: ' . serialize($result), $deviceRec);
+//            ztm_Devices::logDebug('Results: ' . serialize($result), $deviceRec);
         }
         
         // Връщане на резултатния обект
