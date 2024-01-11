@@ -2297,7 +2297,7 @@ class pos_Terminal extends peripheral_Terminal
         $rec = $Receipts->fetch($receiptId, '*', false);
         $operation = Mode::get("currentOperation{$rec->id}");
         $string = Mode::get("currentSearchString{$rec->id}");
-        
+
         $res = array();
         if($success === true){
             
@@ -2347,6 +2347,10 @@ class pos_Terminal extends peripheral_Terminal
                 core_Debug::stopTimer('RES_RENDER_RESULT');
                 core_Debug::log("END RES_RENDER_RESULT " . round(core_Debug::$timers["RES_RENDER_RESULT"]->workingTime, 6));
 
+                $res[] = $resObj;
+            } else {
+                $resObj = new stdClass();
+                $resObj->func = 'restoreOpacity';
                 $res[] = $resObj;
             }
 
