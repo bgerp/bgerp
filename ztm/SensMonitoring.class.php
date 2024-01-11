@@ -69,6 +69,12 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
                     continue;
                 }
 
+                if (empty($valArr)) {
+                    ztm_RegisterValues::logWarning('В регистъра се очаква попълнен масив', $rRec);
+
+                    continue;
+                }
+
                 $valObj = end($valArr);
                 $res['kWhImport'] = $valObj->ImportActiveEnergy;
             }
