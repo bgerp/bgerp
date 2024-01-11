@@ -551,7 +551,7 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             // Намираме нужната информация за продукта
-            core_Debug::stopTimer('ADD_PRODUCT_GET_PRODUCT_INFO');
+            core_Debug::startTimer('ADD_PRODUCT_GET_PRODUCT_INFO');
             $this->getProductInfo($rec);
             core_Debug::stopTimer('ADD_PRODUCT_GET_PRODUCT_INFO');
             core_Debug::log("END ADD_PRODUCT_GET_PRODUCT_INFO " . round(core_Debug::$timers["ADD_PRODUCT_GET_PRODUCT_INFO"]->workingTime, 6));
