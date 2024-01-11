@@ -51,12 +51,25 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
             while ($rRec = $rQuery->fetch()) {
                 $val = ztm_LongValues::getValueByHash($rRec->value);
                 $valArr = @json_decode($val);
-                if ($val === false) {
+                if ($valArr === false) {
                     ztm_RegisterValues::logErr('Невалидна стойност на регистъра', $rRec);
-                }
-                // get last element of array
-                $valObj = end($valArr);
 
+                    continue;
+                }
+
+                if (!isset($valArr)) {
+                    ztm_RegisterValues::logWarning('Празна стойност на регистъра', $rRec);
+
+                    continue;
+                }
+
+                if (!is_array($valArr)) {
+                    ztm_RegisterValues::logWarning('В регистъра се очавква валиден масив', $rRec);
+
+                    continue;
+                }
+
+                $valObj = end($valArr);
                 $res['kWhImport'] = $valObj->ImportActiveEnergy;
             }
         }
