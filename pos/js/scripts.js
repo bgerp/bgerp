@@ -1320,6 +1320,7 @@ function disableOrEnableEnlargeBtn()
  * Добавя артикул от натиснатия елемент в резултати
  */
 function addProduct(el) {
+	$(el).css('opacity', 0.2);
 	clearTimeout(timeout);
 
 	var elemRow = $(el).closest('.receiptRow');
