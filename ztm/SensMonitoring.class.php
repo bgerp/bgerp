@@ -64,7 +64,7 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
                 }
 
                 if (!is_array($valArr)) {
-                    ztm_RegisterValues::logWarning('В регистъра се очавква валиден масив', $rRec);
+                    ztm_RegisterValues::logWarning('В регистъра се очаква валиден масив', $rRec);
 
                     continue;
                 }
