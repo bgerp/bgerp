@@ -1460,6 +1460,15 @@ function render_toggleAddedProductFlag(data)
 }
 
 
+/**
+ * Възстановява опаситито на бутоните
+ */
+function render_restoreOpacity()
+{
+	$(".pos-add-res-btn").css('opacity', 1);
+	console.log('restore');
+}
+
 /*
  * Активира таба
  */
