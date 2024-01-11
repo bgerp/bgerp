@@ -480,7 +480,7 @@ class pos_ReceiptDetails extends core_Detail
     {
         $this->requireRightFor('add');
         expect($receiptId = Request::get('receiptId', 'int'));
-        expect($receiptRec = pos_Receipts::fetch($receiptId, 'paid,pointId,revertId'));
+        expect($receiptRec = pos_Receipts::fetch($receiptId));
         $this->requireRightFor('add', (object)array('receiptId' => $receiptId));
         
         $selectedRec = null;
@@ -553,7 +553,6 @@ class pos_ReceiptDetails extends core_Detail
             $this->getProductInfo($rec);
 
             if($rec->ean && empty($rec->productId)){
-                $receiptRec = pos_Receipts::fetch($rec->receiptId);
                 $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => 'add', 'refreshPanel' => 'no');
                 if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
                     $cardInfo = crm_ext_Cards::getInfo($rec->ean);
@@ -672,7 +671,7 @@ class pos_ReceiptDetails extends core_Detail
                 $receiptRec->createdBy = core_Users::getCurrent();
                 $receiptRec->createdOn = dt::now();
                 $receiptRec->valior = dt::today();
-                pos_Receipts::save($receiptRec, 'createdBy,createdOn,valior');
+                cls::get('pos_Receipts')->save_($receiptRec, 'createdBy,createdOn,valior');
                 $refreshHeader = true;
             }
         } catch(core_exception_Expect $e){
@@ -687,7 +686,7 @@ class pos_ReceiptDetails extends core_Detail
                 $success = false;
             }
         }
-       
+
         Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId);
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         
