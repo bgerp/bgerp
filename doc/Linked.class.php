@@ -864,34 +864,75 @@ class doc_Linked extends core_Manager
                 $form->setError('linkContainerId', $errMsg);
             } else {
                 $this->save($nRec);
-                
-                try {
-                    $strType = 'документ';
-                    if ($nRec->outType == 'doc') {
-                        if ($nRec->inType == 'file') {
-                            $strType = 'файл';
-                        }
-                        $outDoc = doc_Containers::getDocument($nRec->outVal);
-                        $outDoc->instance->logRead("Добавена връзка към {$strType}", $outDoc->that);
-                    }
-                    
-                    $strType = 'документ';
-                    if ($nRec->inType == 'doc') {
-                        if ($nRec->outType == 'file') {
-                            $strType = 'файл';
-                        }
-                        $inDoc = doc_Containers::getDocument($nRec->inVal);
-                        $inDoc->instance->logRead("Добавена връзка от {$strType}", $inDoc->that);
-                    }
-                } catch (core_exception_Expect $e) {
-                }
+
+                $this->logAct($nRec, 'Добавена');
                 
                 return new Redirect($retUrl);
             }
         }
     }
-    
-    
+
+
+    /**
+     * Помощна функция за добавяне на лог
+     *
+     * @param stdClass $rec
+     * @param string $actType
+     *
+     * @return void
+     */
+    protected function logAct($rec, $actType = 'Добавена')
+    {
+        $rec = $this->fetchRec($rec);
+        try {
+            $strType = 'документ';
+            if ($rec->outType == 'doc') {
+                if ($rec->inType == 'file') {
+                    $strType = 'файл';
+                }
+                $outDoc = doc_Containers::getDocument($rec->outVal);
+                $outDoc->instance->logRead("{$actType} връзка към {$strType}", $outDoc->that);
+            }
+
+            $strType = 'документ';
+            if ($rec->inType == 'doc') {
+                if ($rec->outType == 'file') {
+                    $strType = 'файл';
+                }
+                $inDoc = doc_Containers::getDocument($rec->inVal);
+                $inDoc->instance->logRead("{$actType} връзка от {$strType}", $inDoc->that);
+            }
+        } catch (core_exception_Expect $e) {
+        }
+    }
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $mvc->logAct($id, 'Оттеглена');
+    }
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $mvc->logAct($id, 'Възстановена');
+    }
+
+
     /**
      * Връща възможно най-добрият екшън за съответния документ
      *

@@ -1058,6 +1058,7 @@ class doc_Threads extends core_Manager
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             Mode::push('onlyTitleInGetRecTitle', true);
+            $dRec = $docProxy->fetch();
             $docRow = $docProxy->getDocumentRow();
             Mode::pop('onlyTitleInGetRecTitle');
             $attr = array();
@@ -1080,6 +1081,10 @@ class doc_Threads extends core_Manager
             
             if ($mvc->addThreadStateClassToLink) {
                 $attr['class'] .= " state-{$rec->state}";
+            }
+
+            if ($dRec->priority) {
+                $attr['class'] .= 'priority-' . $dRec->priority;
             }
             
             $row->onlyTitle = $row->title = ht::createLink(
