@@ -390,7 +390,7 @@ class sens2_Controllers extends core_Master
         $ports = $drv->getInputPorts($rec->config);
         
         foreach ($ports as $name => $def) {
-            if ($def->readPeriod > 0) {
+            if (($def->readPeriod > 0) || ($def->logPeriod > 0)) {
                 $force[$name] = $name;
             }
         }
