@@ -79,19 +79,46 @@ class ztm_Setup extends core_ProtoSetup
         'ztm_LongValues',
         'ztm_Profiles',
         'ztm_ProfileDetails',
-        'migrate::addZtmSens2402'
     );
+
+
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        $res .= $this->callMigrate('addZtmSens24022', 'ztm');
+
+        return $res;
+    }
 
 
     /**
      * Миграция за добавяне на драйвер за ZTM
      */
-    function addZtmSens2402()
+    function addZtmSens24022()
     {
         $zQuery = ztm_Devices::getQuery();
         $zQuery->where("#state = 'active'");
+
+        $dId = cls::get('ztm_SensMonitoring')->getClassId();
+
         while ($zRec = $zQuery->fetch()) {
-            ztm_SensMonitoring::addSens($zRec->name);
+            $sId = ztm_SensMonitoring::addSens($zRec->name);
+
+            if (!$sId) {
+                $nRec = sens2_Controllers::fetch(array("#name = '[#1#]'", $zRec->name));
+                expect($nRec);
+                if (!$nRec->driver) {
+                    $nRec->driver = $dId;
+                    $nRec->state = 'active';
+                    sens2_Controllers::save($nRec);
+                } else {
+                    expect($nRec->driver == $dId);
+                }
+            }
         }
     }
 }
