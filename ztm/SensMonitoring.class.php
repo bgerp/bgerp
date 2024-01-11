@@ -43,10 +43,20 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
     {
         $res = array();
 
+        $dName = $this->driverRec->name;
+        $dId = ztm_Devices::fetchField(array("#name = '[#1#]'", $dName));
+        if (!$dId) {
+
+            ztm_Devices::logError("Няма регистрирано устройство с име {$dName}");
+
+            return $res;
+        }
+
         if ($inputs['kWhImport']) {
             $regId = ztm_Registers::fetchField(array("#name = 'monitoring.pa.measurements'"));
             $rQuery = ztm_RegisterValues::getQuery();
             $rQuery->where(array("#registerId = '[#1#]'", $regId));
+            $rQuery->where(array("#deviceId = '[#1#]'", $dId));
             $rQuery->show('deviceId, value');
             while ($rRec = $rQuery->fetch()) {
                 $val = ztm_LongValues::getValueByHash($rRec->value);
