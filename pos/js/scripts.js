@@ -1466,7 +1466,6 @@ function render_toggleAddedProductFlag(data)
 function render_restoreOpacity()
 {
 	$(".pos-add-res-btn").css('opacity', 1);
-	console.log('restore');
 }
 
 /*
