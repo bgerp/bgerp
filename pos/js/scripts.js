@@ -1324,8 +1324,6 @@ function addProduct(el) {
 	sessionStorage.setItem('changedOpacity', $(el).css("opacity"));
 	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
 	$(el).css('opacity', 0.2);
-	//$(el).attr("class", "aaaaaaaaaaaa");
-
 	clearTimeout(timeout);
 
 	var elemRow = $(el).closest('.receiptRow');
