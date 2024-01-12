@@ -1320,7 +1320,12 @@ function disableOrEnableEnlargeBtn()
  * Добавя артикул от натиснатия елемент в резултати
  */
 function addProduct(el) {
+
+	sessionStorage.setItem('changedOpacity', $(el).css("opacity"));
+	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
 	$(el).css('opacity', 0.2);
+	//$(el).attr("class", "aaaaaaaaaaaa");
+
 	clearTimeout(timeout);
 
 	var elemRow = $(el).closest('.receiptRow');
@@ -1465,8 +1470,14 @@ function render_toggleAddedProductFlag(data)
  */
 function render_restoreOpacity()
 {
-	$(".pos-add-res-btn").css('opacity', 1);
+	var opacity = sessionStorage.getItem('changedOpacity');
+	var restoreOpacityId = sessionStorage.getItem('changedOpacityElementId');
+	$("#" + restoreOpacityId).css('opacity', 1);
+
+	sessionStorage.removeItem("changedOpacity");
+	sessionStorage.removeItem("changedOpacityElementId");
 }
+
 
 /*
  * Активира таба
