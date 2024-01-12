@@ -3,7 +3,7 @@
         <tbody>
             <tr>
                 <td class='custom-header-bg' style='width:38%;'>
-                    <b>Recipient</b>
+                    <b>|Recipient|*</b>
                     <!--ET_BEGIN isPaid-->
                     <div class='stamp fright'>[#isPaid#]</div>
                     <!--ET_END isPaid-->

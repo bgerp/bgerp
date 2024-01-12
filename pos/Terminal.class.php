@@ -1861,6 +1861,8 @@ class pos_Terminal extends peripheral_Terminal
         
         $settings = pos_Points::getSettings($rec->pointId);
         if(!is_array($result)){
+            core_Debug::startTimer('RES_RENDER_RESULT_FETCH_RECS');
+
             $similarProducts = $this->getSuggestedProductIds($rec, $selectedRec);
             
             $count = 0;
@@ -1998,9 +2000,15 @@ class pos_Terminal extends peripheral_Terminal
                     }
                 }
             }
-            
+            core_Debug::stopTimer('RES_RENDER_RESULT_FETCH_RECS');
+            core_Debug::log("END RES_RENDER_RESULT_FETCH_RECS " . round(core_Debug::$timers["RES_RENDER_RESULT_FETCH_RECS"]->workingTime, 6));
+
+            core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);
-            core_Cache::set('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}", $result, 2);
+            core_Debug::stopTimer('RES_RENDER_RESULT_VERBAL');
+            core_Debug::log("END RES_RENDER_RESULT_VERBAL " . round(core_Debug::$timers["RES_RENDER_RESULT_VERBAL"]->workingTime, 6));
+
+            core_Cache::set('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}", $result, 2);
         }
         
         return $result;

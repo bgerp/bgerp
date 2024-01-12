@@ -22,7 +22,7 @@
                         <div><b>[#reff#]</b></div>
                         <!--ET_END reff-->
                     </td>
-                    <td class="cell custom-header-bg" style='width:35%;'><b>Supplier</b> </td>
+                    <td class="cell custom-header-bg" style='width:35%;'><b>|Supplier|*</b> </td>
                 </tr>
                 <tr>
                     <td class="cell">

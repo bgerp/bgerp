@@ -31,7 +31,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>Supplier</b>
+                    <td class="cell custom-header-bg"><b>|Supplier|*</b>
                         <!--ET_BEGIN isDelivered-->
                         <div class='stamp fright'>[#isDelivered#]</div>
                         <!--ET_END isDelivered--></td>
