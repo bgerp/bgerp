@@ -58,12 +58,6 @@ class price_reports_PriceList extends frame2_driver_TableData
 
 
     /**
-     * Да се показва ли антектката при изпращане и при печат
-     */
-    protected $hideLetterHeadWhenSendingOrPrinting = true;
-
-
-    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
