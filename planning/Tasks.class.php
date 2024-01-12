@@ -877,7 +877,7 @@ class planning_Tasks extends core_Master
         $packRec = cat_products_Packagings::getPack($productId, $labelPackagingId);
         $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
 
-        if ($productMeasureId != $measureId) {
+        if (isset($measureId) && $productMeasureId != $measureId) {
             $packRec1 = cat_products_Packagings::getPack($productId, $measureId);
             $quantityInSecondMeasure = is_object($packRec1) ? $packRec1->quantity : 1;
             $quantityInPackDefault = (1 / $quantityInSecondMeasure) * $quantityInPackDefault;
