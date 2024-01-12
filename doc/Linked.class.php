@@ -463,14 +463,14 @@ class doc_Linked extends core_Manager
             $rec = $docInst->fetch();
             
             expect($rec);
-        } elseif ($type == 'file') {
+        } elseif ($outType == 'file') {
             $clsInst = cls::get('fileman_Files');
             $clsInst->requireRightFor('single', $outVal);
             $rec = $clsInst->fetch($outVal);
             
             expect($rec);
         } else {
-            expect(false, $type);
+            expect(false, $outType);
         }
         
         expect($inType && $inVal);
@@ -492,6 +492,8 @@ class doc_Linked extends core_Manager
             $fRec = fileman_Files::fetch($inVal);
             expect($fRec);
             $tplRes = doc_DocumentPlg::showOriginalFile($fRec, null, $pUrl);
+        } else {
+            expect(false, $inType);
         }
         
         if ($tplRes instanceof core_ET) {
