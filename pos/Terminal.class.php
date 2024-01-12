@@ -2061,6 +2061,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'packagingId' => $packId);
             if (empty($priceRes->price)){
+                wp("POS_NO_PRICE POL_ID:{$settings->policyId} | C_LIST:({$contragentPriceListId})| P_ID: {$id}| Date: '{$now}'");
                 $res[$id]->price = "<b class='red'>n/a</b>";
             } else {
                 if(!empty($priceRes->discount)){
