@@ -1470,7 +1470,7 @@ function render_restoreOpacity()
 {
 	var opacity = sessionStorage.getItem('changedOpacity');
 	var restoreOpacityId = sessionStorage.getItem('changedOpacityElementId');
-	$("#" + restoreOpacityId).css('opacity', 1);
+	$("#" + restoreOpacityId).css('opacity', opacity);
 
 	sessionStorage.removeItem("changedOpacity");
 	sessionStorage.removeItem("changedOpacityElementId");
