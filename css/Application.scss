@@ -1600,6 +1600,10 @@ a.tUnsighted {
 	background-color: #ff8;
 }
 /*край на стилове при тредове*/
+.narrow .folder-cover .typeTable {
+	min-width: 200px !important;
+	max-width: 300px;
+}
 
 .typeTable {
 	border:none !important;
@@ -2334,15 +2338,15 @@ display: inline-block;
 }
 
 .priority-high {
-	color:#882200;
+	color:#882200 !important;
 }
 
 .priority-critical {
-	color: #cc0033;
+	color: #cc0033 !important;
 }
 
 .priority-low {
-	color: #48C;
+	color: #48C !important;
 }
 
 .docBgIcon {
@@ -6561,6 +6565,9 @@ div.location.public {
 	color: white;
 	line-height: 24px;
 	text-indent: 5px;
+	&:hover td{
+		background-color: #636363 !important;
+	}
 }
 
 .pricelist-report-pack-table  {
@@ -7107,7 +7114,6 @@ body.narrow {
 
 @media handheld , only screen and (max-width: 1024px) {
     .document{
-        max-width: 40em;
 		min-width: 30em;
     }
     .wide .app-name {
@@ -8742,6 +8748,14 @@ body.narrow {
 
 .selectTaskOptions tr.createAllTasksForJob {
 	font-style:italic;
+}
+
+.paramVal {
+	font-weight: bold;
+}
+
+.price_reports_PriceList .paramVal {
+	font-weight: normal;
 }
 
 .wide .operationTable .paramVal {

@@ -411,10 +411,9 @@ class pos_Points extends core_Master
             }
             
             $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
-            if(isset($rec->discountPolicyId)){
+            if(!empty($rec->discountPolicyId)){
                 $row->discountPolicyId = price_Lists::getHyperlink($rec->discountPolicyId, true);
             }
-
 
             if ($defaultContragent = self::defaultContragent($rec->id)) {
                 $row->contragent = crm_Persons::getHyperlink($defaultContragent, true);
@@ -497,6 +496,9 @@ class pos_Points extends core_Master
             if(empty($res)){
                 if(array_key_exists($field, static::$fieldMap)){
                     $res = pos_Setup::get(static::$fieldMap[$field]);
+                    if($field == 'discountPolicyId'){
+                        $res = empty($res) ? null : $res;
+                    }
                 }
             }
         } else {
@@ -505,6 +507,9 @@ class pos_Points extends core_Master
                     $res->{$field} = pos_Setup::get($const);
                     $inherited->{$field} = $field;
                 }
+            }
+            if($field == 'discountPolicyId'){
+                $res->{$field} = empty($res->{$field}) ? null : $res->{$field};
             }
         }
     }

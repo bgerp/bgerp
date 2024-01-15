@@ -113,8 +113,24 @@ class doc_plg_TplManagerDetail extends core_Plugin
             $Script->modifyDetailData($mvc, $data);
         }
     }
-    
-    
+
+
+    /**
+     * Точно преди рендирането на лист таблицата (но след всичките on_BeforeRenderListTable)
+     *
+     * @param $mvc
+     * @param $res
+     * @param $data
+     * @return void
+     */
+    public static function on_rightBeforeRenderListTable($mvc, $res, &$data)
+    {
+        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template, $data->masterData->rec->createdOn)) {
+            $Script->rightBeforeRenderListTable($mvc, $data);
+        }
+    }
+
+
     /**
      * Преди рендиране на детайла
      */

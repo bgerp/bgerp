@@ -39,24 +39,45 @@ class pos_ReportDetails extends core_Manager
      * @param stdClass $data
      * @return void
      */
-    function prepareTotal_(&$data)
+    function prepareShipped_(&$data)
     {
-        $data->TabCaption = 'Всичко';
+        $data->TabCaption = 'Експедирания';
         $data->Tab = 'top';
 
         $tabParam = $data->masterData->tabTopParam;
         $prepareTab = Request::get($tabParam);
-        if($prepareTab == 'receipts') {
+        if(in_array($prepareTab, array('payments', 'receipts'))) {
             $data->hide = true;
             return;
         }
 
-        $detail = (object) $data->masterData->rec->details;
-        arr::sortObjects($detail->receiptDetails, 'action');
+        $this->prepareTabData($data, 'shipped');
 
+        return $data;
+    }
+
+
+    /**
+     * Подготовка на таба
+     *
+     * @param $data
+     * @param $type
+     * @return void
+     */
+    private function prepareTabData(&$data, $type)
+    {
         // Табличната информация и пейджъра на плащанията
-        $detail->listFields = "value=Действие, pack=Мярка, quantity=К-во, amount=|*{$data->masterData->row->baseCurrency}, storeId=Склад,contragentId=Клиент";
-        $detail->rows = $detail->receiptDetails;
+        $detail = (object) $data->masterData->rec->details;
+
+        if ($type == 'shipped') {
+            $actionVal = 'sale';
+            $detail->listFields = "value=Артикул, pack=Мярка, quantity=К-во, amount=|*{$data->masterData->row->baseCurrency}, storeId=Склад,contragentId=Клиент,userId=Оператор";
+        } else {
+            $actionVal = 'payment';
+            $detail->listFields = "value=Плащане, pack=Валута, amount=|*{$data->masterData->row->baseCurrency},contragentId=Клиент,userId=Оператор";
+        }
+
+        $detail->rows = array_filter($detail->receiptDetails, function($a) use ($actionVal){ return $a->action == $actionVal;});
         $detail->masterRec = $data->rec;
 
         // Инстанцираме пейджър-а
@@ -69,16 +90,17 @@ class pos_ReportDetails extends core_Manager
             $data->pager->itemsCount = countR($detail->rows);
 
             // Подготвяме поле по което да сортираме
-            foreach ($detail->rows as &$value) {
-                if ($value->action == 'sale') {
+            if ($type == 'shipped') {
+                foreach ($detail->rows as &$value) {
                     $value->sortString = mb_strtolower(cat_Products::fetchField($value->value, 'name'));
                 }
+                usort($detail->rows, function($a, $b) {return strcmp($a->sortString, $b->sortString);});
+            } else {
+                arr::sortObjects($detail->rows, 'value');
             }
-            usort($detail->rows, function($a, $b) {return strcmp($a->sortString, $b->sortString);});
 
+            // Пропускане на записите, които не трябва да са на тази страница
             foreach ($detail->rows as $key => $rec) {
-
-                // Пропускане на записите, които не трябва да са на тази страница
                 if (!$data->pager->isOnPage()) continue;
                 $newRows[] = $this->getVerbalDetail($detail->masterRec, $detail->rows[$key]);
             }
@@ -88,6 +110,28 @@ class pos_ReportDetails extends core_Manager
         }
 
         $data->details = $detail;
+    }
+
+
+    /**
+     * Подготовка на сумарната информация
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    function preparePayments_(&$data)
+    {
+        $data->TabCaption = 'Плащания';
+        $data->Tab = 'top';
+
+        $tabParam = $data->masterData->tabTopParam;
+        $prepareTab = Request::get($tabParam);
+        if(in_array($prepareTab, array('shipped', 'receipts')) || empty($prepareTab)) {
+            $data->hide = true;
+            return;
+        }
+
+        $this->prepareTabData($data, 'payments');
 
         return $data;
     }
@@ -105,7 +149,8 @@ class pos_ReportDetails extends core_Manager
 
         $Double = core_Type::getByName('double(decimals=2)');
         $currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
-        $row->quantity = "<span style='float:right'>{$Double->toVerbal($obj->quantity)}</span>";
+        $quantityVerbal = $Double->toVerbal($obj->quantity);
+        $row->quantity = ht::styleNumber($quantityVerbal, $obj->amount);
         if ($obj->action == 'sale') {
 
             // Ако детайла е продажба
@@ -139,7 +184,7 @@ class pos_ReportDetails extends core_Manager
             // Ако детайла е плащане
             $row->pack = $currencyCode;
             $value = ($obj->value != -1) ? cond_Payments::getTitleById($obj->value) : tr('В брой');
-            $row->value = "<b>" . tr('Плащане') . "</b>: &nbsp;<i>{$value}</i>";
+            $row->value = "<i>{$value}</i>";
             $row->ROW_ATTR['class'] = 'report-payment';
             unset($row->quantity);
 
@@ -149,6 +194,7 @@ class pos_ReportDetails extends core_Manager
         }
 
         $amount = $Double->toVerbal($obj->amount);
+        $amount = ht::styleNumber($amount, $obj->amount);
         if(isset($obj->param)){
             $amountHint = tr('ДДС') . ": " . core_Type::getByName('percent')->toVerbal($obj->param);
             $amount = ht::createHint($amount, $amountHint);
@@ -156,6 +202,9 @@ class pos_ReportDetails extends core_Manager
 
         $row->amount = "<span style='float:right'>{$amount}</span>";
         $row->contragentId = cls::get($obj->contragentClassId)->getHyperlink($obj->contragentId, true);
+        if(isset($obj->userId)){
+            $row->userId  = crm_Profiles::createLink($obj->userId);
+        }
 
         return $row;
     }
@@ -167,13 +216,15 @@ class pos_ReportDetails extends core_Manager
      * @param $data
      * @return core_ET
      */
-    function renderTotal_($data)
+    private function renderTab($data)
     {
         $tpl = new core_ET('');
         if($data->hide) return $tpl;
 
+        $data->details->listFields = core_TableView::filterEmptyColumns($data->details->rows, $data->details->listFields, 'userId');
         $data->details->listTableMvc = new core_FieldSet();
         $data->details->listTableMvc->FLD('value', 'varchar', 'tdClass=largeCell');
+        $data->details->listTableMvc->FLD('quantity', 'double');
         $tpl->append(cls::get('pos_Reports')->renderListTable($data->details));
         if ($data->pager) {
             $tpl->append($data->pager->getHtml());
@@ -184,9 +235,33 @@ class pos_ReportDetails extends core_Manager
 
 
     /**
+     * Рендиране на таба на артикулите
+     *
+     * @param $data
+     * @return core_ET
+     */
+    function renderShipped_($data)
+    {
+        return $this->renderTab($data);
+    }
+
+
+    /**
+     * Рендиране на таба на плащанията
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    function renderPayments_(&$data)
+    {
+        return $this->renderTab($data);
+    }
+
+
+    /**
      * Подготовка на бележките
      */
-    function prepareReceipts($data)
+     public function prepareReceipts($data)
     {
         $detail = (object) $data->masterData->rec->details;
         $receiptIds = arr::extractValuesFromArray($detail->receipts, 'id');
@@ -215,6 +290,10 @@ class pos_ReportDetails extends core_Manager
 
             $row = pos_Receipts::recToVerbal($receiptRec);
             $row->created = $row->createdOn . " " . tr('от') . " " . crm_Profiles::createLink($receiptRec->createdBy);
+            $waitingOn = $receiptRec->waitingOn ?? $receiptRec->modifiedOn;
+            $waitingBy = $receiptRec->waitingBy ?? $receiptRec->modifiedBy;
+            $row->waiting = core_Type::getByName('datetime(format=smartTime)')->toVerbal($waitingOn) . " " . tr('от') . " " . crm_Profiles::createLink($waitingBy);
+
             $row->receiptId = pos_Receipts::getHyperlink($receiptRec->id, true);
             $data->receiptRows[$receiptRec->id] = $row;
         }
@@ -227,14 +306,16 @@ class pos_ReportDetails extends core_Manager
      * @param stdClass $data
      * @return core_ET $tpl
      */
-    function renderReceipts($data)
+    public function renderReceipts($data)
     {
         $tpl = new core_ET("");
         if($data->hide) return $tpl;
 
-        $fieldSet = new core_FieldSet();
-        $table = cls::get('core_TableView', array('mvc' => $fieldSet));
-        $fields = arr::make('receiptId=Бележка,created=Създаване,waitingOn=Чакащо', true);
+        $fieldset = clone cls::get('pos_Receipts');
+        $fieldset->FLD('created', 'varchar', 'smartCenter');
+        $fieldset->FLD('waiting', 'varchar', 'smartCenter');
+        $table = cls::get('core_TableView', array('mvc' => $fieldset));
+        $fields = arr::make("receiptId=Бележка,total=|*{$data->masterData->row->baseCurrency},created=Създаване,waiting=Чакащо", true);
 
         // Рендиране на таблицата с резултатите
         $dTpl = $table->get($data->receiptRows, $fields);

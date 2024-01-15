@@ -37,7 +37,7 @@
                     </table>
                     <!--ET_END MISC_BLOCK-->
                 </td>
-                <td class="cell custom-header-bg" style='width:35%;'><b>Supplier</b></td>
+                <td class="cell custom-header-bg" style='width:35%;'><b>|Supplier|*</b></td>
             </tr>
             <tr>
                 <td class="cell">

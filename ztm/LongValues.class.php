@@ -63,7 +63,7 @@ class ztm_LongValues extends core_Manager
      */
     public function description()
     {
-        $this->FLD('hash', 'varchar', 'mandatory,caption=Хеш');
+        $this->FLD('hash', 'varchar(32)', 'mandatory,caption=Хеш');
         $this->FLD('value', 'blob', 'mandatory,caption=Стойност');
         
         $this->setDbUnique('hash');

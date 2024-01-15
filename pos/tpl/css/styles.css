@@ -308,6 +308,22 @@
     transition: all linear;
     transition-duration: 1s; }
 
+.no-border {
+  font-size: 0.9em; }
+  .no-border tr td.border-bottom {
+    border-bottom: 1px dashed #aaaaaa !important; }
+  .no-border tr:last-child td.border-bottom {
+    border: none !important; }
+  .no-border td {
+    padding: 2px !important; }
+  .no-border .title-info {
+    font-weight: bold !important;
+    background: #dddddd; }
+  .no-border .aleft {
+    text-align: left !important; }
+  .no-border .aright {
+    text-align: right !important; }
+
 .updatedDiv {
   color: red !important; }
   .updatedDiv span {
@@ -488,7 +504,8 @@ select.tabHolder {
   position: relative; }
   .grid.pictureAndText .element.selected {
     padding: 1px !important; }
-
+    .grid.pictureAndText .element.selected .pos-price {
+      padding-bottom: 0px !important; }
   .grid.pictureAndText .element .photo {
     display: flex;
     width: 100%;
@@ -505,7 +522,10 @@ select.tabHolder {
     box-sizing: border-box;
     margin-bottom: 2px; }
     .grid.pictureAndText .element.noPhoto .short-title {
-      height: 100%; }
+      height: 100%;
+      font-size: 1.25em;
+      max-height: 133px;
+      overflow: hidden; }
     .grid.pictureAndText .element.noPhoto .photo {
       display: none; }
   .grid.pictureAndText .element .pos-price {
@@ -970,6 +990,9 @@ select.tabHolder {
   margin: 0 auto; }
   .modalReceipt .pos-del-btn {
     display: none; }
+
+#card-payment:not(.disabledBtn) {
+  background-color: #7bcae9 !important; }
 
 .imagePreview {
   box-shadow: 0 0 5px #333333;

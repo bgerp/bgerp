@@ -19,7 +19,7 @@
                 <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                 <!--ET_END state-->
             </td>
-            <td class="cell custom-header-bg vtop" style='width:38%;'><b>Supplier</b></td>
+            <td class="cell custom-header-bg vtop" style='width:38%;'><b>|Supplier|*</b></td>
         </tr>
         <tr>
             <td class="cell">

@@ -116,7 +116,8 @@ class price_ListBasicDiscounts extends core_Detail
                 $query = static::getQuery();
                 $query->XPR('amountToCalc', 'int', "COALESCE(#amountTo, 999999999999)");
                 $query->where("#id != '{$rec->id}' AND #listId = {$rec->listId}");
-                $query->where("!('{$from}' > #amountToCalc || '{$to}' < #amountFrom)");
+                $query->where("'{$from}' < #amountToCalc && '{$to}' > #amountFrom");
+
                 if($query->count()){
                     $form->setError('amountFrom,amountTo', 'Посоченият интервал се засича с вече зададен|*!');
                 }

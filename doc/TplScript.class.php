@@ -159,4 +159,16 @@ abstract class doc_TplScript
     {
 
     }
+
+
+    /**
+     * Непосредствено преди рендирането на лист таблицата
+     *
+     * @param core_Mvc $detail
+     * @param stdClass $data
+     */
+    public function rightBeforeRenderListTable(core_Mvc $detail, &$data)
+    {
+
+    }
 }

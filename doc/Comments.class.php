@@ -192,7 +192,7 @@ class doc_Comments extends embed_Manager
     {
         $this->FLD('subject', 'varchar(autocomplete=off)', 'caption=Относно,mandatory,width=100%,input=hidden,reduceText');
         $this->FLD('body', 'richtext(rows=10,bucket=Comments,passage)', 'caption=Коментар,mandatory');
-        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори, input=none');
+        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори, input=none, maxRadio=3');
     }
     
     

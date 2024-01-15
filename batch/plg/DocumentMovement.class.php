@@ -90,7 +90,9 @@ class batch_plg_DocumentMovement extends core_Plugin
                 }
                 
                 $checkIfBatchExists = ($defRec->onlyExistingBatches == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'onlyExistingBatches') : $defRec->onlyExistingBatches;
+                $checkIfBatchExists = haveRole('contoNegativeBatches') ? false : $checkIfBatchExists;
                 $checkIfBatchIsMandatory = ($defRec->alwaysRequire == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'alwaysRequire') : $defRec->alwaysRequire;
+
                 if($Detail instanceof planning_DirectProductNoteDetails && $k > 0){
                     if(empty($dRec->storeId)){
                         $checkIfBatchIsMandatory = 'no';

@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, revertId, returnedTotal';
+    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, revertId, returnedTotal, createdOn, createdBy, waitingOn, waitingBy';
     
     
     /**
@@ -128,8 +128,8 @@ class pos_Receipts extends core_Master
      * Кой може да променя?
      */
     public $canEdit = 'pos,ceo';
-    
-    
+
+
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -145,7 +145,7 @@ class pos_Receipts extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, valior, modifiedOn';
+    public $filterDateField = 'createdOn, valior, waitingOn';
     
     
     /**
@@ -169,7 +169,7 @@ class pos_Receipts extends core_Master
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'revertId,returnedTotal';
+    public $hideListFieldsIfEmpty = 'revertId,returnedTotal,waitingOn,waitingBy';
 
 
     /**
@@ -177,7 +177,7 @@ class pos_Receipts extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date', 'caption=Дата,input=none');
+        $this->FLD('valior', 'date', 'caption=Вальор,input=none');
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
         $this->FLD('contragentObjectId', 'int', 'input=none');
@@ -192,7 +192,9 @@ class pos_Receipts extends core_Master
         $this->FLD('revertId', 'int', 'input=none,caption=Сторнира');
         $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторнирано, input=none');
         $this->FNC('productCount', 'int', 'caption=Артикули');
-        
+        $this->FLD('waitingOn', 'datetime(format=smartTime)', 'caption=Чакаща->На,input=none');
+        $this->FLD('waitingBy', 'key(mvc=core_Users,select=nick)', 'caption=Чакаща->От,input=none');
+
         $this->setDbIndex('valior');
         $this->setDbIndex('revertId');
     }
@@ -223,26 +225,22 @@ class pos_Receipts extends core_Master
         } else {
             
             // Коя е последната чернова бележка от ПОС-а
+            $cu = core_Users::getCurrent();
             $query = $this->getQuery();
-            $query->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
+            $query->where("#pointId = {$pointId} AND #createdBy = {$cu} AND #state = 'draft' AND #revertId IS NULL");
             $query->show('valior,contragentClass,contragentObjectId,total');
             $query->orderBy('id', 'DESC');
             $lastDraft = $query->fetch();
             
             $id = null;
             if(is_object($lastDraft)){
-                
                 // Ако има такава и тя е без контрагент и е празна
                 if(empty($lastDraft->total) && pos_Receipts::isForDefaultContragent($lastDraft)){
                     $today = dt::today();
-                    
-                    // Ако е със стара дата, подменя се
                     if($lastDraft->valior != $today){
                         $lastDraft->valior = $today;
                         $this->save_($lastDraft, 'valior');
                     }
-                    
-                    // Ще се редиректне към нея
                     $id = $lastDraft->id;
                 }
             }
@@ -439,9 +437,7 @@ class pos_Receipts extends core_Master
                                          'discount'    => $rec->discountPercent,
                                          'quantity'    => $rec->quantity);
         }
-        
-        
-        
+
         return $products;
     }
     
@@ -462,11 +458,18 @@ class pos_Receipts extends core_Master
         
         $dQuery = $this->pos_ReceiptDetails->getQuery();
         $dQuery->where("#receiptId = {$id}");
+
         while ($dRec = $dQuery->fetch()) {
             $action = explode('|', $dRec->action);
             switch ($action[0]) {
                 case 'sale':
-                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent, $rec->pointId, $dRec->quantity);
+                    $discount = $dRec->discountPercent;
+                    if($rec->state == 'draft'){
+                        if(isset($dRec->autoDiscount)){
+                            $discount = round((1 - (1 - $dRec->discountPercent ) * (1 - $dRec->autoDiscount)), 4);
+                        }
+                    }
+                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $discount, $rec->pointId, $dRec->quantity);
                     $rec->total += round($dRec->quantity * $price, 2);
                     break;
                 case 'payment':
@@ -480,15 +483,47 @@ class pos_Receipts extends core_Master
                     break;
             }
         }
-        
+
         $diff = round($rec->paid - $rec->total, 2);
         $rec->change = $diff;
         $rec->total = $rec->total;
-        
         $this->save($rec);
     }
-    
-    
+
+
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if ($rec->state != 'draft') return;
+
+        // Изчисляване на автоматичната отстъпка
+        $settings = pos_Points::getSettings($rec->pointId);
+        $contragentPriceListId = pos_Receipts::isForDefaultContragent($rec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+        if($discountClass = price_Lists::fetchField($contragentPriceListId, 'discountClass')) {
+            if (cls::load($discountClass, true)) {
+                $Interface = cls::getInterface('price_SaleAutoDiscountIntf', $discountClass);
+                $update = array();
+                $dQuery = pos_ReceiptDetails::getQuery();
+                $dQuery->where("#receiptId = {$id} AND #action LIKE '%sale%'");
+                while ($dRec = $dQuery->fetch()) {
+                    $dRec->autoDiscount = $Interface->calcAutoSaleDiscount('pos_ReceiptDetails', $dRec, $mvc, $rec);
+                    $update[$dRec->id] = $dRec;
+                }
+
+                // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
+                cls::get('pos_ReceiptDetails')->saveArray($update, 'id,autoDiscount');
+
+                $mvc->updateMaster_($id);
+            }
+        }
+    }
+
+
     /**
      *  Филтрираме бележката
      */
@@ -535,7 +570,17 @@ class pos_Receipts extends core_Master
                 $res = 'no_one';
             }
         }
-        
+
+        if(in_array($action, array('delete', 'reject', 'revert')) && isset($rec)){
+            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+            if(is_object($deviceRec)){
+                $paidWithCards = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}' AND #param IS NOT NULL AND #param != ''");
+                if($paidWithCards){
+                    $res = 'no_one';
+                }
+            }
+        }
+
         // Можем да контираме бележки само когато те са чернови и платената
         // сума е по-голяма или равна на общата или общата сума е <= 0
         if ($action == 'close' && isset($rec->id)) {
@@ -546,11 +591,11 @@ class pos_Receipts extends core_Master
         
         // Може ли да бъде направено плащане по бележката
         if ($action == 'pay' && isset($rec)) {
-            if ($rec->state != 'draft' || !$rec->total || ($rec->total && abs($rec->paid) >= abs($rec->total))) {
+            if ($rec->state != 'draft' || !$rec->total || (abs($rec->paid) >= abs($rec->total))) {
                 $res = 'no_one';
             }
         }
-        
+
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
 
@@ -753,6 +798,8 @@ class pos_Receipts extends core_Master
         }
 
         $rec->state = 'waiting';
+        $rec->waitingOn = dt::now();
+        $rec->waitingBy = core_Users::getCurrent();
         $rec->__closed = true;
 
         if ($this->save($rec)) {
@@ -760,6 +807,19 @@ class pos_Receipts extends core_Master
                 $this->calcRevertedTotal($rec->revertId);
             }
 
+            $dRecs = array();
+            $dQuery = pos_ReceiptDetails::getQuery();
+            $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%' AND #autoDiscount IS NOT NULL");
+            while($dRec = $dQuery->fetch()){
+                if(isset($dRec->discountPercent)){
+                    $dRec->discountPercent = round((1 - (1 - $dRec->discountPercent) * (1 - $dRec->autoDiscount)), 4);
+                } else {
+                    $dRec->discountPercent = $dRec->autoDiscount;
+                }
+                $dRecs[] = $dRec;
+            }
+
+            cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent');
             $this->logInAct('Приключване на бележка', $rec->id);
         }
         
@@ -1003,7 +1063,7 @@ class pos_Receipts extends core_Master
                 $discount = $price->discount;
                 $price = $price->price;
 
-                if(isset($discountPolicyId)){
+                if(!empty($discountPolicyId)){
                     $priceOnDiscountListRec = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $now, 1, 'no', $discountPolicyId, false);
 
                     if(isset($priceOnDiscountListRec->price)){

@@ -431,6 +431,14 @@ class core_App
      */
     public static function checkHitStatus()
     {
+        // Предпазване от много репортвания в един хит
+        static $isReported = false;
+        if ($isReported) {
+
+            return ;
+        }
+        $isReported = true;
+
         $memUsagePercentLimit = 80;
         $executionTimePercentLimit = 70;
         $dbTimePercentLimit = 50;
@@ -445,7 +453,9 @@ class core_App
 
             // Ако сме доближили до ограничението на паметта
             if ($peakMemUsagePercent > $memUsagePercentLimit) {
-                wp();
+                wp('Доближено е до пиковото ограничение на паметта', $peakMemUsagePercent, $memUsagePercentLimit);
+
+                return ;
             }
         }
         
@@ -455,7 +465,9 @@ class core_App
             
             // Ако сме доближили до ограничението на паметта
             if ($memUsagePercent > $memUsagePercentLimit) {
-                wp();
+                wp('Доближено е до ограничението на паметта', $memUsagePercent, $memUsagePercentLimit);
+
+                return ;
             }
         }
         
@@ -468,7 +480,9 @@ class core_App
                 
                 // Ако сме доближили до ограничението за времето
                 if ($maxExecutionTimePercent > $executionTimePercentLimit) {
-                    wp();
+                    wp('Доближено е до ограничението за времето', $maxExecutionTimePercent, $executionTimePercentLimit);
+
+                    return ;
                 }
 
                 $qTime = core_Debug::getWorkingTime('DB::query()');
@@ -478,6 +492,8 @@ class core_App
                     if ($dbTimePercent >= $dbTimePercentLimit) {
                         if ($executionTime > 7) {
                             wp('Голям брой заявки, които минават бавно', (int) $dbTimePercent, $dbTimePercentLimit, $qTime, $executionTime);
+
+                            return ;
                         }
                     }
                 }

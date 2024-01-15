@@ -184,16 +184,29 @@ class bgfisc_plg_Receipts extends core_Plugin
             $price = $dRec->price * (1 + $dRec->param);
             $dRec->quantity = abs($dRec->quantity);
             $amount = $price * $dRec->quantity;
-            
-            $arr = array('PLU_NAME' => $name, 'QTY' => 1, 'PRICE' => round($amount, 2));
-            if (!empty($dRec->discountPercent)) {
-                $arr['DISC_ADD_V'] = -1 * round($dRec->discountPercent * $amount, 2);
+
+            $price = round($amount, 2);
+            $arr = array('PLU_NAME' => $name, 'QTY' => 1, 'PRICE' => $price);
+
+            $discountPercent = $dRec->discountPercent;
+            if(isset($discountPercent)){
+                if(isset($dRec->autoDiscount)){
+                    $discountPercent = round((1 - (1 - $dRec->discountPercent) * (1 - $dRec->autoDiscount)), 4);
+                }
+            } elseif(isset($dRec->autoDiscount)) {
+                $discountPercent = $dRec->autoDiscount;
+            }
+
+            if (!empty($discountPercent)) {
+                $arr['DISC_ADD_V'] = -1 * round($discountPercent * $amount, 2);
             }
             
             $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
             $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
-            
-            $price = round($amount / $dRec->quantity, bgfisc_Setup::get('PRICE_FU_ROUND'));
+
+            $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
+            $price = round($amount / $dRec->quantity, $fiscFuRound);
+            $price = number_format($price, $fiscFuRound, '.', '');
             $arr['BEFORE_PLU_TEXT'] = "{$dRec->quantity}x{$price}лв";
             
             $res[] = $arr;
@@ -370,21 +383,19 @@ class bgfisc_plg_Receipts extends core_Plugin
                 
                 if (cls::haveInterface('peripheral_FiscPrinterWeb', $Driver)) {
                     $interface = core_Cls::getInterface('peripheral_FiscPrinterWeb', $lRec->driverClass);
-                    
+
                     $js = $interface->getJS($lRec, $fiscalArr);
-                    $js .= 'blurScreen();
+                    $js .= '$(".fullScreenBg").css("display", "block");
                     function fpOnSuccess(res)
                         {
                             $(".printReceiptBtn").removeClass( "disabledBtn");
         		            $(".printReceiptBtn").prop("disabled", false);
-                                
                             document.location = " ' . $successUrl . '&res=" + res;
                         }
                                 
                         function fpOnError(err) {
-                            removeBlurScreen();
+                            $(".fullScreenBg").css("display", "none");
                             removeDisabledBtn();
-                                
                             render_showToast({timeOut: 800, text: err, isSticky: true, stayTime: 8000, type: "error"});
                         }
                                 
@@ -442,7 +453,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 }
                 
                 $res = new Redirect(array('pos_Terminal', 'open', "receiptId" => $rec->id));
-                
+
                 return false;
             } catch (core_exception_Expect $e) {
                 reportException($e);
@@ -454,6 +465,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     
                     // Првмахване на замъгляването
                     $resObj = new stdClass();
+                    $resObj->arg = (object)array('elementClass' => 'fullScreenBg');
                     $resObj->func = 'removeBlurScreen';
                     
                     $resObj2 = new stdClass();

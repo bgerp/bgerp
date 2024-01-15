@@ -101,7 +101,7 @@
                             <li>|Освободено от ДДС|*[#exemptVat#]</li>
                             <!--ET_END exemptVat-->
                             <!--ET_BEGIN noVat-->
-                            <li>|Цените са без ДДС|*[#noVat#]</li>
+                            <li>|Без начисляване на ДДС|*[#noVat#]</li>
                             <!--ET_END noVat-->
                             <!--ET_BEGIN others-->
                             [#others#]
