@@ -67,7 +67,7 @@ class sens2_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'sens';
+    public $roles = 'sens,sensMaster';
     
     
     /**
