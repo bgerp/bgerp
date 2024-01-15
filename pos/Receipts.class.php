@@ -627,7 +627,7 @@ class pos_Receipts extends core_Master
             if($rec->state != 'draft'){
                 $res = 'no_one';
             } else {
-                if(round($rec->paid, 2) < round($rec->total, 2)){
+                if(empty($rec->total) || round($rec->paid, 2) < round($rec->total, 2)){
                     $res = 'no_one';
                 }
             }
