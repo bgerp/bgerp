@@ -125,7 +125,7 @@ class location_Type extends type_Varchar
         $id = 'map' . $n;
         
         setIfNot($width, $this->params['width'], 400);
-        setIfNot($height, $this->params['height'], 300);
+        setIfNot($height, $this->params['height'], 400);
         
         $conf = core_Packs::getConfig('google');
         $apiKey = $conf->GOOGLE_API_KEY;
