@@ -145,8 +145,9 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         if ($action == 'printfiscreceipt' && isset($rec)) {
             $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
-            
-            if(bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)){
+            if($rec->state == 'waiting'){
+                $res = 'no_one';
+            } elseif(bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)){
                 $res = 'no_one';
             } elseif (!bgfisc_Register::getFiscDevice($caseId)) {
                 $res = 'no_one';
