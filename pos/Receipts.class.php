@@ -83,11 +83,11 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * Кой може да сторнира?
+     * Кой може ръчно да прави чакаща?
      */
-    public $canRevert = 'pos, ceo';
-    
-    
+    public $canManualpending = 'posMaster, ceo';
+
+
     /**
      * Кой може да плати?
      */
@@ -382,6 +382,10 @@ class pos_Receipts extends core_Master
         if ($mvc->haveRightFor('terminal', $data->rec)) {
             $data->toolbar->addBtn('Терминал', array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/forward16.png, order=18,target=_blank');
         }
+
+        if ($mvc->haveRightFor('manualpending', $data->rec)) {
+            $data->toolbar->addBtn('Чакащо (Ръчно)', array($mvc, 'manualpending', 'id' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/tick-circle-frame.png,warning=Наистина ли желаете ръчно да направите бележката чакаща|*?');
+        }
     }
     
     
@@ -618,6 +622,16 @@ class pos_Receipts extends core_Master
                 $res = 'no_one';
             }
         }
+
+        if($action == 'manualpending' && isset($rec)){
+            if($rec->state != 'draft'){
+                $res = 'no_one';
+            } else {
+                if(empty($rec->total) || round($rec->paid, 2) < round($rec->total, 2)){
+                    $res = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -796,6 +810,21 @@ class pos_Receipts extends core_Master
             }
         }
 
+        $this->markAsWaiting($rec);
+        
+        // Създаване на нова чернова бележка
+        return new Redirect(array($this, 'new'));
+    }
+
+
+    /**
+     * Ръчно маркира бележката като чакаща
+     *
+     * @param stdClass $rec
+     * @return void
+     */
+    private function markAsWaiting($rec)
+    {
         $rec->state = 'waiting';
         $rec->waitingOn = dt::now();
         $rec->waitingBy = core_Users::getCurrent();
@@ -821,12 +850,9 @@ class pos_Receipts extends core_Master
             cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent');
             $this->logInAct('Приключване на бележка', $rec->id);
         }
-        
-        // Създаване на нова чернова бележка
-        return new Redirect(array($this, 'new'));
     }
-    
-    
+
+
     /**
      * Показва краткия номер на бележката, съгласно настройките на пакета
      * 
@@ -1410,5 +1436,22 @@ class pos_Receipts extends core_Master
 
             return $title;
         }
+    }
+
+
+    /**
+     * Екшън за ръчно приключване на бележка
+     */
+    public function act_manualpending()
+    {
+        $this->requireRightFor('manualpending');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = static::fetch($id));
+        $this->requireRightFor('manualpending', $rec);
+        $this->markAsWaiting($rec);
+
+        $this->logInAct('Ръчно приключване на бележка', $rec->id);
+
+        followRetUrl(null, 'Бележката е ръчно приключена');
     }
 }
