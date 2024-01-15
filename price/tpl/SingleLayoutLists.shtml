@@ -65,7 +65,14 @@
             <td>[#discountComparedShowAbove#]</td>
         </tr>
         <!--ET_END discountComparedShowAbove-->
-        
+
+        <!--ET_BEGIN discountClassPeriod-->
+        <tr>
+            <td class="title-style">|Суми за отстъпки|*</td>
+            <td>[#discountClassPeriod#]</td>
+        </tr>
+        <!--ET_END discountClassPeriod-->
+
         <!--ET_BEGIN discountClass-->
         <tr>
             <td class="title-style">|Автоматични отстъпки|*</td>

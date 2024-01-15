@@ -210,14 +210,7 @@ class pos_Terminal extends peripheral_Terminal
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
 
         // Ако контрагента е лице и е потребител да се показва и аватара му
-        $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
-        if(!$isDefaultContragent){
-            if($rec->contragentClass == crm_Persons::getClassId()){
-                $headerData->contragentAvatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 26, 26);
-            }
-        }
-        $contragentName = $isDefaultContragent ? null : cls::get($rec->contragentClass)->getHyperlink($rec->contragentObjectId, false, false, array('target' => '_blank'));
-        $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : $contragentName;
+        $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : pos_Receipts::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('blank' => true));
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
         $logoTpl = new core_ET("[#img#] [#APP_NAME#]");
@@ -1328,7 +1321,9 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
+        $btnPlus = "<a href=\"javascript:toggleDisplay('hide-additional')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div>
+                                     <!--ET_BEGIN PAYMENTS_ADDITIONAL--><div class='divider'>|Допълнително|* {$btnPlus}</div><div class='grid' id = 'hide-additional' style='display:none'>[#PAYMENTS_ADDITIONAL#]</div><!--ET_END PAYMENTS_ADDITIONAL--></div>"));
         
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
@@ -1352,6 +1347,10 @@ class pos_Terminal extends peripheral_Terminal
                 if($paymentId == $cardPaymentId){
                     $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
                     if(is_object($deviceRec)){
+                        $attr['data-warning'] = tr('Потвърдете, че плащането с карта през банковия терминал е минало успешно|*?');
+                        $attr['id'] = 'card-payment-manual';
+                        $paymentArr["payment{$paymentId}Manual"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle) . tr('|*<i class="small">[ |Ръчно потвърдено|* ]</i>'), true), 'placeholder' => 'PAYMENTS_ADDITIONAL');
+
                         $attr['id'] = 'card-payment';
                         $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
                         $diff = abs($rec->paid - $rec->total);
@@ -2061,6 +2060,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'packagingId' => $packId);
             if (empty($priceRes->price)){
+                wp("POS_NO_PRICE POL_ID:{$settings->policyId} | C_LIST:({$contragentPriceListId})| P_ID: {$id}| Date: '{$now}'");
                 $res[$id]->price = "<b class='red'>n/a</b>";
             } else {
                 if(!empty($priceRes->discount)){

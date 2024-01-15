@@ -29,12 +29,6 @@ abstract class frame2_driver_Proto extends core_BaseClass
 
 
     /**
-     * Да се показва ли антектката при изпращане и при печат
-     */
-    protected $hideLetterHeadWhenSendingOrPrinting = false;
-
-
-    /**
      * Дали да се изпраща нотификация САМО ако са променени данните от справката
      */
     public $sendNotificationOnlyAfterDataIsChanged = true;
@@ -48,8 +42,20 @@ abstract class frame2_driver_Proto extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
     }
-    
-    
+
+    /**
+     * След полетата за добавяне
+     *
+     * @param frame2_driver_Proto $Driver   - драйвер
+     * @param embed_Manager       $Embedder - ембедър
+     * @param core_Fieldset       $fieldset - форма
+     */
+    protected static function on_AfterAddFields(frame2_driver_Proto $Driver, embed_Manager $Embedder, core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('showLetterHeadWhenSending', "enum(yes=Показване при печат/експорт,no=Скриване при печат/експорт)", "caption=Други настройки->Антетка,autohide");
+    }
+
+
     /**
      * Кой може да избере драйвера
      */
@@ -150,7 +156,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
         }
 
         if(Mode::is('text', 'xhtml') || Mode::is('printing')){
-            if($Driver->hideLetterHeadWhenSendingOrPrinting){
+            if($rec->showLetterHeadWhenSending == 'no'){
                 $resArr = array();
             }
         }

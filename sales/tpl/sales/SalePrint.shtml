@@ -69,10 +69,10 @@
 <p>- Цените са с включен ДДС[#withVat#]
 <!--ET_END withVat-->
 <!--ET_BEGIN sepVat-->
-<p>- Цените са с отделно ДДС [#sepVat#]
+<p>- Цените са с отделно ДДС[#sepVat#]
 <!--ET_END sepVat-->
 <!--ET_BEGIN noVat-->
-<p>- Цените са без ДДС[#noVat#]
+<p>- Без начисляване на ДДС[#noVat#]
 <!--ET_END noVat-->
 <!--ET_BEGIN closedDocuments-->
 <p>- Обединява: [#closedDocuments#]
