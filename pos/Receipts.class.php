@@ -294,9 +294,8 @@ class pos_Receipts extends core_Master
             $row->returnedTotal = ht::styleIfNegative("-{$row->returnedTotal}", -1 * $rec->returnedTotal);
             $row->returnedCurrency = $row->currency;
         }
-        
-        $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
-        $row->contragentId = $Contragent->getHyperlink(true);
+
+        $row->contragentId = static::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('link' => true, 'icon' => true));
 
         if ($fields['-list']) {
             $row->title = $mvc->getHyperlink($rec->id, true);
@@ -1120,18 +1119,7 @@ class pos_Receipts extends core_Master
 
         // Задаване на новия контрагент
         $this->setContragent($rec, $contragentClassId, $contragentId, $locationId);
-        $this->logWrite('Избир на контрагент в бележка', $id);
-
-        // Ако е сканирана клиентска карта на лице - в статуса се показва аватара му
-        if($autoSelect){
-            if($rec->contragentClass == crm_Persons::getClassId()){
-                $avatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 130, 130);
-                if(!empty($avatar)){
-                    $personName = crm_Persons::fetchField($rec->contragentObjectId, 'name');
-                    core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'no-icon', null, 120);
-                }
-            }
-        }
+        $this->logWrite('Избор на контрагент в бележка', $id);
 
         if (Request::get('ajax_mode')) {
             return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true);
@@ -1385,5 +1373,42 @@ class pos_Receipts extends core_Master
         if($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) return true;
 
         return false;
+    }
+
+
+    /**
+     * Замаскирано име на контрагента, ако е лица показва се само политиката му
+     *
+     * @param mixed $contragentClassId
+     * @param int $contragentId
+     * @param int $pointId
+     * @param array $params
+     * @return core_ET|string
+     */
+    public static function getMaskedContragent($contragentClassId, $contragentId, $pointId, $params = array())
+    {
+        $Class = cls::get($contragentClassId);
+        $link = $params['link'] ?? false;
+        $icon = $params['icon'] ?? false;
+
+        $attr = ($params['blank']) ? array('target' => '_blank') : array();
+        if($Class instanceof crm_Companies){
+
+            return ($link) ? $Class->getHyperlink($contragentClassId, $icon, false, $attr) : $Class->getTitleById($contragentId);
+        } else {
+            $date = $params['date'] ?? dt::now();
+            $defaultContragentId = pos_Points::defaultContragent($pointId);
+            $contragentPriceListId = ($defaultContragentId == $contragentId) ? pos_Points::getSettings($pointId, 'policyId') : price_ListToCustomers::getListForCustomer($contragentClassId, $contragentId, $date);
+
+            $title = tr("Политика|*: ") . price_Lists::getTitleById($contragentPriceListId);
+            if($link){
+                $singleUrl = $Class->getSingleUrlArray($contragentId);
+                if($singleUrl){
+                    $title = ht::createLinkRef($title, $singleUrl, false, array('title' => $Class->getTitleById($contragentId)));
+                }
+            }
+
+            return $title;
+        }
     }
 }

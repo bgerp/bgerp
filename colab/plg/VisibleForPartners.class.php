@@ -26,7 +26,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
     public static function on_AfterDescription($mvc)
     {
         if (!$mvc->fields['visibleForPartners']) {
-            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори,input=none,before=sharedUsers');
+            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори,input=none,before=sharedUsers, maxRadio=3');
         }
     }
     
