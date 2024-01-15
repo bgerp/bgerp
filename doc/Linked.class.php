@@ -731,7 +731,7 @@ class doc_Linked extends core_Manager
             $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
             $form->input();
             
-            $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
+            $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Search, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
         } elseif ($act == 'linkFile') {
             $form->FNC('linkFileId', 'fileman_FileType(bucket=Linked)', 'caption=Файл, input, mandatory');
         } elseif ($act == 'newDoc') {
