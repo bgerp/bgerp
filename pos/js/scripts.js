@@ -882,12 +882,12 @@ function pressNavigable(element)
 	} else if(element.hasClass('payment')){
 		var type = element.attr("data-type");
 		var warning = element.attr("data-warning");
+		if(warning){
+			if (!confirm(warning)) return false;
+		}
 
 		var sendAmount = element.attr("data-sendamount");
 		if(sendAmount == 'yes'){
-			if(warning){
-				if (!confirm(warning)) return false;
-			}
 
 			var maxamount = parseFloat(element.attr("data-maxamount")).toFixed(2);
 			var amount = $("input[name=ean]").val();

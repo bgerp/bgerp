@@ -1173,6 +1173,13 @@ select.tabHolder {
 		display: none;
 	}
 }
+
+
+#card-payment-manual:not(.disabledBtn) {
+	color:white !important;
+	background-color:purple !important;
+}
+
 #card-payment:not(.disabledBtn) {
 	background-color: #7bcae9 !important;
 }
