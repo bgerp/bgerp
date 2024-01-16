@@ -1336,9 +1336,8 @@ function disableOrEnableEnlargeBtn()
  */
 function addProduct(el) {
 
-	sessionStorage.setItem('changedOpacity', $(el).css("opacity"));
+	$(el).addClass('fadedElement');
 	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
-	$(el).css('opacity', 0.2);
 	clearTimeout(timeout);
 
 	var elemRow = $(el).closest('.receiptRow');
@@ -1483,11 +1482,9 @@ function render_toggleAddedProductFlag(data)
  */
 function render_restoreOpacity()
 {
-	var opacity = sessionStorage.getItem('changedOpacity');
 	var restoreOpacityId = sessionStorage.getItem('changedOpacityElementId');
-	$("#" + restoreOpacityId).css('opacity', opacity);
+	$("#" + restoreOpacityId).removeClass('fadedElement');
 
-	sessionStorage.removeItem("changedOpacity");
 	sessionStorage.removeItem("changedOpacityElementId");
 }
 

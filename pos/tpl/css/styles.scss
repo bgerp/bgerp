@@ -1173,6 +1173,9 @@ select.tabHolder {
 		display: none;
 	}
 }
+.fadedElement {
+	opacity: 0.2 !important;
+}
 .flexBtns {
 	display: flex;
 	justify-content: space-around;
