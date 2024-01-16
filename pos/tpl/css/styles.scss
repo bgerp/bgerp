@@ -1178,6 +1178,11 @@ select.tabHolder {
 	justify-content: space-around;
 	padding: 0 250px;
 }
+@media handheld, only screen and (max-width: 1280px) {
+	.flexBtns {
+		padding: 0 100px;
+	}
+}
 .modalBtn {
 	height: 70px;
 	width: 450px;
@@ -1188,18 +1193,17 @@ select.tabHolder {
 	color: white;
 	font-size: 2.5em;
 	text-align: center;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
 	border-radius: 10px;
 	color: white !important;
 	font-weight: bold;
 	border: 1px solid #666;
 	border-radius: 3px;
 	box-shadow: rgba(233,233,233,.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0,0,0,.1);
+	text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
 	background-color: #ccc;
 }
 .confirmPayment {
-	background-color: #59bb33;
+	background-color: #4c9d2c;
 }
 .closePaymentModal {
 	background-color: #c51818;
