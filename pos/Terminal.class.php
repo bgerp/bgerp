@@ -2189,6 +2189,9 @@ class pos_Terminal extends peripheral_Terminal
         $query->limit($maxSearchReceipts);
         if(!empty($string)){
             plg_Search::applySearch($string, $query);
+            if(type_Int::isInt($string)){
+                $query->orWhere(array("#id = [#1#]", $string));
+            }
         }
         
         if(in_array($rec->_selectedReceiptFilter, array('draft', 'waiting', 'closed', 'rejected'))){

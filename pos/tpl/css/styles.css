@@ -810,8 +810,7 @@ select.tabHolder {
   border: 1px solid #999999;
   height: 118px;
   background: #f1f1f1;
-  user-select: none;
-  opacity: 0.7; }
+  user-select: none; }
   .element:focus,
   .element.selected {
     box-shadow: 0px 0px 10px #fca40b !important;
