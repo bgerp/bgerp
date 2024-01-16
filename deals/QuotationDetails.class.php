@@ -387,6 +387,10 @@ class deals_QuotationDetails extends doc_Detail
 
         // Заределяме рековете и роуовете на опционални и неопционални
         $optionalRows = $notOptionalRows = $optionalRecs = $notOptionalRecs = array();
+        if($data->masterData->rec->detailOrderBy == 'auto'){
+            ksort($data->rows);
+        }
+
         foreach ($data->rows as $ind => $ro) {
             $r = $data->recs[$ind];
             if ($r->optional == 'no') {
