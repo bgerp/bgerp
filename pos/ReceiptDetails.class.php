@@ -135,11 +135,13 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $param = Request::get('param', 'varchar');
-        pos_Receipts::requireRightFor('pay', $receiptRec);
         $success = true;
         $rec = null;
 
         try{
+            if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
+                expect(false, 'Не може да се добави друго плащане');
+            }
             $type = Request::get('type', 'int');
             if($type != -1){
                 expect(cond_Payments::fetch($type), 'Неразпознат метод на плащане');
@@ -167,7 +169,7 @@ class pos_ReceiptDetails extends core_Detail
             if(!empty($param)){
                 $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($type == $cardPaymentId){
-                    $rec->param = 'card';
+                    $rec->param = $param;
                 }
             }
 
@@ -771,7 +773,15 @@ class pos_ReceiptDetails extends core_Detail
                 $row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
                 $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 $row->amount = ht::styleNumber($row->amount, $rec->amount);
-                
+
+                $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+                if($action->value == $cardPaymentId){
+                    if(!empty($rec->param)){
+                        $paramVal = ($rec->param == 'card') ? tr('Потв.') : tr('Ръчно потв.');
+                        $row->actionValue .= " [{$paramVal}]";
+                    }
+                }
+
                 if ($fields['-list']) {
                     $row->productId = tr('Плащане') . ': ' . $row->actionValue;
                     unset($row->quantity, $row->value);
@@ -1038,7 +1048,7 @@ class pos_ReceiptDetails extends core_Detail
 
         if ($action == 'delete' && isset($rec->receiptId)) {
             if(strpos($rec->action, 'payment') !== false){
-                if(!empty($rec->param)){
+                if($rec->param == 'card'){
                     $res = 'no_one';
                 }
             }
