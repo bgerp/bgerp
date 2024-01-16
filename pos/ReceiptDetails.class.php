@@ -135,11 +135,13 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $param = Request::get('param', 'varchar');
-        pos_Receipts::requireRightFor('pay', $receiptRec);
         $success = true;
         $rec = null;
 
         try{
+            if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
+                expect(false, 'Не може да се добави друго плащане');
+            }
             $type = Request::get('type', 'int');
             if($type != -1){
                 expect(cond_Payments::fetch($type), 'Неразпознат метод на плащане');
