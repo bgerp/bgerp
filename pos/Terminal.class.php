@@ -183,7 +183,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Вкарване на css и js файлове
         $this->pushTerminalFiles($tpl, $rec);
-        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!<br><span class="modalBtn confirmPayment">' . tr('Потвърди') . '</span> <span class="closePaymentModal modalBtn">' . tr('Отказ') . '</span></h3></div>');
+        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns"><span class="modalBtn confirmPayment">' . tr('Потвърди') . '</span> <span class="closePaymentModal modalBtn">' . tr('Отказ') . '</span></div></div></div>');
         $tpl->append($modalTpl);
 
         $this->renderWrapping($tpl);
