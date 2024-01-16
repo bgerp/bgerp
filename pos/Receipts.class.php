@@ -80,8 +80,14 @@ class pos_Receipts extends core_Master
      * Кой може да променя?
      */
     public $canAdd = 'pos, ceo';
-    
-    
+
+
+    /**
+     * Кой може да сторнира?
+     */
+    public $canRevert = 'pos, ceo';
+
+
     /**
      * Кой може ръчно да прави чакаща?
      */
