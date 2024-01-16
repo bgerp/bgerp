@@ -1354,6 +1354,7 @@ class pos_Terminal extends peripheral_Terminal
                     if(is_object($deviceRec)){
                         $attr['id'] = 'card-payment';
                         $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
+                        $attr['data-oncancel'] = tr('Отказвано плащане с банков терминал|*!');
                         $diff = abs($rec->paid - $rec->total);
                         $attr['data-maxamount'] = $diff;
                         $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');

@@ -37,6 +37,9 @@ function posActions() {
 
 	$(document.body).on('click', ".closePaymentModal", function(e){
 		$(".fullScreenCardPayment").css("display", "none");
+		var element = $("#card-payment");
+		var msg = element.attr("data-oncancel");
+		render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
 	});
 
 	$(document.body).on('click', ".confirmPayment", function(e){
