@@ -7,7 +7,6 @@ var searchTimeout;
 var addedProduct;
 
 function posActions() {
-	$('body').append('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Плащане с банковия терминал ...<br> Моля, изчакайте!</h3></div>');
 	calculateWidth();
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
@@ -34,6 +33,19 @@ function posActions() {
 	calculateWidth();
 	$(window).resize( function() {
 		calculateWidth();
+	});
+
+	$(document.body).on('click', ".closePaymentModal", function(e){
+		$(".fullScreenCardPayment").css("display", "none");
+	});
+
+	$(document.body).on('click', ".confirmPayment", function(e){
+		var element = $("#card-payment");
+		var url = element.attr("data-url");
+
+		var type = element.attr("data-type");
+		doPayment(url, type, 'manual');
+		$(".fullScreenCardPayment").css("display", "none");
 	});
 
 	// Използване на числата за въвеждане в пулта
@@ -1487,6 +1499,8 @@ function activateTab(element, timeOut)
 	
 	triggerSearchInput($(".large-field"), timeOut, false);
 }
+
+
 
 
 /*
