@@ -57,8 +57,13 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldset->FLD(
             'countryGroup',
             'key(mvc=drdata_CountryGroups,select=name)',
-            'caption=Група държави,single=none,mandatory,after=contragent'
+            'caption=Филтри->Група държави,single=none,mandatory,after=contragent'
         );
+
+        //Праг за минимална просрочена сума за показване
+        $fieldset->FLD('minOverdueLevev', 'double', 'caption=Филтри->Да не се показват фактури с просрочена сума под ,unit=лв.,after=countryGroup,placeholder=0.00,silent,single=none');
+
+
         $fieldset->FLD('listForEmail', 'blob', 'caption=Списък за имейл,single=none,after=countryGroup,input=hidden');
         $fieldset->FLD('excludedFromEmail', 'text', 'caption=Изключени за имейл фирми,single=none,after=listForEmail,input=hidden');
         $fieldset->FLD('unsentEmails', 'blob', 'caption=Неизпратени имейли,single=none,after=listForEmail,input=hidden');
@@ -234,7 +239,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         list($limit1) = $limits->limit1;
                         list($limit2) = $limits->limit2;
 
-                        if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 &&
+                        if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > $rec->minOverdueLevev &&
                             $iRec->dueDate < $checkDate) {
                             $overdueDays = dt::daysBetween($checkDate, $iRec->dueDate);
 
