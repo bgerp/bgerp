@@ -502,6 +502,8 @@ select.tabHolder {
   align-content: center;
   background: white !important;
   position: relative; }
+  .grid.pictureAndText .element.notSellable {
+    background-color: #aaaaaa !important; }
   .grid.pictureAndText .element.selected {
     padding: 1px !important; }
     .grid.pictureAndText .element.selected .pos-price {

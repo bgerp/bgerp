@@ -594,6 +594,9 @@ select.tabHolder {
 	align-content: center;
 	background: #fff !important;
 	position: relative;
+	&.notSellable {
+		background-color: #aaa !important;
+	}
 	&.selected {
 		padding: 1px !important;
 		.pos-price {
