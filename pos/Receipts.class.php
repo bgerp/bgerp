@@ -510,26 +510,8 @@ class pos_Receipts extends core_Master
         $rec = $mvc->fetchRec($id);
         if ($rec->state != 'draft') return;
 
-        // Изчисляване на автоматичната отстъпка
-        $settings = pos_Points::getSettings($rec->pointId);
-        $contragentPriceListId = pos_Receipts::isForDefaultContragent($rec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
-        if($discountClass = price_Lists::fetchField($contragentPriceListId, 'discountClass')) {
-            if (cls::load($discountClass, true)) {
-                $Interface = cls::getInterface('price_SaleAutoDiscountIntf', $discountClass);
-                $update = array();
-                $dQuery = pos_ReceiptDetails::getQuery();
-                $dQuery->where("#receiptId = {$id} AND #action LIKE '%sale%'");
-                while ($dRec = $dQuery->fetch()) {
-                    $dRec->autoDiscount = $Interface->calcAutoSaleDiscount('pos_ReceiptDetails', $dRec, $mvc, $rec);
-                    $update[$dRec->id] = $dRec;
-                }
-
-                // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
-                cls::get('pos_ReceiptDetails')->saveArray($update, 'id,autoDiscount');
-
-                $mvc->updateMaster_($id);
-            }
-        }
+        //@todo да върна автоматичните отстъпки
+        return;
     }
 
 

@@ -170,7 +170,9 @@ class price_Lists extends core_Master
         $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка / Отстъпка по подразбиране->Процент', "unit= |(със знак минус за Отстъпка)");
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
-        $this->FLD('discountClass', 'class(interface=price_SaleAutoDiscountIntf,select=title,allowEmpty)', 'caption=Автоматични отстъпки->Избор,autohide');
+
+        $this->FLD('discountClassPeriod', 'enum(default=За продажба,daily=За ден,monthly=За текущ месец)', 'caption=Автоматични отстъпки->Сума за отстъпки,autohide,notNull,value=default');
+        $this->FLD('haveBasicDiscounts', 'enum(no=Няма,yes=Има)', 'caption=Автоматични отстъпки->Има ли,notNull,value=no');
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
     }
@@ -870,5 +872,85 @@ class price_Lists extends core_Master
         }
 
         return false;
+    }
+
+
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     *
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+        $rec = $this->fetchRec($id);
+        $discountCount = price_ListBasicDiscounts::count("#listId = {$rec->id}");
+        $rec->haveBasicDiscounts = $discountCount ? 'yes' : 'no';
+        $this->save($rec, 'haveBasicDiscounts');
+    }
+
+
+
+    public static function getListWithBasicDiscounts($Master, $masterRec)
+    {
+        $Master = cls::get($Master);
+        if($Master instanceof sales_Sales){
+            $listId = $masterRec->priceListId ?? price_ListToCustomers::getListForCustomer($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior);
+        } else {
+            $listId = pos_Receipts::isForDefaultContragent($masterRec) ? pos_Points::getSettings($masterRec->pointId)->policyId : price_ListToCustomers::getListForCustomer($masterRec->contragentClass, $masterRec->contragentObjectId);
+        }
+
+        // Кои политики наследява тази политика
+        $count = 1;
+        $parent = $listId;
+        $where = "CASE #id";
+        while ($parent && ($pRec = price_Lists::fetch("#id = {$parent}", "id,parent"))) {
+            $parent = $pRec->parent;
+            $where .= " WHEN {$pRec->id} THEN {$count}";
+            $count++;
+        }
+        $where .= " ELSE {$count} END";
+
+        $lQuery = price_Lists::getQuery();
+        $lQuery->XPR('order', 'int', "({$where})");
+        $lQuery->where("#haveBasicDiscounts = 'yes'");
+        $lQuery->orderBy('order', 'ASC');
+        $foundRec = $lQuery->fetch();
+
+        return is_object($foundRec) ? $foundRec : null;
+    }
+
+
+    function act_Test()
+    {
+        requireRole('debug');
+
+        $rec = sales_Sales::fetch(4451);
+
+        $basicDiscountListRec = static::getListWithBasicDiscounts(cls::get('sales_Sales'), $rec);
+        if(is_object($basicDiscountListRec)){
+            //$basicDiscountListRec->discountClassPeriod = 'monthly';
+
+            $dQuery = cls::get('sales_SalesDetails')->getQuery();
+            $dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+            $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+            $dQuery->where("#saleId = {$rec->id} AND #isPublic = 'yes'");
+            $detailsAll = $dQuery->fetchAll();
+
+            $discountData = cls::get('price_ListBasicDiscounts')->getAutoDiscountsByGroups($basicDiscountListRec, 'sales_Sales', $rec, 'sales_SalesDetails', $detailsAll);
+
+            foreach ($detailsAll as $dRec){
+                foreach ($discountData['groups'] as $groupId => $d){
+                    if(keylist::isIn($groupId, $dRec->groups)){
+                        if(!empty($d['percent'])){
+                            $dRec->autoDiscount = $d['percent'];
+                        }
+                    }
+                }
+            }
+
+            bp($detailsAll, $discountData);
+        }
     }
 }
