@@ -180,10 +180,12 @@ class pos_Terminal extends peripheral_Terminal
         
         $data = (object) array('rec' => $rec);
         $this->invoke('AfterRenderSingle', array(&$tpl, $data));
-        
+        $manualConfirmBtn = ht::createFnBtn('Ръчно потвърждение', '', '', array('class' => 'modalBtn confirmPayment disabledBtn'));
+        $manualCancelBtn = ht::createFnBtn('Назад', '', '', array('class' => 'closePaymentModal modalBtn disabledBtn'));
+
         // Вкарване на css и js файлове
         $this->pushTerminalFiles($tpl, $rec);
-        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns"><span class="modalBtn confirmPayment">' . tr('Потвърди') . '</span> <span class="closePaymentModal modalBtn">' . tr('Отказ') . '</span></div></div></div>');
+        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
         $tpl->append($modalTpl);
 
         $this->renderWrapping($tpl);

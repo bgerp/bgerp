@@ -1037,7 +1037,7 @@ class eshop_Carts extends core_Master
             $saleRec = self::makeSalePending($saleId);
             eshop_Carts::logDebug("Продажбата #Sal{$saleId} към онлайн поръчка, става на заявка", $rec->id);
         }
-        
+        cls::get('sales_Sales')->updateMaster($saleRec);
         self::activate($rec, $saleRec->id);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
