@@ -580,10 +580,10 @@ class pos_Receipts extends core_Master
             }
         }
 
-        if(in_array($action, array('delete', 'reject', 'revert')) && isset($rec)){
+        if(in_array($action, array('delete', 'reject')) && isset($rec)){
             $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
             if(is_object($deviceRec)){
-                $paidWithCards = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}' AND #param IS NOT NULL AND #param != ''");
+                $paidWithCards = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}' AND #param = 'card'");
                 if($paidWithCards){
                     $res = 'no_one';
                 }
@@ -624,7 +624,7 @@ class pos_Receipts extends core_Master
         }
         
         if ($action == 'revert' && isset($rec) && ($rec != pos_Receipts::DEFAULT_REVERT_RECEIPT)) {
-            if(isset($rec->revertId) || (!in_array($rec->state, array('waiting', 'closed'))) || (!empty($rec->returnedTotal) && round($rec->total - $rec->returnedTotal, 2) <= 0)){
+            if(isset($rec->revertId) || (!in_array($rec->state, array('waiting', 'closed'))) || (!empty($rec->returnedTotal) && round($rec->total - $rec->returnedTotal, 2) <= 0) || ($rec->state == 'closed' && isset($rec->transferredIn))){
                 $res = 'no_one';
             }
         }
