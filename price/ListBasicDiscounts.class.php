@@ -243,7 +243,14 @@ class price_ListBasicDiscounts extends core_Detail
         $groupIds = arr::extractValuesFromArray($dRecs, 'groupId');
         $salesByNow = array();
         if($basicDiscountListRec->discountClassPeriod != 'default'){
-            $salesByNow = $this->getSalesByNowForContragent($masterRec->contragentClassId, $masterRec->contragentId, $groupIds, $basicDiscountListRec);
+            $contragentClassId = $masterRec->contragentClassId;
+            $contragentId = $masterRec->contragentId;
+            if($Master instanceof pos_Receipts){
+                $contragentClassId = $masterRec->contragentClass;
+                $contragentId = $masterRec->contragentObjectId;
+            }
+
+            $salesByNow = $this->getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
         }
         $res['SALES_BY_NOW'] = $salesByNow;
         $detailsByGroups = array();
@@ -257,10 +264,17 @@ class price_ListBasicDiscounts extends core_Detail
                             $amount *= (1 + $vat);
                         }
                         $detailsByGroups[$groupId] += $amount;
+                    } else {
+                        $amount = isset($detailRec->discountPercent) ? ($detailRec->amount * (1 - $detailRec->discountPercent)) : $detailRec->amount;
+                        if($basicDiscountListRec->vat == 'yes'){
+                            $amount *= (1 + $detailRec->param);
+                        }
+                        $detailsByGroups[$groupId] += $amount;
                     }
                 }
             }
         }
+
         $res['CURRENT_SALE'] = $detailsByGroups;
         $finalSums = $salesByNow;
         array_walk($detailsByGroups, function($val, $key) use (&$finalSums) {$finalSums[$key] += $val;});
@@ -323,7 +337,7 @@ class price_ListBasicDiscounts extends core_Detail
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');
             $lastDay = dt::getLastDayOfMonth(dt::today());
-            $dQuery->where("#valior > '{$firstDay}' AND #valior <= '{$lastDay}'");
+            $dQuery->where("#valior >= '{$firstDay}' AND #valior <= '{$lastDay}'");
         } else {
             $today = dt::today();
             $dQuery->where("#valior = '{$today}'");
@@ -357,13 +371,15 @@ class price_ListBasicDiscounts extends core_Detail
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');
             $lastDay = dt::getLastDayOfMonth(dt::today());
-            $pQuery->where("#waitingOn > '{$firstDay}' AND #waitingOn <= '{$lastDay}'");
+            $pQuery->where("#waitingOn >= '{$firstDay}' AND #waitingOn <= '{$lastDay}'");
         } else {
             $today = dt::today();
-            $pQuery->where("#waitingOn = '{$today}'");
+            $pQuery->where("#waitingOn >= '{$today} 00:00:00' AND #waitingOn <= '{$today} 23:59:59'");
         }
 
         $receiptRecs = $pQuery->fetchAll();
+
+
         foreach ($groupIds as $groupId1){
             foreach ($receiptRecs as $receiptRec){
                 if(keylist::isIn($groupId1, $receiptRec->groups)){
