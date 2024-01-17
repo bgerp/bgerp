@@ -1011,7 +1011,7 @@ only screen and (max-width: 1280px) {
   box-sizing: border-box;
   padding: 10px 20px;
   color: white;
-  font-size: 2.5em;
+  font-size: 1.5em !important;
   text-align: center;
   border-radius: 10px;
   color: white !important;
@@ -1023,10 +1023,10 @@ only screen and (max-width: 1280px) {
   background-color: #cccccc; }
 
 .confirmPayment {
-  background-color: #4c9d2c; }
+  background-color: #4c9d2c !important; }
 
 .closePaymentModal {
-  background-color: #c51818; }
+  background-color: #c51818 !important; }
 
 #card-payment-manual:not(.disabledBtn) {
   color: white !important;
