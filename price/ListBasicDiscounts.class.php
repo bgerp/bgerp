@@ -231,12 +231,11 @@ class price_ListBasicDiscounts extends core_Detail
         $res = array();
         $Detail = cls::get($Detail);
         $Master = cls::get($Master);
-        if(!array_key_exists($basicDiscountListRec->id, $this->cacheDiscounts)){
-            $query = $this->getQuery();
-            $query->where("#listId = {$basicDiscountListRec->id}");
-            $this->cacheDiscounts[$basicDiscountListRec->id] = $query->fetchAll();
-        }
-        $dRecs = $this->cacheDiscounts[$basicDiscountListRec->id];
+
+        $query = $this->getQuery();
+        $query->where("#listId = {$basicDiscountListRec->id}");
+        $query->orderBy('id', 'ASC');
+        $dRecs = $query->fetchAll();
         $res['discountRecs'] = $dRecs;
 
         if(!countR($dRecs)) return $res;
@@ -275,7 +274,7 @@ class price_ListBasicDiscounts extends core_Detail
             $foundDiscountRec = null;
             $filteredRecs = array_filter($dRecs, function($a) use ($groupId) {return $a->groupId == $groupId;});
             foreach ($filteredRecs as $fRec){
-                $valToCheck = $finalSums[$groupId];
+                $valToCheck = round($finalSums[$groupId], 2);
                 $convertedAmount = currency_CurrencyRates::convertAmount($valToCheck, null, null, $fRec->currencyId);
                 if($convertedAmount >= $fRec->amountFrom && (($convertedAmount <= $fRec->amountTo) || !isset($fRec->amountTo))){
                     $foundDiscountRec = $fRec;
@@ -286,7 +285,7 @@ class price_ListBasicDiscounts extends core_Detail
             // Изчисляване на очаквания среден процент
             if($foundDiscountRec){
                 $res['groups'][$groupId]['FITS_IN'] = $foundDiscountRec;
-                $valToCheck = $finalSums[$groupId];
+                $valToCheck = round($finalSums[$groupId], 2);
 
                 $totalWithoutDiscountInListCurrency = currency_CurrencyRates::convertAmount($valToCheck, null, null, $basicDiscountListRec->currencyId);
 
