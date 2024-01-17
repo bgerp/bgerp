@@ -278,6 +278,7 @@ class ztm_RegisterValues extends core_Manager
             } catch (core_exception_Expect $e) {
                 $dump = $e->getDump();
                 ztm_Devices::logErr("'{$obj->name}': {$dump[0]}", $deviceId);
+                wp('Грешка при записване на регистър', $e, $obj);
             }
         }
 
