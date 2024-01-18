@@ -1395,7 +1395,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
             if($rec->type == 'dc_note' && $rec->state != 'rejected'){
                 if(!Mode::isReadOnly()){
-                    $documents = deals_InvoicesToDocuments::getDocumentsToInvoices($rec->containerId, 'acc_ValueCorrections,store_Receipts,store_ShipmentOrders');
+                    $documents = deals_InvoicesToDocuments::getDocumentsToInvoices($rec->containerId, 'acc_ValueCorrections,store_Receipts,store_ShipmentOrders,sales_Services,purchase_Services');
                     if(!countR($documents)){
                         $string = "Към Дебитно/Кредитно известие ЗАДЪЛЖИТЕЛНО трябва да се създаде и втори документ: Корекция на стойности (при промяна само на стойността) или ЕН/СР/ПП (при промяна на количества)!
                            В полето \"Към фактура\" на създадения втори документ изберете настоящото Известие, за да премахнете това съобщение!";
