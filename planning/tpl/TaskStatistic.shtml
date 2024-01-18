@@ -35,6 +35,9 @@
                       <!--ET_END batch-->
                   </div>
                   <div class='clearfix21'></div>
+                  <!--ET_BEGIN mandatoryDocuments-->
+                  <div><span style='font-weight:normal'>|Задължително|*</span>: [#mandatoryDocuments#]</div>
+                  <!--ET_END mandatoryDocuments-->
                   <!--ET_BEGIN storeId-->
                   <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->

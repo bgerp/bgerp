@@ -502,6 +502,8 @@ select.tabHolder {
   align-content: center;
   background: white !important;
   position: relative; }
+  .grid.pictureAndText .element.notSellable {
+    background-color: #aaaaaa !important; }
   .grid.pictureAndText .element.selected {
     padding: 1px !important; }
     .grid.pictureAndText .element.selected .pos-price {
@@ -1021,12 +1023,18 @@ only screen and (max-width: 1280px) {
   box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1);
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
   background-color: #cccccc; }
+  .modalBtn.disabledBtn {
+    color: #999999 !important; }
 
 .confirmPayment {
   background-color: #4c9d2c !important; }
+  .confirmPayment.disabledBtn {
+    background-color: #3f682f !important; }
 
 .closePaymentModal {
   background-color: #c51818 !important; }
+  .closePaymentModal.disabledBtn {
+    background-color: #7c2525 !important; }
 
 #card-payment-manual:not(.disabledBtn) {
   color: white !important;

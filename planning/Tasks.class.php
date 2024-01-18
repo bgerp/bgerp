@@ -303,6 +303,8 @@ class planning_Tasks extends core_Master
         }
 
         $this->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=title)', 'caption=Предходна операция,input=none');
+
+        $this->FLD('mandatoryDocuments', 'classes(select=title)', 'caption=Задължителни документи,hint=Задължителни документи при приключване на операцията');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
@@ -792,6 +794,12 @@ class planning_Tasks extends core_Master
                 if(!empty($row->manualPreviousTask)){
                     $row->notConvertedFromPreviousTasks = tr("Няма");
                 }
+            }
+
+            if(!empty($rec->mandatoryDocuments)){
+                $row->mandatoryDocuments = ht::createHint(tr('Има посочени'), $row->mandatoryDocuments);
+            } else {
+                $row->mandatoryDocuments = tr('Няма');
             }
         } else {
             // Ако има предишна операция, ще може да се поставя след нея
@@ -1658,7 +1666,7 @@ class planning_Tasks extends core_Master
             }
 
             if (!isset($rec->systemId) && empty($rec->id)) {
-                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode");
+                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode,mandatoryDocuments=mandatoryDocuments");
                 foreach ($defFields as $fld => $val) {
                     $form->setDefault($fld, $productionData[$val]);
                 }
@@ -3166,9 +3174,14 @@ class planning_Tasks extends core_Master
 
                 // Ако има планиращи действия
                 if(is_array($pData['actions'])){
+                    $actionsWithNorms = planning_AssetResourcesNorms::getNormOptions($rec->assetId, array(), true);
+
                     $now = dt::now();
                     foreach ($pData['actions'] as $actionId){
                         if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
+
+                        // Ако няма норма за планираното действие - ще се пропуска
+                        if(!in_array($actionId, $actionsWithNorms)) continue;
 
                         // Ще се създава запис за планираното действие за влагане
                         $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => $now, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now);
@@ -3907,5 +3920,32 @@ class planning_Tasks extends core_Master
         }
 
         return $prevRecValues;
+    }
+
+
+    /**
+     * След намиране на текста за грешка на бутона за 'Приключване'
+     *
+     * @param stdClass $rec
+     * @return null|string
+     */
+    public function getCloseBtnError($rec)
+    {
+        if(empty($rec->mandatoryDocuments)) return;
+
+        // Ако няма някой от задължителните документи да не може да се приключи операцията
+        $errorArr = array();
+        $mandatoryArr = keylist::toArray($rec->mandatoryDocuments);
+        foreach ($mandatoryArr as $classId){
+            if(!doc_Containers::count("#threadId = {$rec->threadId} AND #state IN ('active', 'pending') AND #docClass = {$classId}")){
+                $errorArr[] = tr(cls::get($classId)->singleTitle);
+            }
+        }
+
+        if(countR($errorArr)){
+            $msg = 'Задължително е да има|* създадени на заявка/активни следните документи|*: ' . implode(', ', $errorArr);
+
+            return $msg;
+        }
     }
 }

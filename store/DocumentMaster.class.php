@@ -601,6 +601,14 @@ abstract class store_DocumentMaster extends core_Master
                 if (!empty($rec->{$fld})) {
                     if ($fld == 'address') {
                         $row->{$fld} = core_Lg::transliterate($row->{$fld});
+                    } elseif ($fld == 'features') {
+                        // Превод на особеностите
+                        $featuresArr = array();
+                        $featuresExploded = explode(',', $row->{$fld});
+                        array_walk($featuresExploded, function($a) use (&$featuresArr){
+                            $featuresArr[] = tr(strip_tags($a));
+                        });
+                        $row->{$fld} = implode(',', $featuresArr);
                     } elseif ($fld == 'tel') {
                         if (callcenter_Talks::haveRightFor('list')) {
                             $row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));

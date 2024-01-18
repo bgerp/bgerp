@@ -73,12 +73,12 @@
         </tr>
         <!--ET_END discountClassPeriod-->
 
-        <!--ET_BEGIN discountClass-->
+        <!--ET_BEGIN haveBasicDiscounts-->
         <tr>
-            <td class="title-style">|Автоматични отстъпки|*</td>
-            <td>[#discountClass#]</td>
+            <td class="title-style">|Общи отстъпки|*</td>
+            <td>[#haveBasicDiscounts#]</td>
         </tr>
-        <!--ET_END discountClass-->
+        <!--ET_END haveBasicDiscounts-->
         
     	<!--ET_BEGIN clientInfo-->
     		[#clientInfo#]

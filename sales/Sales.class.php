@@ -2035,23 +2035,7 @@ class sales_Sales extends deals_DealMaster
         if (!in_array($rec->state, array('draft', 'pending'))) {
             return;
         }
-        
-        // Изчисляване на автоматичните отстъпки ако може
-        $DiscountInterface = price_ListToCustomers::getAutoDiscountClassForCustomer($rec->priceListId, $rec->contragentClassId, $rec->contragentId, $rec->valior);
-        if ($DiscountInterface) {
-            $update = array();
-            $dQuery = cls::get('sales_SalesDetails')->getQuery();
-            $dQuery->where("#saleId = {$rec->id}");
-            while ($dRec = $dQuery->fetch()) {
-                $dRec->autoDiscount = $DiscountInterface->calcAutoSaleDiscount('sales_SalesDetails', $dRec, 'sales_Sales', $rec);
-                $update[$dRec->id] = $dRec;
-            }
-            
-            cls::get('sales_SalesDetails')->saveArray($update, 'id,autoDiscount');
-
-            // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
-            $mvc->updateMaster_($id);
-        }
+        //@todo да добавя автоматичните отстъпки
     }
     
     
