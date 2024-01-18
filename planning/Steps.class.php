@@ -164,9 +164,8 @@ class planning_Steps extends core_Extender
         $paramSuggestions = cat_Params::getTaskParamOptions($rec->{"{$mvc->className}_planningParams"});
         $form->setSuggestions("{$mvc->className}_planningParams", $paramSuggestions);
 
-
         $mandatoryClassOptions = static::getMandatoryClassOptions();
-        $form->setSuggestions("{$mvc->className}_mandatoryDocuments", array('' => '') + $mandatoryOptions);
+        $form->setSuggestions("{$mvc->className}_mandatoryDocuments", array('' => '') + $mandatoryClassOptions);
 
         if($form->getField('meta', false)){
             $form->setField('meta', 'input=none');
