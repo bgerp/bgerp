@@ -29,6 +29,11 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo,debug';
 
+    /**
+     * По кое поле да се групира
+     */
+    public $groupByField ;
+
 
     /**
      * Брой записи на страница
@@ -69,8 +74,15 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('from', 'datetime(smartTime)', 'caption=От,after=title');
-        $fieldset->FLD('to', 'datetime(smartTime)', 'caption=До,after=title');
+        $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,after=title');
+        $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,after=start');
+
+        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС,placeholder=Всички,after=end,single=none');
+
+
+        //Групиране на резултатите
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране,contragentName=Клиент,pointId=ПОС)', 'caption=Групиране по,after=pos,single=none,refreshForm,silent');
+
     }
 
 
@@ -86,6 +98,8 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        $form->setDefault('groupBy', 'no');
 
     }
 
@@ -120,12 +134,46 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
     {
         $recs = array();
 
+        //Показването да бъде ли ГРУПИРАНО
+        if ($rec->groupBy != 'no') {
+            $this->groupByField = $rec->groupBy;
+        }
+
 
         $receiptQuery = pos_Receipts::getQuery();
+        $receiptQuery->where("#waitingOn >= '$rec->from'");
 
-        bp($receiptQuery->fetchAll());
+        //Филтър по ПОС
+        if(!is_null($rec->pos)){
 
-        bp();
+            $receiptQuery->in('pointId', keylist::toArray($rec->pos));
+
+        }
+
+
+        while ($receiptRec = $receiptQuery->fetch()) {
+
+            $id = $receiptRec->id;
+
+            if (!array_key_exists($id, $recs)) {
+                $recs[$id] = (object)array(
+
+                    'receiptId' => $receiptRec->id,
+                    'pointId' => $receiptRec->pointId,                  //POS
+                    'total' => $receiptRec->total,
+                    'waitingOn' => $receiptRec->waitingOn,
+                    'contragentName' => $receiptRec->contragentName,
+                    'contragentObjectId' => $receiptRec->contragentObjectId,
+                    'contragentClass' => $receiptRec->contragentClass,
+                );
+            } else {
+                $obj = &$recs[$id];
+
+            }
+        }
+        if(countR($recs)){
+            arr::sortObjects($recs, 'contragentName', 'asc');
+        }
 
         return $recs;
 
@@ -147,7 +195,10 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
 
+            $fld->FLD('contragentName', 'varchar', 'caption=Клиент');
+            $fld->FLD('pointId', 'datetime', 'caption=ПОС');
             $fld->FLD('datetime', 'datetime', 'caption=Време');
+            $fld->FLD('total', 'double(decimals=2)', 'caption=Сума');
 
         } else {
             $fld->FLD('datetime', 'datetime', 'caption=Време');
@@ -171,14 +222,21 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Int = cls::get('type_Int');
-        $Date = cls::get('type_Date');
+        $Datetime = cls::get('type_Datetime');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
 
         $row = new stdClass();
 
 
-        $row->datetime = $dRec->datetime;
+        $row->datetime = $Datetime->toVerbal($dRec->waitingOn);
+
+
+        $row->pointId = pos_Points::getHyperlink($dRec->pointId, true);
+
+        $row->contragentName = $dRec->contragentName;
+
+        $row->total = ht::createLink($dRec->total, array('pos_Receipts', 'single', $dRec->receiptId));
 
         return $row;
     }

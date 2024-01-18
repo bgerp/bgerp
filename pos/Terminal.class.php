@@ -180,11 +180,21 @@ class pos_Terminal extends peripheral_Terminal
         
         $data = (object) array('rec' => $rec);
         $this->invoke('AfterRenderSingle', array(&$tpl, $data));
-        
+        $manualConfirmBtn = ht::createFnBtn('Ръчно потвърждение', '', '', array('class' => 'modalBtn confirmPayment disabledBtn'));
+        $manualCancelBtn = ht::createFnBtn('Назад', '', '', array('class' => 'closePaymentModal modalBtn disabledBtn'));
+
         // Вкарване на css и js файлове
         $this->pushTerminalFiles($tpl, $rec);
+        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
+        $tpl->append($modalTpl);
+
         $this->renderWrapping($tpl);
-        
+
+
+
+
+
+
         return $tpl;
     }
     
@@ -1321,10 +1331,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $btnPlus = "<a href=\"javascript:toggleDisplay('hide-additional')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
-        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div>
-                                     <!--ET_BEGIN PAYMENTS_ADDITIONAL--><div class='divider'>|Допълнително|* {$btnPlus}</div><div class='grid' id = 'hide-additional' style='display:none'>[#PAYMENTS_ADDITIONAL#]</div><!--ET_END PAYMENTS_ADDITIONAL--></div>"));
-        
+        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
         
@@ -1347,18 +1354,14 @@ class pos_Terminal extends peripheral_Terminal
                 if($paymentId == $cardPaymentId){
                     $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
                     if(is_object($deviceRec)){
-                        $attr['data-warning'] = tr('Потвърдете, че плащането с карта през банковия терминал е минало успешно|*?');
-                        $attr['id'] = 'card-payment-manual';
-                        $paymentArr["payment{$paymentId}Manual"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle) . tr('|*<i class="small">[ |Ръчно потвърдено|* ]</i>'), true), 'placeholder' => 'PAYMENTS_ADDITIONAL');
-
                         $attr['id'] = 'card-payment';
                         $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
+                        $attr['data-oncancel'] = tr('Отказвано плащане с банков терминал|*!');
                         $diff = abs($rec->paid - $rec->total);
                         $attr['data-maxamount'] = $diff;
                         $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');
                         $attr['data-notnumericmsg'] = tr('Невалидна сума за плащане|*!');
                         $attr['data-sendamount'] = 'yes';
-                        $attr['data-warning'] = tr('Искате ли да се плати с карта от банковия терминал|*?');
                     }
                 }
 
@@ -2188,6 +2191,9 @@ class pos_Terminal extends peripheral_Terminal
         $query->limit($maxSearchReceipts);
         if(!empty($string)){
             plg_Search::applySearch($string, $query);
+            if(type_Int::isInt($string)){
+                $query->orWhere(array("#id = [#1#]", $string));
+            }
         }
         
         if(in_array($rec->_selectedReceiptFilter, array('draft', 'waiting', 'closed', 'rejected'))){
