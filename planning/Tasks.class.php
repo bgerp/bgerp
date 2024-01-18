@@ -3174,9 +3174,14 @@ class planning_Tasks extends core_Master
 
                 // Ако има планиращи действия
                 if(is_array($pData['actions'])){
+                    $actionsWithNorms = planning_AssetResourcesNorms::getNormOptions($rec->assetId, array(), true);
+
                     $now = dt::now();
                     foreach ($pData['actions'] as $actionId){
                         if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
+
+                        // Ако няма норма за планираното действие - ще се пропуска
+                        if(!in_array($actionId, $actionsWithNorms)) continue;
 
                         // Ще се създава запис за планираното действие за влагане
                         $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => $now, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now);

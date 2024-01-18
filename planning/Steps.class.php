@@ -182,8 +182,8 @@ class planning_Steps extends core_Extender
         // Добавяне на достъпните ресурси от центъра
         if(isset($rec->{"{$mvc->className}_centerId"})){
             $centerRec = planning_Centers::fetch($rec->{"{$mvc->className}_centerId"}, 'folderId,showPreviousJobField');
-
             $actionOptions = planning_AssetResourcesNorms::getAllNormOptions($rec->{"{$mvc->className}_centerId"}, $rec->{"{$mvc->className}_planningActions"});
+
             $form->setSuggestions("{$mvc->className}_planningActions", $actionOptions);
             $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_employees"}));
             $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_fixedAssets"}, 'planning_Tasks',true));
