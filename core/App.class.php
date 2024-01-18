@@ -431,6 +431,11 @@ class core_App
      */
     public static function checkHitStatus()
     {
+        if (!defined('DEBUG_CHECK_HIT_STATUS') || (DEBUG_CHECK_HIT_STATUS !== true)) {
+
+            return ;
+        }
+
         // Предпазване от много репортвания в един хит
         static $isReported = false;
         if ($isReported) {
