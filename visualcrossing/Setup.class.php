@@ -84,6 +84,11 @@ class visualcrossing_Setup extends core_ProtoSetup
         array('VisualCrossing Forecast', 'visualcrossing_Plugin', 'cal_Calendar', 'private'),
     );
 
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'visualcrossing_Sensor';
+
 
     /**
      * Настройки за Cron
