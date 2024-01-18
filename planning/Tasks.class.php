@@ -3169,7 +3169,6 @@ class planning_Tasks extends core_Master
 
         if($rec->state == 'pending' && in_array($rec->brState, array('draft', 'waiting'))){
             if($Driver = cat_Products::getDriver($rec->productId)){
-                $saveRecs = array();
                 $pData = $Driver->getProductionData($rec->productId);
 
                 // Ако има планиращи действия
