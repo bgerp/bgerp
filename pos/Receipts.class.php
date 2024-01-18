@@ -462,9 +462,9 @@ class pos_Receipts extends core_Master
     {
         $rec = $this->fetchRec($id);
         if(empty($rec)) return;
+        core_Debug::stopTimer('UPDATE_RECEIPT');
 
         $rec->change = $rec->total = $rec->paid = 0;
-        
         $dQuery = $this->pos_ReceiptDetails->getQuery();
         $dQuery->where("#receiptId = {$id}");
 
@@ -497,6 +497,9 @@ class pos_Receipts extends core_Master
         $rec->change = $diff;
         $rec->total = $rec->total;
         $this->save($rec);
+
+        core_Debug::stopTimer('UPDATE_RECEIPT');
+        core_Debug::log("END UPDATE_RECEIPT " . round(core_Debug::$timers["UPDATE_RECEIPT"]->workingTime, 6));
     }
 
 
