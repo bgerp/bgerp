@@ -519,17 +519,64 @@ class pos_Receipts extends core_Master
 
 
     /**
-     *  Филтрираме бележката
+     *  След подготовка на лист филтъра
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         pos_Points::addPointFilter($data->listFilter, $data->query);
         $filterDateFld = $data->listFilter->rec->filterDateField;
+
+        // Добавяне на филтър по начините на плащане
+        $paymentOptions = array();
+        $pQuery = cond_Payments::getQuery();
+        $pQuery->where("#state = 'active'");
+        $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+        while($pRec = $pQuery->fetch()){
+            $paymentName = cond_Payments::getTitleById($pRec->id, false);
+            $paymentOptions[$pRec->id] = $paymentName;
+            if($pRec->id == $cardPaymentId){
+                $paymentOptions["{$pRec->id}|card"] = "{$paymentName} [Потв.]";
+                $paymentOptions["{$pRec->id}|manual"] = "{$paymentName} [Ръчно потв.]";
+            }
+        }
+        $data->listFilter->FLD('payment', 'varchar', 'caption=Плащане');
+        $data->listFilter->setOptions('payment', array('all' => tr('Всички'), '-1' => tr('В брой')) + $paymentOptions);
+        $data->listFilter->showFields .= ',payment';
+        $data->listFilter->setDefault('payment', 'all');
+        $data->listFilter->input('payment');
         $data->query->orderBy($filterDateFld, 'DESC');
-        
-        foreach (array('valior', 'createdOn', 'modifiedOn') as $fld) {
+
+        // Скриване на полето за дата, ако се филтрира по конкретно поле
+        foreach (array('valior', 'createdOn', 'waitingOn') as $fld) {
             if ($fld != $data->listFilter->rec->filterDateField) {
                 unset($data->listFields[$fld]);
+            }
+        }
+
+        if($filter = $data->listFilter->rec){
+            if($filter->payment != 'all'){
+
+                // Ако се филтрира по начини на плащане
+                $cloneQuery = clone $data->query;
+                $cloneQuery->show('id');
+                $foundIds = arr::extractValuesFromArray($cloneQuery->fetchAll(), 'id');
+                if(countR($foundIds)){
+                    $dQuery = pos_ReceiptDetails::getQuery();
+                    if(is_numeric($filter->payment)){
+                        $dQuery->where("#action = 'payment|{$filter->payment}'");
+                    } else {
+                        list($paymentId, $paymentParam) = explode('|', $filter->payment);
+                        $dQuery->where("#action = 'payment|{$paymentId}' AND #param = '{$paymentParam}'");
+                    }
+                    $dQuery->in("receiptId", $foundIds);
+                    $dQuery->show('receiptId');
+                    $receiptIdWithPayments = arr::extractValuesFromArray($dQuery->fetchAll(), 'receiptId');
+                    if(countR($receiptIdWithPayments)){
+                        $data->query->in('id', $receiptIdWithPayments);
+                    } else {
+                        $data->query->where("1=2");
+                    }
+                }
             }
         }
     }
@@ -1167,30 +1214,6 @@ class pos_Receipts extends core_Master
         }
         
         return $rows;
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-        // Добавяне на използваните платежни методи към ключовите думи
-        if(isset($rec->id)){
-            $detailsKeywords = '';
-            $dQuery = pos_ReceiptDetails::getQuery();
-            $dQuery->where("#receiptId = '{$rec->id}' AND #action != 'sale|code'");
-            while ($dRec = $dQuery->fetch()) {
-                $action = cls::get('pos_ReceiptDetails')->getAction($dRec->action);
-                $payment = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
-                $detailsKeywords .= ' ' . plg_Search::normalizeText($payment);
-            }
-            
-            // Ако има нови ключови думи, добавят се
-            if (!empty($detailsKeywords)) {
-                $res = ' ' . $res . ' ' . $detailsKeywords;
-            }
-        }
     }
     
     
