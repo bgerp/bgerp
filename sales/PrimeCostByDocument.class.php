@@ -61,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,dealerId,initiatorId,state,isPublic,folderId,storeId';
+    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,sellCostWithOriginalDiscount,autoDiscountAmount,dealerId,initiatorId,state,isPublic,folderId,storeId';
     
     
     /**
@@ -112,6 +112,9 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax)', 'caption=Артикул,mandatory, tdClass=productCell leftCol wrap');
         $this->FLD('quantity', 'double', 'caption=Количество,mandatory');
         $this->FLD('sellCost', 'double', 'caption=Цени->Продажна,mandatory');
+        $this->FLD('autoDiscountAmount', 'double', 'caption=Цени->Прил. отст.,mandatory');
+        $this->FLD('sellCostWithOriginalDiscount', 'double', 'caption=Цени->Без авт.отс.,mandatory');
+
         $this->FLD('primeCost', 'double', 'caption=Цени->Себестойност,mandatory');
         $this->FNC('delta', 'double', 'caption=Цени->Делта,mandatory');
         $this->FLD('dealerId', 'user', 'caption=Дилър,mandatory');

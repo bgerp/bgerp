@@ -1043,14 +1043,19 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
 
-            if(isset($dRec->autoDiscount)){
-                if(isset($dRec->discount)){
-                    $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4);
-                } else {
-                    $dRec->discount = $dRec->autoDiscount;
+            if($mvc instanceof sales_Sales){
+                $dRec->inputDiscount = $dRec->discount;
+                if(isset($dRec->autoDiscount)){
+                    if(isset($dRec->discount)){
+                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4);
+                    } else {
+                        $dRec->discount = $dRec->autoDiscount;
+                    }
                 }
                 $save = true;
             }
+
+
             
             if ($save === true) {
                 $saveRecs[] = $dRec;
@@ -1059,7 +1064,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Ако има детайли за обновяване
         if (countR($saveRecs)) {
-            $Detail->saveArray($saveRecs, 'id,tolerance,term,discount');
+            $Detail->saveArray($saveRecs, 'id,tolerance,term,discount,inputDiscount');
         }
         
         $update = false;
