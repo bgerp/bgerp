@@ -932,11 +932,13 @@ class price_Lists extends core_Master
     {
         requireRole('debug');
 
-        $rec = sales_Sales::fetch(4451);
+        $rec = sales_Sales::fetch(4474);
+
+        cls::get('sales_Setup')->updateDeltaField2403();
 
         $basicDiscountListRec = static::getListWithBasicDiscounts(cls::get('sales_Sales'), $rec);
         if(is_object($basicDiscountListRec)){
-            //$basicDiscountListRec->discountClassPeriod = 'monthly';
+            $basicDiscountListRec->discountClassPeriod = 'monthly';
 
             $dQuery = cls::get('sales_SalesDetails')->getQuery();
             $dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');

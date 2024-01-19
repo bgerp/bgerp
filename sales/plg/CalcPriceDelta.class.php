@@ -26,6 +26,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
     {
         setIfNot($mvc->detailSellPriceFld, 'price');
         setIfNot($mvc->detailDiscountPriceFld, 'discount');
+        setIfNot($mvc->detailAutoDiscountFld, 'autoDiscount');
         setIfNot($mvc->detailQuantityFld, 'quantity');
         setIfNot($mvc->detailProductFld, 'productId');
         setIfNot($mvc->detailPackagingFld, 'packagingId');
@@ -138,15 +139,29 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         }
 
         // да записвам вальора а да подавам активирането
+        $autoDiscountAmount = null;
         $valior = $mvc->getValiorValue($rec);
         while ($dRec = $query->fetch()) {
+
             if ($mvc instanceof sales_Sales) {
 
                 // Ако документа е продажба, изчислява се каква му е себестойноста
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId, $dRec->notes);
             } else {
+
+                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                if($firstDoc->isInstanceOf('sales_Sales')){
+                    $containerId = $firstDoc->fetchField('containerId');
+                    $query = sales_PrimeCostByDocument::getQuery();
+                    $query->XPR('sumAutoDiscount', 'double', 'sum(#autoDiscountAmount)');
+                    $query->where("#productId = {$dRec->{$mvc->detailProductFld}} AND #containerId = {$containerId}");
+                    $am = $query->fetch()->sumAutoDiscount;
+                    if(!empty($am)){
+                        $autoDiscountAmount = $am;
+                    }
+                }
+
                 $primeCost = null;
-                
                 if($calcLiveSoDelta != 'yes'){
                     
                     // Ако документа е към продажба, то се взима себестойноста от продажбата
@@ -175,10 +190,24 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                     }
                 }
             }
-            
-            $sellCost = $dRec->{$mvc->detailSellPriceFld};
+
+            $sellCost = $sellCostWithOriginalDiscount = $dRec->{$mvc->detailSellPriceFld};
+            $discountCalced = $dRec->{$mvc->detailDiscountPriceFld};
             if (isset($dRec->{$mvc->detailDiscountPriceFld})) {
-                $sellCost = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
+                $sellCostWithOriginalDiscount = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
+            }
+
+            if(isset($dRec->{$mvc->detailAutoDiscountFld})){
+                $autoDiscountAmount = $sellCostWithOriginalDiscount * $dRec->{$mvc->detailAutoDiscountFld};
+                if(isset($dRec->{$mvc->detailDiscountPriceFld})){
+                    $discountCalced = round((1 - (1 - $dRec->{$mvc->detailDiscountPriceFld}) * (1 - $dRec->{$mvc->detailAutoDiscountFld})), 4);
+                } else {
+                    $discountCalced = $dRec->{$mvc->detailAutoDiscountFld};
+                }
+            }
+
+            if (isset($discountCalced)) {
+                $sellCost = $sellCost * (1 - $discountCalced);
             }
             
             // Ако има параметър за корекция на делти: задава се
@@ -196,7 +225,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             if ($onlySelfValue === true) {
                 $sellCost = null;
             }
-            
+
             // Изчисляване на цената по политика
             $r = (object) array('valior' => dt::verbal2mysql($valior),
                 'detailClassId' => $detailClassId,
@@ -204,6 +233,8 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 'quantity' => $dRec->{$mvc->detailQuantityFld},
                 'productId' => $dRec->{$mvc->detailProductFld},
                 'sellCost' => $sellCost,
+                'autoDiscountAmount' => $autoDiscountAmount,
+                'sellCostWithOriginalDiscount' => $sellCostWithOriginalDiscount,
                 'state'    => 'active',
                 'isPublic' => cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'isPublic'),
                 'contragentId' => $Cover->that,
@@ -236,7 +267,6 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             
             $r->dealerId = $persons['dealerId'];
             $r->initiatorId = $persons['initiatorId'];
-            
             $res[] = $r;
         }
     }

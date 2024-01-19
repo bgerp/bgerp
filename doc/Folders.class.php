@@ -130,7 +130,7 @@ class doc_Folders extends core_Master
      */
     public $highPriority = true;
     
-    
+
     /**
      * Описание на модела (таблицата)
      */
@@ -2194,12 +2194,20 @@ class doc_Folders extends core_Master
         if (isset($params['containingDocumentIds'])) {
             $documentIds = arr::make($params['containingDocumentIds'], true);
             if(countR($documentIds)){
-                $cQuery = doc_Containers::getQuery();
-                $cQuery->in('docClass', $documentIds);
-                $cQuery->show('folderId');
-                $cQuery->groupBy('folderId');
-                $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
-                if(countR($documentIds)) {
+
+                // Извличане с кеширане на папките, в които има създадени посочените документи
+                $cacheKey = "containing|" . implode('|', $documentIds);
+                $folderIds = core_Cache::get('doc_Folders', $cacheKey);
+                if (!is_array($folderIds)) {
+                    $cQuery = doc_Containers::getQuery();
+                    $cQuery->in('docClass', $documentIds);
+                    $cQuery->show('folderId');
+                    $cQuery->groupBy('folderId');
+                    $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
+                    core_Cache::set('doc_Folders', $cacheKey, $folderIds, 60);
+                }
+
+                if(countR($folderIds)) {
                     $query->in('id', $folderIds);
                 } else {
                     $query->where("1=2");

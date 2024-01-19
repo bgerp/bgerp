@@ -475,6 +475,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::recontoDeals2520',
         'migrate::fixDcNotesModifiedDate3823v2',
         'migrate::migrateDpNotes3823v2',
+        'migrate::updateDeltaField2403',
     );
     
     
@@ -687,5 +688,20 @@ class sales_Setup extends core_ProtoSetup
         if(core_Packs::isMigrationDone('sales', 'migrateDpNotes3823v2')){
             cls::get('deals_Setup')->fixDcNotesModifiedOn('sales_Invoices');
         }
+    }
+
+
+    /**
+     * Миграция на новото поле на делтите
+     */
+    public function updateDeltaField2403()
+    {
+        $Deltas = cls::get('sales_PrimeCostByDocument');
+        $Deltas->setupMvc();
+
+        $colName = str::phpToMysqlName('sellCostWithOriginalDiscount');
+        $saleColName = str::phpToMysqlName('sellCost');
+        $query = "UPDATE {$Deltas->dbTableName} SET {$colName} = {$saleColName} WHERE ({$colName} IS NULL AND {$saleColName} IS NOT NULL)";
+        $Deltas->db->query($query);
     }
 }

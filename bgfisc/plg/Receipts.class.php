@@ -44,7 +44,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         $url = ($mvc->haveRightFor('printFiscReceipt', $rec)) ? array('pos_Receipts', 'printfiscreceipt', $rec->id) : array();
         $attr = array('class' => "printReceiptBtn posBtns", 'title' => 'Отпечаване на фискален бон');
-        $warning = 'Наистина ли желаете ли да разпечатате фискален бон|*?';
+
         if(!count($url)){
             $attr['class'] .= " disabledBtn";
             $attr['disabled'] = 'disabled';
@@ -56,7 +56,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         $attr['title'] = 'Печат на фискален бон';
         $attr['data-url'] = toUrl($url, 'local');
-        $closeBtn = ht::createFnBtn('Фискален бон', '', $warning, $attr);
+        $closeBtn = ht::createFnBtn('Фискален бон', '', '', $attr);
         $buttons["close"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
         
         $deviceRec = bgfisc_Register::getFiscDevice($caseId);
