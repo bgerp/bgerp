@@ -167,7 +167,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         parent::getDealDetailFields($this);
-        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none3');
+        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none');
         $this->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
         $this->setField('packPrice', 'silent');
     }
