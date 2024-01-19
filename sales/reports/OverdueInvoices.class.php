@@ -61,7 +61,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         );
 
         //Праг за минимална просрочена сума за показване
-        $fieldset->FLD('minOverdueLevev', 'double', 'caption=Филтри->Да не се показват фактури с просрочена сума под ,unit=лв.,after=countryGroup,placeholder=0.00,silent,single=none');
+        $fieldset->FLD('minOverdueLevev', 'double', 'caption=Филтри->Без просрочените под,unit=лв,after=countryGroup,placeholder=0.00,silent,single=none');
 
 
         $fieldset->FLD('listForEmail', 'blob', 'caption=Списък за имейл,single=none,after=countryGroup,input=hidden');
