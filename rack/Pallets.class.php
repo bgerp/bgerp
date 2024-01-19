@@ -1235,7 +1235,7 @@ class rack_Pallets extends core_Manager
             }
 
             static::logWrite('Изтриване на палетите');
-            followRetUrl(null, 'Успешно премахване на палетите');
+            followRetUrl(null, '|Успешно премахване на палетите');
         }
 
         $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png');

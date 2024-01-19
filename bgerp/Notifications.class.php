@@ -1224,7 +1224,7 @@ class bgerp_Notifications extends core_Manager
         
         if (!cls::load($ctr, true) || !$ctr::haveRightFor($act, $dId)) {
             
-            return new Redirect($retUrl, 'Не може да се настройва', 'warning');
+            return new Redirect($retUrl, '|Не може да се настройва', 'warning');
         }
         
         $folderId = $url['folderId'];

@@ -395,7 +395,7 @@ class plg_StructureAndOrder extends core_Plugin
                 $mvc->save($rec);
                 followRetUrl();
             } else {
-                followRetUrl(null, 'Неуспешно преместване', 'error');
+                followRetUrl(null, '|Неуспешно преместване', 'error');
             }
         }
     }

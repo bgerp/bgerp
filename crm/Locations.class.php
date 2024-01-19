@@ -494,7 +494,7 @@ class crm_Locations extends core_Master
             return new Redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
         }
         
-        followRetUrl(null, 'Нямате достъп  до папката');
+        followRetUrl(null, '|Нямате достъп  до папката');
     }
     
     

@@ -956,7 +956,7 @@ class cat_Boms extends core_Master
         $rec->modifiedOn = dt::now();
         $this->save_($rec, 'modifiedOn');
         
-        return new Redirect(array($this, 'single', $id), 'Себестойността е преизчислена');
+        return new Redirect(array($this, 'single', $id), '|Себестойността е преизчислена|*!');
     }
     
     
@@ -2008,7 +2008,7 @@ class cat_Boms extends core_Master
     protected static function on_BeforeChangeState($mvc, &$rec, $state)
     {
         if($state == 'active' && !$mvc->isOk($rec)){
-            followRetUrl(null, 'Рецептата не може да се активира, защото артикулът се съдържа в рецептата на някой от вложените в него|*!', 'error');
+            followRetUrl(null, '|Рецептата не може да се активира, защото артикулът се съдържа в рецептата на някой от вложените в него|*!', 'error');
         }
     }
 
@@ -2067,7 +2067,7 @@ class cat_Boms extends core_Master
                 $this->regenDetailRec($dRec, $newBomRec, $rec, $selected);
             }
 
-            return new Redirect(array($this, 'single', $newBomRec->id), 'Създадена е нова обновена рецепта|*!');
+            return new Redirect(array($this, 'single', $newBomRec->id), '|Създадена е нова обновена рецепта|*!');
         }
 
         // Добавяне на бутони
@@ -2199,6 +2199,6 @@ class cat_Boms extends core_Master
             }
         }
 
-        followRetUrl(null, 'Параметрите на артикула са синхронизирани от рецептата');
+        followRetUrl(null, '|Параметрите на артикула са синхронизирани от рецептата');
     }
 }

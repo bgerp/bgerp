@@ -151,7 +151,7 @@ class rack_Products extends store_Products
         // Преизчисляване на количеството по палети
         rack_Pallets::recalc($rec->productId, $rec->storeId);
         
-        return followRetUrl(null, 'Количеството по палети е преизчислено успешно|*!');
+        return followRetUrl(null, '|Количеството по палети е преизчислено успешно|*!');
     }
     
     
@@ -169,7 +169,7 @@ class rack_Products extends store_Products
         $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId, $rec->storeId);
         $this->save($rec, 'id,quantityOnZones');
         
-        return followRetUrl(null, 'Количеството по зони е преизчислено успешно|*!');
+        return followRetUrl(null, '|Количеството по зони е преизчислено успешно|*!');
     }
     
     

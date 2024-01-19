@@ -2632,7 +2632,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $rec->contoActions = null;
                 $mvc->save_($rec, 'contoActions');
             }
-            redirect(array($mvc, 'single', $rec->id), false, 'Преди активирането, трябва задължително да е посочено време/дата на доставка', 'error');
+            redirect(array($mvc, 'single', $rec->id), false, '|Преди активирането, трябва задължително да е посочено време/дата на доставка', 'error');
         }
     }
     
@@ -2683,7 +2683,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         } catch(core_exception_Expect $e){
             reportException($e);
-            followRetUrl(null, "Проблем при създаване на|* " . mb_strtolower($this->singleTitle));
+            followRetUrl(null, "|Проблем при създаване на|* " . mb_strtolower($this->singleTitle));
         }
         
         $redirectUrl = array($this, 'single', $masterId);
@@ -2807,7 +2807,7 @@ abstract class deals_DealMaster extends deals_DealBase
     protected static function on_BeforeChangeState($mvc, &$rec, $state)
     {
         if(acc_plg_Contable::haveDocumentInThreadWithStates($rec->threadId, 'pending,draft', $rec->containerId)){
-            followRetUrl(null, 'Сделката не може да се открие/закрие, защото има документи на заявка и/или чернова', 'error');
+            followRetUrl(null, '|Сделката не може да се открие/закрие, защото има документи на заявка и/или чернова', 'error');
         }
     }
 

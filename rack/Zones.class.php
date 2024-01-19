@@ -1005,7 +1005,7 @@ class rack_Zones extends core_Master
         // Регенериране на всички движения
         static::pickupAll($storeId);
 
-        followRetUrl(null, 'Движенията са генерирани успешно|*!');
+        followRetUrl(null, '|Движенията са генерирани успешно|*!');
     }
 
 
@@ -1259,7 +1259,7 @@ class rack_Zones extends core_Master
         rack_Zones::clearZone($containerId);
         $Document->getInstance()->logWrite("Ръчно премахване на контиран документ от зона", $Document->that);
 
-        followRetUrl(null, 'Документа е премахнат успешно от зоната|*');
+        followRetUrl(null, '|Документа е премахнат успешно от зоната|*');
     }
 
 
@@ -1278,14 +1278,14 @@ class rack_Zones extends core_Master
         $document = doc_Containers::getDocument($rec->containerId);
 
         if(rack_Movements::fetch("LOCATE('|{$rec->id}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
-            followRetUrl(null, "По документа има Запазени или Започнати движения! Документът може да бъде премахнат след отказването им|*!", 'error');
+            followRetUrl(null, "|По документа има Запазени или Започнати движения! Документът може да бъде премахнат след отказването им|*!", 'error');
         }
 
         // Зоната се нотифицира, че документът е премахнат от нея
         static::updateZone($rec->id, $rec->containerId, true);
         $document->getInstance()->logWrite('Премахване от зона', $document->that);
 
-        followRetUrl(null, 'Документът е премахнат от зоната');
+        followRetUrl(null, '|Документът е премахнат от зоната');
     }
 
 

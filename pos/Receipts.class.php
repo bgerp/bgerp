@@ -1469,6 +1469,6 @@ class pos_Receipts extends core_Master
 
         $this->logInAct('Ръчно приключване на бележка', $rec->id);
 
-        followRetUrl(null, 'Бележката е ръчно приключена');
+        followRetUrl(null, '|Бележката е ръчно приключена');
     }
 }

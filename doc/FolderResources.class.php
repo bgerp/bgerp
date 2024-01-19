@@ -304,7 +304,7 @@ class doc_FolderResources extends core_Manager
                 planning_AssetResourceFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
             }
             
-            followRetUrl(null, 'Информацията е обновена успешно');
+            followRetUrl(null, '|Информацията е обновена успешно');
         }
         
         // Бутони
