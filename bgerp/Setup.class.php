@@ -474,9 +474,10 @@ class bgerp_Setup extends core_ProtoSetup
         // Принудително обновяване на ролите
         $html .= core_Roles::rebuildRoles();
         $html .= core_Users::rebuildRoles();
-        
+
         $html .= core_Classes::add('bgerp_plg_CsvExport');
-        
+        $html .= core_Classes::add('bgerp_plg_XlsExport');
+
         $html .= parent::install();
         
         core_SystemLock::remove();
