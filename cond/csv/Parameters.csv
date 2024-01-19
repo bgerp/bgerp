@@ -32,3 +32,4 @@
 Допълнителни условия (EN),cond_type_Text,otherConditionPurchaseEn,Покупка,,,,"richtext=yes"
 Шаблон при изпращане на Заявка към Доставчик (BG),cond_type_DocTemplate,requestSupplierTplBg,Покупка,,,,"class=purchase_Purchases,lang=bg"
 Шаблон при изпращане на Заявка към Доставчик (EN),cond_type_DocTemplate,requestSupplierTplEn,Покупка,,,,"class=purchase_Purchases,lang=en"
+Политика за служители,cond_type_PriceList,employeesList,Продажба,,,,
