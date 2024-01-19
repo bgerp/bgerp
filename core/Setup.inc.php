@@ -591,12 +591,15 @@ if ($step == 2) {
             // Масив - лог за извършените действия
             $newVer = 0;
             $changed = 0;
-    
+            
             foreach ($repos as $repoPath => $branch) {
                 $repoName = basename($repoPath);
-                
+                if (!isset($branch)) {
+                    $branch = gitCurrentBranch($repoPath, $log);
+                }
+
                 // Превключваме репозиторито в зададения в конфигурацията бранч
-                if ($branch && !gitSetBranch($repoPath, $log, $branch)) {
+                if ($branch && !gitSetBranch($repoPath, $log, $branch)) { 
                     continue;
                 }
                      
@@ -1387,7 +1390,8 @@ function gitSetBranch($repoPath, &$log, $branch = null)
         }
         $requiredBranch = $branch;
     } else {
-        $requiredBranch = BGERP_GIT_BRANCH;
+        //$requiredBranch = BGERP_GIT_BRANCH;
+        $requiredBranch = $currentBranch;
     }
     
     $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin +{$requiredBranch}:{$requiredBranch} 2>&1";
@@ -1511,7 +1515,7 @@ function gitHasChanges($repoPath, &$log)
 /**
  * Синхронизира с последната версия на зададения бранч
  */
-function gitPullRepo($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
+function gitPullRepo($repoPath, &$log, $branch)
 {
     $repoName = basename($repoPath);
     
@@ -1523,7 +1527,7 @@ function gitPullRepo($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
     
     if (!gitExec($commandFetch, $arrResFetch)) {
         foreach ($arrResFetch as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при fetch: " . $val):'';
+            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] ($branch) грешка при fetch: " . $val):'';
         }
         
         return false;
@@ -1537,7 +1541,7 @@ function gitPullRepo($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
         return false;
     }
     
-    $log[] = "new:<b>[{$repoName}]</b> е обновено.";
+    $log[] = "new:<b>[{$repoName}] ($branch)</b> е обновено.";
             
     return true;
 }
