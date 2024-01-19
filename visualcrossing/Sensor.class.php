@@ -84,7 +84,9 @@ class visualcrossing_Sensor extends sens2_ProtoDriver
       //  bp($time,$h);
         $date = dt::now(false);
 
-       // $res['HOUR'] = ibex_Register::fetchField("#date = '{$date}' AND #kind = '{$h}'", 'price');
+        $res['currentTemp'] = '12345';
+        $res['tempAfter6Hour'] = '98765';
+        $res['windAfter2Uour'] = '23432';
 
         return $res;
     }
