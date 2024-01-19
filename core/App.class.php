@@ -1246,7 +1246,7 @@ class core_App
         }
 
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
-            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : (defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null)) + $repos;
+            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : null) + $repos;
             $havePrivate = true;
         }
 
