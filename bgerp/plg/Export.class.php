@@ -76,7 +76,7 @@ class bgerp_plg_Export extends core_Plugin
     {
         $options = array();
         $drivers = core_Classes::getOptionsByInterface('bgerp_ExportIntf');
-        
+
         foreach ($drivers as $id => $driver) {
             $Driver = cls::get($id);
             
@@ -165,14 +165,16 @@ class bgerp_plg_Export extends core_Plugin
                     
                     return false;
                 }
-                
-                $name = $Driver->getExportedFileName();
-                
-                // Записваме файла в системата
-                $fh = fileman::absorbStr($content, 'exportCsv', $name);
+
+                if($Driver->exportIsFh === true){
+                    $fh = $content;
+                } else {
+                    $name = $Driver->getExportedFileName();
+                    $fh = fileman::absorbStr($content, 'exportCsv', $name);
+                }
                 
                 // Редирект към лист изгледа,  ако не е зададено друго урл за редирект
-                $tpl = new Redirect(array('fileman_Files', 'single', $fh), '|Файлът е експортиран успешно');
+                $tpl = new Redirect(array('fileman_Files', 'single', $fh), 'Файлът е експортиран успешно|*!');
                 
                 return false;
             }
