@@ -174,7 +174,7 @@ class bgerp_plg_Export extends core_Plugin
                 }
                 
                 // Редирект към лист изгледа,  ако не е зададено друго урл за редирект
-                $tpl = new Redirect(array('fileman_Files', 'single', $fh), 'Файлът е експортиран успешно|*!');
+                $tpl = new Redirect(array('fileman_Files', 'single', $fh), '|Файлът е експортиран успешно|*!');
                 
                 return false;
             }
