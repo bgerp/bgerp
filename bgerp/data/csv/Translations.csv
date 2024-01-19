@@ -2463,8 +2463,8 @@ en,юни,June
 en,януари,January
 bg,Reset,Нулиране
 bg,Export CSV,Експорт CSV
-en,по проформа,from pro forma
-en,по фактура,from invoice
+en,по проформа,based on pro forma
+en,по фактура,based on invoice
 en,Словом,Say words
 en,Папка към,Folder for
 en,Създаване на папка за документи към,Create folder for documents for
@@ -2500,7 +2500,7 @@ en,с включено ДДС, with applied VAT
 en,До 1 месец след фактуриране, Until 1 month after invoicing
 en,50% авансово и 50% до 30 дни след фактуриране, 50% downpayment and 50% until 30 days after invoicing
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
-en,По проформа,From pro forma
+en,По проформа,Based on pro forma
 en,Срок за д-ка,Delivery time
 en,Срок за доставка,Delivery time
 en,Чакащо плащане,Expected payment
