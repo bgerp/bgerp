@@ -257,19 +257,20 @@ class price_ListBasicDiscounts extends core_Detail
         foreach ($groupIds as $groupId){
             foreach ($detailsAll as $detailRec){
                 if(keylist::isIn($groupId, $detailRec->groups)){
+                    $detailsByGroups[$groupId]['autoDiscount'] += 0;
                     if($Detail instanceof sales_SalesDetails){
                         $amount = isset($detailRec->discount) ? ($detailRec->amount * (1 - $detailRec->discount)) : $detailRec->amount;
                         if($basicDiscountListRec->vat == 'yes'){
                             $vat = cat_Products::getVat($detailRec->productId, $masterRec->valior);
                             $amount *= (1 + $vat);
                         }
-                        $detailsByGroups[$groupId] += $amount;
+                        $detailsByGroups[$groupId]['amount'] += $amount;
                     } else {
                         $amount = isset($detailRec->discountPercent) ? ($detailRec->amount * (1 - $detailRec->discountPercent)) : $detailRec->amount;
                         if($basicDiscountListRec->vat == 'yes'){
                             $amount *= (1 + $detailRec->param);
                         }
-                        $detailsByGroups[$groupId] += $amount;
+                        $detailsByGroups[$groupId]['amount'] += $amount;
                     }
                 }
             }
@@ -277,18 +278,21 @@ class price_ListBasicDiscounts extends core_Detail
 
         $res['CURRENT_SALE'] = $detailsByGroups;
         $finalSums = $salesByNow;
-        array_walk($detailsByGroups, function($val, $key) use (&$finalSums) {$finalSums[$key] += $val;});
+        array_walk($detailsByGroups, function($valArr, $key) use (&$finalSums) {
+            $finalSums[$key]['amount'] += $valArr['amount'];
+            $finalSums[$key]['autoDiscount'] += $valArr['autoDiscount'];
+
+        });
         $res['TOTAL_SALES'] = $finalSums;
 
         foreach ($groupIds as $groupId){
-            $res['groups'][$groupId] = array('SUM' => $finalSums[$groupId], 'FITS_IN' => null, 'percent' => null);
-
-            if(empty($finalSums[$groupId])) continue;
+            $res['groups'][$groupId] = array('SUM' => $finalSums[$groupId]['amount'], 'DISC_BY_NOW' => $finalSums[$groupId]['autoDiscount'], 'FITS_IN' => null, 'percent' => null);
+            if(empty($finalSums[$groupId]['amount'])) continue;
 
             $foundDiscountRec = null;
             $filteredRecs = array_filter($dRecs, function($a) use ($groupId) {return $a->groupId == $groupId;});
             foreach ($filteredRecs as $fRec){
-                $valToCheck = round($finalSums[$groupId], 2);
+                $valToCheck = round($finalSums[$groupId]['amount'], 2);
                 $convertedAmount = currency_CurrencyRates::convertAmount($valToCheck, null, null, $fRec->currencyId);
                 if($convertedAmount >= $fRec->amountFrom && (($convertedAmount <= $fRec->amountTo) || !isset($fRec->amountTo))){
                     $foundDiscountRec = $fRec;
@@ -299,7 +303,7 @@ class price_ListBasicDiscounts extends core_Detail
             // Изчисляване на очаквания среден процент
             if($foundDiscountRec){
                 $res['groups'][$groupId]['FITS_IN'] = $foundDiscountRec;
-                $valToCheck = round($finalSums[$groupId], 2);
+                $valToCheck = round($finalSums[$groupId]['amount'], 2);
 
                 $totalWithoutDiscountInListCurrency = currency_CurrencyRates::convertAmount($valToCheck, null, null, $basicDiscountListRec->currencyId);
 
@@ -333,7 +337,7 @@ class price_ListBasicDiscounts extends core_Detail
         $dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $dQuery->where("#isPublic = 'yes' AND #state IN ('active', 'closed') AND #sellCost IS NOT NULL AND #contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId} AND #detailClassId != {$posReportClassId}");
         $dQuery->likeKeylist('groups', $groupKeylist);
-        $dQuery->show('groups,quantity,sellCost,valior,productId');
+        $dQuery->show('groups,quantity,sellCost,valior,productId,sellCostWithOriginalDiscount,autoDiscountAmount');
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');
             $lastDay = dt::getLastDayOfMonth(dt::today());
@@ -348,12 +352,15 @@ class price_ListBasicDiscounts extends core_Detail
         foreach ($groupIds as $groupId){
             foreach ($saleRecs as $sRec1){
                 if(keylist::isIn($groupId, $sRec1->groups)){
-                    $amount =  $sRec1->sellCost * $sRec1->quantity;
+                    $amount =  $sRec1->sellCostWithOriginalDiscount * $sRec1->quantity;
+                    $autoDiscountAmount = isset($sRec1->autoDiscountAmount) ? ($sRec1->autoDiscountAmount * $sRec1->quantity): 0;
                     if($listRec->vat == 'yes'){
                         $vat = cat_Products::getVat($sRec1->productId, $sRec1->valior);
                         $amount *= (1 + $vat);
+                        $autoDiscountAmount *= (1 + $vat);
                     }
-                    $sumByGroups[$groupId] += $amount;
+                    $sumByGroups[$groupId]['amount'] += $amount;
+                    $sumByGroups[$groupId]['autoDiscount'] += $autoDiscountAmount;
                 }
             }
         }
@@ -379,15 +386,18 @@ class price_ListBasicDiscounts extends core_Detail
 
         $receiptRecs = $pQuery->fetchAll();
 
-
         foreach ($groupIds as $groupId1){
             foreach ($receiptRecs as $receiptRec){
                 if(keylist::isIn($groupId1, $receiptRec->groups)){
-                    $amount = isset($receiptRec->discountPercent) ? ($receiptRec->amount * (1 - $receiptRec->discountPercent)) : $receiptRec->amount;
+                    $amount = isset($receiptRec->inputDiscount) ? ($receiptRec->amount * (1 - $receiptRec->inputDiscount)) : $receiptRec->amount;
+                    $autoDiscountAmount = isset($receiptRec->autoDiscount) ? $receiptRec->amount * $receiptRec->autoDiscount : 0;
                     if($listRec->vat == 'yes'){
                         $amount *= (1 + $receiptRec->param);
+                        $autoDiscountAmount *= (1 + $receiptRec->param);
                     }
-                    $sumByGroups[$groupId1] += $amount;
+
+                    $sumByGroups[$groupId1]['amount'] += $amount;
+                    $sumByGroups[$groupId1]['autoDiscount'] += $autoDiscountAmount;
                 }
             }
         }

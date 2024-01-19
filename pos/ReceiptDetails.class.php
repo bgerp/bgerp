@@ -115,6 +115,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('value', 'varchar(32)', 'caption=Мярка, input=hidden,smartCenter');
         $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка,input=none');
         $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'input=none');
+        $this->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
         $this->FLD('text', 'varchar', 'caption=Пояснение,input=none');
         $this->FLD('batch', 'varchar', 'caption=Партида,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,input=none');

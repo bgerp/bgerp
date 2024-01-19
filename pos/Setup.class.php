@@ -203,6 +203,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_Reports',
         'pos_SellableProductsCache',
         'migrate::resyncSearchStrings2350',
+        'migrate::updateInputPercent2403',
     );
 
 
@@ -310,5 +311,20 @@ class pos_Setup extends core_ProtoSetup
     public function resyncSearchStrings2350()
     {
         cls::get('pos_SellableProductsCache')->sync(true);
+    }
+
+
+    /**
+     * Миграция на новото поле на делтите
+     */
+    public function updateInputPercent2403()
+    {
+        $Receipts = cls::get('pos_ReceiptDetails');
+        $Receipts->setupMvc();
+
+        $inputDiscColName = str::phpToMysqlName('inputDiscount');
+        $discColName = str::phpToMysqlName('discountPercent');
+        $query = "UPDATE {$Receipts->dbTableName} SET {$inputDiscColName} = {$discColName} WHERE {$discColName} IS NOT NULL";
+        $Receipts->db->query($query);
     }
 }

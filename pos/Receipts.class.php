@@ -875,17 +875,20 @@ class pos_Receipts extends core_Master
 
             $dRecs = array();
             $dQuery = pos_ReceiptDetails::getQuery();
-            $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%' AND #autoDiscount IS NOT NULL");
+            $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
             while($dRec = $dQuery->fetch()){
-                if(isset($dRec->discountPercent)){
-                    $dRec->discountPercent = round((1 - (1 - $dRec->discountPercent) * (1 - $dRec->autoDiscount)), 4);
-                } else {
-                    $dRec->discountPercent = $dRec->autoDiscount;
+                $dRec->inputDiscount = $dRec->discountPercent;
+                if(isset($dRec->autoDiscount)){
+                    if(isset($dRec->discountPercent)){
+                        $dRec->discountPercent = round((1 - (1 - $dRec->discountPercent) * (1 - $dRec->autoDiscount)), 4);
+                    } else {
+                        $dRec->discountPercent = $dRec->autoDiscount;
+                    }
                 }
                 $dRecs[] = $dRec;
             }
 
-            cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent');
+            cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent,inputDiscount');
             $this->logInAct('Приключване на бележка', $rec->id);
         }
     }
