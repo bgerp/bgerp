@@ -75,14 +75,29 @@ class visualcrossing_Sensor extends sens2_ProtoDriver
         $res = array();
 
 
-//        $time = dt::mysql2timestamp(dt::now());
-//        $h = date('G', $time);
-//        $h = $h .'-' . ($h+1);
+        $time = dt::mysql2timestamp(dt::now());
+        $h = date('G', $time);
+        //$h = $h .'-' . ($h+1);
+        //$h = $h+2;
+
 //        if(date('I', $time ) == 1 && date('I', $time + 3600) == 0) {
 //            $h = date('G', $time - 3600) . '-' . date('G', $time) . 'a';
 //        }
-      //  bp($time,$h);
+     //   bp($time,$h);
         $date = dt::now(false);
+
+        $query =visualcrossing_Forecasts::getQuery();
+        $query->where("#date = '{$date}'");
+        //$query->where("#time = '{$h}'");
+bp(visualcrossing_Forecasts::getForecast($date));
+        $forRec = $query->fetchAll();
+        foreach ($forRec as $fRec => $val ){
+            if(!$val->time ){bp($val);
+                $currentTemp = $val->low;
+            }
+
+        }
+
 
         $res['currentTemp'] = '12345';
         $res['tempAfter6Hour'] = '98765';
