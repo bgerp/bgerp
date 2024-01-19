@@ -489,7 +489,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             if ($pointId = pos_Points::getCurrent('id', false)) {
                 $caseId = pos_Points::fetchField($pointId, 'caseId');
                 if (!bgfisc_Register::getFiscDevice($caseId)) {
-                    $res = new Redirect(array('pos_Points', 'list'), 'Няма закачено фискално устройство|*!', 'error');
+                    $res = new Redirect(array('pos_Points', 'list'), '|Няма закачено фискално устройство|*!', 'error');
                     
                     return false;
                 }

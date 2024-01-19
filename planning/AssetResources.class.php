@@ -1131,7 +1131,7 @@ class planning_AssetResources extends core_Master
             bp($updateRecs);
         }
 
-        followRetUrl(null, 'Времената са преизчислени|*!');
+        followRetUrl(null, '|Времената са преизчислени|*!');
     }
 
 

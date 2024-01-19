@@ -1086,7 +1086,7 @@ class store_InventoryNotes extends core_Master
 
         $this->logInAct('Нулиране на невъведените артикули', $id);
         
-        followRetUrl('Всички артикули с невъведени количества са нулирани');
+        followRetUrl('|Всички артикули с невъведени количества са нулирани');
     }
     
     

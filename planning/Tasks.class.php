@@ -1608,7 +1608,7 @@ class planning_Tasks extends core_Master
         try {
             $origin = doc_Containers::getDocument($rec->originId);
         } catch (core_exception_Expect $e) {
-            followRetUrl(null, 'Има грешка при създаването', 'error');
+            followRetUrl(null, '|Има грешка при създаването', 'error');
         }
 
         $originRec = $origin->fetch();
@@ -2623,7 +2623,7 @@ class planning_Tasks extends core_Master
             } else {
                 $selected = Request::get('selected', 'varchar');
                 $selectedArr = empty($selected) ? array() : array_combine(explode('|', $selected), explode('|', $selected));
-                if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
+                if(!countR($selectedArr)) followRetUrl(null, '|Не са избрани шаблонни операции за клониране', 'warning');
 
                 // От предходните ще се клонират САМО избраните
                 $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
@@ -2764,7 +2764,7 @@ class planning_Tasks extends core_Master
             followRetUrl(null, $msg, $msgType);
         }
 
-        followRetUrl(null, 'Имаше проблем', 'error');
+        followRetUrl(null, '|Имаше проблем', 'error');
     }
 
 
@@ -3459,7 +3459,7 @@ class planning_Tasks extends core_Master
         $this->touchRec($rec);
         $this->logWrite('Преизчисляване на заработките', $rec->id);
 
-        followRetUrl(null, 'Заработките са преизчислени успешно|*!');
+        followRetUrl(null, '|Заработките са преизчислени успешно|*!');
     }
 
 

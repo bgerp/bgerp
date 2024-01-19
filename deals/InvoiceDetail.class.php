@@ -192,7 +192,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         // Редирект обратно към фактурата
-        return followRetUrl(null, 'Артикулите от сделката са копирани успешно');
+        return followRetUrl(null, '|Артикулите от сделката са копирани успешно');
     }
     
     
