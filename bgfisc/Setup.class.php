@@ -95,16 +95,7 @@ class bgfisc_Setup extends core_ProtoSetup
      */
     public $defClasses = 'bgfisc_reports_SalesPayments,bgfisc_reports_AggregateSalesData,bgfisc_reports_DetailedSalesData,bgfisc_reports_ReversedSales,
                           bgfisc_reports_CanceledSales,bgfisc_reports_SummaryPurchasesData,bgfisc_reports_DetailedPurchasesData,bgfisc_reports_MovementOfGoodsForAPeriod';
-    
-    
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(3.9, 'Търговия', 'Регистър УНП', 'bgfisc_Register', 'default', 'sales,ceo')
-    );
-    
-    
+
     /**
      * Описание на конфигурационните константи за този модул
      */
