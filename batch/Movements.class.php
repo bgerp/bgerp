@@ -50,6 +50,12 @@ class batch_Movements extends core_Detail
      * Кой може да пише?
      */
     public $canWrite = 'no_one';
+
+
+    /**
+     * Кой има право да експортва?
+     */
+    public $canExport = 'ceo,batch,acc,store,sales, purchase';
     
     
     /**
