@@ -78,7 +78,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('notInGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Без групи,after=expandGroups,single=none');
         $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=expandGroups,single=none');
         $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed');
-        $fieldset->FLD('showEan', 'enum(yes=Показване ако има,no=Да не се показва)', 'caption=Допълнително->EAN|*?,after=showMeasureId');
+        $fieldset->FLD('showEan', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Показване ЕАН,after=showMeasureId');
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan');
         $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan');
     }
@@ -582,7 +582,14 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-        if (Mode::is('printing') || Mode::is('text', 'xhtml')) return;
+        if(isset($data->rec->data->variationId)){
+            $data->row->variationId = price_Lists::getHyperlink($data->rec->data->variationId, true);
+        }
+
+        if (Mode::is('printing') || Mode::is('text', 'xhtml')){
+            if($data->rec->showLetterHeadWhenSending == 'no') return;
+            unset($data->row->variationId);
+        }
 
         $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                             <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -597,14 +604,9 @@ class price_reports_PriceList extends frame2_driver_TableData
                                             </div>
                                         </fieldset>"));
 
-        if(isset($data->rec->data->variationId)){
-            $data->row->variationId = price_Lists::getHyperlink($data->rec->data->variationId, true);
-        }
-
         foreach (array('periodDate', 'date', 'period', 'productGroups', 'notInGroups', 'packagings', 'policyId', 'variationId') as $field) {
             $fieldTpl->replace($data->row->{$field}, $field);
         }
-        
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
