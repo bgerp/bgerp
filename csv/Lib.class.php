@@ -326,8 +326,8 @@ class csv_Lib
         setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         setIfNot($thousandsSep, '');
         setIfNot($enclosure, $params['enclosure'], '"');
-        setIfNot($decimals, 2);
-        
+        setIfNot($decimals, csv_Setup::get('DECIMALS'));
+
         // Вземаме колоните, ако са зададени
         if ($params['columns'] != 'none') {
             foreach ($listFields as $fld => $caption) {
