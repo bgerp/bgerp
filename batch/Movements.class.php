@@ -482,6 +482,8 @@ class batch_Movements extends core_Detail
     {
         if(!is_array($recs)) return;
 
+        $showSign = batch_Setup::get('CSV_EXPORT_MOVEMENT_OUT_QUANTITY_SIGN');
+
         // Подготовка на данните за експорт
         foreach ($recs as &$rec){
             $pRec = cat_Products::fetch($rec->productId, 'code,name,nameEn,measureId');
@@ -500,6 +502,10 @@ class batch_Movements extends core_Detail
                     $rec->batch = strip_tags($Def->toVerbal($rec->batch));
                     Mode::pop('text');
                 }
+            }
+
+            if($rec->operation == 'out' && $showSign == 'withMinus'){
+                $rec->quantity *= -1;
             }
         }
     }
