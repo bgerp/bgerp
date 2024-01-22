@@ -142,6 +142,8 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $autoDiscountAmount = null;
         $valior = $mvc->getValiorValue($rec);
         while ($dRec = $query->fetch()) {
+            $sellCostWithOriginalDiscount = $dRec->{$mvc->detailSellPriceFld};
+            $applyDiscount = true;
 
             if ($mvc instanceof sales_Sales) {
 
@@ -149,15 +151,33 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId, $dRec->notes);
             } else {
 
+                // Ако  е документ базиран на продажба - намират се сумите от нея
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
                 if($firstDoc->isInstanceOf('sales_Sales')){
                     $containerId = $firstDoc->fetchField('containerId');
-                    $query = sales_PrimeCostByDocument::getQuery();
-                    $query->XPR('sumAutoDiscount', 'double', 'sum(#autoDiscountAmount)');
-                    $query->where("#productId = {$dRec->{$mvc->detailProductFld}} AND #containerId = {$containerId}");
-                    $am = $query->fetch()->sumAutoDiscount;
-                    if(!empty($am)){
-                        $autoDiscountAmount = $am;
+                    $query1 = sales_PrimeCostByDocument::getQuery();
+                    $query1->where("#productId = {$dRec->{$mvc->detailProductFld}} AND #containerId = {$containerId}");
+                    $cloneQuery = clone $query1;
+                    $query1->where("#quantity = {$dRec->{$mvc->detailQuantityFld}}");
+
+                    // Ако има точно за това количество - тях
+                    if($fRec1 = $query1->fetch()){
+                        $autoDiscountAmount = $fRec1->autoDiscountAmount;
+                        $sellCostWithOriginalDiscount = $fRec1->sellCostWithOriginalDiscount;
+                        $applyDiscount = false;
+                    } else {
+
+                        // Ако няма средно притеглено
+                        $cloneQuery->XPR('sumDellWithOriginalDiscount', 'double', 'SUM(#quantity * COALESCE(#sellCostWithOriginalDiscount, 0))');
+                        $cloneQuery->XPR('sumAutoDiscountAmount', 'double', 'SUM(#quantity * COALESCE(#autoDiscountAmount, 0))');
+                        $cloneQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+                        if($cRec = $cloneQuery->fetch()){
+                            if(!empty($cRec->totalQuantity)){
+                                $autoDiscountAmount = round($cRec->sumAutoDiscountAmount / $cRec->totalQuantity, 4);
+                                $sellCostWithOriginalDiscount = round($cRec->sumDellWithOriginalDiscount / $cRec->totalQuantity, 4);
+                                $applyDiscount = false;
+                            }
+                        }
                     }
                 }
 
@@ -191,9 +211,9 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 }
             }
 
-            $sellCost = $sellCostWithOriginalDiscount = $dRec->{$mvc->detailSellPriceFld};
+            $sellCost = $dRec->{$mvc->detailSellPriceFld};
             $discountCalced = $dRec->{$mvc->detailDiscountPriceFld};
-            if (isset($dRec->{$mvc->detailDiscountPriceFld})) {
+            if (isset($dRec->{$mvc->detailDiscountPriceFld}) && $applyDiscount) {
                 $sellCostWithOriginalDiscount = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
             }
 
