@@ -494,7 +494,10 @@ class pwa_PushSubscriptions extends core_Manager
         $data->listFilter->input();
 
         if ($data->listFilter->rec->users) {
-            $data->query->in('userId', $data->listFilter->rec->users);
+            $uArr = type_Keylist::toArray($data->listFilter->rec->users);
+            if (!$uArr[-1]) {
+                $data->query->in('userId', $uArr);
+            }
         }
     }
 

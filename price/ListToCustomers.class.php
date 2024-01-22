@@ -639,4 +639,24 @@ class price_ListToCustomers extends core_Manager
             }
         }
     }
+
+
+    /**
+     * Добавя нова ценова политика на клиента
+     *
+     * @param int $listId              - ид на ЦП
+     * @param mixed $contragentClassId - клас на контрагента
+     * @param int $contragentId        - ид на контрагента
+     * @param datetime|null $validFrom - от кога е валидна
+     * @return int
+     */
+    public static function add($listId, $contragentClassId, $contragentId, $validFrom = null)
+    {
+        $ContragentClass = cls::get($contragentClassId);
+        $from = $validFrom ?? dt::now();
+        expect($listId);
+        $rec = (object)array('listId' => $listId, 'cClass' => $ContragentClass->getClassId(), 'cId' => $contragentId, 'validFrom' => $from, 'state' => 'active');
+
+        return static::save($rec);
+    }
 }
