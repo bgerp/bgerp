@@ -43,7 +43,7 @@ class batch_Movements extends core_Detail
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'powerUser';
+    public $canList = 'ceo, batch';
     
     
     /**
@@ -55,7 +55,7 @@ class batch_Movements extends core_Detail
     /**
      * Кой има право да експортва?
      */
-    public $canExport = 'ceo,batch,acc,store,sales, purchase';
+    public $canExport = 'ceo,batch';
     
     
     /**
