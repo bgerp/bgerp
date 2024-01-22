@@ -494,7 +494,7 @@ class batch_Movements extends core_Detail
                 $rec->contragentId = $Cover->getTitleById();
             }
             $rec->productId = cat_Products::getVerbal($pRec->id, 'name');
-            $rec->measureId = $pRec->measureId;
+            $rec->measureId = cat_UoM::getTitleById($pRec->measureId);
             $rec->code = cat_Products::getVerbal($pRec->id, 'code');
             if($Def = batch_Defs::getBatchDef($pRec->id)){
                 if(!empty($rec->batch)){
