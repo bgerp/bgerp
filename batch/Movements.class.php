@@ -463,6 +463,7 @@ class batch_Movements extends core_Detail
     protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
     {
         $fieldset->setField('docId', 'caption=Документ');
+        $fieldset->setFieldType('quantity', 'double(decimals=4)');
         $fieldset->FLD('code', 'varchar', 'caption=Код,before=productId');
         $fieldset->FLD('productId', 'varchar', 'caption=Артикул,before=date');
         $fieldset->FLD('batch', 'varchar', 'caption=Партида,after=productId');
