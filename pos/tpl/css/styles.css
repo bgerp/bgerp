@@ -1056,6 +1056,9 @@ only screen and (max-width: 1280px) {
 .printBtn {
   background-position: center; }
 
+.anotherPos {
+  background-color: #f87a7a !important; }
+
 table.total {
   width: 100%; }
 
