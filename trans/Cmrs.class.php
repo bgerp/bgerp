@@ -276,11 +276,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         // Зареждане на дефолти от ориджина
         if (isset($rec->originId) && !isset($rec->id)) {
             $mvc->setDefaultsFromShipmentOrder($rec->originId, $form);
-            
-            if ($senderInstructions = trans_Setup::get('CMR_SENDER_INSTRUCTIONS')) {
-                $form->setDefault('senderInstructions', $senderInstructions);
-            }
-            
+
             $threadId = doc_Containers::fetchField($rec->originId, 'threadId');
             $invoicesInThread = deals_Helper::getInvoicesInThread($threadId);
             if (countR($invoicesInThread) == 1) {
@@ -307,7 +303,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         $sRec = $origin->fetch();
         $form->setDefault('cmrNumber', $sRec->id);
         $lData = $origin->getLogisticData();
-        
+
         // Всичките дефолтни данни трябва да са на английски
         core_Lg::push('en');
         
@@ -326,7 +322,19 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         // Място на товарене / Разтоварване
         $loadingPlace = $lData['fromPCode'] . ' ' .  transliterate($lData['fromPlace']) . ', ' . $lData['fromCountry'];
         $deliveryPlace = $lData['toPCode'] . ' ' .  transliterate($lData['toPlace']) . ', ' . $lData['toCountry'];
-        
+
+        $senderInstructionDefault = '';
+        if ($senderInstructions = trans_Setup::get('CMR_SENDER_INSTRUCTIONS')) {
+            $senderInstructionDefault .= $senderInstructions;
+        }
+
+        if(!empty($lData['toAddressFeatures'])){
+            $transFeatures = trans_Features::getVerbalFeatures($lData['toAddressFeatures']);
+            $senderInstructionDefault .= (!empty($senderInstructionDefault) ? "\n" : "") . $transFeatures;
+        }
+        $form->setDefault('senderInstructions', $senderInstructionDefault);
+
+
         // Има ли общо тегло в ЕН-то
         if (!empty($lData['totalWeight'])) {
             Mode::push('text', 'plain');
