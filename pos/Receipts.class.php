@@ -613,11 +613,13 @@ class pos_Receipts extends core_Master
         }
 
         if(in_array($action, array('delete', 'reject')) && isset($rec)){
-            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
-            if(is_object($deviceRec)){
-                $paidWithCards = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}' AND #param = 'card'");
-                if($paidWithCards){
-                    $res = 'no_one';
+            if(!haveRole('posMaster')){
+                $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+                if(is_object($deviceRec)){
+                    $paidWithCards = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}' AND #param = 'card'");
+                    if($paidWithCards){
+                        $res = 'no_one';
+                    }
                 }
             }
         }

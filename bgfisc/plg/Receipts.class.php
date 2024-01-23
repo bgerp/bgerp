@@ -377,8 +377,8 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $hash = str::addHash('fiscreceipt', 4);
                 $successUrl = toUrl(array($mvc, 'close', $rec->id, 'hash' => $hash));
                 Request::removeProtected('hash');
-                
-                $fiscalArr['SERIAL_NUMBER'] = $lRec->serialNumber;
+
+                $fiscalArr['SERIAL_NUMBER'] = (bgfisc_Setup::get('CHECK_SERIAL_NUMBER') == 'yes') ? $lRec->serialNumber : false;
                 $cu = core_Users::getCurrent();
                 $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
                 

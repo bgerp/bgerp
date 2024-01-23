@@ -130,7 +130,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         }
         
         $cu = core_Users::getCurrent();
-        $fiscalArr['SERIAL_NUMBER'] = $registerRec->serialNumber;
+        $fiscalArr['SERIAL_NUMBER'] = (bgfisc_Setup::get('CHECK_SERIAL_NUMBER') == 'yes') ? $registerRec->serialNumber : false;
         $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
         
         $receiptNumber = bgfisc_Register::getSaleNumber($mvc, $rec->id);

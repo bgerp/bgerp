@@ -226,22 +226,35 @@ class price_ListBasicDiscounts extends core_Detail
         }
     }
 
+
+    /**
+     * Изчислява автоматичните отстъпки на детайла на документа
+     *
+     * @param stdClass $basicDiscountListRec
+     * @param mixed $Master
+     * @param stdClass $masterRec
+     * @param mixed $Detail
+     * @param array $detailsAll
+     * @return array $res - масив с данните за отстъпки + дебъг информация
+     */
     public function getAutoDiscountsByGroups($basicDiscountListRec, $Master, $masterRec, $Detail, $detailsAll)
     {
         $res = array();
         $Detail = cls::get($Detail);
         $Master = cls::get($Master);
 
+        // Към посочения лист с отстъпки се взимат зададените му прагове
         $query = $this->getQuery();
         $query->where("#listId = {$basicDiscountListRec->id}");
         $query->orderBy('id', 'ASC');
         $dRecs = $query->fetchAll();
         $res['discountRecs'] = $dRecs;
-
         if(!countR($dRecs)) return $res;
 
-        $groupIds = arr::extractValuesFromArray($dRecs, 'groupId');
         $salesByNow = array();
+        $groupIds = arr::extractValuesFromArray($dRecs, 'groupId');
+
+        // Ако периода за продажба е различен от "текущата продажба" смятат се сумите от преидшните продажби за контрагента
         if($basicDiscountListRec->discountClassPeriod != 'default'){
             $contragentClassId = $masterRec->contragentClassId;
             $contragentId = $masterRec->contragentId;
@@ -253,8 +266,12 @@ class price_ListBasicDiscounts extends core_Detail
             $salesByNow = $this->getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
         }
         $res['SALES_BY_NOW'] = $salesByNow;
+
+        // За всяка група от праговете
         $detailsByGroups = array();
         foreach ($groupIds as $groupId){
+
+            // Добавят се и данните за раздадените отстъпки от текущата продажба
             foreach ($detailsAll as $detailRec){
                 if(keylist::isIn($groupId, $detailRec->groups)){
                     $detailsByGroups[$groupId]['autoDiscount'] += 0;
@@ -276,6 +293,7 @@ class price_ListBasicDiscounts extends core_Detail
             }
         }
 
+        // Обединяват се данните от предишни и от текуща продажба
         $res['CURRENT_SALE'] = $detailsByGroups;
         $finalSums = $salesByNow;
         array_walk($detailsByGroups, function($valArr, $key) use (&$finalSums) {
@@ -285,10 +303,14 @@ class price_ListBasicDiscounts extends core_Detail
         });
         $res['TOTAL_SALES'] = $finalSums;
 
+        // За всяка група от праговете
         foreach ($groupIds as $groupId){
+
+            // Гледа се сумата на продажбите от нея
             $res['groups'][$groupId] = array('SUM' => $finalSums[$groupId]['amount'], 'DISC_BY_NOW' => $finalSums[$groupId]['autoDiscount'], 'FITS_IN' => null, 'percent' => null);
             if(empty($finalSums[$groupId]['amount'])) continue;
 
+            // Ако има се търси попада ли в някой от посочените прагове
             $foundDiscountRec = null;
             $filteredRecs = array_filter($dRecs, function($a) use ($groupId) {return $a->groupId == $groupId;});
             foreach ($filteredRecs as $fRec){
@@ -302,23 +324,30 @@ class price_ListBasicDiscounts extends core_Detail
 
             // Изчисляване на очаквания среден процент
             if($foundDiscountRec){
+
+                // Ако попада в някой праг
                 $res['groups'][$groupId]['FITS_IN'] = $foundDiscountRec;
                 $valToCheck = round($finalSums[$groupId]['amount'], 2);
 
+                // Смята се процента на автоматична отстъпка
                 $totalWithoutDiscountInListCurrency = currency_CurrencyRates::convertAmount($valToCheck, null, null, $basicDiscountListRec->currencyId);
-
-                $totalOld = $totalWithoutDiscountInListCurrency;
                 $calcDiscountInListCurrency = 0;
                 $totalWithoutDiscountInListCurrency -= $foundDiscountRec->amountFrom;
 
+                // Изчислява се сумата за отстпка
                 if(isset($foundDiscountRec->discountPercent)){
                     $calcDiscountInListCurrency = $totalWithoutDiscountInListCurrency * $foundDiscountRec->discountPercent;
                 }
-
                 if(isset($foundDiscountRec->discountAmount)){
                     $calcDiscountInListCurrency += $foundDiscountRec->discountAmount;
                 }
 
+                // Приспадат се вече раздадените авт. отстъпки
+                $calcDiscountInListCurrency -= $finalSums[$groupId]['autoDiscount'];
+                if($calcDiscountInListCurrency <= 0) continue;
+
+                // Изчислява се процента спрямо сумата на групата от текущата продажба
+                $totalOld = currency_CurrencyRates::convertAmount($res['CURRENT_SALE'][$groupId]['amount'], null, null, $basicDiscountListRec->currencyId);
                 $calcedPercent =  round(($calcDiscountInListCurrency / $totalOld), 4);
 
                 $res['groups'][$groupId]['percent'] = $calcedPercent;
@@ -329,8 +358,18 @@ class price_ListBasicDiscounts extends core_Detail
     }
 
 
+    /**
+     * Намира предишните продажби(обикновени и POS) на контрагента по групи
+     *
+     * @param int $contragentClassId
+     * @param int $contragentId
+     * @param array $groupIds
+     * @param stdClass $listRec
+     * @return array $sumByGroups
+     */
     private function getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $listRec)
     {
+        // От модела за делтите се извличат предишните продажби за контрагента от посочения интервал
         $groupKeylist = keylist::fromArray($groupIds);
         $posReportClassId = pos_Reports::getClassId();
         $dQuery = sales_PrimeCostByDocument::getQuery();
@@ -348,6 +387,7 @@ class price_ListBasicDiscounts extends core_Detail
         }
         $saleRecs = $dQuery->fetchAll();
 
+        // Сумира се сумата без оригинална отстъпка и сумата на автоматичните отстъпки от тях
         $sumByGroups = array();
         foreach ($groupIds as $groupId){
             foreach ($saleRecs as $sRec1){
@@ -365,6 +405,7 @@ class price_ListBasicDiscounts extends core_Detail
             }
         }
 
+        // Към масива се добавят и чакащите/приключени (но непрехвърлени) ПОС бележки
         $pQuery = pos_ReceiptDetails::getQuery();
         $pQuery->EXT('state', 'pos_Receipts', "externalName=state,externalKey=receiptId");
         $pQuery->EXT('waitingOn', 'pos_Receipts', "externalName=waitingOn,externalKey=receiptId");

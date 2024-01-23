@@ -31,7 +31,7 @@ class bgfisc_Register extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, bgfisc_Wrapper, plg_Search, plg_Sorting, plg_Created';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Search, plg_Sorting, plg_Created';
     
     
     /**

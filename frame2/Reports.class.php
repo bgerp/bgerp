@@ -967,8 +967,10 @@ class frame2_Reports extends embed_Manager
         }
         
         if (!empty($rec->updateDays) || !empty($rec->updateTime) || !empty($row->nextUpdate)) {
-            $resArr['update'] = array('name' => $updateHeaderName, 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
+            if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+                $resArr['update'] = array('name' => $updateHeaderName, 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
         																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime--><!--ET_BEGIN nextUpdate--><div><span style='font-weight:normal'>|Следващо|*</span> [#nextUpdate#]</div><!--ET_END nextUpdate-->"));
+            }
         }
         
         if (isset($rec->lastRefreshed)) {
@@ -976,7 +978,9 @@ class frame2_Reports extends embed_Manager
         }
         
         if (isset($rec->sharedUsers)) {
-            $resArr['notify'] = array('name' => tr('Известия'), 'row' => 2, 'val' => tr('|*[#sharedUsers#]'));
+            if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+                $resArr['notify'] = array('name' => tr('Известия'), 'row' => 2, 'val' => tr('|*[#sharedUsers#]'));
+            }
         }
     }
     
