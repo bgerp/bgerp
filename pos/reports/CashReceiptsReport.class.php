@@ -32,7 +32,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
     /**
      * По кое поле да се групира
      */
-    public $groupByField ;
+    public $groupByField;
 
 
     /**
@@ -74,10 +74,13 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,after=title');
-        $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,after=start');
+        $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,refreshForm,after=title');
+        $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,refreshForm,after=start');
 
-        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС,placeholder=Всички,after=end,single=none');
+        $fieldset->FLD('customers', 'keylist(mvc=core_Users,select=names,allowEmpty)', 'caption=Клиент,placeholder=Всички,after=end,single=none');
+
+
+        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС,placeholder=Всички,after=customers,single=none');
 
 
         //Групиране на резултатите
@@ -100,6 +103,22 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('groupBy', 'no');
+
+        $suggestions = array();
+
+        $receiptQuery = pos_Receipts::getQuery();
+        $receiptQuery->where("#waitingOn IS NOT NULL");
+
+        while ($receiptRec = $receiptQuery->fetch()) {
+
+            $contragentName = cls::get($receiptRec->contragentClass)->getVerbal($receiptRec->contragentObjectId, 'name');
+
+            $folderId = cls::get($receiptRec->contragentClass)->forceCoverAndFolder($receiptRec->contragentObjectId);
+
+            $suggestions[$folderId] = $contragentName;
+        }
+
+        $form->setSuggestions('customers', $suggestions);
 
     }
 
@@ -139,21 +158,34 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
             $this->groupByField = $rec->groupBy;
         }
 
-
         $receiptQuery = pos_Receipts::getQuery();
         $receiptQuery->where("#waitingOn >= '$rec->from'");
 
         //Филтър по ПОС
-        if(!is_null($rec->pos)){
+        if (!is_null($rec->pos)) {
 
             $receiptQuery->in('pointId', keylist::toArray($rec->pos));
 
         }
 
-
+        $totalSum = array();
         while ($receiptRec = $receiptQuery->fetch()) {
 
+            $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
+            $folderId = $contragentRec->folderId;
+            if (!$folderId) {
+                cls::get($receiptRec->contragentClass)->forceCoverAndFolder($receiptRec->contragentObjectId);
+            }
+
+            //филтър по контрагент
+            if ($rec->customers) {
+                if (!in_array($folderId, keylist::toArray($rec->customers))) continue;
+            }
+
+
             $id = $receiptRec->id;
+
+            $totalSum[$folderId] += $receiptRec->total;
 
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -161,17 +193,27 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
                     'receiptId' => $receiptRec->id,
                     'pointId' => $receiptRec->pointId,                  //POS
                     'total' => $receiptRec->total,
+                    'totalSum' => '',
                     'waitingOn' => $receiptRec->waitingOn,
-                    'contragentName' => $receiptRec->contragentName,
+                    'contragentName' => $contragentRec->name,
                     'contragentObjectId' => $receiptRec->contragentObjectId,
                     'contragentClass' => $receiptRec->contragentClass,
+                    'folderId' => $folderId,
                 );
             } else {
                 $obj = &$recs[$id];
 
             }
+
         }
-        if(countR($recs)){
+
+        //Добавям тоталите
+        foreach ($recs as $v) {
+
+
+            $v->totalSum = $totalSum[$v->folderId];
+        }
+        if (countR($recs)) {
             arr::sortObjects($recs, 'contragentName', 'asc');
         }
 
@@ -235,6 +277,9 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         $row->pointId = pos_Points::getHyperlink($dRec->pointId, true);
 
         $row->contragentName = $dRec->contragentName;
+        if ($rec->groupBy == 'contragentName') {
+            $row->contragentName .= '  ОБЩО: ' . $dRec->totalSum . ' лв.';
+        }
 
         $row->total = ht::createLink($dRec->total, array('pos_Receipts', 'single', $dRec->receiptId));
 
