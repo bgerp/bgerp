@@ -948,7 +948,7 @@ class pos_Receipts extends core_Master
             $num = self::getRecTitle($rec);
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
-                    $num = ht::createLink($num, array('pos_Terminal', 'open', 'receiptId' => $rec->id), false, 'title=Довършване на бележката,ef_icon=img/16/cash-register.png');
+                    $num = ht::createLink($num, array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'force' => true), false, 'title=Довършване на бележката,ef_icon=img/16/cash-register.png');
                 } elseif ($this->haveRightFor('single', $rec)) {
                     $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Отваряне на бележка №{$rec->id},ef_icon=img/16/view.png");
                 }
