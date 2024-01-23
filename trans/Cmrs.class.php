@@ -524,8 +524,8 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        $cmrNumber = $self->fetchField($id, 'cmrNumber');
-        $hnd = $self->abbr . $cmrNumber;
+        $rec = $self->fetchRec($id);
+        $hnd = $self->abbr . $rec->cmrNumber;
         
         return $hnd;
     }
