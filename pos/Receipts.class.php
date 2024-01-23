@@ -386,7 +386,7 @@ class pos_Receipts extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('terminal', $data->rec)) {
-            $data->toolbar->addBtn('Терминал', array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/forward16.png, order=18,target=_blank');
+            $data->toolbar->addBtn('Терминал', array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'force' => true, 'ret_url' => true), 'ef_icon=img/16/forward16.png, order=18,target=_blank');
         }
 
         if ($mvc->haveRightFor('manualpending', $data->rec)) {

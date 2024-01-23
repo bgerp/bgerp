@@ -123,8 +123,10 @@ class pos_Terminal extends peripheral_Terminal
         $Receipts = cls::get('pos_Receipts');
         $Receipts->requireRightFor('terminal');
         expect($id = Request::get('receiptId', 'int'));
+        $forcePoint = Request::get('force', 'int');
         $rec = $Receipts->fetch($id);
         if(empty($rec)) return new Redirect(array($Receipts, 'new'), '|Несъществуваща бележка', 'warning');
+
 
         // Ако се отваря нова бележка нулира се в сесията запомненото
         if(Request::get('opened', 'int')){
@@ -141,9 +143,12 @@ class pos_Terminal extends peripheral_Terminal
             
             return new Redirect(array($Receipts, 'new'));
         }
-        
-        // Автоматично избиране на касата на бележката за текуща
-        pos_Points::selectCurrent($rec->pointId);
+
+        $cPoint = pos_Points::getCurrent('id', false);
+        if($forcePoint || !$cPoint){
+            pos_Points::selectCurrent($rec->pointId);
+        }
+
         $tpl = getTplFromFile('pos/tpl/terminal/Layout.shtml');
         $titleDelimiter = Mode::is('printing') ? ' « ' : '';
         $tpl->replace(pos_Points::getTitleById($rec->pointId) . "{$titleDelimiter}", 'PAGE_TITLE');
@@ -153,7 +158,7 @@ class pos_Terminal extends peripheral_Terminal
         // Добавяме бележката в изгледа
         $receiptTpl = $this->getReceipt($rec);
         $tpl->replace($receiptTpl, 'RECEIPT');
-        
+
         // Ако не сме в принтиране, сменяме обвивквата и рендираме табовете
         if (!Mode::is('printing')) {
             
@@ -2208,31 +2213,40 @@ class pos_Terminal extends peripheral_Terminal
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new') : array();
         
         $rows = array();
+        $pointId = pos_Points::getCurrent();
         if($rec->_selectedReceiptFilter == 'draft'){
-            $rows[] = ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
+            $rows[$pointId]['-1'] = ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
         }
         
         while($receiptRec = $query->fetch()){
             $openUrl = (pos_Receipts::haveRightFor('terminal', $receiptRec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $receiptRec->id, 'opened' => true) : array();
             $class = (countR($openUrl)) ? ' navigable' : ' disabledBtn';
             $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
-            
             $btnTitle = self::getReceiptTitle($receiptRec);
-            $warning = $anotherPosClass = null;
+            $warning = null;
             if($rec->pointId != $receiptRec->pointId){
-                $warning = 'Бележката е от друг POS. Отварянето ѝ ще промени POS-а, с който работите|*!';
-                $anotherPosClass = 'anotherPos';
+                $warning = 'Бележката е от друг POS|*!';
             }
 
-            $rows[] = ht::createLink($btnTitle, $openUrl, $warning, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable {$anotherPosClass}", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
+            $rows[$receiptRec->pointId][$receiptRec->id] = ht::createLink($btnTitle, $openUrl, $warning, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
         }
-        
+
+        uksort($rows, function($k, $v) use ($rec) {
+            return ($k == $rec->pointId) ? -1 : 1;
+        });
+
         if(countR($rows)){
-            $tpl->append("<div class='contentHolderResults'><div class='grid'>");
-            foreach ($rows as $receiptBtn){
-                $tpl->append($receiptBtn);
+            $tpl->prepend("<div class='contentHolderResults'>");
+            foreach ($rows as $pId => $btnRows){
+                $pointName = pos_Points::getTitleById($pId);
+                $tpl->append(tr("|*<div class='divider'>|Бележки в|* {$pointName}</div>"));
+                $tpl->append("<div class='grid'>");
+                foreach ($btnRows as $receiptBtn){
+                    $tpl->append($receiptBtn);
+                }
+                $tpl->append("</div>");
             }
-            $tpl->append("</div></div>");
+            $tpl->append("</div>");
         } else {
             $tpl->append("<div class='contentHolderResults'><div class='noFoundInGroup'>" . tr("Няма намерени бележки") . "</div></div>");
         }
@@ -2240,7 +2254,6 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->prepend("<div class='withTabs'>");
         $tpl->append("</div>");
         $tpl->removeBlocksAndPlaces();
-
         jquery_Jquery::run($tpl, "changePriceSpans();");
         
         return $tpl;
