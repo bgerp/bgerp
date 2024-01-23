@@ -327,13 +327,11 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         if ($senderInstructions = trans_Setup::get('CMR_SENDER_INSTRUCTIONS')) {
             $senderInstructionDefault .= $senderInstructions;
         }
-
         if(!empty($lData['toAddressFeatures'])){
             $transFeatures = trans_Features::getVerbalFeatures($lData['toAddressFeatures']);
             $senderInstructionDefault .= (!empty($senderInstructionDefault) ? "\n" : "") . $transFeatures;
         }
         $form->setDefault('senderInstructions', $senderInstructionDefault);
-
 
         // Има ли общо тегло в ЕН-то
         if (!empty($lData['totalWeight'])) {
