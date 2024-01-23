@@ -199,11 +199,13 @@ class pos_Reports extends core_Master
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
 
         $dates = arr::extractValuesFromArray($rec->details['receipts'], 'createdOn');
-        $fromDate = min($dates);
-        $toDate = max($dates);
+        if(countR($dates)){
+            $fromDate = min($dates);
+            $toDate = max($dates);
 
-        $row->from = dt::mysql2verbal($fromDate, 'd.m.Y H:i');
-        $row->to = dt::mysql2verbal($toDate, 'd.m.Y H:i');
+            $row->from = dt::mysql2verbal($fromDate, 'd.m.Y H:i');
+            $row->to = dt::mysql2verbal($toDate, 'd.m.Y H:i');
+        }
         
         if ($fields['-single']) {
             $pointRec = pos_Points::fetch($rec->pointId);
