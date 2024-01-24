@@ -286,7 +286,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
 
         $row->contragentName = $dRec->contragentName;
         if ($rec->groupBy == 'contragentName') {
-            $row->contragentName .= '  ОБЩО: ' . $dRec->totalSum . ' лв.';
+            $row->contragentName .= '<span class="fright">  ОБЩО: ' . $dRec->totalSum . ' лв.</span>';
         }
 
         $row->total = ht::createLink($dRec->total, array('pos_Receipts', 'single', $dRec->receiptId));
