@@ -159,6 +159,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         }
 
         $receiptQuery = pos_Receipts::getQuery();
+        $receiptQuery->where("#waitingOn IS NOT NULL");
         $receiptQuery->where("#waitingOn >= '$rec->from'");
 
         //Филтър по ПОС
