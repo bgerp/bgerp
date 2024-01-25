@@ -113,7 +113,7 @@
                     <tr>
                         <td colspan="2">
                             <div>
-                                Total weight:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;<b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
+                                Total gross weight: <b>[#weight#]</b> Total net weight: <b>[#netWeight#]</b> Total volume: <b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;|Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
                             </div>
                         </td>
                     </tr>

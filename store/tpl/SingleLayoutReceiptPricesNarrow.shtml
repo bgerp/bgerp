@@ -113,8 +113,12 @@
                   </tr>
                   <!--ET_END lineVehicleId-->
                   <tr>
-                     <td class='quiet nowrap aright' style='width:1%;'>|Общо тегло|*:</td>
+                     <td class='quiet nowrap aright' style='width:1%;'>|Общо бруто тегло|*:</td>
                      <td>[#weight#]</td>
+                  </tr>
+                  <tr>
+                     <td class='quiet nowrap aright' style='width:1%;'>|Общо нето тегло|*:</td>
+                     <td>[#netWeight#]</td>
                   </tr>
                   <tr>
                      <td class='quiet nowrap aright' style='width:1%;'>|Общ обем|*:</td>

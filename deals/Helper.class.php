@@ -1496,7 +1496,7 @@ abstract class deals_Helper
      */
     private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = null, $masterState)
     {
-        expect(in_array($type, array('volume', 'weight')));
+        expect(in_array($type, array('volume', 'weight', 'netWeight')));
         $hint = $warning = false;
         
         // Ако артикула не е складируем не му се изчислява транспортно тегло
@@ -1508,7 +1508,11 @@ abstract class deals_Helper
         if(in_array($masterState, array('draft', 'pending')))
         if ($type == 'weight') {
             $liveValue = cat_Products::getTransportWeight($productId, $quantity);
-        } else {
+        } elseif($type == 'netWeight') {
+            if($netWeight = cat_Products::convertToUom($productId, 'kg')) {
+                $liveValue = $netWeight * $quantity;
+            }
+        }   else {
             $liveValue = cat_Products::getTransportVolume($productId, $quantity);
         }
         
@@ -1527,22 +1531,18 @@ abstract class deals_Helper
         }
         
         // Ако няма тегло не се прави нищо
-        if (!isset($value)) {
-            return;
-        }
+        if (!isset($value)) return;
         
-        $valueType = ($type == 'weight') ? 'cat_type_Weight(decimals=2)' : 'cat_type_Volume';
+        $valueType = ($type == 'volume') ? 'cat_type_Volume' : 'cat_type_Weight(decimals=2)';
         $value = round($value, 3);
         
         // Ако стойноста е 0 да не се показва
-        if (empty($value)) {
-            return;
-        }
+        if (empty($value)) return;
        
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
         if ($hint === true) {
-            $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : 'Транспортният обем е прогнозен';
+            $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : (($type == 'volume') ? 'Транспортният обем е прогнозен' : 'Нето теглото е прогнозно');
             $valueRow = "<span style='color:blue'>{$valueRow}</span>";
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
@@ -1622,8 +1622,28 @@ abstract class deals_Helper
     {
         return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight, $masterState);
     }
-    
-    
+
+
+    /**
+     * Връща нето теглото на реда
+     *
+     * @param int        $productId   - артикул
+     * @param int        $packagingId - ид на опаковка
+     * @param int        $quantity    - общо количество
+     * @param string     $masterState - общо количество
+     * @param float|NULL $netWeight   - тегло на артикула (ако няма се взима 'live')
+     *
+     * @return core_ET|NULL - шаблона за показване
+     */
+    public static function getNetWeightRow($productId, $packagingId, $quantity, $masterState, $netWeight = null)
+    {
+        return self::getMeasureRow($productId, $packagingId, $quantity, 'netWeight', $netWeight, $masterState);
+    }
+
+
+
+
+
     /**
      * Връща масив с фактурите в треда (тредовете)
      *

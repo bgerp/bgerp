@@ -155,7 +155,7 @@
                      </td>
                   </tr>
                   <tr>
-                     <td colspan="2">|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</td>
+                     <td colspan="2"><span>|Общо нето тегло|*:&nbsp;[#weight#]</span><span>|Общо нето тегло|*:&nbsp;[#netWeight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</td>
                   </tr>
                   <!--ET_BEGIN logisticInfo-->
                   <tr>

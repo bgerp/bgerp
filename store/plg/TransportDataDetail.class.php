@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,12 +25,14 @@ class store_plg_TransportDataDetail extends core_Plugin
     {
         $mvc->declareInterface('store_iface_DetailsTransportData');
         setIfNot($mvc->weightField, 'weight');
+        setIfNot($mvc->netWeightField, 'netWeight');
         setIfNot($mvc->volumeField, 'volume');
         setIfNot($mvc->productFld, 'productId');
         setIfNot($mvc->packagingFld, 'packagingId');
         setIfNot($mvc->quantityFld, 'quantity');
-        
+
         $mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Бруто,forceField,autohide');
+        $mvc->FLD($mvc->netWeightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Нето,forceField,autohide');
         $mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
         $mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,tdClass=nowrap,after={$mvc->volumeField},smartCenter,input=none");
         $mvc->FLD('transUnitQuantity', 'int(min=1)', 'caption=Логистична информация->К-во,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
@@ -57,6 +59,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             $isStorable = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');
             if ($isStorable == 'yes') {
                 $form->setField('weight', 'input');
+                $form->setField('netWeight', 'input');
                 $form->setField('volume', 'input');
                 $form->setField('transUnitId', 'input');
                 $form->setField('transUnitQuantity', 'input');
@@ -80,7 +83,8 @@ class store_plg_TransportDataDetail extends core_Plugin
         // Показване на транспортното тегло/обем/лог.ед ако няма, сизчисляват динамично
         $masterState = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
         $row->weight = deals_Helper::getWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->weightField});
-        $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld},$masterState, $rec->{$mvc->volumeField});
+        $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->volumeField});
+        $row->netWeight = deals_Helper::getNetWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->netWeightField});
         $row->transUnitId = deals_Helper::getTransUnitRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->transUnitId, $rec->transUnitQuantity);
     }
     
@@ -99,7 +103,7 @@ class store_plg_TransportDataDetail extends core_Plugin
     {
         $masterRec = $mvc->Master->fetchRec($masterId);
         $masterId = $masterRec->id;
-        $cWeight = $cVolume = 0;
+        $cWeight = $cVolume = $cNetWeight = 0;
         $query = $mvc->getQuery();
         $query->where("#{$mvc->masterKey} = {$masterId}");
         $units = array();
@@ -118,7 +122,6 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $w = $rec->{$mvc->weightField};
             }
 
-            
             // Форсира се при нужда
             if ($force === true && empty($rec->{$mvc->weightField}) && !empty($w)) {
                 $clone = clone $rec;
@@ -132,7 +135,28 @@ class store_plg_TransportDataDetail extends core_Plugin
             } else {
                 $cWeight = null;
             }
-            
+
+            // Изчислява се теглото
+            if($calcLive){
+                $w1 = $mvc->getNetWeight($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->netWeightField});
+            } else {
+                $w1 = $rec->{$mvc->netWeightField};
+            }
+
+            // Форсира се при нужда
+            if ($force === true && empty($rec->{$mvc->netWeightField}) && !empty($w1)) {
+                $clone = clone $rec;
+                $clone->{$mvc->netWeightField} = $w1;
+                $mvc->save_($clone, $mvc->netWeightField);
+            }
+
+            // Сумира се
+            if (empty($rec->{$mvc->quantityFld}) || (!empty($w1) && !is_null($cNetWeight))) {
+                $cNetWeight += $w1;
+            } else {
+                $cNetWeight = null;
+            }
+
             // Изчислява се обема
             if($calcLive){
                 $v = $mvc->getVolume($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->volumeField});
@@ -186,9 +210,10 @@ class store_plg_TransportDataDetail extends core_Plugin
         
         // Връщане на обема и теглото
         $weight = (!empty($cWeight)) ? $cWeight : null;
+        $netWeight = (!empty($cNetWeight)) ? $cNetWeight : null;
         $volume = (!empty($cVolume)) ? $cVolume : null;
 
-        $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units);
+        $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units, 'netWeight' => $netWeight);
     }
     
     
@@ -232,15 +257,43 @@ class store_plg_TransportDataDetail extends core_Plugin
         
         $res = $volume;
     }
-    
-    
+
+
+    /**
+     * Връща нето теглото на реда, ако няма изчислява го на момента
+     *
+     * @param core_Mvc   $mvc
+     * @param float|NULL $res
+     * @param int        $productId
+     * @param int        $packagingId
+     * @param float      $quantity
+     * @param float|NULL $netWeight
+     */
+    public function on_AfterGetNetWeight($mvc, &$res, $productId, $packagingId, $quantity, $netWeight = null)
+    {
+        if (!isset($netWeight)) {
+            $netWeight = cat_Products::convertToUom($productId, 'kg');
+            if($netWeight){
+                $netWeight *= $quantity;
+            }
+            $netWeight = deals_Helper::roundPrice($netWeight, 3);
+        }
+
+        $res = $netWeight;
+    }
+
+
     /**
      * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $masterRec = $data->masterData->rec;
-        
+
+        if (!empty($masterRec->netWeightInput) && $masterRec->netWeightInput != $masterRec->calcedNetWeight) {
+            unset($data->listFields['netWeight']);
+        }
+
         if (!empty($masterRec->weightInput) && $masterRec->weightInput != $masterRec->calcedWeight) {
             unset($data->listFields['weight']);
         }
