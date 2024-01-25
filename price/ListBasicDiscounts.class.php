@@ -309,6 +309,7 @@ class price_ListBasicDiscounts extends core_Detail
             // Гледа се сумата на продажбите от нея
             $res['groups'][$groupId] = array('SUM' => $finalSums[$groupId]['amount'], 'DISC_BY_NOW' => $finalSums[$groupId]['autoDiscount'], 'FITS_IN' => null, 'percent' => null);
             if(empty($finalSums[$groupId]['amount'])) continue;
+            if(empty($res['CURRENT_SALE'][$groupId]['amount'])) continue;
 
             // Ако има се търси попада ли в някой от посочените прагове
             $foundDiscountRec = null;
@@ -349,6 +350,7 @@ class price_ListBasicDiscounts extends core_Detail
                 // Изчислява се процента спрямо сумата на групата от текущата продажба
                 $totalOld = currency_CurrencyRates::convertAmount($res['CURRENT_SALE'][$groupId]['amount'], null, null, $basicDiscountListRec->currencyId);
                 $calcedPercent =  round(($calcDiscountInListCurrency / $totalOld), 4);
+                $calcedPercent = min($calcedPercent, 1);
 
                 $res['groups'][$groupId]['percent'] = $calcedPercent;
             }

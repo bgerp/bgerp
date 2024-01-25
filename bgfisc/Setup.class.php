@@ -22,7 +22,7 @@ defIfNot('BGFISC_PRICE_FU_ROUND', '2');
 /**
  * Да се проверява ли серийния номер на ФУ, дали отговаря на този на бележката, която ще се печата
  */
-defIfNot('BGFISC_CHECK_SERIAL_NUMBER', 'yes');
+defIfNot('BGFISC_CHECK_SERIAL_NUMBER', 'no');
 
 
 /**

@@ -829,7 +829,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        $rec = $self->fetch($id);
+        $rec = $self->fetchRec($id);
         
         if (!$rec->number) {
             $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;

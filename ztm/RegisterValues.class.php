@@ -317,7 +317,7 @@ class ztm_RegisterValues extends core_Manager
                     if ($registerRec->scope != 'system') {
                         $expandedRegArr[$registerRec->id] = (object) array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'scope' => $registerRec->scope);
                     } else {
-                        ztm_Devices::logErr("Получен регистър {$name} с приоритет {$registerRec->scope}", $deviceId);
+                        ztm_Devices::logNotice("Получен регистър {$name} с приоритет {$registerRec->scope}", $deviceId);
                     }
                 } else {
                     $unknownRegisters[] = (object) array('name' => $name, 'value' => $value);

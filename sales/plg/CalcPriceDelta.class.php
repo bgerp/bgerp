@@ -143,6 +143,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $valior = $mvc->getValiorValue($rec);
         while ($dRec = $query->fetch()) {
             $sellCostWithOriginalDiscount = $dRec->{$mvc->detailSellPriceFld};
+            $autoDiscountAmount = null;
             $applyDiscount = true;
 
             if ($mvc instanceof sales_Sales) {

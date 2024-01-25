@@ -386,7 +386,7 @@ class pos_Receipts extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('terminal', $data->rec)) {
-            $data->toolbar->addBtn('Терминал', array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/forward16.png, order=18,target=_blank');
+            $data->toolbar->addBtn('Терминал', array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'force' => true, 'ret_url' => true), 'ef_icon=img/16/forward16.png, order=18,target=_blank');
         }
 
         if ($mvc->haveRightFor('manualpending', $data->rec)) {
@@ -948,7 +948,7 @@ class pos_Receipts extends core_Master
             $num = self::getRecTitle($rec);
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
-                    $num = ht::createLink($num, array('pos_Terminal', 'open', 'receiptId' => $rec->id), false, 'title=Довършване на бележката,ef_icon=img/16/cash-register.png');
+                    $num = ht::createLink($num, array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'force' => true), false, 'title=Довършване на бележката,ef_icon=img/16/cash-register.png');
                 } elseif ($this->haveRightFor('single', $rec)) {
                     $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Отваряне на бележка №{$rec->id},ef_icon=img/16/view.png");
                 }
