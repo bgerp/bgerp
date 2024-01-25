@@ -93,7 +93,11 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $fieldset->FLD('selfPrices', 'enum(balance=По баланс, manager=Мениджърска)', 'notNull,caption=Филтри->Вид цени,after=storeId,single=none');
 
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=selfPrices,single=none');
-        $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
+
+      // $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
+        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули по задание->Артикул,placeholder=Всички,after=group,single=none,class=w100');
+
+
         $fieldset->FLD('availability', 'enum(Всички=Всички, Налични=Налични,Отрицателни=Отрицателни)', 'notNull,caption=Филтри->Наличност,maxRadio=3,columns=3,after=products,single=none');
 
         $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=3,columns=3,after=availability,silent');
@@ -189,7 +193,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $recs = array();
 
-        $storeItemIdArr = array();
+        $storeItemIdArr = $productItemIdArr = array();
 
         if ($rec->storeId) {
             $storeItemIdArr = array();
@@ -199,7 +203,12 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
         }
 
-        $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $rec->products)->id : null;
+      //  $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $rec->products)->id : null;
+        foreach (keylist::toArray($rec->products) as $val){
+
+             $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $val)->id : null;
+            $productItemIdArr[] = $productItemId;
+        }
 
         $accsArr = array(321);
 
@@ -216,7 +225,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             array_push($accsArr, $workingPdogresAccRec->num);
         }
 
-        $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => $accsArr, 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
+        $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => $accsArr, 'item1' => $storeItemIdArr, 'item2' => $productItemIdArr, 'cacheBalance' => false, 'keepUnique' => true));
 
         $bRecs = $Balance->getBalance($accsArr);
 
@@ -226,7 +235,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             if ($item->accountId == acc_Accounts::fetch("#num = 321")->id) {
 
                 if (($rec->storeId && !in_array($item->ent1Id, $storeItemIdArr)) ||
-                    ($rec->products && $item->ent2Id != $productItemId)
+                    ($rec->products && !in_array($item->ent2Id , $productItemIdArr))
                 ) continue;
 
                 //река на перото
@@ -689,7 +698,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                                         <!--ET_BEGIN date--><div>|Към дата|*: [#date#]</div><!--ET_END date-->
                                         <!--ET_BEGIN storeId--><div>|Склад|*: [#storeId#]</div><!--ET_END storeId-->
                                         <!--ET_BEGIN group--><div>|Групи|*: [#group#]</div><!--ET_END group-->
-                                        <!--ET_BEGIN products--><div>|Артикул|*: [#products#]</div><!--ET_END products-->
+                                        <!--ET_BEGIN products--><div>|Артикули|*: [#products#]</div><!--ET_END products-->
                                         <!--ET_BEGIN availability--><div>|Наличност|*: [#availability#]</div><!--ET_END availability-->
                                         <!--ET_BEGIN totalProducts--><div>|Брой артикули|*: [#totalProducts#]</div><!--ET_END totalProducts-->
                                         <!--ET_BEGIN workingPdogresOn--><div>|Незавършено производство|*: [#workingPdogresOn#]</div><!--ET_END workingPdogresOn-->
@@ -737,7 +746,11 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
 
         if ((isset($data->rec->products))) {
-            $fieldTpl->append('<b>' . cat_Products::getTitleById($data->rec->products) . '</b>', 'products');
+            foreach (keylist::toArray($data->rec->products) as $val){
+
+                $fieldTpl->append('<b>' . cat_Products::getTitleById($val) . ', '.'</b>', 'products');
+            }
+
         }
 
         if ((isset($data->rec->workingPdogresOn))) {
