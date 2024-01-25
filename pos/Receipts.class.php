@@ -1439,7 +1439,7 @@ class pos_Receipts extends core_Master
         $attr = ($params['blank']) ? array('target' => '_blank') : array();
         if($Class instanceof crm_Companies){
 
-            return ($link) ? $Class->getHyperlink($contragentClassId, $icon, false, $attr) : $Class->getTitleById($contragentId);
+            return ($link) ? $Class->getHyperlink($contragentId, $icon, false, $attr) : $Class->getTitleById($contragentId);
         } else {
             $date = $params['date'] ?? dt::now();
             $defaultContragentId = pos_Points::defaultContragent($pointId);
