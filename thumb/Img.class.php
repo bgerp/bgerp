@@ -248,6 +248,10 @@ class thumb_Img
                 case 'url':
                     $ctx = stream_context_create(array('http' => array('timeout' => $this->timeout)));
                     $this->imgAsString = @file_get_contents($this->source, 0, $ctx);
+                    if ($this->imgAsString === false) {
+                        log_System::add('thumb_Img', "Грешка при вземане на изображение от URL: {$this->source}", null, 'warning');
+                        wp("Грешка при вземане на изображение от URL", $this->source);
+                    }
                     break;
                 case 'string':
                     $this->imgAsString = $this->source;
