@@ -2204,7 +2204,9 @@ class doc_Folders extends core_Master
                     $cQuery->show('folderId');
                     $cQuery->groupBy('folderId');
                     $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
-                    core_Cache::set('doc_Folders', $cacheKey, $folderIds, 60);
+                    if(countR($folderIds)) {
+                        core_Cache::set('doc_Folders', $cacheKey, $folderIds, 10);
+                    }
                 }
 
                 if(countR($folderIds)) {
