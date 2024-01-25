@@ -94,9 +94,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=selfPrices,single=none');
 
-      // $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули по задание->Артикул,placeholder=Всички,after=group,single=none,class=w100');
-
+        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
 
         $fieldset->FLD('availability', 'enum(Всички=Всички, Налични=Налични,Отрицателни=Отрицателни)', 'notNull,caption=Филтри->Наличност,maxRadio=3,columns=3,after=products,single=none');
 
@@ -203,10 +201,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
         }
 
-      //  $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $rec->products)->id : null;
-        foreach (keylist::toArray($rec->products) as $val){
+        //  $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $rec->products)->id : null;
+        foreach (keylist::toArray($rec->products) as $val) {
 
-             $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $val)->id : null;
+            $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $val)->id : null;
             $productItemIdArr[] = $productItemId;
         }
 
@@ -235,7 +233,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             if ($item->accountId == acc_Accounts::fetch("#num = 321")->id) {
 
                 if (($rec->storeId && !in_array($item->ent1Id, $storeItemIdArr)) ||
-                    ($rec->products && !in_array($item->ent2Id , $productItemIdArr))
+                    ($rec->products && !in_array($item->ent2Id, $productItemIdArr))
                 ) continue;
 
                 //река на перото
@@ -746,9 +744,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
 
         if ((isset($data->rec->products))) {
-            foreach (keylist::toArray($data->rec->products) as $val){
+            foreach (keylist::toArray($data->rec->products) as $val) {
 
-                $fieldTpl->append('<b>' . cat_Products::getTitleById($val) . ', '.'</b>', 'products');
+                $fieldTpl->append('<b>' . cat_Products::getTitleById($val) . ', ' . '</b>', 'products');
             }
 
         }
