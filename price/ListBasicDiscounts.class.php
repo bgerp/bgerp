@@ -350,7 +350,7 @@ class price_ListBasicDiscounts extends core_Detail
                 // Изчислява се процента спрямо сумата на групата от текущата продажба
                 $totalOld = currency_CurrencyRates::convertAmount($res['CURRENT_SALE'][$groupId]['amount'], null, null, $basicDiscountListRec->currencyId);
                 $calcedPercent =  round(($calcDiscountInListCurrency / $totalOld), 4);
-                $calcedPercent = max($calcedPercent, 1);
+                $calcedPercent = min($calcedPercent, 1);
 
                 $res['groups'][$groupId]['percent'] = $calcedPercent;
             }
