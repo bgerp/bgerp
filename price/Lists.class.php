@@ -934,30 +934,7 @@ class price_Lists extends core_Master
 
         $rec = sales_Sales::fetch(4483);
 
-        $basicDiscountListRec = static::getListWithBasicDiscounts(cls::get('sales_Sales'), $rec);
-        if(is_object($basicDiscountListRec)){
-            $basicDiscountListRec->discountClassPeriod = 'daily';
-
-            $dQuery = cls::get('sales_SalesDetails')->getQuery();
-            $dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-            $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-            $dQuery->where("#saleId = {$rec->id} AND #isPublic = 'yes'");
-            $detailsAll = $dQuery->fetchAll();
-
-            $discountData = cls::get('price_ListBasicDiscounts')->getAutoDiscountsByGroups($basicDiscountListRec, 'sales_Sales', $rec, 'sales_SalesDetails', $detailsAll);
-
-            foreach ($detailsAll as $dRec){
-                foreach ($discountData['groups'] as $groupId => $d){
-                    if(keylist::isIn($groupId, $dRec->groups)){
-                        if(!empty($d['percent'])){
-                            $dRec->autoDiscount = $d['percent'];
-                        }
-                    }
-                }
-            }
-
-            bp($detailsAll, $discountData);
-        }
+        sales_Sales::recalcAutoDiscount($rec);
     }
 
     function act_Test2()
@@ -968,7 +945,7 @@ class price_Lists extends core_Master
         $basicDiscountListRec = static::getListWithBasicDiscounts('pos_Receipts', $rec);
 
         if(is_object($basicDiscountListRec)){
-            //$basicDiscountListRec->discountClassPeriod = 'monthly';
+            $basicDiscountListRec->discountClassPeriod = 'monthly';
 
             $dQuery = pos_ReceiptDetails::getQuery();
             $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey=productId");

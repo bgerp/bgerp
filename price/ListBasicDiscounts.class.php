@@ -237,14 +237,14 @@ class price_ListBasicDiscounts extends core_Detail
      * @param array $detailsAll
      * @return array $res - масив с данните за отстъпки + дебъг информация
      */
-    public function getAutoDiscountsByGroups($basicDiscountListRec, $Master, $masterRec, $Detail, $detailsAll)
+    public static function getAutoDiscountsByGroups($basicDiscountListRec, $Master, $masterRec, $Detail, $detailsAll)
     {
         $res = array();
         $Detail = cls::get($Detail);
         $Master = cls::get($Master);
 
         // Към посочения лист с отстъпки се взимат зададените му прагове
-        $query = $this->getQuery();
+        $query = static::getQuery();
         $query->where("#listId = {$basicDiscountListRec->id}");
         $query->orderBy('id', 'ASC');
         $dRecs = $query->fetchAll();
@@ -263,7 +263,13 @@ class price_ListBasicDiscounts extends core_Detail
                 $contragentId = $masterRec->contragentObjectId;
             }
 
-            $salesByNow = $this->getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
+            // Взимане на предишните продажби от кеша, ако няма се изчисляват на моментаПро
+            $cacheKey = "{$contragentClassId}|{$contragentId}|{$basicDiscountListRec->id}|" . implode('|', $groupIds);
+            $salesByNow = core_Cache::get($Master->className, $cacheKey);
+            if(!is_array($salesByNow)){
+                $salesByNow = static::getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
+                core_Cache::set($Master->className, $cacheKey, $salesByNow, 5);
+            }
         }
         $res['SALES_BY_NOW'] = $salesByNow;
 
@@ -369,7 +375,7 @@ class price_ListBasicDiscounts extends core_Detail
      * @param stdClass $listRec
      * @return array $sumByGroups
      */
-    private function getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $listRec)
+    private static function getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $listRec)
     {
         // От модела за делтите се извличат предишните продажби за контрагента от посочения интервал
         $groupKeylist = keylist::fromArray($groupIds);
