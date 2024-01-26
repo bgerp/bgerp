@@ -514,6 +514,7 @@ class pos_Receipts extends core_Master
         if ($rec->state != 'draft') return;
 
         static::recalcAutoDiscount($rec);
+        $mvc->updateMaster_($rec);
     }
 
 
