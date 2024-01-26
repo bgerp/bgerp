@@ -2035,6 +2035,7 @@ class sales_Sales extends deals_DealMaster
         if (!in_array($rec->state, array('draft', 'pending'))) return;
 
         static::recalcAutoDiscount($rec);
+        $mvc->updateMaster_($rec);
     }
     
     
