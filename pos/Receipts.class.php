@@ -1173,7 +1173,15 @@ class pos_Receipts extends core_Master
 
         // Ако се прави опит за избор на същия контрагент не се прави нищо
         if($rec->contragentClass == $contragentClassId && $rec->contragentObjectId == $contragentId){
-            core_Statuses::newStatus('Контрагента е вече избран');
+            $msg = 'Контрагента е вече избран';
+            if($rec->contragentLocationId != $locationId){
+                $msg = 'Локацията е сменена';
+                $rec->contragentLocationId = $locationId;
+                $this->save($rec, 'contragentLocationId');
+            }
+
+            if (!Request::get('ajax_mode')) followRetUrl(null, $msg);
+            core_Statuses::newStatus($msg);
 
             return pos_Terminal::returnAjaxResponse($id, null, true, false, false, false, 'add', false);
         }
