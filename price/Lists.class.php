@@ -933,7 +933,6 @@ class price_Lists extends core_Master
         requireRole('debug');
 
         $rec = sales_Sales::fetch(4483);
-
         sales_Sales::recalcAutoDiscount($rec);
     }
 
@@ -941,31 +940,7 @@ class price_Lists extends core_Master
     {
         requireRole('debug');
 
-        $rec = pos_Receipts::fetch(1252);
-        $basicDiscountListRec = static::getListWithBasicDiscounts('pos_Receipts', $rec);
-
-        if(is_object($basicDiscountListRec)){
-            $basicDiscountListRec->discountClassPeriod = 'monthly';
-
-            $dQuery = pos_ReceiptDetails::getQuery();
-            $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey=productId");
-            $dQuery->EXT('groups', 'cat_Products', "externalName=groups,externalKey=productId");
-            $dQuery->where("#receiptId = {$rec->id} AND #isPublic = 'yes' AND #action = 'sale|code'");
-            $detailsAll = $dQuery->fetchAll();
-
-            $discountData = cls::get('price_ListBasicDiscounts')->getAutoDiscountsByGroups($basicDiscountListRec, 'pos_Receipts', $rec, 'pos_ReceiptDetails', $detailsAll);
-            foreach ($detailsAll as $dRec){
-                foreach ($discountData['groups'] as $groupId => $d){
-                    if(keylist::isIn($groupId, $dRec->groups)){
-                        if(!empty($d['percent'])){
-                            $dRec->autoDiscount = $d['percent'];
-                        }
-                    }
-                }
-            }
-
-            bp($detailsAll, $discountData);
-        }
+        $rec = pos_Receipts::fetch(1291);
+        pos_Receipts::recalcAutoDiscount($rec);
     }
-
 }

@@ -513,8 +513,7 @@ class pos_Receipts extends core_Master
         $rec = $mvc->fetchRec($id);
         if ($rec->state != 'draft') return;
 
-        //@todo да върна автоматичните отстъпки
-        return;
+        static::recalcAutoDiscount($rec);
     }
 
 
@@ -1476,9 +1475,43 @@ class pos_Receipts extends core_Master
         expect($rec = static::fetch($id));
         $this->requireRightFor('manualpending', $rec);
         $this->markAsWaiting($rec);
-
         $this->logInAct('Ръчно приключване на бележка', $rec->id);
 
         followRetUrl(null, '|Бележката е ръчно приключена');
+    }
+
+
+    /**
+     * Рекалкулира автоматичните отстъпки за продажбата
+     *
+     * @param $rec
+     * @return void
+     */
+    public static function recalcAutoDiscount($rec)
+    {
+        $rec = pos_Receipts::fetchRec($rec);
+
+        $basicDiscountListRec = price_Lists::getListWithBasicDiscounts('pos_Receipts', $rec);
+        if(!is_object($basicDiscountListRec)) return;
+
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey=productId");
+        $dQuery->EXT('groups', 'cat_Products', "externalName=groups,externalKey=productId");
+        $dQuery->where("#receiptId = {$rec->id} AND #isPublic = 'yes' AND #action = 'sale|code'");
+        $detailsAll = $dQuery->fetchAll();
+
+        $save = array();
+        $discountData = price_ListBasicDiscounts::getAutoDiscountsByGroups($basicDiscountListRec, 'pos_Receipts', $rec, 'pos_ReceiptDetails', $detailsAll);
+        foreach ($detailsAll as $dRec){
+            foreach ($discountData['groups'] as $groupId => $d){
+                if(!keylist::isIn($groupId, $dRec->groups)) continue;
+                if(empty($d['percent'])) continue;
+
+                $dRec->autoDiscount = $d['percent'];
+                $save[] = $dRec;
+            }
+        }
+
+        cls::get('pos_ReceiptDetails')->saveArray($save, 'id,autoDiscount');
     }
 }
