@@ -466,7 +466,7 @@ class pos_Receipts extends core_Master
 
         $rec->change = $rec->total = $rec->paid = 0;
         $dQuery = $this->pos_ReceiptDetails->getQuery();
-        $dQuery->where("#receiptId = {$id}");
+        $dQuery->where("#receiptId = {$rec->id}");
 
         while ($dRec = $dQuery->fetch()) {
             $action = explode('|', $dRec->action);
