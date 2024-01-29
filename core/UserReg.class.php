@@ -283,10 +283,10 @@ class core_UserReg extends core_Manager
 
                 expect($isSend, $sendRec, $rec);
 
-                status_Messages::newStatus('Изпратен имейл за верификация на имейла');
-
                 core_Permanent::set($lockEmailHash, 'yes', 60);
             }
+
+            status_Messages::newStatus('Изпратен имейл за верификация на имейла');
 
             return $retUrl;
         }
