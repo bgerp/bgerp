@@ -1,3 +1,5 @@
 ,minSurplusCharge,0.2
 ,maxSurplusCharge,0.4 
 ,calcShippingWeight,0
+,totalInPackListWithTariffCode,yes
+,tareInPackListWithTariffCode,no
