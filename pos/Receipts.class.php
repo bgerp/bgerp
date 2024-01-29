@@ -462,7 +462,7 @@ class pos_Receipts extends core_Master
     {
         $rec = $this->fetchRec($id);
         if(empty($rec)) return;
-        core_Debug::stopTimer('UPDATE_RECEIPT');
+        core_Debug::startTimer('UPDATE_RECEIPT');
 
         $rec->change = $rec->total = $rec->paid = 0;
         $dQuery = $this->pos_ReceiptDetails->getQuery();
@@ -513,7 +513,13 @@ class pos_Receipts extends core_Master
         $rec = $mvc->fetchRec($id);
         if ($rec->state != 'draft') return;
 
+        core_Debug::startTimer('CALC_AUTO_DISCOUNT');
         static::recalcAutoDiscount($rec);
+        core_Debug::stopTimer('CALC_AUTO_DISCOUNT');
+        $uTime = round(core_Debug::$timers["CALC_AUTO_DISCOUNT"]->workingTime, 6);
+        core_Debug::log("END CALC_AUTO_DISCOUNT: '{$uTime}'");
+        $mvc->logDebug("POS AUTO_CALC_DISC: '{$uTime}'", $rec->id);
+
         $mvc->updateMaster_($rec);
     }
 
