@@ -459,7 +459,7 @@ class core_UserReg extends core_Manager
         $PML->AltBody = $bodyAlt;
         $PML->Body = $bodyTpl->getContent();
         $PML->IsHTML(true);
-        $PML->Subject = str::utf2ascii($rec->subject);
+        $PML->Subject = $rec->subject;
         $PML->AddCustomHeader("Customer-Origin-Email: {$rec->to}");
 
         $files = fileman_RichTextPlg::getFiles($rec->body);
