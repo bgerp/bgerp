@@ -77,7 +77,7 @@ class core_UserReg extends core_Manager
         $this->FLD('emailIsVerified', 'enum(no=Не, yes=Да)', 'caption=Имейл->Верифициране, input=none');
         $this->FLD('uId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител, input=none');
 
-        $this->setDbIndex('classId, obj');
+        $this->setDbIndex('classId, objStr');
     }
 
 
