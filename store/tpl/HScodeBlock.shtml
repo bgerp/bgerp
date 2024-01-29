@@ -1,1 +1,1 @@
-<b>[#code#]</b><br><span class='small'> <span class='quiet'>|Бруто|*</span>: <b>[#weight#]</b>, <span class='quiet'>|Нето|*</span>: <b>[#netWeight#]</b>, [#transUnits#], <span class='quiet'>|Сума|*</span>: <b>[#groupAmount#]</b></span>
+<b>[#code#]</b><br><span class='small'> <span class='quiet'>|Бруто|*</span>: <b>[#weight#]</b>, <span class='quiet'>|Нето|*</span>: <b>[#netWeight#]</b>, [#transUnits#]<!--ET_BEGIN groupAmount-->, <span class='quiet'>|Сума|*</span>: <b>[#groupAmount#]</b><!--ET_END groupAmount--></span>

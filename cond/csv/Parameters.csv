@@ -33,3 +33,5 @@
 Шаблон при изпращане на Заявка към Доставчик (BG),cond_type_DocTemplate,requestSupplierTplBg,Покупка,,,,"class=purchase_Purchases,lang=bg"
 Шаблон при изпращане на Заявка към Доставчик (EN),cond_type_DocTemplate,requestSupplierTplEn,Покупка,,,,"class=purchase_Purchases,lang=en"
 Политика за служители,cond_type_PriceList,employeesList,Продажба,,,,
+Сума в общо по МТК,cond_type_YesOrNo,totalInPackListWithTariffCode,"Packing list за митница",,,,
+Тара в общо по МТК,cond_type_YesOrNo,tareInPackListWithTariffCode,"Packing list за митница",,,,
