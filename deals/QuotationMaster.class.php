@@ -1025,10 +1025,28 @@ abstract class deals_QuotationMaster extends core_Master
 
                 $Detail = cls::get($this->mainDetail);
                 $DealClassName = $this->dealClass;
-                foreach ($products as $dRecId) {
-                    if(empty($dRecId)) continue;
+                foreach ($products as $key => $val) {
+                    if(empty($val)) continue;
 
-                    $dRec = $Detail->fetch($dRecId);
+                    list($pId, $optional, $packId) = explode('|', $key);
+                    $dQuery = $Detail->getQuery();
+                    $dQuery->where("#quotationId = {$rec->id} AND #productId = {$pId} AND #packagingId = {$packId} AND #optional='{$optional}'");
+                    $dQuery->orderBy("#quantity", 'ASC');
+
+                    if($optional == 'yes'){
+                        if(strpos($val, '#') !== false){
+                            $pureId = str_replace('#', '', $val);
+                            $dQuery->where("id = {$pureId}");
+                            $dRec = $dQuery->fetch();
+                        } else {
+                            $dRec = $dQuery->fetch();
+                            $dRec->packQuantity = $val;
+                        }
+                    } else {
+                        $dRec = $dQuery->fetch();
+                    }
+
+                    if(!is_object($dRec)) continue;
 
                     // Копира се и транспорта, ако има
                     $addedRecId = $DealClassName::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
@@ -1157,13 +1175,18 @@ abstract class deals_QuotationMaster extends core_Master
                     $mandatory = 'mandatory';
                 }
             }
-            $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},hint={$product->hint},{$mandatory}");
+            $form->FNC($index, 'varchar', "input,caption={$product->title},hint={$product->hint},{$mandatory},class=w50");
             if (countR($product->options) == 1) {
                 $default = key($product->options);
             }
 
             $product->options = $product->options + array('0' => '0');
-            $form->setOptions($index, $product->options);
+            if($product->suggestions){
+                $form->setSuggestions($index, $product->options);
+            } else {
+                $form->setOptions($index, $product->options);
+            }
+
             $form->setDefault($index, $default);
         }
 
@@ -1229,8 +1252,8 @@ abstract class deals_QuotationMaster extends core_Master
                     }
                 }
                 core_Mode::pop('text');
-
-                $products[$index]->options[$dRec->id] = $val;
+                $key = ($dRec->optional == 'yes') ? "#{$dRec->id}" : $dRec->id;
+                $products[$index]->options[$key] = $val;
             }
         }
 
