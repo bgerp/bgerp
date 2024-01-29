@@ -277,11 +277,16 @@ class core_UserReg extends core_Manager
             $sendRec->body = $eDataArr['body'];
             $sendRec->to = $rec->email;
 
-            $isSend = $this->sendRegistrationEmail($sendRec);
+            $lockEmailHash = md5('registerUser|' . $sendRec->to);
+            if (!core_Permanent::get($lockEmailHash)) {
+                $isSend = $this->sendRegistrationEmail($sendRec);
 
-            expect($isSend, $sendRec, $rec);
+                expect($isSend, $sendRec, $rec);
 
-            status_Messages::newStatus('Изпратен имейл за верификация на имейла');
+                status_Messages::newStatus('Изпратен имейл за верификация на имейла');
+
+                core_Permanent::set($lockEmailHash, 'yes', 60);
+            }
 
             return $retUrl;
         }
