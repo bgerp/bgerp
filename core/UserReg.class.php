@@ -287,7 +287,7 @@ class core_UserReg extends core_Manager
         if (($rec->phoneIsVerified != 'yes') && (($vType == 'emailSMS') || ($vType == 'sms'))) {
             $sData = $class->getSMSData($objId, $rec->id);
 
-            $isSend = callcenter_SMS::sendSmart($rec->phone, $sData, array('sendLockPeriod' => 86400));
+            $isSend = callcenter_SMS::sendSmart($rec->phone, $sData, array('sendLockPeriod' => 86400, 'encoding' => 'ascii'));
 
             expect($isSend, $sData, $rec);
 
