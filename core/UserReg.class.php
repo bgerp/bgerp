@@ -286,7 +286,7 @@ class core_UserReg extends core_Manager
                 core_Permanent::set($lockEmailHash, 'yes', 60);
             }
 
-            status_Messages::newStatus('Изпратен имейл за верификация на имейла');
+            status_Messages::newStatus('|Изпратен имейл за верификация на имейла. Моля проверете пощата си.' );
 
             return $retUrl;
         }
@@ -298,7 +298,7 @@ class core_UserReg extends core_Manager
 
             expect($isSend, $sData, $rec);
 
-            status_Messages::newStatus('Изпратен SMS за верификация на GSM номера');
+            status_Messages::newStatus('Изпратен SMS за верификация на GSM номера. Моля проверете телефона си.');
 
             return $retUrl;
         }
