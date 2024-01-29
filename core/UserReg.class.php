@@ -315,7 +315,7 @@ class core_UserReg extends core_Manager
 
         $retUrl = array("core_Users", "login", 'ret_url' => array("Portal", "Show"));
 
-        $class->afterActivateAccount($objId);
+        $class->afterActivateAccount($objId, $rec->uId);
 
         return $retUrl;
     }

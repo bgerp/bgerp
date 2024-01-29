@@ -112,9 +112,9 @@ class core_interfaces_RegUserIntf
      *
      * @see core_interfaces_RegUserIntf::getSMSData()
      */
-    public function afterActivateAccount($id)
+    public function afterActivateAccount($id, $uId)
     {
 
-        return $this->class->afterActivateAccount($id);
+        return $this->class->afterActivateAccount($id, $uId);
     }
 }
