@@ -281,6 +281,8 @@ class core_UserReg extends core_Manager
 
             expect($isSend, $sendRec, $rec);
 
+            status_Messages::newStatus('Изпратен имейл за верификация на имейла');
+
             return $retUrl;
         }
 
@@ -290,6 +292,8 @@ class core_UserReg extends core_Manager
             $isSend = callcenter_SMS::sendSmart($rec->phone, $sData, array('sendLockPeriod' => 86400, 'encoding' => 'ascii'));
 
             expect($isSend, $sData, $rec);
+
+            status_Messages::newStatus('Изпратен SMS за верификация на GSM номера');
 
             return $retUrl;
         }
@@ -353,7 +357,7 @@ class core_UserReg extends core_Manager
 
         expect($data['ret_url']);
 
-        return new Redirect($data['ret_url'], '|Успешно удостоверихте на имейла');
+        return new Redirect($data['ret_url'], '|Успешно удостоверихте имейла си');
     }
 
 
