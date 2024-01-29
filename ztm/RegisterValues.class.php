@@ -25,16 +25,8 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified, plg_Sorting, plg_RefreshRows';
-    
-    
-    /**
-     * През колко време да се обновява по AJAX, ако има промяна
-     *
-     * @see plg_RefreshRows
-     */
-    public $refreshRowsTime = 5000;
-    
+    public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified, plg_Sorting';
+
     
     /**
      * Кой може да го разглежда?
