@@ -43,7 +43,7 @@ class batch_Movements extends core_Detail
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, batch, sales, store, purchase';
+    public $canList = 'powerUser';
     
     
     /**
