@@ -268,7 +268,7 @@ class price_ListBasicDiscounts extends core_Detail
             $salesByNow = core_Cache::get($Master->className, $cacheKey);
             if(!is_array($salesByNow)){
                 $salesByNow = static::getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
-                core_Cache::set($Master->className, $cacheKey, $salesByNow, 5);
+                core_Cache::set($Master->className, $cacheKey, $salesByNow, 2);
             }
         }
         $res['SALES_BY_NOW'] = $salesByNow;
@@ -439,7 +439,7 @@ class price_ListBasicDiscounts extends core_Detail
             foreach ($receiptRecs as $receiptRec){
                 if(keylist::isIn($groupId1, $receiptRec->groups)){
                     $amount = isset($receiptRec->inputDiscount) ? ($receiptRec->amount * (1 - $receiptRec->inputDiscount)) : $receiptRec->amount;
-                    $autoDiscountAmount = isset($receiptRec->autoDiscount) ? $receiptRec->amount * $receiptRec->autoDiscount : 0;
+                    $autoDiscountAmount = isset($receiptRec->autoDiscount) ? $amount * $receiptRec->autoDiscount : 0;
                     if($listRec->vat == 'yes'){
                         $amount *= (1 + $receiptRec->param);
                         $autoDiscountAmount *= (1 + $receiptRec->param);
