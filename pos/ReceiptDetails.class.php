@@ -609,8 +609,9 @@ class pos_ReceiptDetails extends core_Detail
             if((!empty($selectedRec->batch) && empty($rec->batch))){ 
                 $selectedRec = null;
             }
-           
-            if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value){
+
+
+            if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value && $selectedRec->batch == $rec->batch){
                 $rec->value = $selectedRec->value;
                 $rec->batch = $selectedRec->batch;
             } else {
@@ -620,7 +621,6 @@ class pos_ReceiptDetails extends core_Detail
             
             // Намираме дали този проект го има въведен
             $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
-
             if ($sameProduct) {
                 
                 // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
@@ -985,6 +985,7 @@ class pos_ReceiptDetails extends core_Detail
      *  @param int $productId - ид на продукта
      *  @param int $receiptId - ид на бележката
      *  @param int $packId - ид на опаковката
+     *  @param string $batch - партида
      *
      *  @return mixed $rec/FALSE - Последния запис или FALSE ако няма
      */
@@ -1001,12 +1002,12 @@ class pos_ReceiptDetails extends core_Detail
         
         if(core_Packs::isInstalled('batch')){
             if(isset($batch)){
-                $query->where(array("#batch = '[#1#]'"), $batch);
+                $query->where(array("#batch = '[#1#]'", $batch));
             } else {
                 $query->where("#batch IS NULL OR #batch = ''");
             }
         }
-        
+
         $query->orderBy('#id', 'DESC');
         $query->limit(1);
         if ($rec = $query->fetch()) {
