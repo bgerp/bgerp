@@ -438,6 +438,12 @@ class ztm_RegisterValues extends core_Manager
             // Синхронизране на данните от устройството с тези от системата
             $lastSync = (empty($lastSync)) ? null : dt::timestamp2Mysql($lastSync);
             $result = $this->sync($regArr, $deviceRec->id, $lastSync, $oDeviceRec);
+
+            $iArr = core_Classes::getOptionsByInterface('ztm_interfaces_RegSyncValues');
+            foreach((array) $iArr as $iCls) {
+                $intf = cls::getInterface('ztm_interfaces_RegSyncValues', $iCls);
+                $result = $intf->prepareRegValues($result, $regArr, $oDeviceRec, $deviceRec);
+            }
         } catch (core_exception_Expect $e) {
             $result = $registers;
             reportException($e);
