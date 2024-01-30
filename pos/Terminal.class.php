@@ -1060,10 +1060,11 @@ class pos_Terminal extends peripheral_Terminal
             if(!empty($stringInput)){
                 $showUniqueNumberLike = type_Int::isInt($searchString) || preg_match('/^[a-zA-Z]{2}\d/', $searchString);
                 $maxContragents = pos_Points::getSettings($rec->pointId, 'maxSearchContragent');
-                
+
                 // Ако има клиентска карта с посочения номер, намира се контрагента ѝ
-                if($cardRec = crm_ext_Cards::fetch(array("#number = '[#1#]'", $stringInput))){
-                    $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec->contragentClassId)->fetchField($cardRec->contragentId, 'name'));
+                $cardInfo = crm_ext_Cards::getInfo($stringInput);
+                if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
+                    $contragents["{$cardInfo['contragentClassId']}|{$cardInfo['contragentId']}"] = (object)array('contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'title' => cls::get($cardInfo['contragentClassId'])->fetchField($cardInfo['contragentId'], 'name'));
                     $count++;
                 }
                 
