@@ -149,9 +149,19 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             $amount = Request::get('amount', 'varchar');
+            $amount = empty($amount) ? 0 : $amount;
             $amount = core_Type::getByName('double')->fromVerbal($amount);
-            expect($amount, 'Невалидна сума за плащане|*!');
-            expect($amount > 0, 'Сумата трябва да е положителна');
+
+            $paymentCount = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%payment%'");
+            $countProducts = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%sale%'");
+            if($countProducts && $receiptRec->total != 0){
+                expect($amount, 'Невалидна сума за плащане|*!');
+                expect($amount > 0, 'Сумата трябва да е положителна');
+            } else {
+                expect(!$paymentCount, 'Има вече направено плащане|*!');
+                expect($type == -1, 'На бележките с нулева сума е позволено само плащане в брой|*!');
+                expect($amount == 0, 'Не може да платите по-голяма сума|*!');
+            }
             
             $diff = abs($receiptRec->paid - $receiptRec->total);
 

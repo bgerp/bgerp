@@ -145,6 +145,8 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         if ($action == 'printfiscreceipt' && isset($rec)) {
             $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
+            $countProducts = pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
+
             if($rec->state == 'waiting'){
                 $res = 'no_one';
             } elseif(bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)){
@@ -157,7 +159,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 if (abs(round($rec->paid, 2)) != abs(round($rec->total, 2)) || empty(round($rec->total, 2))) {
                     $res = 'no_one';
                 }
-            } elseif (($rec->total == 0 || round($rec->paid, 2) < round($rec->total, 2))) {
+            } elseif ((($rec->total == 0 && !$countProducts) || round($rec->paid, 2) < round($rec->total, 2))) {
                 $res = 'no_one';
             }
         }
@@ -208,7 +210,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
             $price = round($amount / $dRec->quantity, $fiscFuRound);
             $price = number_format($price, $fiscFuRound, '.', '');
-            $arr['BEFORE_PLU_TEXT'] = "{$dRec->quantity}x{$price}лв";
+            $arr['BEFORE_PLU_TEXT'] = "{$dRec->quantity} x {$price}лв";
             
             $res[] = $arr;
         }

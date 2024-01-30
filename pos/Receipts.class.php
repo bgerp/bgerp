@@ -635,14 +635,22 @@ class pos_Receipts extends core_Master
         // Можем да контираме бележки само когато те са чернови и платената
         // сума е по-голяма или равна на общата или общата сума е <= 0
         if ($action == 'close' && isset($rec->id)) {
-            if ($rec->total == 0 || round($rec->paid, 2) < round($rec->total, 2) || $rec->state != 'draft') {
+            $countProducts = pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
+
+            if (($rec->total == 0 && !$countProducts) || round($rec->paid, 2) < round($rec->total, 2) || $rec->state != 'draft') {
                 $res = 'no_one';
             }
         }
         
         // Може ли да бъде направено плащане по бележката
         if ($action == 'pay' && isset($rec)) {
-            if ($rec->state != 'draft' || !$rec->total || (abs($rec->paid) >= abs($rec->total))) {
+            $countProducts = pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
+
+            if ($rec->state != 'draft') {
+                $res = 'no_one';
+            } elseif(!$countProducts){
+                $res = 'no_one';
+            } elseif(abs($rec->paid) >= abs($rec->total) && $rec->total != 0) {
                 $res = 'no_one';
             }
         }
