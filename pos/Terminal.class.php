@@ -565,8 +565,10 @@ class pos_Terminal extends peripheral_Terminal
 
         $operations = arr::make(self::$operationsArr);
         $allowedOperationsForNonDraftReceipts = arr::make(self::$allowedOperationOnNonDraftReceipts);
-        $detailsCount = pos_ReceiptDetails::count("#receiptId = {$rec->id}");
-        
+
+        $productCount = pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
+        $paymentCount = pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%payment%'");
+
         // Ако записаната операция в сесията я няма, то се избира първата възможна автоматично
         if(!array_key_exists($operation, $operations)){
             Mode::setPermanent("currentOperation{$rec->id}", key($operations));
@@ -579,8 +581,8 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($operations as $operation => $operationCaption){
             $class = ($operation == $currentOperation) ? 'operationBtn active' : 'operationBtn';
             $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation, 'title' => $operationCaption);
-            $disabled = (empty($detailsCount) && in_array($operation, self::$forbiddenOperationOnEmptyReceipts)) || (!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment));
-            
+            $disabled = (empty($productCount) && in_array($operation, self::$forbiddenOperationOnEmptyReceipts)) || (!empty($paymentCount) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment));
+
             if($rec->state != 'draft' && !array_key_exists($operation, $allowedOperationsForNonDraftReceipts)) {
                 $disabled = true;
             }
