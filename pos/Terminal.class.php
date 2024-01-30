@@ -2413,6 +2413,10 @@ class pos_Terminal extends peripheral_Terminal
             $resObj = new stdClass();
             $resObj->func = 'openCurrentPosTab';
             $res[] = $resObj;
+        } else {
+            $resObj = new stdClass();
+            $resObj->func = 'restoreOpacity';
+            $res[] = $resObj;
         }
 
         if(isset($removeBlurScreen)){
