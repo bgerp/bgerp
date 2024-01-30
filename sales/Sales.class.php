@@ -2036,7 +2036,6 @@ class sales_Sales extends deals_DealMaster
         if($calcAutoDiscounts === false) return;
 
         $rec = $mvc->fetchRec($id);
-
         static::recalcAutoDiscount($rec);
         $mvc->updateMaster_($rec);
     }

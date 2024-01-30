@@ -438,13 +438,15 @@ class pos_Receipts extends core_Master
             $info = cat_Products::getProductInfo($rec->productId);
             $quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
             
-            $products[] = (object) array('productId'   => $rec->productId,
-                                         'price'       => $rec->price / $quantityInPack,
-                                         'packagingId' => $rec->value,
-                                         'text'        => $rec->text,
-                                         'vatPrice'    => $rec->price * $rec->param,
-                                         'discount'    => $rec->discountPercent,
-                                         'quantity'    => $rec->quantity);
+            $products[] = (object) array('productId'    => $rec->productId,
+                                         'price'        => $rec->price / $quantityInPack,
+                                         'packagingId'  => $rec->value,
+                                         'text'         => $rec->text,
+                                         'vatPrice'     => $rec->price * $rec->param,
+                                         'discount'     => $rec->discountPercent,
+                                         'autoDiscount' => $rec->autoDiscount,
+                                         'batch'        => $rec->batch,
+                                         'quantity'     => $rec->quantity);
         }
 
         return $products;
@@ -715,7 +717,7 @@ class pos_Receipts extends core_Master
                     $product->discount = null;
                 }
                 
-                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text);
+                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text, $product->batch, $product->autoDiscount);
             }
         }
         
@@ -729,7 +731,6 @@ class pos_Receipts extends core_Master
             Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->flushUpdateQueue($sId);
             Mode::pop('calcAutoDiscounts');
-            core_Statuses::newStatus("|Бележка|* №{$rec->id} |е затворена|*");
         } else {
             // Продажбата се активира, ако ПОС бележката е приключена
             $saleRec = sales_Sales::fetchRec($sId);
@@ -751,7 +752,7 @@ class pos_Receipts extends core_Master
         Mode::setPermanent("currentSearchString{$rec->id}", null);
         
         // Редирект към новата продажба
-        return new Redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
+        return new Redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката|*!');
     }
     
     
