@@ -2073,21 +2073,21 @@ abstract class deals_DealMaster extends deals_DealBase
      * Ако има вече такъв артикул добавен към сделката, наслагва к-то, цената и отстъпката
      * на новия запис към съществуващия (цените и отстъпките стават по средно притеглени)
      *
-     * @param int    $id           - ид на сделка
-     * @param int    $productId    - ид на артикул
-     * @param float  $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
-     * @param float  $price        - цена на единична бройка в основната мярка (ако не е подадена, определя се от политиката)
-     * @param int    $packagingId  - ид на опаковка (не е задължителна)
-     * @param float  $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
-     * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
-     * @param string $term         - срок (не е задължителен)
-     * @param string $notes        - забележки
+     * @param int    $id            - ид на сделка
+     * @param int    $productId     - ид на артикул
+     * @param float  $packQuantity  - количество продадени опаковки (ако няма опаковки е цялото количество)
+     * @param float  $price         - цена на единична бройка в основната мярка (ако не е подадена, определя се от политиката)
+     * @param int    $packagingId   - ид на опаковка (не е задължителна)
+     * @param float  $discount      - отстъпка между 0(0%) и 1(100%) (не е задължителна)
+     * @param float  $tolerance     - толеранс между 0(0%) и 1(100%) (не е задължителен)
+     * @param string $term          - срок (не е задължителен)
+     * @param string $notes         - забележки
      * @param  string $batch        - партида
-     *
+     * @param  string $autoDiscount - авт. отстъпка
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch = null)
+    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch = null, $autoDiscount = null)
     {
         $me = cls::get(get_called_class());
         $Detail = cls::get($me->mainDetail);
@@ -2099,7 +2099,11 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($discount)) {
             expect($discount >= 0 && $discount <= 1);
         }
-        
+
+        if (isset($autoDiscount)) {
+            expect($autoDiscount >= 0 && $autoDiscount <= 1);
+        }
+
         // Дали толеранса е между 0 и 1
         if (isset($tolerance)) {
             expect($tolerance >= 0 && $tolerance <= 1);
@@ -2138,10 +2142,9 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             $price = ($price) ? $price : cat_Products::getPrimeCost($productId, null, null, null);
-            
         }
-        
-                $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
+
+        $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
         
         // Подготвяме детайла
         $dRec = (object) array($Detail->masterKey => $id,
@@ -2153,6 +2156,7 @@ abstract class deals_DealMaster extends deals_DealBase
             'term' => $term,
             'price' => $price,
             'quantityInPack' => $quantityInPack,
+            'autoDiscount' => $autoDiscount,
             'notes' => $notes,
         );
 
