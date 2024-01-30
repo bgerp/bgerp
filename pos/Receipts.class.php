@@ -726,6 +726,9 @@ class pos_Receipts extends core_Master
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
         if($isBeingClosed){
+            Mode::push('calcAutoDiscounts', false);
+            cls::get('sales_Sales')->flushUpdateQueue($sId);
+            Mode::pop('calcAutoDiscounts');
             core_Statuses::newStatus("|Бележка|* №{$rec->id} |е затворена|*");
         } else {
             // Продажбата се активира, ако ПОС бележката е приключена
@@ -734,7 +737,9 @@ class pos_Receipts extends core_Master
             $saleRec->isContable = 'activate';
             sales_Sales::save($saleRec);
             sales_Sales::conto($saleRec->id);
+            Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->updateMaster($saleRec->id);
+            Mode::pop('calcAutoDiscounts');
             sales_Sales::logWrite('Активиране на прехвърлена от POS продажба', $sId);
         }
         

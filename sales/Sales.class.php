@@ -2031,8 +2031,11 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
+        // Ако е зададено в мода да не се рекалкулират отстъпките
+        $calcAutoDiscounts = Mode::get('calcAutoDiscounts');
+        if($calcAutoDiscounts === false) return;
+
         $rec = $mvc->fetchRec($id);
-        if (!in_array($rec->state, array('draft', 'pending'))) return;
 
         static::recalcAutoDiscount($rec);
         $mvc->updateMaster_($rec);
