@@ -1529,7 +1529,7 @@ class pos_Terminal extends peripheral_Terminal
         if(strpos($selectedRec->action, 'payment') !== false){
             $deleteAttr['class'] .= (pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
         } else {
-            $deleteAttr['class'] .= (!empty($rec->total) && pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
+            $deleteAttr['class'] .= (empty($rec->paid) && pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
         }
 
         return ht::createElement("div", $deleteAttr, tr('Изтриване'), true);
