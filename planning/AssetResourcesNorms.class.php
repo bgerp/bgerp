@@ -365,8 +365,7 @@ class planning_AssetResourcesNorms extends core_Manager
         // Всички нормиз ададени към конкретни оборудвания
         $assetClassId = planning_AssetResources::getClassId();
         $query = static::getQuery();
-        $query->where("#classId = {$assetClassId} AND #objectId IN (" . implode(',', $assetIds). ")");
-        $query->show('productId');
+        $query->where("#classId = {$assetClassId} AND #objectId IN (" . implode(',', $assetIds). ") AND #state = 'active'");
 
         if(countR($assetIds)){
 
@@ -376,8 +375,9 @@ class planning_AssetResourcesNorms extends core_Manager
             $gQuery->in('id', $assetIds);
             $gQuery->show('groupId');
             $groupIds = arr::extractValuesFromArray($gQuery->fetchAll(), 'groupId');
-            $query->orWhere("#classId = {$groupClassId} AND #objectId IN (" . implode(',', $groupIds). ")");
+            $query->orWhere("#classId = {$groupClassId} AND #objectId IN (" . implode(',', $groupIds). ") AND #state = 'active'");
         }
+
         $productIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
         if(isset($exIds)){
             $productIds += keylist::toArray($exIds);
@@ -388,6 +388,5 @@ class planning_AssetResourcesNorms extends core_Manager
         }
 
         return $options;
-
     }
 }

@@ -122,7 +122,7 @@ class rack_Pallets extends core_Manager
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell,silent');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,silent');
-        $this->FLD('batch', 'text', 'caption=Партида');
+        $this->FLD('batch', 'text', 'caption=Партида,tdClass=small');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none,notNull,value=active');
@@ -1235,7 +1235,7 @@ class rack_Pallets extends core_Manager
             }
 
             static::logWrite('Изтриване на палетите');
-            followRetUrl(null, 'Успешно премахване на палетите');
+            followRetUrl(null, '|Успешно премахване на палетите');
         }
 
         $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png');

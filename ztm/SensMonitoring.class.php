@@ -33,7 +33,27 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
      */
     public $inputs = array(
         'kWhImport' => array('caption' => 'Входяща енергия', 'uom' => 'kWh', 'logPeriod' => 3600),
+        'coldWater' => array('caption' => 'Студена вода', 'uom' => 'm³', 'logPeriod' => 3600),
+        'hotWater' => array('caption' => 'Топла вода', 'uom' => 'm³', 'logPeriod' => 3600),
+        'airTempLower' => array('caption' => 'Температура долу', 'uom' => 'ºC', 'logPeriod' => 3600),
+        'airTempCent' => array('caption' => 'Температура център', 'uom' => 'ºC', 'logPeriod' => 3600),
+        'airTempUpper' => array('caption' => 'Температура горе', 'uom' => 'ºC', 'logPeriod' => 3600),
+        'ventLowerFan' => array('caption' => 'Вентилатор долу', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
+        'ventUpperFan' => array('caption' => 'Вентилатор горе', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
     );
+
+
+    /**
+     * Мапинг на входовете и регистрите
+     */
+    protected $inputRegistryMaps = array('kWhImport|ImportActiveEnergy' => 'monitoring.pa.measurements',
+                                         'coldWater|CumulativeTraffic' => 'monitoring.cw.measurements',
+                                         'hotWater|CumulativeTraffic' => 'monitoring.hw.measurements',
+                                         'airTempLower' => 'hvac.air_temp_lower_1.value',
+                                         'airTempCent' => 'hvac.air_temp_cent_1.value',
+                                         'airTempUpper' => 'hvac.air_temp_upper_1.value',
+                                         'ventLowerFan' => 'vent.lower_1.fan.speed',
+                                         'ventUpperFan' => 'vent.upper_1.fan.speed');
 
 
     /**
@@ -52,41 +72,49 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
             return $res;
         }
 
-        if ($inputs['kWhImport']) {
-            $regId = ztm_Registers::fetchField(array("#name = 'monitoring.pa.measurements'"));
-            $rQuery = ztm_RegisterValues::getQuery();
-            $rQuery->where(array("#registerId = '[#1#]'", $regId));
-            $rQuery->where(array("#deviceId = '[#1#]'", $dId));
-            $rQuery->show('deviceId, value');
-            while ($rRec = $rQuery->fetch()) {
-                $val = ztm_LongValues::getValueByHash($rRec->value);
-                $valArr = @json_decode($val);
-                if ($valArr === false) {
-                    ztm_RegisterValues::logErr('Невалидна стойност на регистъра', $rRec);
+        foreach ($this->inputRegistryMaps as $iVal => $registry) {
+            list($input, $reg) = explode('|', $iVal);
+            if ($inputs[$input]) {
+                $regId = ztm_Registers::fetchField(array("#name = '[#1#]'", $registry));
+                $rQuery = ztm_RegisterValues::getQuery();
+                $rQuery->where(array("#registerId = '[#1#]'", $regId));
+                $rQuery->where(array("#deviceId = '[#1#]'", $dId));
+                $rQuery->show('deviceId, value');
 
-                    continue;
+                while ($rRec = $rQuery->fetch()) {
+                    $val = ztm_LongValues::getValueByHash($rRec->value);
+                    // Ако е подадена стойност, търсим в масива иначе приемаме, че е стринг
+                    if ($reg) {
+                        $valArr = @json_decode($val);
+                        if ($valArr === false) {
+                            ztm_RegisterValues::logErr('Невалидна стойност на регистъра', $rRec);
+
+                            continue;
+                        }
+
+                        if (!isset($valArr)) {
+                            ztm_RegisterValues::logWarning('Празна стойност на регистъра', $rRec);
+
+                            continue;
+                        }
+
+                        if (!is_array($valArr)) {
+                            ztm_RegisterValues::logWarning('В регистъра се очаква валиден масив', $rRec);
+
+                            continue;
+                        }
+
+                        if (empty($valArr)) {
+                            ztm_RegisterValues::logWarning('В регистъра се очаква попълнен масив', $rRec);
+
+                            continue;
+                        }
+                        $valObj = end($valArr);
+                        $res[$input] = $valObj->{$reg};
+                    } else {
+                        $res[$input] = $val;
+                    }
                 }
-
-                if (!isset($valArr)) {
-                    ztm_RegisterValues::logWarning('Празна стойност на регистъра', $rRec);
-
-                    continue;
-                }
-
-                if (!is_array($valArr)) {
-                    ztm_RegisterValues::logWarning('В регистъра се очаква валиден масив', $rRec);
-
-                    continue;
-                }
-
-                if (empty($valArr)) {
-                    ztm_RegisterValues::logWarning('В регистъра се очаква попълнен масив', $rRec);
-
-                    continue;
-                }
-
-                $valObj = end($valArr);
-                $res['kWhImport'] = $valObj->ImportActiveEnergy;
             }
         }
 

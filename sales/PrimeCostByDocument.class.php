@@ -61,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,dealerId,initiatorId,state,isPublic,folderId,storeId';
+    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,sellCostWithOriginalDiscount,autoDiscountAmount,dealerId,initiatorId,state,isPublic,folderId,storeId';
     
     
     /**
@@ -112,6 +112,9 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax)', 'caption=Артикул,mandatory, tdClass=productCell leftCol wrap');
         $this->FLD('quantity', 'double', 'caption=Количество,mandatory');
         $this->FLD('sellCost', 'double', 'caption=Цени->Продажна,mandatory');
+        $this->FLD('autoDiscountAmount', 'double', 'caption=Цени->Прил. отст.,mandatory');
+        $this->FLD('sellCostWithOriginalDiscount', 'double', 'caption=Цени->Без авт.отс.,mandatory');
+
         $this->FLD('primeCost', 'double', 'caption=Цени->Себестойност,mandatory');
         $this->FNC('delta', 'double', 'caption=Цени->Делта,mandatory');
         $this->FLD('dealerId', 'user', 'caption=Дилър,mandatory');
@@ -933,8 +936,9 @@ class sales_PrimeCostByDocument extends core_Manager
         $data->listFilter->FLD('productDriverClassId', 'class(interface=cat_ProductDriverIntf, allowEmpty, select=title)', 'caption=Вид');
         $data->listFilter->setOptions('productDriverClassId', cat_Products::getAvailableDriverOptions());
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
+        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Папка');
         $data->listFilter->FLD('primeCostType', 'enum(all=Със себестойност,positive=Положителна себестойност,negative=Отрицателна себестойност,zero=Нулева себестойност,empty=Без себестойност)', 'caption=Вид себестойност, silent');
-        $data->listFilter->showFields = 'documentId,productId,productDriverClassId,primeCostType';
+        $data->listFilter->showFields = 'documentId,productId,productDriverClassId,primeCostType,folder';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->setDefault('primeCostType', 'all');
@@ -982,6 +986,10 @@ class sales_PrimeCostByDocument extends core_Manager
                 } elseif(type_Int::isInt($rec->documentId)){
                     $data->query->where("#containerId = {$rec->documentId}");
                 }
+            }
+
+            if (!empty($rec->folder)) {
+                $data->query->where("#folderId = {$rec->folder}");
             }
         }
     }

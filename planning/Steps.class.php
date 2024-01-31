@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent';
+    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent,mandatoryDocuments';
 
 
     /**
@@ -115,6 +115,7 @@ class planning_Steps extends core_Extender
         $this->FLD('planningActions', 'keylist(mvc=cat_Products,select=name,makeLink)', 'caption=Планиране на производството->Действия');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Планиране на производството->Норма');
         $this->FLD('interruptOffset', 'time', 'caption=Планиране на производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
+        $this->FLD('mandatoryDocuments', 'classes(select=title)', 'caption=Планиране на производството->Задължителни документи,hint=Отместване при прекъсване в графика на оборудването');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковката (к-во),tdClass=small-field nowrap,input=hidden');
@@ -162,6 +163,10 @@ class planning_Steps extends core_Extender
         // Добавяне на избор само на Параметрите за производствени операции
         $paramSuggestions = cat_Params::getTaskParamOptions($rec->{"{$mvc->className}_planningParams"});
         $form->setSuggestions("{$mvc->className}_planningParams", $paramSuggestions);
+
+        $mandatoryClassOptions = static::getMandatoryClassOptions();
+        $form->setSuggestions("{$mvc->className}_mandatoryDocuments", array('' => '') + $mandatoryClassOptions);
+
         if($form->getField('meta', false)){
             $form->setField('meta', 'input=none');
         }
@@ -177,8 +182,8 @@ class planning_Steps extends core_Extender
         // Добавяне на достъпните ресурси от центъра
         if(isset($rec->{"{$mvc->className}_centerId"})){
             $centerRec = planning_Centers::fetch($rec->{"{$mvc->className}_centerId"}, 'folderId,showPreviousJobField');
-
             $actionOptions = planning_AssetResourcesNorms::getAllNormOptions($rec->{"{$mvc->className}_centerId"}, $rec->{"{$mvc->className}_planningActions"});
+
             $form->setSuggestions("{$mvc->className}_planningActions", $actionOptions);
             $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_employees"}));
             $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_fixedAssets"}, 'planning_Tasks',true));
@@ -228,8 +233,24 @@ class planning_Steps extends core_Extender
             }
         }
     }
-    
-    
+
+
+    /**
+     * Опции за задължителни класове в нишката на ПО за етапа
+     */
+    public static function getMandatoryClassOptions()
+    {
+        $options = array();
+        $mandatoryClasses = array('planning_DirectProductionNote', 'planning_ReturnNotes', 'planning_ConsumptionNotes');
+        foreach ($mandatoryClasses as $mandatoryClass){
+            $Class = cls::get($mandatoryClass);
+            $options[$Class->getClassId()] = cls::getTitle($Class);
+        }
+
+        return $options;
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *

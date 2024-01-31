@@ -20,6 +20,12 @@ defIfNot('BGFISC_PRICE_FU_ROUND', '2');
 
 
 /**
+ * Да се проверява ли серийния номер на ФУ, дали отговаря на този на бележката, която ще се печата
+ */
+defIfNot('BGFISC_CHECK_SERIAL_NUMBER', 'no');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с печатане на касови бележки
  *
@@ -28,7 +34,7 @@ defIfNot('BGFISC_PRICE_FU_ROUND', '2');
  * @package   bgfisc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -95,16 +101,7 @@ class bgfisc_Setup extends core_ProtoSetup
      */
     public $defClasses = 'bgfisc_reports_SalesPayments,bgfisc_reports_AggregateSalesData,bgfisc_reports_DetailedSalesData,bgfisc_reports_ReversedSales,
                           bgfisc_reports_CanceledSales,bgfisc_reports_SummaryPurchasesData,bgfisc_reports_DetailedPurchasesData,bgfisc_reports_MovementOfGoodsForAPeriod';
-    
-    
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(3.9, 'Търговия', 'Регистър УНП', 'bgfisc_Register', 'default', 'sales,ceo')
-    );
-    
-    
+
     /**
      * Описание на конфигурационните константи за този модул
      */
@@ -112,6 +109,7 @@ class bgfisc_Setup extends core_ProtoSetup
         'BGFISC_DEFAULT_FISC_DEVICE_1' => array('varchar', 'caption=Фискално устройство по подразбиране->Първо,optionsFunc=bgfisc_Setup::getFiscDeviceOptins'),
         'BGFISC_DEFAULT_FISC_DEVICE_2' => array('varchar', 'caption=Фискално устройство по подразбиране->Второ,optionsFunc=bgfisc_Setup::getFiscDeviceOptins'),
         'BGFISC_PRICE_FU_ROUND' => array('int', 'caption=Разпечатване на фискален бон от ФУ->Закръгляне (Цена)'),
+        'BGFISC_CHECK_SERIAL_NUMBER' => array('enum(yes=Включено,no=Изключено)', 'caption=Разпечатване на фискален бон от ФУ->Проверка на сер. номер'),
     );
     
     

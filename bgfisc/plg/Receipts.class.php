@@ -44,7 +44,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         $url = ($mvc->haveRightFor('printFiscReceipt', $rec)) ? array('pos_Receipts', 'printfiscreceipt', $rec->id) : array();
         $attr = array('class' => "printReceiptBtn posBtns", 'title' => 'Отпечаване на фискален бон');
-        $warning = 'Наистина ли желаете ли да разпечатате фискален бон|*?';
+
         if(!count($url)){
             $attr['class'] .= " disabledBtn";
             $attr['disabled'] = 'disabled';
@@ -56,7 +56,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         $attr['title'] = 'Печат на фискален бон';
         $attr['data-url'] = toUrl($url, 'local');
-        $closeBtn = ht::createFnBtn('Фискален бон', '', $warning, $attr);
+        $closeBtn = ht::createFnBtn('Фискален бон', '', '', $attr);
         $buttons["close"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
         
         $deviceRec = bgfisc_Register::getFiscDevice($caseId);
@@ -145,6 +145,8 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         if ($action == 'printfiscreceipt' && isset($rec)) {
             $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
+            $countProducts = pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
+
             if($rec->state == 'waiting'){
                 $res = 'no_one';
             } elseif(bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)){
@@ -157,7 +159,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 if (abs(round($rec->paid, 2)) != abs(round($rec->total, 2)) || empty(round($rec->total, 2))) {
                     $res = 'no_one';
                 }
-            } elseif (($rec->total == 0 || round($rec->paid, 2) < round($rec->total, 2))) {
+            } elseif ((($rec->total == 0 && !$countProducts) || round($rec->paid, 2) < round($rec->total, 2))) {
                 $res = 'no_one';
             }
         }
@@ -208,7 +210,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
             $price = round($amount / $dRec->quantity, $fiscFuRound);
             $price = number_format($price, $fiscFuRound, '.', '');
-            $arr['BEFORE_PLU_TEXT'] = "{$dRec->quantity}x{$price}лв";
+            $arr['BEFORE_PLU_TEXT'] = "{$dRec->quantity} x {$price}лв";
             
             $res[] = $arr;
         }
@@ -377,8 +379,8 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $hash = str::addHash('fiscreceipt', 4);
                 $successUrl = toUrl(array($mvc, 'close', $rec->id, 'hash' => $hash));
                 Request::removeProtected('hash');
-                
-                $fiscalArr['SERIAL_NUMBER'] = $lRec->serialNumber;
+
+                $fiscalArr['SERIAL_NUMBER'] = (bgfisc_Setup::get('CHECK_SERIAL_NUMBER') == 'yes') ? $lRec->serialNumber : false;
                 $cu = core_Users::getCurrent();
                 $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
                 
@@ -489,7 +491,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             if ($pointId = pos_Points::getCurrent('id', false)) {
                 $caseId = pos_Points::fetchField($pointId, 'caseId');
                 if (!bgfisc_Register::getFiscDevice($caseId)) {
-                    $res = new Redirect(array('pos_Points', 'list'), 'Няма закачено фискално устройство|*!', 'error');
+                    $res = new Redirect(array('pos_Points', 'list'), '|Няма закачено фискално устройство|*!', 'error');
                     
                     return false;
                 }

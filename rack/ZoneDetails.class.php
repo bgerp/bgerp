@@ -695,7 +695,7 @@ class rack_ZoneDetails extends core_Detail
         $newRec = static::makeReturnQuantityMovement($rec->zoneId, $rec->productId, $rec->batch, $rec->packagingId, $overQuantity);
         rack_Movements::save($newRec);
 
-        followRetUrl(null, 'Създадено е обратно движение за връщане на останалото количество в зоната');
+        followRetUrl(null, '|Създадено е обратно движение за връщане на останалото количество в зоната');
     }
 
 

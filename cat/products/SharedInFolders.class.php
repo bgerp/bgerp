@@ -237,7 +237,7 @@ class cat_products_SharedInFolders extends core_Manager
         }
         cls::get('cat_Products')->logWrite($msg, $pRec->id);
 
-        return followRetUrl(array('cat_Products', 'single', $productId), " Артикулът вече е {$title}");
+        return followRetUrl(array('cat_Products', 'single', $productId), "|Артикулът вече е {$title}");
     }
     
     

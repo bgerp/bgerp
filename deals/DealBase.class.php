@@ -799,7 +799,7 @@ abstract class deals_DealBase extends core_Master
         $fh = fileman::absorbStr($csv, 'exportCsv', "{$this->abbr}{$rec->id}_OrderedAndShipped.csv");
         
         // Редирект към експортиртния файл
-        redirect(array('fileman_Files', 'single', $fh), 'Справката е експортирана успешно');
+        redirect(array('fileman_Files', 'single', $fh), '|Справката е експортирана успешно');
     }
     
     
@@ -1024,7 +1024,7 @@ abstract class deals_DealBase extends core_Master
                 $this->recalcDocumentsWithNewRate($rec, $fRec->newRate);
             } catch(acc_journal_Exception $e){
                 $url = $this->getSingleUrlArray($rec->id);
-                redirect($url, false, 'Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
+                redirect($url, false, '|Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
             }
 
             // Нотифициране на обекта за да се преизчисли статистиката за всеки случай
@@ -1038,7 +1038,7 @@ abstract class deals_DealBase extends core_Master
                 acc_Items::notifyObject($itemRec);
             }
 
-            followRetUrl(null, 'Документите са преизчислени успешно|*!');
+            followRetUrl(null, '|Документите са преизчислени успешно|*!');
         }
 
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс,order=9');

@@ -163,7 +163,7 @@ class rack_Racks extends core_Master
             }
         }
         
-        return new Redirect(array($this), "Позицията|* {$pos} |не може да бъде открита", 'error');
+        return new Redirect(array($this), "|Позицията|* {$pos} |не може да бъде открита", 'error');
     }
     
     

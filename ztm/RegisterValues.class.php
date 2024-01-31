@@ -278,6 +278,7 @@ class ztm_RegisterValues extends core_Manager
             } catch (core_exception_Expect $e) {
                 $dump = $e->getDump();
                 ztm_Devices::logErr("'{$obj->name}': {$dump[0]}", $deviceId);
+                wp('Грешка при записване на регистър', $e, $obj);
             }
         }
 
@@ -316,7 +317,7 @@ class ztm_RegisterValues extends core_Manager
                     if ($registerRec->scope != 'system') {
                         $expandedRegArr[$registerRec->id] = (object) array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'scope' => $registerRec->scope);
                     } else {
-                        ztm_Devices::logErr("Получен регистър {$name} с приоритет {$registerRec->scope}", $deviceId);
+                        ztm_Devices::logNotice("Получен регистър {$name} с приоритет {$registerRec->scope}", $deviceId);
                     }
                 } else {
                     $unknownRegisters[] = (object) array('name' => $name, 'value' => $value);
@@ -437,6 +438,12 @@ class ztm_RegisterValues extends core_Manager
             // Синхронизране на данните от устройството с тези от системата
             $lastSync = (empty($lastSync)) ? null : dt::timestamp2Mysql($lastSync);
             $result = $this->sync($regArr, $deviceRec->id, $lastSync, $oDeviceRec);
+
+            $iArr = core_Classes::getOptionsByInterface('ztm_interfaces_RegSyncValues');
+            foreach((array) $iArr as $iCls) {
+                $intf = cls::getInterface('ztm_interfaces_RegSyncValues', $iCls);
+                $result = $intf->prepareRegValues($result, $regArr, $oDeviceRec, $deviceRec);
+            }
         } catch (core_exception_Expect $e) {
             $result = $registers;
             reportException($e);

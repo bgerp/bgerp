@@ -597,10 +597,27 @@ abstract class store_DocumentMaster extends core_Master
                 $row->deliveryTo .= ' ' . core_Lg::transliterate($row->place);
             }
 
+            // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
+            // ВИНАГИ когато ЕН е включено в Транспортна линия и в нея "Изпълнител" НЕ Е "Моята фирма"
+            $showLocationFeatures = true;
+            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                if($rec->{$mvc->lineFieldName}){
+                    $forwarderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'forwarderId');
+                    if(isset($forwarderId) && $forwarderId != crm_Setup::BGERP_OWN_COMPANY_ID){
+                        $showLocationFeatures = false;
+                    }
+                }
+            }
+
             foreach (array('address', 'company', 'person', 'tel', 'features', 'addressInfo') as $fld) {
                 if (!empty($rec->{$fld})) {
                     if ($fld == 'address') {
                         $row->{$fld} = core_Lg::transliterate($row->{$fld});
+                    } elseif ($fld == 'features') {
+                        unset($row->{$fld});
+                        if($showLocationFeatures){
+                            $row->{$fld} = trans_Features::getVerbalFeatures($rec->features);
+                        }
                     } elseif ($fld == 'tel') {
                         if (callcenter_Talks::haveRightFor('list')) {
                             $row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
@@ -609,6 +626,7 @@ abstract class store_DocumentMaster extends core_Master
 
                     $row->deliveryTo .= ", {$row->{$fld}}";
                 }
+                $row->deliveryTo = rtrim($row->deliveryTo, ', ');
             }
 
             if ($rec->locationId) {
@@ -620,8 +638,8 @@ abstract class store_DocumentMaster extends core_Master
                         $row->ourLocationAddress = $ourLocationAddress;
                     }
                 }
-                
-                $contLocationAddress = crm_Locations::getAddress($rec->locationId);
+
+                $contLocationAddress = crm_Locations::getAddress($rec->locationId, false, $showLocationFeatures);
                 if ($contLocationAddress != '') {
                     $row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
                 }
@@ -653,6 +671,7 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             core_Lg::pop();
+
         } elseif (isset($fields['-list'])) {
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
                 $row->title = '<b>' . $row->title . '</b>';

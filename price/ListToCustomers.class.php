@@ -639,32 +639,24 @@ class price_ListToCustomers extends core_Manager
             }
         }
     }
-    
-    
+
+
     /**
-     * Връща имплементация на интерфейса за автоматични отстъпки, специфичен за зададения контрагент
-     * 
-     * @param int $listId
-     * @param int $contragentClassId
-     * @param int $contragentId
-     * @param datetime|null $valior
-     * 
-     * @return price_SaleAutoDiscountIntf|NULL $Interface
+     * Добавя нова ценова политика на клиента
+     *
+     * @param int $listId              - ид на ЦП
+     * @param mixed $contragentClassId - клас на контрагента
+     * @param int $contragentId        - ид на контрагента
+     * @param datetime|null $validFrom - от кога е валидна
+     * @return int
      */
-    public static function getAutoDiscountClassForCustomer($listId, $contragentClassId, $contragentId, $valior = null)
+    public static function add($listId, $contragentClassId, $contragentId, $validFrom = null)
     {
-        // Ако има зададен лист - гледа по него, ако няма търси листа на посочения контрагент
-        $listId = (isset($listId)) ? $listId : price_ListToCustomers::getListForCustomer($contragentClassId, $contragentId, $valior);
-        if($discountClass = price_Lists::fetchField($listId, 'discountClass')){
-            
-            // Ако има закачен клас за автоматични отстъпки връща него
-            if(cls::load($discountClass, true)){
-                $Interface = cls::getInterface('price_SaleAutoDiscountIntf', $discountClass);
-                
-                return $Interface;
-            }
-        }
-        
-        return null;
+        $ContragentClass = cls::get($contragentClassId);
+        $from = $validFrom ?? dt::now();
+        expect($listId);
+        $rec = (object)array('listId' => $listId, 'cClass' => $ContragentClass->getClassId(), 'cId' => $contragentId, 'validFrom' => $from, 'state' => 'active');
+
+        return static::save($rec);
     }
 }

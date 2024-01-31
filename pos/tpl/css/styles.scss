@@ -594,6 +594,9 @@ select.tabHolder {
 	align-content: center;
 	background: #fff !important;
 	position: relative;
+	&.notSellable {
+		background-color: #aaa !important;
+	}
 	&.selected {
 		padding: 1px !important;
 		.pos-price {
@@ -1203,12 +1206,22 @@ select.tabHolder {
 	box-shadow: rgba(233,233,233,.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0,0,0,.1);
 	text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
 	background-color: #ccc;
+	&.disabledBtn {
+		color: #999 !important
+	}
+
 }
 .confirmPayment {
 	background-color: #4c9d2c !important;
+	&.disabledBtn {
+		background-color: mix(#4c9d2c, #333) !important;
+	}
 }
 .closePaymentModal {
 	background-color: #c51818 !important;
+	&.disabledBtn {
+		background-color: mix(#c51818, #333) !important;
+	}
 }
 #card-payment-manual:not(.disabledBtn) {
 	color:white !important;
@@ -1230,6 +1243,10 @@ select.tabHolder {
 
 .enlargeProductBtn, .printBtn {
 	background-position: center;
+}
+
+.anotherPos {
+	background-color: #f87a7a !important;
 }
 
 table.total {

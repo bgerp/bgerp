@@ -2025,33 +2025,19 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Обновява мастъра
+     * След обновяване на мастъра
      *
      * @param mixed $id - ид/запис на мастъра
      */
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
-        $rec = $mvc->fetchRec($id);
-        if (!in_array($rec->state, array('draft', 'pending'))) {
-            return;
-        }
-        
-        // Изчисляване на автоматичните отстъпки ако може
-        $DiscountInterface = price_ListToCustomers::getAutoDiscountClassForCustomer($rec->priceListId, $rec->contragentClassId, $rec->contragentId, $rec->valior);
-        if ($DiscountInterface) {
-            $update = array();
-            $dQuery = cls::get('sales_SalesDetails')->getQuery();
-            $dQuery->where("#saleId = {$rec->id}");
-            while ($dRec = $dQuery->fetch()) {
-                $dRec->autoDiscount = $DiscountInterface->calcAutoSaleDiscount('sales_SalesDetails', $dRec, 'sales_Sales', $rec);
-                $update[$dRec->id] = $dRec;
-            }
-            
-            cls::get('sales_SalesDetails')->saveArray($update, 'id,autoDiscount');
+        // Ако е зададено в мода да не се рекалкулират отстъпките
+        $calcAutoDiscounts = Mode::get('calcAutoDiscounts');
+        if($calcAutoDiscounts === false) return;
 
-            // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
-            $mvc->updateMaster_($id);
-        }
+        $rec = $mvc->fetchRec($id);
+        static::recalcAutoDiscount($rec);
+        $mvc->updateMaster_($rec);
     }
     
     
@@ -2270,5 +2256,46 @@ class sales_Sales extends deals_DealMaster
         $fieldset->FLD('email', 'email', 'caption=Поръчител->Имейл');
         $fieldset->FLD('cartId', 'int', 'caption=Поръчител->Количка №');
         $fieldset->FLD('instruction', 'int', 'caption=Поръчител->Инструкции');
+    }
+
+
+    /**
+     * Рекалкулира автоматичните отстъпки за продажбата
+     *
+     * @param $rec
+     * @return void
+     */
+    public static function recalcAutoDiscount($rec)
+    {
+        $rec = sales_Sales::fetchRec($rec);
+
+        // Има ли лист за автоматични отстъпки
+        $basicDiscountListRec = price_Lists::getListWithBasicDiscounts(get_called_class(), $rec);
+        if(!is_object($basicDiscountListRec)) return;
+
+        // Взима всички детайли и се опитва да сметне автоматичните отстъпки
+        $Detail = cls::get('sales_SalesDetails');
+        $dQuery = $Detail->getQuery();
+        $dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $dQuery->where("#saleId = {$rec->id} AND #isPublic = 'yes'");
+        $detailsAll = $dQuery->fetchAll();
+        $discountData = price_ListBasicDiscounts::getAutoDiscountsByGroups($basicDiscountListRec, 'sales_Sales', $rec, 'sales_SalesDetails', $detailsAll);
+
+        // За всеки артикул, ако попада в група с авотматични отстъпки - взима средния процент от нея
+        $save = array();
+        foreach ($detailsAll as $dRec){
+            foreach ($discountData['groups'] as $groupId => $d){
+                if(!keylist::isIn($groupId, $dRec->groups)) continue;
+                if(empty($d['percent'])) continue;
+
+                $dRec->autoDiscount = $d['percent'];
+                $save[] = $dRec;
+            }
+        }
+
+        if(countR($save)){
+            $Detail->saveArray($save, 'id,autoDiscount');
+        }
     }
 }

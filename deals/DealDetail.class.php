@@ -28,7 +28,7 @@ abstract class deals_DealDetail extends doc_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'tolerance,term,autoDiscount';
+    public $fieldsNotToClone = 'tolerance,term,autoDiscount,inputDiscount';
     
     
     /**
@@ -547,7 +547,7 @@ abstract class deals_DealDetail extends doc_Detail
         $form->info = tr('|Списък за листване|*:') . cat_Listings::getLink($listId, 0);
         
         $listed = cat_Listings::getAll($listId, $saleRec->shipmentStoreId, 50, true);
-        if(!countR($listed)) followRetUrl(null, "В избрания списък няма активни артикули|*: " . cat_Listings::getLink($listId, 0, array('ef_icon' => false)), 'warning');
+        if(!countR($listed)) followRetUrl(null, "|В избрания списък няма активни артикули|*: " . cat_Listings::getLink($listId, 0, array('ef_icon' => false)), 'warning');
 
         $form->info .= tr('|* ( |Показване на първите|* <b>50</b> |артикула|* )');
 
@@ -907,7 +907,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
         }
 
-        followRetUrl(null, 'Оригиналните редове са прехвърлени успешно|*!');
+        followRetUrl(null, '|Оригиналните редове са прехвърлени успешно|*!');
     }
 
 

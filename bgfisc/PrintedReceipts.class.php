@@ -31,7 +31,7 @@ class bgfisc_PrintedReceipts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgfisc_Wrapper,plg_Created,plg_SelectPeriod,plg_Search';
+    public $loadList = 'sales_Wrapper,plg_Created,plg_SelectPeriod,plg_Search';
     
     
     /**
