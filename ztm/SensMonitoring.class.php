@@ -35,6 +35,9 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
         'kWhImport' => array('caption' => 'Входяща енергия', 'uom' => 'kWh', 'logPeriod' => 3600),
         'coldWater' => array('caption' => 'Студена вода', 'uom' => 'm³', 'logPeriod' => 3600),
         'hotWater' => array('caption' => 'Топла вода', 'uom' => 'm³', 'logPeriod' => 3600),
+        'airTempLower' => array('caption' => 'Температура долу', 'uom' => 'ºC', 'logPeriod' => 3600),
+        'airTempCent' => array('caption' => 'Температура център', 'uom' => 'ºC', 'logPeriod' => 3600),
+        'airTempUpper' => array('caption' => 'Температура горе', 'uom' => 'ºC', 'logPeriod' => 3600),
     );
 
 
@@ -43,7 +46,11 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
      */
     protected $inputRegistryMaps = array('kWhImport|ImportActiveEnergy' => 'monitoring.pa.measurements',
                                          'coldWater|CumulativeTraffic' => 'monitoring.cw.measurements',
-                                         'hotWater|CumulativeTraffic' => 'monitoring.hw.measurements');
+                                         'hotWater|CumulativeTraffic' => 'monitoring.hw.measurements',
+                                         'airTempLower' => 'hvac.air_temp_lower_1.value',
+                                         'airTempCent' => 'hvac.air_temp_cent_1.value',
+                                         'airTempUpper' => 'hvac.air_temp_upper_1.value');
+
 
     /**
      * Прочитане на входовете
@@ -72,33 +79,37 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
 
                 while ($rRec = $rQuery->fetch()) {
                     $val = ztm_LongValues::getValueByHash($rRec->value);
-                    $valArr = @json_decode($val);
-                    if ($valArr === false) {
-                        ztm_RegisterValues::logErr('Невалидна стойност на регистъра', $rRec);
+                    // Ако е подадена стойност, търсим в масива иначе приемаме, че е стринг
+                    if ($reg) {
+                        $valArr = @json_decode($val);
+                        if ($valArr === false) {
+                            ztm_RegisterValues::logErr('Невалидна стойност на регистъра', $rRec);
 
-                        continue;
+                            continue;
+                        }
+
+                        if (!isset($valArr)) {
+                            ztm_RegisterValues::logWarning('Празна стойност на регистъра', $rRec);
+
+                            continue;
+                        }
+
+                        if (!is_array($valArr)) {
+                            ztm_RegisterValues::logWarning('В регистъра се очаква валиден масив', $rRec);
+
+                            continue;
+                        }
+
+                        if (empty($valArr)) {
+                            ztm_RegisterValues::logWarning('В регистъра се очаква попълнен масив', $rRec);
+
+                            continue;
+                        }
+                        $valObj = end($valArr);
+                        $res[$input] = $valObj->{$reg};
+                    } else {
+                        $res[$input] = $val;
                     }
-
-                    if (!isset($valArr)) {
-                        ztm_RegisterValues::logWarning('Празна стойност на регистъра', $rRec);
-
-                        continue;
-                    }
-
-                    if (!is_array($valArr)) {
-                        ztm_RegisterValues::logWarning('В регистъра се очаква валиден масив', $rRec);
-
-                        continue;
-                    }
-
-                    if (empty($valArr)) {
-                        ztm_RegisterValues::logWarning('В регистъра се очаква попълнен масив', $rRec);
-
-                        continue;
-                    }
-
-                    $valObj = end($valArr);
-                    $res[$input] = $valObj->{$reg};
                 }
             }
         }
