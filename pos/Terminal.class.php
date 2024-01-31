@@ -192,13 +192,7 @@ class pos_Terminal extends peripheral_Terminal
         $this->pushTerminalFiles($tpl, $rec);
         $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
         $tpl->append($modalTpl);
-
         $this->renderWrapping($tpl);
-
-
-
-
-
 
         return $tpl;
     }
@@ -1867,12 +1861,13 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString, $selectedRec)
     {
-        $result = core_Cache::get('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}");
+        $cMin = date('i');
+        $cacheKey = "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}_{$cMin}";
+        $result = core_Cache::get('pos_Terminal', $cacheKey);
         
         $settings = pos_Points::getSettings($rec->pointId);
         if(!is_array($result)){
             core_Debug::startTimer('RES_RENDER_RESULT_FETCH_RECS');
-
             $similarProducts = $this->getSuggestedProductIds($rec, $selectedRec);
             
             $count = 0;
@@ -2017,8 +2012,7 @@ class pos_Terminal extends peripheral_Terminal
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);
             core_Debug::stopTimer('RES_RENDER_RESULT_VERBAL');
             core_Debug::log("END RES_RENDER_RESULT_VERBAL " . round(core_Debug::$timers["RES_RENDER_RESULT_VERBAL"]->workingTime, 6));
-
-            core_Cache::set('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}", $result, 2);
+            core_Cache::set('pos_Terminal', $cacheKey, $result, 2);
         }
         
         return $result;
