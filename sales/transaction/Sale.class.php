@@ -218,8 +218,14 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
             
             $amount = $detailRec->amount;
-            $discount = isset($detailRec->discount) ? $detailRec->discount : $detailRec->autoDiscount;
-            $amount = ($discount) ?  $amount * (1 - $discount) : $amount;
+            $discountVal = $detailRec->discount;
+            if(!empty($detailRec->autoDiscount)){
+                if(in_array($rec->state, array('draft', 'pending'))){
+                    $discountVal = round((1- (1 - $discountVal)*(1 - $detailRec->autoDiscount)), 4);
+                }
+            }
+
+            $amount = ($discountVal) ?  $amount * (1 - $discountVal) : $amount;
             $amount = round($amount, 2);
             
             $entries[] = array(
@@ -288,7 +294,12 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
         $amountBase = $quantityAmount = 0;
         foreach ($rec->details as $detailRec) {
-            $discount = isset($detailRec->discount) ? $detailRec->discount : $detailRec->autoDiscount;
+            $discount = $detailRec->discount;
+            if(!empty($detailRec->autoDiscount)){
+                if(in_array($rec->state, array('draft', 'pending'))){
+                    $discount = round((1- (1 - $discount)*(1 - $detailRec->autoDiscount)), 4);
+                }
+            }
             $amount = ($discount) ?  $detailRec->amount * (1 - $discount) : $detailRec->amount;
             $amount = round($amount, 2);
             $amountBase += $amount;
