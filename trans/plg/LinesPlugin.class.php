@@ -48,6 +48,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             setIfNot($mvc->totalWeightFieldName, 'weight');
             setIfNot($mvc->totalVolumeFieldName, 'volume');
             setIfNot($mvc->totalNetWeightFieldName, 'netWeight');
+            setIfNot($mvc->totalTareWeightFieldName, 'tareWeight');
 
             // Създаваме поле за общ обем
             if (!$mvc->getField($mvc->totalVolumeFieldName, false)) {
@@ -70,8 +71,16 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $mvc->setField($mvc->totalNetWeightFieldName, 'input=none');
             }
 
+            // Създаваме поле за общо тегло
+            if (!$mvc->getField($mvc->totalTareWeightFieldName, false)) {
+                $mvc->FLD($mvc->totalTareWeightFieldName, 'cat_type_Weight', 'input=none');
+            } else {
+                $mvc->setField($mvc->totalTareWeightFieldName, 'input=none');
+            }
+
             $mvc->FLD('weightInput', 'cat_type_Weight', 'input=none');
             $mvc->FLD('netWeightInput', 'cat_type_Weight', 'input=none');
+            $mvc->FLD('tareWeightInput', 'cat_type_Weight', 'input=none');
             $mvc->FLD('volumeInput', 'cat_type_Volume', 'input=none');
             $mvc->FLD('transUnits', 'blob(serialize, compress)', 'input=none');
             $mvc->FLD('transUnitsInput', 'blob(serialize, compress)', 'input=none');
@@ -203,13 +212,14 @@ class trans_plg_LinesPlugin extends core_Plugin
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             $form->FLD('weight', 'cat_type_Weight', 'caption=Логистична информация->Бруто');
             $form->FLD('netWeight', 'cat_type_Weight', 'caption=Логистична информация->Нето');
+            $form->FLD('tareWeight', 'cat_type_Weight', 'caption=Логистична информация->Тара');
             $form->FLD('volume', 'cat_type_Volume', 'caption=Логистична информация->Обем');
-
 
             $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($rec->transUnitsInput);
             trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
             $form->setDefault('weight', $rec->weightInput);
             $form->setDefault('netWeight', $rec->netWeightInput);
+            $form->setDefault('tareWeight', $rec->tareWeightInput);
             $form->setDefault('volume', $rec->volumeInput);
         }
 
@@ -227,6 +237,14 @@ class trans_plg_LinesPlugin extends core_Plugin
                             $form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице|*!');
                         }
                     }
+                }
+            }
+
+            // Проверка на логистичната информация
+            $checkTransData = deals_Helper::checkTransData($formRec->weight, $formRec->netWeight, $formRec->tareWeight, 'weight', 'netWeight', 'tareWeight');
+            if(countR($checkTransData['errors'])){
+                foreach ($checkTransData['errors'] as $errArr){
+                    $form->setError($errArr['fields'], $errArr['text']);
                 }
             }
 
@@ -248,6 +266,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $rec->weightInput = $formRec->weight;
                     $rec->volumeInput = $formRec->volume;
                     $rec->netWeightInput = $formRec->netWeight;
+                    $rec->tareWeightInput = $formRec->tareWeight;
                     $rec->transUnitsInput = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
                 } elseif($mvc instanceof cash_Document){
                     if(isset($rec->{$mvc->lineFieldName}) && empty($rec->peroCase)){

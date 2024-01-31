@@ -115,7 +115,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info=@Колети, productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount, weight=Тегло, netWeight=Нето, volume=Обем, transUnitId = ЛЕ';
+    public $listFields = 'info=@Колети, productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount, weight=Тегло, netWeight=Нето,tareWeight=Тара, volume=Обем, transUnitId = ЛЕ';
     
     
     /**
@@ -133,7 +133,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета за скриване/показване от шаблоните
      */
-    public $toggleFields = 'packagingId=Опаковка,packQuantity=К-во,packPrice=Цена,discount=Отст.,amount=Сума,weight=Обем,netWeight=Нето,volume=Тегло,info=Инфо';
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=К-во,packPrice=Цена,discount=Отст.,amount=Сума,weight=Обем,netWeight=Нето,tareWeight=Тара,volume=Тегло,info=Инфо';
     
     
     /**
@@ -147,7 +147,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'requestedQuantity,weight,volume,transUnitId,transUnitQuantity,tariffCode';
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume,netWeight,tareWeight,transUnitId,transUnitQuantity,tariffCode';
     
     
     /**

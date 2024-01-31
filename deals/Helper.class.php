@@ -1494,9 +1494,9 @@ abstract class deals_Helper
     /**
      * Помощна ф-я за намиране на транспортното тегло/обем
      */
-    private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = null, $masterState)
+    private static function getMeasureRow($productId, $packagingId, $quantity, $type, &$value = null, $masterState)
     {
-        expect(in_array($type, array('volume', 'weight', 'netWeight')));
+        expect(in_array($type, array('volume', 'weight', 'netWeight', 'tareWeight')));
         $hint = $warning = false;
         
         // Ако артикула не е складируем не му се изчислява транспортно тегло
@@ -1505,28 +1505,30 @@ abstract class deals_Helper
             return;
         }
 
-        if(in_array($masterState, array('draft', 'pending')))
-        if ($type == 'weight') {
-            $liveValue = cat_Products::getTransportWeight($productId, $quantity);
-        } elseif($type == 'netWeight') {
-            if($netWeight = cat_Products::convertToUom($productId, 'kg')) {
-                $liveValue = $netWeight * $quantity;
+        if(in_array($masterState, array('draft', 'pending'))) {
+            $liveValue = null;
+            if ($type == 'weight') {
+                $liveValue = cat_Products::getTransportWeight($productId, $quantity);
+            } elseif($type == 'netWeight') {
+                if($netWeight = cat_Products::convertToUom($productId, 'kg')) {
+                    $liveValue = $netWeight * $quantity;
+                }
+            } elseif($type == 'volume') {
+                $liveValue = cat_Products::getTransportVolume($productId, $quantity);
             }
-        }   else {
-            $liveValue = cat_Products::getTransportVolume($productId, $quantity);
-        }
-        
-        // Ако няма тегло взима се 'live'
-        if (!isset($value)) {
-            $value = $liveValue;
-            
-            if (isset($value)) {
-                $hint = true;
-            }
-        } elseif ($liveValue) {
-            $percentChange = abs(round((1 - $value / $liveValue) * 100, 3));
-            if ($percentChange >= 25) {
-                $warning = true;
+
+            // Ако няма тегло взима се 'live'
+            if (!isset($value)) {
+                $value = $liveValue;
+
+                if (isset($value)) {
+                    $hint = true;
+                }
+            } elseif ($liveValue) {
+                $percentChange = abs(round((1 - $value / $liveValue) * 100, 3));
+                if ($percentChange >= 25) {
+                    $warning = true;
+                }
             }
         }
         
@@ -1542,7 +1544,7 @@ abstract class deals_Helper
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
         if ($hint === true) {
-            $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : (($type == 'volume') ? 'Транспортният обем е прогнозен' : 'Нето теглото е прогнозно');
+            $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : (($type == 'volume') ? 'Транспортният обем е прогнозен' : (($type == 'netWeight') ? 'Нето теглото е прогнозно' : 'Тарата е прогнозна'));
             $valueRow = "<span style='color:blue'>{$valueRow}</span>";
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
@@ -1552,7 +1554,7 @@ abstract class deals_Helper
             $liveValueVerbal = core_Type::getByName($valueType)->toVerbal($liveValue);
             $valueRow = ht::createHint($valueRow, "Има разлика от над 25% с очакваното|* {$liveValueVerbal}", 'warning', false);
         }
-        
+
         return $valueRow;
     }
     
@@ -1568,10 +1570,13 @@ abstract class deals_Helper
      *
      * @return core_ET|NULL - шаблона за показване
      */
-    public static function getVolumeRow($productId, $packagingId, $quantity, $masterState, $volume = null)
+    public static function getVolumeRow($productId, $packagingId, $quantity, $masterState, &$volume = null)
     {
-        return self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume, $masterState);
+        $res = self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume, $masterState);
+
+        return $res;
     }
+
 
 
     /**
@@ -1618,9 +1623,11 @@ abstract class deals_Helper
      *
      * @return core_ET|NULL - шаблона за показване
      */
-    public static function getWeightRow($productId, $packagingId, $quantity, $masterState, $weight = null)
+    public static function getWeightRow($productId, $packagingId, $quantity, $masterState, &$weight = null)
     {
-        return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight, $masterState);
+        $res = self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight, $masterState);
+
+        return $res;
     }
 
 
@@ -1635,13 +1642,12 @@ abstract class deals_Helper
      *
      * @return core_ET|NULL - шаблона за показване
      */
-    public static function getNetWeightRow($productId, $packagingId, $quantity, $masterState, $netWeight = null)
+    public static function getNetWeightRow($productId, $packagingId, $quantity, $masterState, &$netWeight = null)
     {
-        return self::getMeasureRow($productId, $packagingId, $quantity, 'netWeight', $netWeight, $masterState);
+        $res = self::getMeasureRow($productId, $packagingId, $quantity, 'netWeight', $netWeight, $masterState);
+
+        return $res;
     }
-
-
-
 
 
     /**
@@ -2825,5 +2831,70 @@ abstract class deals_Helper
         }
 
         return $price4Quantity;
+    }
+
+
+    /**
+     * Проверка на транспортните данни в записа
+     *
+     * @param $weight
+     * @param $netWeight
+     * @param $tareWeight
+     * @param $weightFieldName
+     * @param $netWeightFieldName
+     * @param $tareWeightFieldName
+     * @return array|array[]
+     */
+    public static function checkTransData(&$weight, &$netWeight, &$tareWeight, $weightFieldName, $netWeightFieldName, $tareWeightFieldName)
+    {
+        $res = array('errors' => array());
+
+        $weightIsCalced = $netWeightIsCalced = $tareWeightIsCalced = false;
+        if(empty($weight) && !empty($netWeight) && !empty($tareWeight)) {
+            $weight = $netWeight + $tareWeight;
+            $weightIsCalced = true;
+        }
+
+        if(empty($netWeight) && !empty($weight) && !empty($tareWeight)) {
+            $netWeight = $weight - $tareWeight;
+            $netWeightIsCalced = true;
+        }
+        if(empty($tareWeight) && !empty($weight) && !empty($netWeight)) {
+            $tareWeight = $weight - $netWeight;
+            $tareWeightIsCalced = true;
+        }
+
+        if(!empty($weight) && !empty($netWeight) && !empty($tareWeight)){
+            if(($weight - $netWeight) != $tareWeight){
+                $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName},{$tareWeightFieldName}", 'text' => 'Разликата между брутото и нетото не отговаря на тарата');
+            }
+        }
+
+        if(!empty($weight) && !empty($netWeight)){
+            if($weight < $netWeight){
+                $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName}", 'text' => 'Брутото е по-малко от нетото');
+            }
+        }
+
+        if(!empty($tareWeight) && !empty($weight)){
+
+            if($weight < $tareWeight){
+                $res['errors'][] = array('fields' => "{$weightFieldName},{$tareWeightFieldName}", 'text' => 'Тарата е по-малко от брутото');
+            }
+        }
+
+        if(countR($res['errors'])) {
+            if($weightIsCalced) {
+                $weight = null;
+            }
+            if($netWeightIsCalced) {
+                $netWeight = null;
+            }
+            if($tareWeightIsCalced) {
+                $tareWeight = null;
+            }
+        }
+
+        return $res;
     }
 }

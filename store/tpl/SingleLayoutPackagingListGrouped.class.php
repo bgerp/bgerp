@@ -92,6 +92,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         $masterRec = $data->masterData->rec;
 
         $totalInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'totalInPackListWithTariffCode');
+        $totalTareInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'tareInPackListWithTariffCode');
 
         // Извличане на всички уникални тарифни номера и сумиране на данните им
         $tariffCodes = array();
@@ -121,6 +122,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $tariffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
             }
 
+
             if($totalInPackListWithTariffCodeVal == 'yes'){
                 $amountR = $rec1->amount * (1 - $rec1->discount);
                 if($masterRec->chargeVat == 'separate'){
@@ -133,16 +135,22 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
             $tariffCodes[$rec1->tariffNumber]->weight += $weight;
             $tariffCodes[$rec1->tariffNumber]->netWeight += $netWeight;
+            if($totalTareInPackListWithTariffCodeVal == 'yes'){
+                $tareWeight = $detail->getTareWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->tareWeight, $weight, $netWeight);
+                if($tareWeight > 0){
+                    $tariffCodes[$rec1->tariffNumber]->tareWeight += $tareWeight;
+                }
+            }
         }
-        
+
         ksort($tariffCodes, SORT_STRING);
         $rows = array();
 
         // За всяко поле за групиране
         foreach ($tariffCodes as $tariffNumber => $tariffObject) {
-            
             $weight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->weight);
             $netWeight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->netWeight);
+
             if(countR($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){
                 $imploded = implode(',', $tariffObject->withoutWeightProducts);
                 $weight = ht::createHint($weight, "Следните артикули нямат транспортно тегло|*: {$imploded}", 'warning');
@@ -153,6 +161,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock = getTplFromFile('store/tpl/HScodeBlock.shtml');
             $groupBlock->append($code, 'code');
             $groupBlock->append($weight, 'weight');
+            if($totalTareInPackListWithTariffCodeVal == 'yes'){
+                $tareWeight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->tareWeight);
+                $groupBlock->append($tareWeight, 'tareWeight');
+            }
+
             $groupBlock->append($netWeight, 'netWeight');
             $groupBlock->append($transUnits, 'transUnits');
             if($totalInPackListWithTariffCodeVal == 'yes'){

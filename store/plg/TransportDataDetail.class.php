@@ -26,6 +26,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         $mvc->declareInterface('store_iface_DetailsTransportData');
         setIfNot($mvc->weightField, 'weight');
         setIfNot($mvc->netWeightField, 'netWeight');
+        setIfNot($mvc->tareWeightField, 'tareWeight');
         setIfNot($mvc->volumeField, 'volume');
         setIfNot($mvc->productFld, 'productId');
         setIfNot($mvc->packagingFld, 'packagingId');
@@ -33,6 +34,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 
         $mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Бруто,forceField,autohide');
         $mvc->FLD($mvc->netWeightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Нето,forceField,autohide');
+        $mvc->FLD($mvc->tareWeightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Тара,forceField,autohide');
         $mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
         $mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,tdClass=nowrap,after={$mvc->volumeField},smartCenter,input=none");
         $mvc->FLD('transUnitQuantity', 'int(min=1)', 'caption=Логистична информация->К-во,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
@@ -61,6 +63,7 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $form->setField('weight', 'input');
                 $form->setField('netWeight', 'input');
                 $form->setField('volume', 'input');
+                $form->setField('tareWeight', 'input');
                 $form->setField('transUnitId', 'input');
                 $form->setField('transUnitQuantity', 'input');
             }
@@ -85,6 +88,18 @@ class store_plg_TransportDataDetail extends core_Plugin
         $row->weight = deals_Helper::getWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->weightField});
         $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->volumeField});
         $row->netWeight = deals_Helper::getNetWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->netWeightField});
+
+        if(empty($rec->tareWeight)){
+            if(!empty($rec->weight) && !empty($rec->netWeight)){
+                $rec->tareWeight = $rec->weight - $rec->netWeight;
+                if($rec->tareWeight > 0){
+                    $row->tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($rec->tareWeight);
+                    $row->tareWeight = "<span style='color:blue'>{$row->tareWeight}</span>";
+                    $row->tareWeight = ht::createHint($row->tareWeight, 'Тарата е сметната на база брутото и нетото', false);
+                }
+            }
+        }
+
         $row->transUnitId = deals_Helper::getTransUnitRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->transUnitId, $rec->transUnitQuantity);
     }
     
@@ -103,18 +118,19 @@ class store_plg_TransportDataDetail extends core_Plugin
     {
         $masterRec = $mvc->Master->fetchRec($masterId);
         $masterId = $masterRec->id;
-        $cWeight = $cVolume = $cNetWeight = 0;
+        $cWeight = $cVolume = $cNetWeight = $cTareWeight = 0;
         $query = $mvc->getQuery();
         $query->where("#{$mvc->masterKey} = {$masterId}");
-        $units = array();
-
         $calcLive = $force || in_array($masterRec->state, array('draft', 'pending'));
 
         // За всеки запис
+        $units = array();
         while ($rec = $query->fetch()) {
             $canStore = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');
             if($canStore != 'yes') continue;
-            
+            $saveFields = array();
+            $clone = clone $rec;
+
             // Изчислява се теглото
             if($calcLive){
                 $w = $mvc->getWeight($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->weightField});
@@ -124,9 +140,8 @@ class store_plg_TransportDataDetail extends core_Plugin
 
             // Форсира се при нужда
             if ($force === true && empty($rec->{$mvc->weightField}) && !empty($w)) {
-                $clone = clone $rec;
                 $clone->{$mvc->weightField} = $w;
-                $mvc->save_($clone, $mvc->weightField);
+                $saveFields[] = $mvc->weightField;
             }
             
             // Сумира се
@@ -145,9 +160,8 @@ class store_plg_TransportDataDetail extends core_Plugin
 
             // Форсира се при нужда
             if ($force === true && empty($rec->{$mvc->netWeightField}) && !empty($w1)) {
-                $clone = clone $rec;
                 $clone->{$mvc->netWeightField} = $w1;
-                $mvc->save_($clone, $mvc->netWeightField);
+                $saveFields[] = $mvc->netWeightField;
             }
 
             // Сумира се
@@ -166,9 +180,8 @@ class store_plg_TransportDataDetail extends core_Plugin
             
             // Форсира се при нужда
             if ($force === true && empty($rec->{$mvc->volumeField}) && !empty($v)) {
-                $clone = clone $rec;
                 $clone->{$mvc->volumeField} = $v;
-                $mvc->save_($clone, $mvc->volumeField);
+                $saveFields[] = $mvc->volumeField;
             }
             
             // Сумира се
@@ -176,6 +189,26 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $cVolume += $v;
             } else {
                 $cVolume = null;
+            }
+
+            // Изчислява се теглото
+            if($calcLive){
+                $tW = $mvc->getTareWeight($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->tareWeightField}, $w, $w1);
+            } else {
+                $tW = $rec->{$mvc->tareWeightField};
+            }
+
+            // Форсира се при нужда
+            if ($force === true && empty($rec->{$mvc->tareWeightField}) && !empty($tW)) {
+                $clone->{$mvc->tareWeightField} = $tW;
+                $saveFields[] = $mvc->tareWeightField;
+            }
+
+            // Сумира се
+            if (empty($rec->{$mvc->quantityFld}) || (!empty($tW) && !is_null($cTareWeight))) {
+                $cTareWeight += $tW;
+            } else {
+                $cTareWeight = null;
             }
 
             // Изчисляват се логистичните единици
@@ -196,24 +229,27 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
 
             if ($force === true && empty($rec->{$mvc->transUnitId}) && !empty($unitId)) {
-                $clone = clone $rec;
                 $clone->transUnitId = $unitId;
-                $mvc->save_($clone, 'transUnitId');
+                $saveFields[] = $mvc->transUnitId;
             }
 
             if ($force === true && empty($rec->{$mvc->transUnitQuantity}) && !empty($uQuantity)) {
-                $clone = clone $rec;
                 $clone->transUnitQuantity = $uQuantity;
-                $mvc->save_($clone, 'transUnitQuantity');
+                $saveFields[] = $mvc->transUnitQuantity;
+            }
+
+            if(countR($saveFields)){
+                $mvc->save_($clone, $saveFields);
             }
         }
         
         // Връщане на обема и теглото
         $weight = (!empty($cWeight)) ? $cWeight : null;
         $netWeight = (!empty($cNetWeight)) ? $cNetWeight : null;
+        $tareWeight = (!empty($cTareWeight)) ? $cTareWeight : null;
         $volume = (!empty($cVolume)) ? $cVolume : null;
 
-        $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units, 'netWeight' => $netWeight);
+        $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units, 'netWeight' => $netWeight, 'tareWeight' => $tareWeight);
     }
     
     
@@ -282,6 +318,32 @@ class store_plg_TransportDataDetail extends core_Plugin
         $res = $netWeight;
     }
 
+    /**
+     * Връща нето теглото на реда, ако няма изчислява го на момента
+     *
+     * @param core_Mvc   $mvc
+     * @param float|NULL $res
+     * @param int        $productId
+     * @param int        $packagingId
+     * @param float      $quantity
+     * @param float|NULL $tareWeight
+     * @param float|NULL $weight
+     * @param float|NULL $netWeight
+     */
+    public function on_AfterGetTareWeight($mvc, &$res, $productId, $packagingId, $quantity, $tareWeight = null, $weight = null, $netWeight = null)
+    {
+        $res = $tareWeight;
+        if(!isset($res)){
+            if(isset($weight) && isset($netWeight)){
+                $res = $weight - $netWeight;
+
+                if($res <= 0){
+                    $res = null;
+                }
+            }
+        }
+    }
+
 
     /**
      * Преди рендиране на таблицата
@@ -301,6 +363,10 @@ class store_plg_TransportDataDetail extends core_Plugin
         if (!empty($masterRec->volumeInput) && $masterRec->volumeInput != $masterRec->calcedVolume) {
             unset($data->listFields['volume']);
         }
+
+        if (!empty($masterRec->tareWeightInput) && $masterRec->tareWeightInput != $masterRec->calcedTareWeight) {
+            unset($data->listFields['tareWeight']);
+        }
     }
     
     
@@ -319,6 +385,14 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $form->setError('transUnitId,transUnitQuantity', 'Липсва логистична единица');
             } elseif(empty($rec->transUnitQuantity) && !empty($rec->transUnitId)){
                 $form->setError('transUnitId,transUnitQuantity', 'Липсва количеството на логистичната единица');
+            }
+
+            // Проверка на логистичната информация
+            $checkTransData = deals_Helper::checkTransData($rec->{$mvc->weightField}, $rec->{$mvc->netWeightField}, $rec->{$mvc->tareWeightField}, $mvc->weightField, $mvc->netWeightField, $mvc->tareWeightField);
+            if(countR($checkTransData['errors'])){
+                foreach ($checkTransData['errors'] as $errArr){
+                    $form->setError($errArr['fields'], $errArr['text']);
+                }
             }
         }
     }
