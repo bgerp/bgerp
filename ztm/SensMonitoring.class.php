@@ -38,6 +38,8 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
         'airTempLower' => array('caption' => 'Температура долу', 'uom' => 'ºC', 'logPeriod' => 3600),
         'airTempCent' => array('caption' => 'Температура център', 'uom' => 'ºC', 'logPeriod' => 3600),
         'airTempUpper' => array('caption' => 'Температура горе', 'uom' => 'ºC', 'logPeriod' => 3600),
+        'ventLowerFan' => array('caption' => 'Вентилатор долу', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
+        'ventUpperFan' => array('caption' => 'Вентилатор горе', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
     );
 
 
@@ -49,7 +51,9 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
                                          'hotWater|CumulativeTraffic' => 'monitoring.hw.measurements',
                                          'airTempLower' => 'hvac.air_temp_lower_1.value',
                                          'airTempCent' => 'hvac.air_temp_cent_1.value',
-                                         'airTempUpper' => 'hvac.air_temp_upper_1.value');
+                                         'airTempUpper' => 'hvac.air_temp_upper_1.value',
+                                         'ventLowerFan' => 'vent.lower_1.fan.speed',
+                                         'ventUpperFan' => 'vent.upper_1.fan.speed');
 
 
     /**
