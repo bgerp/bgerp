@@ -1724,13 +1724,40 @@ class pos_Terminal extends peripheral_Terminal
         pos_Receipts::requireRightFor('terminal', $id);
         $originState = Request::get('originState', 'enum(draft,waiting,rejected,closed)');
         $rec = pos_Receipts::fetch($id);
-        
+
         // Ако има промяна в оригиналното състояние на бележката се прави нова
         if($originState != $rec->state){
             redirect(array('pos_Receipts', 'new', 'forced' => true));
         }
         
         $res = array();
+        $min = date('i');
+        if($min == '00'){
+            $operation = Mode::get("currentOperation{$rec->id}");
+            $string = Mode::get("currentSearchString{$rec->id}");
+            if($operation == 'add'){
+                $resultTpl = $this->renderResult($rec, $operation, $string, null);
+                $resObj = new stdClass();
+                $resObj->func = 'html';
+                $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
+                $res[] = $resObj;
+
+                $headerTpl = $this->renderHeader($rec);
+                $resObj6 = new stdClass();
+                $resObj6->func = 'html';
+                $resObj6->arg = array('id' => 'receiptTerminalHeader', 'html' => $headerTpl->getContent(), 'replace' => true);
+                $res[] = $resObj6;
+
+                $resObj7 = new stdClass();
+                $resObj7->func = 'afterload';
+                $res[] = $resObj7;
+
+                $resObj8 = new stdClass();
+                $resObj8->func = 'calculateWidth';
+                $res[] = $resObj8;
+            }
+        }
+
         $resObj1 = new stdClass();
         $resObj1->func = 'clearStatuses';
         $resObj1->arg = array('type' => 'notice');
