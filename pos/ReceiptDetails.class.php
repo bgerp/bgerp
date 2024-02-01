@@ -905,7 +905,9 @@ class pos_ReceiptDetails extends core_Detail
 
         // Показване на склада, само ако е различен от дефолтния
         if(isset($fields['-list'])){
-            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+            if(isset($rec->storeId)){
+                $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+            }
         } elseif($rec->storeId == $defaultStoreId) {
             unset($row->storeId);
         }

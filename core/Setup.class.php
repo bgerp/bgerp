@@ -266,6 +266,12 @@ defIfNot('CORE_BGERP_UNIQ_ID', '');
 
 
 /**
+ * Начини за регистриране на потребители
+ */
+defIfNot('CORE_REGISTER_USER', 'none');
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -394,6 +400,8 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_PERIOD' => array('time', 'caption=Настройки за бекъп->Пълен бекъп през'),
         
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
+
+        'CORE_REGISTER_USER' => array('enum(none=Забранено, email=Имейл, sms=SMS, emailSMS = Имейл и SMS, noValidation=Без верифициране)', 'caption=Регистриране на потребители->Избор'),
     );
     
     
@@ -420,6 +428,7 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
+        'core_UserReg',
         'migrate::clearCallOnTimeBadData2212',
         'migrate::repairSearchKeywords2351',
         'migrate::setBGERPUNIQId3020'

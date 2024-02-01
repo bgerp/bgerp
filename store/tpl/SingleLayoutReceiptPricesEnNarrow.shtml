@@ -113,8 +113,12 @@
                     </tr>
                     <!--ET_END lineVehicleId-->
                     <tr>
-                        <td class='quiet nowrap aright' style='width:1%;'>Total weight:</td>
+                        <td class='quiet nowrap aright' style='width:1%;'>Total gross weight:</td>
                         <td>[#weight#]</td>
+                    </tr>
+                    <tr>
+                        <td class='quiet nowrap aright' style='width:1%;'>Total net weight:</td>
+                        <td>[#netWeight#]</td>
                     </tr>
                     <tr>
                         <td class='quiet nowrap aright' style='width:1%;'>Total volume:</td>

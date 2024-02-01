@@ -28,6 +28,9 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Updates', 'Код->Обновяване', 'admin');
         $this->TAB('core_Maintenance', 'Код->Миграции', 'admin');
         $this->TAB('core_Users', 'Потребители', 'admin');
+        if (core_Setup::get('REGISTER_USER') !=='none') {
+            $this->TAB('core_UserReg', 'Регистрирания', 'admin');
+        }
         $this->TAB('core_Roles', 'Роли->Роли', 'admin');
         $this->TAB('core_RoleLogs', 'Роли->Лог', 'admin');
         $this->TAB('core_Lg', 'Превод->Система', 'admin, translate');

@@ -199,7 +199,7 @@ class callcenter_SMS extends core_Master
         }
         
         // Очакваме да може да се изпрати съответния SMS
-        expect(self::canSend($messageStr, $sender, $service), 'Не може да се изпрати');
+        expect(self::canSend($messageStr, $sender, $service), 'Не може да се изпрати', $messageStr, $sender, $service, $encoding);
         
         // Изпращаме съобщението към услугата за изпращане на SMS
         $sendStatusArr = $serviceInst->sendSMS($mobileNum, $messageStr, $sender);
@@ -307,7 +307,9 @@ class callcenter_SMS extends core_Master
             
             // Ако не в 7 битов формат
             if (!i18n_Charset::is7Bit($message)) {
-                
+
+                self::logWarning('Не може да се изпрати UTF-8 съобщение: ' . $message);
+
                 return false;
             }
         }
@@ -320,7 +322,9 @@ class callcenter_SMS extends core_Master
             
             // Ако текста е над допустимите символа
             if ($params['maxStrLen'] < $textLen) {
-                
+
+                self::logWarning('Дължината е над'. $params['maxStrLen'] . ' символа: ' . $message);
+
                 return false;
             }
         }
@@ -330,7 +334,9 @@ class callcenter_SMS extends core_Master
             
             // Ако не е в позволените
             if (!$params['allowedUserNames'][$sender]) {
-                
+
+                self::logWarning('Изпращачът не е в списъка с разрешените' . $message);
+
                 return false;
             }
         }

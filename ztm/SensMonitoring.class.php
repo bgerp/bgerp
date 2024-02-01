@@ -35,9 +35,9 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
         'kWhImport' => array('caption' => 'Входяща енергия', 'uom' => 'kWh', 'logPeriod' => 3600),
         'coldWater' => array('caption' => 'Студена вода', 'uom' => 'm³', 'logPeriod' => 3600),
         'hotWater' => array('caption' => 'Топла вода', 'uom' => 'm³', 'logPeriod' => 3600),
-        'airTempLower' => array('caption' => 'Температура долу', 'uom' => 'ºC', 'logPeriod' => 3600),
-        'airTempCent' => array('caption' => 'Температура център', 'uom' => 'ºC', 'logPeriod' => 3600),
-        'airTempUpper' => array('caption' => 'Температура горе', 'uom' => 'ºC', 'logPeriod' => 3600),
+        'airTempLower' => array('caption' => 'Температура долу', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
+        'airTempCent' => array('caption' => 'Температура център', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
+        'airTempUpper' => array('caption' => 'Температура горе', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
         'ventLowerFan' => array('caption' => 'Вентилатор долу', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
         'ventUpperFan' => array('caption' => 'Вентилатор горе', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
     );
