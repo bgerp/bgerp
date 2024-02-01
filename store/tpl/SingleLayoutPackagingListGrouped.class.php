@@ -156,11 +156,19 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $weight = ht::createHint($weight, "Следните артикули нямат транспортно тегло|*: {$imploded}", 'warning');
             }
 
-            $code = ($tariffNumber != self::EMPTY_TARIFF_NUMBER) ? "HS Code / CTN {$tariffObject->code}" : tr('Без тарифен код');
+            if($tariffNumber != self::EMPTY_TARIFF_NUMBER){
+                $code = "HS Code / CTN {$tariffObject->code}";
+                $tariffDescription = store_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang);
+            } else {
+                $code = tr('Без тарифен код');
+                $tariffDescription = null;
+            }
+
             $transUnits = trans_Helper::displayTransUnits($tariffObject->transUnits);
             $groupBlock = getTplFromFile('store/tpl/HScodeBlock.shtml');
             $groupBlock->append($code, 'code');
             $groupBlock->append($weight, 'weight');
+            $groupBlock->append($tariffDescription, 'description');
             if($totalTareInPackListWithTariffCodeVal == 'yes'){
                 $tareWeight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->tareWeight);
                 $groupBlock->append($tareWeight, 'tareWeight');
