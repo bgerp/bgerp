@@ -434,11 +434,14 @@ class trans_plg_LinesPlugin extends core_Plugin
             $transInfo = $mvc->getTotalTransportInfo($rec->id);
             $warningWeight = $warningVolume = false;
 
+            // Вербално показване на общото бруто тегло
             setIfNot($rec->{$mvc->totalWeightFieldName}, $transInfo->weight);
             $rec->calcedWeight = $rec->{$mvc->totalWeightFieldName};
             $rec->{$mvc->totalWeightFieldName} = ($rec->weightInput) ? $rec->weightInput : $rec->{$mvc->totalWeightFieldName};
             $hintWeight = ($rec->weightInput) ? 'Транспортното тегло е въведено от потребител' : 'Транспортното тегло е сумарно от редовете';
             $hintNetWeight = ($rec->netWeightInput) ? 'Нето теглото е въведено от потребител' : 'Нето теглото е сумарно от редовете';
+            $hintTareWeight = ($rec->tareWeightInput) ? 'Теглото на тарата е въведено от потребител' : 'Теглото на тарата е сумарно от редовете';
+
             $weightIsLive = !$rec->weightInput;
             $netWeightIsLive = !$rec->netWeightInput;
 
@@ -456,15 +459,22 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if($weightIsLive){
                     $row->{$mvc->totalWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalWeightFieldName}}</span>";
                 }
-                $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight, 'noicon', false);
+                if(isset($rec->calcedWeight)){
+                    $hintWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->calcedWeight);
+                }
 
+                $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight, 'noicon', false);
                 if($warningWeight){
                     $liveValueVerbal = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->calcedWeight);
                     $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, "Има разлика от над 25% с изчисленото|* {$liveValueVerbal}", 'warning', false);
                 }
             }
 
+            // Вербално показване на общото нето тегло
             setIfNot($rec->{$mvc->totalNetWeightFieldName}, $transInfo->netWeight);
+            $rec->calcedNetWeight = $rec->{$mvc->totalNetWeightFieldName};
+            $rec->{$mvc->totalNetWeightFieldName} = ($rec->netWeightInput) ? $rec->netWeightInput : $rec->{$mvc->totalNetWeightFieldName};
+
             if (!isset($rec->{$mvc->totalNetWeightFieldName})) {
                 $row->{$mvc->totalNetWeightFieldName} = "<span class='quiet'>N/A</span>";
             } else {
@@ -472,9 +482,33 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if($netWeightIsLive){
                     $row->{$mvc->totalNetWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalNetWeightFieldName}}</span>";
                 }
+                if(isset($rec->calcedNetWeight)){
+                    $hintNetWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->calcedNetWeight);
+                }
+
                 $row->{$mvc->totalNetWeightFieldName} = ht::createHint($row->{$mvc->totalNetWeightFieldName}, $hintNetWeight, 'noicon', false);
             }
 
+            // Вербално показване на общото нето тегло
+            setIfNot($rec->{$mvc->totalTareWeightFieldName}, $transInfo->tareWeight);
+            $rec->calcedTareWeight = $rec->{$mvc->totalTareWeightFieldName};
+            $rec->{$mvc->totalTareWeightFieldName} = ($rec->tareWeightInput) ? $rec->tareWeightInput : $rec->{$mvc->totalTareWeightFieldName};
+
+            if (!isset($rec->{$mvc->totalTareWeightFieldName})) {
+                $row->{$mvc->totalTareWeightFieldName} = "<span class='quiet'>N/A</span>";
+            } else {
+                $row->{$mvc->totalTareWeightFieldName} = $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->{$mvc->totalTareWeightFieldName});
+                if($netWeightIsLive){
+                    $row->{$mvc->totalTareWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalTareWeightFieldName}}</span>";
+                }
+                if(isset($rec->calcedTareWeight)){
+                    $hintTareWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->calcedTareWeight);
+                }
+
+                $row->{$mvc->totalTareWeightFieldName} = ht::createHint($row->{$mvc->totalTareWeightFieldName}, $hintTareWeight, 'noicon', false);
+            }
+
+            // Вербално показване на общия обем
             setIfNot($rec->{$mvc->totalVolumeFieldName}, $transInfo->volume);
             $rec->calcedVolume = $rec->{$mvc->totalVolumeFieldName};
 
