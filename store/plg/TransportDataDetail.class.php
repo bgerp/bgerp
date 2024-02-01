@@ -228,14 +228,14 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $units[$unitId] += $uQuantity;
             }
 
-            if ($force === true && empty($rec->{$mvc->transUnitId}) && !empty($unitId)) {
+            if ($force === true && empty($rec->transUnitId) && !empty($unitId)) {
                 $clone->transUnitId = $unitId;
-                $saveFields[] = $mvc->transUnitId;
+                $saveFields[] = 'transUnitId';
             }
 
-            if ($force === true && empty($rec->{$mvc->transUnitQuantity}) && !empty($uQuantity)) {
+            if ($force === true && empty($rec->transUnitQuantity) && !empty($uQuantity)) {
                 $clone->transUnitQuantity = $uQuantity;
-                $saveFields[] = $mvc->transUnitQuantity;
+                $saveFields[] = 'transUnitQuantity';
             }
 
             if(countR($saveFields)){
