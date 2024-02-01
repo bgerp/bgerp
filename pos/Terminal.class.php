@@ -1733,28 +1733,35 @@ class pos_Terminal extends peripheral_Terminal
         $res = array();
         $min = date('i');
         if($min == '00'){
-            $operation = Mode::get("currentOperation{$rec->id}");
-            $string = Mode::get("currentSearchString{$rec->id}");
-            if($operation == 'add'){
-                $resultTpl = $this->renderResult($rec, $operation, $string, null);
-                $resObj = new stdClass();
-                $resObj->func = 'html';
-                $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
-                $res[] = $resObj;
+            if(!Mode::get("autoRefresh{$rec->id}")){
+                $operation = Mode::get("currentOperation{$rec->id}");
+                $string = Mode::get("currentSearchString{$rec->id}");
+                if($operation == 'add'){
+                    $resultTpl = $this->renderResult($rec, $operation, $string, null);
+                    $resObj = new stdClass();
+                    $resObj->func = 'html';
+                    $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
+                    $res[] = $resObj;
 
-                $headerTpl = $this->renderHeader($rec);
-                $resObj6 = new stdClass();
-                $resObj6->func = 'html';
-                $resObj6->arg = array('id' => 'receiptTerminalHeader', 'html' => $headerTpl->getContent(), 'replace' => true);
-                $res[] = $resObj6;
+                    $headerTpl = $this->renderHeader($rec);
+                    $resObj6 = new stdClass();
+                    $resObj6->func = 'html';
+                    $resObj6->arg = array('id' => 'receiptTerminalHeader', 'html' => $headerTpl->getContent(), 'replace' => true);
+                    $res[] = $resObj6;
 
-                $resObj7 = new stdClass();
-                $resObj7->func = 'afterload';
-                $res[] = $resObj7;
+                    $resObj7 = new stdClass();
+                    $resObj7->func = 'afterload';
+                    $res[] = $resObj7;
 
-                $resObj8 = new stdClass();
-                $resObj8->func = 'calculateWidth';
-                $res[] = $resObj8;
+                    $resObj8 = new stdClass();
+                    $resObj8->func = 'calculateWidth';
+                    $res[] = $resObj8;
+                    Mode::setPermanent("autoRefresh{$rec->id}", true);
+                }
+            }
+        } else {
+            if(Mode::get("autoRefresh{$rec->id}")){
+                Mode::setPermanent("autoRefresh{$rec->id}", false);
             }
         }
 
