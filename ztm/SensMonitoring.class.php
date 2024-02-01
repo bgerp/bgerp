@@ -67,7 +67,7 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
         $dId = ztm_Devices::fetchField(array("#name = '[#1#]'", $dName));
         if (!$dId) {
 
-            ztm_Devices::logError("Няма регистрирано устройство с име {$dName}");
+            ztm_Devices::logErr("Няма регистрирано устройство с име {$dName}");
 
             return $res;
         }
