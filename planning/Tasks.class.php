@@ -1632,6 +1632,9 @@ class planning_Tasks extends core_Master
             }
         }
 
+        $mandatoryClassOptions = planning_Steps::getMandatoryClassOptions();
+        $form->setSuggestions("mandatoryDocuments", array('' => '') + $mandatoryClassOptions);
+
         if (isset($rec->productId)) {
 
             $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
