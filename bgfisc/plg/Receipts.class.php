@@ -138,8 +138,14 @@ class bgfisc_plg_Receipts extends core_Plugin
         }
         
         if (in_array($action, array('delete', 'reject'))  && isset($rec)) {
-            if (bgfisc_PrintedReceipts::get($mvc, $rec->id)) {
-                $res = 'no_one';
+            if ($printedRec = bgfisc_PrintedReceipts::get($mvc, $rec->id)) {
+                if($rec->state == 'draft' && (empty($printedRec->string) || $printedRec->string == bgfisc_PrintedReceipts::MISSING_QR_CODE)){
+                    if(!haveRole('posMaster,ceo')){
+                        $res = 'no_one';
+                    }
+                } else {
+                    $res = 'no_one';
+                }
             }
         }
         
@@ -383,7 +389,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $fiscalArr['SERIAL_NUMBER'] = (bgfisc_Setup::get('CHECK_SERIAL_NUMBER') == 'yes') ? $lRec->serialNumber : false;
                 $cu = core_Users::getCurrent();
                 $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
-                
+
                 if (cls::haveInterface('peripheral_FiscPrinterWeb', $Driver)) {
                     $interface = core_Cls::getInterface('peripheral_FiscPrinterWeb', $lRec->driverClass);
 
