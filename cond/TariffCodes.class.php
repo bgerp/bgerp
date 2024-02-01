@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2024 Experta OOD
@@ -14,30 +14,30 @@
  *
  * @since     v 0.1
  */
-class store_TariffCodes extends core_Manager
+class cond_TariffCodes extends core_Manager
 {
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'store,ceo';
+    public $canList = 'admin,ceo';
 
 
     /**
      * Кой може да изтрива
      */
-    public $canDelete = 'ceo,storeMaster';
+    public $canDelete = 'ceo,admin';
 
 
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,storeMaster';
+    public $canAdd = 'ceo,admin';
 
 
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'ceo,storeMaster';
+    public $canEdit = 'ceo,admin';
 
 
     /**

@@ -158,7 +158,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
             if($tariffNumber != self::EMPTY_TARIFF_NUMBER){
                 $code = "HS Code / CTN {$tariffObject->code}";
-                $tariffDescription = store_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang);
+                $tariffDescription = cond_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang);
             } else {
                 $code = tr('Без тарифен код');
                 $tariffDescription = null;
