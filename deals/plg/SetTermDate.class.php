@@ -77,10 +77,7 @@ class deals_plg_SetTermDate extends core_Plugin
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
-        if ($action != 'settermdate') {
-            
-            return;
-        }
+        if ($action != 'settermdate') return;
         
         // Проверка
         $mvc->requireRightFor('settermdate');
@@ -91,8 +88,10 @@ class deals_plg_SetTermDate extends core_Plugin
         // Показване на формата за смяна на срока
         $form = cls::get('core_Form');
         $Field = $mvc->getField($mvc->termDateFld);
-        $form->title = core_Detail::getEditTitle($mvc, $id, $Field->caption, null);
-        $form->FLD('newTermDate', 'varchar', "caption={$Field->caption}");
+        $caption = explode('->', $Field->caption);
+        $caption = countR($caption) == 2 ? $caption[1] : $caption[0];
+        $form->title = core_Detail::getEditTitle($mvc, $id, $caption, null);
+        $form->FLD('newTermDate', 'varchar', "caption={$caption}");
         $form->setFieldType('newTermDate', $mvc->getFieldType($mvc->termDateFld));
         $form->setDefault('newTermDate', $rec->{$mvc->termDateFld});
         $form->setDefault('newTermDate', date('Y-m-d H:i'));
