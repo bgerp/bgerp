@@ -51,6 +51,7 @@
 
 <div class="lines"></div>
 [#purchase_PurchasesDetails#]
+[#price_DiscountsPerDocuments#]
 
 <div class="lines"></div>
 <table class="innerTable footer-notes paddingCells">

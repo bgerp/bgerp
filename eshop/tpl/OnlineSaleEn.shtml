@@ -43,6 +43,7 @@
 <div class="scrolling-holder">
     <div class="details">
         [#sales_SalesDetails#]
+        [#price_DiscountsPerDocuments#]
     </div>
 </div>
 <div class="lines"></div>

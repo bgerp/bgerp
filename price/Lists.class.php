@@ -936,7 +936,7 @@ class price_Lists extends core_Master
     {
         requireRole('debug');
 
-        $rec = sales_Sales::fetch(4483);
+        $rec = sales_Sales::fetch(4557);
         sales_Sales::recalcAutoDiscount($rec);
     }
 

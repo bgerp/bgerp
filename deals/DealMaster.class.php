@@ -1043,11 +1043,11 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
 
-            if($mvc instanceof sales_Sales){
+            if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
                 $dRec->inputDiscount = $dRec->discount;
                 if(isset($dRec->autoDiscount)){
                     if(isset($dRec->discount)){
-                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4);
+                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
                     } else {
                         $dRec->discount = $dRec->autoDiscount;
                     }
@@ -1055,9 +1055,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $save = true;
             }
 
-
-            
-            if ($save === true) {
+            if ($save) {
                 $saveRecs[] = $dRec;
             }
         }
