@@ -3638,10 +3638,10 @@ function efae() {
     efae.prototype.renderPrefix = 'render_';
 
     // Времето в милисекунди, с което ще се увеличава времето на изпълнение
-    efae.prototype.increaseInterval = 100;
+    efae.prototype.increaseInterval = 300;
 
     // Горната граница (в милисекунди), до която може да се увеличи брояча
-    efae.prototype.maxIncreaseInterval = 300000;
+    efae.prototype.maxIncreaseInterval = 500000;
 
     // През колко време да се праща AJAX заяка към сървъра
     efae.prototype.ajaxInterval = efae.prototype.ajaxDefInterval = 5000;
@@ -3650,8 +3650,8 @@ function efae() {
     efae.prototype.ajaxLastTime = new Date();
 
     // Интервал над който ще се нулира брояча
-    // Когато устройството е заспало, да се форсират всички табове след събуждане (30 мин)
-    efae.prototype.forceStartInterval = 1800000;
+    // Когато устройството е заспало, да се форсират всички табове след събуждане (1800000 - 30 мин) (2700000 - 45)
+    efae.prototype.forceStartInterval = 2700000;
 
     // Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
     efae.prototype.isSendedAfterRefresh = false;
