@@ -161,7 +161,15 @@
                            </td>
                        </tr>
                        <tr>
-                           <td colspan="2">Total weight:&nbsp;[#weight#]</td>
+                           <div>
+                               <span class='half-col'>Total gross weight: [#weight#]</span>
+                           </div>
+                           <div>
+                               <span class='half-col'>Total net weight: [#netWeight#]</span>
+                           </div>
+                           <div>
+                               <span class='half-col'>Total tare: [#tareWeight#]</span>
+                           </div>
                        </tr>
                        <!--ET_BEGIN logisticInfo-->
                        <tr>

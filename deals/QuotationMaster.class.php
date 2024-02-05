@@ -1009,39 +1009,81 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             if (!$form->gotErrors()) {
-                $sId = null;
-                try{
-                    $errorMsg = 'Проблем при създаването на сделка';
-                    $sId = $this->createDeal($rec);
-                } catch(core_exception_Expect $e){
-                    $errorMsg = $e->getMessage();
-                    reportException($e);
-                    $this->logErr($errorMsg, $rec->id);
-                }
 
-                if(empty($sId)){
-                    followRetUrl(null, $errorMsg, 'error');
-                }
-
+                $saveRecs = array();
                 $Detail = cls::get($this->mainDetail);
                 $DealClassName = $this->dealClass;
-                foreach ($products as $dRecId) {
-                    if(empty($dRecId)) continue;
+                foreach ($products as $key => $val) {
+                    if(empty($val)) continue;
 
-                    $dRec = $Detail->fetch($dRecId);
+                    list($pId, $optional, $packId) = explode('|', $key);
+                    $dQuery = $Detail->getQuery();
+                    $dQuery->where("#quotationId = {$rec->id} AND #productId = {$pId} AND #packagingId = {$packId} AND #optional='{$optional}'");
+                    $dQuery->orderBy("#quantity", 'ASC');
 
-                    // Копира се и транспорта, ако има
-                    $addedRecId = $DealClassName::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
-                    if($DealClassName == 'sales_Sales'){
-                        $tRec = sales_TransportValues::get($this, $id, $dRecId);
-                        if (isset($tRec->fee)) {
-                            sales_TransportValues::sync($DealClassName, $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
+                    if($optional == 'yes'){
+                        if(strpos($val, '#') !== false){
+                            $pureId = str_replace('#', '', $val);
+                            $dQuery->where("id = {$pureId}");
+                            $dRec = $dQuery->fetch();
+                        } else {
+                            if(!core_Type::getByName('double')->fromVerbal($val)) {
+                                $form->setError($key, 'Невалидно к-во');
+                                continue;
+                            }
+                            $packRec = cat_products_Packagings::getPack($pId, $packId);
+                            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+                            $dQuery2 = clone $dQuery;
+                            $q = $quantityInPack * $val;
+                            $dQuery2->where("#quantity = {$q}");
+                            $dRec = $dQuery2->fetch();
+                            if(empty($dRec)){
+                                $dRec = $dQuery->fetch();
+                                $dRec->packQuantity = $val;
+                            }
                         }
+                    } else {
+                        $dRec = $dQuery->fetch();
                     }
+
+                    if(!is_object($dRec)) {
+                        $form->setError($key, "Неразпознат ред");
+                        continue;
+                    }
+
+                    $saveRecs[] = $dRec;
                 }
 
-                // Редирект към сингъла на новосъздадената сделка
-                return new Redirect(array($DealClassName, 'single', $sId));
+                if(!$form->gotErrors()){
+                    $sId = null;
+                    try{
+                        $errorMsg = 'Проблем при създаването на сделка';
+                        $sId = $this->createDeal($rec);
+                    } catch(core_exception_Expect $e){
+                        $errorMsg = $e->getMessage();
+                        reportException($e);
+                        $this->logErr($errorMsg, $rec->id);
+                    }
+
+                    foreach ($saveRecs as $dRec){
+                        // Копира се и транспорта, ако има
+                        $addedRecId = $DealClassName::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+                        if($DealClassName == 'sales_Sales'){
+                            $tRec = sales_TransportValues::get($this, $id, $addedRecId);
+                            if (isset($tRec->fee)) {
+                                sales_TransportValues::sync($DealClassName, $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
+                            }
+                        }
+                    }
+
+                    if(empty($sId)){
+                        followRetUrl(null, $errorMsg, 'error');
+                    }
+
+                    // Редирект към сингъла на новосъздадената сделка
+                    return new Redirect(array($DealClassName, 'single', $sId));
+                }
             }
         }
 
@@ -1157,13 +1199,18 @@ abstract class deals_QuotationMaster extends core_Master
                     $mandatory = 'mandatory';
                 }
             }
-            $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},hint={$product->hint},{$mandatory}");
+            $form->FNC($index, 'varchar', "input,caption={$product->title},hint={$product->hint},{$mandatory},class=w50");
             if (countR($product->options) == 1) {
                 $default = key($product->options);
             }
 
             $product->options = $product->options + array('0' => '0');
-            $form->setOptions($index, $product->options);
+            if($product->suggestions){
+                $form->setSuggestions($index, $product->options);
+            } else {
+                $form->setOptions($index, $product->options);
+            }
+
             $form->setDefault($index, $default);
         }
 
@@ -1229,8 +1276,8 @@ abstract class deals_QuotationMaster extends core_Master
                     }
                 }
                 core_Mode::pop('text');
-
-                $products[$index]->options[$dRec->id] = $val;
+                $key = ($dRec->optional == 'yes') ? "#{$dRec->id}" : $dRec->id;
+                $products[$index]->options[$key] = $val;
             }
         }
 

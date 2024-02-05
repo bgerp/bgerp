@@ -25,17 +25,21 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified, plg_Sorting, plg_RefreshRows';
-    
-    
+    public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified, plg_Sorting, bgerp_plg_Export, bgerp_plg_Import';
+
+
     /**
-     * През колко време да се обновява по AJAX, ако има промяна
-     *
-     * @see plg_RefreshRows
+     * Кой може да експортира?
      */
-    public $refreshRowsTime = 5000;
-    
-    
+    public $canExport = 'ztm, ceo';
+
+
+    /**
+     * Кой може да импортира?
+     */
+    public $canImport = 'ztm, ceo';
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -64,17 +68,23 @@ class ztm_RegisterValues extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,deviceId,registerId,value,updatedOn,modifiedOn,modifiedBy';
-    
-    
+
+
+    /**
+     * Полета за експорт
+     */
+    public $exportableCsvFields = 'deviceId, registerId, value, updatedOn';
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)', 'caption=Устройство,mandatory, refreshForm');
-        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name,allowEmpty)', 'caption=Регистър,mandatory,removeAndRefreshForm=value|extValue,silent, refreshForm');
-        $this->FLD('value', 'varchar(32)', 'caption=Стойност,input=none');
-        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,input=none');
+        $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)', 'caption=Устройство,mandatory, refreshForm, export=Csv');
+        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name,allowEmpty)', 'caption=Регистър,mandatory,removeAndRefreshForm=value|extValue,silent, refreshForm, export=Csv');
+        $this->FLD('value', 'varchar(32)', 'caption=Стойност,input=none, export=Csv');
+        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,input=none, export=Csv');
         
         $this->setDbUnique('deviceId,registerId');
     }
@@ -634,5 +644,54 @@ class ztm_RegisterValues extends core_Manager
         }
 
         return new Redirect($retUrl, '|Избраните записи са изчистени успешно');
+    }
+
+
+    /**
+     * Преди експортиране като CSV
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_BeforeExportCsv($mvc, &$recs)
+    {
+        foreach ($recs as $rec) {
+            $rec->value = ztm_LongValues::getValueByHash($rec->value);
+        }
+    }
+
+
+    /**
+     * След подготовка на полетата за импортиране
+     *
+     * @param crm_Companies $mvc
+     * @param array         $fields
+     */
+    protected static function on_AfterPrepareImportFields($mvc, &$fields)
+    {
+        $fields = array();
+
+        $fields['deviceId'] = array('caption' => 'Устройство', 'mandatory' => 'mandatory');
+        $fields['registerId'] = array('caption' => 'Регистър', 'mandatory' => 'mandatory');
+        $fields['value'] = array('caption' => 'Стойност');
+        $fields['updatedOn'] = array('caption' => 'Обновено на');
+    }
+
+
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, $rec)
+    {
+        $rec->deviceId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state='active'", $rec->deviceId));
+        if (!$rec->deviceId) {
+            $rec->deviceId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state='draft'", $rec->deviceId));
+        }
+        $rec->registerId = ztm_Registers::fetchField(array("#name = '[#1#]' AND #state='active'", $rec->registerId));
+        $rec->extValue = $rec->value;
+
+        if (!$rec->deviceId || !$rec->registerId) {
+
+            return false;
+        }
     }
 }

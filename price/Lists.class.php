@@ -374,7 +374,7 @@ class price_Lists extends core_Master
             foreach ($parentOptions as $k => $v){
                 $parents = $mvc->getParents($k);
                 if(array_key_exists($rec->id, $parents)){
-                    unset($parentOptions[$rec->id]);
+                    unset($parentOptions[$k]);
                 }
             }
 
@@ -411,7 +411,11 @@ class price_Lists extends core_Master
     {
         $rec = $this->fetchRec($id);
         $parents = array($rec->id => $rec->id);
+        if(isset($rec->parent)){
+            $parents[$rec->parent] = $rec->parent;
+        }
         $parent = $rec->parent;
+
         while ($parent && ($lRec = $this->fetch($parent, 'parent'))) {
             if(!empty($lRec->parent)){
                 $parents[$lRec->parent] = $lRec->parent;

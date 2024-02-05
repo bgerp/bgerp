@@ -40,12 +40,13 @@ class visualcrossing_Plugin extends core_Plugin
         $forRec = visualcrossing_Forecasts::getForecast($date);
 
         if ($forRec) {
-            $iconUrl = 'https://www.visualcrossing.com/img/' . $forRec->icon . '.svg';
+            $thumb = new thumb_Img(getFullPath('visualcrossing/icons/' . $forRec->icon . '.png'), 20, 20, 'path');
+            $imgUrl = $thumb->getUrl('deferred');
 
             $min = round($forRec->low, 1);
             $max = round($forRec->high, 1);
 
-            $res->day .= "<div style='text-align: right; float:right;font-size:0.85em;color:#999;width: 120px;'><span style=\"color:blue\">{$min}</span>&#126;<span style=\"color:red\">{$max}</span><span style='display: inline-block;width: 40px; text-align: center;float:right;'><img style='display: inline-block;max-height: 20px;max-width: 28px; position:relative;top:-2px;' src=\"" . $iconUrl . '"></span></div>';
+            $res->day .= "<div style='text-align: right; float:right;font-size:0.85em;color:#999;width: 120px;'><span style=\"color:blue\">{$min}</span>&#126;<span style=\"color:red\">{$max}</span><span style='display: inline-block;width: 40px; text-align: center;float:right;'><img style='display: inline-block;max-height: 20px;max-width: 28px; position:relative;top:-2px;' src=\"" . $imgUrl . '"></span></div>';
         }
     }
 }
