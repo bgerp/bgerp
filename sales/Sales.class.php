@@ -49,7 +49,7 @@ class sales_Sales extends deals_DealMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-                    acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
+                    acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation,price_plg_TotalDiscount, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg,cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
@@ -2035,8 +2035,14 @@ class sales_Sales extends deals_DealMaster
         $calcAutoDiscounts = Mode::get('calcAutoDiscounts');
         if($calcAutoDiscounts === false) return;
 
+        // Ако има твърда отстъпка за целия документ, изчислява се тя
         $rec = $mvc->fetchRec($id);
-        static::recalcAutoDiscount($rec);
+        $recalcTotalDiscount = $mvc->recalcAutoTotalDiscount($rec);
+        if(!$recalcTotalDiscount){
+            // Ако няма се изчислява по автоматичните отстъпки от ЦП
+            static::recalcAutoDiscount($rec);
+        }
+
         $mvc->updateMaster_($rec);
     }
     
@@ -2086,7 +2092,6 @@ class sales_Sales extends deals_DealMaster
      * Интерфейсен метод
      *
      * @param int $id
-     *
      * @return object
      *
      * @see doc_ContragentDataIntf

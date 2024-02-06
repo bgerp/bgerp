@@ -105,7 +105,6 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
         'store_StockPlanning',
-        'store_TariffCodes',
         'migrate::updateShipmentNegativeRoles231311',
         'migrate::updateNegativeQuantityRole'
     );

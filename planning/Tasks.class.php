@@ -304,7 +304,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=title)', 'caption=Предходна операция,input=none');
 
-        $this->FLD('mandatoryDocuments', 'classes(select=title)', 'caption=Задължителни документи,hint=Задължителни документи при приключване на операцията');
+        $this->FLD('mandatoryDocuments', 'classes(select=title)', 'caption=Задължителни,hint=Задължително изискуеми документи (поне един от всеки избран тип) за да може да бъде приключена операцията');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');

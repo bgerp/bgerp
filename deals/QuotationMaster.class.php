@@ -1023,6 +1023,8 @@ abstract class deals_QuotationMaster extends core_Master
 
                     if($optional == 'yes'){
                         if(strpos($val, '#') !== false){
+                            $valArr = explode(':', $val);
+                            $val = $valArr[0];
                             $pureId = str_replace('#', '', $val);
                             $dQuery->where("id = {$pureId}");
                             $dRec = $dQuery->fetch();
@@ -1044,7 +1046,7 @@ abstract class deals_QuotationMaster extends core_Master
                             }
                         }
                     } else {
-                        $dRec = $dQuery->fetch();
+                        $dRec = $dQuery->fetch($val);
                     }
 
                     if(!is_object($dRec)) {
@@ -1276,7 +1278,7 @@ abstract class deals_QuotationMaster extends core_Master
                     }
                 }
                 core_Mode::pop('text');
-                $key = ($dRec->optional == 'yes') ? "#{$dRec->id}" : $dRec->id;
+                $key = ($dRec->optional == 'yes') ? "#{$dRec->id} : {$val}" : $dRec->id;
                 $products[$index]->options[$key] = $val;
             }
         }

@@ -40,7 +40,7 @@ class visualcrossing_Plugin extends core_Plugin
         $forRec = visualcrossing_Forecasts::getForecast($date);
 
         if ($forRec) {
-            $thumb = new thumb_Img(getFullPath('visualcrossing/icons/' . $forRec->icon . '.png'), 20, 20, 'path');
+            $thumb = new thumb_Img(array(getFullPath('visualcrossing/icons/' . $forRec->icon . '.png'), 20, 20, 'path', 'default' => 'img/32/info-gray.png'));
             $imgUrl = $thumb->getUrl('deferred');
 
             $min = round($forRec->low, 1);

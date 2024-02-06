@@ -820,7 +820,7 @@ class pos_ReceiptDetails extends core_Detail
         if($receiptRec->state == 'draft'){
             if(isset($discountPercent)){
                 if(isset($rec->autoDiscount)){
-                    $discountPercent = round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4);
+                    $discountPercent = round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 6);
                 }
             } elseif(isset($rec->autoDiscount)) {
                 $discountPercent = $rec->autoDiscount;
