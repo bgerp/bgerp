@@ -65,6 +65,7 @@ class cond_Setup extends core_ProtoSetup
         'cond_Colors',
         'cond_Ranges',
         'cond_Allergens',
+        'cond_TariffCodes',
     );
     
     

@@ -31,7 +31,6 @@ class store_Wrapper extends plg_ProtoWrapper
         $this->TAB('store_Transfers', 'Документи->Междускладови трансфери', 'store,ceo');
         $this->TAB('store_ConsignmentProtocols', 'Документи->Отговорно пазене', 'store,ceo');
         $this->TAB('store_InventoryNotes', 'Документи->Инвентаризация', 'store,ceo');
-        $this->TAB('store_TariffCodes', 'МТК', 'store,ceo');
 
         if(core_Packs::isInstalled('sync')){
             $this->TAB('sync_Stores', 'Външни складове->Външен склад', 'ceo,admin');

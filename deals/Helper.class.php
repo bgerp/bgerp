@@ -138,9 +138,10 @@ abstract class deals_Helper
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
             $discountVal = $rec->{$map['discount']};
+
             if(!empty($rec->{$map['autoDiscount']})){
                 if(in_array($masterRec->state, array('draft', 'pending'))){
-                    $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 4);
+                    $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 6);
                 }
             }
 
@@ -2892,6 +2893,35 @@ abstract class deals_Helper
             }
             if($tareWeightIsCalced) {
                 $tareWeight = null;
+            }
+        }
+
+        return $res;
+    }
+
+
+    public static function getDiscountRow($calcedDiscount, $manualDiscount, $autoDiscount, $state)
+    {
+        $Percent = core_Type::getByName('percent');
+
+        if(!in_array($state, array('draft', 'pending'))){
+            $calcedDiscountVerbal = $Percent->toVerbal($calcedDiscount);
+            $res = $Percent->toVerbal($manualDiscount);
+            if($calcedDiscount != $manualDiscount){
+                $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}", 'notice', false);
+            }
+        } else {
+            $res = $Percent->toVerbal($calcedDiscount);
+            if(isset($autoDiscount)){
+                $autoDiscountVerbal = $Percent->toVerbal($autoDiscount);
+                $type = ($autoDiscount > 1) ? 'warning' : 'notice';
+                if(isset($calcedDiscount)){
+                    $middleDiscount = round((1 - (1 - $calcedDiscount) * (1 - $autoDiscount)), 6);
+                    $middleDiscountVerbal = $Percent->toVerbal($middleDiscount);
+                    $res = ht::createHint($res, "Осреднена отстъпка|*: {$middleDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", $type, false);
+                } else {
+                    $res = ht::createHint($res, "Авт. отстъпка|*: {$autoDiscountVerbal}", $type, false);
+                }
             }
         }
 

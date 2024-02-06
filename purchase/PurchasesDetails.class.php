@@ -157,7 +157,6 @@ class purchase_PurchasesDetails extends deals_DealDetail
     public function description()
     {
         $this->FLD('requestId', 'key(mvc=purchase_Purchases)', 'column=none,notNull,silent,hidden,mandatory');
-        
         $this->setDbIndex('requestId');
 
         parent::getDealDetailFields($this);
@@ -208,5 +207,23 @@ class purchase_PurchasesDetails extends deals_DealDetail
     protected static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         $data->showCodeColumn = purchase_Setup::get('SHOW_CODE_IN_SEPARATE_COLUMN') == 'yes';
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+
+        if (!countR($data->recs)) return;
+        $masterRec = $data->masterData->rec;
+
+        foreach ($rows as $id => $row) {
+            $rec = $data->recs[$id];
+
+            $row->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
+        }
     }
 }

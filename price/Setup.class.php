@@ -106,6 +106,7 @@ class price_Setup extends core_ProtoSetup
         'price_Updates',
         'price_Cache',
         'price_ListBasicDiscounts',
+        'price_DiscountsPerDocuments',
         'migrate::deleteOldDiscounts2403',
     );
 

@@ -719,9 +719,6 @@ class batch_Items extends core_Master
         }
         $bQuery->where("#state = 'active'");
         $bQuery->groupBy('batch');
-        if(countR($res)){
-            $bQuery->notIn('batch', array_keys($res));
-        }
         $bQuery->where("#date <= '{$date}'");
         $bQuery->show('batch');
 
