@@ -907,15 +907,18 @@ class price_Lists extends core_Master
         $Master = cls::get($Master);
         if($Master instanceof sales_Sales){
             $listId = $masterRec->priceListId ?? price_ListToCustomers::getListForCustomer($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior);
+
         } else {
             $listId = pos_Receipts::isForDefaultContragent($masterRec) ? pos_Points::getSettings($masterRec->pointId)->policyId : price_ListToCustomers::getListForCustomer($masterRec->contragentClass, $masterRec->contragentObjectId);
         }
 
         // Обикаля се тази политика+бащите ѝ дали има поне една с общи отстъпки
+        $listIds = array($listId => $listId);
         $count = 1;
         $parent = $listId;
         $where = "CASE #id";
         while ($parent && ($pRec = price_Lists::fetch("#id = {$parent}", "id,parent"))) {
+            $listIds[$pRec->id] = $pRec->id;
             $parent = $pRec->parent;
             $where .= " WHEN {$pRec->id} THEN {$count}";
             $count++;
@@ -926,25 +929,10 @@ class price_Lists extends core_Master
         $lQuery->XPR('order', 'int', "({$where})");
         $lQuery->where("#haveBasicDiscounts = 'yes'");
         $lQuery->orderBy('order', 'ASC');
+        $lQuery->in('id', $listIds);
+
         $foundRec = $lQuery->fetch();
 
         return is_object($foundRec) ? $foundRec : null;
-    }
-
-
-    function act_Test()
-    {
-        requireRole('debug');
-
-        $rec = sales_Sales::fetch(4557);
-        sales_Sales::recalcAutoDiscount($rec);
-    }
-
-    function act_Test2()
-    {
-        requireRole('debug');
-
-        $rec = pos_Receipts::fetch(1291);
-        pos_Receipts::recalcAutoDiscount($rec);
     }
 }
