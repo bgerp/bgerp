@@ -26,7 +26,7 @@ class planning_AssetSparePartsDetail extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Резервни части на оборудване';
+    public $title = 'Резервни части на оборудвания';
 
 
     /**
