@@ -107,7 +107,7 @@ class floor_Objects extends core_Detail {
 
         $this->FLD('text', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
 
-        $this->setDbUnique('name');
+        $this->setDbUnique('planId, name');
     }
 
 
