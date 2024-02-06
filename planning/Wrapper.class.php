@@ -39,6 +39,7 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->TAB('planning_StepConditions', 'Етапи->Зависимости', 'ceo,planning');
         $this->TAB('planning_FoldersWithResources', 'Настройки->Папки с ресурси', 'ceo,planning');
         $this->TAB('planning_AssetResourcesNorms', 'Настройки->Норми', 'ceo,planning');
+        $this->TAB('planning_AssetSparePartsDetail', 'Настройки->Рез. части', 'ceo,planning');
         $this->TAB('planning_AssetGroupIssueTemplates', 'Настройки->Готови сигнали', 'ceo,planning');
         $this->TAB('planning_GenericMapper', 'Настройки->Генерични', 'ceo,planning');
         $this->TAB('planning_Points', 'Дебъг->Точки', 'debug');

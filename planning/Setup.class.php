@@ -170,6 +170,12 @@ defIfNot('PLANNING_SHOW_SENDER_AND_RECEIVER_SETTINGS', 'no');
 
 
 /**
+ * Дефолтен хоризонт на показването резервните части
+ */
+defIfNot('PLANNING_SPARE_PARTS_HORIZON_IN_LIST', 3);
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -246,6 +252,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SORT_TASKS_IN_JOB_STRATEGY' => array('class(interface=planning_OrderTasksInJobStrategyIntf,select=title)', 'caption=Подреждане на операциите в заданието->Стратегия'),
         'PLANNING_INPUT_PREVIOUS_BOM_STEP' => array('enum(yes=Влагат се,no=Не се влагат)', 'caption=Операция от Етап в рецепта - Влагане на предходния и вложените Етапи->Планиране'),
         'PLANNING_SHOW_SENDER_AND_RECEIVER_SETTINGS' => array('enum(no=Скриване,yes=Показване,yesDefault=Показване с дефолт)', 'caption=Полета за получил/предал в Протоколите за влагане/връщане->Избор'),
+        'PLANNING_SPARE_PARTS_HORIZON_IN_LIST' => array('int(Min=0)', 'caption=Планирани наличности на резервните части->Месеци напред'),
     );
 
 
@@ -293,6 +300,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_GenericProductPerDocuments',
         'planning_WorkInProgress',
         'planning_AssetGroupIssueTemplates',
+        'planning_AssetSparePartsDetail',
         'migrate::updateLabelType',
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
