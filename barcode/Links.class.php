@@ -47,8 +47,7 @@ class barcode_Links extends core_BaseClass
 
             $resArr[] = (object)array(
                 'title' => 'Отвори този линк',
-                'comment' => $str,
-                'url' => $str,
+                'comment' => ht::createLink($str, $str, false, array('target' => '_blank')),
                 'priority' => 100
             );
         }
