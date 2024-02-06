@@ -160,7 +160,7 @@ class floor_Plans extends core_Master {
     public function act_View($planId = null, $design = false)
     {
         Mode::set('wrapper', 'page_Empty');
-        RequireRole('admin');
+        RequireRole('admin,floor');
         
         if(!isset($planId)) {
             $planId = Request::get('id', 'int');
