@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'planning_StepConditions'
+ * Клас 'planning_AssetSparePartsDetail'
  *
  * Резервни части към оборудвания
  *
@@ -177,7 +177,7 @@ class planning_AssetSparePartsDetail extends core_Detail
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    public static function on_AfterPrepareListFields($mvc, $data)
+    protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $horizonMonthNumber = planning_Setup::get('SPARE_PARTS_HORIZON_IN_LIST');
         $data->listFields = arr::make('assetId=Обордуване,productId=Артикул,storeId=Наличност->Склад,quantity=Наличност->Налично,quantityAll=Наличност->Всичко налично', true);
@@ -253,7 +253,7 @@ class planning_AssetSparePartsDetail extends core_Detail
     /**
      * След подготовка на съмирито
      */
-    public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    protected static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
         $data->listTableMvc = clone $mvc;
         $data->listTableMvc->FNC('quantity', 'double(maxDecimals=3)');
@@ -392,7 +392,7 @@ class planning_AssetSparePartsDetail extends core_Detail
      * @param int $containerId
      * @return int
      */
-    public function createConsumptionNoteDraft($rec, $containerId)
+    private function createConsumptionNoteDraft($rec, $containerId)
     {
         $containerRec = doc_Containers::fetch($containerId);
         $nRec = (object)array('storeId'  => $rec->storeId,
