@@ -259,4 +259,38 @@ class price_DiscountsPerDocuments extends core_Detail
 
         return null;
     }
+
+
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // Има ли останали документи с изтрити всички общи отстъпки
+        $resetRecs = array();
+        foreach ($query->getDeletedRecs() as $rec) {
+            if(!price_DiscountsPerDocuments::count("#documentClassId = {$rec->documentClassId} AND #documentId = {$rec->documentId}")){
+                $resetRecs[$rec->documentClassId][$rec->documentId] = $rec->documentId;
+            }
+        }
+
+        // За всеки
+        foreach ($resetRecs as $documentClass => $documentIds){
+            $Class = cls::get($documentClass);
+            if(!isset($Class->mainDetail)) continue;
+
+            // Нулират се неговите автоматични отстпки
+            $dRecs = array();
+            $Detail = cls::get($Class->mainDetail);
+            $dQuery = $Detail->getQuery();
+            $dQuery->in($Detail->masterKey, $documentIds);
+            $dQuery->where("#autoDiscount IS NOT NULL");
+            while($dRec = $dQuery->fetch()){
+                $dRec->autoDiscount = null;
+                $dRecs[] = $dRec;
+            }
+
+            $Detail->saveArray($dRecs, 'id,autoDiscount');
+        }
+    }
 }
