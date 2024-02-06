@@ -19,13 +19,27 @@ class floor_Plans extends core_Master {
    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_StructureAndOrder';
-    
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_StructureAndOrder, plg_Modified, plg_Clone';
+
+
+    /**
+     * Полета, които да не се клонират
+     */
+    public $fieldsNotToClone = 'createdOn, createdBy, modifiedOn, modifiedBy';
+
 
     /**
      * Детайла, на модела
      */
     public $details = 'floor_Objects';
+
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'floor_Objects';
 
 
     /**
