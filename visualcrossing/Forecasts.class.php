@@ -230,6 +230,9 @@ class visualcrossing_Forecasts extends core_Manager
             foreach (array('icon' => 'icon', 'rh' => 'rh', 'temp' => 'low', 'wind' => 'wind') as $key => $field) {
                 $eKey = "envm.forecast.{$key}_{$h}";
                 $result->{$eKey} = $forecast->{$field};
+                if (is_numeric($result->{$eKey})) {
+                    $result->{$eKey} = (double) $result->{$eKey};
+                }
             }
         }
 
