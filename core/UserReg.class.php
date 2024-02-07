@@ -286,6 +286,8 @@ class core_UserReg extends core_Manager
                 core_Permanent::set($lockEmailHash, 'yes', 60);
             }
 
+            $this->logNotice('Изпратен имейл за регистрация', $rec->id);
+
             status_Messages::newStatus('|Изпратен имейл за верификация на имейла. Моля проверете пощата си.' );
 
             return $retUrl;
@@ -297,6 +299,8 @@ class core_UserReg extends core_Manager
             $isSend = callcenter_SMS::sendSmart($rec->phone, $sData, array('sendLockPeriod' => 86400, 'encoding' => 'ascii'));
 
             expect($isSend, $sData, $rec);
+
+            $this->logNotice('Изпратен SMS за регистрация', $rec->id);
 
             status_Messages::newStatus('Изпратен SMS за верификация на GSM номера. Моля проверете телефона си.');
 
