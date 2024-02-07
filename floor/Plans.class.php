@@ -43,6 +43,17 @@ class floor_Plans extends core_Master {
 
 
     /**
+     * Кой може да клонира запис
+     */
+    public $canClonerec = 'floor,admin,ceo';
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'floor,admin,ceo';
+
+    /**
      * Заглавие
      */
     public $title = 'Планове';
