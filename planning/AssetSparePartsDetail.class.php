@@ -523,6 +523,12 @@ class planning_AssetSparePartsDetail extends core_Detail
     }
 
 
+    /**
+     * Рендиране на оборудванията към резервната част
+     *
+     * @param int $productId
+     * @return core_ET
+     */
     public static function renderProductAssets($productId)
     {
         $tpl = new core_ET("");
