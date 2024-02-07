@@ -1622,25 +1622,27 @@ class cat_Products extends embed_Manager
         return $res;
     }
 
-    
+
     /**
      * Връща достъпните продаваеми артикули
      */
     public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $private = $products = $templates = array();
+        $private = $products = $templates = $favourites = array();
         $query = cat_Products::getQuery();
-        
+
+        $addLimit = false;
+        $defaultSearch = false;
         if (is_array($onlyIds)) {
             if (!countR($onlyIds)) {
                 return array();
             }
-            
             $ids = implode(',', $onlyIds);
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
         } else {
+            $defaultSearch = true;
             if($params['showTemplates']) {
                 $query->where("#state = 'active' OR #state = 'template'");
                 if(isset($params['driverId'])){
@@ -1669,7 +1671,7 @@ class cat_Products extends embed_Manager
             }
 
             if ($limit) {
-                $query->limit($limit);
+                $addLimit = true;
             }
 
             self::filterQueryByMeta($query, $params['hasProperties'], $params['hasnotProperties'], $params['orHasProperties']);
@@ -1718,17 +1720,8 @@ class cat_Products extends embed_Manager
             if (isset($params['notIn'])) {
                 $query->notIn('id', $params['notIn']);
             }
-
-            // Ако има посочени артикули, които винаги да се показват да се показват
-            if (isset($params['alwaysShow'])) {
-                $inArr = arr::make($params['alwaysShow'], true);
-                $inArr = implode(',', $inArr);
-                $wAndH = $query->getWhereAndHaving();
-                $newWhere = str_replace('WHERE', '', $wAndH->w);
-                $newWhere = "#id IN ({$inArr}) OR ({$newWhere})";
-                $query->where = array(0 => $newWhere);
-            }
         }
+
 
         if (isset($params['listId'])) {
             $onCond = "#cat_Products.id = #cat_ListingDetails.productId AND #cat_ListingDetails.listId = {$params['listId']}";
@@ -1790,7 +1783,43 @@ class cat_Products extends embed_Manager
         }
         $query->show($showFields);
 
-        while ($rec = $query->fetch()) {
+        if($defaultSearch){
+
+            $alwaysIds = array();
+            if(is_array($params['favourites'])){
+                $alwaysIds += $params['favourites'];
+            }
+            if(is_array($params['alwaysShow'])){
+                $alwaysIds += $params['alwaysShow'];
+            }
+
+            if(countR($alwaysIds)){
+                $inArr = arr::make($alwaysIds, true);
+                $cloneQuery = clone $query;
+                $cloneQuery->in('id', $inArr);
+                $query->notIn('id', $inArr);
+
+                if($addLimit){
+                    $cloneQuery->limit($limit);
+                    $foundRecs = $cloneQuery->fetchAll();
+
+                    $restLimit = $limit - countR($foundRecs);
+                    $query->limit($restLimit);
+                    $foundRecs += $query->fetchAll();
+                } else {
+                    $foundRecs = $cloneQuery->fetchAll();
+                }
+            } else {
+                if($addLimit){
+                    $query->limit($limit);
+                }
+                $foundRecs = $query->fetchAll();
+            }
+        } else {
+            $foundRecs = $query->fetchAll();
+        }
+
+        foreach ($foundRecs as $rec) {
             $title = null;
             if($params['display'] == 'info'){
                 Mode::push('text', 'plain');
@@ -1838,7 +1867,9 @@ class cat_Products extends embed_Manager
                 }
             }
 
-            if($rec->state == 'template'){
+            if(isset($params['favourites'][$rec->id])){
+                $favourites[$rec->id] = $title;
+            } elseif($rec->state == 'template'){
                 $templates[$rec->id] = $title;
             } elseif ($rec->isPublic == 'yes') {
                 $products[$rec->id] = $title;
@@ -1874,6 +1905,10 @@ class cat_Products extends embed_Manager
 
                 if (!empty($templates)) {
                     asort($templates);
+                }
+
+                if (!empty($favourites)) {
+                    asort($favourites);
                 }
             }
         }
@@ -1911,7 +1946,18 @@ class cat_Products extends embed_Manager
                     $mustReverse = -1;
                 }
             }
+
+            if (isset($favourites[$mId])) {
+                unset($favourites[$mId]);
+                $favourites = array($mId => $mTitle) + $favourites;
+                if (!isset($mustReverse)) {
+                    $mustReverse = true;
+                } elseif ($mustReverse === false) {
+                    $mustReverse = -1;
+                }
+            }
         }
+
         if (isset($mustReverse) && $mustReverse !== -1) {
             $reverseOrder = $mustReverse;
         }
@@ -1941,6 +1987,13 @@ class cat_Products extends embed_Manager
                 $templates = array('tu' => (object) array('group' => true, 'title' => tr('Шаблони'))) + $templates;
             }
             $products = $products + $templates;
+        }
+
+        if (countR($favourites)) {
+            if(!isset($onlyIds)) {
+                $favourites = array('fav' => (object) array('group' => true, 'title' => tr('Препоръчани'))) + $favourites;
+            }
+            $products = $favourites + $products;
         }
 
         return $products;
@@ -1988,6 +2041,12 @@ class cat_Products extends embed_Manager
                 $Type->params[$val] = (keylist::isKeylist(${"{$val}"})) ? ${"{$val}"} : keylist::fromArray(arr::make(${"{$val}"}, true));
             }
         }
+
+        $sQuery = planning_AssetSparePartsDetail::getQuery();
+        $sQuery->where("#assetId = 42");
+        $sQuery->show('productId');
+        $sparePartsIds = arr::extractValuesFromArray($sQuery->fetchAll(), 'productId');
+        $Type->params['favourites'] = $sparePartsIds;
 
         $products = $Type->getOptions($limit);
         
