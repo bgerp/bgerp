@@ -1072,7 +1072,7 @@ abstract class deals_QuotationMaster extends core_Master
                         // Копира се и транспорта, ако има
                         $addedRecId = $DealClassName::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
                         if($DealClassName == 'sales_Sales'){
-                            $tRec = sales_TransportValues::get($this, $id, $addedRecId);
+                            $tRec = sales_TransportValues::get($this, $id, $dRec->id);
                             if (isset($tRec->fee)) {
                                 sales_TransportValues::sync($DealClassName, $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
                             }
