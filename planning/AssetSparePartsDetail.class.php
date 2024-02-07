@@ -72,6 +72,12 @@ class planning_AssetSparePartsDetail extends core_Detail
 
 
     /**
+     * Кой може да го изтрие?
+     */
+    public $canAddfromproduct = 'ceo,planning';
+
+
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'assetId';
@@ -106,18 +112,9 @@ class planning_AssetSparePartsDetail extends core_Detail
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $folderId = cat_Categories::fetchField("#sysId = 'replacements'", 'folderId');
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#folderId = {$folderId}");
-        $pQuery->show('id');
+        $groupId = cat_Groups::fetchField("#sysId = 'replacements'", 'id');
 
-        $replacementIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
-        if(!countR($replacementIds)){
-            $form->setError('productId', 'Няма активен складируем и вложим артикул в категория "Резервни части"');
-            $form->setReadOnly('productId');
-        } else {
-            $form->setFieldTypeParams("productId", array('hasProperties' => 'canStore,canConvert', 'onlyIn' => $replacementIds));
-        }
+        $form->setFieldTypeParams("productId", array('hasProperties' => 'canStore,canConvert', 'groups' => $groupId));
     }
 
 
@@ -162,6 +159,7 @@ class planning_AssetSparePartsDetail extends core_Detail
         }
 
         $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc));
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'pallet');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
 
         $details = $table->get($data->rows, $data->listFields);
@@ -180,7 +178,7 @@ class planning_AssetSparePartsDetail extends core_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $horizonMonthNumber = planning_Setup::get('SPARE_PARTS_HORIZON_IN_LIST');
-        $data->listFields = arr::make('assetId=Обордуване,productId=Артикул,storeId=Наличност->Склад,quantity=Наличност->Налично,quantityAll=Наличност->Всичко налично', true);
+        $data->listFields = arr::make('assetId=Обордуване,productId=Артикул,storeId=Наличност->Склад,quantity=Наличност->Налично,pallet=Наличност->Палет,quantityAll=Наличност->Всичко налично', true);
         if(isset($data->masterMvc)){
             unset($data->listFields['assetId']);
         } else {
@@ -233,7 +231,7 @@ class planning_AssetSparePartsDetail extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         foreach (array('quantity', 'quantityAll', 'reservedQuantity', 'expectedQuantity', 'resultDiff') as $fld){
             $row->{$fld} = core_Type::getByName('double')->toVerbal($rec->{$fld});
@@ -245,7 +243,9 @@ class planning_AssetSparePartsDetail extends core_Detail
 
         if ($mvc->haveRightFor('fastconvert', $rec)) {
             $url = array($mvc, 'fastconvert', 'id' => $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Влагане', $url, array('ef_icon' => 'img/16/produce_in.png', 'title' => 'Добавяне в протокол за влагане към активен сигнал', 'alwaysShow' => true));
+            $alwaysShow = (!$fields['-singleProduct']);
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->_rowTools->addLink('Влагане', $url, array('ef_icon' => 'img/16/produce_in.png', 'title' => 'Добавяне в протокол за влагане към активен сигнал', 'alwaysShow' => $alwaysShow));
         }
     }
 
@@ -256,6 +256,7 @@ class planning_AssetSparePartsDetail extends core_Detail
     protected static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
         $data->listTableMvc = clone $mvc;
+        $data->listTableMvc->FNC('pallet', 'varchar', 'smartCenter');
         $data->listTableMvc->FNC('quantity', 'double(maxDecimals=3)');
         $data->listTableMvc->FNC('quantityAll', 'double(maxDecimals=3)');
         $data->listTableMvc->FNC('reservedQuantity', 'double(maxDecimals=3)');
@@ -276,6 +277,18 @@ class planning_AssetSparePartsDetail extends core_Detail
             $rec = $data->recs[$id];
             foreach (array('quantity', 'quantityAll', 'reservedQuantity', 'expectedQuantity', 'resultDiff') as $fld){
                 $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+            }
+
+            $pQuery = rack_Pallets::getQuery();
+            $pQuery->where("#storeId = {$rec->storeId} AND #productId = {$rec->productId}");
+            $pQuery->show('position');
+            $pQuery->orderBy('position', 'ASC');
+            $firstPalletPosition = $pQuery->fetch()->position;
+            if(!empty($firstPalletPosition)){
+                $row->pallet = core_Type::getByName('varchar')->toVerbal($firstPalletPosition);
+                if(rack_Pallets::haveRightFor('forceopen', (object)array('storeId' => $rec->storeId))){
+                    $row->pallet = ht::createLink($row->pallet, array('rack_Pallets', 'forceopen', 'storeId' => $rec->storeId, 'productId' => $rec->productId, 'position' => $firstPalletPosition));
+                }
             }
         }
     }
@@ -319,6 +332,78 @@ class planning_AssetSparePartsDetail extends core_Detail
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'addfromproduct' && isset($rec)){
+            $productRec = cat_Products::fetch($rec->productId, 'groups,state,canConvert,canStore');
+            if($productRec->canConvert != 'yes' || $productRec->canStore != 'yes' || $productRec->state != 'active'){
+                $requiredRoles = 'no_one';
+            } else {
+                $groupId = cat_Groups::fetchField("#sysId = 'replacements'", 'id');
+                if(!keylist::isIn($groupId, $productRec->groups)){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Връзване на артикул към оборудване
+     */
+    public function act_addfromproduct()
+    {
+        $this->requireRightFor('addfromproduct');
+        expect($productId = Request::get('productId', 'int'));
+        $this->requireRightFor('addfromproduct', (object)array('productId' => $productId));
+
+        $form = cls::get('core_Form');
+        $form->title = core_Detail::getEditTitle('cat_Products', $productId, 'оборудване', null);
+        $form->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+        $form->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване,mandatory');
+        $form->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'mandatory,caption=Основен склад,tdClass=leftCol');
+
+        $query = static::getQuery();
+        $query->where("#productId = {$productId}");
+        $query->show('assetId');
+        $assetIds = arr::extractValuesFromArray($query->fetchAll(), 'assetId');
+
+        $assetOptions = array();
+        $aQuery = planning_AssetResources::getQuery();
+        $aQuery->EXT('type', 'planning_AssetGroups', 'externalName=type,externalKey=groupId');
+        $aQuery->notIn('id', $assetIds);
+        $aQuery->where("#type = 'material'");
+        while($aRec = $aQuery->fetch()){
+            $assetOptions[$aRec->id] = planning_AssetResources::getRecTitle($aRec, false);
+        }
+        if(countR($assetOptions)){
+            $form->setOptions('assetId', array('' => '') + $assetOptions);
+        } else {
+            $form->setReadOnly('assetId');
+            $form->setError('assetId', "Няма свободни оборудвания за добавяне");
+        }
+
+        $form->input(null, 'silent');
+        $form->input();
+        if($form->isSubmitted()){
+            $rec = $form->rec;
+            $newRec = (object)array('assetId' => $rec->assetId, 'storeId' => $rec->storeId, 'productId' => $rec->productId);
+            $fields = $exRec = null;
+            if ($this->isUnique($newRec, $fields, $exRec)) {
+                static::save($newRec);
+
+                if ($form->cmd == 'save_n_new') {
+                    redirect(array($this, 'addfromproduct', 'productId' => $rec->productId, 'ret_url' => getRetUrl()));
+                }
+                followRetUrl();
+            }
+        }
+
+        $form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', null, array('id' => 'saveAndNew', 'order' => '1', 'ef_icon' => 'img/16/save_and_new.png', 'title' => 'Запиши документа и създай нов'));
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Влагане на резервната част към сигнала');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $this->logInfo('Връзка между резервна част и оборудване');
+
+        return $this->renderWrapping($form->renderHtml());
     }
 
 
@@ -361,7 +446,7 @@ class planning_AssetSparePartsDetail extends core_Detail
         $form->FLD('taskContainerId', 'int', 'caption=Сигнал,mandatory');
         $form->setOptions('taskContainerId', array('' => '') + $activeTaskOptions);
         $form->input();
-        if(isset($form->rec->taskContainerId)){
+        if($form->isSubmitted()){
             $taskRec = cal_Tasks::fetch("#containerId = {$form->rec->taskContainerId}");
             if(!planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $form->rec->taskContainerId))){
                 $form->setError('taskContainerId', "Нямате права за създаване на протокол за влагане към|*:" . cal_Tasks::getLink($taskRec->id, 0));
@@ -435,5 +520,36 @@ class planning_AssetSparePartsDetail extends core_Detail
         }
 
         return $options;
+    }
+
+
+    public static function renderProductAssets($productId)
+    {
+        $tpl = new core_ET("");
+        $me = cls::get(get_called_class());
+
+        $rows = array();
+        $query = $me->getQuery();
+        $query->where("#productId = {$productId}");
+        $fields = $me->selectFields();
+        $fields['-singleProduct'] = true;
+        $fields['-list'] = true;
+        while($rec = $query->fetch()){
+            $row = $me->recToVerbal($rec, $fields);
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->tools = $row->_rowTools->renderHtml();
+            $rows[$rec->id] = $row;
+        }
+
+        if(!countR($rows)) return $tpl;
+        foreach ($rows as $row){
+            $blockTpl = new core_ET("<div>[#tools#] [#assetId#]</div>");
+            $blockTpl->placeObject($row);
+            $blockTpl->removeBlocksAndPlaces();
+
+            $tpl->append($blockTpl);
+        }
+
+        return $tpl;
     }
 }

@@ -2422,6 +2422,15 @@ class cat_Products extends embed_Manager
             
             $groupLinks = cat_Groups::getLinks($rec->groupsInput);
             $row->groupsInput = (countR($groupLinks)) ? implode(' ', $groupLinks) : (haveRole('partner') ? null : '<i>' . tr('Няма') . '</i>');
+
+            if (planning_AssetSparePartsDetail::haveRightFor('addfromproduct', (object)array('productId' => $rec->id))) {
+                if (!Mode::isReadOnly()) {
+                    $row->editAssetBtn = ht::createLink('', array('planning_AssetSparePartsDetail', 'addfromproduct', "productId" => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/add.png,title=Оборудвания на които артикула е резервна част');
+                }
+            }
+
+            $row->assets = planning_AssetSparePartsDetail::renderProductAssets($rec->id);
+
         }
         
         if ($fields['-list']) {
