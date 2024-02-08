@@ -220,15 +220,7 @@ class hr_Leaves extends core_Master
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
-    
-    
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    public static function on_BeforeSave($mvc, &$id, $rec)
-    {
-    }
-    
+
     
     /**
      * Изпълнява се преди опаковане на съдаржанието от мениджъра
@@ -501,7 +493,8 @@ class hr_Leaves extends core_Master
         //
         $rec = $mvc->fetchRec($rec);
         $subscribedArr = keylist::toArray($rec->sharedUsers);
-        
+        $subscribedArr[$rec->createdBy] = $rec->createdBy;
+
         if (isset($rec->alternatePersons)) {
             foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
                 $alternatePersonId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
@@ -919,6 +912,7 @@ class hr_Leaves extends core_Master
         hr_Leaves::save($recUpd);
         
         $subscribedArr = keylist::toArray($rec->sharedUsers);
+        $subscribedArr[$rec->createdBy] = $rec->createdBy;
         
         if (isset($rec->alternatePersons)) {
             foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
