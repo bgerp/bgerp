@@ -1168,10 +1168,11 @@ class pos_Receipts extends core_Master
                     }
                 }
 
+                $dRec->autoDiscount = null;
                 $dRec->price = $price * $perPack;
                 $dRec->amount = $dRec->price * $dRec->quantity;
                 $dRec->discountPercent = $discount;
-                pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent');
+                pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent,autoDiscount');
             }
         }
     }
