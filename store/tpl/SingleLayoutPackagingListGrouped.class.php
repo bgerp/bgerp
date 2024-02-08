@@ -28,8 +28,14 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      * Константа за празен тарифен номер
      */
     const EMPTY_TARIFF_NUMBER = ' ';
-    
-    
+
+
+    /**
+     * Префикс за тарифен код
+     */
+    protected $tariffCodeCaption = 'HS Code / CTN';
+
+
     /**
      * Метод който подава данните на мастъра за обработка на скрипта
      *
@@ -157,7 +163,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
 
             if($tariffNumber != self::EMPTY_TARIFF_NUMBER){
-                $code = "HS Code / CTN {$tariffObject->code}";
+                $code = "{$this->tariffCodeCaption} {$tariffObject->code}";
                 $tariffDescription = cond_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang);
             } else {
                 $code = tr('Без тарифен код');
