@@ -1920,50 +1920,54 @@ class sales_Sales extends deals_DealMaster
     protected static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
     {
         if ($form->isSubmitted()) {
-            $action = type_Set::toArray($form->rec->action);
-            if (isset($action['ship'])) {
-                $dQuery = sales_SalesDetails::getQuery();
-                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-                $dQuery->where("#saleId = {$rec->id}");
-                $dQuery->show('productId,quantity,canStore');
-                $dQuery2 = clone $dQuery;
+            if($rec->amountDeal < 0){
+                $form->setError('action', 'Общата сума на продажбата не може да е отрицателна|*!');
+            } else {
+                $action = type_Set::toArray($form->rec->action);
+                if (isset($action['ship'])) {
+                    $dQuery = sales_SalesDetails::getQuery();
+                    $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                    $dQuery->where("#saleId = {$rec->id}");
+                    $dQuery->show('productId,quantity,canStore');
+                    $dQuery2 = clone $dQuery;
 
-                $detailsToCheck = array();
-                while($dRec = $dQuery->fetch()){
-                    $addProductToCheck = true;
-                    $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
-                    if(is_object($instantBomRec)){
-                        $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
-                        if(is_array($bomInfo['resources'])){
-                            foreach ($bomInfo['resources'] as $r){
-                                $detailsToCheck[] = (object)array('productId' => $r->productId, 'quantity' => $r->propQuantity);
-                                $addProductToCheck = false;
+                    $detailsToCheck = array();
+                    while($dRec = $dQuery->fetch()){
+                        $addProductToCheck = true;
+                        $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
+                        if(is_object($instantBomRec)){
+                            $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
+                            if(is_array($bomInfo['resources'])){
+                                foreach ($bomInfo['resources'] as $r){
+                                    $detailsToCheck[] = (object)array('productId' => $r->productId, 'quantity' => $r->propQuantity);
+                                    $addProductToCheck = false;
+                                }
                             }
+                        }
+
+                        if($addProductToCheck){
+                            $detailsToCheck[] = $dRec;
                         }
                     }
 
-                    if($addProductToCheck){
-                        $detailsToCheck[] = $dRec;
+                    if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsToCheck, $rec->shipmentStoreId, $rec->state)) {
+                        if(store_Setup::canDoShippingWhenStockIsNegative()){
+                            $form->setWarning('action', $warning);
+                        } else {
+                            $form->setError('action', $warning);
+                        }
                     }
-                }
 
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsToCheck, $rec->shipmentStoreId, $rec->state)) {
-                    if(store_Setup::canDoShippingWhenStockIsNegative()){
-                        $form->setWarning('action', $warning);
-                    } else {
-                        $form->setError('action', $warning);
+                    $detailsAll = $dQuery2->fetchAll();
+                    $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($detailsAll, 'productId'), 'canSell');
+
+                    if ($productCheck['metasError']) {
+                        $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['metasError']) . ' |трябва да са продаваеми|*!';
+                        $form->setError('action', $error1);
+                    } elseif ($productCheck['notActive']) {
+                        $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
+                        $form->setError('action', $error1);
                     }
-                }
-                
-                $detailsAll = $dQuery2->fetchAll();
-                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($detailsAll, 'productId'), 'canSell');
-                
-                if ($productCheck['metasError']) {
-                    $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['metasError']) . ' |трябва да са продаваеми|*!';
-                    $form->setError('action', $error1);
-                } elseif ($productCheck['notActive']) {
-                    $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
-                    $form->setError('action', $error1);
                 }
             }
         }

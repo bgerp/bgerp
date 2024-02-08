@@ -874,19 +874,23 @@ class purchase_Purchases extends deals_DealMaster
     protected static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
     {
         if ($form->isSubmitted()) {
-            $action = type_Set::toArray($form->rec->action);
-            if (isset($action['ship'])) {
-                $dQuery = purchase_PurchasesDetails::getQuery();
-                $dQuery->where("#requestId = {$rec->id}");
-                $dQuery->show('productId');
-                
-                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($dQuery->fetchAll(), 'productId'), 'canBuy');
-                if($productCheck['metasError']){
-                    $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
-                    $form->setError('action', $warning1);
-                } elseif ($productCheck['notActive']) {
-                    $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
-                    $form->setError('action', $error1);
+            if($rec->amountDeal < 0){
+                $form->setError('action', 'Общата сума на продажбата не може да е отрицателна|*!');
+            } else {
+                $action = type_Set::toArray($form->rec->action);
+                if (isset($action['ship'])) {
+                    $dQuery = purchase_PurchasesDetails::getQuery();
+                    $dQuery->where("#requestId = {$rec->id}");
+                    $dQuery->show('productId');
+
+                    $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($dQuery->fetchAll(), 'productId'), 'canBuy');
+                    if($productCheck['metasError']){
+                        $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
+                        $form->setError('action', $warning1);
+                    } elseif ($productCheck['notActive']) {
+                        $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
+                        $form->setError('action', $error1);
+                    }
                 }
             }
         }
