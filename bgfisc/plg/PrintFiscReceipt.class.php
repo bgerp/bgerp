@@ -132,7 +132,8 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         $cu = core_Users::getCurrent();
         $fiscalArr['SERIAL_NUMBER'] = (bgfisc_Setup::get('CHECK_SERIAL_NUMBER') == 'yes') ? $registerRec->serialNumber : false;
         $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
-        
+        $fiscalArr['IS_PRINT_VAT'] = bgfisc_Setup::get('PRINT_VAT_GROUPS') == 'yes';
+
         $receiptNumber = bgfisc_Register::getSaleNumber($mvc, $rec->id);
         if ($rec->isReverse == 'yes') {
             $fiscalArr['RELATED_TO_URN'] = $receiptNumber;

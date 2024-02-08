@@ -434,7 +434,7 @@ class rack_Racks extends core_Master
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
-        
+
         $hlProdId = $used[$hlFullPos];
 
         while ($row >= 'A') {
@@ -448,7 +448,8 @@ class rack_Racks extends core_Master
                 
                 $pos = "{$row}-{$i}";
                 $posFull = "{$rec->num}-{$row}-{$i}";
-                
+
+
                 $hint = '';
                 
                 $title = null;
@@ -460,36 +461,37 @@ class rack_Racks extends core_Master
                 $bgColorAll = '';
                 $tdBackground = '';
                 // Ако е заето с нещо
-                if (!isset($title) && ($pRec = $used[$posFull])) {
-                    $prodTitle = cat_Products::getTitleById($pRec->productId);
-                    $color = self::getColor($prodTitle, 0, 110);
-                    $bgColor = self::getColor($prodTitle, 130, 240);
-                    if(isset($pRec->all)) {
-                        foreach($pRec->all as $pid => $info) {
-                            $prodTitle .= "\n" . ($p = cat_Products::getTitleById($pid));
-                            $bgColorAll .= ',#' . self::getColor($p, 130, 240);
+                if (!isset($title) && ($pArr = $used[$posFull])) {
+                    $prodTitle = '';
+                    foreach ($pArr as $productId => $batches){
+                        $pName = cat_Products::getTitleById($productId);
+                        if(is_array($batches)){
+                            foreach ($batches as $batch){
+                                $bName = !empty($batch) ? $batch : tr('без партида');
+                                $prodTitle .= "\n" . "{$pName} / {$bName}";
+                            }
+                        } else {
+                            $prodTitle .= "\n" . "{$pName}";
                         }
                     }
-                    if(!empty($pRec->batch)){
-                        $prodTitle .= " / {$pRec->batch}";
-                    }
-                    
-                    $attrA = array();
 
+                    $attrA = array();
                     if (($pos == $hlPos) || (isset($pId) && $hlProdId == $pId)) {
                         $attrA['class'] = 'cd-l3';
                     }
 
                     $attrA['title'] = $prodTitle;
-                   //$attrA['style'] = "color:#{$color};background-color:#{$bgColor};";
-                    if(isset($pRec->all)) {
+
+                    $color = self::getColor($prodTitle, 0, 110);
+                    $bgColor = self::getColor($prodTitle, 130, 240);
+
+                    if(countR($pArr) > 1) {
                         $attrA['style'] = "color:#{$color};";
                         $tdBackground = "background: linear-gradient(to right,#{$bgColor}{$bgColorAll});";
                     } else {
                         $attrA['style'] = "color:#{$color};";
                         $tdBackground = "background-color:#{$bgColor};";
                     }
-                    $attrA['style'] .= $blink;
 
                     $title = ht::createLink($pos, array('rack_Pallets', 'list', 'search' => "{$rec->num}-{$pos}"), null, $attrA);
                 }

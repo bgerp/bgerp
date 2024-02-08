@@ -389,6 +389,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $fiscalArr['SERIAL_NUMBER'] = (bgfisc_Setup::get('CHECK_SERIAL_NUMBER') == 'yes') ? $lRec->serialNumber : false;
                 $cu = core_Users::getCurrent();
                 $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
+                $fiscalArr['IS_PRINT_VAT'] = bgfisc_Setup::get('PRINT_VAT_GROUPS') == 'yes';
 
                 if (cls::haveInterface('peripheral_FiscPrinterWeb', $Driver)) {
                     $interface = core_Cls::getInterface('peripheral_FiscPrinterWeb', $lRec->driverClass);

@@ -184,6 +184,12 @@ defIfNot('DOC_OPEN_FOLDER_AFTER_REJECT', 'yes');
 
 
 /**
+ * Потребителя, който ще се използва за първи администратор в системата
+ */
+defIfNot('DOC_DEFAULT_INCHARGE', '');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -253,6 +259,8 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_CONTO' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при контиране->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_PENDING_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за създадени документи->Заявки, customizeBy=powerUser'),
+
+        'DOC_DEFAULT_INCHARGE' => array('user(roles=sales|ceo, allowEmpty)', 'caption=Отговорник по подразбиране на папките->Потребител'),
 
         'DOC_SHOW_DOCUMENTS_BEGIN' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),

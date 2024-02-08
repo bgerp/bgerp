@@ -545,7 +545,19 @@ class doc_FolderPlg extends core_Plugin
                 return $cu;
             }
         }
-        
+
+        $defaultIncharge = doc_Setup::get('DEFAULT_INCHARGE');
+        if ($defaultIncharge) {
+
+            return $defaultIncharge;
+        }
+
+        $firstAdmin = core_Users::getFirstAdmin();
+        if ($firstAdmin) {
+
+            return $firstAdmin;
+        }
+
         // Ид на ролята "admin"
         $adminRoleId = core_Roles::fetchByName('admin');
         

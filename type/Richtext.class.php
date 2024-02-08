@@ -1230,6 +1230,10 @@ class type_Richtext extends type_Blob
         }
 
         $dArr = cms_Domains::getDomainOptions(true);
+        if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+            $dArr[-1] = BGERP_ABSOLUTE_HTTP_HOST;
+        }
+        $dArr = array_diff($dArr, array('localhost'));
 
         if (core_Url::isLocal($url, $rest, $dArr)) {
             $result = $this->internalUrl($url, str::limitLen(decodeUrl($url), 120), $rest);

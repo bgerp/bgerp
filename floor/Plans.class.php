@@ -19,14 +19,39 @@ class floor_Plans extends core_Master {
    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_StructureAndOrder';
-    
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_StructureAndOrder, plg_Modified, plg_Clone';
+
+
+    /**
+     * Полета, които да не се клонират
+     */
+    public $fieldsNotToClone = 'createdOn, createdBy, modifiedOn, modifiedBy';
+
 
     /**
      * Детайла, на модела
      */
     public $details = 'floor_Objects';
 
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'floor_Objects';
+
+
+    /**
+     * Кой може да клонира запис
+     */
+    public $canClonerec = 'floor,admin,ceo';
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'floor,admin,ceo';
 
     /**
      * Заглавие
@@ -146,7 +171,7 @@ class floor_Plans extends core_Master {
     public function act_View($planId = null, $design = false)
     {
         Mode::set('wrapper', 'page_Empty');
-        RequireRole('admin');
+        RequireRole('admin,floor');
         
         if(!isset($planId)) {
             $planId = Request::get('id', 'int');

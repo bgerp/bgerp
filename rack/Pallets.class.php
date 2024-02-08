@@ -901,27 +901,13 @@ class rack_Pallets extends core_Manager
         
         $cacheType = 'UsedRacksPositions' . $storeId;
         $cacheKey = '@' . $productId;
-
-        if (!($res = core_Cache::get($cacheType, $cacheKey))) {
+        //!($res = core_Cache::get($cacheType, $cacheKey))
+        if (true) {
             $res = array();
             $query = self::getQuery();
             $query->orderBy('id', 'DESC');
             while ($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
-                if ($rec->position) {
-                    if(isset($res[$rec->position])) {
-                        if($rec->productId == $productId) {
-                            // Swap
-                            $res[$rec->position]->all[ $res[$rec->position]->productId] = 
-                                (object)array('productId' => $res[$rec->position]->productId, 'batch' => $res[$rec->position]->batch);
-                            $res[$rec->position]->productId = $rec->productId;
-                            $res[$rec->position]->batch = $rec->batch;
-                        } else {
-                            $res[$rec->position]->all[$rec->productId] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
-                        }
-                    } else {
-                        $res[$rec->position] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
-                    }
-                }
+                $res[$rec->position][$rec->productId][$rec->batch] = $rec->batch;
             }
             core_Cache::set($cacheType, $cacheKey, $res, 1440);
         }
@@ -1045,16 +1031,20 @@ class rack_Pallets extends core_Manager
      *
      * @param string $position
      * @param int    $storeId
-     *
+     * @param int    $batch
      * @return null|stdClass
      */
-    public static function getByPosition($position, $storeId, $productId = null)
+    public static function getByPosition($position, $storeId, $productId = null, $batch = null)
     {
         if (empty($position) || $position == rack_PositionType::FLOOR) return;
 
         $rec = null;
         if(isset($productId)) {
-            $rec = self::fetch(array("#productId = {$productId} AND #position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+            $where = "#productId = {$productId} AND #position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}";
+            if(!is_null($batch)){
+                $where1 = "{$where} AND #batch = '[#1#]'";
+                $rec = self::fetch(array($where1, $batch));
+            }
         }
 
         if(!$rec) {

@@ -162,15 +162,9 @@
                              </td>
                          </tr>
                          <tr>
-                             <div>
-                                 <span class='half-col'>Total gross weight: [#weight#]</span>
-                             </div>
-                             <div>
-                                 <span class='half-col'>Total net weight: [#netWeight#]</span>
-                             </div>
-                             <div>
-                                 <span class='half-col'>Total tare: [#tareWeight#]</span>
-                             </div>
+                             <div>Total gross weight: [#weight#]</div>
+                             <div>Total net weight: [#netWeight#]</div>
+                             <div>Total tare: [#tareWeight#]</div>
                          </tr>
                          <!--ET_BEGIN logisticInfo-->
                          <tr>
