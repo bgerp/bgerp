@@ -26,6 +26,12 @@ defIfNot('BGFISC_CHECK_SERIAL_NUMBER', 'no');
 
 
 /**
+ * Печат на разбивка по ДДС групи в КБ
+ */
+defIfNot('BGFISC_PRINT_VAT_GROUPS', 'yes');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с печатане на касови бележки
  *
@@ -110,6 +116,7 @@ class bgfisc_Setup extends core_ProtoSetup
         'BGFISC_DEFAULT_FISC_DEVICE_2' => array('varchar', 'caption=Фискално устройство по подразбиране->Второ,optionsFunc=bgfisc_Setup::getFiscDeviceOptins'),
         'BGFISC_PRICE_FU_ROUND' => array('int', 'caption=Разпечатване на фискален бон от ФУ->Закръгляне (Цена)'),
         'BGFISC_CHECK_SERIAL_NUMBER' => array('enum(yes=Включено,no=Изключено)', 'caption=Разпечатване на фискален бон от ФУ->Проверка на сер. номер'),
+        'BGFISC_PRINT_VAT_GROUPS'  => array('enum(yes=Включено,no=Изключено)', 'caption=Разпечатване на фискален бон от ФУ->Разбивка по ДДС'),
     );
     
     
