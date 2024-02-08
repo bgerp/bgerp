@@ -198,8 +198,8 @@ class price_reports_PriceList extends frame2_driver_TableData
 
         $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $date, false) . ' 23:59:59') : null;
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
-
         $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, $rec->notInGroups, 'yes');
+
         $sellableProducts = array_keys($sellableProducts);
         unset($sellableProducts[0]);
 
