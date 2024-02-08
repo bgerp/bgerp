@@ -63,12 +63,12 @@ class cond_iface_AllergensTemplateRendered extends core_BaseClass
             $labelDataArr['ЛЮТО'] = $tpl->getContent();
         }
 
-        if($labelDataArr['ВЕГЕТАРИАНСКО']){
+        if($labelDataArr['ТИП']){
             $tpl = new core_ET("");
-            $iconImg = $labelDataArr['ВЕГЕТАРИАНСКО'] == 'Веган' ? 'leave-red' : 'leave-green';
-            $iconImg = ht::createImg(array('class' => 'pictograms',  'alt' => $labelDataArr['ВЕГЕТАРИАНСКО'], 'src' => sbf("cond/img/{$iconImg}.png", '')));
+            $iconImg = $labelDataArr['ТИП'] == 'Веган' ? 'leave-red' : 'leave-green';
+            $iconImg = ht::createImg(array('class' => 'pictograms',  'alt' => $labelDataArr['ТИП'], 'src' => sbf("cond/img/{$iconImg}.png", '')));
             $tpl->append($iconImg);
-            $labelDataArr['ВЕГЕТАРИАНСКО'] = $tpl->getContent();
+            $labelDataArr['ТИП'] = $tpl->getContent();
         }
     }
 }
