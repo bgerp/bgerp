@@ -2042,12 +2042,6 @@ class cat_Products extends embed_Manager
             }
         }
 
-        $sQuery = planning_AssetSparePartsDetail::getQuery();
-        $sQuery->where("#assetId = 42");
-        $sQuery->show('productId');
-        $sparePartsIds = arr::extractValuesFromArray($sQuery->fetchAll(), 'productId');
-        $Type->params['favourites'] = $sparePartsIds;
-
         $products = $Type->getOptions($limit);
         
         return $products;
