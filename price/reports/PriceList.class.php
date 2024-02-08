@@ -350,7 +350,9 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row = new stdClass();
         
         $display = ($rec->displayDetailed == 'yes') ? 'detailed' : 'short';
+        Mode::push('noIconImg', true);
         $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
+        Mode::pop('noIconImg');
         $row->groupName = core_Type::getByName('varchar')->toVerbal($dRec->groupName);
         $row->code = core_Type::getByName('varchar')->toVerbal($dRec->code);
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
