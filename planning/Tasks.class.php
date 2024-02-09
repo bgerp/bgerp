@@ -2055,7 +2055,7 @@ class planning_Tasks extends core_Master
                     $autoTaskBatchValue = $BatchDef->getAutoValue('planning_Tasks', $rec->id, null, null);
 
                     if(!empty($autoTaskBatchValue)){
-                        $batches = batch_Items::getBatchQuantitiesInStore(30, null, null, null, array(), false, $autoTaskBatchValue);
+                        $batches = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $autoTaskBatchValue);
                         if(array_key_exists($autoTaskBatchValue, $batches)){
                             $notConvertedQuantity = $batches[$autoTaskBatchValue];
                         }
