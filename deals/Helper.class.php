@@ -2852,16 +2852,16 @@ abstract class deals_Helper
 
         $weightIsCalced = $netWeightIsCalced = $tareWeightIsCalced = false;
         if(empty($weight) && !empty($netWeight) && !empty($tareWeight)) {
-            $weight = $netWeight + $tareWeight;
+            $weight = round($netWeight + $tareWeight, 4);
             $weightIsCalced = true;
         }
 
         if(empty($netWeight) && !empty($weight) && !empty($tareWeight)) {
-            $netWeight = $weight - $tareWeight;
+            $netWeight = round($weight - $tareWeight, 4);
             $netWeightIsCalced = true;
         }
         if(empty($tareWeight) && !empty($weight) && !empty($netWeight)) {
-            $tareWeight = $weight - $netWeight;
+            $tareWeight = round($weight - $netWeight, 4);
             $tareWeightIsCalced = true;
         }
 

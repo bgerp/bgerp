@@ -154,8 +154,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         // За всяко поле за групиране
         foreach ($tariffCodes as $tariffNumber => $tariffObject) {
-            $weight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->weight);
-            $netWeight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->netWeight);
+            $weight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->weight);
+            $netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->netWeight);
 
             if(countR($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){
                 $imploded = implode(',', $tariffObject->withoutWeightProducts);
@@ -176,14 +176,14 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock->append($weight, 'weight');
             $groupBlock->append($tariffDescription, 'description');
             if($totalTareInPackListWithTariffCodeVal == 'yes'){
-                $tareWeight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->tareWeight);
+                $tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->tareWeight);
                 $groupBlock->append($tareWeight, 'tareWeight');
             }
 
             $groupBlock->append($netWeight, 'netWeight');
             $groupBlock->append($transUnits, 'transUnits');
             if($totalInPackListWithTariffCodeVal == 'yes'){
-                $groupAmount = core_Type::getByName('double(decimals=2)')->toVerbal($tariffObject->amount);
+                $groupAmount = core_Type::getByName('double')->toVerbal($tariffObject->amount);
                 $groupAmount .= "<span style='font-weight:normal;'> {$masterRec->currencyId}, " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? tr('|с ДДС|*') : tr('|без ДДС|*')) . "</span>";
                 $groupBlock->append($groupAmount, 'groupAmount');
             }
