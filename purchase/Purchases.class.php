@@ -653,7 +653,7 @@ class purchase_Purchases extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if ($rec->state != 'active' && (purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")  || price_DiscountsPerDocuments::count("#documentClassId = {$mvc->getClassId()} AND #documentId = {$rec->id}"))) {
+            if ($rec->state != 'active' && (purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")  || price_DiscountsPerDocuments::haveDiscount($mvc, $rec->id))) {
                 $res = 'no_one';
             } elseif (!haveRole('purchase,ceo', $userId)) {
                 $res = 'no_one';

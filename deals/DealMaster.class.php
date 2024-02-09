@@ -1003,10 +1003,8 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function canActivate($rec)
     {
         // Ако няма сума, но има обща отстъпка да не може да се активира
-        $me = cls::get(get_called_class());
-        if(empty($rec->amountDeal) && price_DiscountsPerDocuments::count("#documentClassId={$me->getClassId()} AND #documentId = {$rec->id}")){
-
-            return false;
+        if(isset($rec->id)){
+            if(empty($rec->amountDeal) && price_DiscountsPerDocuments::haveDiscount(get_called_class(), $rec->id)) return false;
         }
 
         return true;
