@@ -276,6 +276,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 $obj->differenceHint = $differenceHint;
                 $obj->difference = $difference;
             }
+            price_ListRules::$alreadyReplaced = array();
 
             $obj->price *= $quantity;
 
