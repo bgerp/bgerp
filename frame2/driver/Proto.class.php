@@ -149,6 +149,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
         
         foreach ($fields as $name => $fld) {
             if (isset($rec->{$name}) && $fld->single !== 'none') {
+                if($fld->single == 'internal' && (Mode::is('text', 'xhtml') || Mode::is('printing'))) continue;
                 $captionArr = explode('->', $fld->caption);
                 $caption = (countR($captionArr) == 1) ? $captionArr[0] : $captionArr[1];
                 $resArr[$name] = array('name' => tr($caption), 'val' => $row->{$name});

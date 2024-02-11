@@ -863,7 +863,7 @@ class acc_Journal extends core_Master
             // Трябва баланса да е преизчислен за да продължим
             if (core_Locks::isLocked(acc_Balances::saveLockKey)) {
                 
-                return followRetUrl(null, tr('Балансът се преизчислява в момента. Моля, изчакайте!'));
+                return followRetUrl(null, tr('|Балансът се преизчислява в момента. Моля, изчакайте!'));
             }
             
             if ($rec->from > $rec->to) {
@@ -1094,7 +1094,7 @@ class acc_Journal extends core_Master
     {
         requireRole('debug');
         $documents = static::getPostedDocumentsWithoutJournal();
-        if(!countR($documents)) followRetUrl(null, "Няма контирани документи без журнал|*!");
+        if(!countR($documents)) followRetUrl(null, "|Няма контирани документи без журнал|*!");
 
         $tpl = new core_ET("");
         foreach ($documents as $class => $res){

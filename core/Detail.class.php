@@ -453,18 +453,20 @@ class core_Detail extends core_Manager
         $masters = $this->getMasters($rec);
         
         $newMsg = $msg . ' на детайл';
-        
-        foreach ($masters as $masterKey => $masterInstance) {
-            if ($rec->{$masterKey}) {
-                $masterId = $rec->{$masterKey};
-            } elseif ($rec->id) {
-                $masterId = $this->fetchField($rec->id, $masterKey);
-            }
-            
-            if ($type == 'write') {
-                $masterInstance->logWrite($newMsg, $masterId);
-            } else {
-                $masterInstance->logRead($newMsg, $masterId);
+
+        if(countR($masters)){
+            foreach ($masters as $masterKey => $masterInstance) {
+                if ($rec->{$masterKey}) {
+                    $masterId = $rec->{$masterKey};
+                } elseif ($rec->id) {
+                    $masterId = $this->fetchField($rec->id, $masterKey);
+                }
+
+                if ($type == 'write') {
+                    $masterInstance->logWrite($newMsg, $masterId);
+                } else {
+                    $masterInstance->logRead($newMsg, $masterId);
+                }
             }
         }
         

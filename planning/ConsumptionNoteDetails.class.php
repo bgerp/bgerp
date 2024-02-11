@@ -161,6 +161,24 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         if(empty($data->masterRec->storeId)){
             unset($data->defaultMeta);
             $data->form->setFieldTypeParams('productId', array('hasProperties' => 'canConvert', 'hasnotProperties' => 'canStore'));
+        } else {
+            if(isset($data->masterRec->originId)) {
+                $origin = doc_Containers::getDocument($data->masterRec->originId);
+                if ($origin->isInstanceOf('cal_Tasks')) {
+
+                    // Ако има избрано оборудване към сигнала, ще излизат като препоръчани резервните части за него
+                    if($taskAssetId = $origin->fetchField('assetResourceId')){
+                        $sQuery = planning_AssetSparePartsDetail::getQuery();
+                        $sQuery->where("#assetId = {$taskAssetId}");
+                        $sQuery->show('productId');
+                        $sparePartsIds = arr::extractValuesFromArray($sQuery->fetchAll(), 'productId');
+
+                        if(countR($sparePartsIds)){
+                            $data->form->setFieldTypeParams('productId', array('favourites' => $sparePartsIds));
+                        }
+                    }
+                }
+            }
         }
     }
 }

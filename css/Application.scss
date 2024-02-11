@@ -6229,6 +6229,10 @@ div.location.public {
 	display: table-cell;
 }
 
+.narrow .top-tab-content .detail-info.portal {
+	display: block;
+}
+
 .portal-filter .hFormField input {
 	height: 1.4em;
 	border: none !important;
@@ -6633,6 +6637,10 @@ div.location.public {
 		border-color: #fb9292 !important;
 		color: #A00505 !important;
 	}
+
+}
+.sel_page {
+	clear: both;
 }
 
 .favouritesBtn.linkWithIcon:hover {

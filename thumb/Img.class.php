@@ -161,7 +161,12 @@ class thumb_Img
      * @var string Пътят във файловата система, където да бъде записано изображението
      */
     protected $thumbPath;
-    
+
+
+    /**
+     * @var string Дефолтен път до файла от системата, който да се използва, при липса на изображение
+     */
+    protected $default;
     
     /**
      * @var thumb_Img Копие на обекта с дройно по-големи рамери
@@ -172,7 +177,7 @@ class thumb_Img
     /**
      * Какви параметри има този клас
      */
-    public static $argumentList = 'source, boxWidth, boxHeight, sourceType, verbalName, format, timeout, mode, expirationTime, isAbsolute, quality, possibleRotation, thumbPath';
+    public static $argumentList = 'source, boxWidth, boxHeight, sourceType, verbalName, format, timeout, mode, expirationTime, isAbsolute, quality, possibleRotation, thumbPath, default';
     
     
     /**
@@ -191,7 +196,8 @@ class thumb_Img
                             $isAbsolute = null,
                             $quality = 95,
                             $possibleRotation = null,
-                            $thumbPath = null
+                            $thumbPath = null,
+                            $default = null
     ) {
         // Дефинираните променливи
         $def = get_defined_vars();
@@ -248,6 +254,14 @@ class thumb_Img
                 case 'url':
                     $ctx = stream_context_create(array('http' => array('timeout' => $this->timeout)));
                     $this->imgAsString = @file_get_contents($this->source, 0, $ctx);
+                    if ($this->imgAsString === false) {
+                        $fPath = getFullPath($this->default);
+                        if ($fPath) {
+                            $this->imgAsString = @file_get_contents($fPath);
+                        }
+
+                        log_System::add('thumb_Img', "Грешка при вземане на изображение от URL: {$this->source}", null, 'notice');
+                    }
                     break;
                 case 'string':
                     $this->imgAsString = $this->source;

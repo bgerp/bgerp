@@ -32,7 +32,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('numbers', 'int', 'caption=Цифри,mandatory,unit=брой');
+        $fieldset->FLD('numbers', 'int', 'caption=Цифри,unit=брой');
         $fieldset->FLD('prefix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Представка');
         $fieldset->FLD('suffix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Наставка');
         $fieldset->FLD('prefixHistory', 'blob', 'input=none');
@@ -49,7 +49,11 @@ class batch_definitions_Serial extends batch_definitions_Proto
      */
     public function getBatchClassType($class = null, $objectId = null)
     {
-        $Type = core_Type::getByName('text(rows=3)');
+        if(isset($this->rec->numbers)){
+            $Type = core_Type::getByName('text(rows=3)');
+        } else {
+            $Type = core_Type::getByName('varchar');
+        }
         
         return $Type;
     }
@@ -68,6 +72,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
     {
         $serials = $this->normalize($value);
         $serials = $this->makeArray($serials);
+
         $count = countR($serials);
         
         if ($count != $quantity) {
@@ -82,32 +87,58 @@ class batch_definitions_Serial extends batch_definitions_Proto
             
             return true;
         }
-        
-        $pattern = '';
-        
+
         $errMsg = '|Всички номера трябва да отговарят на формата|*: ';
         if (!empty($this->rec->prefix)) {
-            $prefix = preg_quote($this->rec->prefix, '/');
-            $pattern .= "{$prefix}{1}";
             $errMsg .= "|да започват с|* <b>{$this->rec->prefix}</b>, ";
         }
-        $pattern .= "[0-9]{{$this->rec->numbers}}";
-        $errMsg .= "|да имат точно|* <b>{$this->rec->numbers}</b> |цифри|*";
-        
+
+        if(isset($this->rec->numbers)){
+            $errMsg .= "|да имат точно|* <b>{$this->rec->numbers}</b> |цифри|*";
+        }
+
         if (!empty($this->rec->suffix)) {
-            $suffix = preg_quote($this->rec->suffix, '/');
-            $pattern .= "{$suffix}{1}";
             $errMsg .= " |и да завършват на|* <b>{$this->rec->suffix}</b>";
         }
-        
+
         foreach ($serials as $serial) {
             if ($serial === false) {
                 $msg = 'Не могат да се генерират серийни номера от зададеният диапазон';
                 
                 return false;
             }
-            
-            if (!preg_match("/^{$pattern}\z/", $serial)) {
+
+            $error = false;
+            $middleString = $serial;
+
+            // Проверка започва ли с префикса
+            if (!empty($this->rec->prefix)) {
+                $middleString = mb_substr($middleString, mb_strlen($this->rec->prefix));
+                if(strpos($serial, $this->rec->prefix) != 0){
+                    $error = true;
+                }
+            }
+
+            // Проверка завършва ли на суфикса
+            if (!empty($this->rec->suffix)) {
+                $strlen = mb_strlen($serial);
+                $suffixLen = mb_strlen($this->rec->suffix);
+                $expectedEndPos = $strlen - $suffixLen;
+
+                $middleString = mb_substr($middleString, 0, mb_strlen($middleString) - $suffixLen);
+                if(strpos($serial, $this->rec->suffix) != $expectedEndPos){
+                    $error = true;
+                }
+            }
+
+            // Проверка дължината на символите ако има
+            if (!empty($this->rec->numbers)) {
+                if (!preg_match('/^[0-9]{' . $this->rec->numbers . '}$/', $middleString)) {
+                    $error = true;
+                }
+            }
+
+            if ($error) {
                 $msg = $errMsg;
                 
                 return false;
@@ -178,17 +209,21 @@ class batch_definitions_Serial extends batch_definitions_Proto
         
         $value = explode('|', $value);
         foreach ($value as &$v) {
-            $vArr = explode(':', $v);
-            if (countR($vArr) == 2) {
-                $rangeArr = $this->getByRange($vArr[0], $vArr[1]);
-                
-                if (is_array($rangeArr)) {
-                    $res = $res + $rangeArr;
+            if($this->rec->numbers){
+                $vArr = explode(':', $v);
+                if (countR($vArr) == 2) {
+                    $rangeArr = $this->getByRange($vArr[0], $vArr[1]);
+
+                    if (is_array($rangeArr)) {
+                        $res = $res + $rangeArr;
+                    } else {
+                        $res[$v] = false;
+                    }
                 } else {
-                    $res[$v] = false;
+                    $res[$vArr[0]] = $vArr[0];
                 }
             } else {
-                $res[$vArr[0]] = $vArr[0];
+                $res[$v] = $v;
             }
         }
         

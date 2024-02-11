@@ -502,6 +502,8 @@ select.tabHolder {
   align-content: center;
   background: white !important;
   position: relative; }
+  .grid.pictureAndText .element.notSellable {
+    background-color: #aaaaaa !important; }
   .grid.pictureAndText .element.selected {
     padding: 1px !important; }
     .grid.pictureAndText .element.selected .pos-price {
@@ -810,8 +812,7 @@ select.tabHolder {
   border: 1px solid #999999;
   height: 118px;
   background: #f1f1f1;
-  user-select: none;
-  opacity: 0.7; }
+  user-select: none; }
   .element:focus,
   .element.selected {
     box-shadow: 0px 0px 10px #fca40b !important;
@@ -991,6 +992,54 @@ select.tabHolder {
   .modalReceipt .pos-del-btn {
     display: none; }
 
+.fadedElement {
+  opacity: 0.2 !important; }
+
+.flexBtns {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 250px; }
+
+@media handheld,
+only screen and (max-width: 1280px) {
+  .flexBtns {
+    padding: 0 100px; } }
+
+.modalBtn {
+  height: 70px;
+  width: 450px;
+  vertical-align: middle;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 10px 20px;
+  color: white;
+  font-size: 1.5em !important;
+  text-align: center;
+  border-radius: 10px;
+  color: white !important;
+  font-weight: bold;
+  border: 1px solid #666666;
+  border-radius: 3px;
+  box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+  background-color: #cccccc; }
+  .modalBtn.disabledBtn {
+    color: #999999 !important; }
+
+.confirmPayment {
+  background-color: #4c9d2c !important; }
+  .confirmPayment.disabledBtn {
+    background-color: #3f682f !important; }
+
+.closePaymentModal {
+  background-color: #c51818 !important; }
+  .closePaymentModal.disabledBtn {
+    background-color: #7c2525 !important; }
+
+#card-payment-manual:not(.disabledBtn) {
+  color: white !important;
+  background-color: red !important; }
+
 #card-payment:not(.disabledBtn) {
   background-color: #7bcae9 !important; }
 
@@ -1006,6 +1055,9 @@ select.tabHolder {
 .enlargeProductBtn,
 .printBtn {
   background-position: center; }
+
+.anotherPos {
+  background-color: #f87a7a !important; }
 
 table.total {
   width: 100%; }

@@ -47,6 +47,7 @@
 <div class="lines"></div>
 <div class="details scrolling-holder">
     [#sales_SalesDetails#]
+    [#price_DiscountsPerDocuments#]
 </div>
 <table class="innerTable footer-notes paddingCells" style='width:100%;'>
     <tbody>

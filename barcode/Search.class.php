@@ -78,6 +78,12 @@ class barcode_Search extends core_Manager
             if (core_Url::isValidUrl2($form->rec->search)) {
                 $cDomain = cms_Domains::getCurrent('domain', false);
                 $dOpt = cms_Domains::getDomainOptions(true);
+
+                if (core_Url::isLocal($form->rec->search)) {
+
+                    return new Redirect($form->rec->search);
+                }
+
                 foreach ($dOpt as $dName) {
                     if (strtolower($dName) == 'localhost') {
 

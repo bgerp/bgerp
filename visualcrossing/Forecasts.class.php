@@ -25,6 +25,12 @@ class visualcrossing_Forecasts extends core_Manager
 
 
     /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'ztm_interfaces_RegSyncValues';
+
+
+    /**
      * Зареждане на използваните мениджъри
      */
     public $loadList = 'plg_RowTools2';
@@ -199,5 +205,37 @@ class visualcrossing_Forecasts extends core_Manager
         visualcrossing_Forecasts::delete(array("#date <= '[#1#]'", dt::addDays(-7, null, false)));
     }
 
-}
 
+    /**
+     * Прочита и промяне регистрите и стойностите им
+     *
+     * @param null|stdClass $result
+     * @param null|array $regArr
+     * @param null|array $oDeviceRec
+     * @param stdClass $deviceRec
+     *
+     * @return stdClass
+     */
+    public function prepareRegValues($result, $regArr, $oDeviceRec, $deviceRec)
+    {
+        setIfNot($result, new stdClass);
+        $now = dt::now(false);
+        foreach (array(0, 3, 6) as $h) {
+            $time = date('G', strtotime("{$h} hours"));
+            $forecast = $this->getForecast($now, $time);
+            if (!$forecast) {
+
+                continue;
+            }
+            foreach (array('icon' => 'icon', 'rh' => 'rh', 'temp' => 'low', 'wind' => 'wind') as $key => $field) {
+                $eKey = "envm.forecast.{$key}_{$h}";
+                $result->{$eKey} = $forecast->{$field};
+                if (is_numeric($result->{$eKey})) {
+                    $result->{$eKey} = (double) $result->{$eKey};
+                }
+            }
+        }
+
+        return $result;
+    }
+}

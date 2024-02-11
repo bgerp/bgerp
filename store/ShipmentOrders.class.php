@@ -746,11 +746,25 @@ class store_ShipmentOrders extends store_DocumentMaster
         $rec = $mvc->fetchRec($rec);
 
         if (empty($rec->additionalConditions)) {
-            $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+            $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
             $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $lang);
             $rec->additionalConditions = array($condition);
             $mvc->save_($rec, 'additionalConditions');
         }
+
+        // Кеширане на тарифния код
+        $saveRecs = array();
+        $Details = cls::get('store_ShipmentOrderDetails');
+        $dQuery = store_ShipmentOrderDetails::getQuery();
+        $dQuery->where("#shipmentId = {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+            if(empty($dRec->tariffCode)){
+                $dRec->tariffCode = cat_Products::getParams($dRec->productId, 'customsTariffNumber');
+                $saveRecs[] = $dRec;
+            }
+        }
+
+        $Details->saveArray($saveRecs, 'id,tariffCode');
     }
 
 

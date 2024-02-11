@@ -935,7 +935,7 @@ class eshop_Products extends core_Master
         if ($data->rec->state == 'closed') {
             $groupRec = eshop_Groups::fetch($data->rec->groupId);
             
-            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът, който търсите вече не се предлага|*!', 'warning');
+            return new Redirect(eshop_Groups::getUrl($groupRec), '|Артикулът, който търсите вече не се предлага|*!', 'warning');
         }
         
         $data->groups = new stdClass();
@@ -953,7 +953,7 @@ class eshop_Products extends core_Master
         if(!haveRole('debug') && $data->hideProductIfItIsWithoutPrices){
             $groupRec = eshop_Groups::fetch($data->rec->groupId);
 
-            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът, който търсите вече не се предлага|*!', 'warning');
+            return new Redirect(eshop_Groups::getUrl($groupRec), '|Артикулът, който търсите вече не се предлага|*!', 'warning');
         }
 
         $data->groups->menuId = cms_Content::getMainMenuId($data->groups->rec->menuId, $data->groups->rec->sharedMenus);
@@ -1487,7 +1487,7 @@ class eshop_Products extends core_Master
                     return redirect($url);
                 }
                 
-                return followRetUrl(null, 'Нямате права да свързвате артикула');
+                return followRetUrl(null, '|Нямате права да свързвате артикула');
             }
             
             if ($pRec->state == 'template') {
@@ -1509,7 +1509,7 @@ class eshop_Products extends core_Master
             }
             
             if (!$form->gotErrors()) {
-                return redirect(array($this, 'single', $formRec->eshopProductId), false, 'Артикулът е свързан с онлайн магазина');
+                return redirect(array($this, 'single', $formRec->eshopProductId), false, '|Артикулът е свързан с онлайн магазина');
             }
         }
         

@@ -102,7 +102,7 @@ class pos_ReportDetails extends core_Manager
             // Пропускане на записите, които не трябва да са на тази страница
             foreach ($detail->rows as $key => $rec) {
                 if (!$data->pager->isOnPage()) continue;
-                $newRows[] = $this->getVerbalDetail($detail->masterRec, $detail->rows[$key]);
+                $newRows[] = $this->getVerbalDetail($data->masterData->rec, $detail->rows[$key]);
             }
 
             // Заместваме стария масив с новия филтриран
@@ -201,7 +201,7 @@ class pos_ReportDetails extends core_Manager
         }
 
         $row->amount = "<span style='float:right'>{$amount}</span>";
-        $row->contragentId = cls::get($obj->contragentClassId)->getHyperlink($obj->contragentId, true);
+        $row->contragentId = pos_Receipts::getMaskedContragent($obj->contragentClassId, $obj->contragentId, $rec->pointId, array('date' => $obj->date, 'link' => true, 'icon' => true));
         if(isset($obj->userId)){
             $row->userId  = crm_Profiles::createLink($obj->userId);
         }

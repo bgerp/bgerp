@@ -431,6 +431,11 @@ class core_App
      */
     public static function checkHitStatus()
     {
+        if (!defined('DEBUG_CHECK_HIT_STATUS') || (DEBUG_CHECK_HIT_STATUS !== true)) {
+
+            return ;
+        }
+
         // Предпазване от много репортвания в един хит
         static $isReported = false;
         if ($isReported) {
@@ -1241,7 +1246,7 @@ class core_App
         }
 
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
-            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : (defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null)) + $repos;
+            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : null) + $repos;
             $havePrivate = true;
         }
 

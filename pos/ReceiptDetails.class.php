@@ -115,6 +115,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('value', 'varchar(32)', 'caption=Мярка, input=hidden,smartCenter');
         $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка,input=none');
         $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'input=none');
+        $this->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
         $this->FLD('text', 'varchar', 'caption=Пояснение,input=none');
         $this->FLD('batch', 'varchar', 'caption=Партида,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,input=none');
@@ -135,20 +136,32 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $param = Request::get('param', 'varchar');
-        pos_Receipts::requireRightFor('pay', $receiptRec);
         $success = true;
         $rec = null;
 
         try{
+            if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
+                expect(false, 'Не може да се добави друго плащане');
+            }
             $type = Request::get('type', 'int');
             if($type != -1){
                 expect(cond_Payments::fetch($type), 'Неразпознат метод на плащане');
             }
             
             $amount = Request::get('amount', 'varchar');
+            $amount = empty($amount) ? 0 : $amount;
             $amount = core_Type::getByName('double')->fromVerbal($amount);
-            expect($amount, 'Невалидна сума за плащане');
-            expect($amount > 0, 'Сумата трябва да е положителна');
+
+            $paymentCount = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%payment%'");
+            $countProducts = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%sale%'");
+            if($countProducts && $receiptRec->total != 0){
+                expect($amount, 'Невалидна сума за плащане|*!');
+                expect($amount > 0, 'Сумата трябва да е положителна');
+            } else {
+                expect(!$paymentCount, 'Има вече направено плащане|*!');
+                expect($type == -1, 'На бележките с нулева сума е позволено само плащане в брой|*!');
+                expect($amount == 0, 'Не може да платите по-голяма сума|*!');
+            }
             
             $diff = abs($receiptRec->paid - $receiptRec->total);
 
@@ -167,7 +180,7 @@ class pos_ReceiptDetails extends core_Detail
             if(!empty($param)){
                 $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($type == $cardPaymentId){
-                    $rec->param = 'card';
+                    $rec->param = $param;
                 }
             }
 
@@ -606,8 +619,9 @@ class pos_ReceiptDetails extends core_Detail
             if((!empty($selectedRec->batch) && empty($rec->batch))){ 
                 $selectedRec = null;
             }
-           
-            if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value){
+
+
+            if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value && $selectedRec->batch == $rec->batch){
                 $rec->value = $selectedRec->value;
                 $rec->batch = $selectedRec->batch;
             } else {
@@ -617,7 +631,6 @@ class pos_ReceiptDetails extends core_Detail
             
             // Намираме дали този проект го има въведен
             $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
-
             if ($sameProduct) {
                 
                 // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
@@ -727,7 +740,10 @@ class pos_ReceiptDetails extends core_Detail
         Mode::setPermanent("currentOperation{$rec->receiptId}", $defaultOperation);
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         $lastRecId = pos_ReceiptDetails::getLastRec($rec->receiptId)->id;
-        
+
+        if(strpos($rec->action, 'payment') !== false && $rec->param == 'card'){
+            $this->logWrite("Изтриване на потвърдено плащане", $rec->receiptId);
+        }
         return pos_Terminal::returnAjaxResponse($rec->receiptId, $lastRecId, true, true, true, true, 'delete');
     }
     
@@ -771,7 +787,15 @@ class pos_ReceiptDetails extends core_Detail
                 $row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
                 $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 $row->amount = ht::styleNumber($row->amount, $rec->amount);
-                
+
+                $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+                if($action->value == $cardPaymentId){
+                    if(!empty($rec->param)){
+                        $paramVal = ($rec->param == 'card') ? tr('Потв.') : tr('Ръчно потв.');
+                        $row->actionValue .= " [{$paramVal}]";
+                    }
+                }
+
                 if ($fields['-list']) {
                     $row->productId = tr('Плащане') . ': ' . $row->actionValue;
                     unset($row->quantity, $row->value);
@@ -796,7 +820,7 @@ class pos_ReceiptDetails extends core_Detail
         if($receiptRec->state == 'draft'){
             if(isset($discountPercent)){
                 if(isset($rec->autoDiscount)){
-                    $discountPercent = round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4);
+                    $discountPercent = round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 6);
                 }
             } elseif(isset($rec->autoDiscount)) {
                 $discountPercent = $rec->autoDiscount;
@@ -881,7 +905,9 @@ class pos_ReceiptDetails extends core_Detail
 
         // Показване на склада, само ако е различен от дефолтния
         if(isset($fields['-list'])){
-            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+            if(isset($rec->storeId)){
+                $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+            }
         } elseif($rec->storeId == $defaultStoreId) {
             unset($row->storeId);
         }
@@ -971,6 +997,7 @@ class pos_ReceiptDetails extends core_Detail
      *  @param int $productId - ид на продукта
      *  @param int $receiptId - ид на бележката
      *  @param int $packId - ид на опаковката
+     *  @param string $batch - партида
      *
      *  @return mixed $rec/FALSE - Последния запис или FALSE ако няма
      */
@@ -987,12 +1014,12 @@ class pos_ReceiptDetails extends core_Detail
         
         if(core_Packs::isInstalled('batch')){
             if(isset($batch)){
-                $query->where(array("#batch = '[#1#]'"), $batch);
+                $query->where(array("#batch = '[#1#]'", $batch));
             } else {
                 $query->where("#batch IS NULL OR #batch = ''");
             }
         }
-        
+
         $query->orderBy('#id', 'DESC');
         $query->limit(1);
         if ($rec = $query->fetch()) {
@@ -1038,7 +1065,7 @@ class pos_ReceiptDetails extends core_Detail
 
         if ($action == 'delete' && isset($rec->receiptId)) {
             if(strpos($rec->action, 'payment') !== false){
-                if(!empty($rec->param)){
+                if($rec->param == 'card'){
                     $res = 'no_one';
                 }
             }

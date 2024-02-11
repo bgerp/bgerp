@@ -1088,6 +1088,6 @@ class batch_BatchesInDocuments extends core_Manager
             $Detail->logWrite('Разбиване на партидите на нов ред', $detailRecId);
         }
 
-        followRetUrl(null, 'Всяка партида е прехвърлена на нов ред');
+        followRetUrl(null, '|Всяка партида е прехвърлена на нов ред');
     }
 }

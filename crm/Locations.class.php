@@ -494,7 +494,7 @@ class crm_Locations extends core_Master
             return new Redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
         }
         
-        followRetUrl(null, 'Нямате достъп  до папката');
+        followRetUrl(null, '|Нямате достъп  до папката');
     }
     
     
@@ -710,8 +710,7 @@ class crm_Locations extends core_Master
         $string = trim($string, ',  ');
 
         if($showFeatures && !empty($rec->features)){
-            $features = core_Type::getByName('keylist(mvc=trans_Features,select=name)')->toVerbal($rec->features);
-            $string .= "; {$features}";
+            $string .= "; " . trans_Features::getVerbalFeatures($rec->features, $transliterate);
         }
 
         if(!empty($rec->specifics)){

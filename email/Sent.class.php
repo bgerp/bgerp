@@ -140,6 +140,8 @@ class email_Sent
      */
     protected static function doSend($message, $emailsTo, $emailsCc = null, &$error = null)
     {
+        core_Debug::startTimer('EMAIL_DO_SEND');
+
         expect($emailsTo);
         expect($message->emailFrom);
         expect($message->subject);
@@ -225,8 +227,10 @@ class email_Sent
         if (!empty($message->replyTo)) {
             $PML->AddReplyTo($message->replyTo);
         }
-        
+
+        core_Debug::startTimer('PML_SEND');
         $isSended = $PML->Send();
+        core_Debug::stopTimer('PML_SEND');
         
         if (!$isSended) {
             $error = trim($PML->ErrorInfo);
@@ -244,7 +248,9 @@ class email_Sent
                 log_System::add('phpmailer_Instance', 'PML error: ' . $error, null, $errType);
             }
         }
-        
+
+        core_Debug::stopTimer('EMAIL_DO_SEND');
+
         return $isSended;
     }
     

@@ -1037,7 +1037,7 @@ class eshop_Carts extends core_Master
             $saleRec = self::makeSalePending($saleId);
             eshop_Carts::logDebug("Продажбата #Sal{$saleId} към онлайн поръчка, става на заявка", $rec->id);
         }
-        
+        cls::get('sales_Sales')->updateMaster($saleRec);
         self::activate($rec, $saleRec->id);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
@@ -1117,8 +1117,8 @@ class eshop_Carts extends core_Master
             eshop_Carts::logDebug('Активиране на количката', $rec->id);
         }
     }
-    
-    
+
+
     /**
      * Изпраща имейл
      *
@@ -1177,8 +1177,10 @@ class eshop_Carts extends core_Master
                 $body->replace($rec->instruction, 'INSTRUCTIONS');
             }
         }
-        
-        $amount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
+
+        $rec->total = $saleRec->amountDeal;
+        $amount = currency_CurrencyRates::convertAmount($saleRec->amountDeal, null, null, $settings->currencyId);
+
         $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         $amount = str_replace('&nbsp;', ' ', $amount);
         $body->replace("{$amount} {$settings->currencyId}", 'AMOUNT');

@@ -726,7 +726,7 @@ class acc_Items extends core_Manager
                 
                 $this->logWrite('Добавяне на обекти, като пера', $rec->id);
                 
-                return followRetUrl(null, "Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
+                return followRetUrl(null, "|Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
         }
         

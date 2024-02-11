@@ -7,7 +7,6 @@ var searchTimeout;
 var addedProduct;
 
 function posActions() {
-	$('body').append('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Плащане с банковия терминал ...<br> Моля, изчакайте!</h3></div>');
 	calculateWidth();
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
@@ -34,6 +33,22 @@ function posActions() {
 	calculateWidth();
 	$(window).resize( function() {
 		calculateWidth();
+	});
+
+	$(document.body).on('click', ".closePaymentModal", function(e){
+		$(".fullScreenCardPayment").css("display", "none");
+		var element = $("#card-payment");
+		var msg = element.attr("data-oncancel");
+		render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+	});
+
+	$(document.body).on('click', ".confirmPayment", function(e){
+		var element = $("#card-payment");
+		var url = element.attr("data-url");
+
+		var type = element.attr("data-type");
+		doPayment(url, type, 'manual');
+		$(".fullScreenCardPayment").css("display", "none");
 	});
 
 	// Използване на числата за въвеждане в пулта
@@ -882,12 +897,12 @@ function pressNavigable(element)
 	} else if(element.hasClass('payment')){
 		var type = element.attr("data-type");
 		var warning = element.attr("data-warning");
+		if(warning){
+			if (!confirm(warning)) return false;
+		}
 
 		var sendAmount = element.attr("data-sendamount");
 		if(sendAmount == 'yes'){
-			if(warning){
-				if (!confirm(warning)) return false;
-			}
 
 			var maxamount = parseFloat(element.attr("data-maxamount")).toFixed(2);
 			var amount = $("input[name=ean]").val();
@@ -1321,9 +1336,8 @@ function disableOrEnableEnlargeBtn()
  */
 function addProduct(el) {
 
-	sessionStorage.setItem('changedOpacity', $(el).css("opacity"));
+	$(el).addClass('fadedElement');
 	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
-	$(el).css('opacity', 0.2);
 	clearTimeout(timeout);
 
 	var elemRow = $(el).closest('.receiptRow');
@@ -1468,11 +1482,9 @@ function render_toggleAddedProductFlag(data)
  */
 function render_restoreOpacity()
 {
-	var opacity = sessionStorage.getItem('changedOpacity');
 	var restoreOpacityId = sessionStorage.getItem('changedOpacityElementId');
-	$("#" + restoreOpacityId).css('opacity', opacity);
+	$("#" + restoreOpacityId).removeClass('fadedElement');
 
-	sessionStorage.removeItem("changedOpacity");
 	sessionStorage.removeItem("changedOpacityElementId");
 }
 
@@ -1487,6 +1499,8 @@ function activateTab(element, timeOut)
 	
 	triggerSearchInput($(".large-field"), timeOut, false);
 }
+
+
 
 
 /*

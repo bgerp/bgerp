@@ -80,14 +80,20 @@ class pos_Receipts extends core_Master
      * Кой може да променя?
      */
     public $canAdd = 'pos, ceo';
-    
-    
+
+
     /**
      * Кой може да сторнира?
      */
     public $canRevert = 'pos, ceo';
-    
-    
+
+
+    /**
+     * Кой може ръчно да прави чакаща?
+     */
+    public $canManualpending = 'posMaster, ceo';
+
+
     /**
      * Кой може да плати?
      */
@@ -294,9 +300,8 @@ class pos_Receipts extends core_Master
             $row->returnedTotal = ht::styleIfNegative("-{$row->returnedTotal}", -1 * $rec->returnedTotal);
             $row->returnedCurrency = $row->currency;
         }
-        
-        $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
-        $row->contragentId = $Contragent->getHyperlink(true);
+
+        $row->contragentId = static::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('link' => true, 'icon' => true));
 
         if ($fields['-list']) {
             $row->title = $mvc->getHyperlink($rec->id, true);
@@ -381,7 +386,11 @@ class pos_Receipts extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('terminal', $data->rec)) {
-            $data->toolbar->addBtn('Терминал', array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/forward16.png, order=18,target=_blank');
+            $data->toolbar->addBtn('Терминал', array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'force' => true, 'ret_url' => true), 'ef_icon=img/16/forward16.png, order=18,target=_blank');
+        }
+
+        if ($mvc->haveRightFor('manualpending', $data->rec)) {
+            $data->toolbar->addBtn('Чакащо (Ръчно)', array($mvc, 'manualpending', 'id' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/tick-circle-frame.png,warning=Наистина ли желаете ръчно да направите бележката чакаща|*?');
         }
     }
     
@@ -429,13 +438,15 @@ class pos_Receipts extends core_Master
             $info = cat_Products::getProductInfo($rec->productId);
             $quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
             
-            $products[] = (object) array('productId'   => $rec->productId,
-                                         'price'       => $rec->price / $quantityInPack,
-                                         'packagingId' => $rec->value,
-                                         'text'        => $rec->text,
-                                         'vatPrice'    => $rec->price * $rec->param,
-                                         'discount'    => $rec->discountPercent,
-                                         'quantity'    => $rec->quantity);
+            $products[] = (object) array('productId'    => $rec->productId,
+                                         'price'        => $rec->price / $quantityInPack,
+                                         'packagingId'  => $rec->value,
+                                         'text'         => $rec->text,
+                                         'vatPrice'     => $rec->price * $rec->param,
+                                         'discount'     => $rec->discountPercent,
+                                         'autoDiscount' => $rec->autoDiscount,
+                                         'batch'        => $rec->batch,
+                                         'quantity'     => $rec->quantity);
         }
 
         return $products;
@@ -453,11 +464,11 @@ class pos_Receipts extends core_Master
     {
         $rec = $this->fetchRec($id);
         if(empty($rec)) return;
+        core_Debug::startTimer('UPDATE_RECEIPT');
 
         $rec->change = $rec->total = $rec->paid = 0;
-        
         $dQuery = $this->pos_ReceiptDetails->getQuery();
-        $dQuery->where("#receiptId = {$id}");
+        $dQuery->where("#receiptId = {$rec->id}");
 
         while ($dRec = $dQuery->fetch()) {
             $action = explode('|', $dRec->action);
@@ -488,6 +499,9 @@ class pos_Receipts extends core_Master
         $rec->change = $diff;
         $rec->total = $rec->total;
         $this->save($rec);
+
+        core_Debug::stopTimer('UPDATE_RECEIPT');
+        core_Debug::log("END UPDATE_RECEIPT " . round(core_Debug::$timers["UPDATE_RECEIPT"]->workingTime, 6));
     }
 
 
@@ -501,41 +515,76 @@ class pos_Receipts extends core_Master
         $rec = $mvc->fetchRec($id);
         if ($rec->state != 'draft') return;
 
-        // Изчисляване на автоматичната отстъпка
-        $settings = pos_Points::getSettings($rec->pointId);
-        $contragentPriceListId = pos_Receipts::isForDefaultContragent($rec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
-        if($discountClass = price_Lists::fetchField($contragentPriceListId, 'discountClass')) {
-            if (cls::load($discountClass, true)) {
-                $Interface = cls::getInterface('price_SaleAutoDiscountIntf', $discountClass);
-                $update = array();
-                $dQuery = pos_ReceiptDetails::getQuery();
-                $dQuery->where("#receiptId = {$id} AND #action LIKE '%sale%'");
-                while ($dRec = $dQuery->fetch()) {
-                    $dRec->autoDiscount = $Interface->calcAutoSaleDiscount('pos_ReceiptDetails', $dRec, $mvc, $rec);
-                    $update[$dRec->id] = $dRec;
-                }
+        core_Debug::startTimer('CALC_AUTO_DISCOUNT');
+        static::recalcAutoDiscount($rec);
+        core_Debug::stopTimer('CALC_AUTO_DISCOUNT');
+        $uTime = round(core_Debug::$timers["CALC_AUTO_DISCOUNT"]->workingTime, 6);
+        core_Debug::log("END CALC_AUTO_DISCOUNT: '{$uTime}'");
+        $mvc->logDebug("POS AUTO_CALC_DISC: '{$uTime}'", $rec->id);
 
-                // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
-                cls::get('pos_ReceiptDetails')->saveArray($update, 'id,autoDiscount');
-
-                $mvc->updateMaster_($id);
-            }
-        }
+        $mvc->updateMaster_($rec);
     }
 
 
     /**
-     *  Филтрираме бележката
+     *  След подготовка на лист филтъра
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         pos_Points::addPointFilter($data->listFilter, $data->query);
         $filterDateFld = $data->listFilter->rec->filterDateField;
+
+        // Добавяне на филтър по начините на плащане
+        $paymentOptions = array();
+        $pQuery = cond_Payments::getQuery();
+        $pQuery->where("#state = 'active'");
+        $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+        while($pRec = $pQuery->fetch()){
+            $paymentName = cond_Payments::getTitleById($pRec->id, false);
+            $paymentOptions[$pRec->id] = $paymentName;
+            if($pRec->id == $cardPaymentId){
+                $paymentOptions["{$pRec->id}|card"] = "{$paymentName} [Потв.]";
+                $paymentOptions["{$pRec->id}|manual"] = "{$paymentName} [Ръчно потв.]";
+            }
+        }
+        $data->listFilter->FLD('payment', 'varchar', 'caption=Плащане');
+        $data->listFilter->setOptions('payment', array('all' => tr('Всички'), '-1' => tr('В брой')) + $paymentOptions);
+        $data->listFilter->showFields .= ',payment';
+        $data->listFilter->setDefault('payment', 'all');
+        $data->listFilter->input('payment');
         $data->query->orderBy($filterDateFld, 'DESC');
-        
-        foreach (array('valior', 'createdOn', 'modifiedOn') as $fld) {
+
+        // Скриване на полето за дата, ако се филтрира по конкретно поле
+        foreach (array('valior', 'createdOn', 'waitingOn') as $fld) {
             if ($fld != $data->listFilter->rec->filterDateField) {
                 unset($data->listFields[$fld]);
+            }
+        }
+
+        if($filter = $data->listFilter->rec){
+            if($filter->payment != 'all'){
+
+                // Ако се филтрира по начини на плащане
+                $cloneQuery = clone $data->query;
+                $cloneQuery->show('id');
+                $foundIds = arr::extractValuesFromArray($cloneQuery->fetchAll(), 'id');
+                if(countR($foundIds)){
+                    $dQuery = pos_ReceiptDetails::getQuery();
+                    if(is_numeric($filter->payment)){
+                        $dQuery->where("#action = 'payment|{$filter->payment}'");
+                    } else {
+                        list($paymentId, $paymentParam) = explode('|', $filter->payment);
+                        $dQuery->where("#action = 'payment|{$paymentId}' AND #param = '{$paymentParam}'");
+                    }
+                    $dQuery->in("receiptId", $foundIds);
+                    $dQuery->show('receiptId');
+                    $receiptIdWithPayments = arr::extractValuesFromArray($dQuery->fetchAll(), 'receiptId');
+                    if(countR($receiptIdWithPayments)){
+                        $data->query->in('id', $receiptIdWithPayments);
+                    } else {
+                        $data->query->where("1=2");
+                    }
+                }
             }
         }
     }
@@ -571,12 +620,14 @@ class pos_Receipts extends core_Master
             }
         }
 
-        if(in_array($action, array('delete', 'reject', 'revert')) && isset($rec)){
-            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
-            if(is_object($deviceRec)){
-                $paidWithCards = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}' AND #param IS NOT NULL AND #param != ''");
-                if($paidWithCards){
-                    $res = 'no_one';
+        if(in_array($action, array('delete', 'reject')) && isset($rec)){
+            if(!haveRole('posMaster')){
+                $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+                if(is_object($deviceRec)){
+                    $paidWithCards = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}' AND #param = 'card'");
+                    if($paidWithCards){
+                        $res = 'no_one';
+                    }
                 }
             }
         }
@@ -584,14 +635,22 @@ class pos_Receipts extends core_Master
         // Можем да контираме бележки само когато те са чернови и платената
         // сума е по-голяма или равна на общата или общата сума е <= 0
         if ($action == 'close' && isset($rec->id)) {
-            if ($rec->total == 0 || round($rec->paid, 2) < round($rec->total, 2) || $rec->state != 'draft') {
+            $countProducts = pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
+
+            if (($rec->total == 0 && !$countProducts) || round($rec->paid, 2) < round($rec->total, 2) || $rec->state != 'draft') {
                 $res = 'no_one';
             }
         }
         
         // Може ли да бъде направено плащане по бележката
         if ($action == 'pay' && isset($rec)) {
-            if ($rec->state != 'draft' || !$rec->total || (abs($rec->paid) >= abs($rec->total))) {
+            $countProducts = pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
+
+            if ($rec->state != 'draft') {
+                $res = 'no_one';
+            } elseif(!$countProducts){
+                $res = 'no_one';
+            } elseif(abs($rec->paid) >= abs($rec->total) && $rec->total != 0) {
                 $res = 'no_one';
             }
         }
@@ -615,8 +674,18 @@ class pos_Receipts extends core_Master
         }
         
         if ($action == 'revert' && isset($rec) && ($rec != pos_Receipts::DEFAULT_REVERT_RECEIPT)) {
-            if(isset($rec->revertId) || (!in_array($rec->state, array('waiting', 'closed'))) || (!empty($rec->returnedTotal) && round($rec->total - $rec->returnedTotal, 2) <= 0)){
+            if(isset($rec->revertId) || (!in_array($rec->state, array('waiting', 'closed'))) || (!empty($rec->returnedTotal) && round($rec->total - $rec->returnedTotal, 2) <= 0) || ($rec->state == 'closed' && isset($rec->transferredIn))){
                 $res = 'no_one';
+            }
+        }
+
+        if($action == 'manualpending' && isset($rec)){
+            if($rec->state != 'draft'){
+                $res = 'no_one';
+            } else {
+                if(empty($rec->total) || round($rec->paid, 2) < round($rec->total, 2)){
+                    $res = 'no_one';
+                }
             }
         }
     }
@@ -656,7 +725,7 @@ class pos_Receipts extends core_Master
                     $product->discount = null;
                 }
                 
-                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text);
+                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text, $product->batch, $product->autoDiscount);
             }
         }
         
@@ -667,7 +736,9 @@ class pos_Receipts extends core_Master
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
         if($isBeingClosed){
-            core_Statuses::newStatus("|Бележка|* №{$rec->id} |е затворена|*");
+            Mode::push('calcAutoDiscounts', false);
+            cls::get('sales_Sales')->flushUpdateQueue($sId);
+            Mode::pop('calcAutoDiscounts');
         } else {
             // Продажбата се активира, ако ПОС бележката е приключена
             $saleRec = sales_Sales::fetchRec($sId);
@@ -675,7 +746,9 @@ class pos_Receipts extends core_Master
             $saleRec->isContable = 'activate';
             sales_Sales::save($saleRec);
             sales_Sales::conto($saleRec->id);
+            Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->updateMaster($saleRec->id);
+            Mode::pop('calcAutoDiscounts');
             sales_Sales::logWrite('Активиране на прехвърлена от POS продажба', $sId);
         }
         
@@ -687,7 +760,7 @@ class pos_Receipts extends core_Master
         Mode::setPermanent("currentSearchString{$rec->id}", null);
         
         // Редирект към новата продажба
-        return new Redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
+        return new Redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката|*!');
     }
     
     
@@ -797,6 +870,21 @@ class pos_Receipts extends core_Master
             }
         }
 
+        $this->markAsWaiting($rec);
+        
+        // Създаване на нова чернова бележка
+        return new Redirect(array($this, 'new'));
+    }
+
+
+    /**
+     * Ръчно маркира бележката като чакаща
+     *
+     * @param stdClass $rec
+     * @return void
+     */
+    private function markAsWaiting($rec)
+    {
         $rec->state = 'waiting';
         $rec->waitingOn = dt::now();
         $rec->waitingBy = core_Users::getCurrent();
@@ -809,25 +897,25 @@ class pos_Receipts extends core_Master
 
             $dRecs = array();
             $dQuery = pos_ReceiptDetails::getQuery();
-            $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%' AND #autoDiscount IS NOT NULL");
+            $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
             while($dRec = $dQuery->fetch()){
-                if(isset($dRec->discountPercent)){
-                    $dRec->discountPercent = round((1 - (1 - $dRec->discountPercent) * (1 - $dRec->autoDiscount)), 4);
-                } else {
-                    $dRec->discountPercent = $dRec->autoDiscount;
+                $dRec->inputDiscount = $dRec->discountPercent;
+                if(isset($dRec->autoDiscount)){
+                    if(isset($dRec->discountPercent)){
+                        $dRec->discountPercent = round((1 - (1 - $dRec->discountPercent) * (1 - $dRec->autoDiscount)), 4);
+                    } else {
+                        $dRec->discountPercent = $dRec->autoDiscount;
+                    }
                 }
                 $dRecs[] = $dRec;
             }
 
-            cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent');
+            cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent,inputDiscount');
             $this->logInAct('Приключване на бележка', $rec->id);
         }
-        
-        // Създаване на нова чернова бележка
-        return new Redirect(array($this, 'new'));
     }
-    
-    
+
+
     /**
      * Показва краткия номер на бележката, съгласно настройките на пакета
      * 
@@ -880,7 +968,7 @@ class pos_Receipts extends core_Master
             $num = self::getRecTitle($rec);
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
-                    $num = ht::createLink($num, array('pos_Terminal', 'open', 'receiptId' => $rec->id), false, 'title=Довършване на бележката,ef_icon=img/16/cash-register.png');
+                    $num = ht::createLink($num, array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'force' => true), false, 'title=Довършване на бележката,ef_icon=img/16/cash-register.png');
                 } elseif ($this->haveRightFor('single', $rec)) {
                     $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Отваряне на бележка №{$rec->id},ef_icon=img/16/view.png");
                 }
@@ -1080,10 +1168,11 @@ class pos_Receipts extends core_Master
                     }
                 }
 
+                $dRec->autoDiscount = null;
                 $dRec->price = $price * $perPack;
                 $dRec->amount = $dRec->price * $dRec->quantity;
                 $dRec->discountPercent = $discount;
-                pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent');
+                pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent,autoDiscount');
             }
         }
     }
@@ -1105,7 +1194,15 @@ class pos_Receipts extends core_Master
 
         // Ако се прави опит за избор на същия контрагент не се прави нищо
         if($rec->contragentClass == $contragentClassId && $rec->contragentObjectId == $contragentId){
-            core_Statuses::newStatus('Контрагента е вече избран');
+            $msg = 'Контрагента е вече избран';
+            if($rec->contragentLocationId != $locationId){
+                $msg = 'Локацията е сменена';
+                $rec->contragentLocationId = $locationId;
+                $this->save($rec, 'contragentLocationId');
+            }
+
+            if (!Request::get('ajax_mode')) followRetUrl(null, $msg);
+            core_Statuses::newStatus($msg);
 
             return pos_Terminal::returnAjaxResponse($id, null, true, false, false, false, 'add', false);
         }
@@ -1120,18 +1217,7 @@ class pos_Receipts extends core_Master
 
         // Задаване на новия контрагент
         $this->setContragent($rec, $contragentClassId, $contragentId, $locationId);
-        $this->logWrite('Избир на контрагент в бележка', $id);
-
-        // Ако е сканирана клиентска карта на лице - в статуса се показва аватара му
-        if($autoSelect){
-            if($rec->contragentClass == crm_Persons::getClassId()){
-                $avatar = crm_Persons::getPersonAvatarImg($rec->contragentObjectId, 130, 130);
-                if(!empty($avatar)){
-                    $personName = crm_Persons::fetchField($rec->contragentObjectId, 'name');
-                    core_Statuses::newStatus("|*{$avatar->getContent()}<br>{$personName}", 'no-icon', null, 120);
-                }
-            }
-        }
+        $this->logWrite('Избор на контрагент в бележка', $id);
 
         if (Request::get('ajax_mode')) {
             return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true);
@@ -1162,30 +1248,6 @@ class pos_Receipts extends core_Master
         }
         
         return $rows;
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-        // Добавяне на използваните платежни методи към ключовите думи
-        if(isset($rec->id)){
-            $detailsKeywords = '';
-            $dQuery = pos_ReceiptDetails::getQuery();
-            $dQuery->where("#receiptId = '{$rec->id}' AND #action != 'sale|code'");
-            while ($dRec = $dQuery->fetch()) {
-                $action = cls::get('pos_ReceiptDetails')->getAction($dRec->action);
-                $payment = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
-                $detailsKeywords .= ' ' . plg_Search::normalizeText($payment);
-            }
-            
-            // Ако има нови ключови думи, добавят се
-            if (!empty($detailsKeywords)) {
-                $res = ' ' . $res . ' ' . $detailsKeywords;
-            }
-        }
     }
     
     
@@ -1385,5 +1447,93 @@ class pos_Receipts extends core_Master
         if($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) return true;
 
         return false;
+    }
+
+
+    /**
+     * Замаскирано име на контрагента, ако е лица показва се само политиката му
+     *
+     * @param mixed $contragentClassId
+     * @param int $contragentId
+     * @param int $pointId
+     * @param array $params
+     * @return core_ET|string
+     */
+    public static function getMaskedContragent($contragentClassId, $contragentId, $pointId, $params = array())
+    {
+        $Class = cls::get($contragentClassId);
+        $link = $params['link'] ?? false;
+        $icon = $params['icon'] ?? false;
+
+        $attr = ($params['blank']) ? array('target' => '_blank') : array();
+        if($Class instanceof crm_Companies){
+
+            return ($link) ? $Class->getHyperlink($contragentId, $icon, false, $attr) : $Class->getTitleById($contragentId);
+        } else {
+            $date = $params['date'] ?? dt::now();
+            $defaultContragentId = pos_Points::defaultContragent($pointId);
+            $contragentPriceListId = ($defaultContragentId == $contragentId) ? pos_Points::getSettings($pointId, 'policyId') : price_ListToCustomers::getListForCustomer($contragentClassId, $contragentId, $date);
+
+            $title = tr("Политика|*: ") . price_Lists::getTitleById($contragentPriceListId);
+            if($link){
+                $singleUrl = $Class->getSingleUrlArray($contragentId);
+                if($singleUrl){
+                    $title = ht::createLinkRef($title, $singleUrl, false, array('title' => $Class->getTitleById($contragentId)));
+                }
+            }
+
+            return $title;
+        }
+    }
+
+
+    /**
+     * Екшън за ръчно приключване на бележка
+     */
+    public function act_manualpending()
+    {
+        $this->requireRightFor('manualpending');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = static::fetch($id));
+        $this->requireRightFor('manualpending', $rec);
+        $this->markAsWaiting($rec);
+        $this->logInAct('Ръчно приключване на бележка', $rec->id);
+
+        followRetUrl(null, '|Бележката е ръчно приключена');
+    }
+
+
+    /**
+     * Рекалкулира автоматичните отстъпки за продажбата
+     *
+     * @param $rec
+     * @return void
+     */
+    public static function recalcAutoDiscount($rec)
+    {
+        $rec = pos_Receipts::fetchRec($rec);
+
+        $basicDiscountListRec = price_Lists::getListWithBasicDiscounts('pos_Receipts', $rec);
+        if(!is_object($basicDiscountListRec)) return;
+
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey=productId");
+        $dQuery->EXT('groups', 'cat_Products', "externalName=groups,externalKey=productId");
+        $dQuery->where("#receiptId = {$rec->id} AND #isPublic = 'yes' AND #action = 'sale|code'");
+        $detailsAll = $dQuery->fetchAll();
+
+        $save = array();
+        $discountData = price_ListBasicDiscounts::getAutoDiscountsByGroups($basicDiscountListRec, 'pos_Receipts', $rec, 'pos_ReceiptDetails', $detailsAll);
+        foreach ($detailsAll as $dRec){
+            foreach ($discountData['groups'] as $groupId => $d){
+                if(!keylist::isIn($groupId, $dRec->groups)) continue;
+                if(empty($d['percent'])) continue;
+
+                $dRec->autoDiscount = $d['percent'];
+                $save[] = $dRec;
+            }
+        }
+
+        cls::get('pos_ReceiptDetails')->saveArray($save, 'id,autoDiscount');
     }
 }

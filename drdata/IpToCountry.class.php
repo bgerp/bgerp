@@ -39,6 +39,9 @@ class drdata_IpToCountry extends core_Manager
         $this->FLD('country2', 'varchar(2)', 'mandatory,caption=Код на държава');
         
         $this->load('drdata_Countries,drdata_Wrapper');
+        $this->setDbIndex('minIp');
+        $this->setDbIndex('maxIp');
+        $this->setDbIndex('minIp, maxIp');
         
         $this->dbEngine = 'MYISAM';
     }

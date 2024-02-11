@@ -290,7 +290,7 @@ class bgerp_Setup extends core_ProtoSetup
 
         // Добавяме допълнителните пакети, само при първоначален Setup
         if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
-            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,tnef,tinymce';
+            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,tnef,tinymce,barcode';
         } else {
 
             try {
@@ -474,9 +474,10 @@ class bgerp_Setup extends core_ProtoSetup
         // Принудително обновяване на ролите
         $html .= core_Roles::rebuildRoles();
         $html .= core_Users::rebuildRoles();
-        
+
         $html .= core_Classes::add('bgerp_plg_CsvExport');
-        
+        $html .= core_Classes::add('bgerp_plg_XlsExport');
+
         $html .= parent::install();
         
         core_SystemLock::remove();

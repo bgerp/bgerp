@@ -197,8 +197,15 @@ class pos_Reports extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn, 'd.m.Y H:i');
-        $row->to = dt::mysql2verbal($rec->details['receipts'][countR($rec->details['receipts']) - 1]->createdOn, 'd.m.Y H:i');
+
+        $dates = arr::extractValuesFromArray($rec->details['receipts'], 'createdOn');
+        if(countR($dates)){
+            $fromDate = min($dates);
+            $toDate = max($dates);
+
+            $row->from = dt::mysql2verbal($fromDate, 'd.m.Y H:i');
+            $row->to = dt::mysql2verbal($toDate, 'd.m.Y H:i');
+        }
         
         if ($fields['-single']) {
             $pointRec = pos_Points::fetch($rec->pointId);
@@ -733,7 +740,7 @@ class pos_Reports extends core_Master
             if ($pointId = Request::get('pointId', 'key(mvc=pos_Points)')) {
                 if (!self::canMakeReport($pointId)) {
                     
-                    return followRetUrl(null, 'Не може да се направи отчет');
+                    return followRetUrl(null, '|Не може да се направи отчет');
                 }
             }
         }

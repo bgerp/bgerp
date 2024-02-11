@@ -628,11 +628,11 @@ class batch_Items extends core_Master
      * @param datetime|NULL $date      - към дата, ако е празно текущата
      * @param int|NULL      $limit     - лимит на резултатите
      * @param array         $except    - кой документ да се игнорира
-     *
+     * @param string|null   $batch     - конкретна партида
      * @return array $res - масив с партидите и к-та
      *               ['productId']['batch'] => ['quantity']
      */
-    public static function getProductsWithMovement($storeId = null, $productId = null, $date = null, $limit = null, $except = array())
+    public static function getProductsWithMovement($storeId = null, $productId = null, $date = null, $limit = null, $except = array(), $batch = null)
     {
         // Намират се всички движения в посочения интервал за дадения артикул в подадения склад
         $query = batch_Movements::getQuery();
@@ -644,6 +644,9 @@ class batch_Items extends core_Master
         $query->show('batch,quantity,operation,date,docType,docId,productId');
         if(isset($productId)){
             $query->where("#productId = {$productId}");
+        }
+        if(isset($batch)){
+            $query->where(array("#batch = '[#1#]'", $batch));
         }
 
         if(isset($storeId)){
@@ -696,18 +699,20 @@ class batch_Items extends core_Master
      * @param int|NULL      $limit     - лимит на резултатите
      * @param array         $except    - кой документ да се игнорира
      * @param boolean       $onlyActiveBatches - дали да са само текущо активните партиди
+     * @param string|null   $batch     - ид на склад
+     *
      *
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false)
+    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null)
     {
         $res = array();
         $date = (isset($date)) ? $date : dt::today();
         $def = batch_Defs::getBatchDef($productId);
         if (!$def) return $res;
         
-        $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except);
+        $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except, $batch);
         $res = is_array($found[$productId]) ? $found[$productId] : array();
 
         // Добавяне и на партидите от активни документи в черновата на журнала
@@ -717,11 +722,11 @@ class batch_Items extends core_Master
         if(isset($storeId)){
             $bQuery->where("#storeId = {$storeId}");
         }
+        if(isset($batch)){
+            $bQuery->where(array("#batch = '[#1#]'", $batch));
+        }
         $bQuery->where("#state = 'active'");
         $bQuery->groupBy('batch');
-        if(countR($res)){
-            $bQuery->notIn('batch', array_keys($res));
-        }
         $bQuery->where("#date <= '{$date}'");
         $bQuery->show('batch');
 

@@ -49,7 +49,7 @@ class sales_Sales extends deals_DealMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-                    acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
+                    acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation,price_plg_TotalDiscount, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg,cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
@@ -1054,7 +1054,7 @@ class sales_Sales extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if ($rec->state != 'active' && sales_SalesDetails::fetch("#saleId = {$rec->id}")) {
+            if ($rec->state != 'active' && (sales_SalesDetails::fetch("#saleId = {$rec->id}") || price_DiscountsPerDocuments::count("#documentClassId = {$mvc->getClassId()} AND #documentId = {$rec->id}"))) {
                 $res = 'no_one';
             } elseif (!haveRole('sales,ceo', $userId)) {
                 $res = 'no_one';
@@ -1920,50 +1920,54 @@ class sales_Sales extends deals_DealMaster
     protected static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
     {
         if ($form->isSubmitted()) {
-            $action = type_Set::toArray($form->rec->action);
-            if (isset($action['ship'])) {
-                $dQuery = sales_SalesDetails::getQuery();
-                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-                $dQuery->where("#saleId = {$rec->id}");
-                $dQuery->show('productId,quantity,canStore');
-                $dQuery2 = clone $dQuery;
+            if($rec->amountDeal < 0){
+                $form->setError('action', 'Общата сума на продажбата не може да е отрицателна|*!');
+            } else {
+                $action = type_Set::toArray($form->rec->action);
+                if (isset($action['ship'])) {
+                    $dQuery = sales_SalesDetails::getQuery();
+                    $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                    $dQuery->where("#saleId = {$rec->id}");
+                    $dQuery->show('productId,quantity,canStore');
+                    $dQuery2 = clone $dQuery;
 
-                $detailsToCheck = array();
-                while($dRec = $dQuery->fetch()){
-                    $addProductToCheck = true;
-                    $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
-                    if(is_object($instantBomRec)){
-                        $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
-                        if(is_array($bomInfo['resources'])){
-                            foreach ($bomInfo['resources'] as $r){
-                                $detailsToCheck[] = (object)array('productId' => $r->productId, 'quantity' => $r->propQuantity);
-                                $addProductToCheck = false;
+                    $detailsToCheck = array();
+                    while($dRec = $dQuery->fetch()){
+                        $addProductToCheck = true;
+                        $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
+                        if(is_object($instantBomRec)){
+                            $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
+                            if(is_array($bomInfo['resources'])){
+                                foreach ($bomInfo['resources'] as $r){
+                                    $detailsToCheck[] = (object)array('productId' => $r->productId, 'quantity' => $r->propQuantity);
+                                    $addProductToCheck = false;
+                                }
                             }
+                        }
+
+                        if($addProductToCheck){
+                            $detailsToCheck[] = $dRec;
                         }
                     }
 
-                    if($addProductToCheck){
-                        $detailsToCheck[] = $dRec;
+                    if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsToCheck, $rec->shipmentStoreId, $rec->state)) {
+                        if(store_Setup::canDoShippingWhenStockIsNegative()){
+                            $form->setWarning('action', $warning);
+                        } else {
+                            $form->setError('action', $warning);
+                        }
                     }
-                }
 
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsToCheck, $rec->shipmentStoreId, $rec->state)) {
-                    if(store_Setup::canDoShippingWhenStockIsNegative()){
-                        $form->setWarning('action', $warning);
-                    } else {
-                        $form->setError('action', $warning);
+                    $detailsAll = $dQuery2->fetchAll();
+                    $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($detailsAll, 'productId'), 'canSell');
+
+                    if ($productCheck['metasError']) {
+                        $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['metasError']) . ' |трябва да са продаваеми|*!';
+                        $form->setError('action', $error1);
+                    } elseif ($productCheck['notActive']) {
+                        $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
+                        $form->setError('action', $error1);
                     }
-                }
-                
-                $detailsAll = $dQuery2->fetchAll();
-                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($detailsAll, 'productId'), 'canSell');
-                
-                if ($productCheck['metasError']) {
-                    $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['metasError']) . ' |трябва да са продаваеми|*!';
-                    $form->setError('action', $error1);
-                } elseif ($productCheck['notActive']) {
-                    $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
-                    $form->setError('action', $error1);
                 }
             }
         }
@@ -2025,33 +2029,25 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Обновява мастъра
+     * След обновяване на мастъра
      *
      * @param mixed $id - ид/запис на мастъра
      */
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
-        $rec = $mvc->fetchRec($id);
-        if (!in_array($rec->state, array('draft', 'pending'))) {
-            return;
-        }
-        
-        // Изчисляване на автоматичните отстъпки ако може
-        $DiscountInterface = price_ListToCustomers::getAutoDiscountClassForCustomer($rec->priceListId, $rec->contragentClassId, $rec->contragentId, $rec->valior);
-        if ($DiscountInterface) {
-            $update = array();
-            $dQuery = cls::get('sales_SalesDetails')->getQuery();
-            $dQuery->where("#saleId = {$rec->id}");
-            while ($dRec = $dQuery->fetch()) {
-                $dRec->autoDiscount = $DiscountInterface->calcAutoSaleDiscount('sales_SalesDetails', $dRec, 'sales_Sales', $rec);
-                $update[$dRec->id] = $dRec;
-            }
-            
-            cls::get('sales_SalesDetails')->saveArray($update, 'id,autoDiscount');
+        // Ако е зададено в мода да не се рекалкулират отстъпките
+        $calcAutoDiscounts = Mode::get('calcAutoDiscounts');
+        if($calcAutoDiscounts === false) return;
 
-            // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
-            $mvc->updateMaster_($id);
+        // Ако има твърда отстъпка за целия документ, изчислява се тя
+        $rec = $mvc->fetchRec($id);
+        $recalcTotalDiscount = $mvc->recalcAutoTotalDiscount($rec);
+        if(!$recalcTotalDiscount){
+            // Ако няма се изчислява по автоматичните отстъпки от ЦП
+            static::recalcAutoDiscount($rec);
         }
+
+        $mvc->updateMaster_($rec);
     }
     
     
@@ -2100,7 +2096,6 @@ class sales_Sales extends deals_DealMaster
      * Интерфейсен метод
      *
      * @param int $id
-     *
      * @return object
      *
      * @see doc_ContragentDataIntf
@@ -2270,5 +2265,46 @@ class sales_Sales extends deals_DealMaster
         $fieldset->FLD('email', 'email', 'caption=Поръчител->Имейл');
         $fieldset->FLD('cartId', 'int', 'caption=Поръчител->Количка №');
         $fieldset->FLD('instruction', 'int', 'caption=Поръчител->Инструкции');
+    }
+
+
+    /**
+     * Рекалкулира автоматичните отстъпки за продажбата
+     *
+     * @param $rec
+     * @return void
+     */
+    public static function recalcAutoDiscount($rec)
+    {
+        $rec = sales_Sales::fetchRec($rec);
+
+        // Има ли лист за автоматични отстъпки
+        $basicDiscountListRec = price_Lists::getListWithBasicDiscounts(get_called_class(), $rec);
+        if(!is_object($basicDiscountListRec)) return;
+
+        // Взима всички детайли и се опитва да сметне автоматичните отстъпки
+        $Detail = cls::get('sales_SalesDetails');
+        $dQuery = $Detail->getQuery();
+        $dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $dQuery->where("#saleId = {$rec->id} AND #isPublic = 'yes'");
+        $detailsAll = $dQuery->fetchAll();
+        $discountData = price_ListBasicDiscounts::getAutoDiscountsByGroups($basicDiscountListRec, 'sales_Sales', $rec, 'sales_SalesDetails', $detailsAll);
+
+        // За всеки артикул, ако попада в група с авотматични отстъпки - взима средния процент от нея
+        $save = array();
+        foreach ($detailsAll as $dRec){
+            foreach ($discountData['groups'] as $groupId => $d){
+                if(!keylist::isIn($groupId, $dRec->groups)) continue;
+                if(empty($d['percent'])) continue;
+
+                $dRec->autoDiscount = $d['percent'];
+                $save[] = $dRec;
+            }
+        }
+
+        if(countR($save)){
+            $Detail->saveArray($save, 'id,autoDiscount');
+        }
     }
 }

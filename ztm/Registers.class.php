@@ -162,7 +162,12 @@ class ztm_Registers extends core_Master
                 break;
         }
 
-        return core_Type::getByName($ourType);
+        $oType = core_Type::getByName($ourType);
+        if ($type == 'json') {
+            $oType->params['hideLevel'] = 0;
+        }
+
+        return $oType;
     }
     
     

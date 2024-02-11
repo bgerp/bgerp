@@ -996,7 +996,7 @@ class cat_BomDetails extends doc_Detail
         if (isset($notAllowed[$rec->resourceId])) {
             $productVerbal = cat_Products::getTitleById($masterRec->productId);
             
-            return followRetUrl(null, "Артикулът не може да бъде , защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>", 'error');
+            return followRetUrl(null, "|Артикулът не може да бъде , защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>", 'error');
         }
         
         $bomRec = null;

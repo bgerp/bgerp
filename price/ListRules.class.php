@@ -839,7 +839,7 @@ class price_ListRules extends core_Detail
      */
     public function prepareDetail_($data)
     {
-        if(!($data->masterId == price_ListRules::PRICE_LIST_COST && !isset($data->masterData->rec->discountClass))){
+        if(!($data->masterId == price_ListRules::PRICE_LIST_COST)){
             $data->TabCaption = 'Правила';
             $data->Tab = 'top';
         }

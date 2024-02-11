@@ -130,9 +130,10 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         }
         
         $cu = core_Users::getCurrent();
-        $fiscalArr['SERIAL_NUMBER'] = $registerRec->serialNumber;
+        $fiscalArr['SERIAL_NUMBER'] = (bgfisc_Setup::get('CHECK_SERIAL_NUMBER') == 'yes') ? $registerRec->serialNumber : false;
         $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
-        
+        $fiscalArr['IS_PRINT_VAT'] = bgfisc_Setup::get('PRINT_VAT_GROUPS') == 'yes';
+
         $receiptNumber = bgfisc_Register::getSaleNumber($mvc, $rec->id);
         if ($rec->isReverse == 'yes') {
             $fiscalArr['RELATED_TO_URN'] = $receiptNumber;
@@ -279,7 +280,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $amount = round($amount, 2);
             $arr = array('PLU_NAME' => cat_Products::getVerbal($dRec->productId, 'name'), 'QTY' => 1, 'PRICE' => $amount, 'VAT_CLASS' => $vatClass);
             $price = round($amount / $dRec->packQuantity, bgfisc_Setup::get('PRICE_FU_ROUND'));
-            $arr['BEFORE_PLU_TEXT'] = "{$dRec->packQuantity}x{$price}лв";
+            $arr['BEFORE_PLU_TEXT'] = "{$dRec->packQuantity} x {$price}лв";
             if (!empty($dRec->discount)) {
                 $arr['PERCENT'] = $dRec->discount * 100;
                 $arr['DISC_ADD_V'] = -1 * round($dRec->discount * $amountWithVatNotRound, 2);
