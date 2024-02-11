@@ -54,6 +54,8 @@ class floor_Setup extends core_ProtoSetup
     public $managers = array(
         'floor_Plans',
         'floor_Objects',
+        'floor_Views',
+        'floor_ViewDetails',
     );
 
 
