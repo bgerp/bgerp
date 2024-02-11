@@ -62,7 +62,8 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $this->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
         $this->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
-        
+        $this->appendOnce("\n<meta  name=\"theme-color\" content=\"black\">", 'HEAD');
+
         // Добавяне на титлата на страницата
         $conf = core_Packs::getConfig('core');
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
