@@ -101,11 +101,13 @@ class ztm_RegisterValues extends core_Manager
         while ($dRec = $dQuery->fetch()) {
             $deviceOptions[$dRec->id] = ztm_Devices::getRecTitle($dRec);
         }
+
+        $data->listFilter->FNC('registers', 'keylist(mvc=ztm_Registers, select=name)', 'caption=Регистри, remember');
         
         $data->listFilter->setOptions('deviceId', $deviceOptions);
         $data->listFilter->setFieldTypeParams('deviceId', array('allowEmpty' => 'allowEmpty'));
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'deviceId,registerId';
+        $data->listFilter->showFields = 'deviceId,registers';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         $data->query->EXT('deviceState', 'ztm_Devices', 'externalName=state,externalKey=deviceId');
@@ -117,8 +119,8 @@ class ztm_RegisterValues extends core_Manager
                 $data->query->where("#deviceId = {$deviceId}");
             }
             
-            if ($registerId = $data->listFilter->rec->registerId) {
-                $data->query->where("#registerId = {$registerId}");
+            if ($registers = $data->listFilter->rec->registers) {
+                $data->query->orWhereArr('registerId', type_Keylist::toArray($registers));
             }
         }
     }
