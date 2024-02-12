@@ -159,8 +159,8 @@ class planning_AssetSparePartsDetail extends core_Detail
         }
 
         $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc));
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'pallet');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'pallet');
 
         $details = $table->get($data->rows, $data->listFields);
         $tpl->append($details, 'content');
