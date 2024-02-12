@@ -202,7 +202,7 @@ class planning_AssetSparePartsDetail extends core_Detail
 
         // Извличане на планираните наличности за посочения хоризонт
         $now = dt::now();
-        $horizonDate = dt::addMonths(planning_Setup::get('SPARE_PARTS_HORIZON_IN_LIST'), date('Y-m-01'), false);
+        $horizonDate = dt::addMonths(planning_Setup::get('SPARE_PARTS_HORIZON_IN_LIST'), dt::today(), false);
         $plannedArr = store_StockPlanning::getPlannedQuantities($horizonDate, $productIds);
 
         // Показване на общите к-ва
