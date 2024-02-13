@@ -249,7 +249,8 @@ class sales_Invoices extends deals_InvoiceMaster
 
         $this->setDbUnique('number');
     }
-    
+
+
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
@@ -456,7 +457,14 @@ class sales_Invoices extends deals_InvoiceMaster
         parent::inputInvoiceForm($mvc, $form);
         
         if ($form->isSubmitted()) {
-            
+
+            if(isset($rec->id)){
+                if($rec->dpOperation == 'accrued' && price_DiscountsPerDocuments::haveDiscount($mvc, $rec->id)){
+
+                    $form->setError('amountAccrued', 'Не може да се начислява аванс, ако фактурата е със зададени общи отстъпки');
+                }
+            }
+
             // Валидна ли е датата (при само промяна няма да се изпълни)
             $warning = null;
             if (!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== true) {
