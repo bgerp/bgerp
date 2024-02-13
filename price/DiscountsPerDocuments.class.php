@@ -320,7 +320,7 @@ class price_DiscountsPerDocuments extends core_Detail
     public static function haveDiscount($mvc, $id)
     {
         $mvc = cls::get($mvc);
-        $rec = price_DiscountsPerDocuments::fetchField("#documentClassId = {$mvc->getClassId()} AND #documentId = {$id}");
+        $rec = price_DiscountsPerDocuments::fetch("#documentClassId = {$mvc->getClassId()} AND #documentId = {$id}");
 
         return is_object($rec);
     }
