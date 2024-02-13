@@ -12,7 +12,6 @@ function loginFormSubmit(form, passSalt, hashFactor, nickType)
  
     if(pass != '') { 
         form.pass.value = '';
-        form.pass.type = 'text'
         var passwordHash = encodePwd(pass, nick, passSalt, hashFactor);
         
         form.time.value = parseInt(form.time.value) + Math.round((new Date().getTime() - scriptStart)/1000 ); 

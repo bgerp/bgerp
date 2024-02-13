@@ -60,6 +60,7 @@
     <!--ET_BEGIN sales_InvoiceDetails-->
     <div class='scrolling-holder details'>
         [#sales_InvoiceDetails#]
+        [#price_DiscountsPerDocuments#]
     </div>
     <!--ET_END sales_InvoiceDetails-->
     <div class="lines"></div>

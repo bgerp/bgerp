@@ -130,15 +130,6 @@ class bgfisc_plg_CashDocument extends core_Plugin
             }
             $requiredRoles = 'no_one';
         }
-        
-        if($action == 'hardconto' && isset($rec)){
-            $revertedLog = doclog_Documents::getActionsInHistory($rec->containerId, 'Ревъртване на контировката', 1);
-            if(!countR($revertedLog)) {
-                $requiredRoles = 'no_one';
-            } elseif(!$mvc->haveRightFor('conto', $rec)){
-                $requiredRoles = 'no_one';
-            }
-        }
     }
     
     
@@ -712,64 +703,59 @@ class bgfisc_plg_CashDocument extends core_Plugin
                     $form->setError('qr,qrFN,qrNum,qrDate,qrTime,qrAmount', 'Трябва да е въведен или само QR код или ръчно да са въведени останалите полета');
                 }
 
-                if(empty($fRec->qr) && !$numFldCount){
-                    $form->setError('qr,qrFN,qrNum,qrDate,qrTime,qrAmount', 'Въведете или QR код или ръчно останалите полета');
-                }
-
-                if(empty($fRec->qr) && $numFldCount != 5){
-                    $form->setError('qrFN,qrNum,qrDate,qrTime,qrAmount', 'Трябва да са въведени всички полета');
-                }
-
                 if(!$form->gotErrors()){
                     $qrCode = !empty($fRec->qr) ? $fRec->qr : implode('*', $nums);
+                    if(!empty($qrCode)){
+                        if(bgfisc_PrintedReceipts::fetchField(array("#string = '[#1#]'", $qrCode))){
+                            $errFld = !empty($fRec->qr) ? 'qr' : 'qrFN,qrNum,qrDate,qrTime,qrAmount';
+                            $form->setError($errFld, "Има вече издадена бележка с код|*:<b>{$qrCode}</b>");
+                        } else {
+                            $parsedQr = explode('*', $qrCode);
+                            if(!empty($fRec->qr)){
+                                if(countR($parsedQr) != 5){
+                                    $form->setError('qr', "QR кода трябва да съдържа пет низа разделени с|* '*'");
+                                }
+                            }
 
-                    if(bgfisc_PrintedReceipts::fetchField(array("#string = '[#1#]'", $qrCode))){
-                        $errFld = !empty($fRec->qr) ? 'qr' : 'qrFN,qrNum,qrDate,qrTime,qrAmount';
-                        $form->setError($errFld, "Има вече издадена бележка с код|*:<b>{$qrCode}</b>");
-                    } else {
-                        $parsedQr = explode('*', $qrCode);
-                        if(!empty($fRec->qr)){
-                            if(countR($parsedQr) != 5){
-                                $form->setError('qr', "QR кода трябва да съдържа пет низа разделени с|* '*'");
+                            if(!preg_match("/^\d+$/", $parsedQr[0])){
+                                $errFld = !empty($fRec->qr) ? 'qr' : 'qrFN';
+                                $errMsg = !empty($fRec->qr) ? 'Първият низ трябва да съдържа само цифри' : 'Трябва да съдържа само цифри';
+                                $form->setError($errFld, $errMsg);
+                            }
+
+                            if(!preg_match("/^\d+$/", $parsedQr[1])){
+                                $errFld = !empty($fRec->qr) ? 'qr' : 'qrNum';
+                                $errMsg = !empty($fRec->qr) ? 'Вторият низ трябва да съдържа само цифри' : 'Трябва да съдържа само цифри';
+                                $form->setError($errFld, $errMsg);
+                            }
+
+                            $date = dt::checkByMask($parsedQr[2], 'Y-m-d');
+                            if(!$date){
+                                $dummyDate = dt::today();
+                                $errFld = !empty($fRec->qr) ? 'qr' : 'qrDate';
+                                $errMsg = !empty($fRec->qr) ? "Третият низ не е дата във формата|* {$dummyDate}" : "Датата да е във формата|* {$dummyDate}";
+                                $form->setError($errFld, $errMsg);
+                            }
+
+                            $parsedTime = explode(':', $parsedQr[3]);
+                            if(countR($parsedTime) != 3){
+                                $errFld = !empty($fRec->qr) ? 'qr' : 'qrNum';
+                                $errMsg = !empty($fRec->qr) ? 'Четвъртият низ не е валиднен час:минути:секунди' : 'Не е във формата час:минути:секунди';
+                                $form->setError($errFld, $errMsg);
                             }
                         }
+                    }
 
-                        if(!preg_match("/^\d+$/", $parsedQr[0])){
-                            $errFld = !empty($fRec->qr) ? 'qr' : 'qrFN';
-                            $errMsg = !empty($fRec->qr) ? 'Първият низ трябва да съдържа само цифри' : 'Трябва да съдържа само цифри';
-                            $form->setError($errFld, $errMsg);
+                    if(!$form->gotErrors()){
+                        core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
+                        $mvc->logWrite('Ръчно контиране на документа', $rec);
+                        $mvc->conto($rec);
+                        if(!empty($qrCode)){
+                            bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id, $qrCode);
                         }
+                        core_Locks::release("lock_{$mvc->className}_{$rec->id}");
 
-                        if(!preg_match("/^\d+$/", $parsedQr[1])){
-                            $errFld = !empty($fRec->qr) ? 'qr' : 'qrNum';
-                            $errMsg = !empty($fRec->qr) ? 'Вторият низ трябва да съдържа само цифри' : 'Трябва да съдържа само цифри';
-                            $form->setError($errFld, $errMsg);
-                        }
-
-                        $date = dt::checkByMask($parsedQr[2], 'Y-m-d');
-                        if(!$date){
-                            $dummyDate = dt::today();
-                            $errFld = !empty($fRec->qr) ? 'qr' : 'qrDate';
-                            $errMsg = !empty($fRec->qr) ? "Третият низ не е дата във формата|* {$dummyDate}" : "Датата да е във формата|* {$dummyDate}";
-                            $form->setError($errFld, $errMsg);
-                        }
-
-                        $parsedTime = explode(':', $parsedQr[3]);
-                        if(countR($parsedTime) != 3){
-                            $errFld = !empty($fRec->qr) ? 'qr' : 'qrNum';
-                            $errMsg = !empty($fRec->qr) ? 'Четвъртият низ не е валиднен час:минути:секунди' : 'Не е във формата час:минути:секунди';
-                            $form->setError($errFld, $errMsg);
-                        }
-
-                        if(!$form->gotErrors()){
-                              core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
-                              $mvc->logWrite('Ръчно контиране на документа', $rec);
-                              $mvc->conto($rec);
-                              bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id, $qrCode);
-                              core_Locks::release("lock_{$mvc->className}_{$rec->id}");
-
-                              followRetUrl(null, 'Документа е контиран без издаване на ФБ');
-                        }
+                        followRetUrl(null, 'Документа е контиран без издаване на ФБ');
                     }
                 }
             }

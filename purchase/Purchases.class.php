@@ -580,7 +580,7 @@ class purchase_Purchases extends deals_DealMaster
         $showReffInThread = purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId', 'autoDiscount', 'inputDiscount') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
 
@@ -653,7 +653,7 @@ class purchase_Purchases extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if ($rec->state != 'active' && purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")) {
+            if ($rec->state != 'active' && (purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")  || price_DiscountsPerDocuments::haveDiscount($mvc, $rec->id))) {
                 $res = 'no_one';
             } elseif (!haveRole('purchase,ceo', $userId)) {
                 $res = 'no_one';

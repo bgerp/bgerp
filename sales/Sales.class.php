@@ -813,7 +813,7 @@ class sales_Sales extends deals_DealMaster
         $showReffInThread = sales_Setup::get('SHOW_REFF_IN_SALE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'tolerance') as $fld) {
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'tolerance', 'autoDiscount', 'inputDiscount') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
 
@@ -1054,7 +1054,7 @@ class sales_Sales extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if ($rec->state != 'active' && sales_SalesDetails::fetch("#saleId = {$rec->id}")) {
+            if ($rec->state != 'active' && (sales_SalesDetails::fetch("#saleId = {$rec->id}") || price_DiscountsPerDocuments::count("#documentClassId = {$mvc->getClassId()} AND #documentId = {$rec->id}"))) {
                 $res = 'no_one';
             } elseif (!haveRole('sales,ceo', $userId)) {
                 $res = 'no_one';

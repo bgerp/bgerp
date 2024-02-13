@@ -236,7 +236,11 @@ class purchase_Invoices extends deals_InvoiceMaster
             $additionalInfo = tr('|Към авансов отчет|*: #') . $origin->getHandle() . PHP_EOL;
             $form->setDefault('additionalInfo', $additionalInfo);
         }
-        
+
+        if(!haveRole('acc,ceo')){
+            $form->setField('journalDate', 'input=none');
+        }
+
         parent::prepareInvoiceForm($mvc, $data);
         if(empty($rec->id)){
             $form->setDefault('importProducts', 'shippedNotInvoiced');

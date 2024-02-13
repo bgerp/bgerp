@@ -172,25 +172,67 @@ abstract class deals_InvoiceDetail extends doc_Detail
         // Извличане на дийл интерфейса от договора-начало на нишка
         $this->delete("#{$this->masterKey} = {$id}");
         $firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
+
+        // Изтриване на ръчните общи отстъпки
+        if(cls::haveInterface('price_TotalDiscountDocumentIntf', $this->Master)){
+            price_DiscountsPerDocuments::delete("#documentClassId={$this->Master->getClassId()} AND #documentId = {$invoiceRec->id}");
+        }
+
         $dealInfo = $firstDoc->getAggregateDealInfo();
         $importBatches = batch_Setup::get('SHOW_IN_INVOICES');
+        $chargeVat = $dealInfo->get('vatType');
 
         // За всеки артикул от договора, копира се 1:1
+        $autoDiscountPercent = null;
+        $iAmount = 0;
         if (is_array($dealInfo->dealProducts)) {
+            $valior = $dealInfo->get('agreedValior');
             foreach ($dealInfo->dealProducts as $det) {
+                $autoDiscountPercent = $det->autoDiscount;
+                $det->discount = $det->inputDiscount;
+                $det->autoDiscount = null;
                 $det->{$this->masterKey} = $id;
                 $det->amount = $det->price * $det->quantity;
                 $det->quantity /= $det->quantityInPack;
                 if(is_array($det->batches) && countR($det->batches)){
                     $det->_batches = array_keys($det->batches);
                 }
-
                 unset($det->batches);
                 $det->_importBatches = $importBatches;
                 $this->save($det);
+
+                if($chargeVat == 'yes'){
+                    $iAmount += isset($det->discount) ? ($det->amount * (1 - $det->discount)) : $det->amount;
+                }
             }
         }
-        
+
+        // Зареждане и на общите отстъпки от договора, ако има
+        if(cls::haveInterface('price_TotalDiscountDocumentIntf', $this->Master)){
+
+            // Гледа се сумата на общите отстъпки и се прехвърлят в един общ ред
+            $discQuery = price_DiscountsPerDocuments::getQuery();
+            $discQuery->where("#documentClassId = {$firstDoc->getClassId()} AND #documentId = {$firstDoc->that}");
+            $discQuery->orderBy('id', 'ASC');
+
+            $amountDiscount = 0;
+            $discountDescription = '';
+            while($discRec = $discQuery->fetch()){
+                $discountDescription .= (!empty($discountDescription) ? ', ' : '') . $discRec->description;
+                $amountDiscount += $discRec->amount;
+            }
+
+            if(!empty($discountDescription)){
+                $combinedRec = (object)array('documentClassId' => $this->Master->getClassId(), 'documentId' => $invoiceRec->id, 'amount' => $amountDiscount, 'description' => $discountDescription);
+
+                // Ако сделката е била с ДДС, то сумата без ДДС се преизчислява
+                if($chargeVat == 'yes'){
+                    $combinedRec->amount = $iAmount * $autoDiscountPercent;
+                }
+                price_DiscountsPerDocuments::save($combinedRec);
+            }
+        }
+
         // Редирект обратно към фактурата
         return followRetUrl(null, '|Артикулите от сделката са копирани успешно');
     }

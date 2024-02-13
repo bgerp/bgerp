@@ -192,9 +192,11 @@ class purchase_PurchasesData extends core_Manager
      */
     public static function getLastPurchaseFormInfo($productId, $valior, $chargeVat, $currencyRate, $currencyId)
     {
+        $inventoryClassId = store_InventoryNotes::getClassId();
         $pQuery = purchase_PurchasesData::getQuery();
-        $pQuery->where("#productId = {$productId} AND #state IN ('active', 'closed')");
+        $pQuery->where("#productId = {$productId} AND #state IN ('active', 'closed') AND #docClassId != {$inventoryClassId}");
         $pQuery->orderBy('#valior,#id', 'DESC');
+
         if($lastPurchaseRec = $pQuery->fetch()){
             $lastPurchaseDocument = doc_Containers::getDocument($lastPurchaseRec->containerId);
             $price = isset($lastPurchaseRec->discount) ? $lastPurchaseRec->price * (1 - $lastPurchaseRec->discount) : $lastPurchaseRec->price;

@@ -102,7 +102,9 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         // Извличане на всички уникални тарифни номера и сумиране на данните им
         $tariffCodes = array();
-        foreach ($data->recs as $rec1) {
+
+        foreach ($data->rows as $id => $row) {
+            $rec1 = $data->recs[$id];
             if(!array_key_exists($rec1->tariffNumber, $tariffCodes)){
                 $tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'netWeight' => null, 'transUnits' => array(), 'withoutWeightProducts' => array());
             }
@@ -154,8 +156,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         // За всяко поле за групиране
         foreach ($tariffCodes as $tariffNumber => $tariffObject) {
-            $weight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->weight);
-            $netWeight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->netWeight);
+            $weight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->weight);
+            $netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->netWeight);
 
             if(countR($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){
                 $imploded = implode(',', $tariffObject->withoutWeightProducts);
@@ -176,7 +178,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock->append($weight, 'weight');
             $groupBlock->append($tariffDescription, 'description');
             if($totalTareInPackListWithTariffCodeVal == 'yes'){
-                $tareWeight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->tareWeight);
+                $tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->tareWeight);
                 $groupBlock->append($tareWeight, 'tareWeight');
             }
 
@@ -196,8 +198,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $rows['|' . $tariffNumber] = $element;
             
             // За всички записи
-            foreach ($data->recs as $id => $rec) {
-                
+            foreach ($data->rows as $id => $row) {
+                $rec = $data->recs[$id];
                 // Ако стойността на полето им за групиране е същата като текущото
                 if ($rec->tariffNumber == $tariffNumber) {
                     if (is_object($data->rows[$id])) {
