@@ -22,10 +22,11 @@ class price_plg_TotalDiscount extends core_Plugin
      */
     public static function on_AfterAttachDetails(core_Mvc $mvc, &$res, $details)
     {
+        $mvc->declareInterface('price_TotalDiscountDocumentIntf');
         if ($mvc->details) {
             $details = arr::make($mvc->details);
             $details['price_DiscountsPerDocuments'] = 'price_DiscountsPerDocuments';
-            $mvc->details = arr::fromArray($details);
+            $mvc->details = $details;
         }
     }
 
@@ -45,6 +46,9 @@ class price_plg_TotalDiscount extends core_Plugin
     }
 
 
+    /**
+     * Метод по подразбиране извличащ информацията за сумите от документа
+     */
     public static function on_AfterGetTotalDiscountSourceData($mvc, &$res, $rec)
     {
         if(!$res){
@@ -76,6 +80,7 @@ class price_plg_TotalDiscount extends core_Plugin
     public static function on_AfterRecalcAutoTotalDiscount($mvc, &$res, $rec)
     {
         if(isset($res)) return;
+        $rec = $mvc->fetchRec($rec);
 
         $totalDiscount = price_DiscountsPerDocuments::getDiscount4Document($mvc, $rec);
         if(empty($totalDiscount)) return;
@@ -120,6 +125,7 @@ class price_plg_TotalDiscount extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         $sourceData = $mvc->getTotalDiscountSourceData($rec);
+
         if($sourceData->amount < 0){
             core_Statuses::newStatus("Сумата не може да е отрицателна|*!", 'error');
 
@@ -145,6 +151,17 @@ class price_plg_TotalDiscount extends core_Plugin
             unset($dRec->id);
             $dRec->documentId = $nRec->id;
             price_DiscountsPerDocuments::save($dRec);
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране за рекалкулиране на общите отстъпки за документа
+     */
+    public static function on_AfterCanHaveTotalDiscount($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res =  true;
         }
     }
 }

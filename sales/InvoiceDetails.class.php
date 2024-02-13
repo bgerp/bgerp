@@ -95,7 +95,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'exportParamValue,exciseTax,productTax';
+    public $fieldsNotToClone = 'exportParamValue,exciseTax,productTax,autoDiscount,inputDiscount';
 
 
     /**
@@ -107,6 +107,8 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         parent::setInvoiceDetailFields($this);
         $this->FLD('batches', 'text(rows=1)', 'caption=Допълнително->Партиди, input=none, before=notes');
         $this->FLD('exportParamValue', 'varchar', 'caption=Счетоводен параметър, input=none');
+        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none1');
+        $this->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
     }
     
     
@@ -244,5 +246,20 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         }
 
         return false;
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        if (!countR($data->rows)) return;
+        $masterRec = $data->masterData->rec;
+
+        foreach ($data->rows as $id => $row){
+            $rec = $data->recs[$id];
+            $row->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
+        }
     }
 }

@@ -133,13 +133,21 @@ class price_DiscountsPerDocuments extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(in_array($action, array('add', 'delete', 'edit')) && isset($rec)){
+        if($action == 'add' && isset($rec)){
             if(empty($rec->documentClassId) || empty($rec->documentId)){
                 $requiredRoles = 'no_one';
             } else {
-                if(!cls::get($rec->documentClassId)->haveRightFor('edit', $rec->documentId)){
+                $Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
+                if(!$Document->canHaveTotalDiscount()){
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+
+        if(in_array($action, array('add', 'delete', 'edit')) && isset($rec)){
+            $Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
+            if(!$Document->haveRightFor('edit')){
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -202,6 +210,7 @@ class price_DiscountsPerDocuments extends core_Detail
 
         $query = $this->getQuery();
         $query->where("#documentClassId = {$data->masterMvc->getClassId()} AND #documentId = {$data->masterId}");
+        $query->orderBy('id', 'ASC');
 
         // Подготовка на детайлите
         while($rec = $query->fetch()){
