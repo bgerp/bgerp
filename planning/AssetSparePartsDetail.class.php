@@ -178,7 +178,7 @@ class planning_AssetSparePartsDetail extends core_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $horizonMonthNumber = planning_Setup::get('SPARE_PARTS_HORIZON_IN_LIST');
-        $data->listFields = arr::make('assetId=Обордуване,productId=Артикул,storeId=Наличност->Склад,quantity=Наличност->Налично,pallet=Наличност->Палет,quantityAll=Наличност->Всичко налично', true);
+        $data->listFields = arr::make('assetId=Обордуване,productId=Артикул,storeId=Наличност->Склад,quantity=Наличност->Налично,pallet=Наличност->Палет,quantityAll=Наличност->Всичко', true);
         if(isset($data->masterMvc)){
             unset($data->listFields['assetId']);
         } else {
