@@ -78,6 +78,12 @@ class price_DiscountsPerDocuments extends core_Detail
 
 
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 20;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -317,5 +323,28 @@ class price_DiscountsPerDocuments extends core_Detail
         $rec = price_DiscountsPerDocuments::fetchField("#documentClassId = {$mvc->getClassId()} AND #documentId = {$id}");
 
         return is_object($rec);
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
+        $data->listFilter->showFields = 'document';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        $data->query->orderBy('id', 'DESC');
+
+        if ($fRec = $data->listFilter->rec) {
+            if (isset($fRec->document)) {
+                $document = doc_Containers::getDocumentByHandle($fRec->document);
+                if (is_object($document)) {
+                    $data->query->where("#documentClassId = {$document->getClassId()} AND #documentId = {$document->that}");
+                }
+            }
+        }
     }
 }
