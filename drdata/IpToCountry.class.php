@@ -76,12 +76,26 @@ class drdata_IpToCountry extends core_Manager
      */
     public static function get($ip = null)
     {
+        $ipToCountry = core_Cache::get('drdata_IpToCountry', 'ipToCountry');
+        if ($ipToCountry === false) {
+            $ipToCountry = array();
+        }
+
         if (!$ip) {
             $ip = type_Ip::getRealIp();
         }
-        
+
+        if (isset($ipToCountry[$ip])) {
+
+            return $ipToCountry[$ip];
+        }
+
         $cRec = drdata_IpToCountry::fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
-        
-        return $cRec->country2;
+
+        $ipToCountry[$ip] = $cRec->country2;
+
+        core_Cache::set('drdata_IpToCountry', 'ipToCountry', $ipToCountry, 1000000);
+
+        return $ipToCountry[$ip];
     }
 }
