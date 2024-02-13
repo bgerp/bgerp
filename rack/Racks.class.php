@@ -448,10 +448,8 @@ class rack_Racks extends core_Master
                 
                 $pos = "{$row}-{$i}";
                 $posFull = "{$rec->num}-{$row}-{$i}";
-                //if($posFull != '2-B-15') continue;
 
                 $hint = '';
-                
                 $title = null;
                 
                 $url = toUrl(array('rack_RackDetails', 'add', 'rackId' => $rec->id, 'row' => $row, 'col' => $i));
