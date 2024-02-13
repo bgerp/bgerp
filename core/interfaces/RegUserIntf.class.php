@@ -66,6 +66,22 @@ class core_interfaces_RegUserIntf
 
 
     /**
+     * Връща дефолтните групи, в които участва потребителя
+     *
+     * @param string $id
+     * @param integer $uId
+     * @param null|integer $personId
+     *
+     * @return array
+     */
+    public function getUserDefaultGroups($id, $uId)
+    {
+
+        return $this->class->getUserDefaultGroups($id, $uId);
+    }
+
+
+    /**
      * Връща масив с имейл за активация на потребителя
      *
      * @param string $id

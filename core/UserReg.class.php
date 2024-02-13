@@ -229,6 +229,17 @@ class core_UserReg extends core_Manager
                     crm_Persons::save($personRec, 'buzCompanyId');
 
                     $this->logNotice('Лицето е добавено към фирма', $rec->id);
+                    $uGroupArr = $class->getUserDefaultGroups($objId, $uId);
+
+                    if (!empty($uGroupArr)) {
+                        $uGroups = type_Keylist::fromArray($uGroupArr);
+                        $pRec->groupList = type_Keylist::merge($pRec->groupList, $uGroups);
+                        $pRec->groupListInput = type_Keylist::merge($pRec->groupListInput, $uGroups);
+
+                        crm_Persons::save($pRec, 'groupList, groupListInput');
+
+                        $this->logNotice('Лицето е добавено към група', $rec->id);
+                    }
                 }
 
                 if ($personRec->buzCompanyId) {
