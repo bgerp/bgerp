@@ -237,7 +237,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public function description()
     {
         parent::setInvoiceFields($this);
-        
+
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
         $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Допълнително->Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');

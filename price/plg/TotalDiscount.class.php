@@ -127,9 +127,11 @@ class price_plg_TotalDiscount extends core_Plugin
         $sourceData = $mvc->getTotalDiscountSourceData($rec);
 
         if($sourceData->amount < 0){
-            core_Statuses::newStatus("Сумата не може да е отрицателна|*!", 'error');
+            if(price_DiscountsPerDocuments::haveDiscount($mvc, $rec->id)){
+                core_Statuses::newStatus("Сумата не може да е отрицателна|*!", 'error');
 
-            return false;
+                return false;
+            }
         }
     }
 

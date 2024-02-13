@@ -107,7 +107,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         parent::setInvoiceDetailFields($this);
         $this->FLD('batches', 'text(rows=1)', 'caption=Допълнително->Партиди, input=none, before=notes');
         $this->FLD('exportParamValue', 'varchar', 'caption=Счетоводен параметър, input=none');
-        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none1');
+        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none');
         $this->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
     }
     
