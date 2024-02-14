@@ -28,7 +28,7 @@ class floor_ObjectDecoratorIntf
      */
     public function getPlans()
     {
-        return $this->class->describe();
+        return $this->class->getPlans();
     }
 
     /**
