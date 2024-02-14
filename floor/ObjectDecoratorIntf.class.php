@@ -38,7 +38,7 @@ class floor_ObjectDecoratorIntf
      */
     public function describe($planId)
     {
-        return $this->class->describe($plan);
+        return $this->class->describe($planId);
     }
 
 
