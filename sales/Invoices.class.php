@@ -955,7 +955,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         // Ако е зададено в мода да не се рекалкулират отстъпките
         $rec = $mvc->fetchRec($id);
-        if($rec->type != 'invoice' || $rec->dpOperation != 'none') return;
+        if($rec->type != 'invoice') return;
 
         // Преизчисляване ако има автоматични отстъпки
         if($mvc->recalcAutoTotalDiscount($rec)){
