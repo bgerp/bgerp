@@ -2903,17 +2903,17 @@ abstract class deals_Helper
     public static function getDiscountRow($calcedDiscount, $manualDiscount, $autoDiscount, $state)
     {
         $Percent = core_Type::getByName('percent');
+        $autoDiscountVerbal = $Percent->toVerbal($autoDiscount);
 
         if(!in_array($state, array('draft', 'pending'))){
             $calcedDiscountVerbal = $Percent->toVerbal($calcedDiscount);
             $res = $Percent->toVerbal($manualDiscount);
             if($calcedDiscount != $manualDiscount){
-                $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}", 'notice', false);
+                $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", 'notice', false);
             }
         } else {
             $res = $Percent->toVerbal($calcedDiscount);
             if(isset($autoDiscount)){
-                $autoDiscountVerbal = $Percent->toVerbal($autoDiscount);
                 $type = ($autoDiscount > 1) ? 'warning' : 'notice';
                 if(isset($calcedDiscount)){
                     $middleDiscount = round((1 - (1 - $calcedDiscount) * (1 - $autoDiscount)), 6);
