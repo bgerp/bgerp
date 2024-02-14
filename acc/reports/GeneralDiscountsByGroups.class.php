@@ -159,30 +159,31 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $receiptQuery = pos_ReceiptDetails::getQuery();
         $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
         $receiptQuery->where("#waitingOn IS NOT NULL");
+        $receiptQuery->where("#autoDiscount IS NOT NULL");
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->start, $rec->end . ' 23:59:59'));
 
-bp($receiptQuery->fetchAll());
+//bp($receiptQuery->fetchAll());
 
 
         $totalSum = array();
 
         while ($receiptRec = $receiptQuery->fetch()) {
 
-            $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
-            $folderId = $contragentRec->folderId;
-            if (!$folderId) {
-                cls::get($receiptRec->contragentClass)->forceCoverAndFolder($receiptRec->contragentObjectId);
-            }
+           // $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
+           // $folderId = $contragentRec->folderId;
+//            if (!$folderId) {
+//                cls::get($receiptRec->contragentClass)->forceCoverAndFolder($receiptRec->contragentObjectId);
+//            }
 
-            //филтър по контрагент
-            if ($rec->customers) {
-                if (!in_array($folderId, keylist::toArray($rec->customers))) continue;
-            }
+//            //филтър по контрагент
+//            if ($rec->customers) {
+//                if (!in_array($folderId, keylist::toArray($rec->customers))) continue;
+//            }
 
 
             $id = $receiptRec->id;
 
-            $totalSum[$folderId] += $receiptRec->total;
+        //    $totalSum[$folderId] += $receiptRec->total;
 
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -192,10 +193,10 @@ bp($receiptQuery->fetchAll());
                     'total' => $receiptRec->total,
                     'totalSum' => '',
                     'waitingOn' => $receiptRec->waitingOn,
-                    'contragentName' => $contragentRec->name,
+                  //  'contragentName' => $contragentRec->name,
                     'contragentObjectId' => $receiptRec->contragentObjectId,
                     'contragentClass' => $receiptRec->contragentClass,
-                    'folderId' => $folderId,
+                  //  'folderId' => $folderId,
                 );
             } else {
                 $obj = &$recs[$id];
@@ -211,9 +212,9 @@ bp($receiptQuery->fetchAll());
             $v->totalSum = $totalSum[$v->folderId];
         }
         if (countR($recs)) {
-            arr::sortObjects($recs, 'contragentName', 'asc');
+          //  arr::sortObjects($recs, 'contragentName', 'asc');
         }
-
+//bp();
         return $recs;
 
     }
@@ -235,7 +236,6 @@ bp($receiptQuery->fetchAll());
         if ($export === false) {
 
             $fld->FLD('contragentName', 'varchar', 'caption=Клиент');
-            $fld->FLD('pointId', 'datetime', 'caption=ПОС');
             $fld->FLD('datetime', 'datetime', 'caption=Време');
             $fld->FLD('total', 'double(decimals=2)', 'caption=Сума');
 
@@ -269,9 +269,6 @@ bp($receiptQuery->fetchAll());
 
 
         $row->datetime = $Datetime->toVerbal($dRec->waitingOn);
-
-
-        $row->pointId = pos_Points::getHyperlink($dRec->pointId, true);
 
         $row->contragentName = $dRec->contragentName;
         if ($rec->groupBy == 'contragentName') {
