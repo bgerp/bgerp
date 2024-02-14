@@ -165,7 +165,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         parent::setDocumentFields($this);
         $this->FLD('baseQuantity', 'double(minDecimals=2)', 'after=showMode,caption=Допълнително->Изписване,input=hidden');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=short,value=short,after=notes');
-        $this->FLD('tariffCode', 'varchar', 'caption=Логистична информация->Митнически код,input=none,autohide');
+        $this->FLD('tariffCode', 'varchar', 'caption=Логистична информация->Митнически код,input=none');
         $this->setFieldTypeParams('packQuantity', 'min=0');
     }
     
