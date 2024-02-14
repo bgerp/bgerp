@@ -214,22 +214,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $discQuery = price_DiscountsPerDocuments::getQuery();
             $discQuery->where("#documentClassId = {$firstDoc->getClassId()} AND #documentId = {$firstDoc->that}");
             $discQuery->orderBy('id', 'ASC');
+            $totalDiscountRecs = $discQuery->fetchAll();
+            $totalDiscountSum = arr::sumValuesArray($totalDiscountRecs, 'amount');
 
-            $amountDiscount = 0;
-            $discountDescription = '';
-            while($discRec = $discQuery->fetch()){
-                $discountDescription .= (!empty($discountDescription) ? ', ' : '') . $discRec->description;
-                $amountDiscount += $discRec->amount;
-            }
-
-            if(!empty($discountDescription)){
-                $combinedRec = (object)array('documentClassId' => $this->Master->getClassId(), 'documentId' => $invoiceRec->id, 'amount' => $amountDiscount, 'description' => $discountDescription);
-
-                // Ако сделката е била с ДДС, то сумата без ДДС се преизчислява
+            $expectedDiscount = $iAmount * $autoDiscountPercent;
+            foreach ($totalDiscountRecs as $tRec){
+                $tRec->documentClassId = $this->Master->getClassId();
+                $tRec->documentId = $invoiceRec->id;
+                unset($tRec->id);
                 if($chargeVat == 'yes'){
-                    $combinedRec->amount = $iAmount * $autoDiscountPercent;
+                    $tRec->amount = $expectedDiscount * ($tRec->amount / $totalDiscountSum);
                 }
-                price_DiscountsPerDocuments::save($combinedRec);
+                price_DiscountsPerDocuments::save($tRec);
             }
         }
 
