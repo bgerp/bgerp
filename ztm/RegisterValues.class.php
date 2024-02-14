@@ -319,7 +319,40 @@ class ztm_RegisterValues extends core_Manager
         // Връщане на синхронизирания масив
         return (object) $resultArr;
     }
-    
+
+
+    /**
+     * Помощна функция за обновяване на стойноститете на регистрите
+     *
+     * @param integer $regId
+     * @param mixed $val
+     * @param null|integer $deviceId
+     * @param null|datetime $lastSync
+     */
+    public static function forceSync($regId, $val, $deviceId = null, $lastSync = null)
+    {
+        setIfNot($lastSync, dt::now());
+
+        $query = self::getQuery();
+        $query->where(array("#registerId = '[#1#]'", $regId));
+        if (isset($deviceId)) {
+            $query->where(array("#deviceId = '[#1#]'", $deviceId));
+        }
+
+        $sArr = array();
+        while ($rec = $query->fetch()) {
+            $rec->value = $rec->value = ztm_Registers::recordValue($rec->registerId, $val);
+            $rec->updatedOn = $lastSync;
+            $rec->modifiedOn = dt::now();
+            $rec->modifiedBy = core_Users::getCurrent();
+            $sArr[$rec->id]  = $rec;
+        }
+
+        if (!empty($sArr)) {
+            cls::get(get_called_class())->saveArray($sArr, 'id, value,updatedOn,modifiedOn,modifiedBy');
+        }
+    }
+
     
     /**
      * Обработва подадения входящ масив
@@ -457,7 +490,7 @@ class ztm_RegisterValues extends core_Manager
                     }
                 }
             }
-            
+
             // Синхронизране на данните от устройството с тези от системата
             $lastSync = (empty($lastSync)) ? null : dt::timestamp2Mysql($lastSync);
             $result = $this->sync($regArr, $deviceRec->id, $lastSync, $oDeviceRec);
