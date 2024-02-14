@@ -341,7 +341,7 @@ class ztm_RegisterValues extends core_Manager
 
         $sArr = array();
         while ($rec = $query->fetch()) {
-            $rec->value = $rec->value = ztm_Registers::recordValue($rec->registerId, $val);
+            $rec->value = ztm_Registers::recordValue($rec->registerId, $val);
             $rec->updatedOn = $lastSync;
             $rec->modifiedOn = dt::now();
             $rec->modifiedBy = core_Users::getCurrent();
