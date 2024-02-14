@@ -52,6 +52,9 @@
 					<!--ET_BEGIN showMaxPreviousTasksInATask-->
 					<div>|За колко от предходните Операции да се визуализира готовността|*: <b>[#showMaxPreviousTasksInATask#]</b></div>
 					<!--ET_END showMaxPreviousTasksInATask-->
+					<!--ET_BEGIN autoCreateTaskState-->
+					<div>|Състояние на ПО след автоматично създаване от Рецепта|*: <b>[#autoCreateTaskState#]</b></div>
+					<!--ET_END autoCreateTaskState-->
 					<!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
 	                <!--ET_END nkid-->

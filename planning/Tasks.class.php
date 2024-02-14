@@ -2692,7 +2692,7 @@ class planning_Tasks extends core_Master
                     $newTask = clone $defaultTask;
                     $newTask->originId = $jobRec->containerId;
                     $newTask->systemId = $sysId;
-                    $newTask->state = 'pending';
+
                     if(empty($defaultTask->plannedQuantity)){
                         $newTask->plannedQuantity = $jobRec->quantity;
                         $newTask->quantityInPack = 1;
@@ -2710,10 +2710,16 @@ class planning_Tasks extends core_Master
                     if (!planning_Tasks::canAddToFolder($folderId)) {
                         $folderId = planning_Centers::getUndefinedFolderId();
                     }
+
+                    $Cover = doc_Folders::getCover($folderId);
+                    $autoCreateTaskState = $Cover->fetchField('autoCreateTaskState');
+                    $newTask->state = ($autoCreateTaskState == 'auto') ? planning_Setup::get('AUTO_CREATE_TASK_STATE'): $autoCreateTaskState;
+
                     $newTask->folderId = $folderId;
                     $newTask->saoOrder = $num;
                     $ProductionData = cat_Products::getDriver($newTask->productId)->getProductionData($newTask->productId);
                     $newTask->isFinal = $ProductionData['isFinal'];
+
                     $this->save($newTask);
 
                     // Ако има параметри от рецептата се прехвърлят 1 към 1
