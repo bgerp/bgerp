@@ -206,6 +206,22 @@ class visualcrossing_Forecasts extends core_Manager
     }
 
 
+
+    /**
+     * Връща регистрите и стойностите им
+     *
+     * @return array
+     *
+     * @see ztm_interfaces_RegSyncValues::getRegValues()
+     */
+    public function getRegValues()
+    {
+        $rArr = $this->prepareRegs();
+
+        return $rArr;
+    }
+
+
     /**
      * Прочита и промяне регистрите и стойностите им
      *
@@ -215,10 +231,34 @@ class visualcrossing_Forecasts extends core_Manager
      * @param stdClass $deviceRec
      *
      * @return stdClass
+     *
+     * @see ztm_interfaces_RegSyncValues::prepareRegValues()
      */
     public function prepareRegValues($result, $regArr, $oDeviceRec, $deviceRec)
     {
-        setIfNot($result, new stdClass);
+//        $rArr = $this->prepareRegs();
+//        foreach ($rArr as $reg => $val) {
+//            $result->{$reg} = $val;
+//        }
+
+        return $result;
+    }
+
+
+    /**
+     * Помощна функция за подготовка на регистрите
+     *
+     * @return array
+     */
+    protected function prepareRegs()
+    {
+        static $regArr = array();
+
+        if (!empty($regArr)) {
+
+            return $regArr;
+        }
+
         $now = dt::now(false);
         foreach (array(0, 3, 6) as $h) {
             $time = date('G', strtotime("{$h} hours"));
@@ -229,13 +269,13 @@ class visualcrossing_Forecasts extends core_Manager
             }
             foreach (array('icon' => 'icon', 'rh' => 'rh', 'temp' => 'low', 'wind' => 'wind') as $key => $field) {
                 $eKey = "envm.forecast.{$key}_{$h}";
-                $result->{$eKey} = $forecast->{$field};
-                if (is_numeric($result->{$eKey})) {
-                    $result->{$eKey} = (double) $result->{$eKey};
+                $regArr[$eKey] = $forecast->{$field};
+                if (is_numeric($regArr[$eKey])) {
+                    $regArr[$eKey] = (double) $regArr[$eKey];
                 }
             }
         }
 
-        return $result;
+        return $regArr;
     }
 }

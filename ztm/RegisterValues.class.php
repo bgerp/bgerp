@@ -294,6 +294,17 @@ class ztm_RegisterValues extends core_Manager
             }
         }
 
+        $iArr = core_Classes::getOptionsByInterface('ztm_interfaces_RegSyncValues');
+        foreach((array) $iArr as $iCls) {
+            $intf = cls::getInterface('ztm_interfaces_RegSyncValues', $iCls);
+            $iRegAr = $intf->getRegValues();
+
+            foreach ($iRegAr as $rName => $rVal) {
+                $rId = ztm_Registers::fetchField(array("#name = '[#1#]'", $rName), 'id');
+                ztm_RegisterValues::set($deviceId, $rId, $rVal, $lastSync);
+            }
+        }
+
         foreach ($unknownRegisters as $unknownRegisterObj) {
             $value = $unknownRegisterObj->value;
             if (!is_string($value)) {
