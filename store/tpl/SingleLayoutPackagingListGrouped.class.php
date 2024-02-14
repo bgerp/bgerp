@@ -58,7 +58,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         // Извлича се тарифния номер на артикулите
         $length = store_Setup::get('TARIFF_NUMBER_LENGTH');
-        $getLiveTariffCode = ($data->masterData->rec->state == 'draft');
+        $getLiveTariffCode = in_array($data->masterData->rec->state, array('pending', 'draft'));
 
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
