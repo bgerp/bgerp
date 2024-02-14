@@ -178,7 +178,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock->append($transUnits, 'transUnits');
             if($totalInPackListWithTariffCodeVal == 'yes'){
                 $groupAmount = core_Type::getByName('double(decimals=2)')->toVerbal($tariffObject->amount);
-                $groupAmount .= "<span style='font-weight:normal;'> {$masterRec->currencyId}, " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? tr('|с ДДС|*') : tr('|без ДДС|*')) . "</span>";
+                $groupAmount .= "<span style='font-weight:normal;'> {$masterRec->currencyId} " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? tr('|с ДДС|*') : tr('|без ДДС|*')) . "</span>";
                 $groupBlock->append($groupAmount, 'groupAmount');
             }
             $groupVerbal = $groupBlock;
