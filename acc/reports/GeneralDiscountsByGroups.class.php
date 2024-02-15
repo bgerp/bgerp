@@ -36,7 +36,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryRowCaption = 'ОБЩО';
+    protected $summaryRowCaption = 'ОБЩО ЗА ПЕРИОДА';
 
 
     /**
@@ -89,15 +89,13 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,refreshForm,after=title');
-        $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,refreshForm,after=start');
+        $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,refreshForm,after=title,single=none');
+        $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,refreshForm,after=start,single=none');
 
-        $fieldset->FLD('srmGroup', 'key2(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Клиенти,mandatory,input,silent,after=end,remember,autoFilter');
-
-        // $fieldset->FLD('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Артикули,input,silent,after=crmGroupId,remember,autoFilter');
+        $fieldset->FLD('srmGroup', 'key2(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Клиенти,mandatory,input,silent,after=end,remember,autoFilter,single=none');
 
         //Групиране на резултатите
-        $fieldset->FLD('groupBy', 'enum(contragentName=Клиент,date=Дата, kross=Клиент по дати)', 'caption=Групиране по,after=groupId,single=none,refreshForm,silent');
+        $fieldset->FLD('seeBy', 'enum(contragentName=Клиент,date=Дата, kross=Клиент по дати)', 'caption=Групиране по,after=groupId,single=none,refreshForm,silent');
 
         $fieldset->FNC('allCompanyDiscount', 'double', 'caption=Общо отстъпка,input=none,single=none');
     }
@@ -150,10 +148,10 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-//bp($rec);
+
         //Показването да бъде ли ГРУПИРАНО
-        if ($rec->groupBy != 'no') {
-            //  $this->groupByField = $rec->groupBy;
+        if ($rec->seeBy == 'kross') {
+            $this->groupByField = 'contragentName';
         }
 
         $receiptQuery = pos_ReceiptDetails::getQuery();
@@ -161,10 +159,9 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $receiptQuery->where("#waitingOn IS NOT NULL");
         $receiptQuery->where("#autoDiscount IS NOT NULL");
 
-        $end = substr(($rec->end), 0, 10). ' 23:59:59';
+        $end = substr(($rec->end), 0, 10) . ' 23:59:59';
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->start, $end));
 
-        //bp($receiptQuery->fetchAll());
         $allCompanyDiscount = 0;
 
         while ($receiptDetailRec = $receiptQuery->fetch()) {
@@ -185,13 +182,16 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $allCompanyDiscount += $autoDiscount;
 
             //Ключ
-            if ($rec->groupBy == 'date') {
+            if ($rec->seeBy == 'date') {
 
                 $id = substr(dt::mysql2verbal($receiptDetailRec->waitingOn), 0, 8);
 
-            } elseif ($rec->groupBy == 'contragentName') {
+            } elseif ($rec->seeBy == 'contragentName') {
                 $id = $folderId;
+            } elseif ($rec->seeBy == 'kross') {
+                $id = $folderId . '|' . substr(dt::mysql2verbal($receiptDetailRec->waitingOn), 0, 8);
             }
+
 
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -224,6 +224,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         if (countR($recs)) {
             arr::sortObjects($recs, 'contragentName', 'asc');
         }
+
         return $recs;
 
     }
@@ -244,10 +245,14 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
 
-            if ($rec->groupBy == 'date') {
+            if ($rec->seeBy != 'kross') {
+                if ($rec->seeBy == 'date') {
+                    $fld->FLD('date', 'varchar', 'caption=Дата');
+                } elseif ($rec->seeBy == 'contragentName') {
+                    $fld->FLD('contragentName', 'varchar', 'caption=Клиент');
+                }
+            } else {
                 $fld->FLD('date', 'varchar', 'caption=Дата');
-            } elseif ($rec->groupBy == 'contragentName') {
-                $fld->FLD('contragentName', 'varchar', 'caption=Клиент');
             }
 
 
@@ -286,12 +291,16 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $d = substr(dt::mysql2verbal($dRec->waitingOn), 0, 8);
 
         $row->date = $d;
+        if ($rec->seeBy == 'kross') {
+            $row->date = '<span class="fright">' . $d . '</span>';
+        }
+
 
         $row->contragentName = $dRec->contragentName;
 
 
 //        if ($rec->groupBy == 'contragentName') {
-//            $row->contragentName .= '<span class="fright">  ОБЩО: ' . $dRec->totalSum . ' лв.</span>';
+//           $row->contragentName .= '<span class="fright">  ОБЩО: ' . $dRec->totalSum . ' лв.</span>';
 //        }
 
         $row->allAutoDiscountContragent = $Double->toVerbal($dRec->allAutoDiscountContragent);
