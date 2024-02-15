@@ -250,7 +250,15 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $amountBase = $quantityAmount = 0;
         
         foreach ($rec->details as $detailRec) {
-            $amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
+
+            $discountVal = $detailRec->discount;
+            if(!empty($detailRec->autoDiscount)){
+                if(in_array($rec->state, array('draft', 'pending'))){
+                    $discountVal = round((1- (1 - $discountVal)*(1 - $detailRec->autoDiscount)), 4);
+                }
+            }
+
+            $amount = ($discountVal) ?  $detailRec->amount * (1 - $discountVal) : $detailRec->amount;
             $amount = round($amount, 2);
             $amountBase += $amount;
         }
@@ -307,7 +315,15 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             // Само складируемите продукти се изписват от склада
             if (isset($pInfo->meta['canStore'])) {
                 $amount = $detailRec->amount;
-                $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
+
+                $discountVal = $detailRec->discount;
+                if(!empty($detailRec->autoDiscount)){
+                    if(in_array($rec->state, array('draft', 'pending'))){
+                        $discountVal = round((1- (1 - $discountVal)*(1 - $detailRec->autoDiscount)), 4);
+                    }
+                }
+
+                $amount = ($discountVal) ?  $amount * (1 - $discountVal) : $amount;
                 $amount = round($amount, 2);
                 
                 $debitAccId = '321';
