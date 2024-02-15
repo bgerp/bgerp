@@ -94,8 +94,8 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
         $fieldset->FLD('srmGroup', 'key2(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Клиенти,mandatory,input,silent,after=end,remember,autoFilter,single=none');
 
-        //Групиране на резултатите
-        $fieldset->FLD('seeBy', 'enum(contragentName=Клиент,date=Дата, kross=Клиент по дати)', 'caption=Групиране по,after=groupId,single=none,refreshForm,silent');
+        //Показване на резултатите
+        $fieldset->FLD('seeBy', 'enum(contragentName=Клиент,date=Дата, kross=Клиент по дати)', 'caption=Покажи по,after=groupId,single=none,refreshForm,silent');
 
         $fieldset->FNC('allCompanyDiscount', 'double', 'caption=Общо отстъпка,input=none,single=none');
     }
