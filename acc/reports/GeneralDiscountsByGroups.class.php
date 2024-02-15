@@ -42,7 +42,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,debug';
+    public $canSelectDriver = 'ceo,manager,debug';
 
     /**
      * По кое поле да се групира
@@ -152,6 +152,8 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         //Показването да бъде ли ГРУПИРАНО
         if ($rec->seeBy == 'kross') {
             $this->groupByField = 'contragentName';
+            $this->summaryListFields = '';
+
         }
 
         $receiptQuery = pos_ReceiptDetails::getQuery();
@@ -221,8 +223,11 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
         $rec->allCompanyDiscount = $allCompanyDiscount;
 
-        if (countR($recs)) {
+        if ((countR($recs)) && (($rec->seeBy == 'kross') || ($rec->seeBy == 'contragentName'))) {
             arr::sortObjects($recs, 'contragentName', 'asc');
+        }
+        if ((countR($recs) && ($rec->seeBy == 'date'))) {
+            arr::sortObjects($recs, 'waitingOn', 'asc');
         }
 
         return $recs;
@@ -321,6 +326,8 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     {
 
         $Date = cls::get('type_Date');
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -328,7 +335,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                                         <!--ET_BEGIN start--><div>|От|*: [#start#]</div><!--ET_END start-->
                                         <!--ET_BEGIN end--><div>|До|*: [#end#]</div><!--ET_END end-->
                                         <!--ET_BEGIN srmGroup--><div>|Фирма|*: [#srmGroup#]</div><!--ET_END srmGroup-->
-                                        <!--ET_BEGIN groupBy--><div>|Изглед по|*: [#groupBy#]</div><!--ET_END groupBy-->     
+                                        <!--ET_BEGIN allCompanyDiscount--><div>|Общо авт. отстъпки|*: [#allCompanyDiscount#] лв.</div><!--ET_END allCompanyDiscount-->     
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -344,6 +351,10 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
         if (isset($data->rec->srmGroup)) {
             $fieldTpl->append(crm_Groups::getTitleById($data->rec->srmGroup), 'srmGroup');
+        }
+
+        if (isset($data->rec->allCompanyDiscount)) {
+            $fieldTpl->append($Double->toVerbal($data->rec->allCompanyDiscount), 'allCompanyDiscount');
         }
 
 
