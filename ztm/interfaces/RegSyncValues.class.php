@@ -25,6 +25,18 @@ class ztm_interfaces_RegSyncValues
 
 
     /**
+     * Връща регистрите и стойностите им
+     *
+     * @return array
+     */
+    public function getRegValues()
+    {
+
+        return $this->class->getRegValues();
+    }
+
+
+    /**
      * Прочита и промяне регистрите и стойностите им
      *
      * @param null|stdClass $result

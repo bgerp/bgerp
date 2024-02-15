@@ -92,7 +92,7 @@ class price_DiscountsPerDocuments extends core_Detail
         $this->FLD('documentId', 'int', 'column=none,notNull,silent,input=hidden,mandatory,tdClass=leftCol');
 
         $this->FLD('amount', 'double(decimals=2,Min=0)', 'mandatory,caption=Сума');
-        $this->FLD('description', 'varchar', 'mandatory,caption=Пояснение,recently');
+        $this->FLD('description', 'varchar', 'mandatory,caption=Основание');
 
         $this->setDbIndex('documentClassId,documentId');
     }
@@ -183,6 +183,16 @@ class price_DiscountsPerDocuments extends core_Detail
         $sourceData = cls::get($rec->documentClassId)->getTotalDiscountSourceData($rec->documentId);
         $vatUnit = ($sourceData->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
         $form->setField('amount', array('unit' => "|*{$sourceData->currencyId}, {$vatUnit}"));
+
+        // Зареждат се последните основания за този документ
+        $query = $mvc->getQuery();
+        $query->where("#documentClassId = {$rec->documentClassId}");
+        $query->show('description');
+        $descriptions = arr::extractValuesFromArray($query->fetchAll(), 'description');
+        if(countR($descriptions)){
+            $descriptions = array_combine($descriptions, $descriptions);
+            $form->setSuggestions('description', array('' => '') + $descriptions);
+        }
     }
 
 

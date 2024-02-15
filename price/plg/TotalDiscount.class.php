@@ -41,7 +41,7 @@ class price_plg_TotalDiscount extends core_Plugin
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if (price_DiscountsPerDocuments::haveRightFor('add', (object)array('documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id))) {
-            $data->toolbar->addBtn('Отстъпки', array('price_DiscountsPerDocuments', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/discount.png,row=2');
+            $data->toolbar->addBtn('Отстъпка', array('price_DiscountsPerDocuments', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/discount.png,row=2,title=Задаване на обща отстъпка за документа');
         }
     }
 
